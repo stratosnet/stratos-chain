@@ -1,0 +1,80 @@
+# This is a basic workflow that is manually triggered
+
+name: stratoschain
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on: [push, pull_request]
+
+# This workflow makes x86_64 binaries for mac, windows, and linux.
+
+
+jobs:
+  mac-windows:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        targetos: [windows, darwin]
+    name: stratoschain for ${{ matrix.targetos }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.15
+        env:
+          GOOS: ${{ matrix.targetos }}
+
+      - name: Compile
+        run: |
+          cd cmd/stratoschaind
+          go build .
+          cd ..
+          cd stratoschaincli
+          go build .
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stratoschaincli ${{ matrix.targetos }}
+          path: cmd/stratoschaincli/stratoschaincli
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stratoschaind ${{ matrix.targetos }}
+          path: cmd/stratoschaind/stratoschaind
+
+  linux:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        arch: [arm64, riscv64, amd64]
+
+    name: stratoschain for ${{ matrix.arch }}
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup go
+        uses: actions/setup-go@v1
+        with:
+          go-version: 1.15
+        env:
+          GOARCH: ${{ matrix.arch }}
+
+      - name: Compile
+        run: |
+          cd cmd/stratoschaind
+          go build .
+          cd ..
+          cd stratoschaincli
+          go build .
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stratoschaincli ${{ matrix.arch }}
+          path: cmd/stratoschaincli/stratoschaincli
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: stratoschaind ${{ matrix.arch }}
+          path: cmd/stratoschaind/stratoschaind
