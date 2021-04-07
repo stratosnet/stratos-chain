@@ -22,9 +22,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/sds"
-	stratoschainkeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
-	stratoschaintypes "github.com/stratosnet/stratos-chain/x/sds/types"
+	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
+	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
   // this line is used by starport scaffolding # 1
 )
 
@@ -73,12 +76,13 @@ type NewApp struct {
 
 	subspaces map[string]params.Subspace
 
-	accountKeeper  auth.AccountKeeper
-	bankKeeper     bank.Keeper
-	stakingKeeper  staking.Keeper
-	supplyKeeper   supply.Keeper
-	paramsKeeper   params.Keeper
-	stratoschainKeeper stratoschainkeeper.Keeper
+	accountKeeper      auth.AccountKeeper
+	bankKeeper         bank.Keeper
+	stakingKeeper      staking.Keeper
+	supplyKeeper       supply.Keeper
+	paramsKeeper       params.Keeper
+	sdsKeeper 		   sdskeeper.Keeper
+	potKeeper          potkeeper.Keeper
   // this line is used by starport scaffolding # 3
 	mm *module.Manager
 
@@ -103,7 +107,8 @@ func NewInitApp(
     staking.StoreKey,
 		supply.StoreKey,
     params.StoreKey,
-    stratoschaintypes.StoreKey,
+    sdstypes.StoreKey,
+    pottypes.StoreKey,
     // this line is used by starport scaffolding # 5
   )
 
@@ -160,10 +165,10 @@ func NewInitApp(
 		),
 	)
 
-	app.stratoschainKeeper = stratoschainkeeper.NewKeeper(
+	app.sdsKeeper = sdskeeper.NewKeeper(
 		app.bankKeeper,
 		app.cdc,
-		keys[stratoschaintypes.StoreKey],
+		keys[sdstypes.StoreKey],
 	)
 
   // this line is used by starport scaffolding # 4
@@ -173,7 +178,8 @@ func NewInitApp(
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		sds.NewAppModule(app.stratoschainKeeper, app.bankKeeper),
+		sds.NewAppModule(app.sdsKeeper, app.bankKeeper),
+		pot.NewAppModule(app.potKeeper, app.bankKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
     // this line is used by starport scaffolding # 6
 	)
@@ -188,7 +194,8 @@ func NewInitApp(
 		staking.ModuleName,
 		auth.ModuleName,
 		bank.ModuleName,
-		stratoschaintypes.ModuleName,
+		sdstypes.ModuleName,
+		pottypes.ModuleName,
 		supply.ModuleName,
 		genutil.ModuleName,
     // this line is used by starport scaffolding # 7
