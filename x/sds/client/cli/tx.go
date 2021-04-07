@@ -8,7 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/stratosnet/stratos-chain/x/stratoschain/types"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // GetTxCmd returns the transaction commands for this module

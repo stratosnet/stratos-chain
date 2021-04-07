@@ -16,7 +16,7 @@ wget http://download.zerotier.com/debian/buster/pool/main/z/zerotier-one/zerotie
 dpkg -i zerotier-one_1.4.6_arm64.deb
 apt install -y
 
-# Set Up stratoschain
+# Set Up sds
 chmod +x /usr/bin/stratoschaind /usr/bin/stratoschaincli
 mkdir -p /stratoschain/config
 systemctl enable stratoschaind

@@ -8,10 +8,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/stratosnet/stratos-chain/x/stratoschain/types"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
-// Keeper of the stratoschain store
+// Keeper of the sds store
 type Keeper struct {
 	CoinKeeper bank.Keeper
 	storeKey   sdk.StoreKey
@@ -19,7 +19,7 @@ type Keeper struct {
 	// paramspace types.ParamSubspace
 }
 
-// NewKeeper creates a stratoschain keeper
+// NewKeeper creates a sds keeper
 func NewKeeper(coinKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
 	keeper := Keeper{
 		CoinKeeper: coinKeeper,

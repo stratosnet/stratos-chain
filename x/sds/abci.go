@@ -1,9 +1,9 @@
-package stratoschain
+package sds
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/stratosnet/stratos-chain/x/stratoschain/keeper"
+	"github.com/stratosnet/stratos-chain/x/sds/keeper"
 	// abci "github.com/tendermint/tendermint/abci/types"
 )
 

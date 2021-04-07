@@ -22,13 +22,13 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	"github.com/stratosnet/stratos-chain/x/stratoschain"
-	stratoschainkeeper "github.com/stratosnet/stratos-chain/x/stratoschain/keeper"
-	stratoschaintypes "github.com/stratosnet/stratos-chain/x/stratoschain/types"
+	"github.com/stratosnet/stratos-chain/x/sds"
+	stratoschainkeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
+	stratoschaintypes "github.com/stratosnet/stratos-chain/x/sds/types"
   // this line is used by starport scaffolding # 1
 )
 
-const appName = "stratoschain"
+const appName = "sds"
 
 var (
 	DefaultCLIHome = os.ExpandEnv("$HOME/.stratoschaincli")
@@ -40,7 +40,7 @@ var (
 		staking.AppModuleBasic{},
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
-		stratoschain.AppModuleBasic{},
+		sds.AppModuleBasic{},
     // this line is used by starport scaffolding # 2
 	)
 
@@ -173,7 +173,7 @@ func NewInitApp(
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		stratoschain.NewAppModule(app.stratoschainKeeper, app.bankKeeper),
+		sds.NewAppModule(app.stratoschainKeeper, app.bankKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
     // this line is used by starport scaffolding # 6
 	)

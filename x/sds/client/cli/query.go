@@ -13,12 +13,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	// sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/stratosnet/stratos-chain/x/stratoschain/types"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // GetQueryCmd returns the cli query commands for this module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	// Group stratoschain queries under a subcommand
+	// Group sds queries under a subcommand
 	stratoschainQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),

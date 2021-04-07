@@ -18,12 +18,12 @@ var (
 	// KeyParamName          = []byte("ParamName")
 )
 
-// ParamKeyTable for stratoschain module
+// ParamKeyTable for sds module
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-// Params - used for initializing default parameter for stratoschain at genesis
+// Params - used for initializing default parameter for sds at genesis
 type Params struct {
 	// TODO: Add your Paramaters to the Paramter struct
 	// KeyParamName string `json:"key_param_name"`

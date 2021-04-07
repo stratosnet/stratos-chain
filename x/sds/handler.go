@@ -1,11 +1,11 @@
-package stratoschain
+package sds
 
 import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/stratoschain/keeper"
-	"github.com/stratosnet/stratos-chain/x/stratoschain/types"
+	"github.com/stratosnet/stratos-chain/x/sds/keeper"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 

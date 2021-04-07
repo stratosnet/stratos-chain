@@ -1,6 +1,6 @@
 # This is a basic workflow that is manually triggered
 
-name: stratoschain
+name: sds
 
 # Controls when the action will run. Workflow runs when manually triggered using the UI
 # or API.
@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         targetos: [windows, darwin]
-    name: stratoschain for ${{ matrix.targetos }}
+    name: sds for ${{ matrix.targetos }}
     steps:
       - uses: actions/checkout@v2
 
@@ -50,7 +50,7 @@ jobs:
       matrix:
         arch: [arm64, riscv64, amd64]
 
-    name: stratoschain for ${{ matrix.arch }}
+    name: sds for ${{ matrix.arch }}
     steps:
       - uses: actions/checkout@v2
 

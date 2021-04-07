@@ -1,6 +1,6 @@
 package types
 
-// stratoschain module event types
+// sds module event types
 const (
 	// TODO: Create your event types
 	// EventType<Action>    		= "action"
