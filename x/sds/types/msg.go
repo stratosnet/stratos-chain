@@ -9,18 +9,16 @@ import (
 type MsgFileUpload struct {
 	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
 	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`       // sender of tx
-	Nonce    [3]uint32      `json:"nonce" yaml:"nonce"`         // nonce of tx
 }
 
 // verify interface at compile time
 var _ sdk.Msg = &MsgFileUpload{}
 
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsg(fileHash []byte, sender sdk.AccAddress, nonce [3]uint32) MsgFileUpload {
+func NewMsgUpload(fileHash []byte, sender sdk.AccAddress) MsgFileUpload {
 	return MsgFileUpload{
 		FileHash: fileHash,
 		Sender:   sender,
-		Nonce:    nonce,
 	}
 }
 
