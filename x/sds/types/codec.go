@@ -6,7 +6,8 @@ import (
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-  // this line is used by starport scaffolding # 1
+	// this line is used by starport scaffolding # 1
+	cdc.RegisterConcrete(MsgFileUpload{}, "cosmos-sdk/MsgFileUpload", nil)
 }
 
 // ModuleCdc defines the module codec
