@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stratosnet/stratos-chain/x/staking/types"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

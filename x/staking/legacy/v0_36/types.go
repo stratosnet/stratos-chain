@@ -9,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	v034staking "github.com/cosmos/cosmos-sdk/x/staking/legacy/v0_34"
+	v034staking "github.com/stratosnet/stratos-chain/x/staking/legacy/v0_34"
 )
 
 const (

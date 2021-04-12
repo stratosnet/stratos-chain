@@ -10,8 +10,8 @@ import (
 	simappparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stratosnet/stratos-chain/x/staking/keeper"
+	"github.com/stratosnet/stratos-chain/x/staking/types"
 )
 
 // Simulation operation weights constants

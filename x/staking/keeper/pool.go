@@ -2,8 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/cosmos/cosmos-sdk/x/supply/exported"
+	"github.com/stratosnet/stratos-chain/x/staking/types"
 )
 
 // GetBondedPool returns the bonded tokens pool's module account

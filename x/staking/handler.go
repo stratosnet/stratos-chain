@@ -8,8 +8,8 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stratosnet/stratos-chain/x/staking/keeper"
+	"github.com/stratosnet/stratos-chain/x/staking/types"
 )
 
 func NewHandler(k keeper.Keeper) sdk.Handler {

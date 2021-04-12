@@ -13,8 +13,8 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	keep "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	keep "github.com/stratosnet/stratos-chain/x/staking/keeper"
+	"github.com/stratosnet/stratos-chain/x/staking/types"
 )
 
 func TestValidatorByPowerIndex(t *testing.T) {

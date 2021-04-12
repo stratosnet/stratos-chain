@@ -3,8 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
-	stakingexported "github.com/cosmos/cosmos-sdk/x/staking/exported"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	stakingexported "github.com/stratosnet/stratos-chain/x/staking/exported"
 )
 
 // DistributionKeeper expected distribution keeper (noalias)

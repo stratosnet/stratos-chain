@@ -4,7 +4,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	"github.com/stratosnet/stratos-chain/x/staking/keeper"
 )
 
 // BeginBlocker will persist the current header and validator set as a historical entry

@@ -7,7 +7,7 @@ import (
 	"math/rand"
 
 	"github.com/cosmos/cosmos-sdk/x/simulation"
-	"github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stratosnet/stratos-chain/x/staking/types"
 )
 
 const (
