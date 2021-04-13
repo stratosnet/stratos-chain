@@ -13,19 +13,20 @@ import (
 
 // RegisterRoutes registers sds-related REST handlers to a router
 func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/sds/file/upload", SendRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/sds/file/upload", FileUploadRequestHandlerFn(cliCtx)).Methods("POST")
+
 }
 
-// SendReq defines the properties of a send request's body.
-type SendReq struct {
+// FileUploadReq defines the properties of a send request's body.
+type FileUploadReq struct {
 	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
 	FileHash string       `json:"file_hash" yaml:"file_hash"`
 }
 
-// SendRequestHandlerFn - http request handler to send coins to a address.
-func SendRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+// FileUploadRequestHandlerFn - http request handler to send coins to a address.
+func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req SendReq
+		var req FileUploadReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			return
 		}
