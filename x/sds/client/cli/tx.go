@@ -31,10 +31,10 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return sdsTxCmd
 }
 
-// SendTxCmd will create a send tx and sign it with the given key.
+// SendTxCmd will create a file upload tx and sign it with the given key.
 func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fileUpload [from_address] [file_hash]",
+		Use:   "upload [from_address] [file_hash]",
 		Short: "Create and sign a file upload tx",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
