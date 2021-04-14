@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/hex"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -42,7 +43,7 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		fileHash, err1 := sdk.AccAddressFromHex(req.FileHash)
+		fileHash, err1 := hex.DecodeString(req.FileHash)
 		if err1 != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

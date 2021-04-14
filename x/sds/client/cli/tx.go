@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -42,7 +43,7 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
 
-			fileHash, err := sdk.AccAddressFromHex(args[1])
+			fileHash, err := hex.DecodeString(args[1])
 			if err != nil {
 				return err
 			}

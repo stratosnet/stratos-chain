@@ -5,7 +5,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-// TODO: Describe your actions, these will implment the interface of `sdk.Msg`
 type MsgFileUpload struct {
 	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
 	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`       // sender of tx
