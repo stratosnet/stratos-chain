@@ -27,10 +27,10 @@ jobs:
 
       - name: Compile sds
         run: |
-            cd cmd/stratoschaind
+            cd cmd/stratos-chaind
             go build .
             cd ..
-            cd stratoschaincli
+            cd stratos-chaincli
             go build .
         env:
           GOOS: linux
@@ -39,14 +39,14 @@ jobs:
       - name: Upload sds Arm64 CLI
         uses: actions/upload-artifact@v2
         with:
-          name: stratoschaincli arm64
-          path: cmd/stratoschaincli/stratoschaincli
+          name: stratos-chaincli arm64
+          path: cmd/stratos-chaincli/stratos-chaincli
 
       - name: Upload sds Arm64 daemon
         uses: actions/upload-artifact@v2
         with:
-          name: stratoschaind arm64
-          path: cmd/stratoschaind/stratoschaind
+          name: stratos-chaind arm64
+          path: cmd/stratos-chaind/stratos-chaind
 
       - name: Build sds.img
         run: docker run --rm --privileged -v /dev:/dev -v ${PWD}:/build mkaczanowski/packer-builder-arm build .pi/pibuild.json
