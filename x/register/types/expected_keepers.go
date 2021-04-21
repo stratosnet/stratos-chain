@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
-// ParamSubspace defines the expected Subspace interfacace
+// ParamSubspace defines the expected Subspace interface
 type ParamSubspace interface {
 	WithKeyTable(table params.KeyTable) params.Subspace
 	Get(ctx sdk.Context, key []byte, ptr interface{})

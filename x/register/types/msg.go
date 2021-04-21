@@ -12,23 +12,26 @@ var (
 	_ sdk.Msg = &MsgCreateIndexingNode{}
 )
 
+type MsgCreateResourceNode struct {
+	ResourceNodeAddress sdk.ValAddress `json:"resource_node_address" yaml:"resource_node_address"`
+	PubKey              crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
+	Value               sdk.Coin       `json:"value" yaml:"value"`
+	Description         Description    `json:"description" yaml:"description"`
+	Sender              sdk.AccAddress `json:"sender" yaml:"sender"`
+}
+
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgCreateResourceNode(
-	resourceNodeAddress sdk.ValAddress, pubKey crypto.PubKey, value sdk.Coin, delegatorAddress sdk.AccAddress,
+	resourceNodeAddress sdk.ValAddress, pubKey crypto.PubKey, value sdk.Coin,
+	description Description, sender sdk.AccAddress,
 ) MsgCreateResourceNode {
 	return MsgCreateResourceNode{
 		ResourceNodeAddress: resourceNodeAddress,
 		PubKey:              pubKey,
 		Value:               value,
-		DelegatorAddress:    delegatorAddress,
+		Description:         description,
+		Sender:              sender,
 	}
-}
-
-type MsgCreateResourceNode struct {
-	ResourceNodeAddress sdk.ValAddress `json:"resource_node_address" yaml:"resource_node_address"`
-	PubKey              crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value               sdk.Coin       `json:"value" yaml:"value"`
-	DelegatorAddress    sdk.AccAddress `json:"delegator_address" yaml:"delegator_address"`
 }
 
 func (msg MsgCreateResourceNode) Route() string {
@@ -44,11 +47,14 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	if msg.ResourceNodeAddress.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing resource node address")
 	}
-	if msg.DelegatorAddress.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing delegator address")
+	if msg.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 	if !msg.Value.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "value is not positive")
+	}
+	if msg.Description == (Description{}) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 	return nil
 }
@@ -64,9 +70,24 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 
 type MsgCreateIndexingNode struct {
 	IndexingNodeAddress sdk.ValAddress `json:"indexing_node_address" yaml:"indexing_node_address"`
-	Sender              sdk.AccAddress `json:"sender" yaml:"sender"`
 	PubKey              crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
 	Value               sdk.Coin       `json:"value" yaml:"value"`
+	Description         Description    `json:"description" yaml:"description"`
+	Sender              sdk.AccAddress `json:"sender" yaml:"sender"`
+}
+
+// NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
+func NewMsgCreateIndexingNode(
+	indexingNodeAddress sdk.ValAddress, pubKey crypto.PubKey, value sdk.Coin,
+	description Description, sender sdk.AccAddress,
+) MsgCreateIndexingNode {
+	return MsgCreateIndexingNode{
+		IndexingNodeAddress: indexingNodeAddress,
+		PubKey:              pubKey,
+		Value:               value,
+		Description:         description,
+		Sender:              sender,
+	}
 }
 
 func (msg MsgCreateIndexingNode) Route() string {
@@ -86,6 +107,9 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 	}
 	if !msg.Value.IsPositive() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "value is not positive")
+	}
+	if msg.Description == (Description{}) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "empty description")
 	}
 	return nil
 }
