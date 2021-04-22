@@ -32,7 +32,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return sdsTxCmd
 }
 
-// SendTxCmd will create a file upload tx and sign it with the given key.
+// FileUploadTxCmd will create a file upload tx and sign it with the given key.
 func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "upload [from_address] [file_hash]",
