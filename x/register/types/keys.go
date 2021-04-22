@@ -17,17 +17,17 @@ const (
 )
 
 var (
-	ResourceNodeKey              = []byte{0x21} // prefix for each key to a validator
-	ResourceNodeByAddrKey        = []byte{0x22} // prefix for each key to a validator index, by pubkey
-	ResourceNodesByPowerIndexKey = []byte{0x23} // prefix for each key to a validator index, sorted by power
+	ResourceNodeKey              = []byte{0x21} // prefix for each key to a resource node
+	ResourceNodeByAddrKey        = []byte{0x22} // prefix for each key to a resource node index, by pubkey
+	ResourceNodesByPowerIndexKey = []byte{0x23} // prefix for each key to a resource node index, sorted by power
 
-	IndexingNodeKey              = []byte{0x31}
-	IndexingNodeByAddrKey        = []byte{0x32}
-	IndexingNodesByPowerIndexKey = []byte{0x33} // prefix for each key to a validator index, sorted by power
+	IndexingNodeKey              = []byte{0x31} // prefix for each key to a indexing node
+	IndexingNodeByAddrKey        = []byte{0x32} // prefix for each key to a indexing node index, by pubkey
+	IndexingNodesByPowerIndexKey = []byte{0x33} // prefix for each key to a indexing node, sorted by power
 )
 
 // GetNodeKey gets the key for the resourceNode/indexingNode with address
-// VALUE: staking/Validator
+// VALUE: staking/node
 func GetNodeKey(nodeType NodeType, nodeAddr sdk.ValAddress) []byte {
 	switch nodeType {
 	case NodeTypeResource:
@@ -39,30 +39,30 @@ func GetNodeKey(nodeType NodeType, nodeAddr sdk.ValAddress) []byte {
 	}
 }
 
-// gets the key for the validator with pubkey
-// VALUE: validator operator address ([]byte)
+// gets the key for the resource node with pubkey
+// VALUE: resource node operator address ([]byte)
 func GetResourceNodeByAddrKey(addr sdk.ConsAddress) []byte {
 	return append(ResourceNodeByAddrKey, addr.Bytes()...)
 }
 
-// GetResourceNodesByPowerIndexKey get the ResourceNode by power index.
+// GetResourceNodesByPowerIndexKey get the resource node by power index.
 // Power index is the key used in the power-store, and represents the relative
-// power ranking of the ResourceNode.
+// power ranking of the resource node.
 // VALUE: resource node operator address ([]byte)
 func GetResourceNodesByPowerIndexKey(resourceNode ResourceNode) []byte {
 	// NOTE the address doesn't need to be stored because counter bytes must always be different
 	return getResourceNodePowerRank(resourceNode)
 }
 
-// get the power ranking of a ResourceNode
+// get the power ranking of a resource node
 // NOTE the larger values are of higher value
 func getResourceNodePowerRank(resourceNode ResourceNode) []byte {
 
-	consensusPower := TokensToConsensusPower(resourceNode.Tokens)
-	consensusPowerBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(consensusPowerBytes, uint64(consensusPower))
+	resourcePower := TokensToPower(resourceNode.Tokens)
+	resourcePowerBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(resourcePowerBytes, uint64(resourcePower))
 
-	powerBytes := consensusPowerBytes
+	powerBytes := resourcePowerBytes
 	powerBytesLen := len(powerBytes) // 8
 
 	// key is of format prefix || powerbytes || addrBytes
@@ -79,30 +79,30 @@ func getResourceNodePowerRank(resourceNode ResourceNode) []byte {
 	return key
 }
 
-// gets the key for the validator with pubkey
-// VALUE: validator operator address ([]byte)
+// gets the key for the indexing node with pubkey
+// VALUE: indexing node operator address ([]byte)
 func GetIndexingNodeByAddrKey(addr sdk.ConsAddress) []byte {
 	return append(IndexingNodeByAddrKey, addr.Bytes()...)
 }
 
-// GetResourceNodesByPowerIndexKey get the ResourceNode by power index.
+// GetResourceNodesByPowerIndexKey get the indexing node by power index.
 // Power index is the key used in the power-store, and represents the relative
-// power ranking of the ResourceNode.
-// VALUE: resource node operator address ([]byte)
+// power ranking of the indexing node.
+// VALUE: indexing node operator address ([]byte)
 func GetIndexingNodesByPowerIndexKey(indexingNode IndexingNode) []byte {
 	// NOTE the address doesn't need to be stored because counter bytes must always be different
 	return getIndexingNodePowerRank(indexingNode)
 }
 
-// get the power ranking of a ResourceNode
+// get the power ranking of a indexing node
 // NOTE the larger values are of higher value
 func getIndexingNodePowerRank(indexingNode IndexingNode) []byte {
 
-	consensusPower := TokensToConsensusPower(indexingNode.Tokens)
-	consensusPowerBytes := make([]byte, 8)
-	binary.BigEndian.PutUint64(consensusPowerBytes, uint64(consensusPower))
+	indexingPower := TokensToPower(indexingNode.Tokens)
+	indexingPowerBytes := make([]byte, 8)
+	binary.BigEndian.PutUint64(indexingPowerBytes, uint64(indexingPower))
 
-	powerBytes := consensusPowerBytes
+	powerBytes := indexingPowerBytes
 	powerBytesLen := len(powerBytes) // 8
 
 	// key is of format prefix || powerbytes || addrBytes

@@ -17,8 +17,6 @@ type Keeper struct {
 	//supplyKeeper       types.SupplyKeeper
 	//hooks              types.StakingHooks
 	//paramstore         params.Subspace
-	//validatorCache     map[string]cachedValidator
-	//validatorCacheList *list.List
 	resourceNodeCache     map[string]cachedResourceNode
 	resourceNodeCacheList *list.List
 	indexingNodeCache     map[string]cachedIndexingNode
@@ -28,9 +26,12 @@ type Keeper struct {
 // NewKeeper creates a register keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey) Keeper {
 	keeper := Keeper{
-		storeKey: key,
-		cdc:      cdc,
-		// paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
+		storeKey:              key,
+		cdc:                   cdc,
+		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
+		resourceNodeCacheList: list.New(),
+		indexingNodeCache:     make(map[string]cachedIndexingNode, indexingNodeCacheSize),
+		indexingNodeCacheList: list.New(),
 	}
 	return keeper
 }

@@ -17,7 +17,7 @@ type IndexingNode struct {
 	Description     Description    `json:"description" yaml:"description"`           // description terms for the indexing node
 }
 
-// NewValidator - initialize a new validator
+// NewIndexingNode - initialize a new indexing node
 func NewIndexingNode(operator sdk.ValAddress, pubKey crypto.PubKey, description Description) IndexingNode {
 	return IndexingNode{
 		OperatorAddress: operator,
@@ -34,7 +34,7 @@ func MustMarshalIndexingNode(cdc *codec.Codec, indexingNode IndexingNode) []byte
 	return cdc.MustMarshalBinaryLengthPrefixed(indexingNode)
 }
 
-// unmarshal a redelegation from a store value
+// MustUnmarshalIndexingNode unmarshal a indexing node from a store value. Panics if fails
 func MustUnmarshalIndexingNode(cdc *codec.Codec, value []byte) IndexingNode {
 	indexingNode, err := UnmarshalIndexingNode(cdc, value)
 	if err != nil {
@@ -43,7 +43,7 @@ func MustUnmarshalIndexingNode(cdc *codec.Codec, value []byte) IndexingNode {
 	return indexingNode
 }
 
-// unmarshal a redelegation from a store value
+// UnmarshalIndexingNode unmarshal a indexing node from a store value
 func UnmarshalIndexingNode(cdc *codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &indexingNode)
 	return indexingNode, err

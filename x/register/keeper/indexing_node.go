@@ -7,13 +7,13 @@ import (
 
 const indexingNodeCacheSize = 500
 
-// Cache the amino decoding of validators, as it can be the case that repeated slashing calls
-// cause many calls to GetValidator, which were shown to throttle the state machine in our
+// Cache the amino decoding of indexing nodes, as it can be the case that repeated slashing calls
+// cause many calls to GetIndexingNode, which were shown to throttle the state machine in our
 // simulation. Note this is quite biased though, as the simulator does more slashes than a
-// live chain should, however we require the slashing to be fast as noone pays gas for it.
+// live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedIndexingNode struct {
 	indexingNode types.IndexingNode
-	marshalled   string // marshalled amino bytes for the validator object (not operator address)
+	marshalled   string // marshalled amino bytes for the IndexingNode object (not operator address)
 }
 
 func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) cachedIndexingNode {
@@ -23,7 +23,7 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 	}
 }
 
-// get a single indexing node
+// GetIndexingNode get a single indexing node
 func (k Keeper) GetIndexingNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetNodeKey(types.NodeTypeIndexing, operatorAddr))
@@ -32,7 +32,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (i
 		return indexingNode, false
 	}
 
-	// If these amino encoded bytes are in the cache, return the cached validator
+	// If these amino encoded bytes are in the cache, return the cached indexing node
 	strValue := string(value)
 	if val, ok := k.indexingNodeCache[strValue]; ok {
 		valToReturn := val.indexingNode
@@ -57,7 +57,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (i
 	return indexingNode, true
 }
 
-// get a single resource node by node address
+// GetIndexingNodeByAddr get a single indexing node by node address
 func (k Keeper) GetIndexingNodeByAddr(ctx sdk.Context, addr sdk.ConsAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	opAddr := store.Get(types.GetIndexingNodeByAddrKey(addr))
@@ -74,7 +74,7 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 	store.Set(types.GetNodeKey(types.NodeTypeIndexing, indexingNode.OperatorAddress), bz)
 }
 
-// validator index
+// SetIndexingNodeByAddr indexing node index
 func (k Keeper) SetIndexingNodeByAddr(ctx sdk.Context, indexingNode types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
 	addr := sdk.ConsAddress(indexingNode.PubKey.Address())
@@ -91,7 +91,7 @@ func (k Keeper) SetIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.
 	store.Set(types.GetIndexingNodesByPowerIndexKey(indexingNode), indexingNode.OperatorAddress)
 }
 
-// validator index
+// SetNewIndexingNodeByPowerIndex indexing node index
 func (k Keeper) SetNewIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetIndexingNodesByPowerIndexKey(indexingNode), indexingNode.OperatorAddress)
@@ -103,7 +103,7 @@ func (k Keeper) DeleteIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode typ
 	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
 }
 
-// Update the tokens of an existing validator, update the validators power index key
+// AddIndexingNodeTokensAndShares Update the tokens of an existing indexing node, update the indexing nodes power index key
 func (k Keeper) AddIndexingNodeTokensAndShares(
 	ctx sdk.Context, indexingNode types.IndexingNode, tokensToAdd sdk.Int,
 ) (nodeOut types.IndexingNode, addedShares sdk.Dec) {
@@ -115,7 +115,7 @@ func (k Keeper) AddIndexingNodeTokensAndShares(
 	return indexingNode, addedShares
 }
 
-// Update the tokens of an existing validator, update the validators power index key
+// RemoveIndexingNodeTokensAndShares Update the tokens of an existing indexing node, update the indexing nodes power index key
 func (k Keeper) RemoveIndexingNodeTokensAndShares(
 	ctx sdk.Context, indexingNode types.IndexingNode, sharesToRemove sdk.Dec,
 ) (nodeOut types.IndexingNode, removedTokens sdk.Int) {
@@ -127,7 +127,7 @@ func (k Keeper) RemoveIndexingNodeTokensAndShares(
 	return indexingNode, removedTokens
 }
 
-// Update the tokens of an existing validator, update the validators power index key
+// RemoveIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
 func (k Keeper) RemoveIndexingNodeTokens(
 	ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int,
 ) types.IndexingNode {

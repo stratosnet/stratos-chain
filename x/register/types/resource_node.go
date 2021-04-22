@@ -17,7 +17,7 @@ type ResourceNode struct {
 	Description     Description    `json:"description" yaml:"description"`           // description terms for the resource node
 }
 
-// NewValidator - initialize a new validator
+// NewResourceNode - initialize a new resource node
 func NewResourceNode(operator sdk.ValAddress, pubKey crypto.PubKey, description Description) ResourceNode {
 	return ResourceNode{
 		OperatorAddress: operator,
@@ -34,7 +34,7 @@ func MustMarshalResourceNode(cdc *codec.Codec, resourceNode ResourceNode) []byte
 	return cdc.MustMarshalBinaryLengthPrefixed(resourceNode)
 }
 
-// unmarshal a redelegation from a store value
+// MustUnmarshalResourceNode unmarshal a resourceNode from a store value. Panics if fails
 func MustUnmarshalResourceNode(cdc *codec.Codec, value []byte) ResourceNode {
 	resourceNode, err := UnmarshalResourceNode(cdc, value)
 	if err != nil {
@@ -43,7 +43,7 @@ func MustUnmarshalResourceNode(cdc *codec.Codec, value []byte) ResourceNode {
 	return resourceNode
 }
 
-// unmarshal a redelegation from a store value
+// UnmarshalResourceNode unmarshal a resourceNode from a store value
 func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode ResourceNode, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &resourceNode)
 	return resourceNode, err

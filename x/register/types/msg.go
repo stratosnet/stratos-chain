@@ -9,7 +9,9 @@ import (
 // ensure Msg interface compliance at compile time
 var (
 	_ sdk.Msg = &MsgCreateResourceNode{}
+	//_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgCreateIndexingNode{}
+	//_ sdk.Msg = &MsgRemoveIndexingNode{}
 )
 
 type MsgCreateResourceNode struct {

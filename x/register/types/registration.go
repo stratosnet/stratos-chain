@@ -16,7 +16,7 @@ const (
 	MaxDetailsLength         = 280
 )
 
-// Description - description fields for a validator
+// Description - description fields for a resource/indexing node
 type Description struct {
 	Moniker         string `json:"moniker" yaml:"moniker"`                   // name
 	Identity        string `json:"identity" yaml:"identity"`                 // optional identity signature (ex. UPort or Keybase)
@@ -36,7 +36,7 @@ func NewDescription(moniker, identity, website, securityContact, details string)
 	}
 }
 
-// EnsureLength ensures the length of a validator's description.
+// EnsureLength ensures the length of a resource/indexing node's description.
 func (d Description) EnsureLength() (Description, error) {
 	if len(d.Moniker) > MaxMonikerLength {
 		return d, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
@@ -64,15 +64,15 @@ const (
 	NodeTypeIndexing NodeType = 2
 )
 
-// PowerReduction is the amount of staking tokens required for 1 unit of consensus-engine power
+// PowerReduction is the amount of staking tokens required for 1 unit of power
 var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(6), nil))
 
-// TokensToConsensusPower - convert input tokens to potential consensus-engine power
-func TokensToConsensusPower(tokens sdk.Int) int64 {
+// TokensToPower - convert input tokens to potential power
+func TokensToPower(tokens sdk.Int) int64 {
 	return (tokens.Quo(PowerReduction)).Int64()
 }
 
-// TokensFromConsensusPower - convert input power to tokens
-func TokensFromConsensusPower(power int64) sdk.Int {
+// TokensFromPower - convert input power to tokens
+func TokensFromPower(power int64) sdk.Int {
 	return sdk.NewInt(power).Mul(PowerReduction)
 }

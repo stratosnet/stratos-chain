@@ -7,13 +7,13 @@ import (
 
 const resourceNodeCacheSize = 500
 
-// Cache the amino decoding of validators, as it can be the case that repeated slashing calls
-// cause many calls to GetValidator, which were shown to throttle the state machine in our
+// Cache the amino decoding of resource nodes, as it can be the case that repeated slashing calls
+// cause many calls to GetResourceNode, which were shown to throttle the state machine in our
 // simulation. Note this is quite biased though, as the simulator does more slashes than a
-// live chain should, however we require the slashing to be fast as noone pays gas for it.
+// live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedResourceNode struct {
 	resourceNode types.ResourceNode
-	marshalled   string // marshalled amino bytes for the validator object (not operator address)
+	marshalled   string // marshalled amino bytes for the ResourceNode object (not operator address)
 }
 
 func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) cachedResourceNode {
@@ -23,7 +23,7 @@ func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) c
 	}
 }
 
-// get a single resource node
+// GetResourceNode get a single resource node
 func (k Keeper) GetResourceNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetNodeKey(types.NodeTypeResource, operatorAddr))
@@ -32,7 +32,7 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (r
 		return resourceNode, false
 	}
 
-	// If these amino encoded bytes are in the cache, return the cached validator
+	// If these amino encoded bytes are in the cache, return the cached resource node
 	strValue := string(value)
 	if val, ok := k.resourceNodeCache[strValue]; ok {
 		valToReturn := val.resourceNode
@@ -57,7 +57,7 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (r
 	return resourceNode, true
 }
 
-// get a single resource node by node address
+// GetResourceNodeByAddr get a single resource node by node address
 func (k Keeper) GetResourceNodeByAddr(ctx sdk.Context, addr sdk.ConsAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	opAddr := store.Get(types.GetResourceNodeByAddrKey(addr))
@@ -74,14 +74,14 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 	store.Set(types.GetNodeKey(types.NodeTypeResource, resourceNode.OperatorAddress), bz)
 }
 
-// validator index
+// SetResourceNodeByAddr resource node index
 func (k Keeper) SetResourceNodeByAddr(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	addr := sdk.ConsAddress(resourceNode.PubKey.Address())
 	store.Set(types.GetResourceNodeByAddrKey(addr), resourceNode.OperatorAddress)
 }
 
-// SetResourceNodeByPowerIndex ResourceNode index
+// SetResourceNodeByPowerIndex resource node index
 func (k Keeper) SetResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
 	// jailed resource node are not kept in the power index
 	if resourceNode.Jailed {
@@ -91,7 +91,7 @@ func (k Keeper) SetResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.
 	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.OperatorAddress)
 }
 
-// validator index
+// SetNewResourceNodeByPowerIndex resource node index
 func (k Keeper) SetNewResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.OperatorAddress)
@@ -103,7 +103,7 @@ func (k Keeper) DeleteResourceNodeByPowerIndex(ctx sdk.Context, resourceNode typ
 	store.Delete(types.GetResourceNodesByPowerIndexKey(resourceNode))
 }
 
-// Update the tokens of an existing resource node, update the resource nodes power index key
+// AddResourceNodeTokensAndShares Update the tokens of an existing resource node, update the resource nodes power index key
 func (k Keeper) AddResourceNodeTokensAndShares(
 	ctx sdk.Context, resourceNode types.ResourceNode, tokensToAdd sdk.Int,
 ) (nodeOut types.ResourceNode, addedShares sdk.Dec) {
@@ -115,7 +115,7 @@ func (k Keeper) AddResourceNodeTokensAndShares(
 	return resourceNode, addedShares
 }
 
-// Update the tokens of an existing resource node, update the resource nodes power index key
+// RemoveResourceNodeTokensAndShares Update the tokens of an existing resource node, update the resource nodes power index key
 func (k Keeper) RemoveResourceNodeTokensAndShares(
 	ctx sdk.Context, resourceNode types.ResourceNode, sharesToRemove sdk.Dec,
 ) (nodeOut types.ResourceNode, removedTokens sdk.Int) {
@@ -127,7 +127,7 @@ func (k Keeper) RemoveResourceNodeTokensAndShares(
 	return resourceNode, removedTokens
 }
 
-// Update the tokens of an existing resource node, update the resource nodes power index key
+// RemoveResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
 func (k Keeper) RemoveResourceNodeTokens(
 	ctx sdk.Context, resourceNode types.ResourceNode, tokensToRemove sdk.Int,
 ) types.ResourceNode {
