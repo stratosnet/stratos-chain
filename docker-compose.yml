@@ -1,0 +1,68 @@
+version: '3'
+
+services:
+  stratos-chaind-node0:
+    container_name: stratos-chaind-node0
+    image: "stratosnet/stratos-chaind-node"
+    ports:
+      - "26656-26657:26656-26657"
+    environment:
+      - ID=0
+      - LOG=${LOG:-stratos-chaind.log}
+    volumes:
+      - ./build:/stratos-chaind:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.11.2
+
+  stratos-chaind-node1:
+    container_name: stratos-chaind-node1
+    image: "stratosnet/stratos-chaind-node"
+    ports:
+      - "26659-26660:26656-26657"
+    environment:
+      - ID=1
+      - LOG=${LOG:-stratos-chaind.log}
+    volumes:
+      - ./build:/stratos-chaind:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.11.3
+
+  stratos-chaind-node2:
+    container_name: stratos-chaind-node2
+    image: "stratosnet/stratos-chaind-node"
+    environment:
+      - ID=2
+      - LOG=${LOG:-stratos-chaind.log}
+    ports:
+      - "26661-26662:26656-26657"
+    volumes:
+      - ./build:/stratos-chaind:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.11.4
+
+  stratos-chaind-node3:
+    container_name: stratos-chaind-node3
+    image: "stratosnet/stratos-chaind-node"
+    environment:
+      - ID=3
+      - LOG=${LOG:-stratos-chaind.log}
+    ports:
+      - "26663-26664:26656-26657"
+    volumes:
+      - ./build:/stratos-chaind:Z
+    networks:
+      localnet:
+        ipv4_address: 192.168.11.5
+
+networks:
+  localnet:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      -
+        subnet: 192.168.11.0/16
+
