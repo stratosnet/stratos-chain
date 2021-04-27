@@ -3,6 +3,9 @@ package keeper
 import (
 	"container/list"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,11 +15,11 @@ import (
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      *codec.Codec
-	//supplyKeeper       types.SupplyKeeper
-	//hooks              types.StakingHooks
-	//paramstore         params.Subspace
+	storeKey              sdk.StoreKey
+	cdc                   *codec.Codec
+	accountKeeper         auth.AccountKeeper
+	bankKeeper            bank.Keeper
+	paramstore            params.Subspace
 	resourceNodeCache     map[string]cachedResourceNode
 	resourceNodeCacheList *list.List
 	indexingNodeCache     map[string]cachedIndexingNode
@@ -24,10 +27,13 @@ type Keeper struct {
 }
 
 // NewKeeper creates a register keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper, paramstore params.Subspace) Keeper {
 	keeper := Keeper{
 		storeKey:              key,
 		cdc:                   cdc,
+		accountKeeper:         accountKeeper,
+		bankKeeper:            bankKeeper,
+		paramstore:            paramstore.WithKeyTable(ParamKeyTable()),
 		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
 		resourceNodeCacheList: list.New(),
 		indexingNodeCache:     make(map[string]cachedIndexingNode, indexingNodeCacheSize),

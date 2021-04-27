@@ -57,13 +57,6 @@ func (d Description) EnsureLength() (Description, error) {
 	return d, nil
 }
 
-type NodeType int32
-
-const (
-	NodeTypeResource NodeType = 1
-	NodeTypeIndexing NodeType = 2
-)
-
 // PowerReduction is the amount of staking tokens required for 1 unit of power
 var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(6), nil))
 

@@ -2,6 +2,7 @@ package register
 
 import (
 	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -12,7 +13,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stratosnet/stratos-chain/x/register/client/cli"
 	"github.com/stratosnet/stratos-chain/x/register/client/rest"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
@@ -75,19 +75,18 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper     keeper.Keeper
-	coinKeeper bank.Keeper
-	// TODO: Add keepers that your application depends on
-
+	keeper        keeper.Keeper
+	accountKeeper types.AccountKeeper
+	supplyKeeper  bank.SendKeeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, accountKeeper types.AccountKeeper, supplyKeeper bank.SendKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		coinKeeper:     bankKeeper,
-		// TODO: Add keepers that your application depends on
+		accountKeeper:  accountKeeper,
+		supplyKeeper:   supplyKeeper,
 	}
 }
 

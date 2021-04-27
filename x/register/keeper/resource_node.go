@@ -13,7 +13,7 @@ const resourceNodeCacheSize = 500
 // live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedResourceNode struct {
 	resourceNode types.ResourceNode
-	marshalled   string // marshalled amino bytes for the ResourceNode object (not operator address)
+	marshalled   string // marshalled amino bytes for the ResourceNode object (not address)
 }
 
 func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) cachedResourceNode {
@@ -24,9 +24,9 @@ func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) c
 }
 
 // GetResourceNode get a single resource node
-func (k Keeper) GetResourceNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (resourceNode types.ResourceNode, found bool) {
+func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetNodeKey(types.NodeTypeResource, operatorAddr))
+	value := store.Get(types.GetResourceNodeKey(addr))
 
 	if value == nil {
 		return resourceNode, false
@@ -36,8 +36,6 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (r
 	strValue := string(value)
 	if val, ok := k.resourceNodeCache[strValue]; ok {
 		valToReturn := val.resourceNode
-		// Doesn't mutate the cache's value
-		valToReturn.OperatorAddress = operatorAddr
 		return valToReturn, true
 	}
 
@@ -57,84 +55,108 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (r
 	return resourceNode, true
 }
 
-// GetResourceNodeByAddr get a single resource node by node address
-func (k Keeper) GetResourceNodeByAddr(ctx sdk.Context, addr sdk.ConsAddress) (resourceNode types.ResourceNode, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	opAddr := store.Get(types.GetResourceNodeByAddrKey(addr))
-	if opAddr == nil {
-		return resourceNode, false
-	}
-	return k.GetResourceNode(ctx, opAddr)
-}
-
-// SetResourceNode set the main record holding resource node details
-func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
+// set the main record holding resource node details
+func (k Keeper) setResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)
-	store.Set(types.GetNodeKey(types.NodeTypeResource, resourceNode.OperatorAddress), bz)
-}
-
-// SetResourceNodeByAddr resource node index
-func (k Keeper) SetResourceNodeByAddr(ctx sdk.Context, resourceNode types.ResourceNode) {
-	store := ctx.KVStore(k.storeKey)
-	addr := sdk.ConsAddress(resourceNode.PubKey.Address())
-	store.Set(types.GetResourceNodeByAddrKey(addr), resourceNode.OperatorAddress)
+	store.Set(types.GetResourceNodeKey(resourceNode.GetAddr()), bz)
 }
 
 // SetResourceNodeByPowerIndex resource node index
-func (k Keeper) SetResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
-	// jailed resource node are not kept in the power index
-	if resourceNode.Jailed {
+func (k Keeper) setResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
+	// suspended resource node are not kept in the power index
+	if resourceNode.IsSuspended() {
 		return
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.OperatorAddress)
+	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.GetAddr())
 }
 
-// SetNewResourceNodeByPowerIndex resource node index
-func (k Keeper) SetNewResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.OperatorAddress)
-}
-
-// DeleteResourceNodeByPowerIndex ResourceNode index
-func (k Keeper) DeleteResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
+// ResourceNode index
+func (k Keeper) deleteResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetResourceNodesByPowerIndexKey(resourceNode))
 }
 
-// AddResourceNodeTokensAndShares Update the tokens of an existing resource node, update the resource nodes power index key
-func (k Keeper) AddResourceNodeTokensAndShares(
-	ctx sdk.Context, resourceNode types.ResourceNode, tokensToAdd sdk.Int,
-) (nodeOut types.ResourceNode, addedShares sdk.Dec) {
+// AddResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
+func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, tokensToAdd sdk.Int) error {
+	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetAddr())
+	if nodeAcc == nil {
+		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetAddr())
+	}
 
-	k.DeleteResourceNodeByPowerIndex(ctx, resourceNode)
-	resourceNode, addedShares = resourceNode.AddTokensToResourceNode(tokensToAdd)
-	k.SetResourceNode(ctx, resourceNode)
-	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
-	return resourceNode, addedShares
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToAdd))
+	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.OwnerAddress, coins)
+	if !hasCoin {
+		return types.ErrInsufficientBalance
+	}
+	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
+	if err != nil {
+		return err
+	}
+	_, err = k.bankKeeper.AddCoins(ctx, resourceNode.GetAddr(), coins)
+	if err != nil {
+		return err
+	}
+
+	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
+	resourceNode = resourceNode.AddToken(tokensToAdd)
+	k.setResourceNode(ctx, resourceNode)
+	k.setResourceNodeByPowerIndex(ctx, resourceNode)
+	return nil
 }
 
-// RemoveResourceNodeTokensAndShares Update the tokens of an existing resource node, update the resource nodes power index key
-func (k Keeper) RemoveResourceNodeTokensAndShares(
-	ctx sdk.Context, resourceNode types.ResourceNode, sharesToRemove sdk.Dec,
-) (nodeOut types.ResourceNode, removedTokens sdk.Int) {
+// SubtractResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
+func (k Keeper) SubtractResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, tokensToRemove sdk.Int) error {
+	ownerAcc := k.accountKeeper.GetAccount(ctx, resourceNode.OwnerAddress)
+	if ownerAcc == nil {
+		return types.ErrNoOwnerAccountFound
+	}
 
-	k.DeleteResourceNodeByPowerIndex(ctx, resourceNode)
-	resourceNode, removedTokens = resourceNode.RemoveSharesFromResourceNode(sharesToRemove)
-	k.SetResourceNode(ctx, resourceNode)
-	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
-	return resourceNode, removedTokens
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToRemove))
+	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetAddr(), coins)
+	if !hasCoin {
+		return types.ErrInsufficientBalance
+	}
+	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetAddr(), coins)
+	if err != nil {
+		return err
+	}
+	_, err = k.bankKeeper.AddCoins(ctx, resourceNode.OwnerAddress, coins)
+	if err != nil {
+		return err
+	}
+
+	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
+	resourceNode = resourceNode.RemoveToken(tokensToRemove)
+	k.setResourceNode(ctx, resourceNode)
+	k.setResourceNodeByPowerIndex(ctx, resourceNode)
+
+	if resourceNode.GetTokens().IsZero() {
+		err := k.removeResourceNode(ctx, resourceNode.GetAddr())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-// RemoveResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
-func (k Keeper) RemoveResourceNodeTokens(
-	ctx sdk.Context, resourceNode types.ResourceNode, tokensToRemove sdk.Int,
-) types.ResourceNode {
+// remove the resource node record and associated indexes
+func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
+	// first retrieve the old resource node record
+	resourceNode, found := k.GetResourceNode(ctx, addr)
+	if !found {
+		return types.ErrNoResourceNodeFound
+	}
 
-	k.DeleteResourceNodeByPowerIndex(ctx, resourceNode)
-	resourceNode = resourceNode.RemoveTokensFromResourceNode(tokensToRemove)
-	k.SetResourceNode(ctx, resourceNode)
-	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
-	return resourceNode
+	if resourceNode.Tokens.IsPositive() {
+		panic("attempting to remove a resource node which still contains tokens")
+	}
+
+	// delete the old resource node record
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetResourceNodeKey(addr))
+	store.Delete(types.GetResourceNodesByPowerIndexKey(resourceNode))
+	return nil
 }

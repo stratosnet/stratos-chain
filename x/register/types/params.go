@@ -14,8 +14,7 @@ const (
 
 // Parameter store keys
 var (
-// TODO: Define your keys for the parameter store
-// KeyParamName          = []byte("ParamName")
+	KeyBondDenom = []byte("BondDenom")
 )
 
 // ParamKeyTable for register module

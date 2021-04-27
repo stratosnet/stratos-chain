@@ -2,7 +2,6 @@ package register
 
 import (
 	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
@@ -18,6 +17,10 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgCreateResourceNode(ctx, msg, k)
 		case types.MsgCreateIndexingNode:
 			return handleMsgCreateIndexingNode(ctx, msg, k)
+		case types.MsgRemoveResourceNode:
+			return handleMsgRemoveResourceNode(ctx, msg, k)
+		case types.MsgRemoveIndexingNode:
+			return handleMsgRemoveIndexingNode(ctx, msg, k)
 
 		// this line is used by starport scaffolding # 1
 		default:
@@ -29,25 +32,26 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNode, k keeper.Keeper) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
-	if _, found := k.GetResourceNode(ctx, msg.ResourceNodeAddress); found {
-		return nil, types.ErrResourceNodeOwnerExists
+	if _, found := k.GetResourceNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
+		return nil, ErrResourceNodePubKeyExists
 	}
-	if _, found := k.GetResourceNodeByAddr(ctx, sdk.GetConsAddress(msg.PubKey)); found {
-		return nil, types.ErrResourceNodePubKeyExists
+	if msg.Value.Denom != k.BondDenom(ctx) {
+		return nil, ErrBadDenom
 	}
-	if _, err := msg.Description.EnsureLength(); err != nil {
+	//if _, err := msg.Description.EnsureLength(); err != nil {
+	//	return nil, err
+	//}
+
+	resourceNode := types.NewResourceNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
+	err := k.AddResourceNodeTokens(ctx, resourceNode, resourceNode.GetTokens())
+	if err != nil {
 		return nil, err
 	}
-
-	resourceNode := types.NewResourceNode(msg.ResourceNodeAddress, msg.PubKey, msg.Description)
-	k.SetResourceNode(ctx, resourceNode)
-	k.SetResourceNodeByAddr(ctx, resourceNode)
-	k.SetNewResourceNodeByPowerIndex(ctx, resourceNode)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateResourceNode,
-			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.NetworkAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
 		),
 		sdk.NewEvent(
@@ -61,31 +65,81 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 
 func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
-	if _, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress); found {
-		return nil, types.ErrIndexingNodeOwnerExists
+	if _, found := k.GetIndexingNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
+		return nil, ErrIndexingNodePubKeyExists
 	}
-	if _, found := k.GetIndexingNodeByAddr(ctx, sdk.GetConsAddress(msg.PubKey)); found {
-		return nil, types.ErrIndexingNodePubKeyExists
+	if msg.Value.Denom != k.BondDenom(ctx) {
+		return nil, ErrBadDenom
 	}
+	//if _, err := msg.Description.EnsureLength(); err != nil {
+	//	return nil, err
+	//}
 
-	if _, err := msg.Description.EnsureLength(); err != nil {
+	indexingNode := types.NewIndexingNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
+	err := k.AddIndexingNodeTokens(ctx, indexingNode, indexingNode.GetTokens())
+	if err != nil {
 		return nil, err
 	}
-
-	indexingNode := types.NewIndexingNode(msg.IndexingNodeAddress, msg.PubKey, msg.Description)
-	k.SetIndexingNode(ctx, indexingNode)
-	k.SetIndexingNodeByAddr(ctx, indexingNode)
-	k.SetNewIndexingNodeByPowerIndex(ctx, indexingNode)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateIndexingNode,
-			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.NetworkAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNode, k keeper.Keeper) (*sdk.Result, error) {
+	resourceNode, found := k.GetResourceNode(ctx, msg.ResourceNodeAddress)
+	if !found {
+		return nil, ErrNoResourceNodeFound
+	}
+	err := k.SubtractResourceNodeTokens(ctx, resourceNode, resourceNode.GetTokens())
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRemoveResourceNode,
+			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
+	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
+	if !found {
+		return nil, ErrNoIndexingNodeFound
+	}
+	err := k.SubtractIndexingNodeTokens(ctx, indexingNode, indexingNode.GetTokens())
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeRemoveIndexingNode,
+			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 

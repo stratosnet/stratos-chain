@@ -18,46 +18,23 @@ const (
 
 var (
 	ResourceNodeKey              = []byte{0x21} // prefix for each key to a resource node
-	ResourceNodeByAddrKey        = []byte{0x22} // prefix for each key to a resource node index, by pubkey
-	ResourceNodesByPowerIndexKey = []byte{0x23} // prefix for each key to a resource node index, sorted by power
+	ResourceNodesByPowerIndexKey = []byte{0x22} // prefix for each key to a resource node index, sorted by power
 
-	IndexingNodeKey              = []byte{0x31} // prefix for each key to a indexing node
-	IndexingNodeByAddrKey        = []byte{0x32} // prefix for each key to a indexing node index, by pubkey
-	IndexingNodesByPowerIndexKey = []byte{0x33} // prefix for each key to a indexing node, sorted by power
+	IndexingNodeKey              = []byte{0x23} // prefix for each key to a indexing node
+	IndexingNodesByPowerIndexKey = []byte{0x24} // prefix for each key to a indexing node, sorted by power
 )
 
-// GetNodeKey gets the key for the resourceNode/indexingNode with address
-// VALUE: staking/node
-func GetNodeKey(nodeType NodeType, nodeAddr sdk.ValAddress) []byte {
-	switch nodeType {
-	case NodeTypeResource:
-		return append(ResourceNodeKey, nodeAddr.Bytes()...)
-	case NodeTypeIndexing:
-		return append(IndexingNodeKey, nodeAddr.Bytes()...)
-	default:
-		return nil
-	}
-}
-
-// gets the key for the resource node with pubkey
-// VALUE: resource node operator address ([]byte)
-func GetResourceNodeByAddrKey(addr sdk.ConsAddress) []byte {
-	return append(ResourceNodeByAddrKey, addr.Bytes()...)
+// GetResourceNodeKey gets the key for the resourceNode with address
+// VALUE: ResourceNode
+func GetResourceNodeKey(nodeAddr sdk.AccAddress) []byte {
+	return append(ResourceNodeKey, nodeAddr.Bytes()...)
 }
 
 // GetResourceNodesByPowerIndexKey get the resource node by power index.
 // Power index is the key used in the power-store, and represents the relative
 // power ranking of the resource node.
-// VALUE: resource node operator address ([]byte)
+// VALUE: resource node address ([]byte)
 func GetResourceNodesByPowerIndexKey(resourceNode ResourceNode) []byte {
-	// NOTE the address doesn't need to be stored because counter bytes must always be different
-	return getResourceNodePowerRank(resourceNode)
-}
-
-// get the power ranking of a resource node
-// NOTE the larger values are of higher value
-func getResourceNodePowerRank(resourceNode ResourceNode) []byte {
-
 	resourcePower := TokensToPower(resourceNode.Tokens)
 	resourcePowerBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(resourcePowerBytes, uint64(resourcePower))
@@ -70,34 +47,26 @@ func getResourceNodePowerRank(resourceNode ResourceNode) []byte {
 
 	key[0] = ResourceNodesByPowerIndexKey[0]
 	copy(key[1:powerBytesLen+1], powerBytes)
-	operAddrInvr := sdk.CopyBytes(resourceNode.OperatorAddress)
-	for i, b := range operAddrInvr {
-		operAddrInvr[i] = ^b
+	addrInvr := sdk.CopyBytes(resourceNode.GetAddr())
+	for i, b := range addrInvr {
+		addrInvr[i] = ^b
 	}
-	copy(key[powerBytesLen+1:], operAddrInvr)
+	copy(key[powerBytesLen+1:], addrInvr)
 
 	return key
 }
 
-// gets the key for the indexing node with pubkey
-// VALUE: indexing node operator address ([]byte)
-func GetIndexingNodeByAddrKey(addr sdk.ConsAddress) []byte {
-	return append(IndexingNodeByAddrKey, addr.Bytes()...)
+// GetIndexingNodeKey gets the key for the indexingNode with address
+// VALUE: ResourceNode
+func GetIndexingNodeKey(nodeAddr sdk.AccAddress) []byte {
+	return append(IndexingNodeKey, nodeAddr.Bytes()...)
 }
 
-// GetResourceNodesByPowerIndexKey get the indexing node by power index.
+// GetIndexingNodesByPowerIndexKey get the indexing node by power index.
 // Power index is the key used in the power-store, and represents the relative
 // power ranking of the indexing node.
-// VALUE: indexing node operator address ([]byte)
+// VALUE: indexing node address ([]byte)
 func GetIndexingNodesByPowerIndexKey(indexingNode IndexingNode) []byte {
-	// NOTE the address doesn't need to be stored because counter bytes must always be different
-	return getIndexingNodePowerRank(indexingNode)
-}
-
-// get the power ranking of a indexing node
-// NOTE the larger values are of higher value
-func getIndexingNodePowerRank(indexingNode IndexingNode) []byte {
-
 	indexingPower := TokensToPower(indexingNode.Tokens)
 	indexingPowerBytes := make([]byte, 8)
 	binary.BigEndian.PutUint64(indexingPowerBytes, uint64(indexingPower))
@@ -110,11 +79,11 @@ func getIndexingNodePowerRank(indexingNode IndexingNode) []byte {
 
 	key[0] = IndexingNodesByPowerIndexKey[0]
 	copy(key[1:powerBytesLen+1], powerBytes)
-	operAddrInvr := sdk.CopyBytes(indexingNode.OperatorAddress)
-	for i, b := range operAddrInvr {
-		operAddrInvr[i] = ^b
+	addrInvr := sdk.CopyBytes(indexingNode.GetAddr())
+	for i, b := range addrInvr {
+		addrInvr[i] = ^b
 	}
-	copy(key[powerBytesLen+1:], operAddrInvr)
+	copy(key[powerBytesLen+1:], addrInvr)
 
 	return key
 }

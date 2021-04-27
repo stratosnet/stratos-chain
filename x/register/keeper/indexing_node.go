@@ -13,7 +13,7 @@ const indexingNodeCacheSize = 500
 // live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedIndexingNode struct {
 	indexingNode types.IndexingNode
-	marshalled   string // marshalled amino bytes for the IndexingNode object (not operator address)
+	marshalled   string // marshalled amino bytes for the IndexingNode object (not address)
 }
 
 func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) cachedIndexingNode {
@@ -24,9 +24,9 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 }
 
 // GetIndexingNode get a single indexing node
-func (k Keeper) GetIndexingNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (indexingNode types.IndexingNode, found bool) {
+func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetNodeKey(types.NodeTypeIndexing, operatorAddr))
+	value := store.Get(types.GetIndexingNodeKey(addr))
 
 	if value == nil {
 		return indexingNode, false
@@ -36,8 +36,6 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (i
 	strValue := string(value)
 	if val, ok := k.indexingNodeCache[strValue]; ok {
 		valToReturn := val.indexingNode
-		// Doesn't mutate the cache's value
-		valToReturn.OperatorAddress = operatorAddr
 		return valToReturn, true
 	}
 
@@ -57,84 +55,108 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, operatorAddr sdk.ValAddress) (i
 	return indexingNode, true
 }
 
-// GetIndexingNodeByAddr get a single indexing node by node address
-func (k Keeper) GetIndexingNodeByAddr(ctx sdk.Context, addr sdk.ConsAddress) (indexingNode types.IndexingNode, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	opAddr := store.Get(types.GetIndexingNodeByAddrKey(addr))
-	if opAddr == nil {
-		return indexingNode, false
-	}
-	return k.GetIndexingNode(ctx, opAddr)
-}
-
-// SetIndexingNode set the main record holding indexing node details
-func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode) {
+// set the main record holding indexing node details
+func (k Keeper) setIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalIndexingNode(k.cdc, indexingNode)
-	store.Set(types.GetNodeKey(types.NodeTypeIndexing, indexingNode.OperatorAddress), bz)
+	store.Set(types.GetIndexingNodeKey(indexingNode.GetAddr()), bz)
 }
 
-// SetIndexingNodeByAddr indexing node index
-func (k Keeper) SetIndexingNodeByAddr(ctx sdk.Context, indexingNode types.IndexingNode) {
-	store := ctx.KVStore(k.storeKey)
-	addr := sdk.ConsAddress(indexingNode.PubKey.Address())
-	store.Set(types.GetIndexingNodeByAddrKey(addr), indexingNode.OperatorAddress)
-}
-
-// SetIndexingNodeByPowerIndex IndexingNode index
-func (k Keeper) SetIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
-	// jailed indexing node are not kept in the power index
-	if indexingNode.Jailed {
+// IndexingNode index
+func (k Keeper) setIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
+	// suspended indexing node are not kept in the power index
+	if indexingNode.IsSuspended() {
 		return
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetIndexingNodesByPowerIndexKey(indexingNode), indexingNode.OperatorAddress)
+	store.Set(types.GetIndexingNodesByPowerIndexKey(indexingNode), indexingNode.GetAddr())
 }
 
-// SetNewIndexingNodeByPowerIndex indexing node index
-func (k Keeper) SetNewIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetIndexingNodesByPowerIndexKey(indexingNode), indexingNode.OperatorAddress)
-}
-
-// DeleteIndexingNodeByPowerIndex IndexingNode index
-func (k Keeper) DeleteIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
+// IndexingNode index
+func (k Keeper) deleteIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
 }
 
-// AddIndexingNodeTokensAndShares Update the tokens of an existing indexing node, update the indexing nodes power index key
-func (k Keeper) AddIndexingNodeTokensAndShares(
-	ctx sdk.Context, indexingNode types.IndexingNode, tokensToAdd sdk.Int,
-) (nodeOut types.IndexingNode, addedShares sdk.Dec) {
+// AddIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
+func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, tokensToAdd sdk.Int) error {
+	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetAddr())
+	if nodeAcc == nil {
+		k.accountKeeper.NewAccountWithAddress(ctx, indexingNode.GetAddr())
+	}
 
-	k.DeleteIndexingNodeByPowerIndex(ctx, indexingNode)
-	indexingNode, addedShares = indexingNode.AddTokensToIndexingNode(tokensToAdd)
-	k.SetIndexingNode(ctx, indexingNode)
-	k.SetIndexingNodeByPowerIndex(ctx, indexingNode)
-	return indexingNode, addedShares
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToAdd))
+	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.OwnerAddress, coins)
+	if !hasCoin {
+		return types.ErrInsufficientBalance
+	}
+	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetOwnerAddr(), coins)
+	if err != nil {
+		return err
+	}
+	_, err = k.bankKeeper.AddCoins(ctx, indexingNode.GetAddr(), coins)
+	if err != nil {
+		return err
+	}
+
+	k.deleteIndexingNodeByPowerIndex(ctx, indexingNode)
+	indexingNode = indexingNode.AddToken(tokensToAdd)
+	k.setIndexingNode(ctx, indexingNode)
+	k.setIndexingNodeByPowerIndex(ctx, indexingNode)
+	return nil
 }
 
-// RemoveIndexingNodeTokensAndShares Update the tokens of an existing indexing node, update the indexing nodes power index key
-func (k Keeper) RemoveIndexingNodeTokensAndShares(
-	ctx sdk.Context, indexingNode types.IndexingNode, sharesToRemove sdk.Dec,
-) (nodeOut types.IndexingNode, removedTokens sdk.Int) {
+// SubtractIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
+func (k Keeper) SubtractIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int) error {
+	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
+	if ownerAcc == nil {
+		return types.ErrNoOwnerAccountFound
+	}
 
-	k.DeleteIndexingNodeByPowerIndex(ctx, indexingNode)
-	indexingNode, removedTokens = indexingNode.RemoveSharesFromIndexingNode(sharesToRemove)
-	k.SetIndexingNode(ctx, indexingNode)
-	k.SetIndexingNodeByPowerIndex(ctx, indexingNode)
-	return indexingNode, removedTokens
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToRemove))
+	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.GetAddr(), coins)
+	if !hasCoin {
+		return types.ErrInsufficientBalance
+	}
+	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetAddr(), coins)
+	if err != nil {
+		return err
+	}
+	_, err = k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
+	if err != nil {
+		return err
+	}
+
+	k.deleteIndexingNodeByPowerIndex(ctx, indexingNode)
+	indexingNode = indexingNode.RemoveToken(tokensToRemove)
+	k.setIndexingNode(ctx, indexingNode)
+	k.setIndexingNodeByPowerIndex(ctx, indexingNode)
+
+	if indexingNode.GetTokens().IsZero() {
+		err := k.removeIndexingNode(ctx, indexingNode.GetAddr())
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-// RemoveIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
-func (k Keeper) RemoveIndexingNodeTokens(
-	ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int,
-) types.IndexingNode {
+// remove the indexing node record and associated indexes
+func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
+	// first retrieve the old resource node record
+	indexingNode, found := k.GetIndexingNode(ctx, addr)
+	if !found {
+		return types.ErrNoIndexingNodeFound
+	}
 
-	k.DeleteIndexingNodeByPowerIndex(ctx, indexingNode)
-	indexingNode = indexingNode.RemoveTokensFromIndexingNode(tokensToRemove)
-	k.SetIndexingNode(ctx, indexingNode)
-	k.SetIndexingNodeByPowerIndex(ctx, indexingNode)
-	return indexingNode
+	if indexingNode.Tokens.IsPositive() {
+		panic("attempting to remove a indexing node which still contains tokens")
+	}
+
+	// delete the old resource node record
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetIndexingNodeKey(addr))
+	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
+	return nil
 }
