@@ -6,6 +6,7 @@ import "github.com/cosmos/cosmos-sdk/types"
 const (
 	QueryParams       = "params"
 	QueryUploadedFile = "uploaded_file"
+	QueryPrepay       = "prepay"
 )
 
 // params for query 'custom/distr/validator_outstanding_rewards'

@@ -2,15 +2,13 @@ package keeper
 
 import (
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper encodes/decodes files using the go-amino (binary)
@@ -79,27 +77,41 @@ func (fk Keeper) hasPrepay(ctx sdk.Context, sender sdk.AccAddress) bool {
 }
 
 // GetPrepay Returns the existing prepay coins
-func (fk Keeper) GetPrepay(ctx sdk.Context, sender sdk.AccAddress) (sdk.Coins, error) {
+func (fk Keeper) GetPrepay(ctx sdk.Context, sender sdk.AccAddress) (sdk.Int, error) {
 	store := ctx.KVStore(fk.key)
 	storeValue := store.Get(types.PrepayBalanceKey(sender))
 	if storeValue == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "No prepayment info for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		return sdk.Int{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "No prepayment info for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-	var prepaidCoins sdk.Coins
-	err := json.Unmarshal(storeValue, &prepaidCoins)
+	var prepaidBalance sdk.Int
+	err := prepaidBalance.UnmarshalJSON(storeValue)
 	if err != nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Unmarshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		return sdk.Int{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Unmarshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-	return prepaidCoins, nil
+	return prepaidBalance, nil
+}
+
+// GetPrepay Returns bytearr of the existing prepay coins
+func (fk Keeper) GetPrepayBytes(ctx sdk.Context, sender sdk.AccAddress) ([]byte, error) {
+	store := ctx.KVStore(fk.key)
+	storeValue := store.Get(types.PrepayBalanceKey(sender))
+	if storeValue == nil {
+		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "No prepayment info for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	}
+	return storeValue, nil
 }
 
 // SetPrepay Sets init coins
 func (fk Keeper) setPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	store := ctx.KVStore(fk.key)
 	storeKey := types.PrepayBalanceKey(sender)
-	storeValue, err := coins.MarshalJSON()
+	balance := sdk.NewInt(0)
+	for _, coin := range coins {
+		balance = balance.Add(coin.Amount)
+	}
+	storeValue, err := balance.MarshalJSON()
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Unmarshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Marshalling failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 	store.Set(storeKey, storeValue)
 	return nil
@@ -110,15 +122,16 @@ func (fk Keeper) appendPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.
 	store := ctx.KVStore(fk.key)
 	storeKey := types.PrepayBalanceKey(sender)
 	storeValue := store.Get(storeKey)
-	var prepaidCoins sdk.Coins
-	err := json.Unmarshal(storeValue, &prepaidCoins)
+	var prepaidBalance sdk.Int
+	err := prepaidBalance.UnmarshalJSON(storeValue)
 	if err != nil {
+		//prepaidBalance = sdk.NewInt(0)
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Unmarshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 	for _, coin := range coins {
-		prepaidCoins.Add(coin)
+		prepaidBalance = prepaidBalance.Add(coin.Amount)
 	}
-	newStoreValue, err := prepaidCoins.MarshalJSON()
+	newStoreValue, err := prepaidBalance.MarshalJSON()
 	if err != nil {
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Marshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
