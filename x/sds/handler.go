@@ -42,19 +42,20 @@ func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUplo
 
 // Handle MsgPrepay.
 func handleMsgPrepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgPrepay) (*sdk.Result, error) {
-	if k.CoinKeeper.GetSendEnabled(ctx) {
-		err := k.Prepay(ctx, msg.Sender, msg.Coins)
-		if err == nil {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypePrepay,
-					sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-					sdk.NewAttribute(types.AttributeKeySender, msg.Sender.String()),
-					sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
-				),
-			)
-			return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-		}
+	if k.BankKeeper.GetSendEnabled(ctx) == false {
+		return nil, nil
+	}
+	err := k.Prepay(ctx, msg.Sender, msg.Coins)
+	if err == nil {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePrepay,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(types.AttributeKeySender, msg.Sender.String()),
+				sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
+			),
+		)
+		return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 	}
 	return nil, nil
 }

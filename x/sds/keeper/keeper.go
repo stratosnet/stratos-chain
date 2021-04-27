@@ -16,7 +16,7 @@ import (
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
-	CoinKeeper bank.Keeper
+	BankKeeper bank.Keeper
 	key        sdk.StoreKey
 	cdc        *codec.Codec
 }
@@ -25,12 +25,12 @@ type Keeper struct {
 // (binary) encode and decode concrete sdk.MsgUploadFile.
 // nolint
 func NewKeeper(
-	coinKeeper bank.Keeper,
+	bankKeeper bank.Keeper,
 	cdc *codec.Codec,
 	key sdk.StoreKey,
 ) Keeper {
 	return Keeper{
-		CoinKeeper: coinKeeper,
+		BankKeeper: bankKeeper,
 		key:        key,
 		cdc:        cdc,
 	}
@@ -61,29 +61,19 @@ func (fk Keeper) SetFileHash(ctx sdk.Context, sender []byte, fileHash []byte) {
 // Prepay transfers coins from bank to sds (volumn) pool
 func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	// src - hasCoins?
-	if fk.CoinKeeper.HasCoins(ctx, sender, coins) {
-		// tar - has key?
-		if fk.HasPrepay(ctx, sender) {
-			// has key - append coins
-			err := fk.AppendPrepay(ctx, sender, coins)
-			if err != nil {
-				return err
-			}
-		} else {
-			// doesn't have key - create new
-			err := fk.SetPrepay(ctx, sender, coins)
-			if err != nil {
-				return err
-			}
+	if fk.BankKeeper.HasCoins(ctx, sender, coins) {
+		err := fk.doPrepay(ctx, sender, coins)
+		if err != nil {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 		}
-		fk.CoinKeeper.SubtractCoins(ctx, sender, coins)
-		return nil
+		_, error := fk.BankKeeper.SubtractCoins(ctx, sender, coins)
+		return error
 	}
-	return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No vaild coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 }
 
 // HasPrepay Returns bool indicating if the sender did prepay before
-func (fk Keeper) HasPrepay(ctx sdk.Context, sender sdk.AccAddress) bool {
+func (fk Keeper) hasPrepay(ctx sdk.Context, sender sdk.AccAddress) bool {
 	store := ctx.KVStore(fk.key)
 	return store.Has(types.PrepayBalanceKey(sender))
 }
@@ -104,7 +94,7 @@ func (fk Keeper) GetPrepay(ctx sdk.Context, sender sdk.AccAddress) (sdk.Coins, e
 }
 
 // SetPrepay Sets init coins
-func (fk Keeper) SetPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (fk Keeper) setPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	store := ctx.KVStore(fk.key)
 	storeKey := types.PrepayBalanceKey(sender)
 	storeValue, err := coins.MarshalJSON()
@@ -116,7 +106,7 @@ func (fk Keeper) SetPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coi
 }
 
 // AppendPrepay adds more coins to existing coins
-func (fk Keeper) AppendPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (fk Keeper) appendPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	store := ctx.KVStore(fk.key)
 	storeKey := types.PrepayBalanceKey(sender)
 	storeValue := store.Get(storeKey)
@@ -133,5 +123,23 @@ func (fk Keeper) AppendPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.
 		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Marshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 	store.Set(storeKey, newStoreValue)
+	return nil
+}
+
+func (fk Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+	// tar - has key?
+	if fk.hasPrepay(ctx, sender) {
+		// has key - append coins
+		err := fk.appendPrepay(ctx, sender, coins)
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+	// doesn't have key - create new
+	err := fk.setPrepay(ctx, sender, coins)
+	if err != nil {
+		return err
+	}
 	return nil
 }
