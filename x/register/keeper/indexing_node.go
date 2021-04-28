@@ -117,7 +117,6 @@ func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.Indexi
 
 // SubtractIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
 func (k Keeper) SubtractIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int) error {
-	ctx.Logger().Info("in SubtractIndexingNodeTokens, tokensToRemove = " + tokensToRemove.String())
 	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
 	if ownerAcc == nil {
 		return types.ErrNoOwnerAccountFound

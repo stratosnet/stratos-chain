@@ -68,7 +68,6 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 }
 
 func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
-	ctx.Logger().Info(fmt.Sprintf("in handleMsgCreateIndexingNode, indexingNodeAddress = %s", sdk.AccAddress(msg.PubKey.Address()).String()))
 	// check to see if the pubkey or sender has been registered before
 	if _, found := k.GetIndexingNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
 		return nil, ErrIndexingNodePubKeyExists
@@ -131,8 +130,6 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 }
 
 func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
-	ctx.Logger().Info("in handleMsgRemoveIndexingNode, indexingNodeAddress = " + msg.IndexingNodeAddress.String())
-	ctx.Logger().Info("in handleMsgRemoveIndexingNode, ownerAddress = " + msg.OwnerAddress.String())
 	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
