@@ -1,47 +1,45 @@
 package types
 
-// import (
-// 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-// )
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
 
-// TODO: Describe your actions, these will implment the interface of `sdk.Msg`
-/*
-// verify interface at compile time
-var _ sdk.Msg = &Msg<Action>{}
-
-// Msg<Action> - struct for unjailing jailed validator
-type Msg<Action> struct {
-	ValidatorAddr sdk.ValAddress `json:"address" yaml:"address"` // address of the validator operator
+type MsgFileUpload struct {
+	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
+	Sender   sdk.AccAddress `json:"sender" yaml:"sender"`       // sender of tx
 }
 
+// verify interface at compile time
+var _ sdk.Msg = &MsgFileUpload{}
+
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsg<Action>(validatorAddr sdk.ValAddress) Msg<Action> {
-	return Msg<Action>{
-		ValidatorAddr: validatorAddr,
+func NewMsgUpload(fileHash []byte, sender sdk.AccAddress) MsgFileUpload {
+	return MsgFileUpload{
+		FileHash: fileHash,
+		Sender:   sender,
 	}
 }
 
-const <action>Const = "<action>"
+const Const = "FileUploadTx"
 
 // nolint
-func (msg Msg<Action>) Route() string { return RouterKey }
-func (msg Msg<Action>) Type() string  { return <action>Const }
-func (msg Msg<Action>) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
+func (msg MsgFileUpload) Route() string { return RouterKey }
+func (msg MsgFileUpload) Type() string  { return Const }
+func (msg MsgFileUpload) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Sender}
 }
 
 // GetSignBytes gets the bytes for the message signer to sign on
-func (msg Msg<Action>) GetSignBytes() []byte {
+func (msg MsgFileUpload) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic validity check for the AnteHandler
-func (msg Msg<Action>) ValidateBasic() error {
-	if msg.ValidatorAddr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing validator address")
+func (msg MsgFileUpload) ValidateBasic() error {
+	if msg.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 	return nil
 }
-*/
