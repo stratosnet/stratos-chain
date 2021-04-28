@@ -39,7 +39,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // CreateResourceNodeCmd will create a file upload tx and sign it with the given key.
 func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-resource-node [resource_node_address] [value]",
+		Use:   "create-resource-node",
 		Short: "create new resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -70,7 +70,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 // CreateIndexingNodeCmd will create a file upload tx and sign it with the given key.
 func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-indexing-node [indexing_node_address] [value]",
+		Use:   "create-indexing-node",
 		Short: "create new indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -130,19 +130,23 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 
 func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "remove-resource-node [resource_node_address] [value]",
-		Args:  cobra.ExactArgs(1),
+		Use:   "remove-resource-node [resource_node_address] [owner_address]",
+		Args:  cobra.ExactArgs(2),
 		Short: "remove resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			resourceNodeAddr, err := sdk.AccAddressFromHex(args[0])
+			resourceNodeAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			ownerAddr := cliCtx.GetFromAddress()
+			ownerAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			//ownerAddr := cliCtx.GetFromAddress()
 
 			msg := types.NewMsgRemoveResourceNode(resourceNodeAddr, ownerAddr)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
@@ -153,19 +157,23 @@ func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 func RemoveIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "remove-indexing-node [indexing_node_address] [value]",
-		Args:  cobra.ExactArgs(1),
+		Use:   "remove-indexing-node [indexing_node_address] [owner_address]",
+		Args:  cobra.ExactArgs(2),
 		Short: "remove indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			indexingNodeAddr, err := sdk.AccAddressFromHex(args[0])
+			indexingNodeAddr, err := sdk.AccAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			ownerAddr := cliCtx.GetFromAddress()
+			ownerAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
+			//ownerAddr := cliCtx.GetFromAddress()
 
 			msg := types.NewMsgRemoveIndexingNode(indexingNodeAddr, ownerAddr)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})

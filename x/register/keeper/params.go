@@ -23,8 +23,9 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 
 // GetParams returns the total set of register parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramstore.GetParamSet(ctx, &params)
-	return params
+	return types.NewParams(
+		k.BondDenom(ctx),
+	)
 }
 
 // SetParams sets the register parameters to the param space.

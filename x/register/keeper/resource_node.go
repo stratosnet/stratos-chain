@@ -79,28 +79,34 @@ func (k Keeper) deleteResourceNodeByPowerIndex(ctx sdk.Context, resourceNode typ
 }
 
 // AddResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
-func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, tokensToAdd sdk.Int) error {
+func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, coinToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetAddr())
 	if nodeAcc == nil {
 		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetAddr())
 	}
 
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToAdd))
+	coins := sdk.NewCoins(coinToAdd)
 	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.OwnerAddress, coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
-	if err != nil {
-		return err
-	}
-	_, err = k.bankKeeper.AddCoins(ctx, resourceNode.GetAddr(), coins)
+
+	err := k.bankKeeper.SendCoins(ctx, resourceNode.GetOwnerAddr(), resourceNode.GetAddr(), coins)
 	if err != nil {
 		return err
 	}
 
+	//_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
+	//if err != nil {
+	//	return err
+	//}
+	//_, err = k.bankKeeper.AddCoins(ctx, resourceNode.GetAddr(), coins)
+	//if err != nil {
+	//	return err
+	//}
+
 	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
-	resourceNode = resourceNode.AddToken(tokensToAdd)
+	resourceNode = resourceNode.AddToken(coinToAdd.Amount)
 	k.setResourceNode(ctx, resourceNode)
 	k.setResourceNodeByPowerIndex(ctx, resourceNode)
 	return nil

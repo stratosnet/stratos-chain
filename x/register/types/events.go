@@ -8,6 +8,8 @@ const (
 
 	AttributeKeyResourceNode = "resource_node"
 	AttributeKeyIndexingNode = "indexing_node"
+	AttributeKeyNodeAddress  = "node_address"
+	AttributeKeyOwner        = "owner"
 
 	AttributeValueCategory = ModuleName
 )

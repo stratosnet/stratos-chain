@@ -33,6 +33,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNode, k keeper.Keeper) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
 	if _, found := k.GetResourceNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
+		ctx.Logger().Error("Resource node already exist")
 		return nil, ErrResourceNodePubKeyExists
 	}
 	if msg.Value.Denom != k.BondDenom(ctx) {
@@ -43,7 +44,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 	//}
 
 	resourceNode := types.NewResourceNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
-	err := k.AddResourceNodeTokens(ctx, resourceNode, resourceNode.GetTokens())
+	err := k.AddResourceNodeTokens(ctx, resourceNode, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -53,10 +54,13 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 			types.EventTypeCreateResourceNode,
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.NetworkAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
+			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 
@@ -64,6 +68,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 }
 
 func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
+	ctx.Logger().Info(fmt.Sprintf("in handleMsgCreateIndexingNode, indexingNodeAddress = %s", sdk.AccAddress(msg.PubKey.Address()).String()))
 	// check to see if the pubkey or sender has been registered before
 	if _, found := k.GetIndexingNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
 		return nil, ErrIndexingNodePubKeyExists
@@ -76,7 +81,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	//}
 
 	indexingNode := types.NewIndexingNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
-	err := k.AddIndexingNodeTokens(ctx, indexingNode, indexingNode.GetTokens())
+	err := k.AddIndexingNodeTokens(ctx, indexingNode, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -86,10 +91,13 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 			types.EventTypeCreateIndexingNode,
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.NetworkAddress),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
+			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 
@@ -110,6 +118,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 		sdk.NewEvent(
 			types.EventTypeRemoveResourceNode,
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -122,6 +131,8 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 }
 
 func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
+	ctx.Logger().Info("in handleMsgRemoveIndexingNode, indexingNodeAddress = " + msg.IndexingNodeAddress.String())
+	ctx.Logger().Info("in handleMsgRemoveIndexingNode, ownerAddress = " + msg.OwnerAddress.String())
 	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
@@ -135,6 +146,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 		sdk.NewEvent(
 			types.EventTypeRemoveIndexingNode,
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

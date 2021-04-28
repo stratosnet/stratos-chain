@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -79,28 +80,36 @@ func (k Keeper) deleteIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode typ
 }
 
 // AddIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
-func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, tokensToAdd sdk.Int) error {
+func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, coinToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetAddr())
 	if nodeAcc == nil {
-		k.accountKeeper.NewAccountWithAddress(ctx, indexingNode.GetAddr())
+		ctx.Logger().Info(fmt.Sprintf("create new account: %s", indexingNode.GetAddr()))
+		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, indexingNode.GetAddr())
+		k.accountKeeper.SetAccount(ctx, nodeAcc)
 	}
 
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToAdd))
+	coins := sdk.NewCoins(coinToAdd)
 	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.OwnerAddress, coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetOwnerAddr(), coins)
-	if err != nil {
-		return err
-	}
-	_, err = k.bankKeeper.AddCoins(ctx, indexingNode.GetAddr(), coins)
+
+	err := k.bankKeeper.SendCoins(ctx, indexingNode.GetOwnerAddr(), indexingNode.GetAddr(), coins)
 	if err != nil {
 		return err
 	}
 
+	//_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetOwnerAddr(), coins)
+	//if err != nil {
+	//	return err
+	//}
+	//_, err = k.bankKeeper.AddCoins(ctx, indexingNode.GetAddr(), coins)
+	//if err != nil {
+	//	return err
+	//}
+
 	k.deleteIndexingNodeByPowerIndex(ctx, indexingNode)
-	indexingNode = indexingNode.AddToken(tokensToAdd)
+	indexingNode = indexingNode.AddToken(coinToAdd.Amount)
 	k.setIndexingNode(ctx, indexingNode)
 	k.setIndexingNodeByPowerIndex(ctx, indexingNode)
 	return nil
@@ -108,6 +117,7 @@ func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.Indexi
 
 // SubtractIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
 func (k Keeper) SubtractIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int) error {
+	ctx.Logger().Info("in SubtractIndexingNodeTokens, tokensToRemove = " + tokensToRemove.String())
 	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
 	if ownerAcc == nil {
 		return types.ErrNoOwnerAccountFound

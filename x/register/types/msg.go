@@ -52,9 +52,9 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	if !msg.Value.IsPositive() {
 		return ErrValueNegative
 	}
-	if msg.Description == (Description{}) {
-		return ErrEmptyDescription
-	}
+	//if msg.Description == (Description{}) {
+	//	return ErrEmptyDescription
+	//}
 	return nil
 }
 
@@ -105,9 +105,9 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 	if !msg.Value.IsPositive() {
 		return ErrValueNegative
 	}
-	if msg.Description == (Description{}) {
-		return ErrEmptyDescription
-	}
+	//if msg.Description == (Description{}) {
+	//	return ErrEmptyDescription
+	//}
 	return nil
 }
 
