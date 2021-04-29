@@ -2,10 +2,17 @@ package types
 
 // pot module event types
 const (
+	EventTypeVolumeReport = "volume_report"
+
+	AttributeKeyReporter            = "reporter"
+	AttributeKeyEpoch               = "epoch"
+	AttributeKeyReportReferenceHash = "report_reference_hash"
+	AttributeKeyNodesVolume         = "nodes_volume"
+
 	// TODO: Create your event types
 	// EventType<Action>    		= "action"
 
-	// TODO: Create keys fo your events, the values will be derivided from the msg
+	// TODO: Create keys fo your events, the values will be derived from the msg
 	// AttributeKeyAddress  		= "address"
 
 	// TODO: Some events may not have values for that reason you want to emit that something happened.

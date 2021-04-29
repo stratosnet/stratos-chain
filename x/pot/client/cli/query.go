@@ -1,7 +1,12 @@
 package cli
 
 import (
+	"encoding/hex"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strings"
+
 	// "strings"
 
 	"github.com/spf13/cobra"
@@ -16,10 +21,10 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-// GetQueryCmd returns the cli query commands for this module
+// GetQueryCmd returns the cli query commands for pot module
 func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	// Group pot queries under a subcommand
-	stratoschainQueryCmd := &cobra.Command{
+	potQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
 		Short:                      fmt.Sprintf("Querying commands for the %s module", types.ModuleName),
 		DisableFlagParsing:         true,
@@ -27,11 +32,82 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		RunE:                       client.ValidateCmd,
 	}
 
-	stratoschainQueryCmd.AddCommand(
+	potQueryCmd.AddCommand(
 		flags.GetCommands(
-		// this line is used by starport scaffolding # 1
+			GetCmdQueryVolumeReportHash(queryRoute, cdc),
+			GetCmdQuerySingleVolumeReport(queryRoute, cdc),
 		)...,
 	)
 
-	return stratoschainQueryCmd
+	return potQueryCmd
+}
+
+// GetCmdQueryVolumeReportHash implements the query volume report command.
+func GetCmdQueryVolumeReportHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "reporthash [reporter]", // reporter: []byte
+		Args:  cobra.RangeArgs(1, 1),
+		Short: "Query volume report hash by reporter addr",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query volume report hash by reporter.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			fmt.Println("args[0] = ", args[0])
+			// query  by reportVolumeHash
+			if len(args) == 1 {
+				resp, _, err := QueryVolumeReportHash(cliCtx, queryRoute, args[0])
+				if err != nil {
+					return err
+				}
+				return cliCtx.PrintOutput(hex.EncodeToString(resp))
+			}
+			return nil
+		},
+	}
+}
+
+// QueryVolumeReportHash queries the volume hash by reporter
+func QueryVolumeReportHash(cliCtx context.CLIContext, queryRoute, reporter string) ([]byte, int64, error) {
+	accAddr, err := sdk.AccAddressFromBech32(reporter)
+	if err != nil {
+		return nil, 0, fmt.Errorf("invalid reporter, please specify a reporter in Bech32 format %w", err)
+	}
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryVolumeReportHash)
+	return cliCtx.QueryWithData(route, accAddr)
+}
+
+// GetCmdQuerySingleVolumeReport implements the query command for single volume.
+func GetCmdQuerySingleVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "nodevolume [node_addr]", // node_addr: []byte
+		Args:  cobra.RangeArgs(1, 1),
+		Short: "Query single node volume by node addr",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query single node volume by node addr.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+			fmt.Println("args[0] = ", args[0])
+			// query  by reportVolumeHash
+			if len(args) == 1 {
+				resp, _, err := QueryNodeVolume(cliCtx, queryRoute, args[0])
+				if err != nil {
+					return err
+				}
+				return cliCtx.PrintOutput(hex.EncodeToString(resp))
+			}
+			return nil
+		},
+	}
+}
+
+// QueryNodeVolume queries the single node volume
+func QueryNodeVolume(cliCtx context.CLIContext, queryRoute, nodeAddr string) ([]byte, int64, error) {
+	accAddr, err := sdk.AccAddressFromBech32(nodeAddr)
+	if err != nil {
+		return nil, 0, fmt.Errorf("invalid reporter, please specify a reporter in Bech32 format %w", err)
+	}
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryNodeVolume)
+	return cliCtx.QueryWithData(route, accAddr)
 }
