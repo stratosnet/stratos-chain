@@ -5,7 +5,7 @@ const (
 	EventTypeFileUpload = "FileUpload"
 	EventTypePrepay     = "Prepay"
 
-	AttributeKeySender   = "sender"
+	AttributeKeyReporter = "reporter"
 	AttributeKeyFileHash = "file_hash"
 
 	AttributeKeyRecipient = "recipient"

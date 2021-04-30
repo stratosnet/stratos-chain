@@ -44,16 +44,16 @@ func (fk Keeper) GetFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
 	store := ctx.KVStore(fk.key)
 	bz := store.Get(types.FileStoreKey(key))
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "key %s does not exist", hex.EncodeToString(types.FileStoreKey(key)))
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "FileHash %s does not exist", hex.EncodeToString(types.FileStoreKey(key)))
 	}
 	return bz, nil
 }
 
 // SetFileHash Sets sender-fileHash KV pair
-func (fk Keeper) SetFileHash(ctx sdk.Context, sender []byte, fileHash []byte) {
+func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, height []byte) {
 	store := ctx.KVStore(fk.key)
-	storeKey := types.FileStoreKey(sender)
-	store.Set(storeKey, fileHash)
+	storeKey := types.FileStoreKey(fileHash)
+	store.Set(storeKey, height)
 }
 
 // Prepay transfers coins from bank to sds (volumn) pool
@@ -143,16 +143,8 @@ func (fk Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coin
 	// tar - has key?
 	if fk.hasPrepay(ctx, sender) {
 		// has key - append coins
-		err := fk.appendPrepay(ctx, sender, coins)
-		if err != nil {
-			return err
-		}
-		return nil
+		return fk.appendPrepay(ctx, sender, coins)
 	}
 	// doesn't have key - create new
-	err := fk.setPrepay(ctx, sender, coins)
-	if err != nil {
-		return err
-	}
-	return nil
+	return fk.setPrepay(ctx, sender, coins)
 }

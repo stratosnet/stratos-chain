@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -44,7 +43,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 func GetCmdQueryUploadedFile(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "upload [sender_addr]",
-		Args:  cobra.RangeArgs(1, 1),
+		Args:  cobra.ExactArgs(1),
 		Short: "Query uploaded file's hash by sender addr",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query uploaded file's hash by sender addr, optionally restrict to rewards from a single validator.
@@ -59,14 +58,13 @@ $ %s query sds upload st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// query file by fileHash
-			if len(args) == 1 {
-				resp, _, err := common.QueryUploadedFile(cliCtx, queryRoute, args[0])
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintOutput(hex.EncodeToString(resp))
+			resp, _, err := common.QueryUploadedFile(cliCtx, queryRoute, args[0])
+			if err != nil {
+				return err
 			}
-			return nil
+			var height sdk.Int
+			height.UnmarshalJSON(resp)
+			return cliCtx.PrintOutput(height.String())
 		},
 	}
 }
@@ -75,7 +73,7 @@ $ %s query sds upload st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 func GetCmdQueryPrepayBalance(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "prepay [sender_addr]",
-		Args:  cobra.RangeArgs(1, 1),
+		Args:  cobra.ExactArgs(1),
 		Short: "Query balance of prepayment in Volumn Pool",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query balance of prepayment in Volumn Pool.
@@ -90,19 +88,16 @@ $ %s query sds prepay st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// query file by fileHash
-			if len(args) == 1 {
-				resp, _, err := common.QueryPrepayBalance(cliCtx, queryRoute, args[0])
-				if err != nil {
-					return err
-				}
-				var prepaidBalance sdk.Int
-				error := prepaidBalance.UnmarshalJSON(resp)
-				if error != nil {
-					return error
-				}
-				return cliCtx.PrintOutput(prepaidBalance.String())
+			resp, _, err := common.QueryPrepayBalance(cliCtx, queryRoute, args[0])
+			if err != nil {
+				return err
 			}
-			return nil
+			var prepaidBalance sdk.Int
+			error := prepaidBalance.UnmarshalJSON(resp)
+			if error != nil {
+				return error
+			}
+			return cliCtx.PrintOutput(prepaidBalance.String())
 		},
 	}
 }

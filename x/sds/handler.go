@@ -28,11 +28,15 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle MsgFileUpload.
 func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUpload) (*sdk.Result, error) {
-	k.SetFileHash(ctx, msg.Sender, msg.FileHash)
+	height := sdk.NewInt(ctx.BlockHeight())
+	heightByteArr, _ := height.MarshalJSON()
+	var heightReEncoded sdk.Int
+	heightReEncoded.UnmarshalJSON(heightByteArr)
+	k.SetFileHash(ctx, msg.FileHash, heightByteArr)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeFileUpload,
-			sdk.NewAttribute(types.AttributeKeySender, msg.Sender.String()),
+			sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
 			sdk.NewAttribute(types.AttributeKeyFileHash, hex.EncodeToString(msg.FileHash)),
 		),
 	)
@@ -49,7 +53,7 @@ func handleMsgPrepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgPrepay) (*sd
 		ctx.EventManager().EmitEvent(
 			sdk.NewEvent(
 				types.EventTypePrepay,
-				sdk.NewAttribute(types.AttributeKeySender, msg.Sender.String()),
+				sdk.NewAttribute(types.AttributeKeyReporter, msg.Sender.String()),
 				sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
 			),
 		)
