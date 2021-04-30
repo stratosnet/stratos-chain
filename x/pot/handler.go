@@ -1,6 +1,7 @@
 package pot
 
 import (
+	"encoding/hex"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -29,12 +30,9 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeVolumeReport,
-			//sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
-			sdk.NewAttribute(types.AttributeKeyReportReferenceHash, msg.ReportReference),
+			sdk.NewAttribute(types.AttributeKeyReportReference, hex.EncodeToString([]byte(msg.ReportReference))),
 			sdk.NewAttribute(types.AttributeKeyEpoch, msg.Epoch.String()),
-			//sdk.NewAttribute(types.AttributeKeyNodesVolume, string(types.ModuleCdc.MustMarshalJSON(msg.NodesVolume))),
 		),
 	)
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-
 }

@@ -53,7 +53,7 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// query  by reportVolumeHash
+			// query by volume report by reporter
 			if len(args) == 1 {
 				resp, _, err := QueryVolumeReport(cliCtx, queryRoute, args[0])
 				if err != nil {
@@ -73,6 +73,5 @@ func QueryVolumeReport(cliCtx context.CLIContext, queryRoute, reporter string) (
 		return nil, 0, fmt.Errorf("invalid reporter, please specify a reporter in Bech32 format %w", err)
 	}
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryVolumeReportHash)
-	fmt.Println(hex.EncodeToString(accAddr))
 	return cliCtx.QueryWithData(route, accAddr)
 }
