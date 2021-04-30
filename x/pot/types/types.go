@@ -8,7 +8,9 @@ type SingleNodeVolume struct {
 }
 
 // NewSingleNodeVolume creates a new Msg<Action> instance
-func NewSingleNodeVolume(nodeAddress sdk.AccAddress, volume sdk.Int,
+func NewSingleNodeVolume(
+	nodeAddress sdk.AccAddress,
+	volume sdk.Int,
 ) SingleNodeVolume {
 	return SingleNodeVolume{
 		NodeAddress: nodeAddress,

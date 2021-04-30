@@ -5,8 +5,7 @@ import "github.com/cosmos/cosmos-sdk/types"
 // querier keys
 const (
 	QueryParams           = "params"
-	QueryVolumeReportHash = "report"
-	QueryNodeVolume       = "node_volume"
+	QueryVolumeReportHash = "volume_report"
 )
 
 // QueryVolumeReportHashParams for query 'custom/distr/validator_outstanding_rewards'

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"strconv"
+
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -47,12 +49,10 @@ func (k Keeper) GetVolumeReportHash(ctx sdk.Context, reporter sdk.AccAddress) ([
 	return bz, nil
 }
 
-func (k Keeper) SetVolumeReportHash(ctx sdk.Context, reporter sdk.AccAddress, reportReferenceHash string) {
+func (k Keeper) SetVolumeReportHash(ctx sdk.Context, volumeReport *types.MsgVolumeReport) {
 	store := ctx.KVStore(k.storeKey)
-	sKey := types.VolumeReportStoreKey(reporter)
-	store.Set(sKey, []byte(reportReferenceHash))
-	ctx.Logger().Info("SetVolumeReportHash Key " + "------" + string(types.VolumeReportStoreKeyPrefix) + reporter.String())
-	ctx.Logger().Info("SetVolumeReportHash Value" + reportReferenceHash)
+	storeKey := types.VolumeReportStoreKey(volumeReport.Reporter)
+	store.Set(storeKey, []byte(volumeReport.ReportReferenceHash))
 }
 
 func (k Keeper) DeleteVolumeReportHash(ctx sdk.Context, key []byte) {
@@ -60,27 +60,24 @@ func (k Keeper) DeleteVolumeReportHash(ctx sdk.Context, key []byte) {
 	store.Delete(key)
 }
 
-func (k Keeper) GetSingleNodeVolume(ctx sdk.Context, nodeAddress []byte) ([]byte, error) {
+func (k Keeper) GetSingleNodeVolume(ctx sdk.Context, nodeAddress sdk.AccAddress) (int64, error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.SingleNodeVolumeStoreKey(nodeAddress))
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
+		return 0, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
 			"key %s does not exist", hex.EncodeToString(types.VolumeReportStoreKey(nodeAddress)))
 	}
-	//r, _ := strconv.ParseInt(string(bz), 10, 64)
-
-	//res, err =
-	//if err != nil {
-	//	return nil, fmt.Errorf("the value of key %s cannot be converted to int64",
-	//		types.SingleNodeVolumeStoreKey(nodeAddress))
-	//}
-	return bz, nil
+	res, err := strconv.ParseInt(string(bz), 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("the value of key %s cannot be converted to int64",
+			types.SingleNodeVolumeStoreKey(nodeAddress))
+	}
+	return res, nil
 }
 
-func (k Keeper) SetSingleNodeVolume(ctx sdk.Context, singleNodeVolume types.SingleNodeVolume) {
+func (k Keeper) SetSingleNodeVolume(ctx sdk.Context, singleNodeVolume *types.SingleNodeVolume) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.VolumeReportStoreKey(singleNodeVolume.NodeAddress)
-	bz := []byte(singleNodeVolume.Volume.String())
+	bz := []byte(strconv.FormatInt(singleNodeVolume.Volume.Int64(), 10))
 	store.Set(storeKey, bz)
-	ctx.Logger().Info("node_volume: ", fmt.Sprintf("%s---%s", hex.EncodeToString(storeKey), bz))
 }
