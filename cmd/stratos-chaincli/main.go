@@ -16,6 +16,7 @@ import (
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	reportcmd "github.com/stratosnet/stratos-chain/x/pot/client/cli"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -107,6 +108,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 
 	txCmd.AddCommand(
 		bankcmd.SendTxCmd(cdc),
+		flags.LineBreak,
+		reportcmd.VolumeReportCmd(cdc),
 		flags.LineBreak,
 		authcmd.GetSignCommand(cdc),
 		authcmd.GetMultiSignCommand(cdc),

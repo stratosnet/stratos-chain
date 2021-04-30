@@ -47,12 +47,12 @@ func (k Keeper) GetVolumeReportHash(ctx sdk.Context, reporter sdk.AccAddress) ([
 	return bz, nil
 }
 
-func (k Keeper) SetVolumeReportHash(ctx sdk.Context, volumeReport *types.MsgVolumeReport) {
+func (k Keeper) SetVolumeReportHash(ctx sdk.Context, reporter sdk.AccAddress, reportReferenceHash string) {
 	store := ctx.KVStore(k.storeKey)
-	sKey := types.VolumeReportStoreKey(volumeReport.Reporter)
-	store.Set(sKey, []byte(volumeReport.ReportReferenceHash))
-	ctx.Logger().Info("SetVolumeReportHash Key " + "------" + "SingleNodeVolumeStoreKeyPrefix: " + volumeReport.Reporter.String())
-	ctx.Logger().Info("SetVolumeReportHash Value" + volumeReport.ReportReferenceHash)
+	sKey := types.VolumeReportStoreKey(reporter)
+	store.Set(sKey, []byte(reportReferenceHash))
+	ctx.Logger().Info("SetVolumeReportHash Key " + "------" + string(types.VolumeReportStoreKeyPrefix) + reporter.String())
+	ctx.Logger().Info("SetVolumeReportHash Value" + reportReferenceHash)
 }
 
 func (k Keeper) DeleteVolumeReportHash(ctx sdk.Context, key []byte) {

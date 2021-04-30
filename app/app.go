@@ -44,6 +44,7 @@ var (
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		sds.AppModuleBasic{},
+		pot.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
 	)
 
@@ -169,6 +170,12 @@ func NewInitApp(
 		app.bankKeeper,
 		app.cdc,
 		keys[sdstypes.StoreKey],
+	)
+
+	app.potKeeper = potkeeper.NewKeeper(
+		app.bankKeeper,
+		app.cdc,
+		keys[pottypes.StoreKey],
 	)
 
 	// this line is used by starport scaffolding # 4

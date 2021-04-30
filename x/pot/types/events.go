@@ -4,10 +4,10 @@ package types
 const (
 	EventTypeVolumeReport = "volume_report"
 
-	AttributeKeyReporter            = "reporter"
-	AttributeKeyEpoch               = "epoch"
-	AttributeKeyReportReferenceHash = "report_reference_hash"
-	AttributeKeyNodesVolume         = "nodes_volume"
+	AttributeKeyReporter        = "reporter"
+	AttributeKeyEpoch           = "epoch"
+	AttributeKeyReportReference = "report_reference"
+	AttributeKeyNodesVolume     = "nodes_volume"
 
 	// TODO: Create your event types
 	// EventType<Action>    		= "action"
