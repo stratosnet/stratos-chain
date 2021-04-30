@@ -21,10 +21,10 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 // VolumeReportReq defines the properties of a send request's body.
 type VolumeReportReq struct {
 	BaseReq         rest.BaseReq             `json:"base_req" yaml:"base_req"`
-	NodesVolume     []types.SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`               // volume report
-	Reporter        string                   `json:"volume_reporter" yaml:"volume_reporter"`         // volume reporter
-	Epoch           int                      `json:"volume_report_epoch" yaml:"volume_report_epoch"` // volume report epoch
-	ReportReference string                   `json:"volume_report_hash" yaml:"volume_report_hash"`   // volume report reference
+	NodesVolume     []types.SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
+	Reporter        string                   `json:"reporter" yaml:"reporter"`                 // volume reporter
+	Epoch           int                      `json:"report_epoch" yaml:"report_epoch"`         // volume report epoch
+	ReportReference string                   `json:"report_reference" yaml:"report_reference"` // volume report reference
 }
 
 // VolumeReportRequestHandlerFn - http request handler to send coins to a address.

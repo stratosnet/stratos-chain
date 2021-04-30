@@ -13,10 +13,10 @@ var (
 )
 
 type MsgVolumeReport struct {
-	NodesVolume     []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`               // volume report
-	Reporter        sdk.AccAddress     `json:"volume_reporter" yaml:"volume_reporter"`         // volume reporter
-	Epoch           sdk.Int            `json:"volume_report_epoch" yaml:"volume_report_epoch"` // volume report epoch
-	ReportReference string             `json:"volume_report_hash" yaml:"volume_report_hash"`   // volume report reference
+	NodesVolume     []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
+	Reporter        sdk.AccAddress     `json:"reporter" yaml:"reporter"`                 // volume reporter
+	Epoch           sdk.Int            `json:"report_epoch" yaml:"report_epoch"`         // volume report epoch
+	ReportReference string             `json:"report_reference" yaml:"report_reference"` // volume report reference
 }
 
 // NewMsgVolumeReport creates a new Msg<Action> instance
