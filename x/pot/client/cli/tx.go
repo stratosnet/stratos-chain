@@ -52,7 +52,7 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			reportReferenceHash := args[2]
+			reportReference := args[2]
 			value, e := strconv.ParseInt(args[1], 10, 64)
 			if e != nil {
 				return err
@@ -71,7 +71,7 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 				nodesVolume,
 				reporter,
 				epoch,
-				reportReferenceHash,
+				reportReference,
 			)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},

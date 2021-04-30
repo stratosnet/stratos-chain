@@ -5,7 +5,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const MsgType = "node_volume_report"
+const MsgType = "volume_report"
 
 // verify interface at compile time
 var (
@@ -13,10 +13,10 @@ var (
 )
 
 type MsgVolumeReport struct {
-	NodesVolume         []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`               // volume report
-	Reporter            sdk.AccAddress     `json:"volume_reporter" yaml:"volume_reporter"`         // volume reporter
-	Epoch               sdk.Int            `json:"volume_report_epoch" yaml:"volume_report_epoch"` // volume report epoch
-	ReportReferenceHash string             `json:"volume_report_hash" yaml:"volume_report_hash"`   // volume report reference
+	NodesVolume     []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`               // volume report
+	Reporter        sdk.AccAddress     `json:"volume_reporter" yaml:"volume_reporter"`         // volume reporter
+	Epoch           sdk.Int            `json:"volume_report_epoch" yaml:"volume_report_epoch"` // volume report epoch
+	ReportReference string             `json:"volume_report_hash" yaml:"volume_report_hash"`   // volume report reference
 }
 
 // NewMsgVolumeReport creates a new Msg<Action> instance
@@ -24,13 +24,13 @@ func NewMsgVolumeReport(
 	nodesVolume []SingleNodeVolume,
 	reporter sdk.AccAddress,
 	epoch sdk.Int,
-	reportReferenceHash string,
+	reportReference string,
 ) MsgVolumeReport {
 	return MsgVolumeReport{
-		NodesVolume:         nodesVolume,
-		Reporter:            reporter,
-		Epoch:               epoch,
-		ReportReferenceHash: reportReferenceHash,
+		NodesVolume:     nodesVolume,
+		Reporter:        reporter,
+		Epoch:           epoch,
+		ReportReference: reportReference,
 	}
 }
 
@@ -64,7 +64,7 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid report epoch")
 	}
 
-	if !(len(msg.ReportReferenceHash) > 0) {
+	if !(len(msg.ReportReference) > 0) {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid report reference hash")
 	}
 

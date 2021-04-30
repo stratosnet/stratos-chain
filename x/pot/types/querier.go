@@ -8,14 +8,14 @@ const (
 	QueryVolumeReportHash = "volume_report"
 )
 
-// QueryVolumeReportHashParams for query 'custom/distr/validator_outstanding_rewards'
-type QueryVolumeReportHashParams struct {
+// QueryVolumeReportParams for query 'custom/distr/validator_outstanding_rewards'
+type QueryVolumeReportParams struct {
 	Reporter types.AccAddress `json:"reporter" yaml:"reporter"`
 }
 
 // NewQueryVolumeReportParams creates a new instance of QueryVolumeReportParams
-func NewQueryVolumeReportParams(reporter types.AccAddress) QueryVolumeReportHashParams {
-	return QueryVolumeReportHashParams{
+func NewQueryVolumeReportParams(reporter types.AccAddress) QueryVolumeReportParams {
+	return QueryVolumeReportParams{
 		Reporter: reporter,
 	}
 }

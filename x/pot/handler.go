@@ -13,7 +13,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (*sdk.Result, error) {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
-		// this line is used by starport scaffolding # 1
 		case types.MsgVolumeReport:
 			return handleMsgReportVolume(ctx, k, msg)
 		default:
@@ -25,19 +24,15 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle handleMsgReportVolume.
 func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolumeReport) (*sdk.Result, error) {
-	k.SetVolumeReportHash(ctx, &msg)
-	for _, singleNodeVolume := range msg.NodesVolume {
-		k.SetSingleNodeVolume(ctx, &singleNodeVolume)
-	}
+	k.SetVolumeReport(ctx, &msg)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
 			types.EventTypeVolumeReport,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
-			sdk.NewAttribute(types.AttributeKeyReportReferenceHash, msg.ReportReferenceHash),
+			//sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
+			sdk.NewAttribute(types.AttributeKeyReportReferenceHash, msg.ReportReference),
 			sdk.NewAttribute(types.AttributeKeyEpoch, msg.Epoch.String()),
-			sdk.NewAttribute(types.AttributeKeyNodesVolume, string(types.ModuleCdc.MustMarshalJSON(msg.NodesVolume))),
+			//sdk.NewAttribute(types.AttributeKeyNodesVolume, string(types.ModuleCdc.MustMarshalJSON(msg.NodesVolume))),
 		),
 	)
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

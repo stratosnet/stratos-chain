@@ -34,15 +34,15 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 	potQueryCmd.AddCommand(
 		flags.GetCommands(
-			GetCmdQueryVolumeReportHash(queryRoute, cdc),
+			GetCmdQueryVolumeReport(queryRoute, cdc),
 		)...,
 	)
 
 	return potQueryCmd
 }
 
-// GetCmdQueryVolumeReportHash implements the query volume report command.
-func GetCmdQueryVolumeReportHash(queryRoute string, cdc *codec.Codec) *cobra.Command {
+// GetCmdQueryVolumeReport implements the query volume report command.
+func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "report [reporter]", // reporter: []byte
 		Args:  cobra.RangeArgs(1, 1),
@@ -55,7 +55,7 @@ func GetCmdQueryVolumeReportHash(queryRoute string, cdc *codec.Codec) *cobra.Com
 
 			// query  by reportVolumeHash
 			if len(args) == 1 {
-				resp, _, err := QueryVolumeReportHash(cliCtx, queryRoute, args[0])
+				resp, _, err := QueryVolumeReport(cliCtx, queryRoute, args[0])
 				if err != nil {
 					return err
 				}
@@ -66,8 +66,8 @@ func GetCmdQueryVolumeReportHash(queryRoute string, cdc *codec.Codec) *cobra.Com
 	}
 }
 
-// QueryVolumeReportHash queries the volume hash by reporter
-func QueryVolumeReportHash(cliCtx context.CLIContext, queryRoute, reporter string) ([]byte, int64, error) {
+// QueryVolumeReport queries the volume hash by reporter
+func QueryVolumeReport(cliCtx context.CLIContext, queryRoute, reporter string) ([]byte, int64, error) {
 	accAddr, err := sdk.AccAddressFromBech32(reporter)
 	if err != nil {
 		return nil, 0, fmt.Errorf("invalid reporter, please specify a reporter in Bech32 format %w", err)
