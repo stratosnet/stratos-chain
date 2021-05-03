@@ -11,7 +11,6 @@ type GenesisState struct {
 	LastIndexingNodeTotalPower sdk.Int                 `json:"last_indexing_node_total_power" yaml:"last_indexing_node_total_power"`
 	LastIndexingNodePowers     []LastIndexingNodePower `json:"last_indexing_node_powers" yaml:"last_indexing_node_powers"`
 	IndexingNodes              IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
-	Exported                   bool                    `json:"exported" yaml:"exported"`
 }
 
 // LastResourceNodePower required for resource node set update logic
@@ -27,11 +26,18 @@ type LastIndexingNodePower struct {
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, resourceNodes []ResourceNode, indexingNodes []IndexingNode) GenesisState {
+func NewGenesisState(params Params,
+	lastResourceNodeTotalPower sdk.Int, lastResourceNodePowers []LastResourceNodePower, resourceNodes []ResourceNode,
+	lastIndexingNodeTotalPower sdk.Int, lastIndexingNodePowers []LastIndexingNodePower, indexingNodes []IndexingNode,
+) GenesisState {
 	return GenesisState{
-		Params:        params,
-		ResourceNodes: resourceNodes,
-		IndexingNodes: indexingNodes,
+		Params:                     params,
+		LastResourceNodeTotalPower: lastResourceNodeTotalPower,
+		LastResourceNodePowers:     lastResourceNodePowers,
+		ResourceNodes:              resourceNodes,
+		LastIndexingNodeTotalPower: lastIndexingNodeTotalPower,
+		LastIndexingNodePowers:     lastIndexingNodePowers,
+		IndexingNodes:              indexingNodes,
 	}
 }
 

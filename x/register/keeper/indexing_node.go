@@ -104,6 +104,34 @@ func (k Keeper) DeleteLastIndexingNodePower(ctx sdk.Context, nodeAddr sdk.AccAdd
 	store.Delete(types.GetLastIndexingNodePowerKey(nodeAddr))
 }
 
+// GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
+func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes []types.IndexingNode) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		indexingNodes = append(indexingNodes, node)
+	}
+	return indexingNodes
+}
+
+// IterateLastIndexingNodePowers Iterate over last indexing node powers.
+func (k Keeper) IterateLastIndexingNodePowers(ctx sdk.Context, handler func(nodeAddr sdk.AccAddress, power int64) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.LastIndexingNodePowerKey)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.AccAddress(iter.Key()[len(types.LastIndexingNodePowerKey):])
+		var power int64
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
+		if handler(addr, power) {
+			break
+		}
+	}
+}
+
 // AddIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
 func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, coinToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetAddr())

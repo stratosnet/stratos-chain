@@ -103,6 +103,34 @@ func (k Keeper) DeleteLastResourceNodePower(ctx sdk.Context, nodeAddr sdk.AccAdd
 	store.Delete(types.GetLastResourceNodePowerKey(nodeAddr))
 }
 
+// GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
+func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.ResourceNode) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		resourceNodes = append(resourceNodes, node)
+	}
+	return resourceNodes
+}
+
+// IterateLastResourceNodePowers Iterate over last resource node powers.
+func (k Keeper) IterateLastResourceNodePowers(ctx sdk.Context, handler func(nodeAddr sdk.AccAddress, power int64) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.LastResourceNodePowerKey)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.AccAddress(iter.Key()[len(types.LastResourceNodePowerKey):])
+		var power int64
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
+		if handler(addr, power) {
+			break
+		}
+	}
+}
+
 // AddResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
 func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, coinToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetAddr())
