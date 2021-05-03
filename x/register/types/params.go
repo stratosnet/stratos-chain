@@ -11,7 +11,7 @@ import (
 // Default parameter namespace
 const (
 	DefaultParamspace = ModuleName
-	DefaultBondDenom  = "register"
+	DefaultBondDenom  = "reg"
 )
 
 // Parameter store keys
