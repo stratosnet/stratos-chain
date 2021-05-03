@@ -2,14 +2,14 @@ package types
 
 // sds module event types
 const (
-	// TODO: Create your event types
-	// EventType<Action>    		= "action"
+	EventTypeFileUpload = "FileUpload"
+	EventTypePrepay     = "Prepay"
 
-	// TODO: Create keys fo your events, the values will be derivided from the msg
-	// AttributeKeyAddress  		= "address"
+	AttributeKeyReporter = "reporter"
+	AttributeKeyFileHash = "file_hash"
 
-	// TODO: Some events may not have values for that reason you want to emit that something happened.
-	// AttributeValueDoubleSign = "double_sign"
+	AttributeKeyRecipient = "recipient"
+	AttributeKeyCoins     = "coins"
 
 	AttributeValueCategory = ModuleName
 )
