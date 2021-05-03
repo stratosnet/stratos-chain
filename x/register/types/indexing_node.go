@@ -1,10 +1,14 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/register/exported"
 	"github.com/tendermint/tendermint/crypto"
+	"sort"
+	"strings"
 )
 
 type IndexingNode struct {
@@ -15,6 +19,46 @@ type IndexingNode struct {
 	Tokens         sdk.Int        `json:"tokens" yaml:"tokens"`                   // delegated tokens
 	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`     // owner address of the indexing node
 	Description    Description    `json:"description" yaml:"description"`         // description terms for the indexing node
+}
+
+// IndexingNodes is a collection of indexing node
+type IndexingNodes []IndexingNode
+
+func (v IndexingNodes) String() (out string) {
+	for _, node := range v {
+		out += node.String() + "\n"
+	}
+	return strings.TrimSpace(out)
+}
+
+// ToSDKIndexingNodes -  convenience function convert []IndexingNodes to []sdk.IndexingNodes
+func (v IndexingNodes) ToSDKIndexingNodes() (indexingNodes []exported.IndexingNodeI) {
+	for _, node := range v {
+		indexingNodes = append(indexingNodes, node)
+	}
+	return indexingNodes
+}
+
+// Sort IndexingNodes sorts IndexingNode array in ascending owner address order
+func (v IndexingNodes) Sort() {
+	sort.Sort(v)
+}
+
+// Implements sort interface
+func (v IndexingNodes) Len() int {
+	return len(v)
+}
+
+// Implements sort interface
+func (v IndexingNodes) Less(i, j int) bool {
+	return bytes.Compare(v[i].OwnerAddress, v[j].OwnerAddress) == -1
+}
+
+// Implements sort interface
+func (v IndexingNodes) Swap(i, j int) {
+	it := v[i]
+	v[i] = v[j]
+	v[j] = it
 }
 
 // NewIndexingNode - initialize a new indexing node
@@ -50,9 +94,43 @@ func UnmarshalIndexingNode(cdc *codec.Codec, value []byte) (indexingNode Indexin
 	return indexingNode, err
 }
 
+// String returns a human readable string representation of a indexing node.
+func (v IndexingNode) String() string {
+	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf(`IndexingNode:{
+		Network Address:	%s
+  		Pubkey:				%s
+  		Suspend:			%v
+  		Status:				%s
+  		Tokens:				%s
+		Owner Address: 		%s
+  		Description:		%s
+	}`, v.NetworkAddress, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+}
+
+// get the power of the node
+// a reduction of 10^6 from node tokens is applied
+func (v IndexingNode) GetPower() int64 {
+	if v.Status.Equal(sdk.Bonded) {
+		return v.PotentialPower()
+	}
+	return 0
+}
+
+// potential power of the node
+func (v IndexingNode) PotentialPower() int64 {
+	return TokensToPower(v.Tokens)
+}
+
 // AddToken adds tokens to a indexing node
 func (v IndexingNode) AddToken(amount sdk.Int) IndexingNode {
 	v.Tokens = v.Tokens.Add(amount)
+	if v.Status.Equal(sdk.Unbonded) {
+		v.Status = sdk.Bonded
+	}
 	return v
 }
 

@@ -56,14 +56,14 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceN
 }
 
 // set the main record holding resource node details
-func (k Keeper) setResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
+func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)
 	store.Set(types.GetResourceNodeKey(resourceNode.GetAddr()), bz)
 }
 
 // SetResourceNodeByPowerIndex resource node index
-func (k Keeper) setResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
+func (k Keeper) SetResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
 	// suspended resource node are not kept in the power index
 	if resourceNode.IsSuspended() {
 		return
@@ -76,6 +76,31 @@ func (k Keeper) setResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.
 func (k Keeper) deleteResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetResourceNodesByPowerIndexKey(resourceNode))
+}
+
+// GetLastResourceNodePower Load the last resource node power.
+// Returns zero if the node was not a resource node last block.
+func (k Keeper) GetLastResourceNodePower(ctx sdk.Context, nodeAddr sdk.AccAddress) (power int64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetLastResourceNodePowerKey(nodeAddr))
+	if bz == nil {
+		return 0
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &power)
+	return
+}
+
+// SetLastResourceNodePower Set the last resource node power.
+func (k Keeper) SetLastResourceNodePower(ctx sdk.Context, nodeAddr sdk.AccAddress, power int64) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(power)
+	store.Set(types.GetLastResourceNodePowerKey(nodeAddr), bz)
+}
+
+// DeleteLastResourceNodePower Delete the last resource node power.
+func (k Keeper) DeleteLastResourceNodePower(ctx sdk.Context, nodeAddr sdk.AccAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetLastResourceNodePowerKey(nodeAddr))
 }
 
 // AddResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
@@ -96,19 +121,17 @@ func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.Resour
 		return err
 	}
 
-	//_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
-	//if err != nil {
-	//	return err
-	//}
-	//_, err = k.bankKeeper.AddCoins(ctx, resourceNode.GetAddr(), coins)
-	//if err != nil {
-	//	return err
-	//}
+	oldPow := k.GetLastResourceNodePower(ctx, resourceNode.GetAddr())
+	oldTotalPow := k.GetLastResourceNodeTotalPower(ctx)
 
 	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
 	resourceNode = resourceNode.AddToken(coinToAdd.Amount)
-	k.setResourceNode(ctx, resourceNode)
-	k.setResourceNodeByPowerIndex(ctx, resourceNode)
+	newPow := resourceNode.GetPower()
+	newTotalPow := oldTotalPow.Sub(sdk.NewInt(oldPow)).Add(sdk.NewInt(newPow))
+	k.SetResourceNode(ctx, resourceNode)
+	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
+	k.SetLastResourceNodePower(ctx, resourceNode.GetAddr(), newPow)
+	k.SetLastResourceNodeTotalPower(ctx, newTotalPow)
 	return nil
 }
 
@@ -133,17 +156,26 @@ func (k Keeper) SubtractResourceNodeTokens(ctx sdk.Context, resourceNode types.R
 		return err
 	}
 
+	oldPow := k.GetLastResourceNodePower(ctx, resourceNode.GetAddr())
+	oldTotalPow := k.GetLastResourceNodeTotalPower(ctx)
+
 	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
 	resourceNode = resourceNode.RemoveToken(tokensToRemove)
-	k.setResourceNode(ctx, resourceNode)
-	k.setResourceNodeByPowerIndex(ctx, resourceNode)
+	newPow := resourceNode.GetPower()
+	newTotalPow := oldTotalPow.Sub(sdk.NewInt(oldPow)).Add(sdk.NewInt(newPow))
+	k.SetResourceNode(ctx, resourceNode)
+	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
 
 	if resourceNode.GetTokens().IsZero() {
+		k.DeleteLastResourceNodePower(ctx, resourceNode.GetAddr())
 		err := k.removeResourceNode(ctx, resourceNode.GetAddr())
 		if err != nil {
 			return err
 		}
+	} else {
+		k.SetLastResourceNodePower(ctx, resourceNode.GetAddr(), newPow)
 	}
+	k.SetLastResourceNodeTotalPower(ctx, newTotalPow)
 
 	return nil
 }
