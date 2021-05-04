@@ -25,6 +25,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot"
 	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
 	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
 	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
@@ -44,7 +45,7 @@ var (
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		sds.AppModuleBasic{},
-		pot.AppModuleBasic{},
+		register.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
 	)
 
@@ -77,13 +78,14 @@ type NewApp struct {
 
 	subspaces map[string]params.Subspace
 
-	accountKeeper auth.AccountKeeper
-	bankKeeper    bank.Keeper
-	stakingKeeper staking.Keeper
-	supplyKeeper  supply.Keeper
-	paramsKeeper  params.Keeper
-	sdsKeeper     sdskeeper.Keeper
-	potKeeper     potkeeper.Keeper
+	accountKeeper  auth.AccountKeeper
+	bankKeeper     bank.Keeper
+	stakingKeeper  staking.Keeper
+	supplyKeeper   supply.Keeper
+	paramsKeeper   params.Keeper
+	sdsKeeper      sdskeeper.Keeper
+	potKeeper      potkeeper.Keeper
+	registerKeeper register.Keeper
 	// this line is used by starport scaffolding # 3
 	mm *module.Manager
 
@@ -110,6 +112,7 @@ func NewInitApp(
 		params.StoreKey,
 		sdstypes.StoreKey,
 		pottypes.StoreKey,
+		register.StoreKey,
 		// this line is used by starport scaffolding # 5
 	)
 
@@ -128,6 +131,7 @@ func NewInitApp(
 	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	app.subspaces[register.ModuleName] = app.paramsKeeper.Subspace(register.DefaultParamspace)
 	// this line is used by starport scaffolding # 5.1
 
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -172,10 +176,12 @@ func NewInitApp(
 		keys[sdstypes.StoreKey],
 	)
 
-	app.potKeeper = potkeeper.NewKeeper(
-		app.bankKeeper,
+	app.registerKeeper = register.NewKeeper(
 		app.cdc,
-		keys[pottypes.StoreKey],
+		keys[register.StoreKey],
+		app.accountKeeper,
+		app.bankKeeper,
+		app.subspaces[register.ModuleName],
 	)
 
 	// this line is used by starport scaffolding # 4
@@ -188,6 +194,7 @@ func NewInitApp(
 		sds.NewAppModule(app.sdsKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		// this line is used by starport scaffolding # 6
 	)
 
@@ -205,6 +212,7 @@ func NewInitApp(
 		pottypes.ModuleName,
 		supply.ModuleName,
 		genutil.ModuleName,
+		register.ModuleName,
 		// this line is used by starport scaffolding # 7
 	)
 
