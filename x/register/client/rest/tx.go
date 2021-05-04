@@ -36,6 +36,7 @@ type (
 		PubKey         string            `json:"pubkey" yaml:"pubkey"`                   // in bech32
 		Amount         sdk.Coin          `json:"amount" yaml:"amount"`
 		Description    types.Description `json:"description" yaml:"description"`
+		NodeType       int8              `json:"node_type" yaml:"node_type"`
 	}
 
 	CreateIndexingNodeRequest struct {
@@ -76,13 +77,18 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
+		nodeType := req.NodeType
+		//err3 := cliCtx.PrintOutput("nodeType: " + strconv.Itoa(int(nodeType)))
+		//if err3 != nil {
+		//	return
+		//}
 		ownerAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description)
+		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description, nodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

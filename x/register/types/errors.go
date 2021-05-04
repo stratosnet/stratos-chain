@@ -19,4 +19,5 @@ var (
 	ErrNoIndexingNodeFound      = sdkerrors.Register(ModuleName, 12, "indexing node does not exist")
 	ErrNoOwnerAccountFound      = sdkerrors.Register(ModuleName, 13, "account of owner does not exist")
 	ErrInsufficientBalance      = sdkerrors.Register(ModuleName, 14, "insufficient balance")
+	ErrNodeType                 = sdkerrors.Register(ModuleName, 15, "node type(s) not supported")
 )

@@ -55,7 +55,7 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceN
 	return resourceNode, true
 }
 
-// set the main record holding resource node details
+// SetResourceNode sets the main record holding resource node details
 func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)

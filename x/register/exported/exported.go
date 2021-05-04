@@ -15,6 +15,7 @@ type ResourceNodeI interface {
 	GetAddr() sdk.AccAddress      // address of the node
 	GetTokens() sdk.Int           // staking tokens of the node
 	GetOwnerAddr() sdk.AccAddress // owner address of the node
+	GetNodeType() int8            // node type
 }
 
 // IndexingNodeI expected indexing node functions

@@ -19,10 +19,12 @@ type MsgCreateResourceNode struct {
 	Value          sdk.Coin       `json:"value" yaml:"value"`
 	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
 	Description    Description    `json:"description" yaml:"description"`
+	NodeType       int8           `json:"node_type" yaml:"node_type"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateResourceNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateResourceNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin,
+	ownerAddr sdk.AccAddress, description Description, nodeType int8,
 ) MsgCreateResourceNode {
 	return MsgCreateResourceNode{
 		NetworkAddress: networkAddr,
@@ -30,6 +32,7 @@ func NewMsgCreateResourceNode(networkAddr string, pubKey crypto.PubKey, value sd
 		Value:          value,
 		OwnerAddress:   ownerAddr,
 		Description:    description,
+		NodeType:       nodeType,
 	}
 }
 
@@ -39,6 +42,15 @@ func (msg MsgCreateResourceNode) Route() string {
 
 func (msg MsgCreateResourceNode) Type() string {
 	return "create_resource_node"
+}
+
+func valueInSlice(v int8, list []int8) bool {
+	for _, b := range list {
+		if b == v {
+			return true
+		}
+	}
+	return false
 }
 
 // ValidateBasic validity check for the CreateResourceNode
@@ -51,6 +63,9 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	}
 	if !msg.Value.IsPositive() {
 		return ErrValueNegative
+	}
+	if !valueInSlice(msg.NodeType, nodeTypes) {
+		return ErrNodeType
 	}
 	//if msg.Description == (Description{}) {
 	//	return ErrEmptyDescription
