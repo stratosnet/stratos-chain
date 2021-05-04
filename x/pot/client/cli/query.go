@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/hex"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -53,13 +52,13 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// query by volume report by reporter
+			// query volume report by reporter
 			if len(args) == 1 {
 				resp, _, err := QueryVolumeReport(cliCtx, queryRoute, args[0])
 				if err != nil {
 					return err
 				}
-				return cliCtx.PrintOutput(hex.EncodeToString(resp))
+				return cliCtx.PrintOutput(string(resp))
 			}
 			return nil
 		},
