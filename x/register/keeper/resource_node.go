@@ -113,6 +113,7 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.Reso
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		resourceNodes = append(resourceNodes, node)
 	}
+	ctx.Logger().Info("resource nodes: ", resourceNodes)
 	return resourceNodes
 }
 
@@ -225,4 +226,18 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store.Delete(types.GetResourceNodeKey(addr))
 	store.Delete(types.GetResourceNodesByPowerIndexKey(resourceNode))
 	return nil
+}
+
+// GetResourceNodeList get all resource nodes by network address
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		resourceNodes = append(resourceNodes, node)
+	}
+	ctx.Logger().Info("resourceNodeList: "+networkAddress, resourceNodes)
+	return resourceNodes, nil
 }
