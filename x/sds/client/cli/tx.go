@@ -28,6 +28,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	sdsTxCmd.AddCommand(
 		FileUploadTxCmd(cdc),
+		PrepayTxCmd(cdc),
 	)
 	return sdsTxCmd
 }
@@ -50,6 +51,33 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 
 			// build and sign the transaction, then broadcast to Tendermint
 			msg := types.NewMsgUpload(fileHash, cliCtx.GetFromAddress())
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	cmd = flags.PostCommands(cmd)[0]
+
+	return cmd
+}
+
+// PrepayTxCmd will create a prepay tx and sign it with the given key.
+func PrepayTxCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "prepay [from_address] [coins]",
+		Short: "Create and sign a prepay tx",
+		Args:  cobra.ExactArgs(2),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
+
+			coins, err := sdk.ParseCoins(args[1])
+			if err != nil {
+				return err
+			}
+
+			// build and sign the transaction, then broadcast to Tendermint
+			msg := types.NewMsgPrepay(cliCtx.GetFromAddress(), coins)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
