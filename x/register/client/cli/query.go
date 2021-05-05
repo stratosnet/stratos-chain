@@ -35,13 +35,14 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 		flags.GetCommands(
 			// this line is used by starport scaffolding # 1
 			GetCmdQueryResourceNodeList(queryRoute, cdc),
+			GetCmdQueryIndexingNodeList(queryRoute, cdc),
 		)...,
 	)
 
 	return registerQueryCmd
 }
 
-// GetCmdQueryResourceNodeList implements the query volume report command.
+// GetCmdQueryResourceNodeList implements the query all resource nodes by network address command.
 func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
 		Use:   "get-resource-node-list [network_address]", // []byte
@@ -54,14 +55,11 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// query all resource nodes by network address
-			if len(args) == 1 {
-				resp, _, err := QueryResourceNodes(cliCtx, queryRoute, args[0])
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintOutput(string(resp))
+			resp, _, err := QueryResourceNodes(cliCtx, queryRoute, args[0])
+			if err != nil {
+				return err
 			}
-			return nil
+			return cliCtx.PrintOutput(string(resp))
 		},
 	}
 }
@@ -70,5 +68,34 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
 
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodeList)
+	return cliCtx.QueryWithData(route, []byte(networkAddress))
+}
+
+// GetCmdQueryIndexingNodeList implements the query all indexing nodes by network address command.
+func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "get-indexing-node-list [network_address]", // []byte
+		Args:  cobra.RangeArgs(1, 1),
+		Short: "Query all indexing nodes by network address",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query all indexing nodes by network address.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// query all indexing nodes by network address
+			resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, args[0])
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintOutput(string(resp))
+		},
+	}
+}
+
+// QueryIndexingNodes queries all indexing nodes by network address
+func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
+
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
 	return cliCtx.QueryWithData(route, []byte(networkAddress))
 }

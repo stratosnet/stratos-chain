@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strings"
 )
 
 const indexingNodeCacheSize = 500
@@ -228,4 +229,19 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store.Delete(types.GetIndexingNodeKey(addr))
 	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
 	return nil
+}
+
+// GetIndexingNodeList get all indexing nodes by network address
+func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkAddress string) (indexingNodes []types.IndexingNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
+			indexingNodes = append(indexingNodes, node)
+		}
+
+	}
+	ctx.Logger().Info("IndexingNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(indexingNodes))
+	return indexingNodes, nil
 }

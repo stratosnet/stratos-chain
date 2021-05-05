@@ -232,13 +232,13 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []types.ResourceNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	var node types.ResourceNode
 	for ; iterator.Valid(); iterator.Next() {
-		types.ModuleCdc.MustUnmarshalJSON(iterator.Value(), &node)
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
 			resourceNodes = append(resourceNodes, node)
 		}
+
 	}
-	ctx.Logger().Info("resourceNodeList: "+networkAddress, resourceNodes)
+	ctx.Logger().Info("resourceNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
