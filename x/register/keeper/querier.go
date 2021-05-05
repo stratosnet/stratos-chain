@@ -23,7 +23,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 		//case QueryIndexingNodeList:
 		//	return queryIndexingNodes(ctx, req, k)
 		default:
-			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint"+req.String()+string(req.Data))
+			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint "+req.String()+string(req.Data))
 		}
 	}
 }

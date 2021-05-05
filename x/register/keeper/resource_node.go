@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strings"
 )
 
 const resourceNodeCacheSize = 500
@@ -113,7 +114,6 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.Reso
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		resourceNodes = append(resourceNodes, node)
 	}
-	ctx.Logger().Info("resource nodes: ", resourceNodes)
 	return resourceNodes
 }
 
@@ -232,11 +232,12 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []types.ResourceNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	defer iterator.Close()
-
+	var node types.ResourceNode
 	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		resourceNodes = append(resourceNodes, node)
+		types.ModuleCdc.MustUnmarshalJSON(iterator.Value(), &node)
+		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
 	}
 	ctx.Logger().Info("resourceNodeList: "+networkAddress, resourceNodes)
 	return resourceNodes, nil

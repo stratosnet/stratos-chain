@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"strings"
 
 	// "strings"
@@ -54,7 +55,7 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 
 			// query all resource nodes by network address
 			if len(args) == 1 {
-				resp, _, err := QueryResourceNodeList(cliCtx, queryRoute, args[0])
+				resp, _, err := QueryResourceNodes(cliCtx, queryRoute, args[0])
 				if err != nil {
 					return err
 				}
@@ -65,9 +66,9 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 	}
 }
 
-// QueryResourceNodeList queries tall resource nodes by network address
-func QueryResourceNodeList(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
+// QueryResourceNodes queries all resource nodes by network address
+func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
 
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, "resource_node_list")
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodeList)
 	return cliCtx.QueryWithData(route, []byte(networkAddress))
 }
