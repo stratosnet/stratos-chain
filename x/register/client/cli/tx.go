@@ -111,7 +111,7 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	networkAddr := viper.GetString(FlagNetworkAddr)
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
-	nodeType := int8(viper.GetInt(FlagNodeType))
+	nodeTypeRef := viper.GetInt(FlagNodeType)
 
 	pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
 	if er != nil {
@@ -125,10 +125,21 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-
-	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, nodeType)
+	if !ValueInSlice(nodeTypeRef, types.NodeTypes) {
+		return txBldr, nil, types.ErrNodeType
+	}
+	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, types.NodeTypesMap[nodeTypeRef])
 
 	return txBldr, msg, nil
+}
+
+func ValueInSlice(v int, list []int) bool {
+	for _, b := range list {
+		if b == v {
+			return true
+		}
+	}
+	return false
 }
 
 func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
