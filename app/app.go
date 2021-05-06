@@ -1,7 +1,6 @@
 package app
 
 import (
-	"encoding/json"
 	"io"
 	"os"
 
@@ -211,8 +210,8 @@ func NewInitApp(
 		sdstypes.ModuleName,
 		pottypes.ModuleName,
 		supply.ModuleName,
-		genutil.ModuleName,
 		register.ModuleName,
+		genutil.ModuleName,
 		// this line is used by starport scaffolding # 7
 	)
 
