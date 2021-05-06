@@ -30,7 +30,14 @@ func init() {
 	FsPk.String(FlagPubKey, "", "The Bech32 encoded PubKey of the node")
 	FsAmount.String(FlagAmount, "", "Amount of coins to bond")
 	FsNetworkAddr.String(FlagNetworkAddr, "", "The network address of the node")
-	FsNodeType.Int(FlagNodeType, 0, "The node type(s)")
+	FsNodeType.Int(FlagNodeType, 0, `The value of node_type is determined by the three node types('storage', 'database'', and 'computation') and their arbitary combinations.
+As a result, the value of node_type should be one of the following digits:
+	1:  "computation",
+	2:  "database",
+	3:  "database/computation",
+	4:  "storage",
+	6:  "storage/database",
+	7:  "storage/database/computation"`)
 
 	fsDescriptionCreate.String(FlagMoniker, "", "The node's name")
 	fsDescriptionCreate.String(FlagIdentity, "", "The optional identity signature (ex. UPort or Keybase)")
