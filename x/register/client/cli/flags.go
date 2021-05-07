@@ -37,15 +37,17 @@ Suppose, we define:
 	storage 	= 4,
 Then, their combinations:
 	computation && database 			= 1 + 2 = 3,
-	storage && database 				= 4 + 2 = 6,
+	computation && storage 				= 1 + 4 = 5,
+	database && storage 				= 2 + 4 = 6,
 	computation && database && storage 	= 1 + 2 + 4 = 7,
 As a result, the value of node_type should be one of the following digits:
 	1:  "computation",
 	2:  "database",
-	3:  "database/computation",
+	3:  "computation/database",
 	4:  "storage",
-	6:  "storage/database",
-	7:  "storage/database/computation"`)
+	5:  "computation/storage"
+	6:  "database/storage",
+	7:  "computation/database/storage"`)
 
 	fsDescriptionCreate.String(FlagMoniker, "", "The node's name")
 	fsDescriptionCreate.String(FlagIdentity, "", "The optional identity signature (ex. UPort or Keybase)")
