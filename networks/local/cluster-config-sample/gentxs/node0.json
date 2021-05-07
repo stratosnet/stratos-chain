@@ -1,1 +1,46 @@
-{"type":"cosmos-sdk/StdTx","value":{"msg":[{"type":"cosmos-sdk/MsgCreateValidator","value":{"description":{"moniker":"node0","identity":"","website":"","security_contact":"","details":""},"commission":{"rate":"0.100000000000000000","max_rate":"0.200000000000000000","max_change_rate":"0.010000000000000000"},"min_self_delegation":"1","delegator_address":"st1ulwe8hj2fdarhdlhrltk87mtamn549dj97hcdm","validator_address":"stvaloper1ulwe8hj2fdarhdlhrltk87mtamn549djjj7c3s","pubkey":"stvalconspub1zcjduepquc8lx433mx5pucrwn3q2a49ppzjfr2454t9ddx2dey7tnk9g9aysmu4qg8","value":{"denom":"stake","amount":"100000000"}}}],"fee":{"amount":[],"gas":"200000"},"signatures":[{"pub_key":{"type":"tendermint/PubKeySecp256k1","value":"AzpbO2+Sd5E25bXzPSlaM6czyIlQ0JfjwzZSpqIy1V5s"},"signature":"8hWV2n55UeVyMzcVkEdZsgKOMF50lf/Zj99wf3qAaMAA5dHGD9Ag5ihLuOoGXfA8rX3r9+ESKCERSRVQvE/LxQ=="}],"memo":"dbbaa96dbe6cb088d687813542dfbfa3e3f22976@192.168.11.2:26656"}}
+{
+  "type": "cosmos-sdk/StdTx",
+  "value": {
+    "msg": [
+      {
+        "type": "cosmos-sdk/MsgCreateValidator",
+        "value": {
+          "description": {
+            "moniker": "node0",
+            "identity": "",
+            "website": "",
+            "security_contact": "",
+            "details": ""
+          },
+          "commission": {
+            "rate": "0.100000000000000000",
+            "max_rate": "0.200000000000000000",
+            "max_change_rate": "0.010000000000000000"
+          },
+          "min_self_delegation": "1",
+          "delegator_address": "st1ulwe8hj2fdarhdlhrltk87mtamn549dj97hcdm",
+          "validator_address": "stvaloper1ulwe8hj2fdarhdlhrltk87mtamn549djjj7c3s",
+          "pubkey": "stvalconspub1zcjduepquc8lx433mx5pucrwn3q2a49ppzjfr2454t9ddx2dey7tnk9g9aysmu4qg8",
+          "value": {
+            "denom": "stos",
+            "amount": "100000000"
+          }
+        }
+      }
+    ],
+    "fee": {
+      "amount": [],
+      "gas": "200000"
+    },
+    "signatures": [
+      {
+        "pub_key": {
+          "type": "tendermint/PubKeySecp256k1",
+          "value": "AzpbO2+Sd5E25bXzPSlaM6czyIlQ0JfjwzZSpqIy1V5s"
+        },
+        "signature": "8hWV2n55UeVyMzcVkEdZsgKOMF50lf/Zj99wf3qAaMAA5dHGD9Ag5ihLuOoGXfA8rX3r9+ESKCERSRVQvE/LxQ=="
+      }
+    ],
+    "memo": "dbbaa96dbe6cb088d687813542dfbfa3e3f22976@192.168.11.2:26656"
+  }
+}

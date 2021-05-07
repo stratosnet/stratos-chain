@@ -60,7 +60,7 @@
                   "validator_address": "stvaloper1ulwe8hj2fdarhdlhrltk87mtamn549djjj7c3s",
                   "pubkey": "stvalconspub1zcjduepquc8lx433mx5pucrwn3q2a49ppzjfr2454t9ddx2dey7tnk9g9aysmu4qg8",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -106,7 +106,7 @@
                   "validator_address": "stvaloper1jfa89pxa0lv3ylyj940ndgmtauxy887evra695",
                   "pubkey": "stvalconspub1zcjduepqccg05j33y8msrtfcuwhjmaarl3h2vqu4j3202apvdzrw4pkvaups2ru4qa",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -152,7 +152,7 @@
                   "validator_address": "stvaloper1fe5artqp04aw6s9elcyzkufq99shtuplr68dvq",
                   "pubkey": "stvalconspub1zcjduepqyej7d64p0zkpq8vkvwhtyeyq9uw5jmcf0gve5lhlv8tyw3rfkarsr44yvy",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -198,7 +198,7 @@
                   "validator_address": "stvaloper17rzvesrldaswcxt7srczuzwftkgdudc8uks2ja",
                   "pubkey": "stvalconspub1zcjduepqf4l4snh3pv23papft66tk0ngng0w234flc70afa3qmhzx9ztjsvsftshkl",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -237,14 +237,6 @@
             "address": "st1ulwe8hj2fdarhdlhrltk87mtamn549dj97hcdm",
             "coins": [
               {
-                "denom": "atom",
-                "amount": "1000"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
-              {
                 "denom": "stos",
                 "amount": "999999999999"
               }
@@ -259,14 +251,6 @@
           "value": {
             "address": "st1jfa89pxa0lv3ylyj940ndgmtauxy887em056el",
             "coins": [
-              {
-                "denom": "atom",
-                "amount": "1100"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
               {
                 "denom": "stos",
                 "amount": "999999999999"
@@ -283,14 +267,6 @@
             "address": "st1fe5artqp04aw6s9elcyzkufq99shtupl5kwdst",
             "coins": [
               {
-                "denom": "atom",
-                "amount": "1200"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
-              {
                 "denom": "stos",
                 "amount": "999999999999"
               }
@@ -305,14 +281,6 @@
           "value": {
             "address": "st17rzvesrldaswcxt7srczuzwftkgdudc8t6e2wk",
             "coins": [
-              {
-                "denom": "atom",
-                "amount": "1300"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
               {
                 "denom": "stos",
                 "amount": "999999999999"
@@ -334,7 +302,7 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 0,
-        "bond_denom": "stake"
+        "bond_denom": "stos"
       },
       "last_total_power": "0",
       "last_validator_powers": null,
