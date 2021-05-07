@@ -23,20 +23,21 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stratosnet/stratos-chain/x/pot"
+	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
 	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
 	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
-	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
-	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
-  // this line is used by starport scaffolding # 1
+	// this line is used by starport scaffolding # 1
 )
 
 const appName = "sds"
 
 var (
-	DefaultCLIHome = os.ExpandEnv("$HOME/.stratoschaincli")
+	DefaultCLIHome  = os.ExpandEnv("$HOME/.stratoschaincli")
 	DefaultNodeHome = os.ExpandEnv("$HOME/.stratoschaind")
-	ModuleBasics = module.NewBasicManager(
+	ModuleBasics    = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -44,11 +45,12 @@ var (
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		sds.AppModuleBasic{},
-    // this line is used by starport scaffolding # 2
+		register.AppModuleBasic{},
+		// this line is used by starport scaffolding # 2
 	)
 
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
+		auth.FeeCollectorName: nil,
 		// this line is used by starport scaffolding # 2.1
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
@@ -76,14 +78,15 @@ type NewApp struct {
 
 	subspaces map[string]params.Subspace
 
-	accountKeeper      auth.AccountKeeper
-	bankKeeper         bank.Keeper
-	stakingKeeper      staking.Keeper
-	supplyKeeper       supply.Keeper
-	paramsKeeper       params.Keeper
-	sdsKeeper 		   sdskeeper.Keeper
-	potKeeper          potkeeper.Keeper
-  // this line is used by starport scaffolding # 3
+	accountKeeper  auth.AccountKeeper
+	bankKeeper     bank.Keeper
+	stakingKeeper  staking.Keeper
+	supplyKeeper   supply.Keeper
+	paramsKeeper   params.Keeper
+	sdsKeeper      sdskeeper.Keeper
+	potKeeper      potkeeper.Keeper
+	registerKeeper register.Keeper
+	// this line is used by starport scaffolding # 3
 	mm *module.Manager
 
 	sm *module.SimulationManager
@@ -102,15 +105,16 @@ func NewInitApp(
 	bApp.SetAppVersion(version.Version)
 
 	keys := sdk.NewKVStoreKeys(
-    bam.MainStoreKey,
-    auth.StoreKey,
-    staking.StoreKey,
+		bam.MainStoreKey,
+		auth.StoreKey,
+		staking.StoreKey,
 		supply.StoreKey,
-    params.StoreKey,
-    sdstypes.StoreKey,
-    pottypes.StoreKey,
-    // this line is used by starport scaffolding # 5
-  )
+		params.StoreKey,
+		sdstypes.StoreKey,
+		pottypes.StoreKey,
+		register.StoreKey,
+		// this line is used by starport scaffolding # 5
+	)
 
 	tKeys := sdk.NewTransientStoreKeys(staking.TStoreKey, params.TStoreKey)
 
@@ -127,6 +131,7 @@ func NewInitApp(
 	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	app.subspaces[register.ModuleName] = app.paramsKeeper.Subspace(register.DefaultParamspace)
 	// this line is used by starport scaffolding # 5.1
 
 	app.accountKeeper = auth.NewAccountKeeper(
@@ -161,7 +166,7 @@ func NewInitApp(
 
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(
-			// this line is used by starport scaffolding # 5.3
+		// this line is used by starport scaffolding # 5.3
 		),
 	)
 
@@ -171,7 +176,15 @@ func NewInitApp(
 		keys[sdstypes.StoreKey],
 	)
 
-  // this line is used by starport scaffolding # 4
+	app.registerKeeper = register.NewKeeper(
+		app.cdc,
+		keys[register.StoreKey],
+		app.accountKeeper,
+		app.bankKeeper,
+		app.subspaces[register.ModuleName],
+	)
+
+	// this line is used by starport scaffolding # 4
 
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
@@ -181,7 +194,8 @@ func NewInitApp(
 		sds.NewAppModule(app.sdsKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
-    // this line is used by starport scaffolding # 6
+		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
+		// this line is used by starport scaffolding # 6
 	)
 
 	app.mm.SetOrderEndBlockers(
@@ -197,8 +211,9 @@ func NewInitApp(
 		sdstypes.ModuleName,
 		pottypes.ModuleName,
 		supply.ModuleName,
+		register.ModuleName,
 		genutil.ModuleName,
-    // this line is used by starport scaffolding # 7
+		// this line is used by starport scaffolding # 7
 	)
 
 	app.mm.RegisterRoutes(app.Router(), app.QueryRouter())
@@ -238,8 +253,9 @@ func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 	var genesisState simapp.GenesisState
 
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-
-	return app.mm.InitGenesis(ctx, genesisState)
+	res := app.mm.InitGenesis(ctx, genesisState)
+	ctx.Logger().Info("res=" + res.String())
+	return res
 }
 
 func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {

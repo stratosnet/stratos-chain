@@ -16,6 +16,7 @@ import (
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	reportcmd "github.com/stratosnet/stratos-chain/x/pot/client/cli"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -24,7 +25,7 @@ import (
 	"github.com/tendermint/tendermint/libs/cli"
 
 	"github.com/stratosnet/stratos-chain/app"
-  // this line is used by starport scaffolding # 1
+	// this line is used by starport scaffolding # 1
 )
 
 func main() {
@@ -108,6 +109,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 	txCmd.AddCommand(
 		bankcmd.SendTxCmd(cdc),
 		flags.LineBreak,
+		reportcmd.VolumeReportCmd(cdc),
+		flags.LineBreak,
 		authcmd.GetSignCommand(cdc),
 		authcmd.GetMultiSignCommand(cdc),
 		flags.LineBreak,
@@ -141,7 +144,7 @@ func registerRoutes(rs *lcd.RestServer) {
 	client.RegisterRoutes(rs.CliCtx, rs.Mux)
 	authrest.RegisterTxRoutes(rs.CliCtx, rs.Mux)
 	app.ModuleBasics.RegisterRESTRoutes(rs.CliCtx, rs.Mux)
-  // this line is used by starport scaffolding # 2
+	// this line is used by starport scaffolding # 2
 }
 
 func initConfig(cmd *cobra.Command) error {
