@@ -45,7 +45,7 @@ As a result, the value of node_type should be one of the following digits:
 	2:  "database",
 	3:  "computation/database",
 	4:  "storage",
-	5:  "computation/storage"
+	5:  "computation/storage",
 	6:  "database/storage",
 	7:  "computation/database/storage"`)
 
