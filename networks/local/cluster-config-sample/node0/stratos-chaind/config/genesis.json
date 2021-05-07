@@ -25,63 +25,15 @@
     },
     "sds": {},
     "register": {
-      "indexing_nodes": [
-        {
-          "description": {
-            "details": "",
-            "identity": "",
-            "moniker": "",
-            "security_contact": "",
-            "website": ""
-          },
-          "network_address": "sds://indexingnode1",
-          "owner_address": "st1e9djg7aunf2cjhhh3m4934l266lj86rq2jhyd3",
-          "pubkey": {
-            "type": "tendermint/PubKeyEd25519",
-            "value": "4qlhZGBtFNCTQmguK1meTXeJ0apgYyJkuZ3kt63XEMo="
-          },
-          "status": 2,
-          "suspend": false,
-          "tokens": "200000000"
-        }
-      ],
-      "last_indexing_node_powers": [
-        {
-          "address": "st199zg92wpw7ngj5fw0j8n08cy2s65x9vnxv62gh",
-          "power": "200"
-        }
-      ],
-      "last_indexing_node_total_power": "200",
-      "last_resource_node_powers": [
-        {
-          "address": "st199zg92wpw7ngj5fw0j8n08cy2s65x9vnxv62gh",
-          "power": "100"
-        }
-      ],
-      "last_resource_node_total_power": "100",
       "params": {
         "bond_denom": "stos"
       },
-      "resource_nodes": [
-        {
-          "description": {
-            "details": "",
-            "identity": "",
-            "moniker": "",
-            "security_contact": "",
-            "website": ""
-          },
-          "network_address": "sds://resourcenode1",
-          "owner_address": "st1e9djg7aunf2cjhhh3m4934l266lj86rq2jhyd3",
-          "pubkey": {
-            "type": "tendermint/PubKeyEd25519",
-            "value": "4qlhZGBtFNCTQmguK1meTXeJ0apgYyJkuZ3kt63XEMo="
-          },
-          "status": 2,
-          "suspend": false,
-          "tokens": "100000000"
-        }
-      ]
+      "last_resource_node_total_power": "0",
+      "last_resource_node_powers": null,
+      "resource_nodes": null,
+      "last_indexing_node_total_power": "0",
+      "last_indexing_node_powers": null,
+      "indexing_nodes": null
     },
     "genutil": {
       "gentxs": [
