@@ -2,15 +2,15 @@ package keeper
 
 import (
 	"container/list"
-	"encoding/json"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/libs/log"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // Keeper of the register store
@@ -81,52 +81,4 @@ func (k Keeper) SetLastIndexingNodeTotalPower(ctx sdk.Context, power sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
 	store.Set(types.LastIndexingNodeTotalPowerKey, b)
-}
-
-// GetResourceNetworksIterator gets an iterator over all network addresses
-func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-}
-
-// GetIndexingNetworksIterator gets an iterator over all network addresses
-func (k Keeper) GetIndexingNetworksIterator(ctx sdk.Context) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
-}
-
-func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte, err error) {
-	var networkList []string
-	iterator := keeper.GetResourceNetworksIterator(ctx)
-	for ; iterator.Valid(); iterator.Next() {
-		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		networkList = append(networkList, resourceNode.NetworkAddress)
-	}
-	iter := keeper.GetIndexingNetworksIterator(ctx)
-	for ; iterator.Valid(); iterator.Next() {
-		IndexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
-		networkList = append(networkList, IndexingNode.NetworkAddress)
-	}
-
-	r := removeDuplicateValues(networkList)
-	ctx.Logger().Info("r: ", r)
-	bz, err2 := json.Marshal(r)
-	if err2 != nil {
-		panic("could not marshal result to JSON")
-	}
-	ctx.Logger().Info("bz: ", bz)
-	return bz, nil
-}
-
-func removeDuplicateValues(stringSlice []string) []string {
-	keys := make(map[string]bool)
-	var res []string
-
-	for _, entry := range stringSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			res = append(res, entry)
-		}
-	}
-	return res
 }

@@ -28,21 +28,21 @@ jobs:
 
       - name: Compile
         run: |
-          cd cmd/stratoschaind
+          cd cmd/stratos-chaind
           go build .
           cd ..
-          cd stratoschaincli
+          cd stratos-chaincli
           go build .
 
       - uses: actions/upload-artifact@v2
         with:
-          name: stratoschaincli ${{ matrix.targetos }}
-          path: cmd/stratoschaincli/stratoschaincli
+          name: stratos-chaincli ${{ matrix.targetos }}
+          path: cmd/stratos-chaincli/stratos-chaincli
 
       - uses: actions/upload-artifact@v2
         with:
-          name: stratoschaind ${{ matrix.targetos }}
-          path: cmd/stratoschaind/stratoschaind
+          name: stratos-chaind ${{ matrix.targetos }}
+          path: cmd/stratos-chaind/stratos-chaind
 
   linux:
     runs-on: ubuntu-latest
@@ -63,18 +63,20 @@ jobs:
 
       - name: Compile
         run: |
-          cd cmd/stratoschaind
+          ls -al
+          pwd
+          cd cmd/stratos-chaind
           go build .
           cd ..
-          cd stratoschaincli
+          cd stratos-chaincli
           go build .
 
       - uses: actions/upload-artifact@v2
         with:
-          name: stratoschaincli ${{ matrix.arch }}
-          path: cmd/stratoschaincli/stratoschaincli
+          name: stratos-chaincli ${{ matrix.arch }}
+          path: cmd/stratos-chaincli/stratos-chaincli
 
       - uses: actions/upload-artifact@v2
         with:
-          name: stratoschaind ${{ matrix.arch }}
-          path: cmd/stratoschaind/stratoschaind
+          name: stratos-chaind ${{ matrix.arch }}
+          path: cmd/stratos-chaind/stratos-chaind

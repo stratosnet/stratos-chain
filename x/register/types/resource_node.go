@@ -15,24 +15,19 @@ import (
 //	7=(storage, database, computation),
 //	6=(storage, database),
 //	4=(storage),
-//	5=(computation/storage),
 //	3=(database, computation),
 //	2=(database),
 //	1=(computation)
 
-var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
-
-var NodeTypesMap = map[int]string{
-	1: "computation",
-	2: "database",
-	3: "computation/database",
-	4: "storage",
-	5: "computation/storage",
-	6: "database/storage",
-	7: "computation/database/storage",
+var NodeTypes = []int{7, 6, 4, 3, 2, 1}
+var NodeTypesMap = map[int][]string{
+	1: {"computation"},
+	2: {"database"},
+	3: {"database", "computation"},
+	4: {"storage"},
+	6: {"storage", "database"},
+	7: {"storage", "database", "computation"},
 }
-
-type NodeType int
 
 type ResourceNode struct {
 	NetworkAddress string         `json:"network_address" yaml:"network_address"` // network address of the resource node
@@ -42,7 +37,7 @@ type ResourceNode struct {
 	Tokens         sdk.Int        `json:"tokens" yaml:"tokens"`                   // delegated tokens
 	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`     // owner address of the resource node
 	Description    Description    `json:"description" yaml:"description"`         // description terms for the resource node
-	NodeType       string         `json:"node_type" yaml:"node_type"`
+	NodeType       []string       `json:"node_type" yaml:"node_type"`
 }
 
 // ResourceNodes is a collection of resource node
@@ -87,7 +82,7 @@ func (v ResourceNodes) Swap(i, j int) {
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description Description, nodeType string) ResourceNode {
+	description Description, nodeType []string) ResourceNode {
 	return ResourceNode{
 		NetworkAddress: networkAddr,
 		PubKey:         pubKey,
@@ -180,4 +175,4 @@ func (v ResourceNode) GetPubKey() crypto.PubKey     { return v.PubKey }
 func (v ResourceNode) GetAddr() sdk.AccAddress      { return sdk.AccAddress(v.PubKey.Address()) }
 func (v ResourceNode) GetTokens() sdk.Int           { return v.Tokens }
 func (v ResourceNode) GetOwnerAddr() sdk.AccAddress { return v.OwnerAddress }
-func (v ResourceNode) GetNodeType() string          { return v.NodeType }
+func (v ResourceNode) GetNodeType() []string        { return v.NodeType }

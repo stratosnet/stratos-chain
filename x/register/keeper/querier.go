@@ -2,8 +2,6 @@ package keeper
 
 import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"strings"
-
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -14,7 +12,6 @@ import (
 const (
 	QueryResourceNodeList = "resource_nodes"
 	QueryIndexingNodeList = "indexing_nodes"
-	QueryNetworkSet       = "networks"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -25,8 +22,6 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return GetResourceNodes(ctx, req, k)
 		case QueryIndexingNodeList:
 			return GetIndexingNodes(ctx, req, k)
-		case QueryNetworkSet:
-			return GetNetworkSet(ctx, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint "+req.String()+string(req.Data))
 		}
@@ -49,13 +44,4 @@ func GetIndexingNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-}
-
-// GetNetworkSet fetches all network addresses.
-func GetNetworkSet(ctx sdk.Context, k Keeper) ([]byte, error) {
-	networks, err := k.GetNetworks(ctx, k)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return []byte(strings.TrimSpace(string(networks))), nil
 }

@@ -211,8 +211,8 @@ func NewInitApp(
 		sdstypes.ModuleName,
 		pottypes.ModuleName,
 		supply.ModuleName,
-		register.ModuleName,
 		genutil.ModuleName,
+		register.ModuleName,
 		// this line is used by starport scaffolding # 7
 	)
 
@@ -253,9 +253,8 @@ func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 	var genesisState simapp.GenesisState
 
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-	res := app.mm.InitGenesis(ctx, genesisState)
-	ctx.Logger().Info("res=" + res.String())
-	return res
+
+	return app.mm.InitGenesis(ctx, genesisState)
 }
 
 func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
