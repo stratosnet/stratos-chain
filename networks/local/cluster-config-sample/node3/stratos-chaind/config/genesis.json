@@ -26,7 +26,7 @@
     "sds": {},
     "register": {
       "params": {
-        "bond_denom": "reg"
+        "bond_denom": "stos"
       },
       "last_resource_node_total_power": "0",
       "last_resource_node_powers": null,
