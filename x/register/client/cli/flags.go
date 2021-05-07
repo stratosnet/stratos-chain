@@ -30,7 +30,15 @@ func init() {
 	FsPk.String(FlagPubKey, "", "The Bech32 encoded PubKey of the node")
 	FsAmount.String(FlagAmount, "", "Amount of coins to bond")
 	FsNetworkAddr.String(FlagNetworkAddr, "", "The network address of the node")
-	FsNodeType.Int(FlagNodeType, 0, `The value of node_type is determined by the three node types('storage', 'database'', and 'computation') and their arbitary combinations.
+	FsNodeType.Int(FlagNodeType, 0, `The value of node_type is determined by the three node types('storage', 'database'', and 'computation') and their arbitrary combinations.
+Suppose, we define:
+	computation = 1,
+	database 	= 2,
+	storage 	= 4,
+Then, their combinations:
+	computation && database 			= 1 + 2 = 3,
+	storage && database 				= 4 + 2 = 6,
+	computation && database && storage 	= 1 + 2 + 4 = 7,
 As a result, the value of node_type should be one of the following digits:
 	1:  "computation",
 	2:  "database",
