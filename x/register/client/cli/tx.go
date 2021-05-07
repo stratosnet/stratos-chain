@@ -128,7 +128,7 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	if !ValueInSlice(nodeTypeRef, types.NodeTypes) {
 		return txBldr, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, types.NodeTypesMap[nodeTypeRef])
+	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeTypesMap[nodeTypeRef]))
 
 	return txBldr, msg, nil
 }
