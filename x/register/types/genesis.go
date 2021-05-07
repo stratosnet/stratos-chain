@@ -15,14 +15,14 @@ type GenesisState struct {
 
 // LastResourceNodePower required for resource node set update logic
 type LastResourceNodePower struct {
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Power   int64          `json:"power" yaml:"power"`
+	Address sdk.AccAddress
+	Power   int64
 }
 
 // LastIndexingNodePower required for indexing node set update logic
 type LastIndexingNodePower struct {
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Power   int64          `json:"power" yaml:"power"`
+	Address sdk.AccAddress
+	Power   int64
 }
 
 // NewGenesisState creates a new GenesisState object
