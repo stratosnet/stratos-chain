@@ -53,14 +53,11 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
 			// query volume report by reporter
-			if len(args) == 1 {
-				resp, _, err := QueryVolumeReport(cliCtx, queryRoute, args[0])
-				if err != nil {
-					return err
-				}
-				return cliCtx.PrintOutput(string(resp))
+			resp, _, err := QueryVolumeReport(cliCtx, queryRoute, args[0])
+			if err != nil {
+				return err
 			}
-			return nil
+			return cliCtx.PrintOutput(string(resp))
 		},
 	}
 }
