@@ -44,6 +44,7 @@ var (
 		staking.AppModuleBasic{},
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
+		pot.AppModuleBasic{},
 		sds.AppModuleBasic{},
 		register.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
@@ -170,6 +171,12 @@ func NewInitApp(
 		),
 	)
 
+	app.potKeeper = potkeeper.NewKeeper(
+		app.bankKeeper,
+		app.cdc,
+		keys[pottypes.StoreKey],
+	)
+
 	app.sdsKeeper = sdskeeper.NewKeeper(
 		app.bankKeeper,
 		app.cdc,
@@ -250,7 +257,7 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	var genesisState GenesisState
+	var genesisState simapp.GenesisState
 
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
 	res := app.mm.InitGenesis(ctx, genesisState)
