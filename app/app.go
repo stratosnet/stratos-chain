@@ -253,9 +253,7 @@ func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.
 	var genesisState GenesisState
 
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-	res := app.mm.InitGenesis(ctx, genesisState)
-	ctx.Logger().Info("res=" + res.String())
-	return res
+	return app.mm.InitGenesis(ctx, genesisState)
 }
 
 func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.ResponseBeginBlock {
