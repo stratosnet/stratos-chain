@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2021-05-05T20:21:01.3200023Z",
+  "genesis_time": "2021-05-07T20:31:59.4929378Z",
   "chain_id": "test-chain-localnet",
   "consensus_params": {
     "block": {
@@ -19,7 +19,6 @@
   },
   "app_hash": "",
   "app_state": {
-    "params": null,
     "supply": {
       "supply": []
     },
@@ -57,11 +56,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st1e9djg7aunf2cjhhh3m4934l266lj86rq2jhyd3",
-                  "validator_address": "stvaloper1e9djg7aunf2cjhhh3m4934l266lj86rqa77y36",
-                  "pubkey": "stvalconspub1zcjduepqh66s4056a3dyfzuzp495drwcw6gak5pfn6c7arfsaxfejgud4kast2m6sv",
+                  "delegator_address": "st1ulwe8hj2fdarhdlhrltk87mtamn549dj97hcdm",
+                  "validator_address": "stvaloper1ulwe8hj2fdarhdlhrltk87mtamn549djjj7c3s",
+                  "pubkey": "stvalconspub1zcjduepquc8lx433mx5pucrwn3q2a49ppzjfr2454t9ddx2dey7tnk9g9aysmu4qg8",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -75,12 +74,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "Av2+ZBa2cIzJavT5ho8nFFcNCOQtmBrBx2tQWXS8bKAZ"
+                  "value": "AzpbO2+Sd5E25bXzPSlaM6czyIlQ0JfjwzZSpqIy1V5s"
                 },
-                "signature": "7+Cxi8+m1QDDrPzGymm30haiV/eE6kPe5xqw0/1nHWsI+uc4WxdRX2+GTLYeW1s9QXJTGNDK1j+p7KHxQENASA=="
+                "signature": "8hWV2n55UeVyMzcVkEdZsgKOMF50lf/Zj99wf3qAaMAA5dHGD9Ag5ihLuOoGXfA8rX3r9+ESKCERSRVQvE/LxQ=="
               }
             ],
-            "memo": "b083be89b8096b9df808ba39d271ebf28a3fd436@192.168.11.2:26656"
+            "memo": "dbbaa96dbe6cb088d687813542dfbfa3e3f22976@192.168.11.2:26656"
           }
         },
         {
@@ -103,11 +102,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st154zr3t3d5qlj435z03n9jd3aad49un50y3f2n0",
-                  "validator_address": "stvaloper154zr3t3d5qlj435z03n9jd3aad49un50naq20y",
-                  "pubkey": "stvalconspub1zcjduepqkrt9uglyz92p2dv98p84ytqs32q5evkpjwm5qgz7w7gwjy6l8wwsu8hux7",
+                  "delegator_address": "st1jfa89pxa0lv3ylyj940ndgmtauxy887em056el",
+                  "validator_address": "stvaloper1jfa89pxa0lv3ylyj940ndgmtauxy887evra695",
+                  "pubkey": "stvalconspub1zcjduepqccg05j33y8msrtfcuwhjmaarl3h2vqu4j3202apvdzrw4pkvaups2ru4qa",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -121,12 +120,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A8xAOV2qHvAyCIgxKzjkxTLdH0F42LdQVgdnSYhztw1e"
+                  "value": "Ahj1BlCplK78+Gdz69pYLaU+jejw9sAMDZ3bejghn3T4"
                 },
-                "signature": "VIBGsqrir0lQVB30tIQgBbUaGXmONIEROhrLL/YacR8EQYB007iWI6Tg589dLDVAlPpX7wq2B9DOxxZFE6UvCQ=="
+                "signature": "xgF7OgUCrHvSL7jvtjCpE+TWJyIA1QXXA4x3mY+XpYsiMX7ZBPGk3ELp9Gell3+ErKvQRB1rT3tdZxUSixzryA=="
               }
             ],
-            "memo": "502a2a8cb048600777f891b286b1b8ea67de256a@192.168.11.3:26656"
+            "memo": "92e4d4c6b1bf60a2fa30f0eeaedeff6ce84fd20c@192.168.11.3:26656"
           }
         },
         {
@@ -149,11 +148,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st1mca4cwjvxf607lqs2feh3jt92qv3x6z5t8jlws",
-                  "validator_address": "stvaloper1mca4cwjvxf607lqs2feh3jt92qv3x6z5utmljm",
-                  "pubkey": "stvalconspub1zcjduepqgfu9qwacfazqj9addehxmqsepd3kfft6fxws9f05xf7pr0rv0f2qlcakpa",
+                  "delegator_address": "st1fe5artqp04aw6s9elcyzkufq99shtupl5kwdst",
+                  "validator_address": "stvaloper1fe5artqp04aw6s9elcyzkufq99shtuplr68dvq",
+                  "pubkey": "stvalconspub1zcjduepqyej7d64p0zkpq8vkvwhtyeyq9uw5jmcf0gve5lhlv8tyw3rfkarsr44yvy",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -167,12 +166,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A0Sx+/2+KG+lYaqbWu6BAuDcfVbqjbXuqchVgVsIfaIk"
+                  "value": "Ag665iNR9v8ft06kMLd/TPIkyK281wqkJALAlYP+FfDM"
                 },
-                "signature": "p9loig6ZeBaQin/79DSfD9P4yu+9x2RBy0Ky5+NdF69LesDiwQ0QspLjYkk4B+B3sXC02swQQt2Z8h8YMhdiGw=="
+                "signature": "akAdUF9GeZDCyoARwZdasnMs06Yi0DFVS8oCHh5txZJdyWmWrpTuo1JJjtfbEGWnaQtxcBb53sTpzwdaTKx/wg=="
               }
             ],
-            "memo": "f38e8bde3958937f55a9a7a3d26958f3feb3d770@192.168.11.4:26656"
+            "memo": "6559b61625a29f1e76148d50992ea3d620f8507d@192.168.11.4:26656"
           }
         },
         {
@@ -195,11 +194,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st1cva83fxjnmj354gaa58xw39q8hl272pjvwf02u",
-                  "validator_address": "stvaloper1cva83fxjnmj354gaa58xw39q8hl272pjmzq0kh",
-                  "pubkey": "stvalconspub1zcjduepqk47mlt8f70vdkms5v75sg4zvd4dq3acwvh7vf9vy332use556xcqeddmav",
+                  "delegator_address": "st17rzvesrldaswcxt7srczuzwftkgdudc8t6e2wk",
+                  "validator_address": "stvaloper17rzvesrldaswcxt7srczuzwftkgdudc8uks2ja",
+                  "pubkey": "stvalconspub1zcjduepqf4l4snh3pv23papft66tk0ngng0w234flc70afa3qmhzx9ztjsvsftshkl",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -213,12 +212,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "AqZlsEUW+XZ3+90lGR5JodQst4aSLVZhzsOUHV8odHqi"
+                  "value": "ArXeLqpTKxt3yGtfF4DAQsW8F5KiHDXdGz2IX91buBvY"
                 },
-                "signature": "DZX8zv+zMM4P7uRJ/uvp2QMOcFFM1MXqS06PdFHAa6lDw2a6l9QrNNe4BmTFVeE553i/Q6/OiSxqBPz+Q0FJhQ=="
+                "signature": "q7HcoDN2ixBe0cD8d2Uv80axZ372NQ2UE93uowKXPrV7e0HUvw4rW9no22KkXz3NxdhIhpyC4wHBvKpPlDngBQ=="
               }
             ],
-            "memo": "247c4322dadad1b4504282541877ef0689b5b437@192.168.11.5:26656"
+            "memo": "6eb8e2131473198a2f791339a643d42519daa3c5@192.168.11.5:26656"
           }
         }
       ]
@@ -235,16 +234,8 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "st1e9djg7aunf2cjhhh3m4934l266lj86rq2jhyd3",
+            "address": "st1ulwe8hj2fdarhdlhrltk87mtamn549dj97hcdm",
             "coins": [
-              {
-                "denom": "atom",
-                "amount": "1000"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
               {
                 "denom": "stos",
                 "amount": "999999999999"
@@ -258,16 +249,8 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "st154zr3t3d5qlj435z03n9jd3aad49un50y3f2n0",
+            "address": "st1jfa89pxa0lv3ylyj940ndgmtauxy887em056el",
             "coins": [
-              {
-                "denom": "atom",
-                "amount": "1100"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
               {
                 "denom": "stos",
                 "amount": "999999999999"
@@ -281,16 +264,8 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "st1mca4cwjvxf607lqs2feh3jt92qv3x6z5t8jlws",
+            "address": "st1fe5artqp04aw6s9elcyzkufq99shtupl5kwdst",
             "coins": [
-              {
-                "denom": "atom",
-                "amount": "1200"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
               {
                 "denom": "stos",
                 "amount": "999999999999"
@@ -304,16 +279,8 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "st1cva83fxjnmj354gaa58xw39q8hl272pjvwf02u",
+            "address": "st17rzvesrldaswcxt7srczuzwftkgdudc8t6e2wk",
             "coins": [
-              {
-                "denom": "atom",
-                "amount": "1300"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
-              },
               {
                 "denom": "stos",
                 "amount": "999999999999"
@@ -335,7 +302,7 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 0,
-        "bond_denom": "stake"
+        "bond_denom": "stos"
       },
       "last_total_power": "0",
       "last_validator_powers": null,
@@ -344,6 +311,7 @@
       "unbonding_delegations": null,
       "redelegations": null,
       "exported": false
-    }
+    },
+    "params": null
   }
 }
