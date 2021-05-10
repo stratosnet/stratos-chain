@@ -36,6 +36,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// this line is used by starport scaffolding # 1
 			GetCmdQueryResourceNodeList(queryRoute, cdc),
 			GetCmdQueryIndexingNodeList(queryRoute, cdc),
+			GetCmdQueryNetworkSet(queryRoute, cdc),
 		)...,
 	)
 
@@ -98,4 +99,33 @@ func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddress st
 
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
 	return cliCtx.QueryWithData(route, []byte(networkAddress))
+}
+
+// GetCmdQueryNetworkSet implements the query all indexing nodes by network address command.
+func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
+	return &cobra.Command{
+		Use:   "get-network-set",
+		Args:  cobra.RangeArgs(0, 0),
+		Short: "Query all network addresses",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query all network addresses.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			cliCtx := context.NewCLIContext().WithCodec(cdc)
+
+			// query all indexing nodes by network address
+			resp, _, err := QueryNetworkSet(cliCtx, queryRoute)
+			if err != nil {
+				return err
+			}
+			return cliCtx.PrintOutput(string(resp))
+		},
+	}
+}
+
+// QueryNetworkSet queries all network address
+func QueryNetworkSet(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
+
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryNetworkSet)
+	return cliCtx.Query(route)
 }
