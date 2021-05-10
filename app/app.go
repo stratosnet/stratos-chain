@@ -250,7 +250,7 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	var genesisState simapp.GenesisState
+	var genesisState GenesisState
 
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
 	res := app.mm.InitGenesis(ctx, genesisState)
