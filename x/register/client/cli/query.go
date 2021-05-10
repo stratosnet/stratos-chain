@@ -104,8 +104,8 @@ func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddress st
 // GetCmdQueryNetworkSet implements the query all indexing nodes by network address command.
 func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "get-network-set",
-		Args:  cobra.RangeArgs(0, 0),
+		Use:   "get-network-set [chain-id] [home]",
+		Args:  cobra.RangeArgs(2, 2),
 		Short: "Query all network addresses",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query all network addresses.`),
