@@ -47,10 +47,10 @@ func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byt
 	return bz, nil
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, volumeReport *types.MsgVolumeReport) {
+func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
 	store := ctx.KVStore(k.storeKey)
-	storeKey := types.VolumeReportStoreKey(volumeReport.Reporter)
-	store.Set(storeKey, []byte(volumeReport.ReportReference))
+	storeKey := types.VolumeReportStoreKey(reporter)
+	store.Set(storeKey, []byte(reportReference))
 }
 
 func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {

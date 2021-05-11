@@ -25,7 +25,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle handleMsgReportVolume.
 func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolumeReport) (*sdk.Result, error) {
-	k.SetVolumeReport(ctx, &msg)
+	k.SetVolumeReport(ctx, msg.Reporter, msg.ReportReference)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/spf13/viper"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"strings"
 
@@ -45,24 +47,41 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 
 // GetCmdQueryResourceNodeList implements the query all resource nodes by network address command.
 func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "get-resource-node-list [network_address]", // []byte
-		Args:  cobra.RangeArgs(1, 1),
+	cmd := &cobra.Command{
+		Use: "get-resource-node-list", // []byte
+		//Args:  cobra.RangeArgs(1, 1),
 		Short: "Query all resource nodes by network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query all resource nodes by network address.`),
 		),
+		//	RunE: func(cmd *cobra.Command, args []string) error {
+		//		cliCtx := context.NewCLIContext().WithCodec(cdc)
+		//
+		//		// query all resource nodes by network address
+		//		resp, _, err := QueryResourceNodes(cliCtx, queryRoute, args[0])
+		//		if err != nil {
+		//			return err
+		//		}
+		//		return cliCtx.PrintOutput(string(resp))
+		//	},
+		//}
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// query all resource nodes by network address
-			resp, _, err := QueryResourceNodes(cliCtx, queryRoute, args[0])
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			//txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			// query all indexing nodes by network address
+			resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, viper.GetString(FlagNetworkAddr))
 			if err != nil {
 				return err
 			}
 			return cliCtx.PrintOutput(string(resp))
+
 		},
 	}
+	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+
+	return cmd
 }
 
 // QueryResourceNodes queries all resource nodes by network address
@@ -74,24 +93,40 @@ func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkAddress st
 
 // GetCmdQueryIndexingNodeList implements the query all indexing nodes by network address command.
 func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use:   "get-indexing-node-list [network_address]", // []byte
-		Args:  cobra.RangeArgs(1, 1),
+	cmd := &cobra.Command{
+		Use: "get-indexing-node-list", // []byte
+		//Args:  cobra.RangeArgs(1, 1),
 		Short: "Query all indexing nodes by network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query all indexing nodes by network address.`),
 		),
+		//RunE: func(cmd *cobra.Command, args []string) error {
+		//	cliCtx := context.NewCLIContext().WithCodec(cdc)
+		//
+		//	// query all indexing nodes by network address
+		//	resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, args[0])
+		//	if err != nil {
+		//		return err
+		//	}
+		//	return cliCtx.PrintOutput(string(resp))
+		//},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			//txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 			// query all indexing nodes by network address
-			resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, args[0])
+			resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, viper.GetString(FlagNetworkAddr))
 			if err != nil {
 				return err
 			}
 			return cliCtx.PrintOutput(string(resp))
+
 		},
 	}
+	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+
+	return cmd
 }
 
 // QueryIndexingNodes queries all indexing nodes by network address

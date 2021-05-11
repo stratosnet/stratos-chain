@@ -2,6 +2,8 @@ package cli
 
 import (
 	"bufio"
+	"github.com/spf13/viper"
+
 	//"encoding/hex"
 	//"encoding/json"
 	"fmt"
@@ -14,7 +16,6 @@ import (
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -41,43 +42,89 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report [reporter] [epoch] [report_reference] [nodes_volume]",
 		Short: "Create and sign a volume report",
-		Args:  cobra.ExactArgs(4),
+		//Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
 
-			reporter, err := sdk.AccAddressFromBech32(args[0])
+			txBldr, msg, err := createVolumeReportMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
 			}
 
-			reportReference := args[2]
-			value, e := strconv.ParseInt(args[1], 10, 64)
-			if e != nil {
-				return err
-			}
-			epoch := sdk.NewInt(value)
-
-			var nodesVolume = make([]types.SingleNodeVolume, 0)
-			//er := types.ModuleCdc.UnmarshalJSON([]byte(args[3]), &nodesVolume)
-			er := cliCtx.Codec.UnmarshalJSON([]byte(args[3]), &nodesVolume)
-			if er != nil {
-				return er
-			}
-
-			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgVolumeReport(
-				nodesVolume,
-				reporter,
-				epoch,
-				reportReference,
-			)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			//reporter, err := sdk.AccAddressFromBech32(args[0])
+			//if err != nil {
+			//	return err
+			//}
+			//
+			//reportReference := args[2]
+			//value, e := strconv.ParseInt(args[1], 10, 64)
+			//if e != nil {
+			//	return err
+			//}
+			//epoch := sdk.NewInt(value)
+			//
+			//var nodesVolume = make([]types.SingleNodeVolume, 0)
+			////er := types.ModuleCdc.UnmarshalJSON([]byte(args[3]), &nodesVolume)
+			//er := cliCtx.Codec.UnmarshalJSON([]byte(args[3]), &nodesVolume)
+			//if er != nil {
+			//	return er
+			//}
+			//
+			//// build and sign the transaction, then broadcast to Tendermint
+			//msg := types.NewMsgVolumeReport(
+			//	nodesVolume,
+			//	reporter,
+			//	epoch,
+			//	reportReference,
+			//)
+			//return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().AddFlagSet(FsReporter)
+	cmd.Flags().AddFlagSet(FsEpoch)
+	cmd.Flags().AddFlagSet(FsReportReference)
+	cmd.Flags().AddFlagSet(FsNodesVolume)
 
-	cmd = flags.PostCommands(cmd)[0]
+	_ = cmd.MarkFlagRequired(FlagReporter)
+	_ = cmd.MarkFlagRequired(FlagEpoch)
+	_ = cmd.MarkFlagRequired(FlagReportReference)
+	_ = cmd.MarkFlagRequired(FlagNodesVolume)
+
+	//cmd = flags.PostCommands(cmd)[0]
 
 	return cmd
+}
+
+func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	reporterStr := viper.GetString(FlagReporter)
+	reporter, e := sdk.AccAddressFromBech32(reporterStr)
+	if e != nil {
+		return txBldr, nil, e
+	}
+
+	reportReference := viper.GetString(FlagReportReference)
+
+	value, er := strconv.ParseInt(viper.GetString(FlagEpoch), 10, 64)
+	if er != nil {
+		return txBldr, nil, er
+	}
+	epoch := sdk.NewInt(value)
+
+	var nodesVolume = make([]types.SingleNodeVolume, 0)
+	err := cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolume)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	msg := types.NewMsgVolumeReport(
+		nodesVolume,
+		reporter,
+		epoch,
+		reportReference,
+	)
+	return txBldr, msg, nil
 }
