@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
-// Default parameter namespace
+// DefaultParamspace Default parameter namespace
 const (
 	DefaultParamspace = ModuleName
 	// TODO: Define your default parameters

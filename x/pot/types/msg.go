@@ -1,47 +1,80 @@
 package types
 
-// import (
-// 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-// )
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
 
-// TODO: Describe your actions, these will implment the interface of `sdk.Msg`
-/*
+const MsgType = "volume_report"
+
 // verify interface at compile time
-var _ sdk.Msg = &Msg<Action>{}
+var (
+	_ sdk.Msg = &MsgVolumeReport{}
+)
 
-// Msg<Action> - struct for unjailing jailed validator
-type Msg<Action> struct {
-	ValidatorAddr sdk.ValAddress `json:"address" yaml:"address"` // address of the validator operator
+type MsgVolumeReport struct {
+	NodesVolume     []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
+	Reporter        sdk.AccAddress     `json:"reporter" yaml:"reporter"`                 // volume reporter
+	Epoch           sdk.Int            `json:"report_epoch" yaml:"report_epoch"`         // volume report epoch
+	ReportReference string             `json:"report_reference" yaml:"report_reference"` // volume report reference
 }
 
-// NewMsg<Action> creates a new Msg<Action> instance
-func NewMsg<Action>(validatorAddr sdk.ValAddress) Msg<Action> {
-	return Msg<Action>{
-		ValidatorAddr: validatorAddr,
+// NewMsgVolumeReport creates a new Msg<Action> instance
+func NewMsgVolumeReport(
+	nodesVolume []SingleNodeVolume,
+	reporter sdk.AccAddress,
+	epoch sdk.Int,
+	reportReference string,
+) MsgVolumeReport {
+	return MsgVolumeReport{
+		NodesVolume:     nodesVolume,
+		Reporter:        reporter,
+		Epoch:           epoch,
+		ReportReference: reportReference,
 	}
 }
 
-const <action>Const = "<action>"
+// Route Implement
+func (msg MsgVolumeReport) Route() string { return RouterKey }
 
-// nolint
-func (msg Msg<Action>) Route() string { return RouterKey }
-func (msg Msg<Action>) Type() string  { return <action>Const }
-func (msg Msg<Action>) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
+// GetSigners Implement
+func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Reporter}
 }
 
+// Type Implement
+func (msg MsgVolumeReport) Type() string { return MsgType }
+
 // GetSignBytes gets the bytes for the message signer to sign on
-func (msg Msg<Action>) GetSignBytes() []byte {
+func (msg MsgVolumeReport) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic validity check for the AnteHandler
-func (msg Msg<Action>) ValidateBasic() error {
-	if msg.ValidatorAddr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing validator address")
+func (msg MsgVolumeReport) ValidateBasic() error {
+	if msg.Reporter.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing reporter address")
+	}
+	if !(len(msg.NodesVolume) > 0) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "no node reports volume")
+	}
+
+	if !(msg.Epoch.IsPositive()) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid report epoch")
+	}
+
+	if !(len(msg.ReportReference) > 0) {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid report reference hash")
+	}
+
+	for _, item := range msg.NodesVolume {
+		if item.Volume.IsNegative() {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "report volume is negative")
+		}
+		if item.NodeAddress.Empty() {
+			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing node address")
+		}
 	}
 	return nil
 }
-*/
