@@ -109,12 +109,10 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte, err err
 	}
 
 	r := removeDuplicateValues(networkList)
-	ctx.Logger().Info("r: ", r)
 	bz, err2 := json.Marshal(r)
 	if err2 != nil {
 		panic("could not marshal result to JSON")
 	}
-	ctx.Logger().Info("bz: ", bz)
 	return bz, nil
 }
 
