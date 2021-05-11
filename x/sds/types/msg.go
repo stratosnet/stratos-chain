@@ -1,47 +1,88 @@
 package types
 
-// import (
-// 	sdk "github.com/cosmos/cosmos-sdk/types"
-// 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-// )
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+)
 
-// TODO: Describe your actions, these will implment the interface of `sdk.Msg`
-/*
-// verify interface at compile time
-var _ sdk.Msg = &Msg<Action>{}
+const (
+	ConstFileUpload = "FileUploadTx"
+	ConstSdsPrepay  = "SdsPrepayTx"
+)
 
-// Msg<Action> - struct for unjailing jailed validator
-type Msg<Action> struct {
-	ValidatorAddr sdk.ValAddress `json:"address" yaml:"address"` // address of the validator operator
+type MsgFileUpload struct {
+	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
+	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // reporter of tx
 }
 
+// verify interface at compile time
+var _ sdk.Msg = &MsgFileUpload{}
+
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsg<Action>(validatorAddr sdk.ValAddress) Msg<Action> {
-	return Msg<Action>{
-		ValidatorAddr: validatorAddr,
+func NewMsgUpload(fileHash []byte, reporter sdk.AccAddress) MsgFileUpload {
+	return MsgFileUpload{
+		FileHash: fileHash,
+		Reporter: reporter,
 	}
 }
 
-const <action>Const = "<action>"
-
 // nolint
-func (msg Msg<Action>) Route() string { return RouterKey }
-func (msg Msg<Action>) Type() string  { return <action>Const }
-func (msg Msg<Action>) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{sdk.AccAddress(msg.ValidatorAddr)}
+func (msg MsgFileUpload) Route() string { return RouterKey }
+func (msg MsgFileUpload) Type() string  { return ConstFileUpload }
+func (msg MsgFileUpload) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Reporter}
 }
 
 // GetSignBytes gets the bytes for the message signer to sign on
-func (msg Msg<Action>) GetSignBytes() []byte {
+func (msg MsgFileUpload) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic validity check for the AnteHandler
-func (msg Msg<Action>) ValidateBasic() error {
-	if msg.ValidatorAddr.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing validator address")
+func (msg MsgFileUpload) ValidateBasic() error {
+	if msg.Reporter.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
 	return nil
 }
-*/
+
+type MsgPrepay struct {
+	Sender sdk.AccAddress `json:"sender" yaml:"sender"` // sender of tx
+	Coins  sdk.Coins      `json:"coins" yaml:"coins"`   // coins to send
+}
+
+// verify interface at compile time
+var _ sdk.Msg = &MsgPrepay{}
+
+// NewMsg<Action> creates a new Msg<Action> instance
+func NewMsgPrepay(sender sdk.AccAddress, coins sdk.Coins) MsgPrepay {
+	return MsgPrepay{
+		Sender: sender,
+		Coins:  coins,
+	}
+}
+
+// nolint
+func (msg MsgPrepay) Route() string { return RouterKey }
+func (msg MsgPrepay) Type() string  { return ConstSdsPrepay }
+func (msg MsgPrepay) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.Sender}
+}
+
+// GetSignBytes gets the bytes for the message signer to sign on
+func (msg MsgPrepay) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic validity check for the AnteHandler
+func (msg MsgPrepay) ValidateBasic() error {
+	if msg.Sender.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
+	}
+	if msg.Coins.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing coins to send")
+	}
+	return nil
+}

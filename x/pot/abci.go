@@ -2,8 +2,8 @@ package pot
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
+	abci "github.com/tendermint/tendermint/abci/types"
 	// abci "github.com/tendermint/tendermint/abci/types"
 )
 
