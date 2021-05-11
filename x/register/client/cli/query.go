@@ -70,7 +70,7 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 			//txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 			// query all indexing nodes by network address
-			resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, viper.GetString(FlagNetworkAddr))
+			resp, _, err := QueryResourceNodes(cliCtx, queryRoute, viper.GetString(FlagNetworkAddr))
 			if err != nil {
 				return err
 			}
