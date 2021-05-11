@@ -1,12 +1,12 @@
 version: 1
 accounts:
   - name: user1
-    coins: ["1000token", "100000000stake", "999999999999stos"]
+    coins: ["8888888888888stos"]
   - name: user2
-    coins: ["500token"]
+    coins: ["500stos"]
 validator:
   name: user1
-  staked: "100000000stake"
+  staked: "10000000stos"
 faucet:
   name: user1
   coins: ["999999999999stos"]

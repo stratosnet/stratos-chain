@@ -211,8 +211,8 @@ func NewInitApp(
 		sdstypes.ModuleName,
 		pottypes.ModuleName,
 		supply.ModuleName,
-		genutil.ModuleName,
 		register.ModuleName,
+		genutil.ModuleName,
 		// this line is used by starport scaffolding # 7
 	)
 
@@ -250,10 +250,9 @@ func NewDefaultGenesisState() GenesisState {
 }
 
 func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
-	var genesisState simapp.GenesisState
+	var genesisState GenesisState
 
 	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
-
 	return app.mm.InitGenesis(ctx, genesisState)
 }
 

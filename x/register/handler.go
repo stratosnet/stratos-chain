@@ -70,6 +70,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
 	if _, found := k.GetIndexingNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
+		ctx.Logger().Error("Indexing node already exist")
 		return nil, ErrIndexingNodePubKeyExists
 	}
 	if msg.Value.Denom != k.BondDenom(ctx) {
