@@ -45,29 +45,17 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryVolumeReport implements the query volume report command.
 func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "report", // reporter: []byte
-		Args:  cobra.RangeArgs(1, 1),
+		Use: "report", // reporter: []byte
+		//Args:  cobra.RangeArgs(1, 1),
 		Short: "Query volume report hash by reporter addr",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query volume report hash by reporter.`),
 		),
-		//	RunE: func(cmd *cobra.Command, args []string) error {
-		//		cliCtx := context.NewCLIContext().WithCodec(cdc)
-		//
-		//		// query volume report by reporter
-		//		resp, _, err := QueryVolumeReport(cliCtx, queryRoute, args[0])
-		//		if err != nil {
-		//			return err
-		//		}
-		//		return cliCtx.PrintOutput(string(resp))
-		//	},
-		//}
+
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
-			//txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			// query all indexing nodes by network address
-			resp, _, err := QueryVolumeReport(cliCtx, queryRoute, viper.GetString(flags.FlagFrom))
+			resp, _, err := QueryVolumeReport(cliCtx, queryRoute, viper.GetString(FlagReporter))
 			if err != nil {
 				return err
 			}
@@ -75,8 +63,9 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 
 		},
 	}
-	//cmd.Flags().AddFlagSet(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	//_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	cmd.Flags().AddFlagSet(FsReporter)
+	_ = cmd.MarkFlagRequired(FlagReporter)
 
 	return cmd
 }

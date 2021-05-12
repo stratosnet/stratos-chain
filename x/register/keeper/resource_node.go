@@ -229,16 +229,24 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 }
 
 // GetResourceNodeList get all resource nodes by network address
-func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []types.ResourceNode, err error) {
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []byte, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
-			resourceNodes = append(resourceNodes, node)
+			resourceNodes = types.ModuleCdc.MustMarshalJSON(resourceNodes)
 		}
 
 	}
 	ctx.Logger().Info("resourceNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
+
+// GetResourceNodeListByMoniker - returns all resource nodes by moniker(name)
+//func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, name string) (resourceNodes []types.ResourceNode, err error) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := store.Get([]byte(name))
+//	if bz == nil { return nil, nil	}
+//	networkAddress := nil
+//	return k.GetResourceNodeList(ctx, networkAddress)
