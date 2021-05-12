@@ -59,6 +59,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNetworkAddr)
 	cmd.Flags().AddFlagSet(FsNodeType)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)

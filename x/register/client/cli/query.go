@@ -49,33 +49,34 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			// query all resource nodes by network address
 			resp, err := queryByNetworkAddr(cliCtx, queryRoute)
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintOutput(string(resp[:len(resp)-1]))
+			return cliCtx.PrintOutput(resp)
 		},
 	}
 	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 
 	return cmd
 }
 
 // query all resource nodes by multiple network addresses (sep: ";")
-func queryByNetworkAddr(cliCtx context.CLIContext, queryRoute string) ([]byte, error) {
-	queryByFlagNetworkAddr := viper.GetString(FlagNetworkAddr)
-	queryByFlagNetworkAddrList := strings.Split(queryByFlagNetworkAddr, ";")
-	var res []byte
+func queryByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
+	queryFlagNetworkAddr := viper.GetString(FlagNetworkAddr)
+	queryByFlagNetworkAddrList := strings.Split(queryFlagNetworkAddr, ";")
 	for _, v := range queryByFlagNetworkAddrList {
 		resp, _, err := QueryResourceNodes(cliCtx, queryRoute, v)
 		if err != nil {
-			return nil, err
+			return "null", err
 		}
-		res = append(res, resp...)
-		res = append(res, ';')
+		res += string(resp) + ";"
 	}
-	return res, nil
+	return res[:len(res)-1], nil
 }
 
 // QueryResourceNodes queries all resource nodes by network address
