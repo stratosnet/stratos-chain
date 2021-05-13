@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	DefaultParamspace = keeper.DefaultParamspace
+	DefaultParamSpace = types.DefaultParamSpace
 	ModuleName        = types.ModuleName
 	StoreKey          = types.StoreKey
 )
