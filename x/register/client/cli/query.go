@@ -41,7 +41,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryResourceNodeList implements the query all resource nodes by network address command.
 func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "get-resource-node-list", // []byte
+		Use: "get-resource-nodes", // []byte
 		//Args:  cobra.RangeArgs(1, 1),
 		Short: "Query all resource nodes by network address.",
 		Long: strings.TrimSpace(
@@ -120,7 +120,7 @@ func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkAddress st
 // GetCmdQueryIndexingNodeList implements the query all indexing nodes by network address command.
 func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "get-indexing-node-list", // []byte
+		Use: "get-indexing-nodes", // []byte
 		//Args:  cobra.RangeArgs(1, 1),
 		Short: "Query all indexing nodes by network address",
 		Long: strings.TrimSpace(
@@ -201,7 +201,7 @@ func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddress st
 // GetCmdQueryNetworkSet implements the query all indexing nodes by network address command.
 func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use: "get-network-set",
+		Use: "get-network-addresses",
 		//Args:  cobra.RangeArgs(0, 0),
 		Short: "Query all network addresses",
 		Long: strings.TrimSpace(

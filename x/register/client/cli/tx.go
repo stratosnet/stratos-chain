@@ -41,7 +41,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-resource-node",
-		Short: "create new resource node",
+		Short: "create a new resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -77,7 +77,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-indexing-node",
-		Short: "create new indexing node",
+		Short: "create a new indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))

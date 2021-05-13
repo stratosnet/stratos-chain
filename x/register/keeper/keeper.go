@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"container/list"
-	"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -95,7 +94,7 @@ func (k Keeper) GetIndexingNetworksIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 }
 
-func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte, err error) {
+func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 	var networkList []string
 	iterator := keeper.GetResourceNetworksIterator(ctx)
 	for ; iterator.Valid(); iterator.Next() {
@@ -109,22 +108,22 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte, err err
 	}
 
 	r := removeDuplicateValues(networkList)
-	bz, err2 := json.Marshal(r)
-	if err2 != nil {
-		panic("could not marshal result to JSON")
-	}
-	return bz, nil
+	//bz, err2 := json.Marshal(r)
+	//if err2 != nil {
+	//	panic("could not marshal result to JSON")
+	//}
+	//return bz, nil
+	return r
 }
 
-func removeDuplicateValues(stringSlice []string) []string {
+func removeDuplicateValues(stringSlice []string) (res []byte) {
 	keys := make(map[string]bool)
-	var res []string
-
 	for _, entry := range stringSlice {
 		if _, value := keys[entry]; !value {
 			keys[entry] = true
-			res = append(res, entry)
+			res = append(res, types.ModuleCdc.MustMarshalJSON(entry)...)
+			res = append(res, ';')
 		}
 	}
-	return res
+	return res[:len(res)-1]
 }
