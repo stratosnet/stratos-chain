@@ -76,8 +76,5 @@ func GetIndexingNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte,
 // GetNetworkSet fetches all network addresses.
 func GetNetworkSet(ctx sdk.Context, k Keeper) ([]byte, error) {
 	networks := k.GetNetworks(ctx, k)
-	//if err != nil {
-	//	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	//}
 	return []byte(strings.TrimSpace(string(networks))), nil
 }

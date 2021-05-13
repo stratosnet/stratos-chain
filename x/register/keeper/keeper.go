@@ -106,13 +106,7 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 		indexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
 		networkList = append(networkList, indexingNode.NetworkAddress)
 	}
-
 	r := removeDuplicateValues(networkList)
-	//bz, err2 := json.Marshal(r)
-	//if err2 != nil {
-	//	panic("could not marshal result to JSON")
-	//}
-	//return bz, nil
 	return r
 }
 

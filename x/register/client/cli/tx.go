@@ -219,8 +219,6 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-
 	msg := types.NewMsgCreateIndexingNode(networkAddr, pk, amount, ownerAddr, desc)
-
 	return txBldr, msg, nil
 }
