@@ -10,6 +10,7 @@ var (
 	ErrEmptyOwnerAddr           = sdkerrors.Register(ModuleName, 3, "missing owner address")
 	ErrValueNegative            = sdkerrors.Register(ModuleName, 4, "value must be positive")
 	ErrEmptyDescription         = sdkerrors.Register(ModuleName, 5, "description must be not empty")
+	ErrEmptyMoniker             = sdkerrors.Register(ModuleName, 5, "moniker must be not empty")
 	ErrEmptyResourceNodeAddr    = sdkerrors.Register(ModuleName, 6, "missing resource node address")
 	ErrEmptyIndexingNodeAddr    = sdkerrors.Register(ModuleName, 7, "missing indexing node address")
 	ErrBadDenom                 = sdkerrors.Register(ModuleName, 8, "invalid coin denomination")

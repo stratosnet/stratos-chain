@@ -49,6 +49,10 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			if !viper.IsSet(FlagNetworkAddr) {
 				return errors.New("required flag(s) \"network-addr\" not set")
 			}
+
+			if !viper.IsSet(FlagMoniker) {
+				return errors.New("required flag(s) \"moniker\" not set")
+			}
 			txBldr, msg, err := buildCreateResourceNodeMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
@@ -84,6 +88,9 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 			if !viper.IsSet(FlagNetworkAddr) {
 				return errors.New("required flag(s) \"network-adr\" not set")
+			}
+			if !viper.IsSet(FlagMoniker) {
+				return errors.New("required flag(s) \"moniker\" not set")
 			}
 			txBldr, msg, err := buildCreateIndexingNodeMsg(cliCtx, txBldr)
 			if err != nil {
