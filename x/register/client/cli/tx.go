@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -45,7 +46,9 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
+			if !viper.IsSet(FlagNetworkAddr) {
+				return errors.New("required flag(s) \"network-addr\" not set")
+			}
 			txBldr, msg, err := buildCreateResourceNodeMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
@@ -64,7 +67,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
-	_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
 
 	return cmd
@@ -79,7 +82,9 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
+			if !viper.IsSet(FlagNetworkAddr) {
+				return errors.New("required flag(s) \"network-adr\" not set")
+			}
 			txBldr, msg, err := buildCreateIndexingNodeMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
@@ -92,11 +97,12 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
-	_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 
 	return cmd
 }

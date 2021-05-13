@@ -242,3 +242,16 @@ func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (res
 	ctx.Logger().Info("resourceNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
+
+func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if strings.Compare(node.Description.Moniker, moniker) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
+}
