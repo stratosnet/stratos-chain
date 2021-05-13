@@ -1,6 +1,7 @@
 package sds
 
 import (
+	"encoding/hex"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -15,6 +16,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgFileUpload:
 			return handleMsgFileUpload(ctx, k, msg)
+		case types.MsgPrepay:
+			return handleMsgPrepay(ctx, k, msg)
 
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
@@ -25,12 +28,36 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle MsgFileUpload.
 func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUpload) (*sdk.Result, error) {
-	k.SetFileHash(ctx, msg.Sender, msg.FileHash)
+	height := sdk.NewInt(ctx.BlockHeight())
+	heightByteArr, _ := height.MarshalJSON()
+	var heightReEncoded sdk.Int
+	heightReEncoded.UnmarshalJSON(heightByteArr)
+	k.SetFileHash(ctx, msg.FileHash, heightByteArr)
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			types.EventTypeFileUpload,
+			sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
+			sdk.NewAttribute(types.AttributeKeyFileHash, hex.EncodeToString(msg.FileHash)),
 		),
 	)
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+// Handle MsgPrepay.
+func handleMsgPrepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgPrepay) (*sdk.Result, error) {
+	if k.BankKeeper.GetSendEnabled(ctx) == false {
+		return nil, nil
+	}
+	err := k.Prepay(ctx, msg.Sender, msg.Coins)
+	if err == nil {
+		ctx.EventManager().EmitEvent(
+			sdk.NewEvent(
+				types.EventTypePrepay,
+				sdk.NewAttribute(types.AttributeKeyReporter, msg.Sender.String()),
+				sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
+			),
+		)
+		return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	}
+	return nil, nil
 }
