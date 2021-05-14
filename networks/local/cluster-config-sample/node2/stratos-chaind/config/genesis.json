@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2021-04-30T13:20:48.78840393Z",
+  "genesis_time": "2021-05-10T17:40:12.8409954Z",
   "chain_id": "test-chain-localnet",
   "consensus_params": {
     "block": {
@@ -19,7 +19,21 @@
   },
   "app_hash": "",
   "app_state": {
+    "supply": {
+      "supply": []
+    },
     "sds": {},
+    "register": {
+      "params": {
+        "bond_denom": "stos"
+      },
+      "last_resource_node_total_power": "0",
+      "last_resource_node_powers": null,
+      "resource_nodes": null,
+      "last_indexing_node_total_power": "0",
+      "last_indexing_node_powers": null,
+      "indexing_nodes": null
+    },
     "genutil": {
       "gentxs": [
         {
@@ -42,11 +56,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "cosmos1wq3rfm3zt8edku5lcwz94fsd69m8t7ydluvsx9",
-                  "validator_address": "cosmosvaloper1wq3rfm3zt8edku5lcwz94fsd69m8t7yd6gc92k",
-                  "pubkey": "cosmosvalconspub1zcjduepqzqy9d3hcejl2n96whwv7e0cgzetugmt5xz8mylg9lh3f4xp3st8s0nk0r6",
+                  "delegator_address": "st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw",
+                  "validator_address": "stvaloper1qr9set2jaayzjjpm9tw4f3n6f5zfu3he7t8tp9",
+                  "pubkey": "stvalconspub1zcjduepq4408pc7v2jz543kyktyycpu7w2pm8695cnqcc5ha7r8xzur43lyszxg0gm",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -60,12 +74,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "AgcvltkorRToIoVse0kidpDJwkvQRpMsEPxhFTys2KS4"
+                  "value": "A8SijbuKPGHYa7oIHuvMpXSejTHlqFyNj+ROJNeYIRVu"
                 },
-                "signature": "hsmBn4K3GU4+QjJA2fVSCOMeSrnFX4yIOlWpDufhK4wikt4p+684rQgtQ9II+7qZyKVJsExDl1POyZC3I9DY3Q=="
+                "signature": "tbXWPbyaV5oQnNi4SOHa4PsUpnqofKj9iDJSTO6kEAhPixD4qh7bxWZHawggwZnuzBh9F3fBnD6THeRccSmVmg=="
               }
             ],
-            "memo": "94e02a5c2dc33735033c0a66c54f7368896a52c2@192.168.11.2:26656"
+            "memo": "75818d47d3f775c264ea1eb3fc1d805578cc2fc2@192.168.11.2:26656"
           }
         },
         {
@@ -88,11 +102,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "cosmos1gvlsjm2nzsfexvh7cm2x598pk96c459fdu0gfa",
-                  "validator_address": "cosmosvaloper1gvlsjm2nzsfexvh7cm2x598pk96c459fggma9w",
-                  "pubkey": "cosmosvalconspub1zcjduepqjtsumvckp2l00d5s9uez6fyvvft7e755fadyuwhrhzz809wzczfqeu0p9r",
+                  "delegator_address": "st1lc9sg3wq7guvkqv2d8vd2wycvj9fsspxq6qtg3",
+                  "validator_address": "stvaloper1lc9sg3wq7guvkqv2d8vd2wycvj9fsspxhkft56",
+                  "pubkey": "stvalconspub1zcjduepq8ppnggnue65pe83vn9zl2hewgtdx87vkp6jt8jughky6yuz9vjxqnw0rqn",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -106,12 +120,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A15Ty8tKztdZYyzmqDab0dm1x5HO1Ee0BWXFpGosnEN5"
+                  "value": "A1thIpfDRIG0bOv8F2Ne3MnvCb3nEld0AOcVOVo6Wu3W"
                 },
-                "signature": "PLaXAaGk3ecnvfxRbRrSw1MdXB5VG+lJOdDL0mGnL+R/l9aAXk98feF5+vOwnjufOLj/Fzfv58IWsFaw+UGVBQ=="
+                "signature": "ROsIDEoV3aMmYhJXbwXn5GOM/0K9fGwDzdAnkKai7vg1DrKBL6WoRg8fI8jNYnspzRQ3O1AA7pM+d7vXrr/bkw=="
               }
             ],
-            "memo": "3869dd813a1524ad03e88c626872324b37fe5b8c@192.168.11.3:26656"
+            "memo": "75f176963272b8cf8926f6ea7bf3e3853f8379f3@192.168.11.3:26656"
           }
         },
         {
@@ -134,11 +148,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "cosmos1vz6l3cmyalmq97rxwtdmacug4c0s7p3ac5u5hx",
-                  "validator_address": "cosmosvaloper1vz6l3cmyalmq97rxwtdmacug4c0s7p3aaqgpm4",
-                  "pubkey": "cosmosvalconspub1zcjduepqvf9uhcstlyq3zruxf024r8g73pdexhradyv3c2lcvxz4tcm2kcgsmcpahz",
+                  "delegator_address": "st15lm2e9h79j4d2zhyyf99j40uuy5vr404vurd0e",
+                  "validator_address": "stvaloper15lm2e9h79j4d2zhyyf99j40uuy5vr404ms2dnj",
+                  "pubkey": "stvalconspub1zcjduepqsya2whfw3z20tdn8ggnw30r5cx5sjryqe9kzgjv0jmqr2y65qn2qkd66y4",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -152,12 +166,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "AiItlzBhtECnCis24Luwy/ovvlGiNKeWZnirHrLe9ggI"
+                  "value": "A7YT0bflnvSbT/BPscUvWkY4J15we2K5+1pec8GMlOx8"
                 },
-                "signature": "BAkhkIumQkR4xAvgk3l9XQoiTQUMk6I0vzCyZKyugKtDSeyDGMn9kKvz3wLISC8Yi+sCPa4TSOa3bL+PLRGL5Q=="
+                "signature": "5oR/71s84J2zssZrjoK2F/4QYawDUX1Fjq/MieriQ0AOPaXvznh1AEu/qZUlYgmAaXrapBZo3fIy1WLIbvk2og=="
               }
             ],
-            "memo": "3ec2a559b0a6af6a6c8fbf5faf2c4d00f314b648@192.168.11.4:26656"
+            "memo": "e4efb135ea557606e0cad896f318df7a2fa475d7@192.168.11.4:26656"
           }
         },
         {
@@ -180,11 +194,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "cosmos135rsgd8asq6hcmh0adsxm5quj05chqr99rgl3h",
-                  "validator_address": "cosmosvaloper135rsgd8asq6hcmh0adsxm5quj05chqr9qhu2ay",
-                  "pubkey": "cosmosvalconspub1zcjduepqdkse53udevm8asgnl8ewwpst3m3wp2g4qr9jzpta0cqjrgk739kqv7j3ha",
+                  "delegator_address": "st1sysfc0hrjt63zqdywtzu7wu367uc23mcq7cz99",
+                  "validator_address": "stvaloper1sysfc0hrjt63zqdywtzu7wu367uc23mchj3zew",
+                  "pubkey": "stvalconspub1zcjduepqlp2r0djv6cpmw785k3xmly7g35pqmx79qdz5ctxaa9wq3fmuyv6s050x9p",
                   "value": {
-                    "denom": "stake",
+                    "denom": "stos",
                     "amount": "100000000"
                   }
                 }
@@ -198,12 +212,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A3pugc13DWrUree3Ct4Y9eU5jlbT2XXpu3J8J11XkGmM"
+                  "value": "A9X7fZjJPk1P5eU5WgxDFolWnqjkoevez0NGiVuvXSpZ"
                 },
-                "signature": "9ZL+TiTkX+I8RfiqyjRhPss66wmh5V68zccc+I/eQ29r4DSrk5C0VyGkEmraS1E8i/yxY+fkJqJl3vrnIFLdQQ=="
+                "signature": "RT1IUEczR8cOntSP01FJXldTP57i7oqaqtpt6elf04NlsUol39tBq7Poo5ipdU8Etl6hHZoOlFjOfTWkYsT8VA=="
               }
             ],
-            "memo": "edb32bf47709a77e8c1bbbc6a4a913d24d2e3fa4@192.168.11.5:26656"
+            "memo": "af0b78e9c10af5123ca362e1e5a0d96568856685@192.168.11.5:26656"
           }
         }
       ]
@@ -220,15 +234,11 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "cosmos1wq3rfm3zt8edku5lcwz94fsd69m8t7ydluvsx9",
+            "address": "st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw",
             "coins": [
               {
-                "denom": "atom",
-                "amount": "1000"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
+                "denom": "stos",
+                "amount": "99999999999"
               }
             ],
             "public_key": null,
@@ -239,15 +249,11 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "cosmos1gvlsjm2nzsfexvh7cm2x598pk96c459fdu0gfa",
+            "address": "st1lc9sg3wq7guvkqv2d8vd2wycvj9fsspxq6qtg3",
             "coins": [
               {
-                "denom": "atom",
-                "amount": "1100"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
+                "denom": "stos",
+                "amount": "99999999999"
               }
             ],
             "public_key": null,
@@ -258,15 +264,11 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "cosmos1vz6l3cmyalmq97rxwtdmacug4c0s7p3ac5u5hx",
+            "address": "st15lm2e9h79j4d2zhyyf99j40uuy5vr404vurd0e",
             "coins": [
               {
-                "denom": "atom",
-                "amount": "1200"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
+                "denom": "stos",
+                "amount": "99999999999"
               }
             ],
             "public_key": null,
@@ -277,15 +279,11 @@
         {
           "type": "cosmos-sdk/Account",
           "value": {
-            "address": "cosmos135rsgd8asq6hcmh0adsxm5quj05chqr99rgl3h",
+            "address": "st1sysfc0hrjt63zqdywtzu7wu367uc23mcq7cz99",
             "coins": [
               {
-                "denom": "atom",
-                "amount": "1300"
-              },
-              {
-                "denom": "stake",
-                "amount": "100000000"
+                "denom": "stos",
+                "amount": "99999999999"
               }
             ],
             "public_key": null,
@@ -304,7 +302,7 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 0,
-        "bond_denom": "stake"
+        "bond_denom": "stos"
       },
       "last_total_power": "0",
       "last_validator_powers": null,
@@ -314,9 +312,6 @@
       "redelegations": null,
       "exported": false
     },
-    "params": null,
-    "supply": {
-      "supply": []
-    }
+    "params": null
   }
 }

@@ -47,25 +47,38 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// Get returns the pubkey from the adddress-pubkey relation
-// func (k Keeper) Get(ctx sdk.Context, key string) (/* TODO: Fill out this type */, error) {
-// 	store := ctx.KVStore(k.storeKey)
-// 	var item /* TODO: Fill out this type */
-// 	byteKey := []byte(key)
-// 	err := k.cdc.UnmarshalBinaryLengthPrefixed(store.Get(byteKey), &item)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return item, nil
-// }
+// GetLastResourceNodeTotalPower Load the last total power of resource nodes.
+func (k Keeper) GetLastResourceNodeTotalPower(ctx sdk.Context) (power sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.LastResourceNodeTotalPowerKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	return
+}
 
-// func (k Keeper) set(ctx sdk.Context, key string, value /* TODO: fill out this type */ ) {
-// 	store := ctx.KVStore(k.storeKey)
-// 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-// 	store.Set([]byte(key), bz)
-// }
+// SetLastResourceNodeTotalPower Set the last total power of resource nodes.
+func (k Keeper) SetLastResourceNodeTotalPower(ctx sdk.Context, power sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
+	store.Set(types.LastResourceNodeTotalPowerKey, b)
+}
 
-// func (k Keeper) delete(ctx sdk.Context, key string) {
-// 	store := ctx.KVStore(k.storeKey)
-// 	store.Delete([]byte(key))
-// }
+// GetLastIndexingNodeTotalPower Load the last total power of indexing nodes.
+func (k Keeper) GetLastIndexingNodeTotalPower(ctx sdk.Context) (power sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.LastIndexingNodeTotalPowerKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	return
+}
+
+// SetLastIndexingNodeTotalPower Set the last total power of indexing nodes.
+func (k Keeper) SetLastIndexingNodeTotalPower(ctx sdk.Context, power sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
+	store.Set(types.LastIndexingNodeTotalPowerKey, b)
+}
