@@ -175,6 +175,8 @@ func NewInitApp(
 		app.bankKeeper,
 		app.cdc,
 		keys[pottypes.StoreKey],
+		&app.registerKeeper,
+		//app.subspaces[pottypes.ModuleName],
 	)
 
 	app.sdsKeeper = sdskeeper.NewKeeper(
