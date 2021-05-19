@@ -10,7 +10,7 @@ import (
 
 // Default parameter namespace
 const (
-	DefaultParamSpace = ModuleName
+	DefaultParamspace = ModuleName
 	DefaultBondDenom  = "stos"
 )
 

@@ -12,13 +12,13 @@ import (
 )
 
 type IndexingNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"` // network address of the indexing node
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`                   // the consensus public key of the indexing node; bech encoded in JSON
-	Suspend        bool           `json:"suspend" yaml:"suspend"`                 // has the indexing node been suspended from bonded status?
-	Status         sdk.BondStatus `json:"status" yaml:"status"`                   // indexing node status (bonded/unbonding/unbonded)
-	Tokens         sdk.Int        `json:"tokens" yaml:"tokens"`                   // delegated tokens
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`     // owner address of the indexing node
-	Description    Description    `json:"description" yaml:"description"`         // description terms for the indexing node
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network address of the indexing node
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
+	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
 }
 
 // IndexingNodes is a collection of indexing node
@@ -62,15 +62,15 @@ func (v IndexingNodes) Swap(i, j int) {
 }
 
 // NewIndexingNode - initialize a new indexing node
-func NewIndexingNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description) IndexingNode {
+func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description) IndexingNode {
 	return IndexingNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Suspend:        false,
-		Status:         sdk.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr,
-		Description:    description,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Suspend:      false,
+		Status:       sdk.Unbonded,
+		Tokens:       sdk.ZeroInt(),
+		OwnerAddress: ownerAddr,
+		Description:  description,
 	}
 }
 
@@ -101,14 +101,14 @@ func (v IndexingNode) String() string {
 		panic(err)
 	}
 	return fmt.Sprintf(`IndexingNode:{
-		Network Address:	%s
+		Network ID:			%s
   		Pubkey:				%s
   		Suspend:			%v
   		Status:				%s
   		Tokens:				%s
 		Owner Address: 		%s
   		Description:		%s
-	}`, v.NetworkAddress, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
 }
 
 // get the power of the node
@@ -146,11 +146,11 @@ func (v IndexingNode) RemoveToken(tokens sdk.Int) IndexingNode {
 	return v
 }
 
-func (v IndexingNode) IsSuspended() bool            { return v.Suspend }
-func (v IndexingNode) GetMoniker() string           { return v.Description.Moniker }
-func (v IndexingNode) GetStatus() sdk.BondStatus    { return v.Status }
-func (v IndexingNode) GetNetworkAddr() string       { return v.NetworkAddress }
-func (v IndexingNode) GetPubKey() crypto.PubKey     { return v.PubKey }
-func (v IndexingNode) GetAddr() sdk.AccAddress      { return sdk.AccAddress(v.PubKey.Address()) }
-func (v IndexingNode) GetTokens() sdk.Int           { return v.Tokens }
-func (v IndexingNode) GetOwnerAddr() sdk.AccAddress { return v.OwnerAddress }
+func (v IndexingNode) IsSuspended() bool              { return v.Suspend }
+func (v IndexingNode) GetMoniker() string             { return v.Description.Moniker }
+func (v IndexingNode) GetStatus() sdk.BondStatus      { return v.Status }
+func (v IndexingNode) GetNetworkID() string           { return v.NetworkID }
+func (v IndexingNode) GetPubKey() crypto.PubKey       { return v.PubKey }
+func (v IndexingNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
+func (v IndexingNode) GetTokens() sdk.Int             { return v.Tokens }
+func (v IndexingNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }

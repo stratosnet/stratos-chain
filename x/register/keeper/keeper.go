@@ -32,7 +32,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, accountKeeper auth.AccountKee
 		cdc:                   cdc,
 		accountKeeper:         accountKeeper,
 		bankKeeper:            bankKeeper,
-		paramstore:            paramstore.WithKeyTable(types.ParamKeyTable()),
+		paramstore:            paramstore.WithKeyTable(ParamKeyTable()),
 		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
 		resourceNodeCacheList: list.New(),
 		indexingNodeCache:     make(map[string]cachedIndexingNode, indexingNodeCacheSize),

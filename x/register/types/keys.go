@@ -93,7 +93,7 @@ func GetIndexingNodesByPowerIndexKey(indexingNode IndexingNode) []byte {
 
 	key[0] = IndexingNodesByPowerIndexKey[0]
 	copy(key[1:powerBytesLen+1], powerBytes)
-	addrInvr := sdk.CopyBytes(indexingNode.GetAddr())
+	addrInvr := sdk.CopyBytes(indexingNode.GetNetworkAddr())
 	for i, b := range addrInvr {
 		addrInvr[i] = ^b
 	}

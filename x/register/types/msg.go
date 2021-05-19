@@ -75,22 +75,24 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 }
 
 type MsgCreateIndexingNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"`
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value          sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description    Description    `json:"description" yaml:"description"`
+	NetworkID string        `json:"network_id" yaml:"network_id"`
+	PubKey    crypto.PubKey `json:"pubkey" yaml:"pubkey"`
+	//NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	Value        sdk.Coin       `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description  Description    `json:"description" yaml:"description"`
 }
 
 // NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateIndexingNode(networkID string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) MsgCreateIndexingNode {
 	return MsgCreateIndexingNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Value:          value,
-		OwnerAddress:   ownerAddr,
-		Description:    description,
+		NetworkID: networkID,
+		PubKey:    pubKey,
+		//NetworkAddress: sdk.AccAddress(pubKey.Address()),
+		Value:        value,
+		OwnerAddress: ownerAddr,
+		Description:  description,
 	}
 }
 
@@ -103,7 +105,7 @@ func (msg MsgCreateIndexingNode) Type() string {
 }
 
 func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	if msg.NetworkAddress == "" {
+	if msg.NetworkID == "" {
 		return ErrEmptyNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -128,7 +130,7 @@ func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	return []sdk.AccAddress{msg.OwnerAddress, sdk.AccAddress(msg.PubKey.Address())}
 }
 
 // MsgRemoveResourceNode - struct for removing resource node
