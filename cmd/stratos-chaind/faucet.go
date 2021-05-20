@@ -23,9 +23,10 @@ import (
 )
 
 const (
-	flagFrom = "from" // optional
-	flagTo   = "to"
-	flagAmt  = "amt" // denom fixed as stos
+	flagFrom    = "from" // optional
+	flagTo      = "to"
+	flagAmt     = "amt" // denom fixed as stos
+	flagChainId = "chain-id"
 
 	defaultNodeURI        = "tcp://127.0.0.1:26657"
 	defaultKeyringBackend = "test"
@@ -127,6 +128,7 @@ func AddFaucetCmd(
 	cmd.Flags().String(flagTo, "", "to address")
 	cmd.Flags().String(flagAmt, "", "amt to transfer in faucet")
 	cmd.Flags().String(flagFrom, "", "from address")
+	cmd.Flags().String(flagChainId, "", "chain id")
 
 	return cmd
 }

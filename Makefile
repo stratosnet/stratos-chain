@@ -7,8 +7,8 @@ BUILD_TARGETS := build install
 build: BUILD_ARGS=-o $(BUILDDIR)/
 
 $(BUILD_TARGETS): go.sum $(BUILDDIR)/
-	go $@ -mod=readonly $(BUILD_ARGS) ./...
-
+	#go $@ -mod=readonly $(BUILD_ARGS) ./...
+	CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go $@ -mod=readonly $(BUILD_ARGS) -tags "cleveldb" ./...
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
