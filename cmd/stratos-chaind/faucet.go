@@ -31,6 +31,7 @@ const (
 	defaultKeyringBackend = "test"
 	defaultHome           = "build/node/stratos-chaincli"
 	defaultDenom          = "stos"
+	defaultChainId        = "test-chain"
 )
 
 // global to load command line args
@@ -95,8 +96,8 @@ func AddFaucetCmd(
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			viper.Set(flags.FlagBroadcastMode, "async")
-			if viper.IsSet(flags.FlagChainID) {
-				viper.Set(flags.FlagChainID, config.ChainID())
+			if !viper.IsSet(flags.FlagChainID) {
+				viper.Set(flags.FlagChainID, defaultChainId)
 			}
 			viper.Set(flags.FlagSkipConfirmation, true)
 			if !viper.IsSet(flags.FlagKeyringBackend) {
@@ -110,7 +111,7 @@ func AddFaucetCmd(
 			}
 			viper.Set(flags.FlagTrustNode, true)
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
-			doFaucet(cliCtx, txBldr.WithChainID("test-chain"), faucetArgs.to, faucetArgs.from, coin) // send coin to temp account
+			doFaucet(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)), faucetArgs.to, faucetArgs.from, coin) // send coin to temp account
 
 			// print stats
 			fmt.Println("####################################################################")
