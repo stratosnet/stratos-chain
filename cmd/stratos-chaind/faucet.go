@@ -127,6 +127,7 @@ func AddFaucetCmd(
 	cmd.Flags().String(flagTo, "", "to address")
 	cmd.Flags().String(flagAmt, "", "amt to transfer in faucet")
 	cmd.Flags().String(flagFrom, "", "from address")
+	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 
 	return cmd
 }
