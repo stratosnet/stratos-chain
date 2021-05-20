@@ -111,7 +111,7 @@ func AddFaucetCmd(
 			}
 			viper.Set(flags.FlagTrustNode, true)
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
-			doFaucet(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)), faucetArgs.to, faucetArgs.from, coin) // send coin to temp account
+			doTransfer(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)), faucetArgs.to, faucetArgs.from, coin) // send coin to temp account
 
 			// print stats
 			fmt.Println("####################################################################")
@@ -154,7 +154,7 @@ func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (ac
 	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }
 
-func doFaucet(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin) {
+func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin) {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	fmt.Printf("From: %s, To: %s, Coin: %s\n", msg.FromAddress.String(), msg.ToAddress.String(), msg.Amount.String())
