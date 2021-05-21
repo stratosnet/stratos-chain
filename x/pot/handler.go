@@ -26,9 +26,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle handleMsgReportVolume.
 func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolumeReport) (*sdk.Result, error) {
-	ctx.Logger().Info("enter handleMsgReportVolume start", "true")
-	ctx.Logger().Info("ctx in pot:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
-	ctx.Logger().Info("Reporter in pot:" + string(types.ModuleCdc.MustMarshalJSON(msg.Reporter)))
+	//ctx.Logger().Info("enter handleMsgReportVolume start", "true")
+	//ctx.Logger().Info("ctx in pot:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
+	//ctx.Logger().Info("Reporter in pot:" + string(types.ModuleCdc.MustMarshalJSON(msg.Reporter)))
 	if !(k.IsIndexingNode(ctx, msg.Reporter)) {
 
 		ctx.Logger().Info("IsIndexingNode", "false")

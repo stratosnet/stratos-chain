@@ -47,7 +47,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 			if !viper.IsSet(FlagNetworkID) {
-				return errors.New("required flag(s) \"network-addr\" not set")
+				return errors.New("required flag(s) \"network-id\" not set")
 			}
 
 			if !viper.IsSet(FlagMoniker) {
@@ -64,7 +64,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsNodeType)
 	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
@@ -103,7 +103,6 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkAddr)
 	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
@@ -123,12 +122,13 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		return txBldr, nil, err
 	}
 
-	networkAddr := viper.GetString(FlagNetworkAddr)
+	networkID := viper.GetString(FlagNetworkID)
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 	nodeTypeRef := viper.GetInt(FlagNodeType)
 
-	pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	//pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pkStr)
 	if er != nil {
 		return txBldr, nil, err
 	}
@@ -140,22 +140,26 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-	if !ValueInSlice(nodeTypeRef, types.NodeTypes) {
+	//if !ValueInSlice(types.NodeType(nodeTypeRef).Type(), types.NodeTypes) {
+	//	return txBldr, nil, types.ErrNodeType
+	//}
+
+	// validate nodeTypeRef
+	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
 		return txBldr, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeTypesMap[nodeTypeRef]))
-
+	msg := types.NewMsgCreateResourceNode(networkID, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 	return txBldr, msg, nil
 }
 
-func ValueInSlice(v int, list []int) bool {
-	for _, b := range list {
-		if b == v {
-			return true
-		}
-	}
-	return false
-}
+//func ValueInSlice(v int, list []int) bool {
+//	for _, b := range list {
+//		if b == v {
+//			return true
+//		}
+//	}
+//	return false
+//}
 
 func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{

@@ -20,29 +20,56 @@ import (
 //	2=(database),
 //	1=(computation)
 
-var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
+//var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
+//
+//var NodeTypesMap = map[int]string{
+//	1: "computation",
+//	2: "database",
+//	3: "computation/database",
+//	4: "storage",
+//	5: "computation/storage",
+//	6: "database/storage",
+//	7: "computation/database/storage",
+//}
 
-var NodeTypesMap = map[int]string{
-	1: "computation",
-	2: "database",
-	3: "computation/database",
-	4: "storage",
-	5: "computation/storage",
-	6: "database/storage",
-	7: "computation/database/storage",
+type NodeType uint8
+
+const (
+	STORAGE     NodeType = 4
+	DATABASE    NodeType = 2
+	COMPUTATION NodeType = 1
+)
+
+func (n NodeType) Type() string {
+	switch n {
+	case 7:
+		return "storage/database/computation"
+	case 6:
+		return "database/storage"
+	case 5:
+		return "computation/storage"
+	case 4:
+		return "storage"
+	case 3:
+		return "computation/database"
+	case 2:
+		return "database"
+	case 1:
+		return "computation"
+	}
+	return "UNKNOWN"
+
 }
 
-type NodeType int
-
 type ResourceNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"` // network address of the resource node
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`                   // the public key of the resource node; bech encoded in JSON
-	Suspend        bool           `json:"suspend" yaml:"suspend"`                 // has the resource node been suspended from bonded status?
-	Status         sdk.BondStatus `json:"status" yaml:"status"`                   // resource node bond status (bonded/unbonding/unbonded)
-	Tokens         sdk.Int        `json:"tokens" yaml:"tokens"`                   // delegated tokens
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`     // owner address of the resource node
-	Description    Description    `json:"description" yaml:"description"`         // description terms for the resource node
-	NodeType       string         `json:"node_type" yaml:"node_type"`
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the resource node
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the public key of the resource node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the resource node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`               // resource node bond status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
+	Description  Description    `json:"description" yaml:"description"`     // description terms for the resource node
+	NodeType     string         `json:"node_type" yaml:"node_type"`
 }
 
 // ResourceNodes is a collection of resource node
@@ -86,17 +113,17 @@ func (v ResourceNodes) Swap(i, j int) {
 }
 
 // NewResourceNode - initialize a new resource node
-func NewResourceNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description Description, nodeType string) ResourceNode {
 	return ResourceNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Suspend:        false,
-		Status:         sdk.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr,
-		Description:    description,
-		NodeType:       nodeType,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Suspend:      false,
+		Status:       sdk.Unbonded,
+		Tokens:       sdk.ZeroInt(),
+		OwnerAddress: ownerAddr,
+		Description:  description,
+		NodeType:     nodeType,
 	}
 }
 
@@ -122,7 +149,7 @@ func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode Resourc
 
 // String returns a human readable string representation of a resource node.
 func (v ResourceNode) String() string {
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
 	if err != nil {
 		panic(err)
 	}
@@ -134,7 +161,7 @@ func (v ResourceNode) String() string {
   		Tokens:				%s
 		Owner Address: 		%s
   		Description:		%s
-	}`, v.NetworkAddress, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
 }
 
 // GetPower gets the power of the node
@@ -172,12 +199,12 @@ func (v ResourceNode) RemoveToken(tokens sdk.Int) ResourceNode {
 	return v
 }
 
-func (v ResourceNode) IsSuspended() bool            { return v.Suspend }
-func (v ResourceNode) GetMoniker() string           { return v.Description.Moniker }
-func (v ResourceNode) GetStatus() sdk.BondStatus    { return v.Status }
-func (v ResourceNode) GetNetworkAddr() string       { return v.NetworkAddress }
-func (v ResourceNode) GetPubKey() crypto.PubKey     { return v.PubKey }
-func (v ResourceNode) GetAddr() sdk.AccAddress      { return sdk.AccAddress(v.PubKey.Address()) }
-func (v ResourceNode) GetTokens() sdk.Int           { return v.Tokens }
-func (v ResourceNode) GetOwnerAddr() sdk.AccAddress { return v.OwnerAddress }
-func (v ResourceNode) GetNodeType() string          { return v.NodeType }
+func (v ResourceNode) IsSuspended() bool              { return v.Suspend }
+func (v ResourceNode) GetMoniker() string             { return v.Description.Moniker }
+func (v ResourceNode) GetStatus() sdk.BondStatus      { return v.Status }
+func (v ResourceNode) GetNetworkID() string           { return v.NetworkID }
+func (v ResourceNode) GetPubKey() crypto.PubKey       { return v.PubKey }
+func (v ResourceNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
+func (v ResourceNode) GetTokens() sdk.Int             { return v.Tokens }
+func (v ResourceNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
+func (v ResourceNode) GetNodeType() string            { return v.NodeType }

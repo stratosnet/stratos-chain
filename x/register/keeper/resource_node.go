@@ -60,7 +60,7 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceN
 func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)
-	store.Set(types.GetResourceNodeKey(resourceNode.GetAddr()), bz)
+	store.Set(types.GetResourceNodeKey(resourceNode.GetNetworkAddr()), bz)
 }
 
 // SetResourceNodeByPowerIndex resource node index
@@ -70,7 +70,7 @@ func (k Keeper) SetResourceNodeByPowerIndex(ctx sdk.Context, resourceNode types.
 		return
 	}
 	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.GetAddr())
+	store.Set(types.GetResourceNodesByPowerIndexKey(resourceNode), resourceNode.GetNetworkAddr())
 }
 
 // ResourceNode index
@@ -134,9 +134,9 @@ func (k Keeper) IterateLastResourceNodePowers(ctx sdk.Context, handler func(node
 
 // AddResourceNodeTokens Update the tokens of an existing resource node, update the resource nodes power index key
 func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, coinToAdd sdk.Coin) error {
-	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetAddr())
+	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
 	if nodeAcc == nil {
-		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetAddr())
+		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
 	}
 
 	coins := sdk.NewCoins(coinToAdd)
@@ -145,12 +145,12 @@ func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.Resour
 		return types.ErrInsufficientBalance
 	}
 
-	err := k.bankKeeper.SendCoins(ctx, resourceNode.GetOwnerAddr(), resourceNode.GetAddr(), coins)
+	err := k.bankKeeper.SendCoins(ctx, resourceNode.GetOwnerAddr(), resourceNode.GetNetworkAddr(), coins)
 	if err != nil {
 		return err
 	}
 
-	oldPow := k.GetLastResourceNodePower(ctx, resourceNode.GetAddr())
+	oldPow := k.GetLastResourceNodePower(ctx, resourceNode.GetNetworkAddr())
 	oldTotalPow := k.GetLastResourceNodeTotalPower(ctx)
 
 	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
@@ -159,7 +159,7 @@ func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.Resour
 	newTotalPow := oldTotalPow.Sub(sdk.NewInt(oldPow)).Add(sdk.NewInt(newPow))
 	k.SetResourceNode(ctx, resourceNode)
 	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
-	k.SetLastResourceNodePower(ctx, resourceNode.GetAddr(), newPow)
+	k.SetLastResourceNodePower(ctx, resourceNode.GetNetworkAddr(), newPow)
 	k.SetLastResourceNodeTotalPower(ctx, newTotalPow)
 	return nil
 }
@@ -172,11 +172,11 @@ func (k Keeper) SubtractResourceNodeTokens(ctx sdk.Context, resourceNode types.R
 	}
 
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToRemove))
-	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetAddr(), coins)
+	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetNetworkAddr(), coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetAddr(), coins)
+	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetNetworkAddr(), coins)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,7 @@ func (k Keeper) SubtractResourceNodeTokens(ctx sdk.Context, resourceNode types.R
 		return err
 	}
 
-	oldPow := k.GetLastResourceNodePower(ctx, resourceNode.GetAddr())
+	oldPow := k.GetLastResourceNodePower(ctx, resourceNode.GetNetworkAddr())
 	oldTotalPow := k.GetLastResourceNodeTotalPower(ctx)
 
 	k.deleteResourceNodeByPowerIndex(ctx, resourceNode)
@@ -196,13 +196,13 @@ func (k Keeper) SubtractResourceNodeTokens(ctx sdk.Context, resourceNode types.R
 	k.SetResourceNodeByPowerIndex(ctx, resourceNode)
 
 	if resourceNode.GetTokens().IsZero() {
-		k.DeleteLastResourceNodePower(ctx, resourceNode.GetAddr())
-		err := k.removeResourceNode(ctx, resourceNode.GetAddr())
+		k.DeleteLastResourceNodePower(ctx, resourceNode.GetNetworkAddr())
+		err := k.removeResourceNode(ctx, resourceNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
 	} else {
-		k.SetLastResourceNodePower(ctx, resourceNode.GetAddr(), newPow)
+		k.SetLastResourceNodePower(ctx, resourceNode.GetNetworkAddr(), newPow)
 	}
 	k.SetLastResourceNodeTotalPower(ctx, newTotalPow)
 
@@ -229,17 +229,17 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 }
 
 // GetResourceNodeList get all resource nodes by network address
-func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []types.ResourceNode, err error) {
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID string) (resourceNodes []types.ResourceNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
+		if strings.Compare(node.NetworkID, networkID) == 0 {
 			resourceNodes = append(resourceNodes, node)
 		}
 
 	}
-	ctx.Logger().Info("resourceNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	ctx.Logger().Info("resourceNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
 

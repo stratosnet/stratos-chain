@@ -56,7 +56,7 @@ func GetResourceNodesByPowerIndexKey(resourceNode ResourceNode) []byte {
 
 	key[0] = ResourceNodesByPowerIndexKey[0]
 	copy(key[1:powerBytesLen+1], powerBytes)
-	addrInvr := sdk.CopyBytes(resourceNode.GetAddr())
+	addrInvr := sdk.CopyBytes(resourceNode.GetNetworkAddr())
 	for i, b := range addrInvr {
 		addrInvr[i] = ^b
 	}

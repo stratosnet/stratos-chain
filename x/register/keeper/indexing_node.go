@@ -27,18 +27,18 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 
 // GetIndexingNode get a single indexing node
 func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingNode types.IndexingNode, found bool) {
-	ctx.Logger().Info("Enter GetIndexingNode")
-	ctx.Logger().Info("ctx in register:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
-	ctx.Logger().Info("addr:" + string(types.ModuleCdc.MustMarshalJSON(addr)))
-	ctx.Logger().Info("k type: " + fmt.Sprintf("%#v -> %T", k, k))
-	ctx.Logger().Info("k.storeKey:" + string(types.ModuleCdc.MustMarshalJSON(k.storeKey)))
+	//ctx.Logger().Info("Enter GetIndexingNode")
+	//ctx.Logger().Info("ctx in register:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
+	//ctx.Logger().Info("addr:" + string(types.ModuleCdc.MustMarshalJSON(addr)))
+	//ctx.Logger().Info("k type: " + fmt.Sprintf("%#v -> %T", k, k))
+	//ctx.Logger().Info("k.storeKey:" + string(types.ModuleCdc.MustMarshalJSON(k.storeKey)))
 	store := ctx.KVStore(k.storeKey)
-	ctx.Logger().Info("store passed")
+	//ctx.Logger().Info("store passed")
 
 	value := store.Get(types.GetIndexingNodeKey(addr))
-	ctx.Logger().Info("value passed: " + string(value))
+	//ctx.Logger().Info("value passed: " + string(value))
 	if value == nil {
-		ctx.Logger().Info("result(value): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "false")
+		//ctx.Logger().Info("result(value): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "false")
 		return indexingNode, false
 	}
 
@@ -46,7 +46,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingN
 	strValue := string(value)
 	if val, ok := k.indexingNodeCache[strValue]; ok {
 		valToReturn := val.indexingNode
-		ctx.Logger().Info("result(ok): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "true")
+		//ctx.Logger().Info("result(ok): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "true")
 		return valToReturn, true
 	}
 
@@ -63,7 +63,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingN
 	}
 
 	indexingNode = types.MustUnmarshalIndexingNode(k.cdc, value)
-	ctx.Logger().Info("result(final): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "true")
+	//ctx.Logger().Info("result(final): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "true")
 	return indexingNode, true
 }
 
@@ -241,18 +241,18 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	return nil
 }
 
-// GetIndexingNodeList get all indexing nodes by network address
-func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkAddress string) (indexingNodes []types.IndexingNode, err error) {
+// GetIndexingNodeList get all indexing nodes by network ID
+func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkID string) (indexingNodes []types.IndexingNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		if strings.Compare(node.NetworkID, networkAddress) == 0 {
+		if strings.Compare(node.NetworkID, networkID) == 0 {
 			indexingNodes = append(indexingNodes, node)
 		}
 
 	}
-	ctx.Logger().Info("IndexingNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(indexingNodes))
+	ctx.Logger().Info("IndexingNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(indexingNodes))
 	return indexingNodes, nil
 }
 
