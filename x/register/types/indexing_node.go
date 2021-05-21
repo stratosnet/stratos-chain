@@ -96,7 +96,8 @@ func UnmarshalIndexingNode(cdc *codec.Codec, value []byte) (indexingNode Indexin
 
 // String returns a human readable string representation of a indexing node.
 func (v IndexingNode) String() string {
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	//pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
 	if err != nil {
 		panic(err)
 	}

@@ -81,7 +81,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	//	return nil, err
 	//}
 
-	indexingNode := types.NewIndexingNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
+	indexingNode := types.NewIndexingNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description)
 	err := k.AddIndexingNodeTokens(ctx, indexingNode, msg.Value)
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateIndexingNode,
-			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.NetworkAddress),
+			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.NetworkID),
 			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
 			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),

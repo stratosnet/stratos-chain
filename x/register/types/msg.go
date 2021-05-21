@@ -130,7 +130,13 @@ func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress, sdk.AccAddress(msg.PubKey.Address())}
+	// OwnerAddress is first signer so Owner pays fees
+	addrs := []sdk.AccAddress{msg.OwnerAddress}
+
+	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
+	//}
+	return addrs
 }
 
 // MsgRemoveResourceNode - struct for removing resource node

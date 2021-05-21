@@ -46,7 +46,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			if !viper.IsSet(FlagNetworkAddr) {
+			if !viper.IsSet(FlagNetworkID) {
 				return errors.New("required flag(s) \"network-addr\" not set")
 			}
 
@@ -86,8 +86,8 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			if !viper.IsSet(FlagNetworkAddr) {
-				return errors.New("required flag(s) \"network-adr\" not set")
+			if !viper.IsSet(FlagNetworkID) {
+				return errors.New("required flag(s) \"network-id\" not set")
 			}
 			if !viper.IsSet(FlagMoniker) {
 				return errors.New("required flag(s) \"moniker\" not set")
@@ -104,6 +104,7 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -210,11 +211,12 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		return txBldr, nil, err
 	}
 
-	networkAddr := viper.GetString(FlagNetworkAddr)
+	networkID := viper.GetString(FlagNetworkID)
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pkStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -226,6 +228,6 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-	msg := types.NewMsgCreateIndexingNode(networkAddr, pk, amount, ownerAddr, desc)
+	msg := types.NewMsgCreateIndexingNode(networkID, pk, amount, ownerAddr, desc)
 	return txBldr, msg, nil
 }
