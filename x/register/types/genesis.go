@@ -5,38 +5,38 @@ import sdk "github.com/cosmos/cosmos-sdk/types"
 // GenesisState - all register state that must be provided at genesis
 type GenesisState struct {
 	Params                     Params                  `json:"params" yaml:"params"`
-	LastResourceNodeTotalPower sdk.Int                 `json:"last_resource_node_total_power" yaml:"last_resource_node_total_power"`
-	LastResourceNodePowers     []LastResourceNodePower `json:"last_resource_node_powers" yaml:"last_resource_node_powers"`
+	LastResourceNodeTotalStake sdk.Int                 `json:"last_resource_node_total_stake" yaml:"last_resource_node_total_stake"`
+	LastResourceNodeStakes     []LastResourceNodeStake `json:"last_resource_node_stakes" yaml:"last_resource_node_stakes"`
 	ResourceNodes              ResourceNodes           `json:"resource_nodes" yaml:"resource_nodes"`
-	LastIndexingNodeTotalPower sdk.Int                 `json:"last_indexing_node_total_power" yaml:"last_indexing_node_total_power"`
-	LastIndexingNodePowers     []LastIndexingNodePower `json:"last_indexing_node_powers" yaml:"last_indexing_node_powers"`
+	LastIndexingNodeTotalStake sdk.Int                 `json:"last_indexing_node_total_stake" yaml:"last_indexing_node_total_stake"`
+	LastIndexingNodeStakes     []LastIndexingNodeStake `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
 	IndexingNodes              IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
 }
 
-// LastResourceNodePower required for resource node set update logic
-type LastResourceNodePower struct {
+// LastResourceNodeStake required for resource node set update logic
+type LastResourceNodeStake struct {
 	Address sdk.AccAddress
-	Power   int64
+	Stake   sdk.Int
 }
 
-// LastIndexingNodePower required for indexing node set update logic
-type LastIndexingNodePower struct {
+// LastIndexingNodeStake required for indexing node set update logic
+type LastIndexingNodeStake struct {
 	Address sdk.AccAddress
-	Power   int64
+	Stake   sdk.Int
 }
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params,
-	lastResourceNodeTotalPower sdk.Int, lastResourceNodePowers []LastResourceNodePower, resourceNodes []ResourceNode,
-	lastIndexingNodeTotalPower sdk.Int, lastIndexingNodePowers []LastIndexingNodePower, indexingNodes []IndexingNode,
+	lastResourceNodeTotalStake sdk.Int, lastResourceNodeStakes []LastResourceNodeStake, resourceNodes []ResourceNode,
+	lastIndexingNodeTotalStake sdk.Int, lastIndexingNodeStakes []LastIndexingNodeStake, indexingNodes []IndexingNode,
 ) GenesisState {
 	return GenesisState{
 		Params:                     params,
-		LastResourceNodeTotalPower: lastResourceNodeTotalPower,
-		LastResourceNodePowers:     lastResourceNodePowers,
+		LastResourceNodeTotalStake: lastResourceNodeTotalStake,
+		LastResourceNodeStakes:     lastResourceNodeStakes,
 		ResourceNodes:              resourceNodes,
-		LastIndexingNodeTotalPower: lastIndexingNodeTotalPower,
-		LastIndexingNodePowers:     lastIndexingNodePowers,
+		LastIndexingNodeTotalStake: lastIndexingNodeTotalStake,
+		LastIndexingNodeStakes:     lastIndexingNodeStakes,
 		IndexingNodes:              indexingNodes,
 	}
 }

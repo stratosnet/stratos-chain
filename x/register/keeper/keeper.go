@@ -47,38 +47,38 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetLastResourceNodeTotalPower Load the last total power of resource nodes.
-func (k Keeper) GetLastResourceNodeTotalPower(ctx sdk.Context) (power sdk.Int) {
+// GetLastResourceNodeTotalStake Load the last total stake of resource nodes.
+func (k Keeper) GetLastResourceNodeTotalStake(ctx sdk.Context) (stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastResourceNodeTotalPowerKey)
+	b := store.Get(types.LastResourceNodeTotalStakeKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
 	return
 }
 
-// SetLastResourceNodeTotalPower Set the last total power of resource nodes.
-func (k Keeper) SetLastResourceNodeTotalPower(ctx sdk.Context, power sdk.Int) {
+// SetLastResourceNodeTotalStake Set the last total stake of resource nodes.
+func (k Keeper) SetLastResourceNodeTotalStake(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
-	store.Set(types.LastResourceNodeTotalPowerKey, b)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.LastResourceNodeTotalStakeKey, b)
 }
 
-// GetLastIndexingNodeTotalPower Load the last total power of indexing nodes.
-func (k Keeper) GetLastIndexingNodeTotalPower(ctx sdk.Context) (power sdk.Int) {
+// GetLastIndexingNodeTotalStake Load the last total stake of indexing nodes.
+func (k Keeper) GetLastIndexingNodeTotalStake(ctx sdk.Context) (stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastIndexingNodeTotalPowerKey)
+	b := store.Get(types.LastIndexingNodeTotalStakeKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
 	return
 }
 
-// SetLastIndexingNodeTotalPower Set the last total power of indexing nodes.
-func (k Keeper) SetLastIndexingNodeTotalPower(ctx sdk.Context, power sdk.Int) {
+// SetLastIndexingNodeTotalStake Set the last total stake of indexing nodes.
+func (k Keeper) SetLastIndexingNodeTotalStake(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
-	store.Set(types.LastIndexingNodeTotalPowerKey, b)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.LastIndexingNodeTotalStakeKey, b)
 }

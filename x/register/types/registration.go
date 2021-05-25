@@ -1,9 +1,7 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"math/big"
 )
 
 // nolint
@@ -55,17 +53,4 @@ func (d Description) EnsureLength() (Description, error) {
 	}
 
 	return d, nil
-}
-
-// PowerReduction is the amount of staking tokens required for 1 unit of power
-var PowerReduction = sdk.NewIntFromBigInt(new(big.Int).Exp(big.NewInt(10), big.NewInt(6), nil))
-
-// TokensToPower - convert input tokens to potential power
-func TokensToPower(tokens sdk.Int) int64 {
-	return (tokens.Quo(PowerReduction)).Int64()
-}
-
-// TokensFromPower - convert input power to tokens
-func TokensFromPower(power int64) sdk.Int {
-	return sdk.NewInt(power).Mul(PowerReduction)
 }

@@ -12,24 +12,22 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 
 	for _, resourceNode := range data.ResourceNodes {
 		keeper.SetResourceNode(ctx, resourceNode)
-		keeper.SetResourceNodeByPowerIndex(ctx, resourceNode)
 	}
 
 	for _, indexingNode := range data.IndexingNodes {
 		keeper.SetIndexingNode(ctx, indexingNode)
-		keeper.SetIndexingNodeByPowerIndex(ctx, indexingNode)
 	}
 
-	for _, resPow := range data.LastResourceNodePowers {
-		keeper.SetLastResourceNodePower(ctx, resPow.Address, resPow.Power)
+	for _, resStake := range data.LastResourceNodeStakes {
+		keeper.SetLastResourceNodeStake(ctx, resStake.Address, resStake.Stake)
 	}
 
-	for _, idxPow := range data.LastIndexingNodePowers {
-		keeper.SetLastIndexingNodePower(ctx, idxPow.Address, idxPow.Power)
+	for _, idxStake := range data.LastIndexingNodeStakes {
+		keeper.SetLastIndexingNodeStake(ctx, idxStake.Address, idxStake.Stake)
 	}
 
-	keeper.SetLastResourceNodeTotalPower(ctx, data.LastResourceNodeTotalPower)
-	keeper.SetLastIndexingNodeTotalPower(ctx, data.LastIndexingNodeTotalPower)
+	keeper.SetLastResourceNodeTotalStake(ctx, data.LastResourceNodeTotalStake)
+	keeper.SetLastIndexingNodeTotalStake(ctx, data.LastIndexingNodeTotalStake)
 }
 
 // ExportGenesis writes the current store values
@@ -38,18 +36,18 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
-	lastResourceNodeTotalPower := keeper.GetLastResourceNodeTotalPower(ctx)
-	lastIndexingNodeTotalPower := keeper.GetLastIndexingNodeTotalPower(ctx)
+	lastResourceNodeTotalStake := keeper.GetLastResourceNodeTotalStake(ctx)
+	lastIndexingNodeTotalStake := keeper.GetLastIndexingNodeTotalStake(ctx)
 
-	var lastResourceNodePowers []types.LastResourceNodePower
-	keeper.IterateLastResourceNodePowers(ctx, func(addr sdk.AccAddress, power int64) (stop bool) {
-		lastResourceNodePowers = append(lastResourceNodePowers, types.LastResourceNodePower{Address: addr, Power: power})
+	var lastResourceNodeStakes []types.LastResourceNodeStake
+	keeper.IterateLastResourceNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
+		lastResourceNodeStakes = append(lastResourceNodeStakes, types.LastResourceNodeStake{Address: addr, Stake: stake})
 		return false
 	})
 
-	var lastIndexingNodePowers []types.LastIndexingNodePower
-	keeper.IterateLastIndexingNodePowers(ctx, func(addr sdk.AccAddress, power int64) (stop bool) {
-		lastIndexingNodePowers = append(lastIndexingNodePowers, types.LastIndexingNodePower{Address: addr, Power: power})
+	var lastIndexingNodeStakes []types.LastIndexingNodeStake
+	keeper.IterateLastIndexingNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, types.LastIndexingNodeStake{Address: addr, Stake: stake})
 		return false
 	})
 
@@ -58,11 +56,11 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 
 	return types.GenesisState{
 		Params:                     params,
-		LastResourceNodeTotalPower: lastResourceNodeTotalPower,
-		LastResourceNodePowers:     lastResourceNodePowers,
+		LastResourceNodeTotalStake: lastResourceNodeTotalStake,
+		LastResourceNodeStakes:     lastResourceNodeStakes,
 		ResourceNodes:              resourceNodes,
-		LastIndexingNodeTotalPower: lastIndexingNodeTotalPower,
-		LastIndexingNodePowers:     lastIndexingNodePowers,
+		LastIndexingNodeTotalStake: lastIndexingNodeTotalStake,
+		LastIndexingNodeStakes:     lastIndexingNodeStakes,
 		IndexingNodes:              indexingNodes,
 	}
 }

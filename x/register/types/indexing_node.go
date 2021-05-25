@@ -111,20 +111,6 @@ func (v IndexingNode) String() string {
 	}`, v.NetworkAddress, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
 }
 
-// get the power of the node
-// a reduction of 10^6 from node tokens is applied
-func (v IndexingNode) GetPower() int64 {
-	if v.Status.Equal(sdk.Bonded) {
-		return v.PotentialPower()
-	}
-	return 0
-}
-
-// potential power of the node
-func (v IndexingNode) PotentialPower() int64 {
-	return TokensToPower(v.Tokens)
-}
-
 // AddToken adds tokens to a indexing node
 func (v IndexingNode) AddToken(amount sdk.Int) IndexingNode {
 	v.Tokens = v.Tokens.Add(amount)
