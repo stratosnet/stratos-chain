@@ -31,10 +31,11 @@ func NewQuerier(k Keeper) sdk.Querier {
 
 // queryFileHash fetch an file's hash for the supplied height.
 func queryFileHash(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	fileHash, err := k.GetFileHash(ctx, req.Data)
+	fileHash, err := k.GetFileInfoBytesByFileHash(ctx, req.Data)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+
 	return fileHash, nil
 }
 
