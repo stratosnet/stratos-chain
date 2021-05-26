@@ -150,6 +150,7 @@ func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode Resourc
 // String returns a human readable string representation of a resource node.
 func (v ResourceNode) String() string {
 	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
+	//pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyType(Bech32PubKeyTypesdsPub), v.PubKey)
 	if err != nil {
 		panic(err)
 	}

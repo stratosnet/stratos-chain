@@ -98,6 +98,7 @@ func UnmarshalIndexingNode(cdc *codec.Codec, value []byte) (indexingNode Indexin
 func (v IndexingNode) String() string {
 	//pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
 	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
+	//pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyType(Bech32PubKeyTypesdsPub), v.PubKey)
 	if err != nil {
 		panic(err)
 	}
