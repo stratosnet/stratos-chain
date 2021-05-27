@@ -20,19 +20,46 @@ import (
 //	2=(database),
 //	1=(computation)
 
-var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
+//var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
+//
+//var NodeTypesMap = map[int]string{
+//	1: "computation",
+//	2: "database",
+//	3: "computation/database",
+//	4: "storage",
+//	5: "computation/storage",
+//	6: "database/storage",
+//	7: "computation/database/storage",
+//}
 
-var NodeTypesMap = map[int]string{
-	1: "computation",
-	2: "database",
-	3: "computation/database",
-	4: "storage",
-	5: "computation/storage",
-	6: "database/storage",
-	7: "computation/database/storage",
+type NodeType uint8
+
+const (
+	STORAGE     NodeType = 4
+	DATABASE    NodeType = 2
+	COMPUTATION NodeType = 1
+)
+
+func (n NodeType) Type() string {
+	switch n {
+	case 7:
+		return "storage/database/computation"
+	case 6:
+		return "database/storage"
+	case 5:
+		return "computation/storage"
+	case 4:
+		return "storage"
+	case 3:
+		return "computation/database"
+	case 2:
+		return "database"
+	case 1:
+		return "computation"
+	}
+	return "UNKNOWN"
+
 }
-
-type NodeType int
 
 type ResourceNode struct {
 	NetworkAddress string         `json:"network_address" yaml:"network_address"` // network address of the resource node
