@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strings"
 )
 
 const resourceNodeCacheSize = 500
@@ -55,7 +56,7 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceN
 	return resourceNode, true
 }
 
-// set the main record holding resource node details
+// SetResourceNode sets the main record holding resource node details
 func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)
@@ -225,4 +226,32 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store.Delete(types.GetResourceNodeKey(addr))
 	store.Delete(types.GetResourceNodesByPowerIndexKey(resourceNode))
 	return nil
+}
+
+// GetResourceNodeList get all resource nodes by network address
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddress string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+
+	}
+	ctx.Logger().Info("resourceNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
+}
+
+func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if strings.Compare(node.Description.Moniker, moniker) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
 }

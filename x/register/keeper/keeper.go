@@ -3,14 +3,13 @@ package keeper
 import (
 	"container/list"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/tendermint/tendermint/libs/log"
-
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of the register store
@@ -81,4 +80,44 @@ func (k Keeper) SetLastIndexingNodeTotalPower(ctx sdk.Context, power sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
 	store.Set(types.LastIndexingNodeTotalPowerKey, b)
+}
+
+// GetResourceNetworksIterator gets an iterator over all network addresses
+func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+}
+
+// GetIndexingNetworksIterator gets an iterator over all network addresses
+func (k Keeper) GetIndexingNetworksIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	return sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+}
+
+func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
+	var networkList []string
+	iterator := keeper.GetResourceNetworksIterator(ctx)
+	for ; iterator.Valid(); iterator.Next() {
+		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		networkList = append(networkList, resourceNode.NetworkAddress)
+	}
+	iter := keeper.GetIndexingNetworksIterator(ctx)
+	for ; iter.Valid(); iter.Next() {
+		indexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
+		networkList = append(networkList, indexingNode.NetworkAddress)
+	}
+	r := removeDuplicateValues(networkList)
+	return r
+}
+
+func removeDuplicateValues(stringSlice []string) (res []byte) {
+	keys := make(map[string]bool)
+	for _, entry := range stringSlice {
+		if _, value := keys[entry]; !value {
+			keys[entry] = true
+			res = append(res, types.ModuleCdc.MustMarshalJSON(entry)...)
+			res = append(res, ';')
+		}
+	}
+	return res[:len(res)-1]
 }

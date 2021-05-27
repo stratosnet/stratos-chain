@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,6 +10,44 @@ import (
 	"strings"
 )
 
+// ResourceNode types:
+//	7=(storage, database, computation),
+//	6=(storage, database),
+//	4=(storage),
+//	5=(computation, storage),
+//	3=(database, computation),
+//	2=(database),
+//	1=(computation)
+
+type NodeType uint8
+
+const (
+	STORAGE     NodeType = 4
+	DATABASE    NodeType = 2
+	COMPUTATION NodeType = 1
+)
+
+func (n NodeType) Type() string {
+	switch n {
+	case 7:
+		return "storage/database/computation"
+	case 6:
+		return "database/storage"
+	case 5:
+		return "computation/storage"
+	case 4:
+		return "storage"
+	case 3:
+		return "computation/database"
+	case 2:
+		return "database"
+	case 1:
+		return "computation"
+	}
+	return "UNKNOWN"
+
+}
+
 type ResourceNode struct {
 	NetworkAddress string         `json:"network_address" yaml:"network_address"` // network address of the resource node
 	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`                   // the public key of the resource node; bech encoded in JSON
@@ -19,6 +56,7 @@ type ResourceNode struct {
 	Tokens         sdk.Int        `json:"tokens" yaml:"tokens"`                   // delegated tokens
 	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`     // owner address of the resource node
 	Description    Description    `json:"description" yaml:"description"`         // description terms for the resource node
+	NodeType       string         `json:"node_type" yaml:"node_type"`
 }
 
 // ResourceNodes is a collection of resource node
@@ -44,17 +82,17 @@ func (v ResourceNodes) Sort() {
 	sort.Sort(v)
 }
 
-// Implements sort interface
+// Len implements sort interface
 func (v ResourceNodes) Len() int {
 	return len(v)
 }
 
-// Implements sort interface
+// Less implements sort interface
 func (v ResourceNodes) Less(i, j int) bool {
-	return bytes.Compare(v[i].OwnerAddress, v[j].OwnerAddress) == -1
+	return v[i].Tokens.LT(v[j].Tokens)
 }
 
-// Implements sort interface
+// Swap implements sort interface
 func (v ResourceNodes) Swap(i, j int) {
 	it := v[i]
 	v[i] = v[j]
@@ -62,7 +100,8 @@ func (v ResourceNodes) Swap(i, j int) {
 }
 
 // NewResourceNode - initialize a new resource node
-func NewResourceNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description) ResourceNode {
+func NewResourceNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+	description Description, nodeType string) ResourceNode {
 	return ResourceNode{
 		NetworkAddress: networkAddr,
 		PubKey:         pubKey,
@@ -71,6 +110,7 @@ func NewResourceNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.Acc
 		Tokens:         sdk.ZeroInt(),
 		OwnerAddress:   ownerAddr,
 		Description:    description,
+		NodeType:       nodeType,
 	}
 }
 
@@ -111,7 +151,7 @@ func (v ResourceNode) String() string {
 	}`, v.NetworkAddress, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
 }
 
-// get the power of the node
+// GetPower gets the power of the node
 // a reduction of 10^6 from node tokens is applied
 func (v ResourceNode) GetPower() int64 {
 	if v.Status.Equal(sdk.Bonded) {
@@ -120,7 +160,7 @@ func (v ResourceNode) GetPower() int64 {
 	return 0
 }
 
-// potential power of the node
+// PotentialPower is the potential power of the node
 func (v ResourceNode) PotentialPower() int64 {
 	return TokensToPower(v.Tokens)
 }
@@ -154,3 +194,4 @@ func (v ResourceNode) GetPubKey() crypto.PubKey     { return v.PubKey }
 func (v ResourceNode) GetAddr() sdk.AccAddress      { return sdk.AccAddress(v.PubKey.Address()) }
 func (v ResourceNode) GetTokens() sdk.Int           { return v.Tokens }
 func (v ResourceNode) GetOwnerAddr() sdk.AccAddress { return v.OwnerAddress }
+func (v ResourceNode) GetNodeType() string          { return v.NodeType }

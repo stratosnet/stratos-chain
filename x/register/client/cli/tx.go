@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,12 +41,18 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-resource-node",
-		Short: "create new resource node",
+		Short: "create a new resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			if !viper.IsSet(FlagNetworkAddr) {
+				return errors.New("required flag(s) \"network-addr\" not set")
+			}
 
+			if !viper.IsSet(FlagMoniker) {
+				return errors.New("required flag(s) \"moniker\" not set")
+			}
 			txBldr, msg, err := buildCreateResourceNodeMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
@@ -58,11 +65,14 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsNodeType)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
-	cmd.MarkFlagRequired(flags.FlagFrom)
-	cmd.MarkFlagRequired(FlagAmount)
-	cmd.MarkFlagRequired(FlagPubKey)
-	cmd.MarkFlagRequired(FlagNetworkAddr)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(FlagPubKey)
+	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+	_ = cmd.MarkFlagRequired(FlagNodeType)
 
 	return cmd
 }
@@ -71,12 +81,17 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-indexing-node",
-		Short: "create new indexing node",
+		Short: "create a new indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-
+			if !viper.IsSet(FlagNetworkAddr) {
+				return errors.New("required flag(s) \"network-adr\" not set")
+			}
+			if !viper.IsSet(FlagMoniker) {
+				return errors.New("required flag(s) \"moniker\" not set")
+			}
 			txBldr, msg, err := buildCreateIndexingNodeMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
@@ -89,11 +104,12 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsDescriptionCreate)
 
-	cmd.MarkFlagRequired(flags.FlagFrom)
-	cmd.MarkFlagRequired(FlagAmount)
-	cmd.MarkFlagRequired(FlagPubKey)
-	cmd.MarkFlagRequired(FlagNetworkAddr)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(FlagPubKey)
+	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 
 	return cmd
 }
@@ -109,9 +125,10 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	networkAddr := viper.GetString(FlagNetworkAddr)
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
+	nodeTypeRef := viper.GetInt(FlagNodeType)
 
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
-	if err != nil {
+	pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	if er != nil {
 		return txBldr, nil, err
 	}
 
@@ -123,8 +140,11 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagDetails),
 	)
 
-	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc)
-
+	// validate nodeTypeRef
+	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+		return txBldr, nil, types.ErrNodeType
+	}
+	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 	return txBldr, msg, nil
 }
 
@@ -198,8 +218,6 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-
 	msg := types.NewMsgCreateIndexingNode(networkAddr, pk, amount, ownerAddr, desc)
-
 	return txBldr, msg, nil
 }
