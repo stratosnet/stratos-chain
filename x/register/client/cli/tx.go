@@ -139,9 +139,6 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-	//if !ValueInSlice(types.NodeType(nodeTypeRef).Type(), types.NodeTypes) {
-	//	return txBldr, nil, types.ErrNodeType
-	//}
 
 	// validate nodeTypeRef
 	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
@@ -150,15 +147,6 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	msg := types.NewMsgCreateResourceNode(networkAddr, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 	return txBldr, msg, nil
 }
-
-//func ValueInSlice(v int, list []int) bool {
-//	for _, b := range list {
-//		if b == v {
-//			return true
-//		}
-//	}
-//	return false
-//}
 
 func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{

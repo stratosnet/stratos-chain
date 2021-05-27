@@ -14,22 +14,10 @@ import (
 //	7=(storage, database, computation),
 //	6=(storage, database),
 //	4=(storage),
-//	5=(computation/storage),
+//	5=(computation, storage),
 //	3=(database, computation),
 //	2=(database),
 //	1=(computation)
-
-//var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
-//
-//var NodeTypesMap = map[int]string{
-//	1: "computation",
-//	2: "database",
-//	3: "computation/database",
-//	4: "storage",
-//	5: "computation/storage",
-//	6: "database/storage",
-//	7: "computation/database/storage",
-//}
 
 type NodeType uint8
 
