@@ -55,12 +55,10 @@ func (fk Keeper) GetFileInfoBytesByFileHash(ctx sdk.Context, key []byte) ([]byte
 
 // SetFileHash Sets sender-fileHash KV pair
 func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.FileInfo) {
-	ctx.Logger().Info("Keeper starts")
 	store := ctx.KVStore(fk.key)
 	storeKey := types.FileStoreKey(fileHash)
 	bz := types.MustMarshalFileInfo(fk.cdc, fileInfo)
 	store.Set(storeKey, bz)
-	ctx.Logger().Info("Keeper ends")
 }
 
 // Prepay transfers coins from bank to sds (volumn) pool
