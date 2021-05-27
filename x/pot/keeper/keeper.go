@@ -5,6 +5,7 @@ import (
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,19 +15,21 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	BankKeeper bank.Keeper
-	storeKey   sdk.StoreKey
-	cdc        *codec.Codec
-	// paramspace types.ParamSubspace
+	BankKeeper     bank.Keeper
+	storeKey       sdk.StoreKey
+	cdc            *codec.Codec
+	RegisterKeeper *register.Keeper
+	//paramspace types.ParamSubspace
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(bankKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
+func NewKeeper(bankKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey, registerKeeper *register.Keeper) Keeper {
 	keeper := Keeper{
-		BankKeeper: bankKeeper,
-		storeKey:   key,
-		cdc:        cdc,
-		// paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
+		BankKeeper:     bankKeeper,
+		storeKey:       key,
+		cdc:            cdc,
+		RegisterKeeper: registerKeeper,
+		//paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
 	}
 	return keeper
 }
@@ -47,13 +50,23 @@ func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byt
 	return bz, nil
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, volumeReport *types.MsgVolumeReport) {
+func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
 	store := ctx.KVStore(k.storeKey)
-	storeKey := types.VolumeReportStoreKey(volumeReport.Reporter)
-	store.Set(storeKey, []byte(volumeReport.ReportReference))
+	storeKey := types.VolumeReportStoreKey(reporter)
+	store.Set(storeKey, []byte(reportReference))
 }
 
 func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(key)
+}
+
+func (k Keeper) IsIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
+	ctx.Logger().Info("Inside IsIndexingNode start")
+	ctx.Logger().Info("ctx in IsIndexingNode:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
+	ctx.Logger().Info("addr:" + string(types.ModuleCdc.MustMarshalJSON(addr)))
+
+	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
+	ctx.Logger().Info("Inside IsIndexingNode end")
+	return found
 }

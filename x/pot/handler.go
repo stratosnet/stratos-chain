@@ -15,6 +15,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgVolumeReport:
+			ctx.Logger().With("pot", "enter NewHandler")
 			return handleMsgReportVolume(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
@@ -25,7 +26,19 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle handleMsgReportVolume.
 func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolumeReport) (*sdk.Result, error) {
-	k.SetVolumeReport(ctx, &msg)
+	ctx.Logger().Info("enter handleMsgReportVolume start", "true")
+	ctx.Logger().Info("ctx in pot:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
+	ctx.Logger().Info("Reporter in pot:" + string(types.ModuleCdc.MustMarshalJSON(msg.Reporter)))
+	if !(k.IsIndexingNode(ctx, msg.Reporter)) {
+
+		ctx.Logger().Info("IsIndexingNode", "false")
+		errMsg := fmt.Sprint("message is not sent by a superior peer")
+		ctx.Logger().Info(errMsg)
+
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
+	}
+	ctx.Logger().Info("IsIndexingNode", "true")
+	k.SetVolumeReport(ctx, msg.Reporter, msg.ReportReference)
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(
