@@ -25,20 +25,15 @@ import (
 )
 
 func TestDoubleSignForCreateResourceNode(t *testing.T) {
-	params := "./stratos-chaincli tx register create-resource-node --network-id=\"sds://resourcenode1\" --amount=10000000stos --pubkey=stpub1addwnpepqf8gwzx32nt7fstqy7k6dlj6a923a80cccz3pkuhmhz7lv7qg00wzvrqzru --from=st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw --node-type=7 --moniker=r1 --home=node0/stratos-chaincli --keyring-backend=test --chain-id=test-chain-localnet --broadcast-mode=sync"
 	cdc := app.MakeCodec()
+	params := ""
 	inBuf := bufio.NewReader(strings.NewReader(params))
-	fmt.Println("inBuf: ", inBuf)
+	//fmt.Println("inBuf: ", inBuf)
 	//txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 	txBldr := createFakeTxBuilder()
-	fmt.Println("txBldr: ", txBldr)
+	//fmt.Println("txBldr: ", txBldr)
 	cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-	txBldr, msg, e := createIndexingNodeMsg(cliCtx, txBldr)
-	//if e != nil {
-	//	fmt.Println(e)
-	//}
-	fmt.Println("msg: ", msg)
-	fmt.Println("txBldr: ", txBldr)
+
 	mnemonic1 := "floor spirit faith hour six reward shoot general judge concert bus drip potato thunder emerge permit salon globe celery reunion mail raccoon output love"
 	mnemonic2 := "gossip broccoli vehicle light anchor notable tissue message husband deputy swift sister glimpse nominee basic company child view hand cement holiday age prize fame"
 
@@ -47,13 +42,15 @@ func TestDoubleSignForCreateResourceNode(t *testing.T) {
 		fmt.Println(e.Error())
 		return
 	}
-
 	fmt.Println("private key1: " + hex.EncodeToString(privKey1.Bytes()))
 
-	//disc := types.Description{Moniker: "r1", Identity: "", Website: "", SecurityContact: "", Details: ""}
-	//msg := types.NewMsgCreateResourceNode("sds://resourcenode1", privKey1.PubKey(), sdk.Coin{Denom: "stos", Amount: sdk.NewInt(10000)},
-	//	sdk.AccAddress("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw"), disc, "computation")
-	//fmt.Println("MSG: ", msg)
+	pub1 := privKey1.PubKey()
+	disc := types.Description{Moniker: "r1", Identity: "", Website: "", SecurityContact: "", Details: ""}
+	msg := types.NewMsgCreateResourceNode("sds://resourcenode1", pub1, sdk.Coin{Denom: "stos", Amount: sdk.NewInt(10000)},
+		sdk.AccAddress("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw"), disc, "7")
+	//fmt.Println("msg: ", msg)
+	//fmt.Println("txBldr: ", txBldr)
+
 	stdsignmsg, sig1, e := GetSignInfo(privKey1, txBldr, msg)
 	if e != nil {
 		fmt.Println(e.Error())
@@ -65,7 +62,6 @@ func TestDoubleSignForCreateResourceNode(t *testing.T) {
 		fmt.Println(e.Error())
 		return
 	}
-
 	fmt.Println("private key2: " + hex.EncodeToString(privKey2.Bytes()))
 	stdsignmsg, sig2, e := GetSignInfo(privKey2, txBldr, msg)
 	if e != nil {
@@ -74,10 +70,14 @@ func TestDoubleSignForCreateResourceNode(t *testing.T) {
 	}
 
 	tx := authtypes.NewStdTx(stdsignmsg.Msgs, stdsignmsg.Fee, []authtypes.StdSignature{sig1, sig2}, stdsignmsg.Memo)
+	fmt.Printf("tx: %#v", tx)
 	payload := cliCtx.Codec.MustMarshalBinaryBare(tx)
+	fmt.Println()
+	fmt.Printf("payload: %#v", payload)
 	cliCtx.BroadcastMode = "block"
 	broadcastTx, e := cliCtx.BroadcastTx(payload)
 	if e != nil {
+		fmt.Println(e.Error())
 		return
 	}
 	fmt.Printf("broadcastTx: %#v", broadcastTx)
@@ -90,7 +90,7 @@ func GetSignInfo(privKey crypto.PrivKey, txBldr authtypes.TxBuilder, msg sdk.Msg
 	addrst, e := bech32.ConvertAndEncode("st", pub.Address().Bytes())
 	if e != nil {
 		fmt.Println(e)
-	} //fmt.Println("address:"+ pub.Address().String())
+	}
 	fmt.Println("address : " + addrst)
 	stdsignmsg, e := txBldr.BuildSignMsg([]sdk.Msg{msg})
 	if e != nil {
@@ -109,7 +109,6 @@ func GetSignInfo(privKey crypto.PrivKey, txBldr authtypes.TxBuilder, msg sdk.Msg
 }
 
 func createFakePrivKey(mnemonic string) (crypto.PrivKey, error) {
-	//mnemonic := "floor spirit faith hour six reward shoot general judge concert bus drip potato thunder emerge permit salon globe celery reunion mail raccoon output love"
 	pass := ""
 	seed, e := bip39.NewSeedWithErrorChecking(mnemonic, pass)
 	if e != nil {

@@ -171,11 +171,19 @@ func NewInitApp(
 		),
 	)
 
+	app.registerKeeper = register.NewKeeper(
+		app.cdc,
+		keys[register.StoreKey],
+		app.accountKeeper,
+		app.bankKeeper,
+		app.subspaces[register.ModuleName],
+	)
+
 	app.potKeeper = potkeeper.NewKeeper(
 		app.bankKeeper,
 		app.cdc,
 		keys[pottypes.StoreKey],
-		&app.registerKeeper,
+		app.registerKeeper,
 		//app.subspaces[pottypes.ModuleName],
 	)
 
@@ -183,14 +191,6 @@ func NewInitApp(
 		app.bankKeeper,
 		app.cdc,
 		keys[sdstypes.StoreKey],
-	)
-
-	app.registerKeeper = register.NewKeeper(
-		app.cdc,
-		keys[register.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		app.subspaces[register.ModuleName],
 	)
 
 	// this line is used by starport scaffolding # 4
@@ -201,7 +201,7 @@ func NewInitApp(
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
 		sds.NewAppModule(app.sdsKeeper, app.bankKeeper),
-		pot.NewAppModule(app.potKeeper, app.bankKeeper),
+		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.registerKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		// this line is used by starport scaffolding # 6

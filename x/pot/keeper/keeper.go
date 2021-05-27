@@ -18,12 +18,12 @@ type Keeper struct {
 	BankKeeper     bank.Keeper
 	storeKey       sdk.StoreKey
 	cdc            *codec.Codec
-	RegisterKeeper *register.Keeper
+	RegisterKeeper register.Keeper
 	//paramspace types.ParamSubspace
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(bankKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey, registerKeeper *register.Keeper) Keeper {
+func NewKeeper(bankKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey, registerKeeper register.Keeper) Keeper {
 	keeper := Keeper{
 		BankKeeper:     bankKeeper,
 		storeKey:       key,

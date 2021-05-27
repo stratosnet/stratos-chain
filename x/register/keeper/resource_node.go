@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"strings"
@@ -136,6 +137,7 @@ func (k Keeper) IterateLastResourceNodePowers(ctx sdk.Context, handler func(node
 func (k Keeper) AddResourceNodeTokens(ctx sdk.Context, resourceNode types.ResourceNode, coinToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
 	if nodeAcc == nil {
+		ctx.Logger().Info(fmt.Sprintf("create new account: %s", resourceNode.GetNetworkAddr()))
 		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
 	}
 
