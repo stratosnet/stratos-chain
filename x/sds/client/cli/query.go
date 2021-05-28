@@ -62,9 +62,8 @@ $ %s query sds upload st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 			if err != nil {
 				return err
 			}
-			var height sdk.Int
-			height.UnmarshalJSON(resp)
-			return cliCtx.PrintOutput(height.String())
+			fi := types.MustUnmarshalFileInfo(cdc, resp)
+			return cliCtx.PrintOutput(fi.String())
 		},
 	}
 }
