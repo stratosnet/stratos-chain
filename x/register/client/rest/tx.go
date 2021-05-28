@@ -1,12 +1,12 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
-	"github.com/stratosnet/stratos-chain/x/register/client/cli"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
 )
@@ -84,11 +84,12 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
-		if !cli.ValueInSlice(nodeTypeRef, types.NodeTypes) {
+		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
-		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description, types.NodeTypesMap[nodeTypeRef])
+		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description,
+			fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
