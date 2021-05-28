@@ -5,9 +5,8 @@ import (
 )
 
 const (
-	FlagPubKey = "pubkey"
-	FlagAmount = "amount"
-	//FlagNetworkAddr = "network-addr"
+	FlagPubKey    = "pubkey"
+	FlagAmount    = "amount"
 	FlagNetworkID = "network-id"
 	FlagNodeType  = "node-type"
 
@@ -20,9 +19,8 @@ const (
 
 // common flagsets to add to various functions
 var (
-	FsPk     = flag.NewFlagSet("", flag.ContinueOnError)
-	FsAmount = flag.NewFlagSet("", flag.ContinueOnError)
-	//FsNetworkAddr       = flag.NewFlagSet("", flag.ContinueOnError)
+	FsPk                = flag.NewFlagSet("", flag.ContinueOnError)
+	FsAmount            = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNetworkID         = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNodeType          = flag.NewFlagSet("", flag.ContinueOnError)
 	FsDescriptionCreate = flag.NewFlagSet("", flag.ContinueOnError)
