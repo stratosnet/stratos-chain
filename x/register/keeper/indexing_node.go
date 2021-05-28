@@ -4,6 +4,8 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strconv"
+	"strings"
 )
 
 const indexingNodeCacheSize = 500
@@ -27,9 +29,10 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 // GetIndexingNode get a single indexing node
 func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetIndexingNodeKey(addr))
 
+	value := store.Get(types.GetIndexingNodeKey(addr))
 	if value == nil {
+		//ctx.Logger().Info("result(value): " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + "false")
 		return indexingNode, false
 	}
 
@@ -53,6 +56,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingN
 	}
 
 	indexingNode = types.MustUnmarshalIndexingNode(k.cdc, value)
+	ctx.Logger().Info("result: " + string(types.ModuleCdc.MustMarshalJSON(indexingNode)) + "found: " + strconv.FormatBool(found))
 	return indexingNode, true
 }
 
@@ -228,4 +232,32 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store.Delete(types.GetIndexingNodeKey(addr))
 	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
 	return nil
+}
+
+// GetIndexingNodeList get all indexing nodes by network address
+func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkAddress string) (indexingNodes []types.IndexingNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		if strings.Compare(node.NetworkAddress, networkAddress) == 0 {
+			indexingNodes = append(indexingNodes, node)
+		}
+
+	}
+	ctx.Logger().Info("IndexingNodeList: "+networkAddress, types.ModuleCdc.MustMarshalJSON(indexingNodes))
+	return indexingNodes, nil
+}
+
+func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.IndexingNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		if strings.Compare(node.Description.Moniker, moniker) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
 }

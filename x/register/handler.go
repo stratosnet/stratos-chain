@@ -39,11 +39,9 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, ErrBadDenom
 	}
-	//if _, err := msg.Description.EnsureLength(); err != nil {
-	//	return nil, err
-	//}
 
-	resourceNode := types.NewResourceNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
+	resourceNode := types.NewResourceNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description,
+		msg.NodeType)
 	err := k.AddResourceNodeTokens(ctx, resourceNode, msg.Value)
 	if err != nil {
 		return nil, err
@@ -76,9 +74,6 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, ErrBadDenom
 	}
-	//if _, err := msg.Description.EnsureLength(); err != nil {
-	//	return nil, err
-	//}
 
 	indexingNode := types.NewIndexingNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
 	err := k.AddIndexingNodeTokens(ctx, indexingNode, msg.Value)

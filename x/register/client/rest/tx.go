@@ -1,11 +1,13 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
+	"github.com/stratosnet/stratos-chain/x/register/client/cli"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
 )
@@ -36,6 +38,7 @@ type (
 		PubKey         string            `json:"pubkey" yaml:"pubkey"`                   // in bech32
 		Amount         sdk.Coin          `json:"amount" yaml:"amount"`
 		Description    types.Description `json:"description" yaml:"description"`
+		NodeType       int               `json:"node_type" yaml:"node_type"`
 	}
 
 	CreateIndexingNodeRequest struct {
@@ -76,13 +79,19 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		ownerAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		nodeTypeRef := req.NodeType
+		ownerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if er != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
+		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
+			return
+		}
+		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description,
+			fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 
-		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
