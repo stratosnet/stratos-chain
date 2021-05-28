@@ -2,6 +2,7 @@ package pot
 
 import (
 	"encoding/json"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -75,19 +76,18 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 
-	keeper     keeper.Keeper
-	coinKeeper bank.Keeper
-	// TODO: Add keepers that your application depends on
-
+	keeper      keeper.Keeper
+	coinKeeper  bank.Keeper
+	distrKeeper distr.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, distrKeeper distr.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		coinKeeper:     bankKeeper,
-		// TODO: Add keepers that your application depends on
+		distrKeeper: distrKeeper,
 	}
 }
 

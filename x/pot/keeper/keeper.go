@@ -4,7 +4,14 @@ import (
 	"encoding/hex"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/stratosnet/stratos-chain/x/register"
+	"github.com/stratosnet/stratos-chain/x/sds"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -14,19 +21,36 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	BankKeeper bank.Keeper
-	storeKey   sdk.StoreKey
-	cdc        *codec.Codec
-	// paramspace types.ParamSubspace
+	bankKeeper       bank.Keeper
+	storeKey         sdk.StoreKey
+	cdc              *codec.Codec
+	paramSpace       params.Subspace
+	feeCollectorName string // name of the FeeCollector ModuleAccount
+	distrKeeper      distribution.Keeper
+	sdsKeeper        sds.Keeper
+	supplyKeeper     supply.Keeper
+	accountKeeper    auth.AccountKeeper
+	stakingKeeper    staking.Keeper
+	registerKeeper   register.Keeper
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(bankKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, feeCollectorName string,
+	bankKeeper bank.Keeper, distrKeeper distribution.Keeper, sdsKeeper sds.Keeper, supplyKeeper supply.Keeper,
+	accountKeeper auth.AccountKeeper, stakingKeeper staking.Keeper, registerKeeper register.Keeper,
+) Keeper {
 	keeper := Keeper{
-		BankKeeper: bankKeeper,
-		storeKey:   key,
-		cdc:        cdc,
-		// paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
+		bankKeeper:     bankKeeper,
+		storeKey:       key,
+		cdc:            cdc,
+		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
+		feeCollectorName:feeCollectorName,
+		distrKeeper:    distrKeeper,
+		sdsKeeper:      sdsKeeper,
+		supplyKeeper:   supplyKeeper,
+		accountKeeper:  accountKeeper,
+		stakingKeeper:  stakingKeeper,
+		registerKeeper: registerKeeper,
 	}
 	return keeper
 }

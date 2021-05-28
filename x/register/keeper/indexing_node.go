@@ -210,7 +210,3 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store.Delete(types.GetIndexingNodeKey(addr))
 	return nil
 }
-
-func (k Keeper) TotalBondedTokensOfIndexingNodes(ctx sdk.Context) sdk.Int {
-	return sdk.ZeroInt()
-}

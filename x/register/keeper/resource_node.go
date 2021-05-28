@@ -207,7 +207,3 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store.Delete(types.GetResourceNodeKey(addr))
 	return nil
 }
-
-func (k Keeper) TotalBondedTokensOfResourceNodes(ctx sdk.Context) sdk.Int {
-	return sdk.ZeroInt()
-}
