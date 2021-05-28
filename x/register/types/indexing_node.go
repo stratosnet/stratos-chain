@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -51,7 +50,7 @@ func (v IndexingNodes) Len() int {
 
 // Implements sort interface
 func (v IndexingNodes) Less(i, j int) bool {
-	return bytes.Compare(v[i].OwnerAddress, v[j].OwnerAddress) == -1
+	return v[i].Tokens.LT(v[j].Tokens)
 }
 
 // Implements sort interface
