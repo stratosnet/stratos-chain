@@ -10,6 +10,7 @@ const MsgType = "volume_report"
 // verify interface at compile time
 var (
 	_ sdk.Msg = &MsgVolumeReport{}
+	_ sdk.Msg = &MsgWithdraw{}
 )
 
 type MsgVolumeReport struct {
@@ -75,6 +76,51 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		if item.NodeAddress.Empty() {
 			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing node address")
 		}
+	}
+	return nil
+}
+
+type MsgWithdraw struct {
+	Amount       sdk.Coin       `json:"amount" yaml:"amount"`
+	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+}
+
+func NewMsgWithdraw(amount sdk.Coin, nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress) MsgWithdraw {
+	return MsgWithdraw{
+		Amount:       amount,
+		NodeAddress:  nodeAddress,
+		OwnerAddress: ownerAddress,
+	}
+}
+
+// Route Implement
+func (msg MsgWithdraw) Route() string { return RouterKey }
+
+// GetSigners Implement
+func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.OwnerAddress}
+}
+
+// Type Implement
+func (msg MsgWithdraw) Type() string { return "withdraw" }
+
+// GetSignBytes gets the bytes for the message signer to sign on
+func (msg MsgWithdraw) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic validity check for the AnteHandler
+func (msg MsgWithdraw) ValidateBasic() error {
+	if !(msg.Amount.IsPositive()) {
+		return ErrWithdrawAmountNotPositive
+	}
+	if msg.NodeAddress.Empty() {
+		return ErrMissingNodeAddress
+	}
+	if msg.OwnerAddress.Empty() {
+		return ErrMissingOwnerAddress
 	}
 	return nil
 }

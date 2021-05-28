@@ -36,3 +36,17 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	)
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
+
+func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
+	k.Withdraw(ctx, msg.Amount, msg.NodeAddress, msg.OwnerAddress)
+
+	ctx.EventManager().EmitEvent(
+		sdk.NewEvent(
+			types.EventTypeWithdraw,
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyOwnerAddress, msg.OwnerAddress.String()),
+		),
+	)
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
