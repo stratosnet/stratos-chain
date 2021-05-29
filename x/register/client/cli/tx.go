@@ -2,25 +2,17 @@ package cli
 
 import (
 	"bufio"
-	//"github.com/tendermint/tendermint/crypto"
-	//"github.com/tendermint/tendermint/libs/bech32"
-
-	//"encoding/hex"
 	"errors"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
-
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-
-	"github.com/cosmos/cosmos-sdk/client"
-
-	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -79,7 +71,6 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagPubKey)
 	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
-
 	return cmd
 }
 
@@ -102,11 +93,9 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				return err
 			}
-
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNetworkID)
@@ -147,9 +136,6 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-	//if !ValueInSlice(types.NodeType(nodeTypeRef).Type(), types.NodeTypes) {
-	//	return txBldr, nil, types.ErrNodeType
-	//}
 
 	// validate nodeTypeRef
 	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
@@ -158,15 +144,6 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	msg := types.NewMsgCreateResourceNode(networkID, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 	return txBldr, msg, nil
 }
-
-//func ValueInSlice(v int, list []int) bool {
-//	for _, b := range list {
-//		if b == v {
-//			return true
-//		}
-//	}
-//	return false
-//}
 
 func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{

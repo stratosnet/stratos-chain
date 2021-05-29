@@ -93,9 +93,8 @@ type MsgCreateIndexingNode struct {
 func NewMsgCreateIndexingNode(networkID string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) MsgCreateIndexingNode {
 	return MsgCreateIndexingNode{
-		NetworkID: networkID,
-		PubKey:    pubKey,
-		//NetworkAddress: sdk.AccAddress(pubKey.Address()),
+		NetworkID:    networkID,
+		PubKey:       pubKey,
 		Value:        value,
 		OwnerAddress: ownerAddr,
 		Description:  description,

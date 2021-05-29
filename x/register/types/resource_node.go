@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,27 +9,6 @@ import (
 	"sort"
 	"strings"
 )
-
-// ResourceNode types:
-//	7=(storage, database, computation),
-//	6=(storage, database),
-//	4=(storage),
-//	5=(computation/storage),
-//	3=(database, computation),
-//	2=(database),
-//	1=(computation)
-
-//var NodeTypes = []int{7, 6, 5, 4, 3, 2, 1}
-//
-//var NodeTypesMap = map[int]string{
-//	1: "computation",
-//	2: "database",
-//	3: "computation/database",
-//	4: "storage",
-//	5: "computation/storage",
-//	6: "database/storage",
-//	7: "computation/database/storage",
-//}
 
 type NodeType uint8
 
@@ -58,7 +36,6 @@ func (n NodeType) Type() string {
 		return "computation"
 	}
 	return "UNKNOWN"
-
 }
 
 type ResourceNode struct {
@@ -102,7 +79,7 @@ func (v ResourceNodes) Len() int {
 
 // Less implements sort interface
 func (v ResourceNodes) Less(i, j int) bool {
-	return bytes.Compare(v[i].OwnerAddress, v[j].OwnerAddress) == -1
+	return v[i].Tokens.LT(v[j].Tokens)
 }
 
 // Swap implements sort interface
