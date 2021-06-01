@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
-	"github.com/stratosnet/stratos-chain/x/register/client/cli"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
 )
