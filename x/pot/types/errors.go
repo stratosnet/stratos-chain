@@ -12,6 +12,7 @@ var (
 	ErrMissingNodeAddress        = sdkerrors.Register(ModuleName, 5, "missing node address")
 	ErrMissingOwnerAddress       = sdkerrors.Register(ModuleName, 6, "missing owner address")
 	ErrInsufficientMatureTotal   = sdkerrors.Register(ModuleName, 7, "insufficient mature total")
+	ErrInsufficientBalance       = sdkerrors.Register(ModuleName, 7, "insufficient balance")
 
 	//ErrBadTrafficRewardDistribution = sdkerrors.Register(ModuleName, 3, "traffic pool does not have sufficient coins to distribute")
 )

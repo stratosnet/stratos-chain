@@ -20,6 +20,7 @@ var (
 	LastResourceNodeTotalStakeKey = []byte{0x12} // prefix for the total bonded tokens of resource nodes
 	LastIndexingNodeStakeKey      = []byte{0x13} // prefix for each key to a indexing node index, for bonded indexing nodes
 	LastIndexingNodeTotalStakeKey = []byte{0x14} // prefix for the total bonded tokens of indexing nodes
+	InitialGenesisStakeTotalKey   = []byte{0x15} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
 
 	ResourceNodeKey = []byte{0x21} // prefix for each key to a resource node
 	IndexingNodeKey = []byte{0x22} // prefix for each key to a indexing node

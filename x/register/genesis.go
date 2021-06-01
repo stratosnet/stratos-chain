@@ -10,11 +10,15 @@ import (
 func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
 
+	initialStakeTotal := sdk.ZeroInt()
+
 	for _, resourceNode := range data.ResourceNodes {
+		initialStakeTotal = initialStakeTotal.Add(resourceNode.GetTokens())
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
 
 	for _, indexingNode := range data.IndexingNodes {
+		initialStakeTotal = initialStakeTotal.Add(indexingNode.GetTokens())
 		keeper.SetIndexingNode(ctx, indexingNode)
 	}
 
@@ -28,6 +32,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 
 	keeper.SetLastResourceNodeTotalStake(ctx, data.LastResourceNodeTotalStake)
 	keeper.SetLastIndexingNodeTotalStake(ctx, data.LastIndexingNodeTotalStake)
+	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
 }
 
 // ExportGenesis writes the current store values

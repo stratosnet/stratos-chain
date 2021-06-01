@@ -16,6 +16,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgVolumeReport:
 			return handleMsgReportVolume(ctx, k, msg)
+		case types.MsgWithdraw:
+			return handleMsgWithdraw(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -38,7 +40,10 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 }
 
 func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
-	k.Withdraw(ctx, msg.Amount, msg.NodeAddress, msg.OwnerAddress)
+	err := k.Withdraw(ctx, msg.Amount, msg.NodeAddress, msg.OwnerAddress)
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvent(
 		sdk.NewEvent(

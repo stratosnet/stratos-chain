@@ -31,7 +31,7 @@ func (k Keeper) getTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.TotalUnissuedPrepayKey)
 	if b == nil {
-		panic("Stored total unissued prepay should not have been nil")
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
 	return

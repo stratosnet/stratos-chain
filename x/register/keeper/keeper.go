@@ -82,3 +82,19 @@ func (k Keeper) SetLastIndexingNodeTotalStake(ctx sdk.Context, stake sdk.Int) {
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
 	store.Set(types.LastIndexingNodeTotalStakeKey, b)
 }
+
+func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.InitialGenesisStakeTotalKey, b)
+}
+
+func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.InitialGenesisStakeTotalKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
+	return
+}
