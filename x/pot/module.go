@@ -2,7 +2,9 @@ package pot
 
 import (
 	"encoding/json"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
+	"github.com/stratosnet/stratos-chain/x/register"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
@@ -77,17 +79,24 @@ type AppModule struct {
 	AppModuleBasic
 
 	keeper      keeper.Keeper
-	coinKeeper  bank.Keeper
-	distrKeeper distr.Keeper
+	bankKeeper  bank.Keeper
+	supplyKeeper supply.Keeper
+	accountKeeper types.AccountKeeper
+	stakingKeeper staking.Keeper
+	registerKeeper register.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, distrKeeper distr.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, supplyKeeper supply.Keeper,
+	accountKeeper types.AccountKeeper, stakingKeeper staking.Keeper, registerKeeper register.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		coinKeeper:     bankKeeper,
-		distrKeeper: distrKeeper,
+		bankKeeper:     bankKeeper,
+		supplyKeeper: supplyKeeper,
+		accountKeeper:accountKeeper,
+		stakingKeeper:stakingKeeper,
+		registerKeeper:registerKeeper,
 	}
 }
 

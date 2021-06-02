@@ -6,12 +6,10 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/distribution"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stratosnet/stratos-chain/x/register"
-	"github.com/stratosnet/stratos-chain/x/sds"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,13 +19,11 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	bankKeeper       bank.Keeper
 	storeKey         sdk.StoreKey
 	cdc              *codec.Codec
 	paramSpace       params.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
-	distrKeeper      distribution.Keeper
-	sdsKeeper        sds.Keeper
+	bankKeeper       bank.Keeper
 	supplyKeeper     supply.Keeper
 	accountKeeper    auth.AccountKeeper
 	stakingKeeper    staking.Keeper
@@ -36,17 +32,15 @@ type Keeper struct {
 
 // NewKeeper creates a pot keeper
 func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, feeCollectorName string,
-	bankKeeper bank.Keeper, distrKeeper distribution.Keeper, sdsKeeper sds.Keeper, supplyKeeper supply.Keeper,
-	accountKeeper auth.AccountKeeper, stakingKeeper staking.Keeper, registerKeeper register.Keeper,
+	bankKeeper bank.Keeper, supplyKeeper supply.Keeper, accountKeeper auth.AccountKeeper, stakingKeeper staking.Keeper,
+	registerKeeper register.Keeper,
 ) Keeper {
 	keeper := Keeper{
-		bankKeeper:     bankKeeper,
 		storeKey:       key,
 		cdc:            cdc,
 		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
 		feeCollectorName:feeCollectorName,
-		distrKeeper:    distrKeeper,
-		sdsKeeper:      sdsKeeper,
+		bankKeeper:     bankKeeper,
 		supplyKeeper:   supplyKeeper,
 		accountKeeper:  accountKeeper,
 		stakingKeeper:  stakingKeeper,
