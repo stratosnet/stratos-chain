@@ -39,8 +39,11 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, ErrBadDenom
 	}
+	//if _, err := msg.Description.EnsureLength(); err != nil {
+	//	return nil, err
+	//}
 
-	resourceNode := types.NewResourceNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description,
+	resourceNode := types.NewResourceNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description,
 		msg.NodeType)
 	err := k.AddResourceNodeTokens(ctx, resourceNode, msg.Value)
 	if err != nil {
@@ -50,18 +53,14 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateResourceNode,
-			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.NetworkAddress),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -74,8 +73,11 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, ErrBadDenom
 	}
+	//if _, err := msg.Description.EnsureLength(); err != nil {
+	//	return nil, err
+	//}
 
-	indexingNode := types.NewIndexingNode(msg.NetworkAddress, msg.PubKey, msg.OwnerAddress, msg.Description)
+	indexingNode := types.NewIndexingNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description)
 	err := k.AddIndexingNodeTokens(ctx, indexingNode, msg.Value)
 	if err != nil {
 		return nil, err
@@ -84,18 +86,14 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeCreateIndexingNode,
-			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.NetworkAddress),
-			sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Value.Amount.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -112,16 +110,14 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRemoveResourceNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -138,15 +134,13 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeRemoveIndexingNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyOwner, msg.OwnerAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

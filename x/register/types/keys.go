@@ -5,7 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Bech32PubKeyType defines a string type alias for a Bech32 public key type.
+type Bech32PubKeyType string
+
 const (
+	Bech32PubKeyTypesdsPub Bech32PubKeyType = "sdspub"
 	// ModuleName is the name of the module
 	ModuleName = "register"
 	// StoreKey to be used when creating the KVStore
@@ -56,7 +60,7 @@ func GetResourceNodesByPowerIndexKey(resourceNode ResourceNode) []byte {
 
 	key[0] = ResourceNodesByPowerIndexKey[0]
 	copy(key[1:powerBytesLen+1], powerBytes)
-	addrInvr := sdk.CopyBytes(resourceNode.GetAddr())
+	addrInvr := sdk.CopyBytes(resourceNode.GetNetworkAddr())
 	for i, b := range addrInvr {
 		addrInvr[i] = ^b
 	}
@@ -93,7 +97,7 @@ func GetIndexingNodesByPowerIndexKey(indexingNode IndexingNode) []byte {
 
 	key[0] = IndexingNodesByPowerIndexKey[0]
 	copy(key[1:powerBytesLen+1], powerBytes)
-	addrInvr := sdk.CopyBytes(indexingNode.GetAddr())
+	addrInvr := sdk.CopyBytes(indexingNode.GetNetworkAddr())
 	for i, b := range addrInvr {
 		addrInvr[i] = ^b
 	}

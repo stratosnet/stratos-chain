@@ -99,12 +99,12 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 	iterator := keeper.GetResourceNetworksIterator(ctx)
 	for ; iterator.Valid(); iterator.Next() {
 		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		networkList = append(networkList, resourceNode.NetworkAddress)
+		networkList = append(networkList, resourceNode.NetworkID)
 	}
 	iter := keeper.GetIndexingNetworksIterator(ctx)
 	for ; iter.Valid(); iter.Next() {
 		indexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
-		networkList = append(networkList, indexingNode.NetworkAddress)
+		networkList = append(networkList, indexingNode.NetworkID)
 	}
 	r := removeDuplicateValues(networkList)
 	return r

@@ -38,14 +38,14 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return registerQueryCmd
 }
 
-// GetCmdQueryResourceNodeList implements the query all resource nodes by network address command.
+// GetCmdQueryResourceNodeList implements the query all resource nodes by network id command.
 func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "get-resource-nodes", // []byte
 		//Args:  cobra.RangeArgs(1, 1),
-		Short: "Query all resource nodes by network address.",
+		Short: "Query all resource nodes by network id.",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all resource nodes by network address.`),
+			fmt.Sprintf(`Query all resource nodes by network id.`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -61,21 +61,21 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 				return cliCtx.PrintOutput(resp)
 			}
 
-			// query all resource nodes by network address
-			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddr)
-			if queryFlagNetworkAddr == "" {
-				return errors.New("at least one of the flags 'network-addr' and 'moniker' must be set")
+			// query all resource nodes by network id
+			queryFlagNetworkID := viper.GetString(FlagNetworkID)
+			if queryFlagNetworkID == "" {
+				return errors.New("at least one of the flags 'network-id' and 'moniker' must be set")
 			}
-			resp, err := GetResNodesByNetworkAddr(cliCtx, queryRoute)
+			resp, err := GetResNodesByNetworkID(cliCtx, queryRoute)
 			if err != nil {
 				return err
 			}
 			return cliCtx.PrintOutput(resp)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsDescriptionCreate)
-	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+	//_ = cmd.MarkFlagRequired(FlagNetworkID)
 
 	return cmd
 }
@@ -97,11 +97,11 @@ func QueryResNodesByMoniker(cliCtx context.CLIContext, queryRoute, moniker strin
 	return cliCtx.QueryWithData(route, []byte(moniker))
 }
 
-// GetResNodesByNetworkAddr queries all resource nodes by multiple network addresses (sep: ";")
-func GetResNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
-	queryFlagNetworkAddr := viper.GetString(FlagNetworkAddr)
-	queryByFlagNetworkAddrList := strings.Split(queryFlagNetworkAddr, ";")
-	for _, v := range queryByFlagNetworkAddrList {
+// GetResNodesByNetworkID queries all resource nodes by multiple network IDs (sep: ";")
+func GetResNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
+	queryFlagNetworkID := viper.GetString(FlagNetworkID)
+	queryByFlagNetworkIDList := strings.Split(queryFlagNetworkID, ";")
+	for _, v := range queryByFlagNetworkIDList {
 		resp, _, err := QueryResourceNodes(cliCtx, queryRoute, v)
 		if err != nil {
 			return "null", err
@@ -111,20 +111,20 @@ func GetResNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res
 	return res[:len(res)-1], nil
 }
 
-// QueryResourceNodes queries all resource nodes by network address
-func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
+// QueryResourceNodes queries all resource nodes by network id
+func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodeList)
-	return cliCtx.QueryWithData(route, []byte(networkAddress))
+	return cliCtx.QueryWithData(route, []byte(networkID))
 }
 
-// GetCmdQueryIndexingNodeList implements the query all indexing nodes by network address command.
+// GetCmdQueryIndexingNodeList implements the query all indexing nodes by network id command.
 func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use: "get-indexing-nodes", // []byte
 		//Args:  cobra.RangeArgs(1, 1),
-		Short: "Query all indexing nodes by network address",
+		Short: "Query all indexing nodes by network id",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all indexing nodes by network address.`),
+			fmt.Sprintf(`Query all indexing nodes by network id.`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -140,12 +140,12 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 				return cliCtx.PrintOutput(resp)
 			}
 
-			// query all indexing nodes by network address
-			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddr)
-			if queryFlagNetworkAddr == "" {
-				return errors.New("at least one of the flags 'network-addr' and 'moniker' must be set")
+			// query all indexing nodes by network id
+			queryFlagNetworkID := viper.GetString(FlagNetworkID)
+			if queryFlagNetworkID == "" {
+				return errors.New("at least one of the flags 'network-id' and 'moniker' must be set")
 			}
-			resp, err := GetIndNodesByNetworkAddr(cliCtx, queryRoute)
+			resp, err := GetIndNodesByNetworkID(cliCtx, queryRoute)
 			if err != nil {
 				return err
 			}
@@ -153,9 +153,9 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 
 		},
 	}
-	cmd.Flags().AddFlagSet(FsNetworkAddr)
+	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsDescriptionCreate)
-	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+	//_ = cmd.MarkFlagRequired(FlagNetworkID)
 
 	return cmd
 }
@@ -172,17 +172,17 @@ func GetIndByMoniker(cliCtx context.CLIContext, queryRoute string, queryFlagMoni
 	return res[:len(res)-1], nil
 }
 
-// QueryIndNodesByMoniker queries all indexing nodes by network address
-func QueryIndNodesByMoniker(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
+// QueryIndNodesByMoniker queries all indexing nodes by network ID
+func QueryIndNodesByMoniker(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeByMoniker)
-	return cliCtx.QueryWithData(route, []byte(networkAddress))
+	return cliCtx.QueryWithData(route, []byte(networkID))
 }
 
-// GetIndNodesByNetworkAddr queries all indexing nodes by multiple network addresses (sep: ";")
-func GetIndNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
-	queryFlagNetworkAddr := viper.GetString(FlagNetworkAddr)
-	queryByFlagNetworkAddrList := strings.Split(queryFlagNetworkAddr, ";")
-	for _, v := range queryByFlagNetworkAddrList {
+// GetIndNodesByNetworkID queries all indexing nodes by multiple network IDs (sep: ";")
+func GetIndNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
+	queryFlagNetworkID := viper.GetString(FlagNetworkID)
+	queryByFlagNetworkIDList := strings.Split(queryFlagNetworkID, ";")
+	for _, v := range queryByFlagNetworkIDList {
 		resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, v)
 		if err != nil {
 			return "null", err
@@ -192,25 +192,25 @@ func GetIndNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res
 	return res[:len(res)-1], nil
 }
 
-// QueryIndexingNodes queries all resource nodes by network address
-func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddress string) ([]byte, int64, error) {
+// QueryIndexingNodes queries all resource nodes by network is
+func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
-	return cliCtx.QueryWithData(route, []byte(networkAddress))
+	return cliCtx.QueryWithData(route, []byte(networkID))
 }
 
-// GetCmdQueryNetworkSet implements the query all indexing nodes by network address command.
+// GetCmdQueryNetworkSet implements the query all indexing nodes by network id command.
 func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use: "get-network-addresses",
+		Use: "get-network-ids",
 		//Args:  cobra.RangeArgs(0, 0),
-		Short: "Query all network addresses",
+		Short: "Query all network ids",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all network addresses.`),
+			fmt.Sprintf(`Query all network ids.`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// query get-network-set by network address
+			// query get-network-set by network id
 			resp, _, err := QueryNetworkSet(cliCtx, queryRoute)
 			if err != nil {
 				return err
@@ -220,7 +220,7 @@ func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 }
 
-// QueryNetworkSet queries all network address
+// QueryNetworkSet queries all network id
 func QueryNetworkSet(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryNetworkSet)
 	return cliCtx.Query(route)

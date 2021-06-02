@@ -2,7 +2,6 @@ package pot
 
 import (
 	"encoding/json"
-
 	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
@@ -77,6 +76,7 @@ type AppModule struct {
 
 	keeper     keeper.Keeper
 	coinKeeper bank.Keeper
+	//registerKeeper register.Keeper
 	// TODO: Add keepers that your application depends on
 
 }
@@ -87,6 +87,7 @@ func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper) AppModule {
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		coinKeeper:     bankKeeper,
+		//registerKeeper: registerKeeper,
 		// TODO: Add keepers that your application depends on
 	}
 }

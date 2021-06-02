@@ -5,10 +5,10 @@ import (
 )
 
 const (
-	FlagPubKey      = "pubkey"
-	FlagAmount      = "amount"
-	FlagNetworkAddr = "network-addr"
-	FlagNodeType    = "node-type"
+	FlagPubKey    = "pubkey"
+	FlagAmount    = "amount"
+	FlagNetworkID = "network-id"
+	FlagNodeType  = "node-type"
 
 	FlagMoniker         = "moniker"
 	FlagIdentity        = "identity"
@@ -21,7 +21,7 @@ const (
 var (
 	FsPk                = flag.NewFlagSet("", flag.ContinueOnError)
 	FsAmount            = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNetworkAddr       = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNetworkID         = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNodeType          = flag.NewFlagSet("", flag.ContinueOnError)
 	FsDescriptionCreate = flag.NewFlagSet("", flag.ContinueOnError)
 )
@@ -29,7 +29,8 @@ var (
 func init() {
 	FsPk.String(FlagPubKey, "", "The Bech32 encoded PubKey of the node")
 	FsAmount.String(FlagAmount, "", "Amount of coins to bond")
-	FsNetworkAddr.String(FlagNetworkAddr, "", "The network address of the node")
+	//FsNetworkAddr.String(FlagNetworkAddress, "", "The network address of the node")
+	FsNetworkID.String(FlagNetworkID, "", "The network id of the node")
 	FsNodeType.Int(FlagNodeType, 0, `The value of node_type is determined by the three node types('storage', 'database'', and 'computation') and their arbitrary combinations.
 Suppose, we define:
 	computation 	= 1,

@@ -61,12 +61,7 @@ func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
 	store.Delete(key)
 }
 
-func (k Keeper) IsIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
-	ctx.Logger().Info("Inside IsIndexingNode start")
-	ctx.Logger().Info("ctx in IsIndexingNode:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
-	ctx.Logger().Info("addr:" + string(types.ModuleCdc.MustMarshalJSON(addr)))
-
+func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
-	ctx.Logger().Info("Inside IsIndexingNode end")
 	return found
 }
