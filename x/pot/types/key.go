@@ -20,9 +20,12 @@ const (
 )
 
 var (
-	MinedTokensKey            = []byte{0x02}
-	TotalUnissuedPrepayKey    = []byte{0x03}
-	UpperBoundOfTotalOzoneKey = []byte{0x04}
+	FoundationAccountKey  = []byte{0x01}
+	InitialUOzonePriceKey = []byte{0x02}
+
+	MinedTokensKey            = []byte{0x03}
+	TotalUnissuedPrepayKey    = []byte{0x04}
+	UpperBoundOfTotalOzoneKey = []byte{0x05}
 
 	RewardAddressPoolKey         = []byte{0x11}
 	LastMaturedEpochKey          = []byte{0x12}

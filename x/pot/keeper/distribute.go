@@ -51,17 +51,12 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	return nil
 }
 
-func (k Keeper) getFoundationAccountAddress() (address sdk.AccAddress) {
-	//TODO
-	return
-}
-
 func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal types.DistributeGoal) (err error) {
 	totalRewardFromMiningPool := goal.BlockChainRewardToIndexingNodeFromMiningPool.Add(goal.MetaNodeRewardToIndexingNodeFromMiningPool).Add(goal.BlockChainRewardToResourceNodeFromMiningPool).Add(goal.TrafficRewardToResourceNodeFromMiningPool)
 	totalRewardFromTrafficPool := goal.BlockChainRewardToIndexingNodeFromTrafficPool.Add(goal.MetaNodeRewardToIndexingNodeFromTrafficPool).Add(goal.BlockChainRewardToResourceNodeFromTrafficPool).Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// deduct mining reward from foundation account
-	foundationAccountAddr := k.getFoundationAccountAddress()
+	foundationAccountAddr := k.GetFoundationAccount(ctx)
 	amountToDeduct := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), totalRewardFromMiningPool))
 	hasCoin := k.bankKeeper.HasCoins(ctx, foundationAccountAddr, amountToDeduct)
 	if !hasCoin {
@@ -88,7 +83,7 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal) (err e
 	balanceOfTrafficPool := goal.BlockChainRewardToIndexingNodeFromTrafficPool.Add(goal.MetaNodeRewardToIndexingNodeFromTrafficPool).Add(goal.BlockChainRewardToResourceNodeFromTrafficPool).Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// return balance to foundation account
-	foundationAccountAddr := k.getFoundationAccountAddress()
+	foundationAccountAddr := k.GetFoundationAccount(ctx)
 	amountToAdd := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), balanceOfMiningPool))
 	_, err = k.bankKeeper.AddCoins(ctx, foundationAccountAddr, amountToAdd)
 	if err != nil {
