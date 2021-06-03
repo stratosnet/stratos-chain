@@ -128,7 +128,7 @@ func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNode
 	S := k.registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	Pt := k.getTotalUnissuedPrepay(ctx).ToDec()
 	Y := k.getTotalConsumedOzone(trafficList).ToDec()
-	Lt := k.getUpperBoundOfTotalOzone(ctx).ToDec()
+	Lt := k.registerKeeper.GetUpperBoundOfTotalOzone(ctx).ToDec()
 	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 
 	return R

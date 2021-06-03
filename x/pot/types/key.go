@@ -23,9 +23,8 @@ var (
 	FoundationAccountKey  = []byte{0x01}
 	InitialUOzonePriceKey = []byte{0x02}
 
-	MinedTokensKey            = []byte{0x03}
-	TotalUnissuedPrepayKey    = []byte{0x04}
-	UpperBoundOfTotalOzoneKey = []byte{0x05}
+	MinedTokensKey         = []byte{0x03}
+	TotalUnissuedPrepayKey = []byte{0x04}
 
 	RewardAddressPoolKey         = []byte{0x11}
 	LastMaturedEpochKey          = []byte{0x12}

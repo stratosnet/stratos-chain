@@ -16,6 +16,8 @@ const (
 )
 
 var (
+	UpperBoundOfTotalOzoneKey = []byte{0x01}
+
 	LastResourceNodeStakeKey      = []byte{0x11} // prefix for each key to a resource node index, for bonded resource nodes
 	LastResourceNodeTotalStakeKey = []byte{0x12} // prefix for the total bonded tokens of resource nodes
 	LastIndexingNodeStakeKey      = []byte{0x13} // prefix for each key to a indexing node index, for bonded indexing nodes

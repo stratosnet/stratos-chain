@@ -26,8 +26,14 @@ var (
 	ErrIndexingNodePubKeyExists = types.ErrIndexingNodePubKeyExists
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
+
+	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
+	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
 )
 
 type (
-	Keeper = keeper.Keeper
+	Keeper                = keeper.Keeper
+	Description           = types.Description
+	MsgCreateResourceNode = types.MsgCreateResourceNode
+	MsgCreateIndexingNode = types.MsgCreateIndexingNode
 )

@@ -69,22 +69,6 @@ func (k Keeper) getTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 	return
 }
 
-func (k Keeper) setUpperBoundOfTotalOzone(ctx sdk.Context, value sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-	store.Set(types.UpperBoundOfTotalOzoneKey, b)
-}
-
-func (k Keeper) getUpperBoundOfTotalOzone(ctx sdk.Context) (value sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.UpperBoundOfTotalOzoneKey)
-	if b == nil {
-		panic("Stored upper bound of total ozone should not have been nil")
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
-	return
-}
-
 func (k Keeper) setRewardAddressPool(ctx sdk.Context, addressList []sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(addressList)

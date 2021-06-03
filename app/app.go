@@ -173,7 +173,7 @@ func NewInitApp(
 
 	app.stakingKeeper = *stakingKeeper.SetHooks(
 		staking.NewMultiStakingHooks(
-			// this line is used by starport scaffolding # 5.3
+		// this line is used by starport scaffolding # 5.3
 		),
 	)
 
@@ -181,6 +181,14 @@ func NewInitApp(
 		app.bankKeeper,
 		app.cdc,
 		keys[sdstypes.StoreKey],
+	)
+
+	app.registerKeeper = register.NewKeeper(
+		app.cdc,
+		keys[register.StoreKey],
+		app.accountKeeper,
+		app.bankKeeper,
+		app.subspaces[register.ModuleName],
 	)
 
 	app.potKeeper = potkeeper.NewKeeper(
@@ -193,14 +201,6 @@ func NewInitApp(
 		app.accountKeeper,
 		app.stakingKeeper,
 		app.registerKeeper,
-	)
-
-	app.registerKeeper = register.NewKeeper(
-		app.cdc,
-		keys[register.StoreKey],
-		app.accountKeeper,
-		app.bankKeeper,
-		app.subspaces[register.ModuleName],
 	)
 
 	// this line is used by starport scaffolding # 4

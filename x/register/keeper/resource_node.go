@@ -143,6 +143,8 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	k.SetResourceNode(ctx, resourceNode)
 	k.SetLastResourceNodeStake(ctx, resourceNode.GetAddr(), newStake)
 	k.SetLastResourceNodeTotalStake(ctx, newTotalStake)
+	k.increaseOzoneLimitByAddStake(ctx, coinToAdd.Amount)
+
 	return nil
 }
 
@@ -186,6 +188,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 		k.SetLastResourceNodeStake(ctx, resourceNode.GetAddr(), newStake)
 	}
 	k.SetLastResourceNodeTotalStake(ctx, newTotalStake)
+	k.decreaseOzoneLimitBySubtractStake(ctx, tokensToRemove)
 
 	return nil
 }

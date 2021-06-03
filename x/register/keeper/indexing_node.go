@@ -146,6 +146,8 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 	k.SetIndexingNode(ctx, indexingNode)
 	k.SetLastIndexingNodeStake(ctx, indexingNode.GetAddr(), newStake)
 	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
+	k.increaseOzoneLimitByAddStake(ctx, coinToAdd.Amount)
+
 	return nil
 }
 
@@ -189,7 +191,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 		k.SetLastIndexingNodeStake(ctx, indexingNode.GetAddr(), newStake)
 	}
 	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
-
+	k.decreaseOzoneLimitBySubtractStake(ctx, tokensToRemove)
 	return nil
 }
 

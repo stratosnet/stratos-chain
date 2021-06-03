@@ -11,13 +11,13 @@ import (
 // DefaultParamSpace Default parameter namespace
 const (
 	DefaultParamSpace = ModuleName
-	DefaultBondDenom  = "stos"
+	DefaultBondDenom  = "ustos"
 )
 
 // Parameter store keys
 var (
-	KeyBondDenom           = []byte("BondDenom")
-	KeyMiningRewardPrarams = []byte("MiningRewardParams")
+	KeyBondDenom          = []byte("BondDenom")
+	KeyMiningRewardParams = []byte("MiningRewardParams")
 )
 
 // Params - used for initializing default parameter for pot at genesis
@@ -81,7 +81,7 @@ func (p Params) String() string {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		params.NewParamSetPair(KeyMiningRewardPrarams, &p.MiningRewardParams, nil),
+		params.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
 	}
 }
 
@@ -98,5 +98,16 @@ func validateBondDenom(i interface{}) error {
 		return err
 	}
 
+	return nil
+}
+
+func validateMiningRewardParams(i interface{}) error {
+	return nil
+}
+
+func (p Params) ValidateBasic() error {
+	if err := validateBondDenom(p.BondDenom); err != nil {
+		return err
+	}
 	return nil
 }

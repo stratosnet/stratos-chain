@@ -36,15 +36,15 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, f
 	registerKeeper register.Keeper,
 ) Keeper {
 	keeper := Keeper{
-		storeKey:       key,
-		cdc:            cdc,
-		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
-		feeCollectorName:feeCollectorName,
-		bankKeeper:     bankKeeper,
-		supplyKeeper:   supplyKeeper,
-		accountKeeper:  accountKeeper,
-		stakingKeeper:  stakingKeeper,
-		registerKeeper: registerKeeper,
+		cdc:              cdc,
+		storeKey:         key,
+		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
+		feeCollectorName: feeCollectorName,
+		bankKeeper:       bankKeeper,
+		supplyKeeper:     supplyKeeper,
+		accountKeeper:    accountKeeper,
+		stakingKeeper:    stakingKeeper,
+		registerKeeper:   registerKeeper,
 	}
 	return keeper
 }
@@ -76,7 +76,7 @@ func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
 	store.Delete(key)
 }
 
-func (k Keeper) Withdraw(ctx sdk.Context,amount sdk.Coin, nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress) error {
+func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coin, nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress) error {
 	matureRewardVal := k.getMatureTotalReward(ctx, nodeAddress)
 	if matureRewardVal == sdk.ZeroInt() {
 		return types.ErrInsufficientMatureTotal

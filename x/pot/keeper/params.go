@@ -23,7 +23,7 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 }
 
 func (k Keeper) MiningRewardParams(ctx sdk.Context) (res []types.MiningRewardParam) {
-	k.paramSpace.Get(ctx, types.KeyMiningRewardPrarams, &res)
+	k.paramSpace.Get(ctx, types.KeyMiningRewardParams, &res)
 	return
 }
 
