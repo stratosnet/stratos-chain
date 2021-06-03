@@ -7,6 +7,7 @@ const (
 
 	AttributeKeyReporter = "reporter"
 	AttributeKeyFileHash = "file_hash"
+	AttributeKeyUploader = "uploader"
 
 	AttributeKeyRecipient = "recipient"
 	AttributeKeyCoins     = "coins"

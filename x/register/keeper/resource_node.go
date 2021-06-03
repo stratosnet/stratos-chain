@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strings"
 )
 
 const resourceNodeCacheSize = 500
@@ -55,11 +57,11 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceN
 	return resourceNode, true
 }
 
-// set the main record holding resource node details
+// SetResourceNode sets the main record holding resource node details
 func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)
-	store.Set(types.GetResourceNodeKey(resourceNode.GetAddr()), bz)
+	store.Set(types.GetResourceNodeKey(resourceNode.GetNetworkAddr()), bz)
 }
 
 // GetLastResourceNodeStake Load the last resource node stake.
@@ -117,9 +119,10 @@ func (k Keeper) IterateLastResourceNodeStakes(ctx sdk.Context, handler func(node
 
 // AddResourceNodeStake Update the tokens of an existing resource node
 func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, coinToAdd sdk.Coin) error {
-	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetAddr())
+	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
 	if nodeAcc == nil {
-		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetAddr())
+		ctx.Logger().Info(fmt.Sprintf("create new account: %s", resourceNode.GetNetworkAddr()))
+		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
 	}
 
 	coins := sdk.NewCoins(coinToAdd)
@@ -128,12 +131,12 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		return types.ErrInsufficientBalance
 	}
 
-	err := k.bankKeeper.SendCoins(ctx, resourceNode.GetOwnerAddr(), resourceNode.GetAddr(), coins)
+	err := k.bankKeeper.SendCoins(ctx, resourceNode.GetOwnerAddr(), resourceNode.GetNetworkAddr(), coins)
 	if err != nil {
 		return err
 	}
 
-	oldStake := k.GetLastResourceNodeStake(ctx, resourceNode.GetAddr())
+	oldStake := k.GetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr())
 	oldTotalStake := k.GetLastResourceNodeTotalStake(ctx)
 
 	resourceNode = resourceNode.AddToken(coinToAdd.Amount)
@@ -141,7 +144,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	newTotalStake := oldTotalStake.Sub(oldStake).Add(newStake)
 
 	k.SetResourceNode(ctx, resourceNode)
-	k.SetLastResourceNodeStake(ctx, resourceNode.GetAddr(), newStake)
+	k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	k.SetLastResourceNodeTotalStake(ctx, newTotalStake)
 	k.increaseOzoneLimitByAddStake(ctx, coinToAdd.Amount)
 
@@ -156,11 +159,11 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	}
 
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToRemove))
-	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetAddr(), coins)
+	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetNetworkAddr(), coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetAddr(), coins)
+	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetNetworkAddr(), coins)
 	if err != nil {
 		return err
 	}
@@ -169,7 +172,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 		return err
 	}
 
-	oldStake := k.GetLastResourceNodeStake(ctx, resourceNode.GetAddr())
+	oldStake := k.GetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr())
 	oldTotalStake := k.GetLastResourceNodeTotalStake(ctx)
 
 	resourceNode = resourceNode.RemoveToken(tokensToRemove)
@@ -179,13 +182,13 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	k.SetResourceNode(ctx, resourceNode)
 
 	if resourceNode.GetTokens().IsZero() {
-		k.DeleteLastResourceNodeStake(ctx, resourceNode.GetAddr())
-		err := k.removeResourceNode(ctx, resourceNode.GetAddr())
+		k.DeleteLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr())
+		err := k.removeResourceNode(ctx, resourceNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
 	} else {
-		k.SetLastResourceNodeStake(ctx, resourceNode.GetAddr(), newStake)
+		k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	}
 	k.SetLastResourceNodeTotalStake(ctx, newTotalStake)
 	k.decreaseOzoneLimitBySubtractStake(ctx, tokensToRemove)
@@ -209,4 +212,32 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetResourceNodeKey(addr))
 	return nil
+}
+
+// GetResourceNodeList get all resource nodes by network address
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if strings.Compare(node.NetworkID, networkID) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+
+	}
+	ctx.Logger().Info("resourceNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
+}
+
+func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if strings.Compare(node.Description.Moniker, moniker) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
 }

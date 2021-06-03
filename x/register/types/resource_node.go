@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -11,14 +10,43 @@ import (
 	"strings"
 )
 
+type NodeType uint8
+
+const (
+	STORAGE     NodeType = 4
+	DATABASE    NodeType = 2
+	COMPUTATION NodeType = 1
+)
+
+func (n NodeType) Type() string {
+	switch n {
+	case 7:
+		return "storage/database/computation"
+	case 6:
+		return "database/storage"
+	case 5:
+		return "computation/storage"
+	case 4:
+		return "storage"
+	case 3:
+		return "computation/database"
+	case 2:
+		return "database"
+	case 1:
+		return "computation"
+	}
+	return "UNKNOWN"
+}
+
 type ResourceNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"` // network address of the resource node
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`                   // the public key of the resource node; bech encoded in JSON
-	Suspend        bool           `json:"suspend" yaml:"suspend"`                 // has the resource node been suspended from bonded status?
-	Status         sdk.BondStatus `json:"status" yaml:"status"`                   // resource node bond status (bonded/unbonding/unbonded)
-	Tokens         sdk.Int        `json:"tokens" yaml:"tokens"`                   // delegated tokens
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`     // owner address of the resource node
-	Description    Description    `json:"description" yaml:"description"`         // description terms for the resource node
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the resource node
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the public key of the resource node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the resource node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`               // resource node bond status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
+	Description  Description    `json:"description" yaml:"description"`     // description terms for the resource node
+	NodeType     string         `json:"node_type" yaml:"node_type"`
 }
 
 // ResourceNodes is a collection of resource node
@@ -44,17 +72,17 @@ func (v ResourceNodes) Sort() {
 	sort.Sort(v)
 }
 
-// Implements sort interface
+// Len implements sort interface
 func (v ResourceNodes) Len() int {
 	return len(v)
 }
 
-// Implements sort interface
+// Less implements sort interface
 func (v ResourceNodes) Less(i, j int) bool {
-	return bytes.Compare(v[i].OwnerAddress, v[j].OwnerAddress) == -1
+	return v[i].Tokens.LT(v[j].Tokens)
 }
 
-// Implements sort interface
+// Swap implements sort interface
 func (v ResourceNodes) Swap(i, j int) {
 	it := v[i]
 	v[i] = v[j]
@@ -62,15 +90,17 @@ func (v ResourceNodes) Swap(i, j int) {
 }
 
 // NewResourceNode - initialize a new resource node
-func NewResourceNode(networkAddr string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description) ResourceNode {
+func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+	description Description, nodeType string) ResourceNode {
 	return ResourceNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Suspend:        false,
-		Status:         sdk.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr,
-		Description:    description,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Suspend:      false,
+		Status:       sdk.Unbonded,
+		Tokens:       sdk.ZeroInt(),
+		OwnerAddress: ownerAddr,
+		Description:  description,
+		NodeType:     nodeType,
 	}
 }
 
@@ -96,19 +126,21 @@ func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode Resourc
 
 // String returns a human readable string representation of a resource node.
 func (v ResourceNode) String() string {
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeConsPub, v.PubKey)
+	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
+	//pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyType(Bech32PubKeyTypesdsPub), v.PubKey)
+	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyType(types.Bech32PubKeyTypesdsPub), pkStr)
 	if err != nil {
 		panic(err)
 	}
 	return fmt.Sprintf(`ResourceNode:{
-		Network Address:	%s
+		Network Id:	        %s
   		Pubkey:				%s
   		Suspend:			%v
   		Status:				%s
   		Tokens:				%s
 		Owner Address: 		%s
   		Description:		%s
-	}`, v.NetworkAddress, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
 }
 
 // AddToken adds tokens to a resource node
@@ -132,11 +164,12 @@ func (v ResourceNode) RemoveToken(tokens sdk.Int) ResourceNode {
 	return v
 }
 
-func (v ResourceNode) IsSuspended() bool            { return v.Suspend }
-func (v ResourceNode) GetMoniker() string           { return v.Description.Moniker }
-func (v ResourceNode) GetStatus() sdk.BondStatus    { return v.Status }
-func (v ResourceNode) GetNetworkAddr() string       { return v.NetworkAddress }
-func (v ResourceNode) GetPubKey() crypto.PubKey     { return v.PubKey }
-func (v ResourceNode) GetAddr() sdk.AccAddress      { return sdk.AccAddress(v.PubKey.Address()) }
-func (v ResourceNode) GetTokens() sdk.Int           { return v.Tokens }
-func (v ResourceNode) GetOwnerAddr() sdk.AccAddress { return v.OwnerAddress }
+func (v ResourceNode) IsSuspended() bool              { return v.Suspend }
+func (v ResourceNode) GetMoniker() string             { return v.Description.Moniker }
+func (v ResourceNode) GetStatus() sdk.BondStatus      { return v.Status }
+func (v ResourceNode) GetNetworkID() string           { return v.NetworkID }
+func (v ResourceNode) GetPubKey() crypto.PubKey       { return v.PubKey }
+func (v ResourceNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
+func (v ResourceNode) GetTokens() sdk.Int             { return v.Tokens }
+func (v ResourceNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
+func (v ResourceNode) GetNodeType() string            { return v.NodeType }

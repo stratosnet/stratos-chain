@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strings"
 )
 
 const indexingNodeCacheSize = 500
@@ -28,7 +29,6 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetIndexingNodeKey(addr))
-
 	if value == nil {
 		return indexingNode, false
 	}
@@ -51,7 +51,6 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingN
 		valToRemove := k.indexingNodeCacheList.Remove(k.indexingNodeCacheList.Front()).(cachedIndexingNode)
 		delete(k.indexingNodeCache, valToRemove.marshalled)
 	}
-
 	indexingNode = types.MustUnmarshalIndexingNode(k.cdc, value)
 	return indexingNode, true
 }
@@ -60,7 +59,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingN
 func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalIndexingNode(k.cdc, indexingNode)
-	store.Set(types.GetIndexingNodeKey(indexingNode.GetAddr()), bz)
+	store.Set(types.GetIndexingNodeKey(indexingNode.GetNetworkAddr()), bz)
 }
 
 // GetLastIndexingNodeStake Load the last indexing node stake.
@@ -118,10 +117,10 @@ func (k Keeper) IterateLastIndexingNodeStakes(ctx sdk.Context, handler func(node
 
 // AddIndexingNodeStake Update the tokens of an existing indexing node
 func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, coinToAdd sdk.Coin) error {
-	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetAddr())
+	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetNetworkAddr())
 	if nodeAcc == nil {
-		ctx.Logger().Info(fmt.Sprintf("create new account: %s", indexingNode.GetAddr()))
-		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, indexingNode.GetAddr())
+		ctx.Logger().Info(fmt.Sprintf("create new account: %s", indexingNode.GetNetworkAddr()))
+		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, indexingNode.GetNetworkAddr())
 		k.accountKeeper.SetAccount(ctx, nodeAcc)
 	}
 
@@ -131,12 +130,12 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 		return types.ErrInsufficientBalance
 	}
 
-	err := k.bankKeeper.SendCoins(ctx, indexingNode.GetOwnerAddr(), indexingNode.GetAddr(), coins)
+	err := k.bankKeeper.SendCoins(ctx, indexingNode.GetOwnerAddr(), indexingNode.GetNetworkAddr(), coins)
 	if err != nil {
 		return err
 	}
 
-	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetAddr())
+	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
 	oldTotalStake := k.GetLastIndexingNodeTotalStake(ctx)
 
 	indexingNode = indexingNode.AddToken(coinToAdd.Amount)
@@ -144,7 +143,7 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 	newTotalStake := oldTotalStake.Sub(oldStake).Add(newStake)
 
 	k.SetIndexingNode(ctx, indexingNode)
-	k.SetLastIndexingNodeStake(ctx, indexingNode.GetAddr(), newStake)
+	k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
 	k.increaseOzoneLimitByAddStake(ctx, coinToAdd.Amount)
 
@@ -159,11 +158,11 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	}
 
 	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToRemove))
-	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.GetAddr(), coins)
+	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.GetNetworkAddr(), coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetAddr(), coins)
+	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetNetworkAddr(), coins)
 	if err != nil {
 		return err
 	}
@@ -172,7 +171,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 		return err
 	}
 
-	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetAddr())
+	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
 	oldTotalStake := k.GetLastIndexingNodeTotalStake(ctx)
 
 	indexingNode = indexingNode.RemoveToken(tokensToRemove)
@@ -182,13 +181,13 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	k.SetIndexingNode(ctx, indexingNode)
 
 	if indexingNode.GetTokens().IsZero() {
-		k.DeleteLastIndexingNodeStake(ctx, indexingNode.GetAddr())
-		err := k.removeIndexingNode(ctx, indexingNode.GetAddr())
+		k.DeleteLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
+		err := k.removeIndexingNode(ctx, indexingNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
 	} else {
-		k.SetLastIndexingNodeStake(ctx, indexingNode.GetAddr(), newStake)
+		k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	}
 	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
 	k.decreaseOzoneLimitBySubtractStake(ctx, tokensToRemove)
@@ -211,4 +210,32 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetIndexingNodeKey(addr))
 	return nil
+}
+
+// GetIndexingNodeList get all indexing nodes by network ID
+func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkID string) (indexingNodes []types.IndexingNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		if strings.Compare(node.NetworkID, networkID) == 0 {
+			indexingNodes = append(indexingNodes, node)
+		}
+
+	}
+	ctx.Logger().Info("IndexingNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(indexingNodes))
+	return indexingNodes, nil
+}
+
+func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.IndexingNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		if strings.Compare(node.Description.Moniker, moniker) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
+	return resourceNodes, nil
 }

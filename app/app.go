@@ -177,13 +177,7 @@ func NewInitApp(
 		),
 	)
 
-	app.sdsKeeper = sdskeeper.NewKeeper(
-		app.bankKeeper,
-		app.cdc,
-		keys[sdstypes.StoreKey],
-	)
-
-	app.registerKeeper = register.NewKeeper(
+  app.registerKeeper = register.NewKeeper(
 		app.cdc,
 		keys[register.StoreKey],
 		app.accountKeeper,
@@ -203,6 +197,13 @@ func NewInitApp(
 		app.registerKeeper,
 	)
 
+	app.sdsKeeper = sdskeeper.NewKeeper(
+		app.bankKeeper,
+		app.registerKeeper,
+		app.cdc,
+		keys[sdstypes.StoreKey],
+	)
+
 	// this line is used by starport scaffolding # 4
 
 	app.mm = module.NewManager(
@@ -210,31 +211,23 @@ func NewInitApp(
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
-		sds.NewAppModule(app.sdsKeeper, app.bankKeeper),
+		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		// this line is used by starport scaffolding # 6
 	)
 
-	// During begin block slashing happens after distr.BeginBlocker so that
-	// there is nothing left over in the validator fee pool, so as to keep the
-	// CanWithdrawInvariant invariant.
-	app.mm.SetOrderBeginBlockers(upgrade.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName, evidence.ModuleName)
 	app.mm.SetOrderEndBlockers(
 		staking.ModuleName,
 		// this line is used by starport scaffolding # 6.1
 	)
 
-	// NOTE: The genutils moodule must occur after staking so that pools are
-	// properly initialized with tokens from genesis accounts.
 	app.mm.SetOrderInitGenesis(
 		// this line is used by starport scaffolding # 6.2
 		auth.ModuleName,
-		distr.ModuleName,
 		staking.ModuleName,
 		bank.ModuleName,
-		slashing.ModuleName,
 		sdstypes.ModuleName,
 		pot.ModuleName,
 		supply.ModuleName,

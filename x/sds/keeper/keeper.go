@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -14,9 +15,10 @@ import (
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
-	BankKeeper bank.Keeper
-	key        sdk.StoreKey
-	cdc        *codec.Codec
+	BankKeeper     bank.Keeper
+	RegisterKeeper register.Keeper
+	key            sdk.StoreKey
+	cdc            *codec.Codec
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
@@ -24,13 +26,15 @@ type Keeper struct {
 // nolint
 func NewKeeper(
 	bankKeeper bank.Keeper,
+	registerKeeper register.Keeper,
 	cdc *codec.Codec,
 	key sdk.StoreKey,
 ) Keeper {
 	return Keeper{
-		BankKeeper: bankKeeper,
-		key:        key,
-		cdc:        cdc,
+		BankKeeper:     bankKeeper,
+		RegisterKeeper: registerKeeper,
+		key:            key,
+		cdc:            cdc,
 	}
 }
 
@@ -39,8 +43,8 @@ func (fk Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetFileHash Returns the hash of file
-func (fk Keeper) GetFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
+// GetFileInfoBytesByFileHash Returns the hash of file
+func (fk Keeper) GetFileInfoBytesByFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
 	store := ctx.KVStore(fk.key)
 	bz := store.Get(types.FileStoreKey(key))
 	if bz == nil {
@@ -50,10 +54,11 @@ func (fk Keeper) GetFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
 }
 
 // SetFileHash Sets sender-fileHash KV pair
-func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, height []byte) {
+func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.FileInfo) {
 	store := ctx.KVStore(fk.key)
 	storeKey := types.FileStoreKey(fileHash)
-	store.Set(storeKey, height)
+	bz := types.MustMarshalFileInfo(fk.cdc, fileInfo)
+	store.Set(storeKey, bz)
 }
 
 // Prepay transfers coins from bank to sds (volumn) pool

@@ -4,7 +4,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+// Bech32PubKeyType defines a string type alias for a Bech32 public key type.
+type Bech32PubKeyType string
+
 const (
+	Bech32PubKeyTypesdsPub Bech32PubKeyType = "sdspub"
 	// ModuleName is the name of the module
 	ModuleName = "register"
 	// StoreKey to be used when creating the KVStore

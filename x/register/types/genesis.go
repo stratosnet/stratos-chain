@@ -15,14 +15,14 @@ type GenesisState struct {
 
 // LastResourceNodeStake required for resource node set update logic
 type LastResourceNodeStake struct {
-	Address sdk.AccAddress
-	Stake   sdk.Int
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+	Stake   sdk.Int        `json:"stake" yaml:"stake"`
 }
 
 // LastIndexingNodeStake required for indexing node set update logic
 type LastIndexingNodeStake struct {
-	Address sdk.AccAddress
-	Stake   sdk.Int
+	Address sdk.AccAddress `json:"address" yaml:"address"`
+	Stake   sdk.Int        `json:"stake" yaml:"stake"`
 }
 
 // NewGenesisState creates a new GenesisState object

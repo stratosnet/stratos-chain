@@ -14,22 +14,25 @@ var (
 )
 
 type MsgCreateResourceNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"`
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value          sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description    Description    `json:"description" yaml:"description"`
+	NetworkID    string         `json:"network_id" yaml:"network_id"`
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
+	Value        sdk.Coin       `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description  Description    `json:"description" yaml:"description"`
+	NodeType     string         `json:"node_type" yaml:"node_type"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateResourceNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateResourceNode(networkID string, pubKey crypto.PubKey, value sdk.Coin,
+	ownerAddr sdk.AccAddress, description Description, nodeType string,
 ) MsgCreateResourceNode {
 	return MsgCreateResourceNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Value:          value,
-		OwnerAddress:   ownerAddr,
-		Description:    description,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Value:        value,
+		OwnerAddress: ownerAddr,
+		Description:  description,
+		NodeType:     nodeType,
 	}
 }
 
@@ -43,7 +46,7 @@ func (msg MsgCreateResourceNode) Type() string {
 
 // ValidateBasic validity check for the CreateResourceNode
 func (msg MsgCreateResourceNode) ValidateBasic() error {
-	if msg.NetworkAddress == "" {
+	if msg.NetworkID == "" {
 		return ErrEmptyNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -52,9 +55,13 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	if !msg.Value.IsPositive() {
 		return ErrValueNegative
 	}
-	//if msg.Description == (Description{}) {
-	//	return ErrEmptyDescription
-	//}
+
+	if msg.Description == (Description{}) {
+		return ErrEmptyDescription
+	}
+	if msg.Description.Moniker == "" {
+		return ErrEmptyMoniker
+	}
 	return nil
 }
 
@@ -64,26 +71,33 @@ func (msg MsgCreateResourceNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	// OwnerAddress is first signer so Owner pays fees
+	addrs := []sdk.AccAddress{msg.OwnerAddress}
+
+	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
+	//}
+	return addrs
 }
 
 type MsgCreateIndexingNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"`
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value          sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description    Description    `json:"description" yaml:"description"`
+	NetworkID string        `json:"network_id" yaml:"network_id"`
+	PubKey    crypto.PubKey `json:"pubkey" yaml:"pubkey"`
+	//NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	Value        sdk.Coin       `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description  Description    `json:"description" yaml:"description"`
 }
 
 // NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateIndexingNode(networkID string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) MsgCreateIndexingNode {
 	return MsgCreateIndexingNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Value:          value,
-		OwnerAddress:   ownerAddr,
-		Description:    description,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Value:        value,
+		OwnerAddress: ownerAddr,
+		Description:  description,
 	}
 }
 
@@ -96,7 +110,7 @@ func (msg MsgCreateIndexingNode) Type() string {
 }
 
 func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	if msg.NetworkAddress == "" {
+	if msg.NetworkID == "" {
 		return ErrEmptyNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -105,9 +119,13 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 	if !msg.Value.IsPositive() {
 		return ErrValueNegative
 	}
-	//if msg.Description == (Description{}) {
-	//	return ErrEmptyDescription
-	//}
+
+	if msg.Description == (Description{}) {
+		return ErrEmptyDescription
+	}
+	if msg.Description.Moniker == "" {
+		return ErrEmptyMoniker
+	}
 	return nil
 }
 
@@ -117,7 +135,13 @@ func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	// OwnerAddress is first signer so Owner pays fees
+	addrs := []sdk.AccAddress{msg.OwnerAddress}
+
+	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
+	//}
+	return addrs
 }
 
 // MsgRemoveResourceNode - struct for removing resource node

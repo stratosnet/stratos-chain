@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -31,19 +32,20 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 type (
 	CreateResourceNodeRequest struct {
-		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkAddress string            `json:"network_address" yaml:"network_address"` // in bech32
-		PubKey         string            `json:"pubkey" yaml:"pubkey"`                   // in bech32
-		Amount         sdk.Coin          `json:"amount" yaml:"amount"`
-		Description    types.Description `json:"description" yaml:"description"`
+		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		NetworkID   string            `json:"network_id" yaml:"network_id"` // in bech32
+		PubKey      string            `json:"pubkey" yaml:"pubkey"`         // in bech32
+		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
+		Description types.Description `json:"description" yaml:"description"`
+		NodeType    int               `json:"node_type" yaml:"node_type"`
 	}
 
 	CreateIndexingNodeRequest struct {
-		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkAddress string            `json:"network_address" yaml:"network_address"` // in bech32
-		PubKey         string            `json:"pubkey" yaml:"pubkey"`                   // in bech32
-		Amount         sdk.Coin          `json:"amount" yaml:"amount"`
-		Description    types.Description `json:"description" yaml:"description"`
+		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		NetworkID   string            `json:"network_id" yaml:"network_id"` // in bech32
+		PubKey      string            `json:"pubkey" yaml:"pubkey"`         // in bech32
+		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
+		Description types.Description `json:"description" yaml:"description"`
 	}
 
 	RemoveResourceNodeRequest struct {
@@ -76,13 +78,18 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		ownerAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		nodeTypeRef := req.NodeType
+		ownerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if er != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
-
-		msg := types.NewMsgCreateResourceNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description)
+		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
+			return
+		}
+		msg := types.NewMsgCreateResourceNode(req.NetworkID, pubkey, req.Amount, ownerAddr, req.Description,
+			fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -117,7 +124,7 @@ func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		msg := types.NewMsgCreateIndexingNode(req.NetworkAddress, pubkey, req.Amount, ownerAddr, req.Description)
+		msg := types.NewMsgCreateIndexingNode(req.NetworkID, pubkey, req.Amount, ownerAddr, req.Description)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
