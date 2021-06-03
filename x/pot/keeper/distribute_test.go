@@ -69,19 +69,19 @@ func Test(t *testing.T) {
 	pubKey6, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, indexingNodePubKey3)
 
 	//register resource node1
-	msgRes := register.NewMsgCreateResourceNode("sds://resourceNode1", pubKey1, sdk.NewCoin(registerKeeper.BondDenom(ctx), sdk.NewInt(10000000)), owner1, register.Description{})
+	msgRes := register.NewMsgCreateResourceNode("sds://resourceNode1", pubKey1, sdk.NewCoin(registerKeeper.BondDenom(ctx), sdk.NewInt(10000000)), owner1, register.Description{}, register.NodeTypeStorage.Type())
 	res, err := registerHandler(ctx, msgRes)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	//register resource node2
-	msgRes = register.NewMsgCreateResourceNode("sds://resourceNode2", pubKey2, sdk.NewCoin(registerKeeper.BondDenom(ctx), sdk.NewInt(10000000)), owner2, register.Description{})
+	msgRes = register.NewMsgCreateResourceNode("sds://resourceNode2", pubKey2, sdk.NewCoin(registerKeeper.BondDenom(ctx), sdk.NewInt(10000000)), owner2, register.Description{}, register.NodeTypeStorage.Type())
 	res, err = registerHandler(ctx, msgRes)
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
 	//register resource node3
-	msgRes = register.NewMsgCreateResourceNode("sds://resourceNode3", pubKey3, sdk.NewCoin(registerKeeper.BondDenom(ctx), sdk.NewInt(10000000)), owner3, register.Description{})
+	msgRes = register.NewMsgCreateResourceNode("sds://resourceNode3", pubKey3, sdk.NewCoin(registerKeeper.BondDenom(ctx), sdk.NewInt(10000000)), owner3, register.Description{}, register.NodeTypeStorage.Type())
 	res, err = registerHandler(ctx, msgRes)
 	require.NoError(t, err)
 	require.NotNil(t, res)

@@ -6,9 +6,12 @@ import (
 )
 
 const (
-	DefaultParamSpace = types.DefaultParamSpace
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
+	DefaultParamSpace   = types.DefaultParamSpace
+	ModuleName          = types.ModuleName
+	StoreKey            = types.StoreKey
+	NodeTypeComputation = types.COMPUTATION
+	NodeTypeDataBase    = types.DATABASE
+	NodeTypeStorage     = types.STORAGE
 )
 
 var (

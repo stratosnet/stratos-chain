@@ -233,7 +233,7 @@ func (k Keeper) calcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 	totalStakeOfResourceNodes := k.registerKeeper.GetLastResourceNodeTotalStake(ctx)
 	resourceNodeList := k.registerKeeper.GetAllResourceNodes(ctx)
 	for _, node := range resourceNodeList {
-		nodeAddr := node.GetAddr()
+		nodeAddr := node.GetNetworkAddr()
 
 		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfResourceNodes.ToDec())
 		stakeRewardFromMiningPool := distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.ToDec().Mul(shareOfToken).TruncateInt()
@@ -303,7 +303,7 @@ func (k Keeper) calcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 	indexingNodeList := k.registerKeeper.GetAllIndexingNodes(ctx)
 	indexingNodeCnt := sdk.NewDec(int64(len(indexingNodeList)))
 	for _, node := range indexingNodeList {
-		nodeAddr := node.GetAddr()
+		nodeAddr := node.GetNetworkAddr()
 
 		// 1, calc stake reward
 		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfIndexingNodes.ToDec())
