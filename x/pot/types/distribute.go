@@ -88,6 +88,32 @@ func (d DistributeGoal) AddTrafficRewardToResourceNodeFromTrafficPool(reward sdk
 	return d
 }
 
+// String returns a human readable string representation of a Reward.
+func (d DistributeGoal) String() string {
+	return fmt.Sprintf(`DistributeGoal:{
+		BlockChainRewardToValidatorFromMiningPool:    	%s
+		BlockChainRewardToValidatorFromTrafficPool:   	%s
+		BlockChainRewardToIndexingNodeFromMiningPool: 	%s
+		BlockChainRewardToIndexingNodeFromTrafficPool:	%s
+		MetaNodeRewardToIndexingNodeFromMiningPool:   	%s
+		MetaNodeRewardToIndexingNodeFromTrafficPool:  	%s
+		BlockChainRewardToResourceNodeFromMiningPool: 	%s
+		BlockChainRewardToResourceNodeFromTrafficPool:	%s
+		TrafficRewardToResourceNodeFromMiningPool:    	%s
+		TrafficRewardToResourceNodeFromTrafficPool:   	%s
+	}`, d.BlockChainRewardToValidatorFromMiningPool,
+		d.BlockChainRewardToValidatorFromTrafficPool,
+		d.BlockChainRewardToIndexingNodeFromMiningPool,
+		d.BlockChainRewardToIndexingNodeFromTrafficPool,
+		d.MetaNodeRewardToIndexingNodeFromMiningPool,
+		d.MetaNodeRewardToIndexingNodeFromTrafficPool,
+		d.BlockChainRewardToResourceNodeFromMiningPool,
+		d.BlockChainRewardToResourceNodeFromTrafficPool,
+		d.TrafficRewardToResourceNodeFromMiningPool,
+		d.TrafficRewardToResourceNodeFromTrafficPool,
+	)
+}
+
 type Reward struct {
 	NodeAddress           sdk.AccAddress `json:"node_address" yaml:"node_address"` // account address of node
 	RewardFromMiningPool  sdk.Int        `json:"reward_from_mining_pool" yaml:"reward_from_mining_pool"`

@@ -37,17 +37,17 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Int) {
 	return
 }
 
-func (k Keeper) setMinedTokens(ctx sdk.Context, minedToken sdk.Dec) {
+func (k Keeper) setMinedTokens(ctx sdk.Context, minedToken sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(minedToken)
 	store.Set(types.MinedTokensKey, b)
 }
 
-func (k Keeper) getMinedTokens(ctx sdk.Context) (minedToken sdk.Dec) {
+func (k Keeper) getMinedTokens(ctx sdk.Context) (minedToken sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.MinedTokensKey)
 	if b == nil {
-		panic("Stored mined tokens should not have been nil")
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &minedToken)
 	return
@@ -95,7 +95,7 @@ func (k Keeper) getLastMaturedEpoch(ctx sdk.Context) (epoch int64) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.LastMaturedEpochKey)
 	if b == nil {
-		panic("Stored last matured epoch should not have been nil")
+		return 0
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &epoch)
 	return
@@ -111,7 +111,7 @@ func (k Keeper) getIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch i
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.GetIndividualRewardKey(acc, epoch))
 	if b == nil {
-		panic("Stored individual reward should not have been nil")
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
@@ -127,7 +127,7 @@ func (k Keeper) getMatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (value
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.GetMatureTotalRewardKey(acc))
 	if b == nil {
-		panic("Stored mature total reward should not have been nil")
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
@@ -143,7 +143,7 @@ func (k Keeper) getImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (val
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.GetImmatureTotalRewardKey(acc))
 	if b == nil {
-		panic("Stored immature total reward should not have been nil")
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return

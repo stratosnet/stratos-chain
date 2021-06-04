@@ -11,7 +11,7 @@ import (
 // Default parameter namespace
 const (
 	DefaultParamSpace = ModuleName
-	DefaultBondDenom  = "stos"
+	DefaultBondDenom  = "ustos"
 )
 
 // Parameter store keys

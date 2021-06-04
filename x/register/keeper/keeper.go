@@ -98,36 +98,36 @@ func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
 	return
 }
 
-func (k Keeper) SetUpperBoundOfTotalOzone(ctx sdk.Context, value sdk.Int) {
+func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
 	store.Set(types.UpperBoundOfTotalOzoneKey, b)
 }
 
-func (k Keeper) GetUpperBoundOfTotalOzone(ctx sdk.Context) (value sdk.Int) {
+func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.UpperBoundOfTotalOzoneKey)
 	if b == nil {
-		panic("Stored upper bound of total ozone should not have been nil")
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
 }
 
 func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) {
-	currentLimit := k.GetUpperBoundOfTotalOzone(ctx).ToDec()            //uozone
+	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec()               //uozone
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
-	k.SetUpperBoundOfTotalOzone(ctx, newLimit)
+	k.SetRemainingOzoneLimit(ctx, newLimit)
 }
 
 func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) {
-	currentLimit := k.GetUpperBoundOfTotalOzone(ctx).ToDec()            //uozone
+	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec()               //uozone
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
-	k.SetUpperBoundOfTotalOzone(ctx, newLimit)
+	k.SetRemainingOzoneLimit(ctx, newLimit)
 }
 
 // GetResourceNetworksIterator gets an iterator over all network addresses

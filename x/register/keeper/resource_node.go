@@ -126,7 +126,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	}
 
 	coins := sdk.NewCoins(coinToAdd)
-	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.OwnerAddress, coins)
+	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}

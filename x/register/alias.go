@@ -30,6 +30,8 @@ var (
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
 
+	DefaultParams            = types.DefaultParams
+	NewDescription           = types.NewDescription
 	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
 	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
 )

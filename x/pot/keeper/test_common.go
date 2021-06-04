@@ -34,6 +34,8 @@ var (
 func CreateTestInput(t *testing.T, isCheckTx bool) (
 	sdk.Context, auth.AccountKeeper, bank.Keeper, Keeper, staking.Keeper, params.Keeper, supply.Keeper, register.Keeper) {
 
+	SetConfig()
+
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
@@ -77,8 +79,10 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace))
-	stakingKeeper.SetParams(ctx, staking.DefaultParams())
+	StakingParam := staking.NewParams(staking.DefaultUnbondingTime, staking.DefaultMaxValidators, staking.DefaultMaxEntries, 0, "ustos")
+	stakingKeeper.SetParams(ctx, StakingParam)
 	registerKeeper := register.NewKeeper(cdc, keyRegister, accountKeeper, bankKeeper, pk.Subspace(register.DefaultParamSpace))
+	registerKeeper.SetParams(ctx, register.DefaultParams())
 
 	keeper := NewKeeper(cdc, keyPot, pk.Subspace(types.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, accountKeeper, stakingKeeper, registerKeeper)
 	keeper.SetParams(ctx, types.DefaultParams())
@@ -86,7 +90,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
 
 	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, sdk.NewInt(1000000000000)))
-	SetConfig()
+
 	foundationAcc, err := sdk.AccAddressFromBech32("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw")
 	if err != nil {
 		panic(err)
@@ -120,7 +124,7 @@ func MakeTestCodec() *codec.Codec {
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)
-	//cdc.RegisterConcrete(&auth.BaseAccount{}, "test/staking/BaseAccount", nil)
+	cdc.RegisterConcrete(&auth.BaseAccount{}, "test/pot/BaseAccount", nil)
 	supply.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 

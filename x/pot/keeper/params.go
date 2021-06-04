@@ -27,10 +27,10 @@ func (k Keeper) MiningRewardParams(ctx sdk.Context) (res []types.MiningRewardPar
 	return
 }
 
-func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk.Dec) (types.MiningRewardParam, error) {
+func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk.Int) (types.MiningRewardParam, error) {
 	miningRewardParams := k.MiningRewardParams(ctx)
 	for _, param := range miningRewardParams {
-		if minedToken.GTE(param.TotalMinedValveStart.ToDec()) && minedToken.LT(param.TotalMinedValveEnd.ToDec()) {
+		if minedToken.GTE(param.TotalMinedValveStart) && minedToken.LT(param.TotalMinedValveEnd) {
 			return param, nil
 		}
 	}
