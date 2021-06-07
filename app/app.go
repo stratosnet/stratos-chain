@@ -15,6 +15,7 @@ import (
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -37,7 +38,10 @@ import (
 	// this line is used by starport scaffolding # 1
 )
 
-const appName = "sds"
+const (
+	appName     = "sds"
+	upgradeName = "stratos_upgrade"
+)
 
 var (
 	DefaultCLIHome  = os.ExpandEnv("$HOME/.stratoschaincli")
@@ -134,6 +138,7 @@ func NewInitApp(
 		pottypes.StoreKey,
 		gov.StoreKey,
 		register.StoreKey,
+		upgrade.StoreKey,
 		// this line is used by starport scaffolding # 5
 	)
 
@@ -208,6 +213,12 @@ func NewInitApp(
 		//app.subspaces[pottypes.ModuleName],
 	)
 
+	app.upgradeKeeper = upgrade.NewKeeper(
+		map[int64]bool{},
+		keys[upgrade.StoreKey],
+		app.cdc,
+	)
+
 	//app.govKeeper = gov.NewKeeper(
 	//	app.cdc,
 	//	keys[gov.StoreKey],
@@ -275,6 +286,17 @@ func NewInitApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.upgradeKeeper.SetUpgradeHandler(upgradeName, func(ctx sdk.Context, plan upgrade.Plan) {
+		logger.Info("Upgrade Handler working")
+	})
+	app.SetStoreLoader(bam.StoreLoaderWithUpgrade(&store.StoreUpgrades{
+		Renamed: []store.StoreRename{{
+			//OldKey: "foo",
+			//NewKey: "bar",
+		}},
+	}),
+	)
 
 	app.SetAnteHandler(
 		auth.NewAnteHandler(
