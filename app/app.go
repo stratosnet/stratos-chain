@@ -258,6 +258,7 @@ func NewInitApp(
 		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		// this line is used by starport scaffolding # 6
 	)
 
@@ -278,6 +279,7 @@ func NewInitApp(
 		supply.ModuleName,
 		register.ModuleName,
 		genutil.ModuleName,
+		upgrade.ModuleName,
 		// this line is used by starport scaffolding # 7
 	)
 
