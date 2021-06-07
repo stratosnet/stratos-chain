@@ -312,6 +312,28 @@
       "redelegations": null,
       "exported": false
     },
+    "gov": {
+      "params": {
+        "deposit_params": {"min_deposit": {"denom": "stos", "amount":"10"}, "max_deposit_period": "172800000000000"},
+        "voting_params": {"voting_period": "172800000000000" },
+        "tally_params": {"quorum": "0.334", "threshold": "0.5", "Veto": "0.334"}
+      },
+
+       "deposit_params": {
+        "min_deposit": [{"denom": "stos", "amount": "10"}],
+        "max_deposit_period": "172800000000000"
+      },
+      "voting_params": {
+        "voting_period": "172800000000000"
+      },
+      "tally_params": {
+        "quorum": "0.334",
+        "threshold": "0.5",
+        "Veto": "0.334"
+      },
+
+      "starting_proposal_id": "1"
+    },
     "params": null
   }
 }
