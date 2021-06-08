@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2021-05-10T17:40:12.8409954Z",
+  "genesis_time": "2021-06-08T19:17:01.9272Z",
   "chain_id": "test-chain-localnet",
   "consensus_params": {
     "block": {
@@ -19,19 +19,149 @@
   },
   "app_hash": "",
   "app_state": {
-    "supply": {
-      "supply": []
-    },
     "sds": {},
+    "auth": {
+      "params": {
+        "max_memo_characters": "256",
+        "tx_sig_limit": "7",
+        "tx_size_cost_per_byte": "10",
+        "sig_verify_cost_ed25519": "590",
+        "sig_verify_cost_secp256k1": "1000"
+      },
+      "accounts": [
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "st1ha389w9dqfhcxajajqcu6ssfal8wnrt2ztlyjn",
+            "coins": [
+              {
+                "denom": "ustos",
+                "amount": "50000000000000000"
+              }
+            ],
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "st1f4x4cz957hmp6cl8zyqxsxum6w5jv9czduskv0",
+            "coins": [
+              {
+                "denom": "ustos",
+                "amount": "100000000000"
+              }
+            ],
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "st1krq3vgrmhagz688e49qh6eu0ktmczs52jtp743",
+            "coins": [
+              {
+                "denom": "ustos",
+                "amount": "100000000000"
+              }
+            ],
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          }
+        },
+        {
+          "type": "cosmos-sdk/Account",
+          "value": {
+            "address": "st1kwaztacd25qshjmutsvsm6ttfexsjvkymh7d89",
+            "coins": [
+              {
+                "denom": "ustos",
+                "amount": "100000000000"
+              }
+            ],
+            "public_key": null,
+            "account_number": "0",
+            "sequence": "0"
+          }
+        }
+      ]
+    },
+    "params": null,
+    "pot": {
+      "params": {
+        "bond_denom": "ustos",
+        "mining_reward_params": [
+          {
+            "total_mined_valve_start": "0",
+            "total_mined_valve_end": "16819200000000000",
+            "mining_reward": "80000000000",
+            "block_chain_percentage_in_ten_thousand": "2000",
+            "resource_node_percentage_in_ten_thousand": "6000",
+            "meta_node_percentage_in_ten_thousand": "2000"
+          },
+          {
+            "total_mined_valve_start": "16819200000000000",
+            "total_mined_valve_end": "25228800000000000",
+            "mining_reward": "40000000000",
+            "block_chain_percentage_in_ten_thousand": "2000",
+            "resource_node_percentage_in_ten_thousand": "6200",
+            "meta_node_percentage_in_ten_thousand": "1800"
+          },
+          {
+            "total_mined_valve_start": "25228800000000000",
+            "total_mined_valve_end": "29433600000000000",
+            "mining_reward": "20000000000",
+            "block_chain_percentage_in_ten_thousand": "2000",
+            "resource_node_percentage_in_ten_thousand": "6400",
+            "meta_node_percentage_in_ten_thousand": "1600"
+          },
+          {
+            "total_mined_valve_start": "29433600000000000",
+            "total_mined_valve_end": "31536000000000000",
+            "mining_reward": "10000000000",
+            "block_chain_percentage_in_ten_thousand": "2000",
+            "resource_node_percentage_in_ten_thousand": "6600",
+            "meta_node_percentage_in_ten_thousand": "1400"
+          },
+          {
+            "total_mined_valve_start": "31536000000000000",
+            "total_mined_valve_end": "32587200000000000",
+            "mining_reward": "5000000000",
+            "block_chain_percentage_in_ten_thousand": "2000",
+            "resource_node_percentage_in_ten_thousand": "6800",
+            "meta_node_percentage_in_ten_thousand": "1200"
+          },
+          {
+            "total_mined_valve_start": "32587200000000000",
+            "total_mined_valve_end": "40000000000000000",
+            "mining_reward": "2500000000",
+            "block_chain_percentage_in_ten_thousand": "2000",
+            "resource_node_percentage_in_ten_thousand": "7000",
+            "meta_node_percentage_in_ten_thousand": "1000"
+          }
+        ]
+      },
+      "foundation_account": "st1ha389w9dqfhcxajajqcu6ssfal8wnrt2ztlyjn",
+      "initial_uoz_price": "10000000000",
+      "mature_epoch": "2016"
+    },
+    "bank": {
+      "send_enabled": true
+    },
     "register": {
       "params": {
-        "bond_denom": "stos"
+        "bond_denom": "ustos"
       },
-      "last_resource_node_total_power": "0",
-      "last_resource_node_powers": null,
+      "last_resource_node_total_ustos": "0",
+      "last_resource_node_ustoss": null,
       "resource_nodes": null,
-      "last_indexing_node_total_power": "0",
-      "last_indexing_node_powers": null,
+      "last_indexing_node_total_ustos": "0",
+      "last_indexing_node_ustoss": null,
       "indexing_nodes": null
     },
     "genutil": {
@@ -56,11 +186,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw",
-                  "validator_address": "stvaloper1qr9set2jaayzjjpm9tw4f3n6f5zfu3he7t8tp9",
-                  "pubkey": "stvalconspub1zcjduepq4408pc7v2jz543kyktyycpu7w2pm8695cnqcc5ha7r8xzur43lyszxg0gm",
+                  "delegator_address": "st1ha389w9dqfhcxajajqcu6ssfal8wnrt2ztlyjn",
+                  "validator_address": "stvaloper1ha389w9dqfhcxajajqcu6ssfal8wnrt248kywc",
+                  "pubkey": "stvalconspub1zcjduepq2gg2hhkms3ahme78gty8pv6ax49la4t5xrrmw7vnw0gxgx4wjjzqqjtcmn",
                   "value": {
-                    "denom": "stos",
+                    "denom": "ustos",
                     "amount": "100000000"
                   }
                 }
@@ -74,12 +204,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A8SijbuKPGHYa7oIHuvMpXSejTHlqFyNj+ROJNeYIRVu"
+                  "value": "AwK1q5RLHxAkidbPlTwBRpOGobPQbF57n0ey/DIO05kD"
                 },
-                "signature": "tbXWPbyaV5oQnNi4SOHa4PsUpnqofKj9iDJSTO6kEAhPixD4qh7bxWZHawggwZnuzBh9F3fBnD6THeRccSmVmg=="
+                "signature": "W/yjH2F5muhFEhEwyJGboDE+xiKUkSaX5TPTvwQ4pL1Qz4OwckA1Cwl8wSSB27Ro1sOe1J7q+zjni3t21wrd7A=="
               }
             ],
-            "memo": "75818d47d3f775c264ea1eb3fc1d805578cc2fc2@192.168.11.2:26656"
+            "memo": "82eab06c6c89ccbd568fdf6ce36bd2027a64d033@192.168.11.2:26656"
           }
         },
         {
@@ -102,11 +232,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st1lc9sg3wq7guvkqv2d8vd2wycvj9fsspxq6qtg3",
-                  "validator_address": "stvaloper1lc9sg3wq7guvkqv2d8vd2wycvj9fsspxhkft56",
-                  "pubkey": "stvalconspub1zcjduepq8ppnggnue65pe83vn9zl2hewgtdx87vkp6jt8jughky6yuz9vjxqnw0rqn",
+                  "delegator_address": "st1f4x4cz957hmp6cl8zyqxsxum6w5jv9czduskv0",
+                  "validator_address": "stvaloper1f4x4cz957hmp6cl8zyqxsxum6w5jv9cz6seksy",
+                  "pubkey": "stvalconspub1zcjduepq87r8h6sqa79lpucmg8tnmlll6l9cfja8lsjlf9ep3fadmwh3slnselr5yc",
                   "value": {
-                    "denom": "stos",
+                    "denom": "ustos",
                     "amount": "100000000"
                   }
                 }
@@ -120,12 +250,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A1thIpfDRIG0bOv8F2Ne3MnvCb3nEld0AOcVOVo6Wu3W"
+                  "value": "A8R+jNoal3ARiwlCTgpfJq+S3o1FBw48kqlgk3DTPfWp"
                 },
-                "signature": "ROsIDEoV3aMmYhJXbwXn5GOM/0K9fGwDzdAnkKai7vg1DrKBL6WoRg8fI8jNYnspzRQ3O1AA7pM+d7vXrr/bkw=="
+                "signature": "ECgQtgsuFqAxjhvfWV8j5rTI4jFFNXgIHUG+mvrNp20xI4i5Qy/S5qEe8XSX1HP9bh6WZYjgMLNHaFZWCN8xCA=="
               }
             ],
-            "memo": "75f176963272b8cf8926f6ea7bf3e3853f8379f3@192.168.11.3:26656"
+            "memo": "97bc68ad28fe6b8030d38920875bca7329d96957@192.168.11.3:26656"
           }
         },
         {
@@ -148,11 +278,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st15lm2e9h79j4d2zhyyf99j40uuy5vr404vurd0e",
-                  "validator_address": "stvaloper15lm2e9h79j4d2zhyyf99j40uuy5vr404ms2dnj",
-                  "pubkey": "stvalconspub1zcjduepqsya2whfw3z20tdn8ggnw30r5cx5sjryqe9kzgjv0jmqr2y65qn2qkd66y4",
+                  "delegator_address": "st1krq3vgrmhagz688e49qh6eu0ktmczs52jtp743",
+                  "validator_address": "stvaloper1krq3vgrmhagz688e49qh6eu0ktmczs5298g7f6",
+                  "pubkey": "stvalconspub1zcjduepq0a85gp0nfcpkep56w0llslpzsfn5avf86zegf6qqsruh565x3m6qfunvx0",
                   "value": {
-                    "denom": "stos",
+                    "denom": "ustos",
                     "amount": "100000000"
                   }
                 }
@@ -166,12 +296,12 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A7YT0bflnvSbT/BPscUvWkY4J15we2K5+1pec8GMlOx8"
+                  "value": "AwCegCMSXrMhF5FC/kpLrPzoE4H7NhDBKsD7YzHm9O8G"
                 },
-                "signature": "5oR/71s84J2zssZrjoK2F/4QYawDUX1Fjq/MieriQ0AOPaXvznh1AEu/qZUlYgmAaXrapBZo3fIy1WLIbvk2og=="
+                "signature": "SU5/gYSTuuxtuoLZTsnc5R481yR2i/sXwEmnXOAVaDR5ACpLKBR1N7+EGVaqB0JZrSHF13YIwvWArvC3pJlmsg=="
               }
             ],
-            "memo": "e4efb135ea557606e0cad896f318df7a2fa475d7@192.168.11.4:26656"
+            "memo": "a8e35b39f49bce886c1c7c7eabf5ac2af8b51d6f@192.168.11.4:26656"
           }
         },
         {
@@ -194,11 +324,11 @@
                     "max_change_rate": "0.010000000000000000"
                   },
                   "min_self_delegation": "1",
-                  "delegator_address": "st1sysfc0hrjt63zqdywtzu7wu367uc23mcq7cz99",
-                  "validator_address": "stvaloper1sysfc0hrjt63zqdywtzu7wu367uc23mchj3zew",
-                  "pubkey": "stvalconspub1zcjduepqlp2r0djv6cpmw785k3xmly7g35pqmx79qdz5ctxaa9wq3fmuyv6s050x9p",
+                  "delegator_address": "st1kwaztacd25qshjmutsvsm6ttfexsjvkymh7d89",
+                  "validator_address": "stvaloper1kwaztacd25qshjmutsvsm6ttfexsjvkyvmhdmw",
+                  "pubkey": "stvalconspub1zcjduepquyltzmypwwad9tr24md7wmxjt2wu09xvk2uwxg60mnh992kapnqq8uakzv",
                   "value": {
-                    "denom": "stos",
+                    "denom": "ustos",
                     "amount": "100000000"
                   }
                 }
@@ -212,89 +342,15 @@
               {
                 "pub_key": {
                   "type": "tendermint/PubKeySecp256k1",
-                  "value": "A9X7fZjJPk1P5eU5WgxDFolWnqjkoevez0NGiVuvXSpZ"
+                  "value": "Ar78BrK79n/nHhn/whNwkrI6y7m5vIJSJvmYrKT9qNjI"
                 },
-                "signature": "RT1IUEczR8cOntSP01FJXldTP57i7oqaqtpt6elf04NlsUol39tBq7Poo5ipdU8Etl6hHZoOlFjOfTWkYsT8VA=="
+                "signature": "TH9aDhxGpTYiJYHZVvriNg2QavKP2c/kpp4xJzvvsNYckwZnwfgc8tClQ3BgLXYikvEG81FWdO/7mrpqjg3oeA=="
               }
             ],
-            "memo": "af0b78e9c10af5123ca362e1e5a0d96568856685@192.168.11.5:26656"
+            "memo": "e29c40dc2b8328361c3535ab0d044470d5b5e806@192.168.11.5:26656"
           }
         }
       ]
-    },
-    "auth": {
-      "params": {
-        "max_memo_characters": "256",
-        "tx_sig_limit": "7",
-        "tx_size_cost_per_byte": "10",
-        "sig_verify_cost_ed25519": "590",
-        "sig_verify_cost_secp256k1": "1000"
-      },
-      "accounts": [
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "address": "st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw",
-            "coins": [
-              {
-                "denom": "stos",
-                "amount": "99999999999"
-              }
-            ],
-            "public_key": null,
-            "account_number": "0",
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "address": "st1lc9sg3wq7guvkqv2d8vd2wycvj9fsspxq6qtg3",
-            "coins": [
-              {
-                "denom": "stos",
-                "amount": "99999999999"
-              }
-            ],
-            "public_key": null,
-            "account_number": "0",
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "address": "st15lm2e9h79j4d2zhyyf99j40uuy5vr404vurd0e",
-            "coins": [
-              {
-                "denom": "stos",
-                "amount": "99999999999"
-              }
-            ],
-            "public_key": null,
-            "account_number": "0",
-            "sequence": "0"
-          }
-        },
-        {
-          "type": "cosmos-sdk/Account",
-          "value": {
-            "address": "st1sysfc0hrjt63zqdywtzu7wu367uc23mcq7cz99",
-            "coins": [
-              {
-                "denom": "stos",
-                "amount": "99999999999"
-              }
-            ],
-            "public_key": null,
-            "account_number": "0",
-            "sequence": "0"
-          }
-        }
-      ]
-    },
-    "bank": {
-      "send_enabled": true
     },
     "staking": {
       "params": {
@@ -302,7 +358,7 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 0,
-        "bond_denom": "stos"
+        "bond_denom": "ustos"
       },
       "last_total_power": "0",
       "last_validator_powers": null,
@@ -312,6 +368,8 @@
       "redelegations": null,
       "exported": false
     },
-    "params": null
+    "supply": {
+      "supply": []
+    }
   }
 }
