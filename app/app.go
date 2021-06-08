@@ -54,7 +54,7 @@ var (
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		pot.AppModuleBasic{},
-		gov.AppModuleBasic{},
+		//gov.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		gov.NewAppModuleBasic(
@@ -230,10 +230,10 @@ func NewInitApp(
 
 	// register the proposal types
 	govRouter := gov.NewRouter()
-	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler)
-	govRouter.AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper))
-	govRouter.AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper))
-	govRouter.AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
+		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
 		&stakingKeeper, govRouter,
