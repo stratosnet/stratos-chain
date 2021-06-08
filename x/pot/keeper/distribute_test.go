@@ -110,6 +110,7 @@ func Test(t *testing.T) {
 
 	//pot genesis data load
 	k.SetFoundationAccount(ctx, foundationAcc)
+	k.SetMatureEpoch(ctx, sdk.NewInt(2016))
 	createAccount(t, ctx, accountKeeper, bankKeeper, foundationAcc, foundationDeposit)
 
 	//initialize owner accounts

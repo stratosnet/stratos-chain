@@ -37,6 +37,22 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Int) {
 	return
 }
 
+func (k Keeper) SetMatureEpoch(ctx sdk.Context, matureEpoch sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(matureEpoch)
+	store.Set(types.MatureEpochKey, b)
+}
+
+func (k Keeper) GetMatureEpoch(ctx sdk.Context) (matureEpoch sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.MatureEpochKey)
+	if b == nil {
+		panic("Stored mature epoch should not have been nil")
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &matureEpoch)
+	return
+}
+
 func (k Keeper) setMinedTokens(ctx sdk.Context, minedToken sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(minedToken)

@@ -15,4 +15,6 @@ var (
 	ErrInsufficientBalance       = sdkerrors.Register(ModuleName, 8, "insufficient balance")
 	ErrInitialUOzonePrice        = sdkerrors.Register(ModuleName, 9, "initial uOzone price must be positive")
 	ErrNotTheOwner               = sdkerrors.Register(ModuleName, 10, "not the owner of the node")
+	ErrMatureEpoch               = sdkerrors.Register(ModuleName, 11, "mature epoch must be positive")
+	ErrFoundationAccount         = sdkerrors.Register(ModuleName, 12, "invalid foundation account")
 )
