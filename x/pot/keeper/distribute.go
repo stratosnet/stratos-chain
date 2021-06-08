@@ -178,7 +178,7 @@ func (k Keeper) calcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 }
 
 func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (err error) {
-	matureEpoch := k.getMatureEpoch(currentEpoch)
+	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
 	for _, reward := range rewardDetailMap {
 		nodeAddr := reward.NodeAddress
 		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
@@ -225,9 +225,10 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
-func (k Keeper) getMatureEpoch(currentEpoch sdk.Int) (matureEpoch sdk.Int) {
+func (k Keeper) getMatureEpochByCurrentEpoch(ctx sdk.Context, currentEpoch sdk.Int) (matureEpoch sdk.Int) {
 	// 14 days = 20160 minutes = 2016 epochs
-	return currentEpoch.Add(sdk.NewInt(2016))
+	matureEpoch = currentEpoch.Add(k.GetMatureEpoch(ctx))
+	return matureEpoch
 }
 
 // move reward to fee pool for validator traffic reward distribution
