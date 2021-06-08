@@ -3,7 +3,9 @@ package app
 import (
 	"encoding/json"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	"io"
 	"os"
 
@@ -24,10 +26,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
@@ -54,7 +54,7 @@ var (
 		params.AppModuleBasic{},
 		supply.AppModuleBasic{},
 		pot.AppModuleBasic{},
-		gov.AppModuleBasic{},
+		//gov.AppModuleBasic{},
 		distr.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		gov.NewAppModuleBasic(
