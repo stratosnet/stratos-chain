@@ -140,7 +140,7 @@ func (k Keeper) calcTrafficRewardInTotal(
 }
 
 // [S] is initial genesis deposit by all resource nodes and meta nodes at t=0
-// The current unissued prepay Volume Pool [pt] is the total remaining prepay STOS kept by Stratos Network but not issued to Resource Node as rewards. At time t=0,  pt=0
+// The current unissued prepay Volume Pool [pt] is the total remaining prepay uSTOS kept by Stratos Network but not issued to Resource Node as rewards. At time t=0,  pt=0
 // total consumed Ozone is [Y]
 // The remaining total Ozone limit [lt] is the upper bound of total Ozone that users can purchase from Stratos blockchain.
 // the total generated traffic rewards as [R]
