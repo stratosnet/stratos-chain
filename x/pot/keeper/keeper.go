@@ -80,24 +80,3 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	_, found = k.registerKeeper.GetIndexingNode(ctx, addr)
 	return found
 }
-
-func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coin, nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress) error {
-	matureRewardVal := k.getMatureTotalReward(ctx, nodeAddress)
-	if matureRewardVal == sdk.ZeroInt() {
-		return types.ErrInsufficientMatureTotal
-	}
-	matureReward := sdk.NewCoin(k.BondDenom(ctx), matureRewardVal)
-	if matureReward.IsLT(amount) {
-		return types.ErrInsufficientMatureTotal
-	}
-
-	_, err := k.bankKeeper.AddCoins(ctx, ownerAddress, sdk.NewCoins(amount))
-	if err != nil {
-		return err
-	}
-	newMatureReward := matureReward.Sub(amount)
-
-	k.setMatureTotalReward(ctx, nodeAddress, newMatureReward.Amount)
-
-	return nil
-}

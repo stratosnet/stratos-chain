@@ -35,28 +35,28 @@ func ParamKeyTable() params.KeyTable {
 func NewParams(bondDenom string) Params {
 	var miningRewardParams []MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(0), sdk.NewInt(16819200), sdk.NewInt(80000000000),
-		sdk.NewDecWithPrec(60, 2), sdk.NewDecWithPrec(20, 2), sdk.NewDecWithPrec(20, 2)))
+		sdk.NewInt(0), sdk.NewInt(16819200000000000), sdk.NewInt(80000000000),
+		sdk.NewInt(6000), sdk.NewInt(2000), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(16819200), sdk.NewInt(25228800), sdk.NewInt(40000000000),
-		sdk.NewDecWithPrec(62, 2), sdk.NewDecWithPrec(18, 2), sdk.NewDecWithPrec(20, 2)))
+		sdk.NewInt(16819200000000000), sdk.NewInt(25228800000000000), sdk.NewInt(40000000000),
+		sdk.NewInt(6200), sdk.NewInt(1800), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(25228800), sdk.NewInt(29433600), sdk.NewInt(20000000000),
-		sdk.NewDecWithPrec(64, 2), sdk.NewDecWithPrec(16, 2), sdk.NewDecWithPrec(20, 2)))
+		sdk.NewInt(25228800000000000), sdk.NewInt(29433600000000000), sdk.NewInt(20000000000),
+		sdk.NewInt(6400), sdk.NewInt(1600), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(29433600), sdk.NewInt(31536000), sdk.NewInt(10000000000),
-		sdk.NewDecWithPrec(66, 2), sdk.NewDecWithPrec(14, 2), sdk.NewDecWithPrec(20, 2)))
+		sdk.NewInt(29433600000000000), sdk.NewInt(31536000000000000), sdk.NewInt(10000000000),
+		sdk.NewInt(6600), sdk.NewInt(1400), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(31536000), sdk.NewInt(32587200), sdk.NewInt(5000000000),
-		sdk.NewDecWithPrec(68, 2), sdk.NewDecWithPrec(12, 2), sdk.NewDecWithPrec(20, 2)))
+		sdk.NewInt(31536000000000000), sdk.NewInt(32587200000000000), sdk.NewInt(5000000000),
+		sdk.NewInt(6800), sdk.NewInt(1200), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(32587200), sdk.NewInt(40000000), sdk.NewInt(2500000000),
-		sdk.NewDecWithPrec(70, 2), sdk.NewDecWithPrec(10, 2), sdk.NewDecWithPrec(20, 2)))
+		sdk.NewInt(32587200000000000), sdk.NewInt(40000000000000000), sdk.NewInt(2500000000),
+		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
 
 	return Params{
 		BondDenom:          bondDenom,

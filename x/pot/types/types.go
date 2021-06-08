@@ -19,22 +19,22 @@ func NewSingleNodeVolume(
 }
 
 type MiningRewardParam struct {
-	TotalMinedValveStart   sdk.Int `json:"total_mined_valve_start" yaml:"total_mined_valve_start"`
-	TotalMinedValveEnd     sdk.Int `json:"total_mined_valve_end" yaml:"total_mined_valve_end"`
-	MiningReward           sdk.Int `json:"mining_reward" yaml:"mining_reward"`
-	BlockChainPercentage   sdk.Dec `json:"block_chain_percentage" yaml:"block_chain_percentage"`
-	ResourceNodePercentage sdk.Dec `json:"resource_node_percentage" yaml:"resource_node_percentage"`
-	MetaNodePercentage     sdk.Dec `json:"meta_node_percentage" yaml:"meta_node_percentage"`
+	TotalMinedValveStart                sdk.Int `json:"total_mined_valve_start" yaml:"total_mined_valve_start"`
+	TotalMinedValveEnd                  sdk.Int `json:"total_mined_valve_end" yaml:"total_mined_valve_end"`
+	MiningReward                        sdk.Int `json:"mining_reward" yaml:"mining_reward"`
+	BlockChainPercentageInTenThousand   sdk.Int `json:"block_chain_percentage_in_ten_thousand" yaml:"block_chain_percentage_in_ten_thousand"`
+	ResourceNodePercentageInTenThousand sdk.Int `json:"resource_node_percentage_in_ten_thousand" yaml:"resource_node_percentage_in_ten_thousand"`
+	MetaNodePercentageInTenThousand     sdk.Int `json:"meta_node_percentage_in_ten_thousand" yaml:"meta_node_percentage_in_ten_thousand"`
 }
 
 func NewMiningRewardParam(totalMinedValveStart sdk.Int, totalMinedValveEnd sdk.Int, miningReward sdk.Int,
-	resourceNodePercentage sdk.Dec, metaNodePercentage sdk.Dec, blockChainPercentage sdk.Dec) MiningRewardParam {
+	resourceNodePercentageInTenThousand sdk.Int, metaNodePercentageInTenThousand sdk.Int, blockChainPercentageInTenThousand sdk.Int) MiningRewardParam {
 	return MiningRewardParam{
-		TotalMinedValveStart:   totalMinedValveStart,
-		TotalMinedValveEnd:     totalMinedValveEnd,
-		MiningReward:           miningReward,
-		BlockChainPercentage:   blockChainPercentage,
-		ResourceNodePercentage: resourceNodePercentage,
-		MetaNodePercentage:     metaNodePercentage,
+		TotalMinedValveStart:                totalMinedValveStart,
+		TotalMinedValveEnd:                  totalMinedValveEnd,
+		MiningReward:                        miningReward,
+		BlockChainPercentageInTenThousand:   blockChainPercentageInTenThousand,
+		ResourceNodePercentageInTenThousand: resourceNodePercentageInTenThousand,
+		MetaNodePercentageInTenThousand:     metaNodePercentageInTenThousand,
 	}
 }

@@ -1,7 +1,6 @@
 package types
 
 import (
-	"encoding/binary"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -42,9 +41,9 @@ func VolumeReportStoreKey(reporter sdk.AccAddress) []byte {
 }
 
 // GetIndividualRewardKey prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
-func GetIndividualRewardKey(acc sdk.AccAddress, epoch int64) []byte {
+func GetIndividualRewardKey(acc sdk.AccAddress, epoch sdk.Int) []byte {
 	bKeyStr := []byte("_individual_")
-	bEpoch := Int64ToBytes(epoch)
+	bEpoch := []byte(epoch.String())
 
 	key := append(IndividualRewardKeyPrefix, acc...)
 	key = append(key, bKeyStr...)
@@ -66,14 +65,4 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
 	key = append(key, bKeyStr...)
 	return key
-}
-
-func Int64ToBytes(i int64) []byte {
-	var buf = make([]byte, 8)
-	binary.BigEndian.PutUint64(buf, uint64(i))
-	return buf
-}
-
-func BytesToInt64(buf []byte) int64 {
-	return int64(binary.BigEndian.Uint64(buf))
 }

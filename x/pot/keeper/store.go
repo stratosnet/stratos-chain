@@ -79,35 +79,35 @@ func (k Keeper) getRewardAddressPool(ctx sdk.Context) (addressList []sdk.AccAddr
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.RewardAddressPoolKey)
 	if b == nil {
-		panic("Stored reward address pool should not have been nil")
+		return nil
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &addressList)
 	return
 }
 
-func (k Keeper) setLastMaturedEpoch(ctx sdk.Context, epoch int64) {
+func (k Keeper) setLastMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(epoch)
 	store.Set(types.LastMaturedEpochKey, b)
 }
 
-func (k Keeper) getLastMaturedEpoch(ctx sdk.Context) (epoch int64) {
+func (k Keeper) getLastMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.LastMaturedEpochKey)
 	if b == nil {
-		return 0
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &epoch)
 	return
 }
 
-func (k Keeper) setIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch int64, value sdk.Int) {
+func (k Keeper) setIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch sdk.Int, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
 	store.Set(types.GetIndividualRewardKey(acc, epoch), b)
 }
 
-func (k Keeper) getIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch int64) (value sdk.Int) {
+func (k Keeper) getIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch sdk.Int) (value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.GetIndividualRewardKey(acc, epoch))
 	if b == nil {

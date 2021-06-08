@@ -92,24 +92,25 @@ func (d DistributeGoal) AddTrafficRewardToResourceNodeFromTrafficPool(reward sdk
 func (d DistributeGoal) String() string {
 	return fmt.Sprintf(`DistributeGoal:{
 		BlockChainRewardToValidatorFromMiningPool:    	%s
-		BlockChainRewardToValidatorFromTrafficPool:   	%s
 		BlockChainRewardToIndexingNodeFromMiningPool: 	%s
-		BlockChainRewardToIndexingNodeFromTrafficPool:	%s
-		MetaNodeRewardToIndexingNodeFromMiningPool:   	%s
-		MetaNodeRewardToIndexingNodeFromTrafficPool:  	%s
 		BlockChainRewardToResourceNodeFromMiningPool: 	%s
-		BlockChainRewardToResourceNodeFromTrafficPool:	%s
+		MetaNodeRewardToIndexingNodeFromMiningPool:   	%s
 		TrafficRewardToResourceNodeFromMiningPool:    	%s
+		BlockChainRewardToValidatorFromTrafficPool:   	%s
+		BlockChainRewardToIndexingNodeFromTrafficPool:	%s
+		BlockChainRewardToResourceNodeFromTrafficPool:	%s
+		MetaNodeRewardToIndexingNodeFromTrafficPool:  	%s
 		TrafficRewardToResourceNodeFromTrafficPool:   	%s
-	}`, d.BlockChainRewardToValidatorFromMiningPool,
-		d.BlockChainRewardToValidatorFromTrafficPool,
+	}`,
+		d.BlockChainRewardToValidatorFromMiningPool,
 		d.BlockChainRewardToIndexingNodeFromMiningPool,
-		d.BlockChainRewardToIndexingNodeFromTrafficPool,
-		d.MetaNodeRewardToIndexingNodeFromMiningPool,
-		d.MetaNodeRewardToIndexingNodeFromTrafficPool,
 		d.BlockChainRewardToResourceNodeFromMiningPool,
-		d.BlockChainRewardToResourceNodeFromTrafficPool,
+		d.MetaNodeRewardToIndexingNodeFromMiningPool,
 		d.TrafficRewardToResourceNodeFromMiningPool,
+		d.BlockChainRewardToValidatorFromTrafficPool,
+		d.BlockChainRewardToIndexingNodeFromTrafficPool,
+		d.BlockChainRewardToResourceNodeFromTrafficPool,
+		d.MetaNodeRewardToIndexingNodeFromTrafficPool,
 		d.TrafficRewardToResourceNodeFromTrafficPool,
 	)
 }
