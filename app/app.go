@@ -39,8 +39,8 @@ import (
 )
 
 const (
-	appName     = "sds"
-	upgradeName = "stratos_upgrade"
+	appName    = "sds"
+	appVersion = "v0.0.1"
 )
 
 var (
@@ -289,7 +289,7 @@ func NewInitApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.upgradeKeeper.SetUpgradeHandler(upgradeName, func(ctx sdk.Context, plan upgrade.Plan) {
+	app.upgradeKeeper.SetUpgradeHandler(appVersion, func(ctx sdk.Context, plan upgrade.Plan) {
 		logger.Info("Upgrade Handler working")
 	})
 	app.SetStoreLoader(bam.StoreLoaderWithUpgrade(&store.StoreUpgrades{
