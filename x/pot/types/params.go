@@ -32,7 +32,15 @@ func ParamKeyTable() params.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string) Params {
+func NewParams(bondDenom string, miningRewardParams []MiningRewardParam) Params {
+	return Params{
+		BondDenom:          bondDenom,
+		MiningRewardParams: miningRewardParams,
+	}
+}
+
+// DefaultParams returns the default distribution parameters
+func DefaultParams() Params {
 	var miningRewardParams []MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
 		sdk.NewInt(0), sdk.NewInt(16819200000000000), sdk.NewInt(80000000000),
@@ -57,16 +65,7 @@ func NewParams(bondDenom string) Params {
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
 		sdk.NewInt(32587200000000000), sdk.NewInt(40000000000000000), sdk.NewInt(2500000000),
 		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
-
-	return Params{
-		BondDenom:          bondDenom,
-		MiningRewardParams: miningRewardParams,
-	}
-}
-
-// DefaultParams returns the default distribution parameters
-func DefaultParams() Params {
-	return NewParams(DefaultBondDenom)
+	return NewParams(DefaultBondDenom, miningRewardParams)
 }
 
 // String implements the stringer interface for Params
