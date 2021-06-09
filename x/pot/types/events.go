@@ -9,7 +9,7 @@ const (
 	AttributeKeyReportReference = "report_reference"
 	AttributeKeyAmount          = "amount"
 	AttributeKeyNodeAddress     = "node_address"
-	AttributeKeyOwnerAddress    = "node_address"
+	AttributeKeyOwnerAddress    = "owner_address"
 
 	AttributeValueCategory = ModuleName
 )
