@@ -3,9 +3,7 @@ package app
 import (
 	"encoding/json"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
-	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	"io"
 	"os"
 
@@ -26,8 +24,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
@@ -39,8 +39,8 @@ import (
 )
 
 const (
-	appName     = "sds"
-	upgradeName = "stratos_upgrade"
+	appName    = "sds"
+	appVersion = "v0.0.1"
 )
 
 var (
@@ -280,7 +280,7 @@ func NewInitApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.upgradeKeeper.SetUpgradeHandler(upgradeName, func(ctx sdk.Context, plan upgrade.Plan) {
+	app.upgradeKeeper.SetUpgradeHandler(appVersion, func(ctx sdk.Context, plan upgrade.Plan) {
 		logger.Info("Upgrade Handler working")
 	})
 	app.SetStoreLoader(bam.StoreLoaderWithUpgrade(&store.StoreUpgrades{
