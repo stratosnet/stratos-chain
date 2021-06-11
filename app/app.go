@@ -219,15 +219,6 @@ func NewInitApp(
 		app.cdc,
 	)
 
-	//app.govKeeper = gov.NewKeeper(
-	//	app.cdc,
-	//	keys[gov.StoreKey],
-	//	app.subspaces[gov.ModuleName],
-	//	app.supplyKeeper,
-	//	app.stakingKeeper,
-	//	gov.Router(),
-	//)
-
 	// register the proposal types
 	govRouter := gov.NewRouter()
 	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
