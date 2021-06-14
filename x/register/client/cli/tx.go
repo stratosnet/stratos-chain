@@ -31,6 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		CreateIndexingNodeCmd(cdc),
 		RemoveResourceNodeCmd(cdc),
 		RemoveIndexingNodeCmd(cdc),
+		SpRegistrationVoteCmd(cdc),
 	)...)
 
 	return registerTxCmd
@@ -145,6 +146,36 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	return txBldr, msg, nil
 }
 
+// makes a new MsgCreateIndexingNode.
+func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	amountStr := viper.GetString(FlagAmount)
+	amount, err := sdk.ParseCoin(amountStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	networkID := viper.GetString(FlagNetworkID)
+	ownerAddr := cliCtx.GetFromAddress()
+	pkStr := viper.GetString(FlagPubKey)
+
+	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
+	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pkStr)
+	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyType(types.Bech32PubKeyTypesdsPub), pkStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	desc := types.NewDescription(
+		viper.GetString(FlagMoniker),
+		viper.GetString(FlagIdentity),
+		viper.GetString(FlagWebsite),
+		viper.GetString(FlagSecurityContact),
+		viper.GetString(FlagDetails),
+	)
+	msg := types.NewMsgCreateIndexingNode(networkID, pk, amount, ownerAddr, desc)
+	return txBldr, msg, nil
+}
+
 func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "remove-resource-node [resource_node_address] [owner_address]",
@@ -191,32 +222,49 @@ func RemoveIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// makes a new MsgCreateIndexingNode.
-func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	amountStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amountStr)
+// SpRegistrationVoteCmd SP registration need to be approved by 2/3 of existing SP
+func SpRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "sp_reg_vote",
+		Short: "vote for the registration of a new Sp node",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			txBldr, msg, err := buildSpRegistrationVoteMsg(cliCtx, txBldr)
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsNodeAddress)
+	cmd.Flags().AddFlagSet(FsOwnerAddress)
+	cmd.Flags().AddFlagSet(FsOpinion)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagNodeAddress)
+	_ = cmd.MarkFlagRequired(FlagOwnerAddress)
+	_ = cmd.MarkFlagRequired(FlagOpinion)
+	return cmd
+}
+
+func buildSpRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	nodeAddrStr := viper.GetString(FlagNodeAddress)
+	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
-
-	networkID := viper.GetString(FlagNetworkID)
-	ownerAddr := cliCtx.GetFromAddress()
-	pkStr := viper.GetString(FlagPubKey)
-
-	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pkStr)
-	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyType(types.Bech32PubKeyTypesdsPub), pkStr)
+	ownerAddrStr := viper.GetString(FlagOwnerAddress)
+	ownerAddr, err := sdk.AccAddressFromBech32(ownerAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
+	opinionVal := viper.GetBool(FlagOpinion)
+	opinion := types.VoteOpinionFromBool(opinionVal)
+	approverAddr := cliCtx.GetFromAddress()
 
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
-	)
-	msg := types.NewMsgCreateIndexingNode(networkID, pk, amount, ownerAddr, desc)
+	msg := types.NewMsgSpRegistrationVote(nodeAddr, ownerAddr, opinion, approverAddr)
 	return txBldr, msg, nil
 }

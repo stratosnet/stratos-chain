@@ -29,6 +29,9 @@ var (
 	ErrIndexingNodePubKeyExists = types.ErrIndexingNodePubKeyExists
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
+	ErrInvalidOwnerAddr         = types.ErrInvalidOwnerAddr
+	ErrInvalidApproverAddr      = types.ErrInvalidApproverAddr
+	ErrInvalidApproverStatus    = types.ErrInvalidApproverStatus
 
 	DefaultParams            = types.DefaultParams
 	NewDescription           = types.NewDescription
@@ -41,4 +44,6 @@ type (
 	Description           = types.Description
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
+
+	VoteOpinion = types.VoteOpinion
 )

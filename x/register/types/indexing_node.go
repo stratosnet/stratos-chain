@@ -8,6 +8,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
+	"time"
 )
 
 type IndexingNode struct {
@@ -113,9 +114,9 @@ func (v IndexingNode) String() string {
 // AddToken adds tokens to a indexing node
 func (v IndexingNode) AddToken(amount sdk.Int) IndexingNode {
 	v.Tokens = v.Tokens.Add(amount)
-	if v.Status.Equal(sdk.Unbonded) {
-		v.Status = sdk.Bonded
-	}
+	//if v.Status.Equal(sdk.Unbonded) {
+	//	v.Status = sdk.Bonded
+	//}
 	return v
 }
 
@@ -139,3 +140,50 @@ func (v IndexingNode) GetPubKey() crypto.PubKey       { return v.PubKey }
 func (v IndexingNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
 func (v IndexingNode) GetTokens() sdk.Int             { return v.Tokens }
 func (v IndexingNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
+
+type VoteOpinion bool
+
+const (
+	Approve            VoteOpinion = true
+	Reject             VoteOpinion = false
+	VoteOpinionApprove             = "Approve"
+	VoteOpinionReject              = "Reject"
+)
+
+func VoteOpinionFromBool(b bool) VoteOpinion {
+	if b {
+		return Approve
+	} else {
+		return Reject
+	}
+}
+
+// Equal compares two VoteOpinion instances
+func (v VoteOpinion) Equal(v2 VoteOpinion) bool {
+	return v == v2
+}
+
+// String implements the Stringer interface for VoteOpinion.
+func (v VoteOpinion) String() string {
+	if v {
+		return VoteOpinionApprove
+	} else {
+		return VoteOpinionReject
+	}
+}
+
+type SpRegistrationVotePool struct {
+	NodeAddress sdk.AccAddress   `json:"node_address" yaml:"node_address"`
+	ApproveList []sdk.AccAddress `json:"approve_list" yaml:"approve_list"`
+	RejectList  []sdk.AccAddress `json:"reject_list" yaml:"reject_list"`
+	ExpireTime  time.Time        `json:"expire_time" yaml:"expire_time"`
+}
+
+func NewRegistrationVotePool(nodeAddress sdk.AccAddress, approveList []sdk.AccAddress, rejectList []sdk.AccAddress, expireTime time.Time) SpRegistrationVotePool {
+	return SpRegistrationVotePool{
+		NodeAddress: nodeAddress,
+		ApproveList: approveList,
+		RejectList:  rejectList,
+		ExpireTime:  expireTime,
+	}
+}

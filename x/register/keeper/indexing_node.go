@@ -4,10 +4,15 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/tendermint/crypto"
 	"strings"
+	"time"
 )
 
-const indexingNodeCacheSize = 500
+const (
+	indexingNodeCacheSize        = 500
+	votingValidityPeriodInSecond = 7 * 24 * 60 * 60 // 7 days
+)
 
 // Cache the amino decoding of indexing nodes, as it can be the case that repeated slashing calls
 // cause many calls to GetIndexingNode, which were shown to throttle the state machine in our
@@ -96,6 +101,21 @@ func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes []types.Inde
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
 		indexingNodes = append(indexingNodes, node)
+	}
+	return indexingNodes
+}
+
+// GetAllValidIndexingNodes get the set of all bonded & not suspended indexing nodes
+func (k Keeper) GetAllValidIndexingNodes(ctx sdk.Context) (indexingNodes []types.IndexingNode) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		if !node.IsSuspended() && node.GetStatus().Equal(sdk.Bonded) {
+			indexingNodes = append(indexingNodes, node)
+		}
 	}
 	return indexingNodes
 }
@@ -238,4 +258,91 @@ func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (r
 	}
 	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
+}
+
+func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+	description types.Description, stake sdk.Coin) error {
+
+	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description)
+
+	err := k.AddIndexingNodeStake(ctx, indexingNode, stake)
+	if err != nil {
+		return err
+	}
+
+	var approveList = make([]sdk.AccAddress, 0)
+	var rejectList = make([]sdk.AccAddress, 0)
+	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
+	expireTime := time.Now().Add(votingValidityPeriod)
+
+	votePool := types.NewRegistrationVotePool(indexingNode.GetNetworkAddr(), approveList, rejectList, expireTime)
+	k.SetSpRegistrationVotePool(ctx, votePool)
+
+	return nil
+}
+
+func (k Keeper) HandleVoteForSpNodeRegistration(ctx sdk.Context, nodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
+	opinion types.VoteOpinion, voterAddr sdk.AccAddress) (err error) {
+
+	votePool, found := k.GetSpRegistrationVotePool(ctx, nodeAddr)
+	if !found {
+		return types.ErrNoRegistrationVotePoolFound
+	}
+	if votePool.ExpireTime.Before(time.Now()) {
+		return types.ErrVoteExpired
+	}
+	if k.hasValue(votePool.ApproveList, voterAddr) || k.hasValue(votePool.RejectList, voterAddr) {
+		return types.ErrDuplicateVoting
+	}
+
+	node, found := k.GetIndexingNode(ctx, nodeAddr)
+	if !found {
+		return types.ErrNoIndexingNodeFound
+	}
+	if !node.OwnerAddress.Equals(ownerAddr) {
+		return types.ErrInvalidOwnerAddr
+	}
+
+	if opinion.Equal(types.Approve) {
+		votePool.ApproveList = append(votePool.ApproveList, voterAddr)
+	} else {
+		votePool.RejectList = append(votePool.RejectList, voterAddr)
+	}
+	k.SetSpRegistrationVotePool(ctx, votePool)
+
+	totalSpCount := len(k.GetAllValidIndexingNodes(ctx))
+	voteCountRequiredToPass := totalSpCount*2/3 + 1
+	//unbounded to bounded
+	if len(votePool.ApproveList) >= voteCountRequiredToPass {
+		node.Status = sdk.Bonded
+		k.SetIndexingNode(ctx, node)
+	}
+
+	return nil
+}
+
+func (k Keeper) hasValue(items []sdk.AccAddress, item sdk.AccAddress) bool {
+	for _, eachItem := range items {
+		if eachItem.Equals(item) {
+			return true
+		}
+	}
+	return false
+}
+
+func (k Keeper) GetSpRegistrationVotePool(ctx sdk.Context, nodeAddr sdk.AccAddress) (votePool types.SpRegistrationVotePool, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetSpRegistrationVotesKey(nodeAddr))
+	if bz == nil {
+		return votePool, false
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &votePool)
+	return votePool, true
+}
+
+func (k Keeper) SetSpRegistrationVotePool(ctx sdk.Context, votePool types.SpRegistrationVotePool) {
+	nodeAddr := votePool.NodeAddress
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(votePool)
+	store.Set(types.GetSpRegistrationVotesKey(nodeAddr), bz)
 }
