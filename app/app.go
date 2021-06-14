@@ -40,7 +40,7 @@ import (
 
 const (
 	appName    = "sds"
-	appVersion = "v0.0.1"
+	appVersion = "v0.39"
 )
 
 var (
