@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -39,7 +38,107 @@ var (
 	spNodeStakeNew  = sdk.NewInt(100000000)
 )
 
-func TestVoting(t *testing.T) {
+func TestExpiredVote(t *testing.T) {
+
+	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
+
+	//genesis init Sp nodes.
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""))
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""))
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""))
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""))
+	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
+	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
+	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
+	genesisSpNode4.Tokens = genesisSpNode3.Tokens.Add(initialStake4)
+	genesisSpNode1.Status = sdk.Bonded
+	genesisSpNode2.Status = sdk.Bonded
+	genesisSpNode3.Status = sdk.Bonded
+	genesisSpNode4.Status = sdk.Bonded
+
+	k.SetIndexingNode(ctx, genesisSpNode1)
+	k.SetIndexingNode(ctx, genesisSpNode2)
+	k.SetIndexingNode(ctx, genesisSpNode3)
+	k.SetIndexingNode(ctx, genesisSpNode4)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr1, initialStake1)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
+	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+
+	//Register new SP node after genesis initialized
+	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
+		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
+	require.NoError(t, err)
+
+	//set expireTime of voting to 7 days before
+	votePool, found := k.GetSpRegistrationVotePool(ctx, spNodeAddrNew)
+	require.True(t, found)
+	require.NotNil(t, votePool)
+	votePool.ExpireTime = votePool.ExpireTime.AddDate(0, 0, -7)
+	k.SetSpRegistrationVotePool(ctx, votePool)
+
+	//After registration, the status of new SP node is UNBONDED
+	_, found = k.GetIndexingNode(ctx, spNodeAddrNew)
+	require.True(t, found)
+	require.Error(t, types.ErrVoteExpired)
+}
+
+func TestDuplicateVote(t *testing.T) {
+
+	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
+
+	//genesis init Sp nodes.
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""))
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""))
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""))
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""))
+	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
+	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
+	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
+	genesisSpNode4.Tokens = genesisSpNode3.Tokens.Add(initialStake4)
+	genesisSpNode1.Status = sdk.Bonded
+	genesisSpNode2.Status = sdk.Bonded
+	genesisSpNode3.Status = sdk.Bonded
+	genesisSpNode4.Status = sdk.Bonded
+
+	k.SetIndexingNode(ctx, genesisSpNode1)
+	k.SetIndexingNode(ctx, genesisSpNode2)
+	k.SetIndexingNode(ctx, genesisSpNode3)
+	k.SetIndexingNode(ctx, genesisSpNode4)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr1, initialStake1)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
+	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
+	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+
+	//Register new SP node after genesis initialized
+	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
+		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
+	require.NoError(t, err)
+
+	//After registration, the status of new SP node is UNBONDED
+	newNode, found := k.GetIndexingNode(ctx, spNodeAddrNew)
+	require.True(t, found)
+	require.Equal(t, newNode.Status, sdk.Unbonded)
+
+	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
+	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	require.NoError(t, err)
+	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
+	require.True(t, found)
+	require.Equal(t, newNode.Status, sdk.Unbonded)
+
+	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
+	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	require.Error(t, types.ErrDuplicateVoting)
+}
+
+func TestSpRegistrationApproval(t *testing.T) {
 
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
 
@@ -137,7 +236,7 @@ func createAccount(t *testing.T, ctx sdk.Context, accountKeeper auth.AccountKeep
 	account := accountKeeper.GetAccount(ctx, acc)
 	if account == nil {
 		account = accountKeeper.NewAccountWithAddress(ctx, acc)
-		fmt.Printf("create account: " + account.String() + "\n")
+		//fmt.Printf("create account: " + account.String() + "\n")
 	}
 	coins, err := bankKeeper.AddCoins(ctx, acc, coins)
 	require.NoError(t, err)
