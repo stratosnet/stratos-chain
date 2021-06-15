@@ -89,7 +89,7 @@ func buildWithdrawMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.Tx
 // VolumeReportCmd will report nodes volume and sign it with the given key.
 func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "report",
+		Use:   "report [flags]",
 		Short: "Create and sign a volume report",
 		//Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
