@@ -42,14 +42,14 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryUploadedFile implements the query uploaded file command.
 func GetCmdQueryUploadedFile(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "upload [sender_addr]",
+		Use:   "upload [file_hash]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Query uploaded file's hash by sender addr",
+		Short: "Query uploaded file info by hash",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query uploaded file's hash by sender addr, optionally restrict to rewards from a single validator.
+			fmt.Sprintf(`Query uploaded file info by hash.
 
 Example:
-$ %s query sds upload st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
+$ %s query sds upload c03661732294feb49caf6dc16c7cbb2534986d73
 `,
 				version.ClientName,
 			),
@@ -71,7 +71,7 @@ $ %s query sds upload st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 // GetCmdQueryPrepayBalance implements the query prepay balance command.
 func GetCmdQueryPrepayBalance(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return &cobra.Command{
-		Use:   "prepay [sender_addr]",
+		Use:   "prepay [acct_addr]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query balance of prepayment in Volumn Pool",
 		Long: strings.TrimSpace(

@@ -45,7 +45,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryVolumeReport implements the query volume report command.
 func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "report", // reporter: []byte
+		Use: "report [flags]", // reporter: []byte
 		//Args:  cobra.RangeArgs(1, 1),
 		Short: "Query volume report hash by reporter addr",
 		Long: strings.TrimSpace(

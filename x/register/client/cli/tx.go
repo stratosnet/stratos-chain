@@ -40,7 +40,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 // CreateResourceNodeCmd will create a file upload tx and sign it with the given key.
 func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-resource-node",
+		Use:   "create-resource-node [flags]",
 		Short: "create a new resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -78,7 +78,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 // CreateIndexingNodeCmd will create a file upload tx and sign it with the given key.
 func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-indexing-node",
+		Use:   "create-indexing-node [flags]",
 		Short: "create a new indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
