@@ -42,13 +42,19 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	ctx.Logger().Info("Sender Info: ", "IsSPNode", "true")
 	k.SetVolumeReport(ctx, msg.Reporter, msg.ReportReference)
 
-	ctx.EventManager().EmitEvent(
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeVolumeReport,
 			sdk.NewAttribute(types.AttributeKeyReportReference, hex.EncodeToString([]byte(msg.ReportReference))),
 			sdk.NewAttribute(types.AttributeKeyEpoch, msg.Epoch.String()),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Reporter.String()),
+		),
+	})
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
