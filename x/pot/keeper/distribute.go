@@ -55,10 +55,14 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 }
 
 func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal types.DistributeGoal) (err error) {
-	totalRewardFromMiningPool := goal.BlockChainRewardToIndexingNodeFromMiningPool.Add(goal.MetaNodeRewardToIndexingNodeFromMiningPool).
-		Add(goal.BlockChainRewardToResourceNodeFromMiningPool).Add(goal.TrafficRewardToResourceNodeFromMiningPool)
-	totalRewardFromTrafficPool := goal.BlockChainRewardToIndexingNodeFromTrafficPool.Add(goal.MetaNodeRewardToIndexingNodeFromTrafficPool).
-		Add(goal.BlockChainRewardToResourceNodeFromTrafficPool).Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
+	totalRewardFromMiningPool := goal.BlockChainRewardToIndexingNodeFromMiningPool.
+		Add(goal.MetaNodeRewardToIndexingNodeFromMiningPool).
+		Add(goal.BlockChainRewardToResourceNodeFromMiningPool).
+		Add(goal.TrafficRewardToResourceNodeFromMiningPool)
+	totalRewardFromTrafficPool := goal.BlockChainRewardToIndexingNodeFromTrafficPool.
+		Add(goal.MetaNodeRewardToIndexingNodeFromTrafficPool).
+		Add(goal.BlockChainRewardToResourceNodeFromTrafficPool).
+		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// deduct mining reward from foundation account
 	foundationAccountAddr := k.GetFoundationAccount(ctx)
@@ -306,8 +310,10 @@ func (k Keeper) calcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 
 	}
 	// deduct used reward from distributeGoal
-	distributeGoal.BlockChainRewardToResourceNodeFromMiningPool = distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.Sub(totalUsedFromMiningPool)
-	distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool = distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool.Sub(totalUsedFromTrafficPool)
+	distributeGoal.BlockChainRewardToResourceNodeFromMiningPool =
+		distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.Sub(totalUsedFromMiningPool)
+	distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool =
+		distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool.Sub(totalUsedFromTrafficPool)
 
 	totalUsedFromMiningPool = sdk.ZeroInt()
 	totalUsedFromTrafficPool = sdk.ZeroInt()
@@ -320,8 +326,10 @@ func (k Keeper) calcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 		nodeTraffic := nodeTraffic.Volume
 
 		shareOfTraffic := nodeTraffic.ToDec().Quo(totalConsumedOzone.ToDec())
-		trafficRewardFromMiningPool := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.ToDec().Mul(shareOfTraffic).TruncateInt()
-		trafficRewardFromTrafficPool := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.ToDec().Mul(shareOfTraffic).TruncateInt()
+		trafficRewardFromMiningPool :=
+			distributeGoal.TrafficRewardToResourceNodeFromMiningPool.ToDec().Mul(shareOfTraffic).TruncateInt()
+		trafficRewardFromTrafficPool :=
+			distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.ToDec().Mul(shareOfTraffic).TruncateInt()
 
 		totalUsedFromMiningPool = totalUsedFromMiningPool.Add(trafficRewardFromMiningPool)
 		totalUsedFromTrafficPool = totalUsedFromTrafficPool.Add(trafficRewardFromTrafficPool)
@@ -337,8 +345,10 @@ func (k Keeper) calcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 		rewardDetailMap[nodeAddr.String()] = newReward
 	}
 	// deduct used reward from distributeGoal
-	distributeGoal.TrafficRewardToResourceNodeFromMiningPool = distributeGoal.TrafficRewardToResourceNodeFromMiningPool.Sub(totalUsedFromMiningPool)
-	distributeGoal.TrafficRewardToResourceNodeFromTrafficPool = distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.Sub(totalUsedFromTrafficPool)
+	distributeGoal.TrafficRewardToResourceNodeFromMiningPool =
+		distributeGoal.TrafficRewardToResourceNodeFromMiningPool.Sub(totalUsedFromMiningPool)
+	distributeGoal.TrafficRewardToResourceNodeFromTrafficPool =
+		distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.Sub(totalUsedFromTrafficPool)
 
 	return rewardDetailMap, distributeGoal
 }
@@ -359,15 +369,19 @@ func (k Keeper) calcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 
 		// 1, calc stake reward
 		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfIndexingNodes.ToDec())
-		stakeRewardFromMiningPool := distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.ToDec().Mul(shareOfToken).TruncateInt()
-		stakeRewardFromTrafficPool := distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool.ToDec().Mul(shareOfToken).TruncateInt()
+		stakeRewardFromMiningPool :=
+			distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.ToDec().Mul(shareOfToken).TruncateInt()
+		stakeRewardFromTrafficPool :=
+			distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool.ToDec().Mul(shareOfToken).TruncateInt()
 
 		totalUsedStakeRewardFromMiningPool = totalUsedStakeRewardFromMiningPool.Add(stakeRewardFromMiningPool)
 		totalUsedStakeRewardFromTrafficPool = totalUsedStakeRewardFromTrafficPool.Add(stakeRewardFromTrafficPool)
 
 		// 2, calc indexing reward
-		indexingRewardFromMiningPool := distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool.ToDec().Quo(indexingNodeCnt.ToDec()).TruncateInt()
-		indexingRewardFromTrafficPool := distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool.ToDec().Quo(indexingNodeCnt.ToDec()).TruncateInt()
+		indexingRewardFromMiningPool :=
+			distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool.ToDec().Quo(indexingNodeCnt.ToDec()).TruncateInt()
+		indexingRewardFromTrafficPool :=
+			distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool.ToDec().Quo(indexingNodeCnt.ToDec()).TruncateInt()
 
 		totalUsedIndexingRewardFromMiningPool = totalUsedIndexingRewardFromMiningPool.Add(indexingRewardFromMiningPool)
 		totalUsedIndexingRewardFromTrafficPool = totalUsedIndexingRewardFromTrafficPool.Add(indexingRewardFromTrafficPool)
@@ -383,10 +397,14 @@ func (k Keeper) calcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 		rewardDetailMap[nodeAddr.String()] = newReward
 	}
 	// deduct used reward from distributeGoal
-	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool = distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.Sub(totalUsedStakeRewardFromMiningPool)
-	distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool = distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool.Sub(totalUsedStakeRewardFromTrafficPool)
-	distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool = distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool.Sub(totalUsedIndexingRewardFromMiningPool)
-	distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool = distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool.Sub(totalUsedIndexingRewardFromTrafficPool)
+	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool =
+		distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.Sub(totalUsedStakeRewardFromMiningPool)
+	distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool =
+		distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool.Sub(totalUsedStakeRewardFromTrafficPool)
+	distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool =
+		distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool.Sub(totalUsedIndexingRewardFromMiningPool)
+	distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool =
+		distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool.Sub(totalUsedIndexingRewardFromTrafficPool)
 
 	return rewardDetailMap, distributeGoal
 }
