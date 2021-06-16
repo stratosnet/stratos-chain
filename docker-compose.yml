@@ -6,6 +6,7 @@ services:
     image: "stratosnet/stratos-chaind-node"
     ports:
       - "26656-26657:26656-26657"
+      - "1317:1317"
     environment:
       - ID=0
       - LOG=${LOG:-stratos-chaind.log}

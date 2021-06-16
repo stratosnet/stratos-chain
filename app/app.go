@@ -2,6 +2,8 @@ package app
 
 import (
 	"encoding/json"
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	"io"
 	"os"
 
@@ -13,22 +15,29 @@ import (
 	bam "github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	store "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
+	"github.com/cosmos/cosmos-sdk/x/gov"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	paramsclient "github.com/cosmos/cosmos-sdk/x/params/client"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
 	// this line is used by starport scaffolding # 1
 )
 
-const appName = "sds"
+const (
+	appName    = "sds"
+	appVersion = "v0.39"
+)
 
 var (
 	DefaultCLIHome  = os.ExpandEnv("$HOME/.stratoschaincli")
@@ -42,6 +51,12 @@ var (
 		supply.AppModuleBasic{},
 		register.AppModuleBasic{},
 		pot.AppModuleBasic{},
+		//gov.AppModuleBasic{},
+		distr.AppModuleBasic{},
+		upgrade.AppModuleBasic{},
+		gov.NewAppModuleBasic(
+			paramsclient.ProposalHandler, distr.ProposalHandler, upgradeclient.ProposalHandler,
+		),
 		sds.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
 	)
@@ -51,7 +66,12 @@ var (
 		// this line is used by starport scaffolding # 2.1
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		gov.ModuleName:            {supply.Burner},
 	}
+	// module accounts that are allowed to receive tokens
+	//allowedReceivingModAcc = map[string]bool{
+	//	distr.ModuleName: true,
+	//}
 )
 
 func MakeCodec() *codec.Codec {
@@ -80,6 +100,9 @@ type NewApp struct {
 	stakingKeeper  staking.Keeper
 	supplyKeeper   supply.Keeper
 	paramsKeeper   params.Keeper
+	govKeeper      gov.Keeper
+	upgradeKeeper  upgrade.Keeper
+	distrKeeper    distr.Keeper
 	registerKeeper register.Keeper
 	potKeeper      pot.Keeper
 	sdsKeeper      sds.Keeper
@@ -107,6 +130,8 @@ func NewInitApp(
 		staking.StoreKey,
 		supply.StoreKey,
 		params.StoreKey,
+		gov.StoreKey,
+		upgrade.StoreKey,
 		register.StoreKey,
 		pot.StoreKey,
 		sds.StoreKey,
@@ -128,6 +153,7 @@ func NewInitApp(
 	app.subspaces[auth.ModuleName] = app.paramsKeeper.Subspace(auth.DefaultParamspace)
 	app.subspaces[bank.ModuleName] = app.paramsKeeper.Subspace(bank.DefaultParamspace)
 	app.subspaces[staking.ModuleName] = app.paramsKeeper.Subspace(staking.DefaultParamspace)
+	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[pot.ModuleName] = app.paramsKeeper.Subspace(pot.DefaultParamSpace)
 	app.subspaces[register.ModuleName] = app.paramsKeeper.Subspace(register.DefaultParamSpace)
 	// this line is used by starport scaffolding # 5.1
@@ -168,6 +194,23 @@ func NewInitApp(
 		),
 	)
 
+	app.upgradeKeeper = upgrade.NewKeeper(
+		map[int64]bool{},
+		keys[upgrade.StoreKey],
+		app.cdc,
+	)
+
+	// register the proposal types
+	govRouter := gov.NewRouter()
+	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
+		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+	app.govKeeper = gov.NewKeeper(
+		app.cdc, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
+		&stakingKeeper, govRouter,
+	)
+
 	app.registerKeeper = register.NewKeeper(
 		app.cdc,
 		keys[register.StoreKey],
@@ -203,6 +246,9 @@ func NewInitApp(
 		auth.NewAppModule(app.accountKeeper),
 		bank.NewAppModule(app.bankKeeper, app.accountKeeper),
 		supply.NewAppModule(app.supplyKeeper, app.accountKeeper),
+		gov.NewAppModule(app.govKeeper, app.accountKeeper, app.supplyKeeper),
+		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
+		upgrade.NewAppModule(app.upgradeKeeper),
 		staking.NewAppModule(app.stakingKeeper, app.accountKeeper, app.supplyKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
@@ -212,6 +258,7 @@ func NewInitApp(
 
 	app.mm.SetOrderEndBlockers(
 		staking.ModuleName,
+		gov.ModuleName,
 		// this line is used by starport scaffolding # 6.1
 	)
 
@@ -220,11 +267,13 @@ func NewInitApp(
 		auth.ModuleName,
 		staking.ModuleName,
 		bank.ModuleName,
+		gov.ModuleName,
 		supply.ModuleName,
 		register.ModuleName,
 		sds.ModuleName,
 		pot.ModuleName,
 		genutil.ModuleName,
+		upgrade.ModuleName,
 		// this line is used by starport scaffolding # 7
 	)
 
@@ -233,6 +282,17 @@ func NewInitApp(
 	app.SetInitChainer(app.InitChainer)
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
+
+	app.upgradeKeeper.SetUpgradeHandler(appVersion, func(ctx sdk.Context, plan upgrade.Plan) {
+		logger.Info("Upgrade Handler working")
+	})
+	app.SetStoreLoader(bam.StoreLoaderWithUpgrade(&store.StoreUpgrades{
+		Renamed: []store.StoreRename{{
+			//OldKey: "foo",
+			//NewKey: "bar",
+		}},
+	}),
+	)
 
 	app.SetAnteHandler(
 		auth.NewAnteHandler(
