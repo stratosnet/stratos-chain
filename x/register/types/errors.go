@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrInvalid                  = sdkerrors.Register(ModuleName, 1, "custom error message")
+	ErrInvalid                  = sdkerrors.Register(ModuleName, 1, "error invalid")
 	ErrEmptyNetworkAddr         = sdkerrors.Register(ModuleName, 2, "missing network address")
 	ErrEmptyOwnerAddr           = sdkerrors.Register(ModuleName, 3, "missing owner address")
 	ErrValueNegative            = sdkerrors.Register(ModuleName, 4, "value must be positive")

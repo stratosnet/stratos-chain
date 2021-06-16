@@ -189,10 +189,11 @@ func NewInitApp(
 	)
 
 	app.sdsKeeper = sds.NewKeeper(
-		app.bankKeeper,
-		app.registerKeeper,
 		app.cdc,
 		keys[sds.StoreKey],
+		app.bankKeeper,
+		app.registerKeeper,
+		app.potKeeper,
 	)
 
 	// this line is used by starport scaffolding # 4

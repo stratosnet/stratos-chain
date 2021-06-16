@@ -4,3 +4,4 @@ vue/.cache
 build
 vendor/
 .idea/
+playground.go
