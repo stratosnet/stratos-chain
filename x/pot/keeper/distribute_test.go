@@ -104,7 +104,7 @@ func Test(t *testing.T) {
 	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialGenesisStakeTotal.Amount)
 
 	//PrePay
-	k.setTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
+	k.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
 	//remaining ozone limit
 	registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimit)
 
@@ -168,7 +168,7 @@ func Test(t *testing.T) {
 	//check prepared data
 	S := k.registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	fmt.Println("S=" + S.String())
-	Pt := k.getTotalUnissuedPrepay(ctx).ToDec()
+	Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
 	fmt.Println("Pt=" + Pt.String())
 	Y := k.getTotalConsumedOzone(trafficList).ToDec()
 	fmt.Println("Y=" + Y.String())

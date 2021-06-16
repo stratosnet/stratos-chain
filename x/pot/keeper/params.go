@@ -34,5 +34,5 @@ func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk
 			return param, nil
 		}
 	}
-	return miningRewardParams[0], types.ErrOutOfIssuance
+	return miningRewardParams[len(miningRewardParams)-1], types.ErrOutOfIssuance
 }

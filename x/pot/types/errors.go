@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	ErrInvalid                   = sdkerrors.Register(ModuleName, 1, "custom error message")
+	ErrInvalid                   = sdkerrors.Register(ModuleName, 1, "error invalid")
 	ErrUnknownAccountAddress     = sdkerrors.Register(ModuleName, 2, "account address does not exist")
 	ErrOutOfIssuance             = sdkerrors.Register(ModuleName, 3, "mining reward reaches the issuance limit")
 	ErrWithdrawAmountNotPositive = sdkerrors.Register(ModuleName, 4, "withdraw amount is not positive")
