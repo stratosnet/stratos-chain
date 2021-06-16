@@ -46,7 +46,7 @@ func TestDoubleSignForCreateResourceNode(t *testing.T) {
 
 	pub1 := privKey1.PubKey()
 	disc := types.Description{Moniker: "r1", Identity: "", Website: "", SecurityContact: "", Details: ""}
-	msg := types.NewMsgCreateResourceNode("sds://resourcenode1", pub1, sdk.Coin{Denom: "stos", Amount: sdk.NewInt(10000)},
+	msg := types.NewMsgCreateResourceNode("sds://resourcenode1", pub1, sdk.Coin{Denom: "ustos", Amount: sdk.NewInt(10000)},
 		sdk.AccAddress("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw"), disc, "7")
 	//fmt.Println("msg: ", msg)
 	//fmt.Println("txBldr: ", txBldr)
@@ -141,7 +141,7 @@ func createFakePrivKey(mnemonic string) (crypto.PrivKey, error) {
 func createIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	fmt.Println("inside func")
 	//amountStr := viper.GetString(FlagAmount)
-	amount := sdk.Coin{Denom: "stos", Amount: sdk.NewInt(1000)}
+	amount := sdk.Coin{Denom: "ustos", Amount: sdk.NewInt(1000)}
 	fmt.Println("amount: ", amount)
 	//if err != nil {
 	//	return txBldr, nil, err
@@ -221,7 +221,7 @@ func createFakeTxBuilder() auth.TxBuilder {
 //	fmt.Println("GasPrice: ", txBldr.GasPrices())
 //
 //	disc := types.Description{Moniker: "r1", Identity: "", Website: "", SecurityContact: "", Details: ""}
-//	msg := types.NewMsgCreateResourceNode("sds://resourcenode1", pub, sdk.Coin{Denom: "stos", Amount: sdk.NewInt(10000)},
+//	msg := types.NewMsgCreateResourceNode("sds://resourcenode1", pub, sdk.Coin{Denom: "ustos", Amount: sdk.NewInt(10000)},
 //		sdk.AccAddress("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw"), disc, "computation")
 //	fmt.Println("MSG: ", msg)
 //	//txBldr := auth.NewTxBuilder(msg).WithTxEncoder(utils.GetTxEncoder(auth.ModuleCdc))
