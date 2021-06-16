@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -15,26 +16,29 @@ import (
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
-	BankKeeper     bank.Keeper
-	RegisterKeeper register.Keeper
 	key            sdk.StoreKey
 	cdc            *codec.Codec
+	BankKeeper     bank.Keeper
+	RegisterKeeper register.Keeper
+	PotKeeper      pot.Keeper
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
 // (binary) encode and decode concrete sdk.MsgUploadFile.
 // nolint
 func NewKeeper(
-	bankKeeper bank.Keeper,
-	registerKeeper register.Keeper,
 	cdc *codec.Codec,
 	key sdk.StoreKey,
+	bankKeeper bank.Keeper,
+	registerKeeper register.Keeper,
+	potKeeper pot.Keeper,
 ) Keeper {
 	return Keeper{
-		BankKeeper:     bankKeeper,
-		RegisterKeeper: registerKeeper,
 		key:            key,
 		cdc:            cdc,
+		BankKeeper:     bankKeeper,
+		RegisterKeeper: registerKeeper,
+		PotKeeper:      potKeeper,
 	}
 }
 
@@ -64,15 +68,27 @@ func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fi
 // Prepay transfers coins from bank to sds (volumn) pool
 func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	// src - hasCoins?
-	if fk.BankKeeper.HasCoins(ctx, sender, coins) {
-		err := fk.doPrepay(ctx, sender, coins)
-		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-		}
-		_, error := fk.BankKeeper.SubtractCoins(ctx, sender, coins)
-		return error
+	if !fk.BankKeeper.HasCoins(ctx, sender, coins) {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-	return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+
+	err := fk.doPrepay(ctx, sender, coins)
+	if err != nil {
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	}
+
+	_, err = fk.BankKeeper.SubtractCoins(ctx, sender, coins)
+	if err != nil {
+		return err
+	}
+
+	oldTotalUnissuedPrepay := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
+	//TODO: move the definition of default denomination to params.go
+	prepay := coins.AmountOf("ustos")
+	newTotalUnissuedPrepay := oldTotalUnissuedPrepay.Add(prepay)
+	fk.PotKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnissuedPrepay)
+
+	return nil
 }
 
 // HasPrepay Returns bool indicating if the sender did prepay before

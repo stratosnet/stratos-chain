@@ -8,7 +8,7 @@ import (
 
 // Default parameter namespace
 const (
-	DefaultParamspace = ModuleName
+	DefaultParamSpace = ModuleName
 	// TODO: Define your default parameters
 )
 

@@ -43,9 +43,8 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 	//	return nil, err
 	//}
 
-	resourceNode := types.NewResourceNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description,
-		msg.NodeType)
-	err := k.AddResourceNodeTokens(ctx, resourceNode, msg.Value)
+	resourceNode := types.NewResourceNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description, msg.NodeType)
+	err := k.AddResourceNodeStake(ctx, resourceNode, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +77,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	//}
 
 	indexingNode := types.NewIndexingNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description)
-	err := k.AddIndexingNodeTokens(ctx, indexingNode, msg.Value)
+	err := k.AddIndexingNodeStake(ctx, indexingNode, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +101,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	if !found {
 		return nil, ErrNoResourceNodeFound
 	}
-	err := k.SubtractResourceNodeTokens(ctx, resourceNode, resourceNode.GetTokens())
+	err := k.SubtractResourceNodeStake(ctx, resourceNode, resourceNode.GetTokens())
 	if err != nil {
 		return nil, err
 	}
@@ -126,7 +125,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	if !found {
 		return nil, ErrNoIndexingNodeFound
 	}
-	err := k.SubtractIndexingNodeTokens(ctx, indexingNode, indexingNode.GetTokens())
+	err := k.SubtractIndexingNodeStake(ctx, indexingNode, indexingNode.GetTokens())
 	if err != nil {
 		return nil, err
 	}

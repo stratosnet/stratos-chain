@@ -62,45 +62,29 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 	store.Set(types.GetIndexingNodeKey(indexingNode.GetNetworkAddr()), bz)
 }
 
-// IndexingNode index
-func (k Keeper) SetIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
-	// suspended indexing node are not kept in the power index
-	if indexingNode.IsSuspended() {
-		return
-	}
-	store := ctx.KVStore(k.storeKey)
-	store.Set(types.GetIndexingNodesByPowerIndexKey(indexingNode), indexingNode.GetNetworkAddr())
-}
-
-// IndexingNode index
-func (k Keeper) deleteIndexingNodeByPowerIndex(ctx sdk.Context, indexingNode types.IndexingNode) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
-}
-
-// GetLastIndexingNodePower Load the last indexing node power.
+// GetLastIndexingNodeStake Load the last indexing node stake.
 // Returns zero if the node was not a indexing node last block.
-func (k Keeper) GetLastIndexingNodePower(ctx sdk.Context, nodeAddr sdk.AccAddress) (power int64) {
+func (k Keeper) GetLastIndexingNodeStake(ctx sdk.Context, nodeAddr sdk.AccAddress) (stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastIndexingNodePowerKey(nodeAddr))
+	bz := store.Get(types.GetLastIndexingNodeStakeKey(nodeAddr))
 	if bz == nil {
-		return 0
+		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &power)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &stake)
 	return
 }
 
-// SetLastIndexingNodePower Set the last indexing node power.
-func (k Keeper) SetLastIndexingNodePower(ctx sdk.Context, nodeAddr sdk.AccAddress, power int64) {
+// SetLastIndexingNodeStake Set the last indexing node stake.
+func (k Keeper) SetLastIndexingNodeStake(ctx sdk.Context, nodeAddr sdk.AccAddress, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(power)
-	store.Set(types.GetLastIndexingNodePowerKey(nodeAddr), bz)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.GetLastIndexingNodeStakeKey(nodeAddr), bz)
 }
 
-// DeleteLastIndexingNodePower Delete the last indexing node power.
-func (k Keeper) DeleteLastIndexingNodePower(ctx sdk.Context, nodeAddr sdk.AccAddress) {
+// DeleteLastIndexingNodeStake Delete the last indexing node stake.
+func (k Keeper) DeleteLastIndexingNodeStake(ctx sdk.Context, nodeAddr sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetLastIndexingNodePowerKey(nodeAddr))
+	store.Delete(types.GetLastIndexingNodeStakeKey(nodeAddr))
 }
 
 // GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
@@ -116,23 +100,23 @@ func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes []types.Inde
 	return indexingNodes
 }
 
-// IterateLastIndexingNodePowers Iterate over last indexing node powers.
-func (k Keeper) IterateLastIndexingNodePowers(ctx sdk.Context, handler func(nodeAddr sdk.AccAddress, power int64) (stop bool)) {
+// IterateLastIndexingNodeStakes Iterate over last indexing node stakes.
+func (k Keeper) IterateLastIndexingNodeStakes(ctx sdk.Context, handler func(nodeAddr sdk.AccAddress, stake sdk.Int) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.LastIndexingNodePowerKey)
+	iter := sdk.KVStorePrefixIterator(store, types.LastIndexingNodeStakeKey)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.LastIndexingNodePowerKey):])
-		var power int64
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &power)
-		if handler(addr, power) {
+		addr := sdk.AccAddress(iter.Key()[len(types.LastIndexingNodeStakeKey):])
+		var stake sdk.Int
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &stake)
+		if handler(addr, stake) {
 			break
 		}
 	}
 }
 
-// AddIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
-func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, coinToAdd sdk.Coin) error {
+// AddIndexingNodeStake Update the tokens of an existing indexing node
+func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, coinToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetNetworkAddr())
 	if nodeAcc == nil {
 		ctx.Logger().Info(fmt.Sprintf("create new account: %s", indexingNode.GetNetworkAddr()))
@@ -151,22 +135,23 @@ func (k Keeper) AddIndexingNodeTokens(ctx sdk.Context, indexingNode types.Indexi
 		return err
 	}
 
-	oldPow := k.GetLastIndexingNodePower(ctx, indexingNode.GetNetworkAddr())
-	oldTotalPow := k.GetLastIndexingNodeTotalPower(ctx)
+	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
+	oldTotalStake := k.GetLastIndexingNodeTotalStake(ctx)
 
-	k.deleteIndexingNodeByPowerIndex(ctx, indexingNode)
 	indexingNode = indexingNode.AddToken(coinToAdd.Amount)
-	newPow := indexingNode.GetPower()
-	newTotalPow := oldTotalPow.Sub(sdk.NewInt(oldPow)).Add(sdk.NewInt(newPow))
+	newStake := indexingNode.GetTokens()
+	newTotalStake := oldTotalStake.Sub(oldStake).Add(newStake)
+
 	k.SetIndexingNode(ctx, indexingNode)
-	k.SetIndexingNodeByPowerIndex(ctx, indexingNode)
-	k.SetLastIndexingNodePower(ctx, indexingNode.GetNetworkAddr(), newPow)
-	k.SetLastIndexingNodeTotalPower(ctx, newTotalPow)
+	k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
+	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
+	k.increaseOzoneLimitByAddStake(ctx, coinToAdd.Amount)
+
 	return nil
 }
 
-// SubtractIndexingNodeTokens Update the tokens of an existing indexing node, update the indexing nodes power index key
-func (k Keeper) SubtractIndexingNodeTokens(ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int) error {
+// SubtractIndexingNodeStake Update the tokens of an existing indexing node
+func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int) error {
 	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
 	if ownerAcc == nil {
 		return types.ErrNoOwnerAccountFound
@@ -186,27 +171,26 @@ func (k Keeper) SubtractIndexingNodeTokens(ctx sdk.Context, indexingNode types.I
 		return err
 	}
 
-	oldPow := k.GetLastIndexingNodePower(ctx, indexingNode.GetNetworkAddr())
-	oldTotalPow := k.GetLastIndexingNodeTotalPower(ctx)
+	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
+	oldTotalStake := k.GetLastIndexingNodeTotalStake(ctx)
 
-	k.deleteIndexingNodeByPowerIndex(ctx, indexingNode)
 	indexingNode = indexingNode.RemoveToken(tokensToRemove)
-	newPow := indexingNode.GetPower()
-	newTotalPow := oldTotalPow.Sub(sdk.NewInt(oldPow)).Add(sdk.NewInt(newPow))
+	newStake := indexingNode.GetTokens()
+	newTotalStake := oldTotalStake.Sub(oldStake).Add(newStake)
+
 	k.SetIndexingNode(ctx, indexingNode)
-	k.SetIndexingNodeByPowerIndex(ctx, indexingNode)
 
 	if indexingNode.GetTokens().IsZero() {
-		k.DeleteLastIndexingNodePower(ctx, indexingNode.GetNetworkAddr())
+		k.DeleteLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
 		err := k.removeIndexingNode(ctx, indexingNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
 	} else {
-		k.SetLastIndexingNodePower(ctx, indexingNode.GetNetworkAddr(), newPow)
+		k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	}
-	k.SetLastIndexingNodeTotalPower(ctx, newTotalPow)
-
+	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
+	k.decreaseOzoneLimitBySubtractStake(ctx, tokensToRemove)
 	return nil
 }
 
@@ -225,7 +209,6 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	// delete the old indexing node record
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetIndexingNodeKey(addr))
-	store.Delete(types.GetIndexingNodesByPowerIndexKey(indexingNode))
 	return nil
 }
 

@@ -25,12 +25,12 @@ import (
 const (
 	flagFrom = "from" // optional
 	flagTo   = "to"
-	flagAmt  = "amt" // denom fixed as stos
+	flagAmt  = "amt" // denom fixed as ustos
 
 	defaultNodeURI        = "tcp://127.0.0.1:26657"
 	defaultKeyringBackend = "test"
 	defaultHome           = "build/node/stratos-chaincli"
-	defaultDenom          = "stos"
+	defaultDenom          = "ustos"
 	defaultChainId        = "test-chain"
 )
 
