@@ -127,13 +127,11 @@ func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode Resourc
 // String returns a human readable string representation of a resource node.
 func (v ResourceNode) String() string {
 	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
-	//pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyType(Bech32PubKeyTypesdsPub), v.PubKey)
-	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyType(types.Bech32PubKeyTypesdsPub), pkStr)
 	if err != nil {
 		panic(err)
 	}
 	return fmt.Sprintf(`ResourceNode:{
-		Network Address:	%s
+		Network Id:	        %s
   		Pubkey:				%s
   		Suspend:			%v
   		Status:				%s
@@ -141,20 +139,6 @@ func (v ResourceNode) String() string {
 		Owner Address: 		%s
   		Description:		%s
 	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
-}
-
-// GetPower gets the power of the node
-// a reduction of 10^6 from node tokens is applied
-func (v ResourceNode) GetPower() int64 {
-	if v.Status.Equal(sdk.Bonded) {
-		return v.PotentialPower()
-	}
-	return 0
-}
-
-// PotentialPower is the potential power of the node
-func (v ResourceNode) PotentialPower() int64 {
-	return TokensToPower(v.Tokens)
 }
 
 // AddToken adds tokens to a resource node

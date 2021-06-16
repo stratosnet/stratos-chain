@@ -32,7 +32,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, accountKeeper auth.AccountKee
 		cdc:                   cdc,
 		accountKeeper:         accountKeeper,
 		bankKeeper:            bankKeeper,
-		paramstore:            paramstore.WithKeyTable(ParamKeyTable()),
+		paramstore:            paramstore.WithKeyTable(types.ParamKeyTable()),
 		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
 		resourceNodeCacheList: list.New(),
 		indexingNodeCache:     make(map[string]cachedIndexingNode, indexingNodeCacheSize),
@@ -46,40 +46,88 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetLastResourceNodeTotalPower Load the last total power of resource nodes.
-func (k Keeper) GetLastResourceNodeTotalPower(ctx sdk.Context) (power sdk.Int) {
+// GetLastResourceNodeTotalStake Load the last total stake of resource nodes.
+func (k Keeper) GetLastResourceNodeTotalStake(ctx sdk.Context) (stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastResourceNodeTotalPowerKey)
+	b := store.Get(types.LastResourceNodeTotalStakeKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
 	return
 }
 
-// SetLastResourceNodeTotalPower Set the last total power of resource nodes.
-func (k Keeper) SetLastResourceNodeTotalPower(ctx sdk.Context, power sdk.Int) {
+// SetLastResourceNodeTotalStake Set the last total stake of resource nodes.
+func (k Keeper) SetLastResourceNodeTotalStake(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
-	store.Set(types.LastResourceNodeTotalPowerKey, b)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.LastResourceNodeTotalStakeKey, b)
 }
 
-// GetLastIndexingNodeTotalPower Load the last total power of indexing nodes.
-func (k Keeper) GetLastIndexingNodeTotalPower(ctx sdk.Context) (power sdk.Int) {
+// GetLastIndexingNodeTotalStake Load the last total stake of indexing nodes.
+func (k Keeper) GetLastIndexingNodeTotalStake(ctx sdk.Context) (stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastIndexingNodeTotalPowerKey)
+	b := store.Get(types.LastIndexingNodeTotalStakeKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &power)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
 	return
 }
 
-// SetLastIndexingNodeTotalPower Set the last total power of indexing nodes.
-func (k Keeper) SetLastIndexingNodeTotalPower(ctx sdk.Context, power sdk.Int) {
+// SetLastIndexingNodeTotalStake Set the last total stake of indexing nodes.
+func (k Keeper) SetLastIndexingNodeTotalStake(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(power)
-	store.Set(types.LastIndexingNodeTotalPowerKey, b)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.LastIndexingNodeTotalStakeKey, b)
+}
+
+func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	store.Set(types.InitialGenesisStakeTotalKey, b)
+}
+
+func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.InitialGenesisStakeTotalKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
+	return
+}
+
+func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
+	store.Set(types.UpperBoundOfTotalOzoneKey, b)
+}
+
+func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.UpperBoundOfTotalOzoneKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
+	return
+}
+
+func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) {
+	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec()               //uozone
+	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
+	k.SetRemainingOzoneLimit(ctx, newLimit)
+}
+
+func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) {
+	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec()               //uozone
+	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
+	k.SetRemainingOzoneLimit(ctx, newLimit)
 }
 
 // GetResourceNetworksIterator gets an iterator over all network addresses

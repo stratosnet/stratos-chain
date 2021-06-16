@@ -6,9 +6,12 @@ import (
 )
 
 const (
-	DefaultParamspace = types.DefaultParamspace
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
+	DefaultParamSpace   = types.DefaultParamSpace
+	ModuleName          = types.ModuleName
+	StoreKey            = types.StoreKey
+	NodeTypeComputation = types.COMPUTATION
+	NodeTypeDataBase    = types.DATABASE
+	NodeTypeStorage     = types.STORAGE
 )
 
 var (
@@ -26,8 +29,16 @@ var (
 	ErrIndexingNodePubKeyExists = types.ErrIndexingNodePubKeyExists
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
+
+	DefaultParams            = types.DefaultParams
+	NewDescription           = types.NewDescription
+	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
+	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
 )
 
 type (
-	Keeper = keeper.Keeper
+	Keeper                = keeper.Keeper
+	Description           = types.Description
+	MsgCreateResourceNode = types.MsgCreateResourceNode
+	MsgCreateIndexingNode = types.MsgCreateIndexingNode
 )
