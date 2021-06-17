@@ -69,13 +69,13 @@ func (k Keeper) getMinedTokens(ctx sdk.Context) (minedToken sdk.Int) {
 	return
 }
 
-func (k Keeper) setTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Int) {
+func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
 	store.Set(types.TotalUnissuedPrepayKey, b)
 }
 
-func (k Keeper) getTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Int) {
+func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.TotalUnissuedPrepayKey)
 	if b == nil {
