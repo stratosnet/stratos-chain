@@ -19,15 +19,15 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	storeKey         sdk.StoreKey
-	cdc              *codec.Codec
-	paramSpace       params.Subspace
-	feeCollectorName string // name of the FeeCollector ModuleAccount
-	bankKeeper       bank.Keeper
-	supplyKeeper     supply.Keeper
-	accountKeeper    auth.AccountKeeper
-	stakingKeeper    staking.Keeper
-	registerKeeper   register.Keeper
+	StoreKey         sdk.StoreKey
+	Cdc              *codec.Codec
+	ParamSpace       params.Subspace
+	FeeCollectorName string // name of the FeeCollector ModuleAccount
+	BankKeeper       bank.Keeper
+	SupplyKeeper     supply.Keeper
+	AccountKeeper    auth.AccountKeeper
+	StakingKeeper    staking.Keeper
+	RegisterKeeper   register.Keeper
 }
 
 // NewKeeper creates a pot keeper
@@ -36,15 +36,15 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, f
 	registerKeeper register.Keeper,
 ) Keeper {
 	keeper := Keeper{
-		cdc:              cdc,
-		storeKey:         key,
-		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
-		feeCollectorName: feeCollectorName,
-		bankKeeper:       bankKeeper,
-		supplyKeeper:     supplyKeeper,
-		accountKeeper:    accountKeeper,
-		stakingKeeper:    stakingKeeper,
-		registerKeeper:   registerKeeper,
+		Cdc:              cdc,
+		StoreKey:         key,
+		ParamSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
+		FeeCollectorName: feeCollectorName,
+		BankKeeper:       bankKeeper,
+		SupplyKeeper:     supplyKeeper,
+		AccountKeeper:    accountKeeper,
+		StakingKeeper:    stakingKeeper,
+		RegisterKeeper:   registerKeeper,
 	}
 	return keeper
 }
@@ -56,7 +56,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // GetVolumeReport returns the hash of volume report
 func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byte, error) {
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(k.StoreKey)
 	bz := store.Get(types.VolumeReportStoreKey(reporter))
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
@@ -66,17 +66,17 @@ func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byt
 }
 
 func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(k.StoreKey)
 	storeKey := types.VolumeReportStoreKey(reporter)
 	store.Set(storeKey, []byte(reportReference))
 }
 
 func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
-	store := ctx.KVStore(k.storeKey)
+	store := ctx.KVStore(k.StoreKey)
 	store.Delete(key)
 }
 
 func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
-	_, found = k.registerKeeper.GetIndexingNode(ctx, addr)
+	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
 	return found
 }

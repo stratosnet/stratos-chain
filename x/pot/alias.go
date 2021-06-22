@@ -9,11 +9,13 @@ const (
 	DefaultParamSpace = types.DefaultParamSpace
 	ModuleName        = types.ModuleName
 	StoreKey          = types.StoreKey
+	RouterKey         = types.RouterKey
 )
 
 var (
-	NewKeeper = keeper.NewKeeper
-
+	NewKeeper     = keeper.NewKeeper
+	RegisterCodec = types.RegisterCodec
+	ParamKeyTable = types.ParamKeyTable
 )
 
 type (

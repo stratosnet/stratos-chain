@@ -5,6 +5,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 	"strings"
 )
 
@@ -19,6 +20,8 @@ var (
 	KeyBondDenom          = []byte("BondDenom")
 	KeyMiningRewardParams = []byte("MiningRewardParams")
 )
+
+var _ subspace.ParamSet = &Params{}
 
 // Params - used for initializing default parameter for pot at genesis
 type Params struct {

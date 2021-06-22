@@ -166,13 +166,13 @@ func Test(t *testing.T) {
 	trafficList = append(trafficList, types.NewSingleNodeVolume(addrRes3, sdk.NewInt(resourceNodeVolume3)))
 
 	//check prepared data
-	S := k.registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	fmt.Println("S=" + S.String())
 	Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
 	fmt.Println("Pt=" + Pt.String())
-	Y := k.getTotalConsumedOzone(trafficList).ToDec()
+	Y := k.GetTotalConsumedOzone(trafficList).ToDec()
 	fmt.Println("Y=" + Y.String())
-	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
+	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 	fmt.Println("Lt=" + Lt.String())
 	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 	fmt.Println("R=" + R.String())
@@ -769,7 +769,7 @@ func createAccount(t *testing.T, ctx sdk.Context, accountKeeper auth.AccountKeep
 }
 
 func getFeePoolBalance(t *testing.T, ctx sdk.Context, k Keeper, bankKeeper bank.Keeper) sdk.Coins {
-	feePoolAccAddr := k.supplyKeeper.GetModuleAddress(k.feeCollectorName)
+	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.FeeCollectorName)
 	require.NotNil(t, feePoolAccAddr)
 	coins := bankKeeper.GetCoins(ctx, feePoolAccAddr)
 	return coins

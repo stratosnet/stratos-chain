@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
@@ -17,6 +18,8 @@ var (
 // TODO: Define your keys for the parameter store
 // KeyParamName          = []byte("ParamName")
 )
+
+var _ subspace.ParamSet = &Params{}
 
 // ParamKeyTable for sds module
 func ParamKeyTable() params.KeyTable {

@@ -16,7 +16,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coin, nodeAddress sdk.AccAd
 		return types.ErrInsufficientMatureTotal
 	}
 
-	_, err := k.bankKeeper.AddCoins(ctx, ownerAddress, sdk.NewCoins(amount))
+	_, err := k.BankKeeper.AddCoins(ctx, ownerAddress, sdk.NewCoins(amount))
 	if err != nil {
 		return err
 	}
@@ -28,12 +28,12 @@ func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coin, nodeAddress sdk.AccAd
 }
 
 func (k Keeper) checkOwner(ctx sdk.Context, nodeAddress sdk.AccAddress, ownerAddress sdk.Address) (found bool) {
-	resourceNode, found := k.registerKeeper.GetResourceNode(ctx, nodeAddress)
+	resourceNode, found := k.RegisterKeeper.GetResourceNode(ctx, nodeAddress)
 	if found && resourceNode.OwnerAddress.Equals(ownerAddress) {
 		return true
 	}
 
-	indexingNode, found := k.registerKeeper.GetIndexingNode(ctx, nodeAddress)
+	indexingNode, found := k.RegisterKeeper.GetIndexingNode(ctx, nodeAddress)
 	if found && indexingNode.OwnerAddress.Equals(ownerAddress) {
 		return true
 	}
