@@ -10,7 +10,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgRemoveResourceNode{}, "register/MsgRemoveResourceNode", nil)
 	cdc.RegisterConcrete(MsgCreateIndexingNode{}, "register/MsgCreateIndexingNode", nil)
 	cdc.RegisterConcrete(MsgRemoveIndexingNode{}, "register/MsgRemoveIndexingNode", nil)
-	cdc.RegisterConcrete(MsgSpRegistrationVote{}, "register/MsgSpRegistrationVote", nil)
+	cdc.RegisterConcrete(MsgIndexingNodeRegistrationVote{}, "register/MsgIndexingNodeRegistrationVote", nil)
 }
 
 // ModuleCdc defines the module codec

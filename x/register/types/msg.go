@@ -11,7 +11,7 @@ var (
 	_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgCreateIndexingNode{}
 	_ sdk.Msg = &MsgRemoveIndexingNode{}
-	_ sdk.Msg = &MsgSpRegistrationVote{}
+	_ sdk.Msg = &MsgIndexingNodeRegistrationVote{}
 )
 
 type MsgCreateResourceNode struct {
@@ -229,16 +229,16 @@ func (msg MsgRemoveIndexingNode) ValidateBasic() error {
 	return nil
 }
 
-type MsgSpRegistrationVote struct {
+type MsgIndexingNodeRegistrationVote struct {
 	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
 	Opinion      VoteOpinion    `json:"opinion" yaml:"opinion"`
 	VoterAddress sdk.AccAddress `json:"voter_address" yaml:"voter_address"` // address of voter (other existed indexing node)
 }
 
-func NewMsgSpRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion, approverAddress sdk.AccAddress,
-) MsgSpRegistrationVote {
-	return MsgSpRegistrationVote{
+func NewMsgIndexingNodeRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion, approverAddress sdk.AccAddress,
+) MsgIndexingNodeRegistrationVote {
+	return MsgIndexingNodeRegistrationVote{
 		NodeAddress:  nodeAddress,
 		OwnerAddress: ownerAddress,
 		Opinion:      opinion,
@@ -246,15 +246,15 @@ func NewMsgSpRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAd
 	}
 }
 
-func (m MsgSpRegistrationVote) Route() string {
+func (m MsgIndexingNodeRegistrationVote) Route() string {
 	return RouterKey
 }
 
-func (m MsgSpRegistrationVote) Type() string {
-	return "sp_reg_vote"
+func (m MsgIndexingNodeRegistrationVote) Type() string {
+	return "indexing_node_reg_vote"
 }
 
-func (m MsgSpRegistrationVote) ValidateBasic() error {
+func (m MsgIndexingNodeRegistrationVote) ValidateBasic() error {
 	if m.NodeAddress.Empty() {
 		return ErrEmptyNodeAddr
 	}
@@ -270,12 +270,12 @@ func (m MsgSpRegistrationVote) ValidateBasic() error {
 	return nil
 }
 
-func (m MsgSpRegistrationVote) GetSignBytes() []byte {
+func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(m)
 	return sdk.MustSortJSON(bz)
 }
 
-func (m MsgSpRegistrationVote) GetSigners() []sdk.AccAddress {
+func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 	addrs := []sdk.AccAddress{m.VoterAddress}
 	return addrs
 }

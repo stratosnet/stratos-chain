@@ -21,7 +21,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRemoveResourceNode(ctx, msg, k)
 		case types.MsgRemoveIndexingNode:
 			return handleMsgRemoveIndexingNode(ctx, msg, k)
-		case types.MsgSpRegistrationVote:
+		case types.MsgIndexingNodeRegistrationVote:
 			return handleSpRegistrationVote(ctx, msg, k)
 
 		// this line is used by starport scaffolding # 1
@@ -138,7 +138,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgSpRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {
+func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {
 	nodeToApprove, found := k.GetIndexingNode(ctx, msg.NodeAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
@@ -155,14 +155,14 @@ func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgSpRegistrationVote, 
 		return nil, ErrInvalidApproverStatus
 	}
 
-	err := k.HandleVoteForSpNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
+	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
 	if err != nil {
 		return nil, err
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeSpRegistrationVote,
+			types.EventTypeIndexingNodeRegistrationVote,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NodeAddress.String()),
 		),

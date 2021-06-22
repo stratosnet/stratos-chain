@@ -31,7 +31,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		CreateIndexingNodeCmd(cdc),
 		RemoveResourceNodeCmd(cdc),
 		RemoveIndexingNodeCmd(cdc),
-		SpRegistrationVoteCmd(cdc),
+		IndexingNodeRegistrationVoteCmd(cdc),
 	)...)
 
 	return registerTxCmd
@@ -222,16 +222,16 @@ func RemoveIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// SpRegistrationVoteCmd SP registration need to be approved by 2/3 of existing SP
-func SpRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
+// IndexingNodeRegistrationVoteCmd Indexing node registration need to be approved by 2/3 of existing indexing nodes
+func IndexingNodeRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "sp_reg_vote",
-		Short: "vote for the registration of a new Sp node",
+		Use:   "indexing_node_reg_vote",
+		Short: "vote for the registration of a new indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			txBldr, msg, err := buildSpRegistrationVoteMsg(cliCtx, txBldr)
+			txBldr, msg, err := buildIndexingNodeRegistrationVoteMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
 			}
@@ -250,7 +250,7 @@ func SpRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func buildSpRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+func buildIndexingNodeRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	nodeAddrStr := viper.GetString(FlagNodeAddress)
 	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
 	if err != nil {
@@ -265,6 +265,6 @@ func buildSpRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	opinion := types.VoteOpinionFromBool(opinionVal)
 	approverAddr := cliCtx.GetFromAddress()
 
-	msg := types.NewMsgSpRegistrationVote(nodeAddr, ownerAddr, opinion, approverAddr)
+	msg := types.NewMsgIndexingNodeRegistrationVote(nodeAddr, ownerAddr, opinion, approverAddr)
 	return txBldr, msg, nil
 }

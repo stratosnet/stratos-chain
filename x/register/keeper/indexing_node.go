@@ -276,15 +276,15 @@ func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey c
 	expireTime := time.Now().Add(votingValidityPeriod)
 
 	votePool := types.NewRegistrationVotePool(indexingNode.GetNetworkAddr(), approveList, rejectList, expireTime)
-	k.SetSpRegistrationVotePool(ctx, votePool)
+	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
 
 	return nil
 }
 
-func (k Keeper) HandleVoteForSpNodeRegistration(ctx sdk.Context, nodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
+func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
 	opinion types.VoteOpinion, voterAddr sdk.AccAddress) (err error) {
 
-	votePool, found := k.GetSpRegistrationVotePool(ctx, nodeAddr)
+	votePool, found := k.GetIndexingNodeRegistrationVotePool(ctx, nodeAddr)
 	if !found {
 		return types.ErrNoRegistrationVotePoolFound
 	}
@@ -308,7 +308,7 @@ func (k Keeper) HandleVoteForSpNodeRegistration(ctx sdk.Context, nodeAddr sdk.Ac
 	} else {
 		votePool.RejectList = append(votePool.RejectList, voterAddr)
 	}
-	k.SetSpRegistrationVotePool(ctx, votePool)
+	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
 
 	totalSpCount := len(k.GetAllValidIndexingNodes(ctx))
 	voteCountRequiredToPass := totalSpCount*2/3 + 1
@@ -330,9 +330,9 @@ func (k Keeper) hasValue(items []sdk.AccAddress, item sdk.AccAddress) bool {
 	return false
 }
 
-func (k Keeper) GetSpRegistrationVotePool(ctx sdk.Context, nodeAddr sdk.AccAddress) (votePool types.SpRegistrationVotePool, found bool) {
+func (k Keeper) GetIndexingNodeRegistrationVotePool(ctx sdk.Context, nodeAddr sdk.AccAddress) (votePool types.IndexingNodeRegistrationVotePool, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetSpRegistrationVotesKey(nodeAddr))
+	bz := store.Get(types.GetIndexingNodeRegistrationVotesKey(nodeAddr))
 	if bz == nil {
 		return votePool, false
 	}
@@ -340,9 +340,9 @@ func (k Keeper) GetSpRegistrationVotePool(ctx sdk.Context, nodeAddr sdk.AccAddre
 	return votePool, true
 }
 
-func (k Keeper) SetSpRegistrationVotePool(ctx sdk.Context, votePool types.SpRegistrationVotePool) {
+func (k Keeper) SetIndexingNodeRegistrationVotePool(ctx sdk.Context, votePool types.IndexingNodeRegistrationVotePool) {
 	nodeAddr := votePool.NodeAddress
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(votePool)
-	store.Set(types.GetSpRegistrationVotesKey(nodeAddr), bz)
+	store.Set(types.GetIndexingNodeRegistrationVotesKey(nodeAddr), bz)
 }

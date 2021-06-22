@@ -172,15 +172,15 @@ func (v VoteOpinion) String() string {
 	}
 }
 
-type SpRegistrationVotePool struct {
+type IndexingNodeRegistrationVotePool struct {
 	NodeAddress sdk.AccAddress   `json:"node_address" yaml:"node_address"`
 	ApproveList []sdk.AccAddress `json:"approve_list" yaml:"approve_list"`
 	RejectList  []sdk.AccAddress `json:"reject_list" yaml:"reject_list"`
 	ExpireTime  time.Time        `json:"expire_time" yaml:"expire_time"`
 }
 
-func NewRegistrationVotePool(nodeAddress sdk.AccAddress, approveList []sdk.AccAddress, rejectList []sdk.AccAddress, expireTime time.Time) SpRegistrationVotePool {
-	return SpRegistrationVotePool{
+func NewRegistrationVotePool(nodeAddress sdk.AccAddress, approveList []sdk.AccAddress, rejectList []sdk.AccAddress, expireTime time.Time) IndexingNodeRegistrationVotePool {
+	return IndexingNodeRegistrationVotePool{
 		NodeAddress: nodeAddress,
 		ApproveList: approveList,
 		RejectList:  rejectList,

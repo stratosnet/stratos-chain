@@ -65,5 +65,5 @@ As a result, the value of node_type should be one of the following digits:
 
 	FsNodeAddress.String(FlagNodeAddress, "The address of the PP node", "")
 	FsOwnerAddress.String(FlagOwnerAddress, "", "")
-	FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Sp node.")
+	FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Indexing node.")
 }

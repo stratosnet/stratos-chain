@@ -28,9 +28,9 @@ var (
 	LastIndexingNodeTotalStakeKey = []byte{0x14} // prefix for the total bonded tokens of indexing nodes
 	InitialGenesisStakeTotalKey   = []byte{0x15} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
 
-	ResourceNodeKey        = []byte{0x21} // prefix for each key to a resource node
-	IndexingNodeKey        = []byte{0x22} // prefix for each key to a indexing node
-	SpRegistrationVotesKey = []byte{0x23} // prefix for each key to the vote for SP node registration
+	ResourceNodeKey                  = []byte{0x21} // prefix for each key to a resource node
+	IndexingNodeKey                  = []byte{0x22} // prefix for each key to a indexing node
+	IndexingNodeRegistrationVotesKey = []byte{0x23} // prefix for each key to the vote for Indexing node registration
 )
 
 // GetLastResourceNodeStakeKey get the bonded resource node index key for an address
@@ -55,7 +55,7 @@ func GetIndexingNodeKey(nodeAddr sdk.AccAddress) []byte {
 	return append(IndexingNodeKey, nodeAddr.Bytes()...)
 }
 
-// GetSpRegistrationVotesKey get the key for the vote for SP node registration
-func GetSpRegistrationVotesKey(nodeAddr sdk.AccAddress) []byte {
-	return append(SpRegistrationVotesKey, nodeAddr.Bytes()...)
+// GetIndexingNodeRegistrationVotesKey get the key for the vote for Indexing node registration
+func GetIndexingNodeRegistrationVotesKey(nodeAddr sdk.AccAddress) []byte {
+	return append(IndexingNodeRegistrationVotesKey, nodeAddr.Bytes()...)
 }

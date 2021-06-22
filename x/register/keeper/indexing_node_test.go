@@ -74,11 +74,11 @@ func TestExpiredVote(t *testing.T) {
 	require.NoError(t, err)
 
 	//set expireTime of voting to 7 days before
-	votePool, found := k.GetSpRegistrationVotePool(ctx, spNodeAddrNew)
+	votePool, found := k.GetIndexingNodeRegistrationVotePool(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.NotNil(t, votePool)
 	votePool.ExpireTime = votePool.ExpireTime.AddDate(0, 0, -7)
-	k.SetSpRegistrationVotePool(ctx, votePool)
+	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
 
 	//After registration, the status of new SP node is UNBONDED
 	_, found = k.GetIndexingNode(ctx, spNodeAddrNew)
@@ -127,14 +127,14 @@ func TestDuplicateVote(t *testing.T) {
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
 	require.Error(t, types.ErrDuplicateVoting)
 }
 
@@ -179,35 +179,35 @@ func TestSpRegistrationApproval(t *testing.T) {
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node2 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr2))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr2))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node3 vote to approve, the status of new SP node changes to BONDED
-	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr3))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr3))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Bonded)
 
 	//Exist SP Node4 vote to approve, the status of new SP node is BONDED
-	err = handlerSimulate(ctx, k, types.NewMsgSpRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr4))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr4))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Bonded)
 }
 
-func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgSpRegistrationVote) error {
+func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgIndexingNodeRegistrationVote) error {
 	nodeToApprove, found := k.GetIndexingNode(ctx, msg.NodeAddress)
 	if !found {
 		return types.ErrNoIndexingNodeFound
@@ -224,7 +224,7 @@ func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgSpRegistrationVote)
 		return types.ErrInvalidApproverStatus
 	}
 
-	err := k.HandleVoteForSpNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
+	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
 	if err != nil {
 		return err
 	}

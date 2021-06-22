@@ -44,6 +44,5 @@ type (
 	Description           = types.Description
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
-
-	VoteOpinion = types.VoteOpinion
+	VoteOpinion           = types.VoteOpinion
 )
