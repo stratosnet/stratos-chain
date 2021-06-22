@@ -78,7 +78,7 @@ func AddLoadTestCmd(
 				if err != nil {
 					return fmt.Errorf("failed to parse genesis: %w", err)
 				}
-				fmt.Printf("No sender account specified, using account 0 for load test\n")
+				fmt.Printf("No sender account specified, using accounts in genesis for load test\n")
 			}
 
 			ctx.Logger.Info("Starting Loadtest...")
@@ -107,9 +107,9 @@ func AddLoadTestCmd(
 				loadTestArgs.threads = len(accsFromGenesis)
 				fmt.Printf("Total available accounts: %d, max threads num set to %d", len(accsFromGenesis), len(accsFromGenesis))
 			}
+			seqStart := make(map[int]uint64)
 			// start threads
 			for i := 0; i < loadTestArgs.threads; i++ {
-				ctx.Logger.Info(fmt.Sprintf("thread: %d, from addr %s", i, accsFromGenesis[i]))
 				//waiter.Add(1)
 				inBuf := bufio.NewReader(cmd.InOrStdin())
 				//viper.Set("gas", "auto")
@@ -133,46 +133,52 @@ func AddLoadTestCmd(
 				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, accsFromGenesis[i].String()).WithCodec(cdc)
 				from := accsFromGenesis[i]
 				to := accsFromGenesis[0]
-				if i != loadTestArgs.threads-1 || i == 0 {
+				if len(accsFromGenesis) > i && (i != loadTestArgs.threads-1 || i == 0) {
 					to = accsFromGenesis[i+1]
 				}
-
+				ctx.Logger.Info(fmt.Sprintf("thread: %d, from addr %s, to addr %s", i, from, to))
 				txBldr, _ = utils.PrepareTxBuilder(txBldr, cliCtx)
-				ctx.Logger.Info(fmt.Sprintf("first sequence in batch: %d\n", int(txBldr.Sequence())))
-				firstSeqUint64 := txBldr.Sequence()
-				for j := 0; j < loadTestArgs.maxTx; j++ {
-					ctx.Logger.Info(fmt.Sprintf("current sequence: %d\n", int(firstSeqUint64+uint64(j))))
-					doSendTransaction(cliCtx, txBldr.WithSequence(firstSeqUint64+uint64(j)), i, to, from, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(10), Denom: "stos"}, firstSeqUint64) // send coin to temp account
-					counter += 1
-				}
+				ctx.Logger.Info(fmt.Sprintf("thread: %d, first sequence in this thread: %d\n", i, int(txBldr.Sequence())))
+				seqStart[i] = txBldr.Sequence()
 
+				// single-threading start --------
+				//for j := 0; j < loadTestArgs.maxTx; j++ {
+				//	ctx.Logger.Info(fmt.Sprintf("current sequence: %d\n", int(firstSeqUint64+uint64(j))))
+				//	doSendTransaction(cliCtx, txBldr.WithSequence(seqStart[i]+uint64(j)), i, to, from, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(10), Denom: defaultDenom}, seqStart[i]) // send coin to temp account
+				//	counter += 1
+				//}
+				// single-threading end --------
+
+				// multi-threading start --------
+				threadIndex := i
+				threadTo := to
+				threadFrom := from
+				threadTxBldr := txBldr
+				threadCliCtx := cliCtx
 				// start a thread to keep sending transactions after some interval
-				//go func(stop chan bool) {
-				//	txBldr, _ = utils.PrepareTxBuilder(txBldr, cliCtx)
-				//	firstSeqUint64 := txBldr.Sequence()
-				//	waitDuration := getWaitDuration(loadTestArgs.interval)
-				//	//ctx.Logger.Info(fmt.Sprintf("sequence in txBldr: %s", txBldr.Sequence()))
-				//	cliCtx.SkipConfirm = true
-				//	ctx.Logger.Info("6666")
-				//	iter := 0
-				//	for true {
-				//		doSendTransaction(cliCtx, txBldr.WithSequence(firstSeqUint64+uint64(iter)), i, to, from, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, firstSeqUint64) // send coin to temp account
-				//		iter += 1
-				//		counterChan <- 1
-				//
-				//		select {
-				//		case <-stop:
-				//			waiter.Done()
-				//			return
-				//		default:
-				//			time.Sleep(waitDuration)
-				//		}
-				//	}
-				//
-				//}(stopChan)
+				go func(stop chan bool) {
+					waitDuration := getWaitDuration(loadTestArgs.interval)
+					cliCtx.SkipConfirm = true
+					iter := 0
+					for true {
+						ctx.Logger.Info(fmt.Sprintf("thread: %d, sending tx with sequence: %d\n", threadIndex, int(seqStart[threadIndex]+uint64(iter))))
+						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
+						iter += 1
+						counterChan <- 1
+
+						select {
+						case <-stop:
+							waiter.Done()
+							return
+						default:
+							time.Sleep(waitDuration)
+						}
+					}
+				}(stopChan)
 			}
 			//// wait for all threads to close through sigterm; indefinitely
-			//waiter.Wait()
+			waiter.Wait()
+			// multi-threading end --------
 
 			// print stats
 			fmt.Println("####################################################################")
@@ -200,20 +206,17 @@ func AddLoadTestCmd(
 // doSendTransaction takes in an account and currency object and sends random amounts of coin from the
 // node account. It prints any errors to ctx.logger and returns
 func doSendTransaction(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, threadNo int, to sdk.AccAddress, from sdk.AccAddress, randomRev bool, coin sdk.Coin, firstSeq uint64) {
-	fmt.Println("Testing from " + from.String() + " to " + to.String())
-	//// build and sign the transaction, then broadcast to Tendermint
+	//fmt.Println("Testing from " + from.String() + " to " + to.String())
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
-	fmt.Printf("msg is : %s\n", msg)
-	fmt.Printf("From: %s, To: %s, Coin: %s\n", msg.FromAddress.String(), msg.ToAddress.String(), msg.Amount.String())
-	//fmt.Printf("cliCtx is : %s\n", cliCtx)
-	//fmt.Printf("bldr is : %s\n", txBldr)
-	//txBldr, _ = utils.PrepareTxBuilder(txBldr, cliCtx)
-	//fmt.Sprintf("sequence: %d\n", int(txBldr.Sequence()))
+	//fmt.Printf("msg is : %s\n", msg)
+	//fmt.Printf("From: %s, To: %s, Coin: %s\n", msg.FromAddress.String(), msg.ToAddress.String(), msg.Amount.String())
+
+	//// build and sign the transaction, then broadcast to Tendermint
 	err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("tx sent")
+	//fmt.Println("tx sent")
 
 }
 
