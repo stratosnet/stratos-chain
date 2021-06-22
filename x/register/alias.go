@@ -31,6 +31,9 @@ var (
 	ErrIndexingNodePubKeyExists = types.ErrIndexingNodePubKeyExists
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
+	ErrInvalidOwnerAddr         = types.ErrInvalidOwnerAddr
+	ErrInvalidApproverAddr      = types.ErrInvalidApproverAddr
+	ErrInvalidApproverStatus    = types.ErrInvalidApproverStatus
 
 	DefaultParams            = types.DefaultParams
 	DefaultGenesisState      = types.DefaultGenesisState
@@ -51,4 +54,5 @@ type (
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
 	LastResourceNodeStake = types.LastResourceNodeStake
 	LastIndexingNodeStake = types.LastIndexingNodeStake
+	VoteOpinion           = types.VoteOpinion
 )

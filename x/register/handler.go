@@ -21,6 +21,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRemoveResourceNode(ctx, msg, k)
 		case types.MsgRemoveIndexingNode:
 			return handleMsgRemoveIndexingNode(ctx, msg, k)
+		case types.MsgIndexingNodeRegistrationVote:
+			return handleSpRegistrationVote(ctx, msg, k)
 
 		// this line is used by starport scaffolding # 1
 		default:
@@ -39,12 +41,8 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, ErrBadDenom
 	}
-	//if _, err := msg.Description.EnsureLength(); err != nil {
-	//	return nil, err
-	//}
 
-	resourceNode := types.NewResourceNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description, msg.NodeType)
-	err := k.AddResourceNodeStake(ctx, resourceNode, msg.Value)
+	err := k.RegisterResourceNode(ctx, msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description, msg.NodeType, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -72,12 +70,8 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, ErrBadDenom
 	}
-	//if _, err := msg.Description.EnsureLength(); err != nil {
-	//	return nil, err
-	//}
 
-	indexingNode := types.NewIndexingNode(msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description)
-	err := k.AddIndexingNodeStake(ctx, indexingNode, msg.Value)
+	err := k.RegisterIndexingNode(ctx, msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -141,5 +135,42 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 		),
 	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {
+	nodeToApprove, found := k.GetIndexingNode(ctx, msg.NodeAddress)
+	if !found {
+		return nil, ErrNoIndexingNodeFound
+	}
+	if !nodeToApprove.GetOwnerAddr().Equals(msg.OwnerAddress) {
+		return nil, ErrInvalidOwnerAddr
+	}
+
+	approver, found := k.GetIndexingNode(ctx, msg.VoterAddress)
+	if !found {
+		return nil, ErrInvalidApproverAddr
+	}
+	if !approver.Status.Equal(sdk.Bonded) || approver.IsSuspended() {
+		return nil, ErrInvalidApproverStatus
+	}
+
+	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeIndexingNodeRegistrationVote,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NodeAddress.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

@@ -11,6 +11,7 @@ var (
 	_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgCreateIndexingNode{}
 	_ sdk.Msg = &MsgRemoveIndexingNode{}
+	_ sdk.Msg = &MsgIndexingNodeRegistrationVote{}
 )
 
 type MsgCreateResourceNode struct {
@@ -226,4 +227,55 @@ func (msg MsgRemoveIndexingNode) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 	return nil
+}
+
+type MsgIndexingNodeRegistrationVote struct {
+	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
+	Opinion      VoteOpinion    `json:"opinion" yaml:"opinion"`
+	VoterAddress sdk.AccAddress `json:"voter_address" yaml:"voter_address"` // address of voter (other existed indexing node)
+}
+
+func NewMsgIndexingNodeRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion, approverAddress sdk.AccAddress,
+) MsgIndexingNodeRegistrationVote {
+	return MsgIndexingNodeRegistrationVote{
+		NodeAddress:  nodeAddress,
+		OwnerAddress: ownerAddress,
+		Opinion:      opinion,
+		VoterAddress: approverAddress,
+	}
+}
+
+func (m MsgIndexingNodeRegistrationVote) Route() string {
+	return RouterKey
+}
+
+func (m MsgIndexingNodeRegistrationVote) Type() string {
+	return "indexing_node_reg_vote"
+}
+
+func (m MsgIndexingNodeRegistrationVote) ValidateBasic() error {
+	if m.NodeAddress.Empty() {
+		return ErrEmptyNodeAddr
+	}
+	if m.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if m.VoterAddress.Empty() {
+		return ErrEmptyApproverAddr
+	}
+	if m.OwnerAddress.Equals(m.VoterAddress) {
+		return ErrSameAddr
+	}
+	return nil
+}
+
+func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
+	addrs := []sdk.AccAddress{m.VoterAddress}
+	return addrs
 }
