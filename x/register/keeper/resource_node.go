@@ -4,6 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/tendermint/crypto"
 	"strings"
 )
 
@@ -240,4 +241,12 @@ func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (r
 	}
 	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
+}
+
+func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+	description types.Description, nodeType string, stake sdk.Coin) error {
+
+	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType)
+	err := k.AddResourceNodeStake(ctx, resourceNode, stake)
+	return err
 }
