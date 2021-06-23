@@ -15,6 +15,10 @@ const (
 	FlagWebsite         = "website"
 	FlagSecurityContact = "security-contact"
 	FlagDetails         = "details"
+
+	FlagNodeAddress  = "node-address"
+	FlagOwnerAddress = "owner-address"
+	FlagOpinion      = "opinion"
 )
 
 // common flagsets to add to various functions
@@ -24,6 +28,9 @@ var (
 	FsNetworkID         = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNodeType          = flag.NewFlagSet("", flag.ContinueOnError)
 	FsDescriptionCreate = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNodeAddress       = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOwnerAddress      = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOpinion           = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -56,4 +63,7 @@ As a result, the value of node_type should be one of the following digits:
 	FsDescriptionCreate.String(FlagSecurityContact, "", "The node's (optional) security contact email")
 	FsDescriptionCreate.String(FlagDetails, "", "The node's (optional) details")
 
+	FsNodeAddress.String(FlagNodeAddress, "The address of the PP node", "")
+	FsOwnerAddress.String(FlagOwnerAddress, "", "")
+	FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Indexing node.")
 }
