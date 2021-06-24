@@ -44,7 +44,7 @@ func main() {
 	// with the cdc
 
 	rootCmd := &cobra.Command{
-		Use:   "stratos-chaincli",
+		Use:   "stchaincli",
 		Short: "Command line interface for interacting with stratoschaind",
 	}
 

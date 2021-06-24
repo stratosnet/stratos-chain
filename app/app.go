@@ -2,10 +2,11 @@ package app
 
 import (
 	"encoding/json"
-	distr "github.com/cosmos/cosmos-sdk/x/distribution"
-	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	"io"
 	"os"
+
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -35,13 +36,13 @@ import (
 )
 
 const (
-	appName    = "sds"
-	appVersion = "v0.39"
+	appName    = "stchain"
+	appVersion = "v0.1.0"
 )
 
 var (
-	DefaultCLIHome  = os.ExpandEnv("$HOME/.stratoschaincli")
-	DefaultNodeHome = os.ExpandEnv("$HOME/.stratoschaind")
+	DefaultCLIHome  = os.ExpandEnv("$HOME/.stchaincli")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.stchaind")
 	ModuleBasics    = module.NewBasicManager(
 		genutil.AppModuleBasic{},
 		auth.AppModuleBasic{},

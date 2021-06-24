@@ -23,13 +23,13 @@ build-linux: go.sum
 ###                                Localnet                                 ###
 ###############################################################################
 
-build-docker-stratos-chaind-node:
+build-docker-stchaind-node:
 	$(MAKE) -C networks/local
 
 # Run a 4-node testnet locally
 localnet-start: build-linux localnet-stop
 	$(MAKE) -C networks/local
-	@if ! [ -f build/node0/stratos-chaind/config/genesis.json ]; then cp -r networks/local/cluster-config-sample/* build/ ; fi
+	@if ! [ -f build/node0/stchaind/config/genesis.json ]; then cp -r networks/local/cluster-config-sample/* build/ ; fi
 	docker-compose up -d
 
 # Stop testnet
