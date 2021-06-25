@@ -113,6 +113,7 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		flags.LineBreak,
 		uploadcmd.FileUploadTxCmd(cdc),
 		reportcmd.VolumeReportCmd(cdc),
+		flags.LineBreak,
 		govcmd.GetCmdSubmitProposal(cdc),
 		govcmd.GetCmdDeposit(cdc),
 		govcmd.GetCmdVote(cdc),
