@@ -10,13 +10,13 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
 	//1, calc traffic reward in total
-	distributeGoal, err = k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	if err != nil {
 		return err
 	}
 
 	//2, calc mining reward in total
-	distributeGoal, err = k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
 		return err
 	}
@@ -31,10 +31,10 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	distributeGoalBalance := distributeGoal
 
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoalBalance = k.calcRewardForResourceNode(ctx, trafficList, distributeGoalBalance, rewardDetailMap)
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoalBalance, rewardDetailMap)
 
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoalBalance = k.calcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
 
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)
@@ -139,7 +139,7 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 	return nil
 }
 
-func (k Keeper) calcTrafficRewardInTotal(
+func (k Keeper) CalcTrafficRewardInTotal(
 	ctx sdk.Context, trafficList []types.SingleNodeVolume, distributeGoal types.DistributeGoal,
 ) (types.DistributeGoal, error) {
 
@@ -200,7 +200,7 @@ func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNode
 }
 
 // allocate mining reward from foundation account
-func (k Keeper) calcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.DistributeGoal) (types.DistributeGoal, error) {
+func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.DistributeGoal) (types.DistributeGoal, error) {
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
 	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 
@@ -303,7 +303,7 @@ func (k Keeper) distributeValidatorRewardToFeePool(ctx sdk.Context, distributeGo
 	return distributeGoal, nil
 }
 
-func (k Keeper) calcRewardForResourceNode(ctx sdk.Context, trafficList []types.SingleNodeVolume,
+func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.SingleNodeVolume,
 	distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) (map[string]types.Reward, types.DistributeGoal) {
 
@@ -381,7 +381,7 @@ func (k Keeper) calcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 	return rewardDetailMap, distributeGoal
 }
 
-func (k Keeper) calcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward,
+func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) (map[string]types.Reward, types.DistributeGoal) {
 
 	totalUsedStakeRewardFromMiningPool := sdk.ZeroInt()

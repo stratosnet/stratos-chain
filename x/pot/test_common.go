@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
+	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -108,7 +109,7 @@ func SetConfig() {
 	config.Seal()
 }
 
-func setupAccounts() []authexported.Account {
+func setupAccounts(mApp *mock.App) []authexported.Account {
 
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{
@@ -202,6 +203,17 @@ func setupAccounts() []authexported.Account {
 		idxNodeAcc1, idxNodeAcc2, idxNodeAcc3,
 		foundationAcc,
 	}
+
+	ctx1 := mApp.BaseApp.NewContext(true, abci.Header{})
+	ctx1.Logger().Info("resNodeAcc1 -> " + resNodeAcc1.String())
+	ctx1.Logger().Info("resNodeAcc2 -> " + resNodeAcc2.String())
+	ctx1.Logger().Info("resNodeAcc3 -> " + resNodeAcc3.String())
+	ctx1.Logger().Info("resNodeAcc4 -> " + resNodeAcc4.String())
+	ctx1.Logger().Info("resNodeAcc5 -> " + resNodeAcc5.String())
+	ctx1.Logger().Info("idxNodeAcc1 -> " + idxNodeAcc1.String())
+	ctx1.Logger().Info("idxNodeAcc2 -> " + idxNodeAcc2.String())
+	ctx1.Logger().Info("idxNodeAcc3 -> " + idxNodeAcc3.String())
+	ctx1.Logger().Info("foundationAcc -> " + foundationAcc.String())
 
 	return accs
 }

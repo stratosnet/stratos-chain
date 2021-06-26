@@ -1,7 +1,6 @@
 package pot
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -65,7 +64,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	SetConfig()
 	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
 	mApp, k, stakingKeeper, bankKeeper, supplyKeeper := getMockApp(t)
-	accs := setupAccounts()
+	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
 	mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
 
@@ -100,25 +99,71 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	var i int64
 	i = 0
 	for {
-		fmt.Println("*****************************************************************************")
+		ctx.Logger().Info("*****************************************************************************")
 		/********************* prepare tx data *********************/
 		volumeReportMsg := setupMsgVolumeReport(i + 1)
 
 		lastTotalMinedToken := k.GetTotalMinedTokens(ctx)
-		fmt.Println("last committed mined token = " + lastTotalMinedToken.String())
+		ctx.Logger().Info("last committed mined token = " + lastTotalMinedToken.String())
 		if isNeedStop(ctx, k, volumeReportMsg.Epoch, lastTotalMinedToken) {
 			break
 		}
 
 		/********************* print info *********************/
-		fmt.Println("epoch " + volumeReportMsg.Epoch.String())
+		ctx.Logger().Info("epoch " + volumeReportMsg.Epoch.String())
 		S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 		Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
 		Y := k.GetTotalConsumedOzone(volumeReportMsg.NodesVolume).ToDec()
 		Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
-		fmt.Println("R = (S + Pt) * Y / (Lt + Y)")
-		fmt.Println("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+		//ctx.Logger().Info("R = (S + Pt) * Y / (Lt + Y)")
+		ctx.Logger().Info("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+
+		ctx.Logger().Info("---------------------------")
+		distributeGoal := types.InitDistributeGoal()
+		distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.NodesVolume, distributeGoal)
+		require.NoError(t, err)
+		distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
+		require.NoError(t, err)
+		ctx.Logger().Info(distributeGoal.String())
+
+		ctx.Logger().Info("---------------------------")
+		distributeGoalBalance := distributeGoal
+		rewardDetailMap := make(map[string]types.Reward)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.NodesVolume, distributeGoalBalance, rewardDetailMap)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
+		ctx.Logger().Info("resourceNode1:  address = " + addrRes1.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes1.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes1.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("resourceNode2:  address = " + addrRes2.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes2.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes2.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("resourceNode3:  address = " + addrRes3.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes3.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes3.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("resourceNode4:  address = " + addrRes4.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes4.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes4.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("resourceNode5:  address = " + addrRes5.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes5.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes5.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("indexingNode1:  address = " + addrIdx1.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrIdx1.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrIdx1.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("indexingNode2:  address = " + addrIdx2.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrIdx2.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrIdx2.String()].RewardFromTrafficPool.String())
+
+		ctx.Logger().Info("indexingNode3:  address = " + addrIdx3.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrIdx3.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrIdx3.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
 		feePoolAccAddr := supplyKeeper.GetModuleAddress(k.FeeCollectorName)
@@ -148,6 +193,8 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 	for _, addr := range rewardAddrList {
 		individualReward := k.GetIndividualReward(ctx, addr, newMatureEpoch)
 		individualRewardTotal = individualRewardTotal.Add(individualReward)
+
+		ctx.Logger().Info("individualReward of [" + addr.String() + "] = " + individualReward.String())
 	}
 
 	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.FeeCollectorName)
@@ -161,7 +208,10 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 
 	newFeePool := k.BankKeeper.GetCoins(ctx, feePoolAccAddr).AmountOf("ustos")
 
-	rewardDestChange := newFeePool.Sub(lastFeePool).Add(individualRewardTotal)
+	feePoolValChange := newFeePool.Sub(lastFeePool)
+	ctx.Logger().Info("reward send to validator fee pool                               = " + feePoolValChange.String())
+
+	rewardDestChange := feePoolValChange.Add(individualRewardTotal)
 
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 

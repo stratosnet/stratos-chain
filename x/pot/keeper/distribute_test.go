@@ -375,7 +375,7 @@ func testBlockChainRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper
 	rewardDetailMap := make(map[string]types.Reward)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	// stake reward split by the amount of delegation/deposit
@@ -396,9 +396,9 @@ func testBlockChainRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
@@ -438,7 +438,7 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	totalReward := k.getTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
@@ -459,9 +459,9 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
@@ -501,7 +501,7 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	totalReward := k.getTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
@@ -528,9 +528,9 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
@@ -567,7 +567,7 @@ func testBlockChainRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper,
 	rewardDetailMap := make(map[string]types.Reward)
 
 	//2, calc mining reward in total
-	distributeGoal, err := k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err := k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	require.NoError(t, err)
 
 	totalMiningReward := distributeGoal.BlockChainRewardToValidatorFromMiningPool.Add(distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool).
@@ -595,9 +595,9 @@ func testBlockChainRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper,
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
@@ -637,7 +637,7 @@ func testMetaNodeRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	totalReward := sdk.NewDec(80000000000)
 
 	//2, calc mining reward in total
-	distributeGoal, err := k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err := k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
@@ -658,9 +658,9 @@ func testMetaNodeRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, b
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
@@ -700,7 +700,7 @@ func testTrafficRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, ba
 	totalReward := sdk.NewDec(80000000000)
 
 	//2, calc mining reward in total
-	distributeGoal, err := k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err := k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
@@ -727,9 +727,9 @@ func testTrafficRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, ba
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
