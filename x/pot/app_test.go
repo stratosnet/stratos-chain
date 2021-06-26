@@ -4,7 +4,6 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/cosmos/cosmos-sdk/x/staking"
@@ -17,227 +16,168 @@ import (
 	"testing"
 )
 
-func SetConfig() {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
-	config.Seal()
-}
+const (
+	stopFlagOutOfTotalMiningReward = true
+	stopFlagSpecificMinedReward    = true
+	stopFlagSpecificEpoch          = true
+)
 
-func Test(t *testing.T) {
-	SetConfig()
-	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
-	mApp, _, _ := getMockApp(t)
+var (
+	paramSpecificMinedReward = sdk.NewInt(160000000000)
+	paramSpecificEpoch       = sdk.NewInt(100)
+)
 
-	resOwnderAcc1 := &auth.BaseAccount{
-		Address: resOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes1)},
-	}
-	fmt.Println("resOwnderAcc1" + resOwnderAcc1.String())
-
-	idxOwnerAcc1 := &auth.BaseAccount{
-		Address: idxOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx1)},
-	}
-	fmt.Println("idxOwnerAcc1" + idxOwnerAcc1.String())
-
-	valOwnerAcc1 := &auth.BaseAccount{
-		Address: valAccAddr1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", valInitialStake)},
-	}
-	fmt.Println("valOwnerAcc1" + valOwnerAcc1.String())
-
-	addrIdxAcc1 := &auth.BaseAccount{
-		Address: addrIdx1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-	fmt.Println("addrIdxAcc1" + addrIdxAcc1.String())
-
-	accs := []authexported.Account{resOwnderAcc1, idxOwnerAcc1, addrIdxAcc1, valOwnerAcc1}
-
-	mock.SetGenesis(mApp, accs)
-
-	//var nodesVolume = make([]types.SingleNodeVolume, 0)
-
-	volume1 := types.NewSingleNodeVolume(addrRes1, sdk.NewInt(10000000))
-	volume2 := types.NewSingleNodeVolume(addrRes2, sdk.NewInt(10000000))
-	volume3 := types.NewSingleNodeVolume(addrRes3, sdk.NewInt(10000000))
+// initialize data of volume report
+func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
+	volume1 := types.NewSingleNodeVolume(addrRes1, resourceNodeVolume1)
+	volume2 := types.NewSingleNodeVolume(addrRes2, resourceNodeVolume2)
+	volume3 := types.NewSingleNodeVolume(addrRes3, resourceNodeVolume3)
 
 	nodesVolume := []types.SingleNodeVolume{volume1, volume2, volume3}
 	reporter := addrIdx1
-	epoch := sdk.NewInt(1)
-	reportReference := "ref"
+	epoch := sdk.NewInt(newEpoch)
+	reportReference := "report for epoch " + epoch.String()
 
 	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference)
+
+	return volumeReportMsg
+}
+
+// Test case termination conditions
+// modify stop flag & variable could make the test case stop when reach a specific condition
+func isNeedStop(ctx sdk.Context, k Keeper, epoch sdk.Int, minedToken sdk.Int) bool {
+
+	if stopFlagOutOfTotalMiningReward && minedToken.GTE(foundationDeposit.AmountOf("ustos")) {
+		return true
+	}
+	if stopFlagSpecificMinedReward && minedToken.GTE(paramSpecificMinedReward) {
+		return true
+	}
+	if stopFlagSpecificEpoch && epoch.GTE(paramSpecificEpoch) {
+		return true
+	}
+	return false
+}
+
+func TestPotVolumeReportMsgs(t *testing.T) {
+
+	/********************* initialize mock app *********************/
+	SetConfig()
+	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
+	mApp, k, stakingKeeper, bankKeeper, supplyKeeper := getMockApp(t)
+	accs := setupAccounts()
+	mock.SetGenesis(mApp, accs)
+	mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
+
+	/********************* create validator with 50% commission *********************/
+	commission := staking.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
+	description := staking.NewDescription("foo_moniker", "", "", "", "")
+	createValidatorMsg := staking.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, sdk.NewCoin("ustos", valInitialStake), description, commission, sdk.OneInt())
+
 	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{0}, []uint64{0}, true, true, privKeyIdx1, idxOwnerPrivKey1)
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, []uint64{8}, []uint64{0}, true, true, valOpPrivKey1)
+	mock.CheckBalance(t, mApp, valOpAccAddr1, nil)
+
+	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
+	mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	stakingKeeper.ApplyAndReturnValidatorSetUpdates(mApp.BaseApp.NewContext(true, header))
+	validator := checkValidator(t, mApp, stakingKeeper, valOpValAddr1, true)
+
+	require.Equal(t, valOpValAddr1, validator.OperatorAddress)
+	require.Equal(t, sdk.Bonded, validator.Status)
+	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
+	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
+	ctx := mApp.BaseApp.NewContext(true, header)
+	/*
+		the sequence of the account list is related to the value of parameter "accNums" of mock.SignCheckDeliver() method
+		accs := []authexported.Account{
+			resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
+			idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3, valOwnerAcc1,
+			resNodeAcc1, resNodeAcc2, resNodeAcc3, resNodeAcc4, resNodeAcc5,
+			idxNodeAcc1, idxNodeAcc2, idxNodeAcc3,
+		}
+	*/
+	var i int64
+	i = 0
+	for {
+		fmt.Println("*****************************************************************************")
+		/********************* prepare tx data *********************/
+		volumeReportMsg := setupMsgVolumeReport(i + 1)
+
+		lastTotalMinedToken := k.GetTotalMinedTokens(ctx)
+		fmt.Println("last committed mined token = " + lastTotalMinedToken.String())
+		if isNeedStop(ctx, k, volumeReportMsg.Epoch, lastTotalMinedToken) {
+			break
+		}
+
+		/********************* print info *********************/
+		fmt.Println("epoch " + volumeReportMsg.Epoch.String())
+		S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+		Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
+		Y := k.GetTotalConsumedOzone(volumeReportMsg.NodesVolume).ToDec()
+		Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
+		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
+		fmt.Println("R = (S + Pt) * Y / (Lt + Y)")
+		fmt.Println("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+
+		/********************* record data before delivering tx  *********************/
+		feePoolAccAddr := supplyKeeper.GetModuleAddress(k.FeeCollectorName)
+		lastFoundationAccBalance := bankKeeper.GetCoins(ctx, foundationAccAddr).AmountOf("ustos")
+		lastFeePool := bankKeeper.GetCoins(ctx, feePoolAccAddr).AmountOf("ustos")
+		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
+
+		/********************* deliver tx *********************/
+		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{14}, []uint64{uint64(i)}, true, true, privKeyIdx1)
+
+		/********************* commit & check result *********************/
+		header = abci.Header{Height: mApp.LastBlockHeight() + 1}
+		ctx = mApp.BaseApp.NewContext(true, header)
+		checkResult(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool)
+
+		i++
+	}
 
 }
 
-//
-//func TestPotVolumeReportMsgs(t *testing.T) {
-//	mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
-//
-//	// create validator with 50% commission
-//	stakingHandler := staking.NewHandler(stakingKeeper)
-//	//createAccount for validator's delegator
-//	account := accountKeeper.GetAccount(ctx, valAccAddr1)
-//	if account == nil {
-//		account = accountKeeper.NewAccountWithAddress(ctx, valAccAddr1)
-//		//fmt.Printf("create account: " + account.String() + "\n")
-//	}
-//
-//	_, err := bankKeeper.AddCoins(ctx, valAccAddr1, sdk.NewCoins(valInitialStake))
-//	require.NoError(t, err)
-//
-//
-//	commission := staking.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1))
-//	msgVal := staking.NewMsgCreateValidator(valOpAddr1, valConsPk1, valInitialStake, staking.Description{"foo_moniker", "", "", "", ""}, commission, sdk.OneInt())
-//
-//	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{msgVal}, []uint64{0}, []uint64{0}, true, true, valConsPrivKey1)
-//
-//
-//	res, err := stakingHandler(ctx, msgVal)
-//	require.NoError(t, err)
-//	require.NotNil(t, res)
-//	stakingKeeper.ApplyAndReturnValidatorSetUpdates(ctx)
-//
-//	//build traffic list
-//	var trafficList []types.SingleNodeVolume
-//	trafficList = append(trafficList, types.NewSingleNodeVolume(addrRes1, sdk.NewInt(resourceNodeVolume1)))
-//	trafficList = append(trafficList, types.NewSingleNodeVolume(addrRes2, sdk.NewInt(resourceNodeVolume2)))
-//	trafficList = append(trafficList, types.NewSingleNodeVolume(addrRes3, sdk.NewInt(resourceNodeVolume3)))
-//
-//	//check prepared data
-//	S := registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
-//	fmt.Println("S=" + S.String())
-//	Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
-//	fmt.Println("Pt=" + Pt.String())
-//	Y := k.GetTotalConsumedOzone(trafficList).ToDec()
-//	fmt.Println("Y=" + Y.String())
-//	Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
-//	fmt.Println("Lt=" + Lt.String())
-//	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
-//	fmt.Println("R=" + R.String())
-//
-//	fmt.Println("***************************************************************************************")
-//
-//	//genTokens := sdk.TokensFromConsensusPower(42)
-//	//bondTokens := sdk.TokensFromConsensusPower(10)
-//	//genCoin := sdk.NewCoin(sdk.DefaultBondDenom, genTokens)
-//	//bondCoin := sdk.NewCoin(sdk.DefaultBondDenom, bondTokens)
-//	//
-//	//acc1 := &auth.BaseAccount{
-//	//	Address: addr1,
-//	//	Coins:   sdk.Coins{genCoin},
-//	//}
-//	//acc2 := &auth.BaseAccount{
-//	//	Address: addr2,
-//	//	Coins:   sdk.Coins{genCoin},
-//	//}
-//	//accs := []authexported.Account{acc1, acc2}
-//	//
-//	//mock.SetGenesis(mApp, accs)
-//	//mock.CheckBalance(t, mApp, addr1, sdk.Coins{genCoin})
-//	//mock.CheckBalance(t, mApp, addr2, sdk.Coins{genCoin})
-//	//
-//	//// create validator
-//	//description := NewDescription("foo_moniker", "", "", "", "")
-//	//createValidatorMsg := NewMsgCreateValidator(
-//	//	sdk.ValAddress(addr1), priv1.PubKey(), bondCoin, description, commissionRates, sdk.OneInt(),
-//	//)
-//	//
-//	//header := abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	//mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, []uint64{0}, []uint64{0}, true, true, priv1)
-//	//mock.CheckBalance(t, mApp, addr1, sdk.Coins{genCoin.Sub(bondCoin)})
-//	//
-//	//header = abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	//mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-//	//
-//	//validator := checkValidator(t, mApp, keeper, sdk.ValAddress(addr1), true)
-//	//require.Equal(t, sdk.ValAddress(addr1), validator.OperatorAddress)
-//	//require.Equal(t, sdk.Bonded, validator.Status)
-//	//require.True(sdk.IntEq(t, bondTokens, validator.BondedTokens()))
-//	//
-//	//header = abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	//mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-//	//
-//	//// edit the validator
-//	//description = NewDescription("bar_moniker", "", "", "", "")
-//	//editValidatorMsg := NewMsgEditValidator(sdk.ValAddress(addr1), description, nil, nil)
-//	//
-//	//header = abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	//mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{editValidatorMsg}, []uint64{0}, []uint64{1}, true, true, priv1)
-//	//
-//	//validator = checkValidator(t, mApp, keeper, sdk.ValAddress(addr1), true)
-//	//require.Equal(t, description, validator.Description)
-//	//
-//	//// delegate
-//	//mock.CheckBalance(t, mApp, addr2, sdk.Coins{genCoin})
-//	//delegateMsg := NewMsgDelegate(addr2, sdk.ValAddress(addr1), bondCoin)
-//	//
-//	//header = abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	//mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{delegateMsg}, []uint64{1}, []uint64{0}, true, true, priv2)
-//	//mock.CheckBalance(t, mApp, addr2, sdk.Coins{genCoin.Sub(bondCoin)})
-//	//checkDelegation(t, mApp, keeper, addr2, sdk.ValAddress(addr1), true, bondTokens.ToDec())
-//	//
-//	//// begin unbonding
-//	//beginUnbondingMsg := NewMsgUndelegate(addr2, sdk.ValAddress(addr1), bondCoin)
-//	//header = abci.Header{Height: mApp.LastBlockHeight() + 1}
-//	//mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{beginUnbondingMsg}, []uint64{1}, []uint64{1}, true, true, priv2)
-//	//
-//	//// delegation should exist anymore
-//	//checkDelegation(t, mApp, keeper, addr2, sdk.ValAddress(addr1), false, sdk.Dec{})
-//	//
-//	//// balance should be the same because bonding not yet complete
-//	//mock.CheckBalance(t, mApp, addr2, sdk.Coins{genCoin.Sub(bondCoin)})
-//}
+func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
+	lastFoundationAccBalance sdk.Int, lastUnissuedPrepay sdk.Int, lastFeePool sdk.Int) {
 
-//func getMockApp(t *testing.T) (*mock.App, Keeper, auth.AccountKeeper, bank.Keeper, staking.Keeper, register.Keeper) {
-//	mApp := mock.NewApp()
-//
-//	RegisterCodec(mApp.Cdc)
-//	supply.RegisterCodec(mApp.Cdc)
-//	register.RegisterCodec(mApp.Cdc)
-//	staking.RegisterCodec(mApp.Cdc)
-//
-//	keyPot := sdk.NewKVStoreKey(StoreKey)
-//	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
-//	keyStaking := sdk.NewKVStoreKey(staking.StoreKey)
-//	keyRegister := sdk.NewKVStoreKey(register.StoreKey)
-//
-//	feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
-//	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
-//	bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
-//
-//	blacklistedAddrs := make(map[string]bool)
-//	blacklistedAddrs[feeCollector.GetAddress().String()] = true
-//	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
-//	blacklistedAddrs[bondPool.GetAddress().String()] = true
-//
-//	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
-//	maccPerms := map[string][]string{
-//		auth.FeeCollectorName:   nil,
-//		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
-//		staking.BondedPoolName:    {supply.Burner, supply.Staking},
-//	}
-//	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
-//	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
-//	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.AccountKeeper, bankKeeper, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace))
-//
-//	keeper := NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
-//
-//	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
-//	mApp.SetEndBlocker(getEndBlocker(keeper))
-//	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.AccountKeeper, supplyKeeper, []supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper))
-//
-//	require.NoError(t, mApp.CompleteSetup(keyStaking, keySupply))
-//	return mApp, keeper, mApp.AccountKeeper, bankKeeper, stakingKeeper, registerKeeper
-//}
+	individualRewardTotal := sdk.ZeroInt()
+	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
+	rewardAddrList := k.GetRewardAddressPool(ctx)
+	for _, addr := range rewardAddrList {
+		individualReward := k.GetIndividualReward(ctx, addr, newMatureEpoch)
+		individualRewardTotal = individualRewardTotal.Add(individualReward)
+	}
 
-func getMockApp(t *testing.T) (*mock.App, Keeper, auth.AccountKeeper) {
+	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.FeeCollectorName)
+	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr).AmountOf("ustos")
+	newUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
+
+	rewardSrcChange := lastFoundationAccBalance.
+		Sub(newFoundationAccBalance).
+		Add(lastUnissuedPrepay).
+		Sub(newUnissuedPrepay)
+
+	newFeePool := k.BankKeeper.GetCoins(ctx, feePoolAccAddr).AmountOf("ustos")
+
+	rewardDestChange := newFeePool.Sub(lastFeePool).Add(individualRewardTotal)
+
+	require.Equal(t, rewardSrcChange, rewardDestChange)
+
+}
+
+func checkValidator(t *testing.T, mApp *mock.App, stakingKeeper staking.Keeper,
+	addr sdk.ValAddress, expFound bool) staking.Validator {
+
+	ctxCheck := mApp.BaseApp.NewContext(true, abci.Header{})
+	validator, found := stakingKeeper.GetValidator(ctxCheck, addr)
+
+	require.Equal(t, expFound, found)
+	return validator
+}
+
+func getMockApp(t *testing.T) (*mock.App, Keeper, staking.Keeper, bank.Keeper, supply.Keeper) {
 	mApp := mock.NewApp()
 
 	RegisterCodec(mApp.Cdc)
@@ -245,10 +185,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, auth.AccountKeeper) {
 	staking.RegisterCodec(mApp.Cdc)
 	register.RegisterCodec(mApp.Cdc)
 
-	//keyParams := sdk.NewKVStoreKey(params.StoreKey)
-	//tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
-	//keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keyStaking := sdk.NewKVStoreKey(staking.StoreKey)
 	keyRegister := sdk.NewKVStoreKey(register.StoreKey)
 	keyPot := sdk.NewKVStoreKey(StoreKey)
@@ -262,9 +199,6 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, auth.AccountKeeper) {
 	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 	blacklistedAddrs[bondPool.GetAddress().String()] = true
 
-	//pk := params.NewKeeper(mApp.Cdc, keyParams, tkeyParams)
-	//mApp.ParamsKeeper = pk
-
 	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 	maccPerms := map[string][]string{
 		auth.FeeCollectorName:     {"fee_collector"},
@@ -277,8 +211,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, auth.AccountKeeper) {
 
 	keeper := NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
 
-	//mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
-	//mApp.Router().AddRoute(register.RouterKey, register.NewHandler(registerKeeper))
+	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
 	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
 	mApp.SetEndBlocker(getEndBlocker(keeper))
 	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
@@ -287,19 +220,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, auth.AccountKeeper) {
 	err := mApp.CompleteSetup(keyStaking, keySupply, keyRegister, keyPot)
 	require.NoError(t, err)
 
-	return mApp, keeper, mApp.AccountKeeper
-}
-
-// getEndBlocker returns a staking endblocker.
-func getEndBlocker(keeper Keeper) sdk.EndBlocker {
-	//return func(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-	//	validatorUpdates := EndBlocker(ctx, keeper)
-	//
-	//	return abci.ResponseEndBlock{
-	//		ValidatorUpdates: validatorUpdates,
-	//	}
-	//}
-	return nil
+	return mApp, keeper, stakingKeeper, bankKeeper, supplyKeeper
 }
 
 // getInitChainer initializes the chainer of the mock app and sets the genesis
@@ -314,7 +235,6 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		mapp.InitChainer(ctx, req)
 
-		//registerGenesis := register.DefaultGenesisState()
 		lastResourceNodeTotalStake := initialStakeRes1.Add(initialStakeRes2).Add(initialStakeRes3).Add(initialStakeRes4).Add(initialStakeRes5)
 		lastIndexingNodeTotalStake := initialStakeIdx1.Add(initialStakeIdx2).Add(initialStakeIdx3)
 
@@ -335,6 +255,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeTotalStake, lastResourceNodeStakes, resourceNodes,
 			lastIndexingNodeTotalStake, lastIndexingNodeStakes, indexingNodes)
+
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
 		// set module accounts
@@ -354,61 +275,28 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		validators := staking.InitGenesis(ctx, stakingKeeper, accountKeeper, supplyKeeper, stakingGenesis)
 
-		InitGenesis(ctx, keeper, types.DefaultGenesisState())
+		//preset
+		registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimit)
+		keeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
+
+		//pot genesis data load
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), foundationAccAddr, initialOzonePrice))
 
 		return abci.ResponseInitChain{
 			Validators: validators,
 		}
-		//validators := staking.InitGenesis(ctx, stakingKeeper, accountKeeper, supplyKeeper, stakingGenesis)
-		//return abci.ResponseInitChain{
-		//	Validators: validators,
-		//}
-
 	}
 
+}
+
+// getEndBlocker returns a staking endblocker.
+func getEndBlocker(keeper Keeper) sdk.EndBlocker {
+	return func(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+		validatorUpdates := keeper.StakingKeeper.BlockValidatorUpdates(ctx)
+
+		return abci.ResponseEndBlock{
+			ValidatorUpdates: validatorUpdates,
+		}
+	}
 	return nil
-}
-
-func setupAllResourceNodes() []register.ResourceNode {
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", pubKeyRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4")
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", pubKeyRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4")
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", pubKeyRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", pubKeyRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4")
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", pubKeyRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4")
-
-	resourceNode1.AddToken(initialStakeRes1)
-	resourceNode2.AddToken(initialStakeRes2)
-	resourceNode3.AddToken(initialStakeRes3)
-	resourceNode4.AddToken(initialStakeRes4)
-	resourceNode5.AddToken(initialStakeRes5)
-
-	var resourceNodes []register.ResourceNode
-	resourceNodes = append(resourceNodes, resourceNode1)
-	resourceNodes = append(resourceNodes, resourceNode2)
-	resourceNodes = append(resourceNodes, resourceNode3)
-	resourceNodes = append(resourceNodes, resourceNode4)
-	resourceNodes = append(resourceNodes, resourceNode5)
-	return resourceNodes
-}
-
-func setupAllIndexingNodes() []register.IndexingNode {
-	var indexingNodes []register.IndexingNode
-	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", pubKeyIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
-	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", pubKeyIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
-	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", pubKeyIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
-
-	indexingNode1.AddToken(initialStakeIdx1)
-	indexingNode2.AddToken(initialStakeIdx2)
-	indexingNode3.AddToken(initialStakeIdx3)
-
-	indexingNode1.Status = sdk.Bonded
-	indexingNode2.Status = sdk.Bonded
-	indexingNode3.Status = sdk.Bonded
-
-	indexingNodes = append(indexingNodes, indexingNode1)
-	indexingNodes = append(indexingNodes, indexingNode2)
-	indexingNodes = append(indexingNodes, indexingNode3)
-
-	return indexingNodes
-
 }

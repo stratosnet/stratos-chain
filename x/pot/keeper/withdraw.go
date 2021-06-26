@@ -10,7 +10,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coin, nodeAddress sdk.AccAd
 		return types.ErrNotTheOwner
 	}
 
-	matureRewardVal := k.getMatureTotalReward(ctx, nodeAddress)
+	matureRewardVal := k.GetMatureTotalReward(ctx, nodeAddress)
 	matureReward := sdk.NewCoin(k.BondDenom(ctx), matureRewardVal)
 	if matureReward.IsLT(amount) {
 		return types.ErrInsufficientMatureTotal

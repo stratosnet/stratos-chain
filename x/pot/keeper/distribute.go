@@ -21,20 +21,29 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 		return err
 	}
 
+	/**
+	distributeGoalBalance is used for keeping the balance to return to the reward provider's account
+
+	After calculation by step 3,4,
+	distributeGoalBalance retains FULL rewards that will be distributed to validators
+	& the REMAINING rewards that will be returned to the reward provider’s account
+	*/
+	distributeGoalBalance := distributeGoal
+
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoalBalance = k.calcRewardForResourceNode(ctx, trafficList, distributeGoalBalance, rewardDetailMap)
 
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoalBalance = k.calcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
 
-	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)
 	if err != nil {
 		return err
 	}
 
 	//6, distribute skate reward to fee pool for validators
-	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
+	distributeGoalBalance, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoalBalance)
 	if err != nil {
 		return err
 	}
@@ -46,7 +55,7 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	}
 
 	//8, return balance to traffic pool & mining pool
-	err = k.returnBalance(ctx, distributeGoal)
+	err = k.returnBalance(ctx, distributeGoalBalance, epoch)
 	if err != nil {
 		return err
 	}
@@ -54,12 +63,14 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	return nil
 }
 
-func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal types.DistributeGoal) (err error) {
-	totalRewardFromMiningPool := goal.BlockChainRewardToIndexingNodeFromMiningPool.
+func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal types.DistributeGoal, epoch sdk.Int) (err error) {
+	totalRewardFromMiningPool := goal.BlockChainRewardToValidatorFromMiningPool.
+		Add(goal.BlockChainRewardToIndexingNodeFromMiningPool).
 		Add(goal.MetaNodeRewardToIndexingNodeFromMiningPool).
 		Add(goal.BlockChainRewardToResourceNodeFromMiningPool).
 		Add(goal.TrafficRewardToResourceNodeFromMiningPool)
-	totalRewardFromTrafficPool := goal.BlockChainRewardToIndexingNodeFromTrafficPool.
+	totalRewardFromTrafficPool := goal.BlockChainRewardToValidatorFromTrafficPool.
+		Add(goal.BlockChainRewardToIndexingNodeFromTrafficPool).
 		Add(goal.MetaNodeRewardToIndexingNodeFromTrafficPool).
 		Add(goal.BlockChainRewardToResourceNodeFromTrafficPool).
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
@@ -69,7 +80,8 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 	amountToDeduct := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), totalRewardFromMiningPool))
 	hasCoin := k.BankKeeper.HasCoins(ctx, foundationAccountAddr, amountToDeduct)
 	if !hasCoin {
-		return types.ErrInsufficientBalance
+		ctx.Logger().Info("balance of foundation account is 0")
+		return types.ErrInsufficientFoundationAccBalance
 	}
 	_, err = k.BankKeeper.SubtractCoins(ctx, foundationAccountAddr, amountToDeduct)
 	if err != nil {
@@ -77,22 +89,23 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 	}
 
 	// update mined token record by adding mining reward
-	oldMinedToken := k.getMinedTokens(ctx)
-	newMinedToken := oldMinedToken.Add(totalRewardFromMiningPool)
-	k.setMinedTokens(ctx, newMinedToken)
+	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
+	newTotalMinedToken := oldTotalMinedToken.Add(totalRewardFromMiningPool)
+	k.setTotalMinedTokens(ctx, newTotalMinedToken)
+	k.setMinedTokens(ctx, epoch, totalRewardFromMiningPool)
 
 	// deduct traffic reward from prepay pool
 	totalUnIssuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 	newTotalUnIssuedPrePay := totalUnIssuedPrepay.Sub(totalRewardFromTrafficPool)
 	if newTotalUnIssuedPrePay.IsNegative() {
-		return types.ErrInsufficientBalance
+		return types.ErrInsufficientUnissuedPrePayBalance
 	}
 	k.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
 
 	return nil
 }
 
-func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal) (err error) {
+func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch sdk.Int) (err error) {
 	balanceOfMiningPool := goal.BlockChainRewardToIndexingNodeFromMiningPool.
 		Add(goal.MetaNodeRewardToIndexingNodeFromMiningPool).
 		Add(goal.BlockChainRewardToResourceNodeFromMiningPool).
@@ -111,9 +124,12 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal) (err e
 	}
 
 	//return balance to minedToken record
-	oldMinedToken := k.getMinedTokens(ctx)
+	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
+	newTotalMinedToken := oldTotalMinedToken.Sub(balanceOfMiningPool)
+	oldMinedToken := k.GetMinedTokens(ctx, epoch)
 	newMinedToken := oldMinedToken.Sub(balanceOfMiningPool)
-	k.setMinedTokens(ctx, newMinedToken)
+	k.setTotalMinedTokens(ctx, newTotalMinedToken)
+	k.setMinedTokens(ctx, epoch, newMinedToken)
 
 	// return balance to prepay pool
 	totalUnIssuedPrepay := k.GetTotalUnissuedPrepay(ctx)
@@ -128,8 +144,8 @@ func (k Keeper) calcTrafficRewardInTotal(
 ) (types.DistributeGoal, error) {
 
 	totalTrafficReward := k.getTrafficReward(ctx, trafficList)
-	minedTokens := k.getMinedTokens(ctx)
-	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, minedTokens)
+	totalMinedTokens := k.GetTotalMinedTokens(ctx)
+	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 	if err != nil && err != types.ErrOutOfIssuance {
 		return distributeGoal, err
 	}
@@ -161,18 +177,32 @@ func (k Keeper) calcTrafficRewardInTotal(
 // R = (S + Pt) * Y / (Lt + Y)
 func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNodeVolume) sdk.Dec {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+	if S.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
+	}
 	Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
+	if Pt.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("total remaining prepay not issued is 0")
+	}
 	Y := k.GetTotalConsumedOzone(trafficList).ToDec()
+	if Y.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("total consumed uoz is 0")
+	}
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
+	if Lt.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("remaining total uoz limit is 0")
+	}
 	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
-
+	if R.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("traffic reward to distribute is 0")
+	}
 	return R
 }
 
 // allocate mining reward from foundation account
 func (k Keeper) calcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.DistributeGoal) (types.DistributeGoal, error) {
-	minedTokens := k.getMinedTokens(ctx)
-	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, minedTokens)
+	totalMinedTokens := k.GetTotalMinedTokens(ctx)
+	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 
 	totalMiningReward := miningParam.MiningReward
 	if err != nil {
@@ -203,30 +233,27 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[
 		nodeAddr := reward.NodeAddress
 		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
 		k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward)
-		if err != nil {
-			return err
-		}
 	}
 	k.setLastMaturedEpoch(ctx, currentEpoch)
 	return nil
 }
 
 func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) {
-	oldMatureTotal := k.getMatureTotalReward(ctx, account)
-	oldImmatureTotal := k.getImmatureTotalReward(ctx, account)
+	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
+	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
 	matureStartEpoch := k.getLastMaturedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
 
 	immatureToMature := sdk.ZeroInt()
 	for i := matureStartEpoch; i <= matureEndEpoch; i++ {
-		reward := k.getIndividualReward(ctx, account, sdk.NewInt(i))
+		reward := k.GetIndividualReward(ctx, account, sdk.NewInt(i))
 		immatureToMature = immatureToMature.Add(reward)
 	}
 
 	matureTotal := oldMatureTotal.Add(immatureToMature)
 	immatureTotal := oldImmatureTotal.Sub(immatureToMature).Add(newReward)
 
-	rewardAddressPool := k.getRewardAddressPool(ctx)
+	rewardAddressPool := k.GetRewardAddressPool(ctx)
 	addrExist := false
 	for i := 0; i < len(rewardAddressPool); i++ {
 		if rewardAddressPool[i].Equals(account) {
@@ -247,7 +274,8 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
 func (k Keeper) getMatureEpochByCurrentEpoch(ctx sdk.Context, currentEpoch sdk.Int) (matureEpoch sdk.Int) {
 	// 14 days = 20160 minutes = 2016 epochs
-	matureEpoch = currentEpoch.Add(k.GetMatureEpoch(ctx))
+	paramMatureEpoch := sdk.NewInt(k.MatureEpoch(ctx))
+	matureEpoch = paramMatureEpoch.Add(currentEpoch)
 	return matureEpoch
 }
 

@@ -37,31 +37,31 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Int) {
 	return
 }
 
-func (k Keeper) SetMatureEpoch(ctx sdk.Context, matureEpoch sdk.Int) {
+func (k Keeper) setTotalMinedTokens(ctx sdk.Context, totalMinedToken sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
-	b := k.Cdc.MustMarshalBinaryLengthPrefixed(matureEpoch)
-	store.Set(types.MatureEpochKey, b)
+	b := k.Cdc.MustMarshalBinaryLengthPrefixed(totalMinedToken)
+	store.Set(types.TotalMinedTokensKey, b)
 }
 
-func (k Keeper) GetMatureEpoch(ctx sdk.Context) (matureEpoch sdk.Int) {
+func (k Keeper) GetTotalMinedTokens(ctx sdk.Context) (totalMinedToken sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
-	b := store.Get(types.MatureEpochKey)
+	b := store.Get(types.TotalMinedTokensKey)
 	if b == nil {
-		panic("Stored mature epoch should not have been nil")
+		return sdk.ZeroInt()
 	}
-	k.Cdc.MustUnmarshalBinaryLengthPrefixed(b, &matureEpoch)
+	k.Cdc.MustUnmarshalBinaryLengthPrefixed(b, &totalMinedToken)
 	return
 }
 
-func (k Keeper) setMinedTokens(ctx sdk.Context, minedToken sdk.Int) {
+func (k Keeper) setMinedTokens(ctx sdk.Context, epoch sdk.Int, minedToken sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
 	b := k.Cdc.MustMarshalBinaryLengthPrefixed(minedToken)
-	store.Set(types.MinedTokensKey, b)
+	store.Set(types.GetMinedTokensKey(epoch), b)
 }
 
-func (k Keeper) getMinedTokens(ctx sdk.Context) (minedToken sdk.Int) {
+func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
-	b := store.Get(types.MinedTokensKey)
+	b := store.Get(types.GetMinedTokensKey(epoch))
 	if b == nil {
 		return sdk.ZeroInt()
 	}
@@ -91,7 +91,7 @@ func (k Keeper) setRewardAddressPool(ctx sdk.Context, addressList []sdk.AccAddre
 	store.Set(types.RewardAddressPoolKey, b)
 }
 
-func (k Keeper) getRewardAddressPool(ctx sdk.Context) (addressList []sdk.AccAddress) {
+func (k Keeper) GetRewardAddressPool(ctx sdk.Context) (addressList []sdk.AccAddress) {
 	store := ctx.KVStore(k.StoreKey)
 	b := store.Get(types.RewardAddressPoolKey)
 	if b == nil {
@@ -123,7 +123,7 @@ func (k Keeper) setIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch s
 	store.Set(types.GetIndividualRewardKey(acc, epoch), b)
 }
 
-func (k Keeper) getIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch sdk.Int) (value sdk.Int) {
+func (k Keeper) GetIndividualReward(ctx sdk.Context, acc sdk.AccAddress, epoch sdk.Int) (value sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
 	b := store.Get(types.GetIndividualRewardKey(acc, epoch))
 	if b == nil {
@@ -139,7 +139,7 @@ func (k Keeper) setMatureTotalReward(ctx sdk.Context, acc sdk.AccAddress, value 
 	store.Set(types.GetMatureTotalRewardKey(acc), b)
 }
 
-func (k Keeper) getMatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (value sdk.Int) {
+func (k Keeper) GetMatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (value sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
 	b := store.Get(types.GetMatureTotalRewardKey(acc))
 	if b == nil {
@@ -155,7 +155,7 @@ func (k Keeper) setImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress, valu
 	store.Set(types.GetImmatureTotalRewardKey(acc), b)
 }
 
-func (k Keeper) getImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (value sdk.Int) {
+func (k Keeper) GetImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (value sdk.Int) {
 	store := ctx.KVStore(k.StoreKey)
 	b := store.Get(types.GetImmatureTotalRewardKey(acc))
 	if b == nil {

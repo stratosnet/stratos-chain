@@ -21,8 +21,8 @@ const (
 var (
 	FoundationAccountKey   = []byte{0x01}
 	InitialUOzonePriceKey  = []byte{0x02}
-	MatureEpochKey         = []byte{0x03}
-	MinedTokensKey         = []byte{0x04}
+	TotalMinedTokensKey    = []byte{0x03}
+	MinedTokensKeyPrefix   = []byte{0x04} // key: prefix_epoch
 	TotalUnissuedPrepayKey = []byte{0x05}
 
 	RewardAddressPoolKey         = []byte{0x11}
@@ -34,6 +34,11 @@ var (
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
 	VolumeReportStoreKeyPrefix = []byte{0x41}
 )
+
+func GetMinedTokensKey(epoch sdk.Int) []byte {
+	bEpoch := []byte(epoch.String())
+	return append(MinedTokensKeyPrefix, bEpoch...)
+}
 
 // VolumeReportStoreKey turns an address to key used to get it from the account store
 func VolumeReportStoreKey(reporter sdk.AccAddress) []byte {

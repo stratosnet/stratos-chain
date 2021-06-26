@@ -39,8 +39,11 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
 	}
-	ctx.Logger().Info("Sender Info: ", "IsSPNode", "true")
 	k.SetVolumeReport(ctx, msg.Reporter, msg.ReportReference)
+	err := k.DistributePotReward(ctx, msg.NodesVolume, msg.Epoch)
+	if err != nil {
+		return nil, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
