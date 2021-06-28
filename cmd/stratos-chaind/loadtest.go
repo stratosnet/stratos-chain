@@ -65,12 +65,12 @@ func AddLoadTestCmd(
 			loadTestArgs.interval = viper.GetInt(flagInterval)
 			loadTestArgs.maxTx = viper.GetInt(flagMaxTx)
 			loadTestArgs.randomRecv = viper.GetBool(flagRandomRecv)
-			//senderAddr := viper.GetString(flagAddr)
-			//senderAddrBytes, err := sdk.AccAddressFromBech32(senderAddr)
-			//if err != nil {
-			//	return fmt.Errorf("failed to parse bech32 address: %w", err)
-			//}
-			//loadTestArgs.address = senderAddrBytes
+			senderAddr := viper.GetString(flagAddr)
+			senderAddrBytes, err := sdk.AccAddressFromBech32(senderAddr)
+			if err != nil {
+				return fmt.Errorf("failed to parse bech32 address: %w", err)
+			}
+			loadTestArgs.address = senderAddrBytes
 
 			if loadTestArgs.address == nil {
 				genesis := ctx.Config.GenesisFile()
@@ -132,6 +132,9 @@ func AddLoadTestCmd(
 				viper.Set(flags.FlagTrustNode, true)
 				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, accsFromGenesis[i].String()).WithCodec(cdc)
 				from := accsFromGenesis[i]
+				if len(loadTestArgs.address) == 0 {
+					from = loadTestArgs.address
+				}
 				to := accsFromGenesis[0]
 				if len(accsFromGenesis) > i && (i != loadTestArgs.threads-1 || i == 0) {
 					to = accsFromGenesis[i+1]
@@ -197,7 +200,7 @@ func AddLoadTestCmd(
 	cmd.Flags().Int(flagInterval, 10, "interval (in milliseconds) between two successive send transactions on a thread")
 	cmd.Flags().Bool(flagRandomRecv, true, "whether to send tokens to a random address every time or no, the default is false")
 	cmd.Flags().Int(flagMaxTx, 10000, "max transactions after which the load test should stop, default is 10000(10k)")
-	//cmd.Flags().String(flagAddr, "", "fund address that load test uses")
+	cmd.Flags().String(flagAddr, "", "fund address that load test uses")
 	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 
 	return cmd
