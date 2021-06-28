@@ -263,9 +263,19 @@ func NewInitApp(
 
 	app.mm.SetOrderInitGenesis(
 		// this line is used by starport scaffolding # 6.2
-		auth.ModuleName, bank.ModuleName, distr.ModuleName, staking.ModuleName,
-		slashing.ModuleName, gov.ModuleName, mint.ModuleName, crisis.ModuleName,
-		genutil.ModuleName, register.ModuleName, sds.ModuleName, pot.ModuleName, upgrade.ModuleName,
+		auth.ModuleName,
+		bank.ModuleName,
+		distr.ModuleName,
+		staking.ModuleName,
+		slashing.ModuleName,
+		gov.ModuleName,
+		mint.ModuleName,
+		crisis.ModuleName,
+		genutil.ModuleName,
+		register.ModuleName,
+		sds.ModuleName,
+		pot.ModuleName,
+		upgrade.ModuleName,
 		supply.ModuleName,
 
 		// this line is used by starport scaffolding # 7
