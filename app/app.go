@@ -37,7 +37,7 @@ import (
 
 const (
 	appName    = "stchain"
-	appVersion = "v0.1.0"
+	appVersion = "v0.3.0"
 )
 
 var (
@@ -74,6 +74,10 @@ var (
 	//	distr.ModuleName: true,
 	//}
 )
+
+func init() {
+	version.Version = appVersion
+}
 
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
