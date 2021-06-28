@@ -44,7 +44,7 @@ func main() {
 	// with the cdc
 
 	rootCmd := &cobra.Command{
-		Use:   "stratos-chaincli",
+		Use:   "stchaincli",
 		Short: "Command line interface for interacting with stratoschaind",
 	}
 
@@ -113,6 +113,7 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		flags.LineBreak,
 		uploadcmd.FileUploadTxCmd(cdc),
 		reportcmd.VolumeReportCmd(cdc),
+		flags.LineBreak,
 		govcmd.GetCmdSubmitProposal(cdc),
 		govcmd.GetCmdDeposit(cdc),
 		govcmd.GetCmdVote(cdc),
