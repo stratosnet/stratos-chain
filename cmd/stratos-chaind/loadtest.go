@@ -130,11 +130,13 @@ func AddLoadTestCmd(
 					viper.Set(flags.FlagHome, defaultHome)
 				}
 				viper.Set(flags.FlagTrustNode, true)
-				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, accsFromGenesis[i].String()).WithCodec(cdc)
 				from := accsFromGenesis[i]
-				if len(loadTestArgs.address) == 0 {
+				if len(loadTestArgs.address) != 0 {
 					from = loadTestArgs.address
 				}
+				//ctx.Logger.Info(fmt.Sprintf("From addr: %s, chain-id: %s, keyring-backend: %s, home: %s", from.String(),
+				//	viper.GetString(flags.FlagChainID), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome)))
+				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, from.String()).WithCodec(cdc)
 				to := accsFromGenesis[0]
 				if len(accsFromGenesis) > i && (i != loadTestArgs.threads-1 || i == 0) {
 					to = accsFromGenesis[i+1]
