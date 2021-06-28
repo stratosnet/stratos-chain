@@ -5,6 +5,9 @@ import (
 	"io"
 	"os"
 
+	distr "github.com/cosmos/cosmos-sdk/x/distribution"
+	"github.com/cosmos/cosmos-sdk/x/upgrade"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -40,13 +43,13 @@ import (
 )
 
 const (
-	appName    = "sds"
-	appVersion = "v0.39"
+	appName    = "stchain"
+	appVersion = "v0.3.0"
 )
 
 var (
-	DefaultCLIHome  = os.ExpandEnv("$HOME/.stratoschaincli")
-	DefaultNodeHome = os.ExpandEnv("$HOME/.stratoschaind")
+	DefaultCLIHome  = os.ExpandEnv("$HOME/.stchaincli")
+	DefaultNodeHome = os.ExpandEnv("$HOME/.stchaind")
 	ModuleBasics    = module.NewBasicManager(
 		auth.AppModuleBasic{},
 		genutil.AppModuleBasic{},
@@ -82,6 +85,10 @@ var (
 	//	distr.ModuleName: true,
 	//}
 )
+
+func init() {
+	version.Version = appVersion
+}
 
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
