@@ -65,30 +65,56 @@ func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fi
 	store.Set(storeKey, bz)
 }
 
+// [S] is the initial genesis deposit by all Resource Nodes and Meta Nodes at t=0
+// The current unissued prepay Volume Pool [Pt] is the total remaining prepay STOS kept by the Stratos Network but not yet issued to Resource Nodes as rewards.
+// The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
+// [X] is the total amount of STOS token prepaid by user at time t
+// the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
+func (fk Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
+	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
+	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+
+	purchased := Lt.ToDec().
+		Mul(amount.ToDec()).
+		Quo((S.
+			Add(Pt).
+			Add(amount)).ToDec()).
+		TruncateInt()
+
+	// update total unissued prepay
+	newTotalUnissuedPrepay := Pt.Add(amount)
+	fk.PotKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnissuedPrepay)
+
+	// update remaining uoz limit
+	newRemainingOzoneLimit := Lt.Sub(purchased)
+	fk.RegisterKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
+
+	return purchased
+}
+
 // Prepay transfers coins from bank to sds (volumn) pool
-func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
 	// src - hasCoins?
 	if !fk.BankKeeper.HasCoins(ctx, sender, coins) {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 
 	err := fk.doPrepay(ctx, sender, coins)
 	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 
 	_, err = fk.BankKeeper.SubtractCoins(ctx, sender, coins)
 	if err != nil {
-		return err
+		return sdk.ZeroInt(), err
 	}
 
-	oldTotalUnissuedPrepay := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
 	//TODO: move the definition of default denomination to params.go
 	prepay := coins.AmountOf("ustos")
-	newTotalUnissuedPrepay := oldTotalUnissuedPrepay.Add(prepay)
-	fk.PotKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnissuedPrepay)
+	purchased := fk.purchaseUoz(ctx, prepay)
 
-	return nil
+	return purchased, nil
 }
 
 // HasPrepay Returns bool indicating if the sender did prepay before
