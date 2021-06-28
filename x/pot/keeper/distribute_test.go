@@ -771,7 +771,7 @@ func createAccount(t *testing.T, ctx sdk.Context, accountKeeper auth.AccountKeep
 }
 
 func getFeePoolBalance(t *testing.T, ctx sdk.Context, k Keeper, bankKeeper bank.Keeper) sdk.Coins {
-	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.FeeCollectorName)
+	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.feeCollectorName)
 	require.NotNil(t, feePoolAccAddr)
 	coins := bankKeeper.GetCoins(ctx, feePoolAccAddr)
 	return coins

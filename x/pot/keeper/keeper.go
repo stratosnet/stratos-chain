@@ -19,10 +19,10 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	StoreKey         sdk.StoreKey
-	Cdc              *codec.Codec
-	ParamSpace       params.Subspace
-	FeeCollectorName string // name of the FeeCollector ModuleAccount
+	storeKey         sdk.StoreKey
+	cdc              *codec.Codec
+	paramSpace       params.Subspace
+	feeCollectorName string // name of the FeeCollector ModuleAccount
 	BankKeeper       bank.Keeper
 	SupplyKeeper     supply.Keeper
 	AccountKeeper    auth.AccountKeeper
@@ -36,10 +36,10 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, f
 	registerKeeper register.Keeper,
 ) Keeper {
 	keeper := Keeper{
-		Cdc:              cdc,
-		StoreKey:         key,
-		ParamSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
-		FeeCollectorName: feeCollectorName,
+		cdc:              cdc,
+		storeKey:         key,
+		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
+		feeCollectorName: feeCollectorName,
 		BankKeeper:       bankKeeper,
 		SupplyKeeper:     supplyKeeper,
 		AccountKeeper:    accountKeeper,
@@ -56,7 +56,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 
 // GetVolumeReport returns the hash of volume report
 func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byte, error) {
-	store := ctx.KVStore(k.StoreKey)
+	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.VolumeReportStoreKey(reporter))
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
@@ -66,13 +66,13 @@ func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byt
 }
 
 func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
-	store := ctx.KVStore(k.StoreKey)
+	store := ctx.KVStore(k.storeKey)
 	storeKey := types.VolumeReportStoreKey(reporter)
 	store.Set(storeKey, []byte(reportReference))
 }
 
 func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
-	store := ctx.KVStore(k.StoreKey)
+	store := ctx.KVStore(k.storeKey)
 	store.Delete(key)
 }
 

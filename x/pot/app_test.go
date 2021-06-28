@@ -166,7 +166,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		ctx.Logger().Info("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
-		feePoolAccAddr := supplyKeeper.GetModuleAddress(k.FeeCollectorName)
+		feePoolAccAddr := supplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 		lastFoundationAccBalance := bankKeeper.GetCoins(ctx, foundationAccAddr).AmountOf("ustos")
 		lastFeePool := bankKeeper.GetCoins(ctx, feePoolAccAddr).AmountOf("ustos")
 		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
@@ -197,7 +197,7 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 		ctx.Logger().Info("individualReward of [" + addr.String() + "] = " + individualReward.String())
 	}
 
-	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.FeeCollectorName)
+	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr).AmountOf("ustos")
 	newUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 

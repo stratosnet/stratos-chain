@@ -285,7 +285,7 @@ func (k Keeper) distributeValidatorRewardToFeePool(ctx sdk.Context, distributeGo
 	rewardFromTrafficPool := distributeGoal.BlockChainRewardToValidatorFromTrafficPool
 	totalRewardSendToFeePool := rewardFromMiningPool.Add(rewardFromTrafficPool)
 
-	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.FeeCollectorName)
+	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.feeCollectorName)
 
 	if feePoolAccAddr == nil {
 		ctx.Logger().Error("account address of distribution module does not exist.")
