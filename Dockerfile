@@ -22,7 +22,7 @@ RUN apk add --no-cache $PACKAGES && \
 # Final image
 FROM alpine:edge
 
-ENV STRATOS /stratos-chaind
+ENV STRATOS /stchaind
 
 # Install ca-certificates
 RUN apk add --update ca-certificates
@@ -35,7 +35,7 @@ USER stratos
 WORKDIR $STRATOS
 
 # Copy over binaries from the build-env
-COPY --from=build-env /go/bin/stratos-chaind /usr/bin/stratos-chaind
+COPY --from=build-env /go/bin/stchaind /usr/bin/stchaind
 
-# Run stratos-chaind by default, omit entrypoint to ease using container with stratos-chaincli
-CMD ["stratos-chaind"]
+# Run stchaind by default, omit entrypoint to ease using container with stchaincli
+CMD ["stchaind"]
