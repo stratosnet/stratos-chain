@@ -17,8 +17,8 @@ import (
 
 const (
 	stopFlagOutOfTotalMiningReward = true
-	stopFlagSpecificMinedReward    = true
-	stopFlagSpecificEpoch          = true
+	stopFlagSpecificMinedReward    = false
+	stopFlagSpecificEpoch          = false
 )
 
 var (
@@ -46,13 +46,13 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 // modify stop flag & variable could make the test case stop when reach a specific condition
 func isNeedStop(ctx sdk.Context, k Keeper, epoch sdk.Int, minedToken sdk.Int) bool {
 
-	if stopFlagOutOfTotalMiningReward && minedToken.GTE(foundationDeposit.AmountOf("ustos")) {
+	if stopFlagOutOfTotalMiningReward && minedToken.GT(foundationDeposit.AmountOf("ustos")) {
 		return true
 	}
-	if stopFlagSpecificMinedReward && minedToken.GTE(paramSpecificMinedReward) {
+	if stopFlagSpecificMinedReward && minedToken.GT(paramSpecificMinedReward) {
 		return true
 	}
-	if stopFlagSpecificEpoch && epoch.GTE(paramSpecificEpoch) {
+	if stopFlagSpecificEpoch && epoch.GT(paramSpecificEpoch) {
 		return true
 	}
 	return false
