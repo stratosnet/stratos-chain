@@ -11,7 +11,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
 	keeper.SetFoundationAccount(ctx, data.FoundationAccount)
 	keeper.SetInitialUOzonePrice(ctx, data.InitialUozPrice)
-	keeper.SetMatureEpoch(ctx, data.MatureEpoch)
 }
 
 // ExportGenesis writes the current store values
@@ -21,7 +20,6 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 	foundationAccount := keeper.GetFoundationAccount(ctx)
 	initialUOzonePrice := keeper.GetInitialUOzonePrice(ctx)
-	matureEpoch := keeper.GetMatureEpoch(ctx)
 
-	return types.NewGenesisState(params, foundationAccount, initialUOzonePrice, matureEpoch)
+	return types.NewGenesisState(params, foundationAccount, initialUOzonePrice)
 }

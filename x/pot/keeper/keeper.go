@@ -23,11 +23,11 @@ type Keeper struct {
 	cdc              *codec.Codec
 	paramSpace       params.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
-	bankKeeper       bank.Keeper
-	supplyKeeper     supply.Keeper
-	accountKeeper    auth.AccountKeeper
-	stakingKeeper    staking.Keeper
-	registerKeeper   register.Keeper
+	BankKeeper       bank.Keeper
+	SupplyKeeper     supply.Keeper
+	AccountKeeper    auth.AccountKeeper
+	StakingKeeper    staking.Keeper
+	RegisterKeeper   register.Keeper
 }
 
 // NewKeeper creates a pot keeper
@@ -40,11 +40,11 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, f
 		storeKey:         key,
 		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
 		feeCollectorName: feeCollectorName,
-		bankKeeper:       bankKeeper,
-		supplyKeeper:     supplyKeeper,
-		accountKeeper:    accountKeeper,
-		stakingKeeper:    stakingKeeper,
-		registerKeeper:   registerKeeper,
+		BankKeeper:       bankKeeper,
+		SupplyKeeper:     supplyKeeper,
+		AccountKeeper:    accountKeeper,
+		StakingKeeper:    stakingKeeper,
+		RegisterKeeper:   registerKeeper,
 	}
 	return keeper
 }
@@ -77,6 +77,6 @@ func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
 }
 
 func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
-	_, found = k.registerKeeper.GetIndexingNode(ctx, addr)
+	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
 	return found
 }
