@@ -9,13 +9,15 @@ const (
 	DefaultParamSpace   = types.DefaultParamSpace
 	ModuleName          = types.ModuleName
 	StoreKey            = types.StoreKey
+	RouterKey           = types.RouterKey
 	NodeTypeComputation = types.COMPUTATION
 	NodeTypeDataBase    = types.DATABASE
 	NodeTypeStorage     = types.STORAGE
 )
 
 var (
-	NewKeeper = keeper.NewKeeper
+	NewKeeper     = keeper.NewKeeper
+	RegisterCodec = types.RegisterCodec
 
 	ErrInvalid                  = types.ErrInvalid
 	ErrEmptyNetworkAddr         = types.ErrEmptyNetworkAddr
@@ -34,6 +36,10 @@ var (
 	ErrInvalidApproverStatus    = types.ErrInvalidApproverStatus
 
 	DefaultParams            = types.DefaultParams
+	DefaultGenesisState      = types.DefaultGenesisState
+	NewGenesisState          = types.NewGenesisState
+	NewResourceNode          = types.NewResourceNode
+	NewIndexingNode          = types.NewIndexingNode
 	NewDescription           = types.NewDescription
 	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
 	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
@@ -41,8 +47,12 @@ var (
 
 type (
 	Keeper                = keeper.Keeper
+	ResourceNode          = types.ResourceNode
+	IndexingNode          = types.IndexingNode
 	Description           = types.Description
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
+	LastResourceNodeStake = types.LastResourceNodeStake
+	LastIndexingNodeStake = types.LastIndexingNodeStake
 	VoteOpinion           = types.VoteOpinion
 )

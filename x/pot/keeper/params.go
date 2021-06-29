@@ -22,6 +22,11 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 	return
 }
 
+func (k Keeper) MatureEpoch(ctx sdk.Context) (res int64) {
+	k.paramSpace.Get(ctx, types.KeyMatureEpoch, &res)
+	return
+}
+
 func (k Keeper) MiningRewardParams(ctx sdk.Context) (res []types.MiningRewardParam) {
 	k.paramSpace.Get(ctx, types.KeyMiningRewardParams, &res)
 	return

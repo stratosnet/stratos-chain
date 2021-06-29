@@ -77,12 +77,11 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements an application module for the pot module.
 type AppModule struct {
 	AppModuleBasic
-
-	keeper      keeper.Keeper
-	bankKeeper  bank.Keeper
-	supplyKeeper supply.Keeper
-	accountKeeper types.AccountKeeper
-	stakingKeeper staking.Keeper
+	keeper         keeper.Keeper
+	bankKeeper     bank.Keeper
+	supplyKeeper   supply.Keeper
+	accountKeeper  types.AccountKeeper
+	stakingKeeper  staking.Keeper
 	registerKeeper register.Keeper
 }
 
@@ -93,10 +92,10 @@ func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, supplyKeeper supply.K
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		bankKeeper:     bankKeeper,
-		supplyKeeper: supplyKeeper,
-		accountKeeper:accountKeeper,
-		stakingKeeper:stakingKeeper,
-		registerKeeper:registerKeeper,
+		supplyKeeper:   supplyKeeper,
+		accountKeeper:  accountKeeper,
+		stakingKeeper:  stakingKeeper,
+		registerKeeper: registerKeeper,
 	}
 }
 

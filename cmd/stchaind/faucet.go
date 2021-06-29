@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -19,7 +21,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"strings"
 )
 
 const (
@@ -29,7 +30,7 @@ const (
 
 	defaultNodeURI        = "tcp://127.0.0.1:26657"
 	defaultKeyringBackend = "test"
-	defaultHome           = "build/node/stratos-chaincli"
+	defaultHome           = "build/node/stchaincli"
 	defaultDenom          = "ustos"
 	defaultChainId        = "test-chain"
 )

@@ -110,7 +110,6 @@ func Test(t *testing.T) {
 
 	//pot genesis data load
 	k.SetFoundationAccount(ctx, foundationAcc)
-	k.SetMatureEpoch(ctx, sdk.NewInt(2016))
 	createAccount(t, ctx, accountKeeper, bankKeeper, foundationAcc, foundationDeposit)
 
 	//initialize owner accounts
@@ -166,13 +165,13 @@ func Test(t *testing.T) {
 	trafficList = append(trafficList, types.NewSingleNodeVolume(addrRes3, sdk.NewInt(resourceNodeVolume3)))
 
 	//check prepared data
-	S := k.registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	fmt.Println("S=" + S.String())
 	Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
 	fmt.Println("Pt=" + Pt.String())
-	Y := k.getTotalConsumedOzone(trafficList).ToDec()
+	Y := k.GetTotalConsumedOzone(trafficList).ToDec()
 	fmt.Println("Y=" + Y.String())
-	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
+	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 	fmt.Println("Lt=" + Lt.String())
 	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 	fmt.Println("R=" + R.String())
@@ -208,7 +207,7 @@ func testWithdraw(t *testing.T, ctx sdk.Context, k Keeper, bankKeeper bank.Keepe
 	AccountBalanceAfter := bankKeeper.GetCoins(ctx, resOwner1)
 	require.Equal(t, AccountBalanceAfter.Sub(AccountBalanceBefore).AmountOf("ustos"), sdk.NewInt(139380831257))
 
-	matureTotalResNode1 := k.getMatureTotalReward(ctx, addrRes1)
+	matureTotalResNode1 := k.GetMatureTotalReward(ctx, addrRes1)
 	require.Equal(t, matureTotalResNode1, sdk.ZeroInt())
 }
 
@@ -216,150 +215,153 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	err := k.DistributePotReward(ctx, trafficList, epoch2017)
 	require.NoError(t, err)
 	fmt.Println("Distribution result at Epoch2017: ")
-	rewardAddrList := k.getRewardAddressPool(ctx)
+	rewardAddrList := k.GetRewardAddressPool(ctx)
 	fmt.Println("address pool: ")
 	for i := 0; i < len(rewardAddrList); i++ {
 		fmt.Println(rewardAddrList[i].String() + ", ")
 	}
 	fmt.Println("----------------------------------------------------------------------------------")
 
-	idvRwdResNode1Ep1 := k.getIndividualReward(ctx, addrRes1, epoch4033)
-	matureTotalResNode1 := k.getMatureTotalReward(ctx, addrRes1)
-	immatureTotalResNode1 := k.getImmatureTotalReward(ctx, addrRes1)
-	require.Equal(t, idvRwdResNode1Ep1, sdk.NewInt(139380831257))
-	require.Equal(t, matureTotalResNode1, sdk.NewInt(139380831257))
-	require.Equal(t, immatureTotalResNode1, sdk.NewInt(139380831257))
+	idvRwdResNode1Ep1 := k.GetIndividualReward(ctx, addrRes1, epoch4033)
+	matureTotalResNode1 := k.GetMatureTotalReward(ctx, addrRes1)
+	immatureTotalResNode1 := k.GetImmatureTotalReward(ctx, addrRes1)
 	fmt.Println("resourceNode1: address = " + addrRes1.String() + ", individual = " + idvRwdResNode1Ep1.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
+	require.Equal(t, idvRwdResNode1Ep1, sdk.NewInt(131089476265))
+	require.Equal(t, matureTotalResNode1, sdk.NewInt(139380831257))
+	require.Equal(t, immatureTotalResNode1, sdk.NewInt(131089476265))
 
-	idvRwdResNode2Ep1 := k.getIndividualReward(ctx, addrRes2, epoch4033)
-	matureTotalResNode2 := k.getMatureTotalReward(ctx, addrRes2)
-	immatureTotalResNode2 := k.getImmatureTotalReward(ctx, addrRes2)
-	require.Equal(t, idvRwdResNode2Ep1, sdk.NewInt(86000938434))
+	idvRwdResNode2Ep1 := k.GetIndividualReward(ctx, addrRes2, epoch4033)
+	matureTotalResNode2 := k.GetMatureTotalReward(ctx, addrRes2)
+	immatureTotalResNode2 := k.GetImmatureTotalReward(ctx, addrRes2)
+	require.Equal(t, idvRwdResNode2Ep1, sdk.NewInt(80884995993))
 	require.Equal(t, matureTotalResNode2, sdk.NewInt(86000938434))
-	require.Equal(t, immatureTotalResNode2, sdk.NewInt(86000938434))
+	require.Equal(t, immatureTotalResNode2, sdk.NewInt(80884995993))
 	fmt.Println("resourceNode2: address = " + addrRes2.String() + ", individual = " + idvRwdResNode2Ep1.String() + ",\tmatureTotal = " + matureTotalResNode2.String() + ",\timmatureTotal = " + immatureTotalResNode2.String())
 
-	idvRwdResNode3Ep1 := k.getIndividualReward(ctx, addrRes3, epoch4033)
-	matureTotalResNode3 := k.getMatureTotalReward(ctx, addrRes3)
-	immatureTotalResNode3 := k.getImmatureTotalReward(ctx, addrRes3)
-	require.Equal(t, idvRwdResNode3Ep1, sdk.NewInt(59310992023))
+	idvRwdResNode3Ep1 := k.GetIndividualReward(ctx, addrRes3, epoch4033)
+	matureTotalResNode3 := k.GetMatureTotalReward(ctx, addrRes3)
+	immatureTotalResNode3 := k.GetImmatureTotalReward(ctx, addrRes3)
+	require.Equal(t, idvRwdResNode3Ep1, sdk.NewInt(55782755857))
 	require.Equal(t, matureTotalResNode3, sdk.NewInt(59310992023))
-	require.Equal(t, immatureTotalResNode3, sdk.NewInt(59310992023))
+	require.Equal(t, immatureTotalResNode3, sdk.NewInt(55782755857))
 	fmt.Println("resourceNode3: address = " + addrRes3.String() + ", individual = " + idvRwdResNode3Ep1.String() + ",\tmatureTotal = " + matureTotalResNode3.String() + ",\timmatureTotal = " + immatureTotalResNode3.String())
 
-	idvRwdResNode4Ep1 := k.getIndividualReward(ctx, addrRes4, epoch4033)
-	matureTotalResNode4 := k.getMatureTotalReward(ctx, addrRes4)
-	immatureTotalResNode4 := k.getImmatureTotalReward(ctx, addrRes4)
-	require.Equal(t, idvRwdResNode4Ep1, sdk.NewInt(5931099201))
+	idvRwdResNode4Ep1 := k.GetIndividualReward(ctx, addrRes4, epoch4033)
+	matureTotalResNode4 := k.GetMatureTotalReward(ctx, addrRes4)
+	immatureTotalResNode4 := k.GetImmatureTotalReward(ctx, addrRes4)
+	require.Equal(t, idvRwdResNode4Ep1, sdk.NewInt(5578275585))
 	require.Equal(t, matureTotalResNode4, sdk.NewInt(5931099201))
-	require.Equal(t, immatureTotalResNode4, sdk.NewInt(5931099201))
+	require.Equal(t, immatureTotalResNode4, sdk.NewInt(5578275585))
 	fmt.Println("resourceNode4: address = " + addrRes4.String() + ", individual = " + idvRwdResNode4Ep1.String() + ",\tmatureTotal = " + matureTotalResNode4.String() + ",\timmatureTotal = " + immatureTotalResNode4.String())
 
-	idvRwdResNode5Ep1 := k.getIndividualReward(ctx, addrRes5, epoch4033)
-	matureTotalResNode5 := k.getMatureTotalReward(ctx, addrRes5)
-	immatureTotalResNode5 := k.getImmatureTotalReward(ctx, addrRes5)
-	require.Equal(t, idvRwdResNode5Ep1, sdk.NewInt(5931099201))
+	idvRwdResNode5Ep1 := k.GetIndividualReward(ctx, addrRes5, epoch4033)
+	matureTotalResNode5 := k.GetMatureTotalReward(ctx, addrRes5)
+	immatureTotalResNode5 := k.GetImmatureTotalReward(ctx, addrRes5)
+	require.Equal(t, idvRwdResNode5Ep1, sdk.NewInt(5578275585))
 	require.Equal(t, matureTotalResNode5, sdk.NewInt(5931099201))
-	require.Equal(t, immatureTotalResNode5, sdk.NewInt(5931099201))
+	require.Equal(t, immatureTotalResNode5, sdk.NewInt(5578275585))
 	fmt.Println("resourceNode5: address = " + addrRes5.String() + ", individual = " + idvRwdResNode5Ep1.String() + ",\tmatureTotal = " + matureTotalResNode5.String() + ",\timmatureTotal = " + immatureTotalResNode5.String())
 
-	idvRwdIdxNode1Ep1 := k.getIndividualReward(ctx, addrIdx1, epoch4033)
-	matureTotalIdxNode1 := k.getMatureTotalReward(ctx, addrIdx1)
-	immatureTotalIdxNode1 := k.getImmatureTotalReward(ctx, addrIdx1)
-	require.Equal(t, idvRwdIdxNode1Ep1, sdk.NewInt(39540661348))
+	idvRwdIdxNode1Ep1 := k.GetIndividualReward(ctx, addrIdx1, epoch4033)
+	matureTotalIdxNode1 := k.GetMatureTotalReward(ctx, addrIdx1)
+	immatureTotalIdxNode1 := k.GetImmatureTotalReward(ctx, addrIdx1)
+	require.Equal(t, idvRwdIdxNode1Ep1, sdk.NewInt(37188503903))
 	require.Equal(t, matureTotalIdxNode1, sdk.NewInt(39540661348))
-	require.Equal(t, immatureTotalIdxNode1, sdk.NewInt(39540661348))
+	require.Equal(t, immatureTotalIdxNode1, sdk.NewInt(37188503903))
 	fmt.Println("indexingNode1: address = " + addrIdx1.String() + ", individual = " + idvRwdIdxNode1Ep1.String() + ",\tmatureTotal = " + matureTotalIdxNode1.String() + ",\timmatureTotal = " + immatureTotalIdxNode1.String())
 
-	idvRwdIdxNode2Ep1 := k.getIndividualReward(ctx, addrIdx2, epoch4033)
-	matureTotalIdxNode2 := k.getMatureTotalReward(ctx, addrIdx2)
-	immatureTotalIdxNode2 := k.getImmatureTotalReward(ctx, addrIdx2)
-	require.Equal(t, idvRwdIdxNode2Ep1, sdk.NewInt(39540661348))
+	idvRwdIdxNode2Ep1 := k.GetIndividualReward(ctx, addrIdx2, epoch4033)
+	matureTotalIdxNode2 := k.GetMatureTotalReward(ctx, addrIdx2)
+	immatureTotalIdxNode2 := k.GetImmatureTotalReward(ctx, addrIdx2)
+	require.Equal(t, idvRwdIdxNode2Ep1, sdk.NewInt(37188503903))
 	require.Equal(t, matureTotalIdxNode2, sdk.NewInt(39540661348))
-	require.Equal(t, immatureTotalIdxNode2, sdk.NewInt(39540661348))
+	require.Equal(t, immatureTotalIdxNode2, sdk.NewInt(37188503903))
 	fmt.Println("indexingNode2: address = " + addrIdx2.String() + ", individual = " + idvRwdIdxNode2Ep1.String() + ",\tmatureTotal = " + matureTotalIdxNode2.String() + ",\timmatureTotal = " + immatureTotalIdxNode2.String())
 
-	idvRwdIdxNode3Ep1 := k.getIndividualReward(ctx, addrIdx3, epoch4033)
-	matureTotalIdxNode3 := k.getMatureTotalReward(ctx, addrIdx3)
-	immatureTotalIdxNode3 := k.getImmatureTotalReward(ctx, addrIdx3)
-	require.Equal(t, idvRwdIdxNode3Ep1, sdk.NewInt(39540661348))
+	idvRwdIdxNode3Ep1 := k.GetIndividualReward(ctx, addrIdx3, epoch4033)
+	matureTotalIdxNode3 := k.GetMatureTotalReward(ctx, addrIdx3)
+	immatureTotalIdxNode3 := k.GetImmatureTotalReward(ctx, addrIdx3)
+	require.Equal(t, idvRwdIdxNode3Ep1, sdk.NewInt(37188503903))
 	require.Equal(t, matureTotalIdxNode3, sdk.NewInt(39540661348))
-	require.Equal(t, immatureTotalIdxNode3, sdk.NewInt(39540661348))
+	require.Equal(t, immatureTotalIdxNode3, sdk.NewInt(37188503903))
 	fmt.Println("indexingNode3: address = " + addrIdx3.String() + ", individual = " + idvRwdIdxNode3Ep1.String() + ",\tmatureTotal = " + matureTotalIdxNode3.String() + ",\timmatureTotal = " + immatureTotalIdxNode3.String())
 	fmt.Println("***************************************************************************************")
 }
 
 func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, trafficList []types.SingleNodeVolume) {
+	//PrePay
+	k.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
+
 	err := k.DistributePotReward(ctx, trafficList, epoch1)
 	require.NoError(t, err)
 
 	fmt.Println("Distribution result at Epoch1: ")
-	rewardAddrList := k.getRewardAddressPool(ctx)
+	rewardAddrList := k.GetRewardAddressPool(ctx)
 	fmt.Println("address pool: ")
 	for i := 0; i < len(rewardAddrList); i++ {
 		fmt.Println(rewardAddrList[i].String() + ", ")
 	}
 	fmt.Println("----------------------------------------------------------------------------------")
 
-	idvRwdResNode1Ep1 := k.getIndividualReward(ctx, addrRes1, epoch2017)
-	matureTotalResNode1 := k.getMatureTotalReward(ctx, addrRes1)
-	immatureTotalResNode1 := k.getImmatureTotalReward(ctx, addrRes1)
+	idvRwdResNode1Ep1 := k.GetIndividualReward(ctx, addrRes1, epoch2017)
+	matureTotalResNode1 := k.GetMatureTotalReward(ctx, addrRes1)
+	immatureTotalResNode1 := k.GetImmatureTotalReward(ctx, addrRes1)
+	fmt.Println("resourceNode1: address = " + addrRes1.String() + ", individual = " + idvRwdResNode1Ep1.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
 	require.Equal(t, idvRwdResNode1Ep1, sdk.NewInt(139380831257))
 	require.Equal(t, matureTotalResNode1, sdk.ZeroInt())
 	require.Equal(t, immatureTotalResNode1, sdk.NewInt(139380831257))
-	fmt.Println("resourceNode1: address = " + addrRes1.String() + ", individual = " + idvRwdResNode1Ep1.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
 
-	idvRwdResNode2Ep1 := k.getIndividualReward(ctx, addrRes2, epoch2017)
-	matureTotalResNode2 := k.getMatureTotalReward(ctx, addrRes2)
-	immatureTotalResNode2 := k.getImmatureTotalReward(ctx, addrRes2)
+	idvRwdResNode2Ep1 := k.GetIndividualReward(ctx, addrRes2, epoch2017)
+	matureTotalResNode2 := k.GetMatureTotalReward(ctx, addrRes2)
+	immatureTotalResNode2 := k.GetImmatureTotalReward(ctx, addrRes2)
 	require.Equal(t, idvRwdResNode2Ep1, sdk.NewInt(86000938434))
 	require.Equal(t, matureTotalResNode2, sdk.ZeroInt())
 	require.Equal(t, immatureTotalResNode2, sdk.NewInt(86000938434))
 	fmt.Println("resourceNode2: address = " + addrRes2.String() + ", individual = " + idvRwdResNode2Ep1.String() + ",\tmatureTotal = " + matureTotalResNode2.String() + ",\timmatureTotal = " + immatureTotalResNode2.String())
 
-	idvRwdResNode3Ep1 := k.getIndividualReward(ctx, addrRes3, epoch2017)
-	matureTotalResNode3 := k.getMatureTotalReward(ctx, addrRes3)
-	immatureTotalResNode3 := k.getImmatureTotalReward(ctx, addrRes3)
+	idvRwdResNode3Ep1 := k.GetIndividualReward(ctx, addrRes3, epoch2017)
+	matureTotalResNode3 := k.GetMatureTotalReward(ctx, addrRes3)
+	immatureTotalResNode3 := k.GetImmatureTotalReward(ctx, addrRes3)
 	require.Equal(t, idvRwdResNode3Ep1, sdk.NewInt(59310992023))
 	require.Equal(t, matureTotalResNode3, sdk.ZeroInt())
 	require.Equal(t, immatureTotalResNode3, sdk.NewInt(59310992023))
 	fmt.Println("resourceNode3: address = " + addrRes3.String() + ", individual = " + idvRwdResNode3Ep1.String() + ",\tmatureTotal = " + matureTotalResNode3.String() + ",\timmatureTotal = " + immatureTotalResNode3.String())
 
-	idvRwdResNode4Ep1 := k.getIndividualReward(ctx, addrRes4, epoch2017)
-	matureTotalResNode4 := k.getMatureTotalReward(ctx, addrRes4)
-	immatureTotalResNode4 := k.getImmatureTotalReward(ctx, addrRes4)
+	idvRwdResNode4Ep1 := k.GetIndividualReward(ctx, addrRes4, epoch2017)
+	matureTotalResNode4 := k.GetMatureTotalReward(ctx, addrRes4)
+	immatureTotalResNode4 := k.GetImmatureTotalReward(ctx, addrRes4)
 	require.Equal(t, idvRwdResNode4Ep1, sdk.NewInt(5931099201))
 	require.Equal(t, matureTotalResNode4, sdk.ZeroInt())
 	require.Equal(t, immatureTotalResNode4, sdk.NewInt(5931099201))
 	fmt.Println("resourceNode4: address = " + addrRes4.String() + ", individual = " + idvRwdResNode4Ep1.String() + ",\tmatureTotal = " + matureTotalResNode4.String() + ",\timmatureTotal = " + immatureTotalResNode4.String())
 
-	idvRwdResNode5Ep1 := k.getIndividualReward(ctx, addrRes5, epoch2017)
-	matureTotalResNode5 := k.getMatureTotalReward(ctx, addrRes5)
-	immatureTotalResNode5 := k.getImmatureTotalReward(ctx, addrRes5)
+	idvRwdResNode5Ep1 := k.GetIndividualReward(ctx, addrRes5, epoch2017)
+	matureTotalResNode5 := k.GetMatureTotalReward(ctx, addrRes5)
+	immatureTotalResNode5 := k.GetImmatureTotalReward(ctx, addrRes5)
 	require.Equal(t, idvRwdResNode5Ep1, sdk.NewInt(5931099201))
 	require.Equal(t, matureTotalResNode5, sdk.ZeroInt())
 	require.Equal(t, immatureTotalResNode5, sdk.NewInt(5931099201))
 	fmt.Println("resourceNode5: address = " + addrRes5.String() + ", individual = " + idvRwdResNode5Ep1.String() + ",\tmatureTotal = " + matureTotalResNode5.String() + ",\timmatureTotal = " + immatureTotalResNode5.String())
 
-	idvRwdIdxNode1Ep1 := k.getIndividualReward(ctx, addrIdx1, epoch2017)
-	matureTotalIdxNode1 := k.getMatureTotalReward(ctx, addrIdx1)
-	immatureTotalIdxNode1 := k.getImmatureTotalReward(ctx, addrIdx1)
+	idvRwdIdxNode1Ep1 := k.GetIndividualReward(ctx, addrIdx1, epoch2017)
+	matureTotalIdxNode1 := k.GetMatureTotalReward(ctx, addrIdx1)
+	immatureTotalIdxNode1 := k.GetImmatureTotalReward(ctx, addrIdx1)
 	require.Equal(t, idvRwdIdxNode1Ep1, sdk.NewInt(39540661348))
 	require.Equal(t, matureTotalIdxNode1, sdk.ZeroInt())
 	require.Equal(t, immatureTotalIdxNode1, sdk.NewInt(39540661348))
 	fmt.Println("indexingNode1: address = " + addrIdx1.String() + ", individual = " + idvRwdIdxNode1Ep1.String() + ",\tmatureTotal = " + matureTotalIdxNode1.String() + ",\timmatureTotal = " + immatureTotalIdxNode1.String())
 
-	idvRwdIdxNode2Ep1 := k.getIndividualReward(ctx, addrIdx2, epoch2017)
-	matureTotalIdxNode2 := k.getMatureTotalReward(ctx, addrIdx2)
-	immatureTotalIdxNode2 := k.getImmatureTotalReward(ctx, addrIdx2)
+	idvRwdIdxNode2Ep1 := k.GetIndividualReward(ctx, addrIdx2, epoch2017)
+	matureTotalIdxNode2 := k.GetMatureTotalReward(ctx, addrIdx2)
+	immatureTotalIdxNode2 := k.GetImmatureTotalReward(ctx, addrIdx2)
 	require.Equal(t, idvRwdIdxNode2Ep1, sdk.NewInt(39540661348))
 	require.Equal(t, matureTotalIdxNode2, sdk.ZeroInt())
 	require.Equal(t, immatureTotalIdxNode2, sdk.NewInt(39540661348))
 	fmt.Println("indexingNode2: address = " + addrIdx2.String() + ", individual = " + idvRwdIdxNode2Ep1.String() + ",\tmatureTotal = " + matureTotalIdxNode2.String() + ",\timmatureTotal = " + immatureTotalIdxNode2.String())
 
-	idvRwdIdxNode3Ep1 := k.getIndividualReward(ctx, addrIdx3, epoch2017)
-	matureTotalIdxNode3 := k.getMatureTotalReward(ctx, addrIdx3)
-	immatureTotalIdxNode3 := k.getImmatureTotalReward(ctx, addrIdx3)
+	idvRwdIdxNode3Ep1 := k.GetIndividualReward(ctx, addrIdx3, epoch2017)
+	matureTotalIdxNode3 := k.GetMatureTotalReward(ctx, addrIdx3)
+	immatureTotalIdxNode3 := k.GetImmatureTotalReward(ctx, addrIdx3)
 	require.Equal(t, idvRwdIdxNode3Ep1, sdk.NewInt(39540661348))
 	require.Equal(t, matureTotalIdxNode3, sdk.ZeroInt())
 	require.Equal(t, immatureTotalIdxNode3, sdk.NewInt(39540661348))
@@ -373,7 +375,7 @@ func testBlockChainRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper
 	rewardDetailMap := make(map[string]types.Reward)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	// stake reward split by the amount of delegation/deposit
@@ -394,11 +396,11 @@ func testBlockChainRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
 	//6, distribute skate reward to fee pool for validators
 	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
@@ -436,7 +438,7 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	totalReward := k.getTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
@@ -457,11 +459,11 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
 	//6, distribute skate reward to fee pool for validators
 	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
@@ -499,7 +501,7 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	totalReward := k.getTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.calcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
@@ -526,11 +528,11 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
 	//6, distribute skate reward to fee pool for validators
 	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
@@ -565,7 +567,7 @@ func testBlockChainRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper,
 	rewardDetailMap := make(map[string]types.Reward)
 
 	//2, calc mining reward in total
-	distributeGoal, err := k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err := k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	require.NoError(t, err)
 
 	totalMiningReward := distributeGoal.BlockChainRewardToValidatorFromMiningPool.Add(distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool).
@@ -593,11 +595,11 @@ func testBlockChainRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper,
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
 	//6, distribute skate reward to fee pool for validators
 	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
@@ -635,7 +637,7 @@ func testMetaNodeRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	totalReward := sdk.NewDec(80000000000)
 
 	//2, calc mining reward in total
-	distributeGoal, err := k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err := k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
@@ -656,11 +658,11 @@ func testMetaNodeRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, b
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
 	//6, distribute skate reward to fee pool for validators
 	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
@@ -698,7 +700,7 @@ func testTrafficRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, ba
 	totalReward := sdk.NewDec(80000000000)
 
 	//2, calc mining reward in total
-	distributeGoal, err := k.calcMiningRewardInTotal(ctx, distributeGoal)
+	distributeGoal, err := k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
@@ -725,11 +727,11 @@ func testTrafficRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, ba
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
 	//3, calc reward for resource node
-	rewardDetailMap, distributeGoal = k.calcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
 	//4, calc reward from indexing node
-	rewardDetailMap, distributeGoal = k.calcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
+	rewardDetailMap, distributeGoal = k.CalcRewardForIndexingNode(ctx, distributeGoal, rewardDetailMap)
 	//5, deduct reward from provider account
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal)
+	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch1)
 	require.NoError(t, err)
 	//6, distribute skate reward to fee pool for validators
 	distributeGoal, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoal)
@@ -769,7 +771,7 @@ func createAccount(t *testing.T, ctx sdk.Context, accountKeeper auth.AccountKeep
 }
 
 func getFeePoolBalance(t *testing.T, ctx sdk.Context, k Keeper, bankKeeper bank.Keeper) sdk.Coins {
-	feePoolAccAddr := k.supplyKeeper.GetModuleAddress(k.feeCollectorName)
+	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.feeCollectorName)
 	require.NotNil(t, feePoolAccAddr)
 	coins := bankKeeper.GetCoins(ctx, feePoolAccAddr)
 	return coins

@@ -74,7 +74,6 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements an application module for the register module.
 type AppModule struct {
 	AppModuleBasic
-
 	keeper        keeper.Keeper
 	accountKeeper types.AccountKeeper
 	bankKeeper    bank.Keeper
