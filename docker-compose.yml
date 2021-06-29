@@ -1,58 +1,59 @@
 version: '3'
 
 services:
-  stratos-chaind-node0:
-    container_name: stratos-chaind-node0
-    image: "stratosnet/stratos-chaind-node"
+  stchaind-node0:
+    container_name: stchaind-node0
+    image: "stratosnet/stchaind-node"
     ports:
       - "26656-26657:26656-26657"
+      - "1317:1317"
     environment:
       - ID=0
-      - LOG=${LOG:-stratos-chaind.log}
+      - LOG=${LOG:-stchaind.log}
     volumes:
-      - ./build:/stratos-chaind:Z
+      - ./build:/stchaind:Z
     networks:
       localnet:
         ipv4_address: 192.168.11.2
 
-  stratos-chaind-node1:
-    container_name: stratos-chaind-node1
-    image: "stratosnet/stratos-chaind-node"
+  stchaind-node1:
+    container_name: stchaind-node1
+    image: "stratosnet/stchaind-node"
     ports:
       - "26659-26660:26656-26657"
     environment:
       - ID=1
-      - LOG=${LOG:-stratos-chaind.log}
+      - LOG=${LOG:-stchaind.log}
     volumes:
-      - ./build:/stratos-chaind:Z
+      - ./build:/stchaind:Z
     networks:
       localnet:
         ipv4_address: 192.168.11.3
 
-  stratos-chaind-node2:
-    container_name: stratos-chaind-node2
-    image: "stratosnet/stratos-chaind-node"
+  stchaind-node2:
+    container_name: stchaind-node2
+    image: "stratosnet/stchaind-node"
     environment:
       - ID=2
-      - LOG=${LOG:-stratos-chaind.log}
+      - LOG=${LOG:-stchaind.log}
     ports:
       - "26661-26662:26656-26657"
     volumes:
-      - ./build:/stratos-chaind:Z
+      - ./build:/stchaind:Z
     networks:
       localnet:
         ipv4_address: 192.168.11.4
 
-  stratos-chaind-node3:
-    container_name: stratos-chaind-node3
-    image: "stratosnet/stratos-chaind-node"
+  stchaind-node3:
+    container_name: stchaind-node3
+    image: "stratosnet/stchaind-node"
     environment:
       - ID=3
-      - LOG=${LOG:-stratos-chaind.log}
+      - LOG=${LOG:-stchaind.log}
     ports:
       - "26663-26664:26656-26657"
     volumes:
-      - ./build:/stratos-chaind:Z
+      - ./build:/stchaind:Z
     networks:
       localnet:
         ipv4_address: 192.168.11.5

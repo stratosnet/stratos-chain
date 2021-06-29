@@ -13,12 +13,11 @@ RUN apt-get update && \
     apt-get -y upgrade && \
     apt-get -y install curl jq file
 
-VOLUME [ /stratos-chaind ]
-WORKDIR /stratos-chaind
-EXPOSE 26656 26657
+VOLUME [ /stchaind ]
+WORKDIR /stchaind
+EXPOSE 26656 26657 1317
 ENTRYPOINT ["/usr/bin/wrapper.sh"]
 CMD ["start"]
 STOPSIGNAL SIGTERM
 
 COPY wrapper.sh /usr/bin/wrapper.sh
-

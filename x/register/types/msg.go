@@ -11,28 +11,29 @@ var (
 	_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgCreateIndexingNode{}
 	_ sdk.Msg = &MsgRemoveIndexingNode{}
+	_ sdk.Msg = &MsgIndexingNodeRegistrationVote{}
 )
 
 type MsgCreateResourceNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"`
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value          sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description    Description    `json:"description" yaml:"description"`
-	NodeType       string         `json:"node_type" yaml:"node_type"`
+	NetworkID    string         `json:"network_id" yaml:"network_id"`
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
+	Value        sdk.Coin       `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description  Description    `json:"description" yaml:"description"`
+	NodeType     string         `json:"node_type" yaml:"node_type"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateResourceNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin,
+func NewMsgCreateResourceNode(networkID string, pubKey crypto.PubKey, value sdk.Coin,
 	ownerAddr sdk.AccAddress, description Description, nodeType string,
 ) MsgCreateResourceNode {
 	return MsgCreateResourceNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Value:          value,
-		OwnerAddress:   ownerAddr,
-		Description:    description,
-		NodeType:       nodeType,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Value:        value,
+		OwnerAddress: ownerAddr,
+		Description:  description,
+		NodeType:     nodeType,
 	}
 }
 
@@ -46,7 +47,7 @@ func (msg MsgCreateResourceNode) Type() string {
 
 // ValidateBasic validity check for the CreateResourceNode
 func (msg MsgCreateResourceNode) ValidateBasic() error {
-	if msg.NetworkAddress == "" {
+	if msg.NetworkID == "" {
 		return ErrEmptyNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -71,26 +72,33 @@ func (msg MsgCreateResourceNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	// OwnerAddress is first signer so Owner pays fees
+	addrs := []sdk.AccAddress{msg.OwnerAddress}
+
+	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
+	//}
+	return addrs
 }
 
 type MsgCreateIndexingNode struct {
-	NetworkAddress string         `json:"network_address" yaml:"network_address"`
-	PubKey         crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value          sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description    Description    `json:"description" yaml:"description"`
+	NetworkID string        `json:"network_id" yaml:"network_id"`
+	PubKey    crypto.PubKey `json:"pubkey" yaml:"pubkey"`
+	//NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	Value        sdk.Coin       `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description  Description    `json:"description" yaml:"description"`
 }
 
 // NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkAddr string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateIndexingNode(networkID string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) MsgCreateIndexingNode {
 	return MsgCreateIndexingNode{
-		NetworkAddress: networkAddr,
-		PubKey:         pubKey,
-		Value:          value,
-		OwnerAddress:   ownerAddr,
-		Description:    description,
+		NetworkID:    networkID,
+		PubKey:       pubKey,
+		Value:        value,
+		OwnerAddress: ownerAddr,
+		Description:  description,
 	}
 }
 
@@ -103,7 +111,7 @@ func (msg MsgCreateIndexingNode) Type() string {
 }
 
 func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	if msg.NetworkAddress == "" {
+	if msg.NetworkID == "" {
 		return ErrEmptyNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -128,7 +136,13 @@ func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress, sdk.AccAddress(msg.PubKey.Address())}
+	// OwnerAddress is first signer so Owner pays fees
+	addrs := []sdk.AccAddress{msg.OwnerAddress}
+
+	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
+	//}
+	return addrs
 }
 
 // MsgRemoveResourceNode - struct for removing resource node
@@ -213,4 +227,55 @@ func (msg MsgRemoveIndexingNode) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 	return nil
+}
+
+type MsgIndexingNodeRegistrationVote struct {
+	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
+	Opinion      VoteOpinion    `json:"opinion" yaml:"opinion"`
+	VoterAddress sdk.AccAddress `json:"voter_address" yaml:"voter_address"` // address of voter (other existed indexing node)
+}
+
+func NewMsgIndexingNodeRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion, approverAddress sdk.AccAddress,
+) MsgIndexingNodeRegistrationVote {
+	return MsgIndexingNodeRegistrationVote{
+		NodeAddress:  nodeAddress,
+		OwnerAddress: ownerAddress,
+		Opinion:      opinion,
+		VoterAddress: approverAddress,
+	}
+}
+
+func (m MsgIndexingNodeRegistrationVote) Route() string {
+	return RouterKey
+}
+
+func (m MsgIndexingNodeRegistrationVote) Type() string {
+	return "indexing_node_reg_vote"
+}
+
+func (m MsgIndexingNodeRegistrationVote) ValidateBasic() error {
+	if m.NodeAddress.Empty() {
+		return ErrEmptyNodeAddr
+	}
+	if m.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if m.VoterAddress.Empty() {
+		return ErrEmptyApproverAddr
+	}
+	if m.OwnerAddress.Equals(m.VoterAddress) {
+		return ErrSameAddr
+	}
+	return nil
+}
+
+func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
+	addrs := []sdk.AccAddress{m.VoterAddress}
+	return addrs
 }

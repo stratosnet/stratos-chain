@@ -22,6 +22,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
 type FileUploadReq struct {
 	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
 	FileHash string       `json:"file_hash" yaml:"file_hash"`
+	Uploader string       `json:"uploader" yaml:"uploader"`
 }
 
 // FileUploadRequestHandlerFn - http request handler to send coins to a address.
@@ -49,7 +50,13 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUpload(fileHash, fromAddr)
+		uploader, err := sdk.AccAddressFromBech32(req.Uploader)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgUpload(fileHash, fromAddr, uploader)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

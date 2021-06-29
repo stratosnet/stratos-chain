@@ -5,31 +5,39 @@ import (
 )
 
 const (
-	FlagPubKey      = "pubkey"
-	FlagAmount      = "amount"
-	FlagNetworkAddr = "network-addr"
-	FlagNodeType    = "node-type"
+	FlagPubKey    = "pubkey"
+	FlagAmount    = "amount"
+	FlagNetworkID = "network-id"
+	FlagNodeType  = "node-type"
 
 	FlagMoniker         = "moniker"
 	FlagIdentity        = "identity"
 	FlagWebsite         = "website"
 	FlagSecurityContact = "security-contact"
 	FlagDetails         = "details"
+
+	FlagNodeAddress  = "node-address"
+	FlagOwnerAddress = "owner-address"
+	FlagOpinion      = "opinion"
 )
 
 // common flagsets to add to various functions
 var (
 	FsPk                = flag.NewFlagSet("", flag.ContinueOnError)
 	FsAmount            = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNetworkAddr       = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNetworkID         = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNodeType          = flag.NewFlagSet("", flag.ContinueOnError)
 	FsDescriptionCreate = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNodeAddress       = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOwnerAddress      = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOpinion           = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
 	FsPk.String(FlagPubKey, "", "The Bech32 encoded PubKey of the node")
 	FsAmount.String(FlagAmount, "", "Amount of coins to bond")
-	FsNetworkAddr.String(FlagNetworkAddr, "", "The network address of the node")
+	//FsNetworkAddr.String(FlagNetworkAddress, "", "The network address of the node")
+	FsNetworkID.String(FlagNetworkID, "", "The network id of the node")
 	FsNodeType.Int(FlagNodeType, 0, `The value of node_type is determined by the three node types('storage', 'database'', and 'computation') and their arbitrary combinations.
 Suppose, we define:
 	computation 	= 1,
@@ -55,4 +63,7 @@ As a result, the value of node_type should be one of the following digits:
 	FsDescriptionCreate.String(FlagSecurityContact, "", "The node's (optional) security contact email")
 	FsDescriptionCreate.String(FlagDetails, "", "The node's (optional) details")
 
+	FsNodeAddress.String(FlagNodeAddress, "The address of the PP node", "")
+	FsOwnerAddress.String(FlagOwnerAddress, "", "")
+	FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Indexing node.")
 }
