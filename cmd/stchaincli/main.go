@@ -16,6 +16,7 @@ import (
 	authrest "github.com/cosmos/cosmos-sdk/x/auth/client/rest"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	bankcmd "github.com/cosmos/cosmos-sdk/x/bank/client/cli"
+	govcmd "github.com/cosmos/cosmos-sdk/x/gov/client/cli"
 	reportcmd "github.com/stratosnet/stratos-chain/x/pot/client/cli"
 	uploadcmd "github.com/stratosnet/stratos-chain/x/sds/client/cli"
 
@@ -43,7 +44,7 @@ func main() {
 	// with the cdc
 
 	rootCmd := &cobra.Command{
-		Use:   "stratos-chaincli",
+		Use:   "stchaincli",
 		Short: "Command line interface for interacting with stratoschaind",
 	}
 
@@ -112,6 +113,10 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		flags.LineBreak,
 		uploadcmd.FileUploadTxCmd(cdc),
 		reportcmd.VolumeReportCmd(cdc),
+		flags.LineBreak,
+		govcmd.GetCmdSubmitProposal(cdc),
+		govcmd.GetCmdDeposit(cdc),
+		govcmd.GetCmdVote(cdc),
 		flags.LineBreak,
 		authcmd.GetSignCommand(cdc),
 		authcmd.GetMultiSignCommand(cdc),

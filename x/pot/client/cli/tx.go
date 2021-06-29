@@ -34,14 +34,62 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	potTxCmd.AddCommand(flags.PostCommands(
 		VolumeReportCmd(cdc),
+		WithdrawCmd(cdc),
 	)...)
 	return potTxCmd
+}
+
+func WithdrawCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "withdraw",
+		Short: "withdraw POT reward",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			txBldr, msg, err := buildWithdrawMsg(cliCtx, txBldr)
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsAmount)
+	cmd.Flags().AddFlagSet(FsNodeAddress)
+
+	cmd.MarkFlagRequired(FlagAmount)
+	cmd.MarkFlagRequired(FlagNodeAddress)
+	cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+// makes a new WithdrawMsg.
+func buildWithdrawMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	amountStr := viper.GetString(FlagAmount)
+	amount, err := sdk.ParseCoin(amountStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+	nodeAddressStr := viper.GetString(FlagNodeAddress)
+	nodeAddress, err := sdk.AccAddressFromBech32(nodeAddressStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+	ownerAddress := cliCtx.GetFromAddress()
+
+	msg := types.NewMsgWithdraw(amount, nodeAddress, ownerAddress)
+
+	return txBldr, msg, nil
 }
 
 // VolumeReportCmd will report nodes volume and sign it with the given key.
 func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "report",
+		Use:   "report [flags]",
 		Short: "Create and sign a volume report",
 		//Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {

@@ -28,18 +28,31 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle MsgFileUpload.
 func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUpload) (*sdk.Result, error) {
+	// check if reporter addr belongs to an registered sp node
+	if _, found := k.RegisterKeeper.GetIndexingNode(ctx, msg.Reporter); found == false {
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.Reporter.String())
+	}
 	height := sdk.NewInt(ctx.BlockHeight())
 	heightByteArr, _ := height.MarshalJSON()
 	var heightReEncoded sdk.Int
 	heightReEncoded.UnmarshalJSON(heightByteArr)
-	k.SetFileHash(ctx, msg.FileHash, heightByteArr)
-	ctx.EventManager().EmitEvent(
+
+	fileInfo := types.NewFileInfo(heightReEncoded, msg.Reporter, msg.Uploader)
+	k.SetFileHash(ctx, msg.FileHash, fileInfo)
+
+	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeFileUpload,
 			sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
+			sdk.NewAttribute(types.AttributeKeyUploader, msg.Uploader.String()),
 			sdk.NewAttribute(types.AttributeKeyFileHash, hex.EncodeToString(msg.FileHash)),
 		),
-	)
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
@@ -48,16 +61,23 @@ func handleMsgPrepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgPrepay) (*sd
 	if k.BankKeeper.GetSendEnabled(ctx) == false {
 		return nil, nil
 	}
-	err := k.Prepay(ctx, msg.Sender, msg.Coins)
-	if err == nil {
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypePrepay,
-				sdk.NewAttribute(types.AttributeKeyReporter, msg.Sender.String()),
-				sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
-			),
-		)
-		return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	purchased, err := k.Prepay(ctx, msg.Sender, msg.Coins)
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypePrepay,
+			sdk.NewAttribute(types.AttributeKeyReporter, msg.Sender.String()),
+			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchasedUoz, purchased.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }

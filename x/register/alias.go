@@ -6,13 +6,18 @@ import (
 )
 
 const (
-	DefaultParamspace = types.DefaultParamspace
-	ModuleName        = types.ModuleName
-	StoreKey          = types.StoreKey
+	DefaultParamSpace   = types.DefaultParamSpace
+	ModuleName          = types.ModuleName
+	StoreKey            = types.StoreKey
+	RouterKey           = types.RouterKey
+	NodeTypeComputation = types.COMPUTATION
+	NodeTypeDataBase    = types.DATABASE
+	NodeTypeStorage     = types.STORAGE
 )
 
 var (
-	NewKeeper = keeper.NewKeeper
+	NewKeeper     = keeper.NewKeeper
+	RegisterCodec = types.RegisterCodec
 
 	ErrInvalid                  = types.ErrInvalid
 	ErrEmptyNetworkAddr         = types.ErrEmptyNetworkAddr
@@ -26,8 +31,28 @@ var (
 	ErrIndexingNodePubKeyExists = types.ErrIndexingNodePubKeyExists
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
+	ErrInvalidOwnerAddr         = types.ErrInvalidOwnerAddr
+	ErrInvalidApproverAddr      = types.ErrInvalidApproverAddr
+	ErrInvalidApproverStatus    = types.ErrInvalidApproverStatus
+
+	DefaultParams            = types.DefaultParams
+	DefaultGenesisState      = types.DefaultGenesisState
+	NewGenesisState          = types.NewGenesisState
+	NewResourceNode          = types.NewResourceNode
+	NewIndexingNode          = types.NewIndexingNode
+	NewDescription           = types.NewDescription
+	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
+	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
 )
 
 type (
-	Keeper = keeper.Keeper
+	Keeper                = keeper.Keeper
+	ResourceNode          = types.ResourceNode
+	IndexingNode          = types.IndexingNode
+	Description           = types.Description
+	MsgCreateResourceNode = types.MsgCreateResourceNode
+	MsgCreateIndexingNode = types.MsgCreateIndexingNode
+	LastResourceNodeStake = types.LastResourceNodeStake
+	LastIndexingNodeStake = types.LastIndexingNodeStake
+	VoteOpinion           = types.VoteOpinion
 )

@@ -1,7 +1,7 @@
-# Makefile for the "stratos-chaind-node" docker image.
+# Makefile for the "stchaind-node" docker image.
 
 all:
-	docker build --tag stratosnet/stratos-chaind-node stratos-chaind-node
+	docker build --tag stratosnet/stchaind-node stchaind-node
 
 .PHONY: all
 

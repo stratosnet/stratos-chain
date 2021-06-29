@@ -12,17 +12,19 @@ const (
 
 type MsgFileUpload struct {
 	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
-	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // reporter of tx
+	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // sp node who reports this tx
+	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader`    // who uploads the file
 }
 
 // verify interface at compile time
 var _ sdk.Msg = &MsgFileUpload{}
 
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgUpload(fileHash []byte, reporter sdk.AccAddress) MsgFileUpload {
+func NewMsgUpload(fileHash []byte, reporter, uploader sdk.AccAddress) MsgFileUpload {
 	return MsgFileUpload{
 		FileHash: fileHash,
 		Reporter: reporter,
+		Uploader: uploader,
 	}
 }
 
@@ -42,7 +44,13 @@ func (msg MsgFileUpload) GetSignBytes() []byte {
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgFileUpload) ValidateBasic() error {
 	if msg.Reporter.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx reporter")
+	}
+	if msg.Uploader.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of file uploader")
+	}
+	if len(msg.FileHash) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "missing file hash")
 	}
 	return nil
 }

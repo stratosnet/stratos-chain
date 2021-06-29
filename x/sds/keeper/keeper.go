@@ -7,6 +7,8 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/stratosnet/stratos-chain/x/pot"
+	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -14,23 +16,29 @@ import (
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
-	BankKeeper bank.Keeper
-	key        sdk.StoreKey
-	cdc        *codec.Codec
+	key            sdk.StoreKey
+	cdc            *codec.Codec
+	BankKeeper     bank.Keeper
+	RegisterKeeper register.Keeper
+	PotKeeper      pot.Keeper
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
 // (binary) encode and decode concrete sdk.MsgUploadFile.
 // nolint
 func NewKeeper(
-	bankKeeper bank.Keeper,
 	cdc *codec.Codec,
 	key sdk.StoreKey,
+	bankKeeper bank.Keeper,
+	registerKeeper register.Keeper,
+	potKeeper pot.Keeper,
 ) Keeper {
 	return Keeper{
-		BankKeeper: bankKeeper,
-		key:        key,
-		cdc:        cdc,
+		key:            key,
+		cdc:            cdc,
+		BankKeeper:     bankKeeper,
+		RegisterKeeper: registerKeeper,
+		PotKeeper:      potKeeper,
 	}
 }
 
@@ -39,8 +47,8 @@ func (fk Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetFileHash Returns the hash of file
-func (fk Keeper) GetFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
+// GetFileInfoBytesByFileHash Returns the hash of file
+func (fk Keeper) GetFileInfoBytesByFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
 	store := ctx.KVStore(fk.key)
 	bz := store.Get(types.FileStoreKey(key))
 	if bz == nil {
@@ -50,24 +58,63 @@ func (fk Keeper) GetFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
 }
 
 // SetFileHash Sets sender-fileHash KV pair
-func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, height []byte) {
+func (fk Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.FileInfo) {
 	store := ctx.KVStore(fk.key)
 	storeKey := types.FileStoreKey(fileHash)
-	store.Set(storeKey, height)
+	bz := types.MustMarshalFileInfo(fk.cdc, fileInfo)
+	store.Set(storeKey, bz)
+}
+
+// [S] is the initial genesis deposit by all Resource Nodes and Meta Nodes at t=0
+// The current unissued prepay Volume Pool [Pt] is the total remaining prepay STOS kept by the Stratos Network but not yet issued to Resource Nodes as rewards.
+// The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
+// [X] is the total amount of STOS token prepaid by user at time t
+// the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
+func (fk Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
+	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
+	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+
+	purchased := Lt.ToDec().
+		Mul(amount.ToDec()).
+		Quo((S.
+			Add(Pt).
+			Add(amount)).ToDec()).
+		TruncateInt()
+
+	// update total unissued prepay
+	newTotalUnissuedPrepay := Pt.Add(amount)
+	fk.PotKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnissuedPrepay)
+
+	// update remaining uoz limit
+	newRemainingOzoneLimit := Lt.Sub(purchased)
+	fk.RegisterKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
+
+	return purchased
 }
 
 // Prepay transfers coins from bank to sds (volumn) pool
-func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
 	// src - hasCoins?
-	if fk.BankKeeper.HasCoins(ctx, sender, coins) {
-		err := fk.doPrepay(ctx, sender, coins)
-		if err != nil {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-		}
-		_, error := fk.BankKeeper.SubtractCoins(ctx, sender, coins)
-		return error
+	if !fk.BankKeeper.HasCoins(ctx, sender, coins) {
+		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-	return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+
+	err := fk.doPrepay(ctx, sender, coins)
+	if err != nil {
+		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	}
+
+	_, err = fk.BankKeeper.SubtractCoins(ctx, sender, coins)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+
+	//TODO: move the definition of default denomination to params.go
+	prepay := coins.AmountOf("ustos")
+	purchased := fk.purchaseUoz(ctx, prepay)
+
+	return purchased, nil
 }
 
 // HasPrepay Returns bool indicating if the sender did prepay before

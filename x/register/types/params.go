@@ -5,19 +5,22 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/params/subspace"
 	"strings"
 )
 
 // Default parameter namespace
 const (
-	DefaultParamspace = ModuleName
-	DefaultBondDenom  = "stos"
+	DefaultParamSpace = ModuleName
+	DefaultBondDenom  = "ustos"
 )
 
 // Parameter store keys
 var (
 	KeyBondDenom = []byte("BondDenom")
 )
+
+var _ subspace.ParamSet = &Params{}
 
 // ParamKeyTable for register module
 func ParamKeyTable() params.KeyTable {

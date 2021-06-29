@@ -4,7 +4,11 @@ import (
 	"encoding/hex"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/cosmos/cosmos-sdk/x/params"
+	"github.com/cosmos/cosmos-sdk/x/staking"
+	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -15,21 +19,32 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	BankKeeper     bank.Keeper
-	storeKey       sdk.StoreKey
-	cdc            *codec.Codec
-	RegisterKeeper *register.Keeper
-	//paramspace types.ParamSubspace
+	storeKey         sdk.StoreKey
+	cdc              *codec.Codec
+	paramSpace       params.Subspace
+	feeCollectorName string // name of the FeeCollector ModuleAccount
+	BankKeeper       bank.Keeper
+	SupplyKeeper     supply.Keeper
+	AccountKeeper    auth.AccountKeeper
+	StakingKeeper    staking.Keeper
+	RegisterKeeper   register.Keeper
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(bankKeeper bank.Keeper, cdc *codec.Codec, key sdk.StoreKey, registerKeeper *register.Keeper) Keeper {
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, feeCollectorName string,
+	bankKeeper bank.Keeper, supplyKeeper supply.Keeper, accountKeeper auth.AccountKeeper, stakingKeeper staking.Keeper,
+	registerKeeper register.Keeper,
+) Keeper {
 	keeper := Keeper{
-		BankKeeper:     bankKeeper,
-		storeKey:       key,
-		cdc:            cdc,
-		RegisterKeeper: registerKeeper,
-		//paramspace: paramspace.WithKeyTable(types.ParamKeyTable()),
+		cdc:              cdc,
+		storeKey:         key,
+		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
+		feeCollectorName: feeCollectorName,
+		BankKeeper:       bankKeeper,
+		SupplyKeeper:     supplyKeeper,
+		AccountKeeper:    accountKeeper,
+		StakingKeeper:    stakingKeeper,
+		RegisterKeeper:   registerKeeper,
 	}
 	return keeper
 }
@@ -61,12 +76,7 @@ func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
 	store.Delete(key)
 }
 
-func (k Keeper) IsIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
-	ctx.Logger().Info("Inside IsIndexingNode start")
-	ctx.Logger().Info("ctx in IsIndexingNode:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
-	ctx.Logger().Info("addr:" + string(types.ModuleCdc.MustMarshalJSON(addr)))
-
+func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
-	ctx.Logger().Info("Inside IsIndexingNode end")
 	return found
 }
