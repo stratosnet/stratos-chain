@@ -33,6 +33,8 @@ const (
 	defaultHome           = "build/node/stchaincli"
 	defaultDenom          = "ustos"
 	defaultChainId        = "test-chain"
+
+	maxAmtFaucet = 100000000000
 )
 
 // global to load command line args
@@ -78,7 +80,7 @@ func AddFaucetCmd(
 			}
 
 			var toTransferAmt int
-			if toTransferAmt = viper.GetInt(flagAmt); toTransferAmt <= 0 {
+			if toTransferAmt = viper.GetInt(flagAmt); toTransferAmt <= 0 || toTransferAmt > maxAmtFaucet {
 				return fmt.Errorf("Invalid amount in faucet")
 			}
 			coin := sdk.Coin{Amount: sdk.NewInt(int64(toTransferAmt)), Denom: defaultDenom}
