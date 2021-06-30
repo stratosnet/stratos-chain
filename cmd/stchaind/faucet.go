@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/http"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -17,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -25,8 +28,8 @@ import (
 
 const (
 	flagFrom = "from" // optional
-	flagTo   = "to"
 	flagAmt  = "amt" // denom fixed as ustos
+	flagPort   = "port"
 
 	defaultNodeURI        = "tcp://127.0.0.1:26657"
 	defaultKeyringBackend = "test"
@@ -43,8 +46,8 @@ var faucetArgs = FaucetArgs{}
 // struct to hold the command-line args
 type FaucetArgs struct {
 	from  sdk.AccAddress
-	to    sdk.AccAddress
 	coins sdk.Coins
+	port  string
 }
 
 // AddFaucetCmd returns faucet cobra Command
@@ -78,7 +81,9 @@ func AddFaucetCmd(
 				}
 				fmt.Printf("No sender account specified, using account 0 for faucet\n")
 			}
+			faucetArgs.port = viper.GetString(flagPort)
 
+			ctx.Logger.Info("funding address: ", "addr", faucetArgs.from.String())
 			var toTransferAmt int
 			if toTransferAmt = viper.GetInt(flagAmt); toTransferAmt <= 0 || toTransferAmt > maxAmtFaucet {
 				return fmt.Errorf("Invalid amount in faucet")
@@ -86,12 +91,6 @@ func AddFaucetCmd(
 			coin := sdk.Coin{Amount: sdk.NewInt(int64(toTransferAmt)), Denom: defaultDenom}
 			faucetArgs.coins = sdk.Coins{coin}
 
-			toAddr := viper.GetString(flagTo)
-			toAddrBytes, err := sdk.AccAddressFromBech32(toAddr)
-			if err != nil {
-				return fmt.Errorf("failed to parse bech32 address for To Address: %w", err)
-			}
-			faucetArgs.to = toAddrBytes
 
 			ctx.Logger.Info("Starting faucet...")
 
@@ -114,11 +113,48 @@ func AddFaucetCmd(
 			}
 			viper.Set(flags.FlagTrustNode, true)
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
-			doTransfer(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)), faucetArgs.to, faucetArgs.from, coin) // send coin to temp account
 
+			// listen to localhost:26600
+			listener, err := net.Listen("tcp", ":"+faucetArgs.port )
+			ctx.Logger.Info("listen to ["+ ":"+faucetArgs.port+ "]")
+			// router
+			r := mux.NewRouter()
+			// health check
+			r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(200)
+				w.Write([]byte("ok\n"))
+			})
+			//faucet
+			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
+				vars := mux.Vars(request)
+				addr := vars["address"]
+				toAddr, err := sdk.AccAddressFromBech32(addr)
+				if err != nil {
+					writer.WriteHeader(400)
+					writer.Write([]byte(err.Error()))
+				}
+				ctx.Logger.Info("get request from: ", "addr", addr)
+				err = doTransfer(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)), toAddr, faucetArgs.from, coin) // send coin to temp account
+				if err != nil {
+					writer.WriteHeader(400)
+					writer.Write([]byte(err.Error()))
+				}
+				ctx.Logger.Info("send", "addr", addr, "amount", coin.String())
+
+				msg := fmt.Sprintf("Successfully send %s to %s \n", coin.String(), addr)
+				writer.WriteHeader(200)
+				writer.Write([]byte(msg))
+				return
+			}).Methods("POST")
+
+			//start the server
+			err = http.Serve(listener, r)
+			if err != nil {
+				fmt.Println(err.Error())
+			}
 			// print stats
 			fmt.Println("####################################################################")
-			fmt.Println("################        Terminating faucet        ###############")
+			fmt.Println("################        Terminating faucet        ##################")
 			fmt.Println("####################################################################")
 			return nil
 		},
@@ -127,9 +163,9 @@ func AddFaucetCmd(
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
 	cmd.Flags().String(flagClientHome, defaultClientHome, "client's home directory")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
-	cmd.Flags().String(flagTo, "", "to address")
 	cmd.Flags().String(flagAmt, "", "amt to transfer in faucet")
 	cmd.Flags().String(flagFrom, "", "from address")
+	cmd.Flags().String(flagPort, "26600", "port of faucet server")
 	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 
 	return cmd
@@ -157,12 +193,10 @@ func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (ac
 	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }
 
-func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin) {
+func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin) error {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
-	fmt.Printf("From: %s, To: %s, Coin: %s\n", msg.FromAddress.String(), msg.ToAddress.String(), msg.Amount.String())
+	cliCtx.BroadcastMode = "block"
 	err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-	if err != nil {
-		fmt.Println(err)
-	}
+	return err
 }
