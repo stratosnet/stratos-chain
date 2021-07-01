@@ -17,35 +17,36 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		postCreateResourceNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/createIndexingNode",
-		postCreateIndexingNodeHandlerFn(cliCtx),
-	).Methods("POST")
-	r.HandleFunc(
 		"/register/removeResourceNode",
 		postRemoveResourceNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
+		"/register/updateResourceNode",
+		postUpdateResourceNodeHandlerFn(cliCtx),
+	).Methods("POST")
+
+	r.HandleFunc(
+		"/register/createIndexingNode",
+		postCreateIndexingNodeHandlerFn(cliCtx),
+	).Methods("POST")
+	r.HandleFunc(
 		"/register/removeIndexingNode",
 		postRemoveIndexingNodeHandlerFn(cliCtx),
+	).Methods("POST")
+	r.HandleFunc(
+		"/register/updateIndexingNode",
+		postUpdateIndexingNodeHandlerFn(cliCtx),
 	).Methods("POST")
 }
 
 type (
 	CreateResourceNodeRequest struct {
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkID   string            `json:"network_id" yaml:"network_id"` // in bech32
-		PubKey      string            `json:"pubkey" yaml:"pubkey"`         // in bech32
+		NetworkID   string            `json:"network_id" yaml:"network_id"`
+		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
 		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
 		NodeType    int               `json:"node_type" yaml:"node_type"`
-	}
-
-	CreateIndexingNodeRequest struct {
-		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkID   string            `json:"network_id" yaml:"network_id"` // in bech32
-		PubKey      string            `json:"pubkey" yaml:"pubkey"`         // in bech32
-		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
-		Description types.Description `json:"description" yaml:"description"`
 	}
 
 	RemoveResourceNodeRequest struct {
@@ -53,9 +54,32 @@ type (
 		ResourceNodeAddress string       `json:"resource_node_address" yaml:"resource_node_address"` // in bech32
 	}
 
+	UpdateResourceNodeRequest struct {
+		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		NetworkID      string            `json:"network_id" yaml:"network_id"`
+		Description    types.Description `json:"description" yaml:"description"`
+		NodeType       int               `json:"node_type" yaml:"node_type"`
+		NetworkAddress string            `json:"network_address" yaml:"network_address"`
+	}
+
+	CreateIndexingNodeRequest struct {
+		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		NetworkID   string            `json:"network_id" yaml:"network_id"`
+		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
+		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
+		Description types.Description `json:"description" yaml:"description"`
+	}
+
 	RemoveIndexingNodeRequest struct {
 		BaseReq             rest.BaseReq `json:"base_req" yaml:"base_req"`
 		IndexingNodeAddress string       `json:"indexing_node_address" yaml:"indexing_node_address"` // in bech32
+	}
+
+	UpdateIndexingNodeRequest struct {
+		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		NetworkID      string            `json:"network_id" yaml:"network_id"`
+		Description    types.Description `json:"description" yaml:"description"`
+		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 )
 
@@ -195,6 +219,82 @@ func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 		}
 
 		msg := types.NewMsgRemoveIndexingNode(nodeAddr, ownerAddr)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateResourceNodeRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		nodeTypeRef := req.NodeType
+
+		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		ownerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if er != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
+			return
+		}
+		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
+			return
+		}
+		msg := types.NewMsgUpdateResourceNode(req.NetworkID, req.Description,
+			fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()), networkAddr, ownerAddr)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateIndexingNodeRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		ownerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if er != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
+			return
+		}
+
+		msg := types.NewMsgUpdateIndexingNode(req.NetworkID, req.Description, networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

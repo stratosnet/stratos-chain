@@ -229,6 +229,109 @@ func (msg MsgRemoveIndexingNode) ValidateBasic() error {
 	return nil
 }
 
+// MsgUpdateResourceNode struct for updating resource node
+type MsgUpdateResourceNode struct {
+	NetworkID      string         `json:"network_id" yaml:"network_id"`
+	Description    Description    `json:"description" yaml:"description"`
+	NodeType       string         `json:"node_type" yaml:"node_type"`
+	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+}
+
+func NewMsgUpdateResourceNode(networkID string, description Description, nodeType string,
+	networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress) MsgUpdateResourceNode {
+
+	return MsgUpdateResourceNode{
+		NetworkID:      networkID,
+		Description:    description,
+		NodeType:       nodeType,
+		NetworkAddress: networkAddress,
+		OwnerAddress:   ownerAddress,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNode) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNode) Type() string { return "update_resource_node" }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNode) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.OwnerAddress}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNode) ValidateBasic() error {
+	if msg.NetworkAddress.Empty() {
+		return ErrEmptyNetworkAddr
+	}
+	if msg.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if msg.Description.Moniker == "" {
+		return ErrEmptyMoniker
+	}
+	return nil
+}
+
+// MsgUpdateIndexingNode struct for updating indexing node
+type MsgUpdateIndexingNode struct {
+	NetworkID      string         `json:"network_id" yaml:"network_id"`
+	Description    Description    `json:"description" yaml:"description"`
+	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+}
+
+func NewMsgUpdateIndexingNode(
+	networkID string, description Description, networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress,
+) MsgUpdateIndexingNode {
+
+	return MsgUpdateIndexingNode{
+		NetworkID:      networkID,
+		Description:    description,
+		NetworkAddress: networkAddress,
+		OwnerAddress:   ownerAddress,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNode) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNode) Type() string { return "update_indexing_node" }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNode) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.OwnerAddress}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNode) ValidateBasic() error {
+	if msg.NetworkAddress.Empty() {
+		return ErrEmptyNetworkAddr
+	}
+	if msg.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if msg.Description.Moniker == "" {
+		return ErrEmptyMoniker
+	}
+	return nil
+}
+
 type MsgIndexingNodeRegistrationVote struct {
 	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
