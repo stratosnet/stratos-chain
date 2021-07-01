@@ -21,6 +21,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -32,6 +33,9 @@ const (
 	flagRandomRecv = "random-recv"
 	flagMaxTx      = "max-tx"
 	flagAddr       = "addr"
+	flagShowTxHash = "show-txhash"
+
+	defaultOutputFlag = "text"
 )
 
 //var ModuleCdc *codec.Codec
@@ -123,6 +127,9 @@ func AddLoadTestCmd(
 				if !viper.IsSet(flags.FlagKeyringBackend) {
 					viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
 				}
+				if viper.GetBool(flagShowTxHash) {
+					viper.Set(cli.OutputFlag, defaultOutputFlag)
+				}
 				if !viper.IsSet(flags.FlagNode) {
 					viper.Set(flags.FlagNode, defaultNodeURI)
 				}
@@ -166,8 +173,9 @@ func AddLoadTestCmd(
 					cliCtx.SkipConfirm = true
 					iter := 0
 					for true {
-						ctx.Logger.Info(fmt.Sprintf("thread: %d, sending tx with sequence: %d\n", threadIndex, int(seqStart[threadIndex]+uint64(iter))))
-						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
+						currSeqInt := int(seqStart[threadIndex] + uint64(iter))
+						ctx.Logger.Info(fmt.Sprintf("thread: %d, sending tx with sequence: %d\n", threadIndex, currSeqInt))
+						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)).WithMemo(strconv.Itoa(currSeqInt)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
 						iter += 1
 						counterChan <- 1
 
@@ -201,8 +209,10 @@ func AddLoadTestCmd(
 	cmd.Flags().Int(flagThreads, 1, "no. of threads in the load test; for concurrency")
 	cmd.Flags().Int(flagInterval, 10, "interval (in milliseconds) between two successive send transactions on a thread")
 	cmd.Flags().Bool(flagRandomRecv, true, "whether to send tokens to a random address every time or no, the default is false")
+	cmd.Flags().Bool(flagShowTxHash, false, "whether to show tx hash after sending it")
 	cmd.Flags().Int(flagMaxTx, 10000, "max transactions after which the load test should stop, default is 10000(10k)")
 	cmd.Flags().String(flagAddr, "", "fund address that load test uses")
+	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 
 	return cmd
@@ -221,8 +231,6 @@ func doSendTransaction(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, th
 	if err != nil {
 		fmt.Println(err)
 	}
-	//fmt.Println("tx sent")
-
 }
 
 // handleSigTerm keeps a count of messages sent and if the maximum number of transactions is reached it stops
