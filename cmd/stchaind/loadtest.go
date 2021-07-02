@@ -122,7 +122,7 @@ func AddLoadTestCmd(
 					viper.Set(flags.FlagChainID, defaultChainId)
 				}
 				txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc)).WithChainID(viper.GetString(flags.FlagChainID))
-				viper.Set(flags.FlagBroadcastMode, "async")
+				viper.Set(flags.FlagBroadcastMode, "block")
 				viper.Set(flags.FlagSkipConfirmation, true)
 				if !viper.IsSet(flags.FlagKeyringBackend) {
 					viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
@@ -212,7 +212,6 @@ func AddLoadTestCmd(
 	cmd.Flags().Bool(flagShowTxHash, false, "whether to show tx hash after sending it")
 	cmd.Flags().Int(flagMaxTx, 10000, "max transactions after which the load test should stop, default is 10000(10k)")
 	cmd.Flags().String(flagAddr, "", "fund address that load test uses")
-	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 
 	return cmd
