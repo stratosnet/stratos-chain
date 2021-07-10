@@ -53,13 +53,28 @@ type LoadTestArgs struct {
 	address    []byte
 }
 
+func LoadTestCommands(ctx *server.Context, cdc *codec.Codec, defaultNodeHome, defaultClientHome string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "load",
+		Short: "Run a load test",
+		Long:  `Run a load test with fixed senders or random senders`,
+	}
+	cmd.AddCommand(
+		AddFixedLoadTestCmd(ctx, cdc, defaultNodeHome, defaultClientHome),
+		AddRandomLoadTestCmd(ctx, cdc, defaultNodeHome, defaultClientHome),
+	)
+	//cmd.PersistentFlags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
+	//viper.BindPFlag(flags.FlagKeyringBackend, cmd.Flags().Lookup(flags.FlagKeyringBackend))
+	return cmd
+}
+
 // AddLoadTestCmd returns load test cobra Command.
-func AddLoadTestCmd(
+func AddFixedLoadTestCmd(
 	ctx *server.Context, cdc *codec.Codec, defaultNodeHome, defaultClientHome string,
 ) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "load",
+		Use:   "fixed",
 		Short: "Run a load test with fixed senders and receivers",
 		Args:  cobra.RangeArgs(0, 5),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
@@ -224,7 +239,7 @@ func AddRandomLoadTestCmd(
 ) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "random-load",
+		Use:   "random",
 		Short: "Run a load test with random senders and receivers",
 		Args:  cobra.RangeArgs(0, 1),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
