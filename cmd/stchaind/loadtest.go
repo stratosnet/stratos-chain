@@ -63,8 +63,6 @@ func LoadTestCommands(ctx *server.Context, cdc *codec.Codec, defaultNodeHome, de
 		AddFixedLoadTestCmd(ctx, cdc, defaultNodeHome, defaultClientHome),
 		AddRandomLoadTestCmd(ctx, cdc, defaultNodeHome, defaultClientHome),
 	)
-	//cmd.PersistentFlags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
-	//viper.BindPFlag(flags.FlagKeyringBackend, cmd.Flags().Lookup(flags.FlagKeyringBackend))
 	return cmd
 }
 
@@ -130,10 +128,7 @@ func AddFixedLoadTestCmd(
 			seqStart := make(map[int]uint64)
 			// start threads
 			for i := 0; i < loadTestArgs.threads; i++ {
-				//waiter.Add(1)
 				inBuf := bufio.NewReader(cmd.InOrStdin())
-				//viper.Set("gas", "auto")
-				//flags.GasFlagVar.Set("auto")
 				if !viper.IsSet(flags.FlagChainID) {
 					viper.Set(flags.FlagChainID, defaultChainId)
 				}
@@ -157,8 +152,6 @@ func AddFixedLoadTestCmd(
 				if len(loadTestArgs.address) != 0 {
 					from = loadTestArgs.address
 				}
-				//ctx.Logger.Info(fmt.Sprintf("From addr: %s, chain-id: %s, keyring-backend: %s, home: %s", from.String(),
-				//	viper.GetString(flags.FlagChainID), viper.GetString(flags.FlagKeyringBackend), viper.GetString(flags.FlagHome)))
 				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, from.String()).WithCodec(cdc)
 				to := accsFromGenesis[0]
 				if len(accsFromGenesis) > i && (i != loadTestArgs.threads-1 || i == 0) {
@@ -345,14 +338,6 @@ func AddRandomLoadTestCmd(
 				ctx.Logger.Info(fmt.Sprintf("thread: %d, first sequence in this thread: %d\n", i, int(txBldr.Sequence())))
 				seqStart[i] = txBldr.Sequence()
 
-				// single-threading start --------
-				//for j := 0; j < loadTestArgs.maxTx; j++ {
-				//	ctx.Logger.Info(fmt.Sprintf("current sequence: %d\n", int(firstSeqUint64+uint64(j))))
-				//	doSendTransaction(cliCtx, txBldr.WithSequence(seqStart[i]+uint64(j)), i, to, from, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(10), Denom: defaultDenom}, seqStart[i]) // send coin to temp account
-				//	counter += 1
-				//}
-				// single-threading end --------
-
 				// multi-threading start --------
 				threadIndex := i
 				threadTo := to
@@ -452,11 +437,7 @@ func doInitDistribution(ctx *server.Context, cliCtx context.CLIContext, txBldr a
 // doSendTransaction takes in an account and currency object and sends random amounts of coin from the
 // node account. It prints any errors to ctx.logger and returns
 func doSendTransaction(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, threadNo int, to sdk.AccAddress, from sdk.AccAddress, randomRev bool, coin sdk.Coin, firstSeq uint64) {
-	//fmt.Println("Testing from " + from.String() + " to " + to.String())
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
-	//fmt.Printf("msg is : %s\n", msg)
-	//fmt.Printf("From: %s, To: %s, Coin: %s\n", msg.FromAddress.String(), msg.ToAddress.String(), msg.Amount.String())
-
 	//// build and sign the transaction, then broadcast to Tendermint
 	err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 	if err != nil {
