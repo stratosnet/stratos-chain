@@ -346,3 +346,23 @@ func (k Keeper) SetIndexingNodeRegistrationVotePool(ctx sdk.Context, votePool ty
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(votePool)
 	store.Set(types.GetIndexingNodeRegistrationVotesKey(nodeAddr), bz)
 }
+
+func (k Keeper) UpdateIndexingNode(ctx sdk.Context, networkID string, description types.Description,
+	networkAddr sdk.AccAddress, ownerAddr sdk.AccAddress) error {
+
+	node, found := k.GetIndexingNode(ctx, networkAddr)
+	if !found {
+		return types.ErrNoIndexingNodeFound
+	}
+
+	if !node.OwnerAddress.Equals(ownerAddr) {
+		return types.ErrInvalidOwnerAddr
+	}
+
+	node.NetworkID = networkID
+	node.Description = description
+
+	k.SetIndexingNode(ctx, node)
+
+	return nil
+}

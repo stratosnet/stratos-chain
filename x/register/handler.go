@@ -15,12 +15,17 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		switch msg := msg.(type) {
 		case types.MsgCreateResourceNode:
 			return handleMsgCreateResourceNode(ctx, msg, k)
-		case types.MsgCreateIndexingNode:
-			return handleMsgCreateIndexingNode(ctx, msg, k)
 		case types.MsgRemoveResourceNode:
 			return handleMsgRemoveResourceNode(ctx, msg, k)
+		case types.MsgUpdateResourceNode:
+			return handleMsgUpdateResourceNode(ctx, msg, k)
+
+		case types.MsgCreateIndexingNode:
+			return handleMsgCreateIndexingNode(ctx, msg, k)
 		case types.MsgRemoveIndexingNode:
 			return handleMsgRemoveIndexingNode(ctx, msg, k)
+		case types.MsgUpdateIndexingNode:
+			return handleMsgUpdateIndexingNode(ctx, msg, k)
 		case types.MsgIndexingNodeRegistrationVote:
 			return handleSpRegistrationVote(ctx, msg, k)
 
@@ -172,5 +177,43 @@ func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistra
 		),
 	})
 
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNode, k keeper.Keeper) (*sdk.Result, error) {
+	err := k.UpdateResourceNode(ctx, msg.NetworkID, msg.Description, msg.NodeType, msg.NetworkAddress, msg.OwnerAddress)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateResourceNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NetworkAddress.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
+	err := k.UpdateIndexingNode(ctx, msg.NetworkID, msg.Description, msg.NetworkAddress, msg.OwnerAddress)
+	if err != nil {
+		return nil, err
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateIndexingNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NetworkAddress.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
