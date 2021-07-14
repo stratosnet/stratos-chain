@@ -32,9 +32,8 @@ var (
 	idxOwnerAddr2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
 	idxOwnerAddr3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
 
-	resOwnerInitBalance     = sdk.NewInt(1000000000000)
-	idxOwnerInitBalance     = sdk.NewInt(1000000000000)
-	idxNodeBalanceForVoting = sdk.NewInt(1000000000000)
+	resOwnerInitBalance = sdk.NewInt(1000000000000)
+	idxOwnerInitBalance = sdk.NewInt(1000000000000)
 
 	resNodePrivKey1 = secp256k1.GenPrivKey()
 	resNodePrivKey2 = secp256k1.GenPrivKey()
@@ -120,7 +119,7 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 
 	idxNodeAcc1 := &auth.BaseAccount{
 		Address: idxNodeAddr1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeBalanceForVoting)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
 	accs := []authexported.Account{

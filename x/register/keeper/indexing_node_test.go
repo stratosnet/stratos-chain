@@ -127,14 +127,14 @@ func TestDuplicateVote(t *testing.T) {
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1, spNodeOwner1))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1, spNodeOwner1))
 	require.Error(t, types.ErrDuplicateVoting)
 }
 
@@ -182,28 +182,28 @@ func TestSpRegistrationApproval(t *testing.T) {
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1, spNodeOwner1))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node2 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr2))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr2, spNodeOwner2))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node3 vote to approve, the status of new SP node changes to BONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr3))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr3, spNodeOwner3))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Bonded)
 
 	//Exist SP Node4 vote to approve, the status of new SP node is BONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr4))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr4, spNodeOwner4))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
@@ -221,10 +221,10 @@ func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgIndexingNodeRegistr
 
 	approver, found := k.GetIndexingNode(ctx, msg.VoterAddress)
 	if !found {
-		return types.ErrInvalidApproverAddr
+		return types.ErrInvalidVoterAddr
 	}
 	if !approver.Status.Equal(sdk.Bonded) || approver.IsSuspended() {
-		return types.ErrInvalidApproverStatus
+		return types.ErrInvalidVoterStatus
 	}
 
 	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)

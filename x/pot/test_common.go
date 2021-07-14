@@ -58,38 +58,38 @@ var (
 	idxOwner2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
 	idxOwner3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
 
-	pubKeyRes1       = secp256k1.GenPrivKey().PubKey()
-	addrRes1         = sdk.AccAddress(pubKeyRes1.Address())
-	initialStakeRes1 = sdk.NewInt(3 * stos2ustos)
+	resNodePubKey1       = secp256k1.GenPrivKey().PubKey()
+	resNodeAddr1         = sdk.AccAddress(resNodePubKey1.Address())
+	resNodeInitialStake1 = sdk.NewInt(3 * stos2ustos)
 
-	pubKeyRes2       = secp256k1.GenPrivKey().PubKey()
-	addrRes2         = sdk.AccAddress(pubKeyRes2.Address())
-	initialStakeRes2 = sdk.NewInt(3 * stos2ustos)
+	resNodePubKey2       = secp256k1.GenPrivKey().PubKey()
+	resNodeAddr2         = sdk.AccAddress(resNodePubKey2.Address())
+	resNodeInitialStake2 = sdk.NewInt(3 * stos2ustos)
 
-	pubKeyRes3       = secp256k1.GenPrivKey().PubKey()
-	addrRes3         = sdk.AccAddress(pubKeyRes3.Address())
-	initialStakeRes3 = sdk.NewInt(3 * stos2ustos)
+	resNodePubKey3       = secp256k1.GenPrivKey().PubKey()
+	resNodeAddr3         = sdk.AccAddress(resNodePubKey3.Address())
+	resNodeInitialStake3 = sdk.NewInt(3 * stos2ustos)
 
-	pubKeyRes4       = secp256k1.GenPrivKey().PubKey()
-	addrRes4         = sdk.AccAddress(pubKeyRes4.Address())
-	initialStakeRes4 = sdk.NewInt(3 * stos2ustos)
+	resNodePubKey4       = secp256k1.GenPrivKey().PubKey()
+	resNodeAddr4         = sdk.AccAddress(resNodePubKey4.Address())
+	resNodeInitialStake4 = sdk.NewInt(3 * stos2ustos)
 
-	pubKeyRes5       = secp256k1.GenPrivKey().PubKey()
-	addrRes5         = sdk.AccAddress(pubKeyRes5.Address())
-	initialStakeRes5 = sdk.NewInt(3 * stos2ustos)
+	resNodePubKey5       = secp256k1.GenPrivKey().PubKey()
+	resNodeAddr5         = sdk.AccAddress(resNodePubKey5.Address())
+	resNodeInitialStake5 = sdk.NewInt(3 * stos2ustos)
 
-	privKeyIdx1      = secp256k1.GenPrivKey()
-	pubKeyIdx1       = privKeyIdx1.PubKey()
-	addrIdx1         = sdk.AccAddress(pubKeyIdx1.Address())
-	initialStakeIdx1 = sdk.NewInt(5 * stos2ustos)
+	idxNodePrivKey1      = secp256k1.GenPrivKey()
+	idxNodePubKey1       = idxNodePrivKey1.PubKey()
+	idxNodeAddr1         = sdk.AccAddress(idxNodePubKey1.Address())
+	idxNodeInitialStake1 = sdk.NewInt(5 * stos2ustos)
 
-	pubKeyIdx2       = secp256k1.GenPrivKey().PubKey()
-	addrIdx2         = sdk.AccAddress(pubKeyIdx2.Address())
-	initialStakeIdx2 = sdk.NewInt(5 * stos2ustos)
+	idxNodePubKey2       = secp256k1.GenPrivKey().PubKey()
+	idxNodeAddr2         = sdk.AccAddress(idxNodePubKey2.Address())
+	idxNodeInitialStake2 = sdk.NewInt(5 * stos2ustos)
 
-	pubKeyIdx3       = secp256k1.GenPrivKey().PubKey()
-	addrIdx3         = sdk.AccAddress(pubKeyIdx3.Address())
-	initialStakeIdx3 = sdk.NewInt(5 * stos2ustos)
+	idxNodePubKey3       = secp256k1.GenPrivKey().PubKey()
+	idxNodeAddr3         = sdk.AccAddress(idxNodePubKey3.Address())
+	idxNodeInitialStake3 = sdk.NewInt(5 * stos2ustos)
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
 	valOpPubKey1  = valOpPrivKey1.PubKey()
@@ -114,37 +114,37 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{
 		Address: resOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes1)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake1.Add(depositForSendingTx))},
 	}
 	resOwnerAcc2 := &auth.BaseAccount{
 		Address: resOwner2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes2)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake2)},
 	}
 	resOwnerAcc3 := &auth.BaseAccount{
 		Address: resOwner3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes3)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake3)},
 	}
 	resOwnerAcc4 := &auth.BaseAccount{
 		Address: resOwner4,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes4)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake4)},
 	}
 	resOwnerAcc5 := &auth.BaseAccount{
 		Address: resOwner5,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes5)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake5)},
 	}
 
 	//************************** setup indexing nodes owners' accounts **************************
 	idxOwnerAcc1 := &auth.BaseAccount{
 		Address: idxOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx1)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeInitialStake1)},
 	}
 	idxOwnerAcc2 := &auth.BaseAccount{
 		Address: idxOwner2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx2)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeInitialStake2)},
 	}
 	idxOwnerAcc3 := &auth.BaseAccount{
 		Address: idxOwner3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx3)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeInitialStake3)},
 	}
 
 	//************************** setup validator delegators' accounts **************************
@@ -153,39 +153,9 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		Coins:   sdk.Coins{sdk.NewCoin("ustos", valInitialStake)},
 	}
 
-	//************************** setup resource nodes' accounts **************************
-	resNodeAcc1 := &auth.BaseAccount{
-		Address: addrRes1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-	resNodeAcc2 := &auth.BaseAccount{
-		Address: addrRes2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-	resNodeAcc3 := &auth.BaseAccount{
-		Address: addrRes3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-	resNodeAcc4 := &auth.BaseAccount{
-		Address: addrRes4,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-	resNodeAcc5 := &auth.BaseAccount{
-		Address: addrRes5,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-
 	//************************** setup indexing nodes' accounts **************************
 	idxNodeAcc1 := &auth.BaseAccount{
-		Address: addrIdx1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", depositForSendingTx)},
-	}
-	idxNodeAcc2 := &auth.BaseAccount{
-		Address: addrIdx2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
-	}
-	idxNodeAcc3 := &auth.BaseAccount{
-		Address: addrIdx3,
+		Address: idxNodeAddr1,
 		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
@@ -194,42 +164,33 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		Coins:   foundationDeposit,
 	}
 
-	// the sequence of the account list is related to the value of parameter "accNums" of mock.SignCheckDeliver() method
 	accs := []authexported.Account{
 		resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
 		idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3,
 		valOwnerAcc1,
-		resNodeAcc1, resNodeAcc2, resNodeAcc3, resNodeAcc4, resNodeAcc5,
-		idxNodeAcc1, idxNodeAcc2, idxNodeAcc3,
+		idxNodeAcc1,
 		foundationAcc,
 	}
 
 	ctx1 := mApp.BaseApp.NewContext(true, abci.Header{})
-	ctx1.Logger().Info("resNodeAcc1 -> " + resNodeAcc1.String())
-	ctx1.Logger().Info("resNodeAcc2 -> " + resNodeAcc2.String())
-	ctx1.Logger().Info("resNodeAcc3 -> " + resNodeAcc3.String())
-	ctx1.Logger().Info("resNodeAcc4 -> " + resNodeAcc4.String())
-	ctx1.Logger().Info("resNodeAcc5 -> " + resNodeAcc5.String())
 	ctx1.Logger().Info("idxNodeAcc1 -> " + idxNodeAcc1.String())
-	ctx1.Logger().Info("idxNodeAcc2 -> " + idxNodeAcc2.String())
-	ctx1.Logger().Info("idxNodeAcc3 -> " + idxNodeAcc3.String())
 	ctx1.Logger().Info("foundationAcc -> " + foundationAcc.String())
 
 	return accs
 }
 
 func setupAllResourceNodes() []register.ResourceNode {
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", pubKeyRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4")
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", pubKeyRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4")
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", pubKeyRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", pubKeyRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4")
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", pubKeyRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4")
+	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4")
+	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4")
+	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4")
+	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4")
+	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4")
 
-	resourceNode1 = resourceNode1.AddToken(initialStakeRes1)
-	resourceNode2 = resourceNode2.AddToken(initialStakeRes2)
-	resourceNode3 = resourceNode3.AddToken(initialStakeRes3)
-	resourceNode4 = resourceNode4.AddToken(initialStakeRes4)
-	resourceNode5 = resourceNode5.AddToken(initialStakeRes5)
+	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
+	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
+	resourceNode3 = resourceNode3.AddToken(resNodeInitialStake3)
+	resourceNode4 = resourceNode4.AddToken(resNodeInitialStake4)
+	resourceNode5 = resourceNode5.AddToken(resNodeInitialStake5)
 
 	resourceNode1.Status = sdk.Bonded
 	resourceNode2.Status = sdk.Bonded
@@ -248,13 +209,13 @@ func setupAllResourceNodes() []register.ResourceNode {
 
 func setupAllIndexingNodes() []register.IndexingNode {
 	var indexingNodes []register.IndexingNode
-	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", pubKeyIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
-	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", pubKeyIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
-	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", pubKeyIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
+	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
+	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
+	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
 
-	indexingNode1 = indexingNode1.AddToken(initialStakeIdx1)
-	indexingNode2 = indexingNode2.AddToken(initialStakeIdx2)
-	indexingNode3 = indexingNode3.AddToken(initialStakeIdx3)
+	indexingNode1 = indexingNode1.AddToken(idxNodeInitialStake1)
+	indexingNode2 = indexingNode2.AddToken(idxNodeInitialStake2)
+	indexingNode3 = indexingNode3.AddToken(idxNodeInitialStake3)
 
 	indexingNode1.Status = sdk.Bonded
 	indexingNode2.Status = sdk.Bonded

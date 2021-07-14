@@ -123,7 +123,8 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
 	if nodeAcc == nil {
 		ctx.Logger().Info(fmt.Sprintf("create new account: %s", resourceNode.GetNetworkAddr()))
-		k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
+		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
+		k.accountKeeper.SetAccount(ctx, nodeAcc)
 	}
 
 	coins := sdk.NewCoins(tokenToAdd)

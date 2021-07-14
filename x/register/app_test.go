@@ -83,11 +83,15 @@ func Test(t *testing.T) {
 	/********************* deliver tx to vote *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	voteMsg := types.NewMsgIndexingNodeRegistrationVote(idxNodeAddr3, idxOwnerAddr3, types.Approve, idxNodeAddr1)
+	voteMsg := types.NewMsgIndexingNodeRegistrationVote(idxNodeAddr3, idxOwnerAddr3, types.Approve, idxNodeAddr1, idxOwnerAddr1)
+	idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr1)
+	accNumOwner := idxOwnerAcc1.GetAccountNumber()
+	accSeqOwner := idxOwnerAcc1.GetSequence()
 	idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
-	accNum = idxNodeAcc1.GetAccountNumber()
-	accSeq = idxNodeAcc1.GetSequence()
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{voteMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, idxNodePrivKey1)
+	accNumVoter := idxNodeAcc1.GetAccountNumber()
+	accSeqVoter := idxNodeAcc1.GetSequence()
+
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{voteMsg}, []uint64{accNumVoter, accNumOwner}, []uint64{accSeqVoter, accSeqOwner}, true, true, idxNodePrivKey1, idxOwnerPrivKey1)
 
 	/*-------------------- commit & check result, stake should be transferred to the bonded pool --------------------*/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
