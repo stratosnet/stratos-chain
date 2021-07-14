@@ -100,7 +100,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	if !found {
 		return nil, ErrNoResourceNodeFound
 	}
-	err := k.SubtractResourceNodeStake(ctx, resourceNode, resourceNode.GetTokens())
+	err := k.SubtractResourceNodeStake(ctx, resourceNode, sdk.NewCoin(k.BondDenom(ctx), resourceNode.GetTokens()))
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	if !found {
 		return nil, ErrNoIndexingNodeFound
 	}
-	err := k.SubtractIndexingNodeStake(ctx, indexingNode, indexingNode.GetTokens())
+	err := k.SubtractIndexingNodeStake(ctx, indexingNode, sdk.NewCoin(k.BondDenom(ctx), indexingNode.GetTokens()))
 	if err != nil {
 		return nil, err
 	}

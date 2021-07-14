@@ -64,7 +64,7 @@ func TestExpiredVote(t *testing.T) {
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
-	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4)))
 	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 
 	//Register new SP node after genesis initialized
@@ -112,7 +112,7 @@ func TestDuplicateVote(t *testing.T) {
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
-	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4)))
 	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 
 	//Register new SP node after genesis initialized
@@ -164,11 +164,14 @@ func TestSpRegistrationApproval(t *testing.T) {
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
-	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4)))
 	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 
 	//Register new SP node after genesis initialized
 	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+	//_, err := k.bankKeeper.AddCoins(ctx, spNodeAddr4, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), sdk.NewInt(10000000000000))))
+	//require.NoError(t, err)
+
 	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
 		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
 	require.NoError(t, err)

@@ -114,37 +114,37 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{
 		Address: resOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes1)},
 	}
 	resOwnerAcc2 := &auth.BaseAccount{
 		Address: resOwner2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes2)},
 	}
 	resOwnerAcc3 := &auth.BaseAccount{
 		Address: resOwner3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes3)},
 	}
 	resOwnerAcc4 := &auth.BaseAccount{
 		Address: resOwner4,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes4)},
 	}
 	resOwnerAcc5 := &auth.BaseAccount{
 		Address: resOwner5,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes5)},
 	}
 
 	//************************** setup indexing nodes owners' accounts **************************
 	idxOwnerAcc1 := &auth.BaseAccount{
 		Address: idxOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx1)},
 	}
 	idxOwnerAcc2 := &auth.BaseAccount{
 		Address: idxOwner2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx2)},
 	}
 	idxOwnerAcc3 := &auth.BaseAccount{
 		Address: idxOwner3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx3)},
 	}
 
 	//************************** setup validator delegators' accounts **************************
@@ -156,37 +156,37 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 	//************************** setup resource nodes' accounts **************************
 	resNodeAcc1 := &auth.BaseAccount{
 		Address: addrRes1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes1)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 	resNodeAcc2 := &auth.BaseAccount{
 		Address: addrRes2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes2)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 	resNodeAcc3 := &auth.BaseAccount{
 		Address: addrRes3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes3)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 	resNodeAcc4 := &auth.BaseAccount{
 		Address: addrRes4,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes4)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 	resNodeAcc5 := &auth.BaseAccount{
 		Address: addrRes5,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeRes5)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
 	//************************** setup indexing nodes' accounts **************************
 	idxNodeAcc1 := &auth.BaseAccount{
 		Address: addrIdx1,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx1.Add(depositForSendingTx))},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", depositForSendingTx)},
 	}
 	idxNodeAcc2 := &auth.BaseAccount{
 		Address: addrIdx2,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx2)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 	idxNodeAcc3 := &auth.BaseAccount{
 		Address: addrIdx3,
-		Coins:   sdk.Coins{sdk.NewCoin("ustos", initialStakeIdx3)},
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
 	foundationAcc := &auth.BaseAccount{
@@ -230,6 +230,12 @@ func setupAllResourceNodes() []register.ResourceNode {
 	resourceNode3 = resourceNode3.AddToken(initialStakeRes3)
 	resourceNode4 = resourceNode4.AddToken(initialStakeRes4)
 	resourceNode5 = resourceNode5.AddToken(initialStakeRes5)
+
+	resourceNode1.Status = sdk.Bonded
+	resourceNode2.Status = sdk.Bonded
+	resourceNode3.Status = sdk.Bonded
+	resourceNode4.Status = sdk.Bonded
+	resourceNode5.Status = sdk.Bonded
 
 	var resourceNodes []register.ResourceNode
 	resourceNodes = append(resourceNodes, resourceNode1)
