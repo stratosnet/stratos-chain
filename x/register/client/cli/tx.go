@@ -268,6 +268,9 @@ func buildIndexingNodeRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth
 	opinion := types.VoteOpinionFromBool(opinionVal)
 	voterAddrStr := viper.GetString(FlagVoterAddress)
 	voterAddr, err := sdk.AccAddressFromBech32(voterAddrStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
 	voterOwnerAddr := cliCtx.GetFromAddress()
 
 	msg := types.NewMsgIndexingNodeRegistrationVote(nodeAddr, ownerAddr, opinion, voterAddr, voterOwnerAddr)

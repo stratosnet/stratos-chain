@@ -36,8 +36,9 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 	reporter := idxNodeAddr1
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
+	reporterOwner := idxOwner1
 
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference)
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
 
 	return volumeReportMsg
 }
@@ -172,9 +173,14 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		/********************* deliver tx *********************/
 		idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
-		accNum = idxNodeAcc1.GetAccountNumber()
-		accSeq = idxNodeAcc1.GetSequence()
-		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, idxNodePrivKey1)
+		nodeAccNum := idxNodeAcc1.GetAccountNumber()
+		nodeAccSeq := idxNodeAcc1.GetSequence()
+
+		idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwner1)
+		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
+		ownerAccSeq := idxOwnerAcc1.GetSequence()
+
+		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{nodeAccNum, ownerAccNum}, []uint64{nodeAccSeq, ownerAccSeq}, true, true, idxNodePrivKey1, idxOwnerPrivKey1)
 
 		/********************* commit & check result *********************/
 		header = abci.Header{Height: mApp.LastBlockHeight() + 1}
