@@ -250,3 +250,24 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID string, pubKey c
 	err := k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return err
 }
+
+func (k Keeper) UpdateResourceNode(ctx sdk.Context, networkID string, description types.Description, nodeType string,
+	networkAddr sdk.AccAddress, ownerAddr sdk.AccAddress) error {
+
+	node, found := k.GetResourceNode(ctx, networkAddr)
+	if !found {
+		return types.ErrNoResourceNodeFound
+	}
+
+	if !node.OwnerAddress.Equals(ownerAddr) {
+		return types.ErrInvalidOwnerAddr
+	}
+
+	node.NetworkID = networkID
+	node.Description = description
+	node.NodeType = nodeType
+
+	k.SetResourceNode(ctx, node)
+
+	return nil
+}

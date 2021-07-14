@@ -23,14 +23,14 @@ const (
 
 // common flagsets to add to various functions
 var (
-	FsPk                = flag.NewFlagSet("", flag.ContinueOnError)
-	FsAmount            = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNetworkID         = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNodeType          = flag.NewFlagSet("", flag.ContinueOnError)
-	FsDescriptionCreate = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNodeAddress       = flag.NewFlagSet("", flag.ContinueOnError)
-	FsOwnerAddress      = flag.NewFlagSet("", flag.ContinueOnError)
-	FsOpinion           = flag.NewFlagSet("", flag.ContinueOnError)
+	FsPk           = flag.NewFlagSet("", flag.ContinueOnError)
+	FsAmount       = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNetworkID    = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNodeType     = flag.NewFlagSet("", flag.ContinueOnError)
+	FsDescription  = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNodeAddress  = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOwnerAddress = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOpinion      = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -57,11 +57,11 @@ As a result, the value of node_type should be one of the following digits:
 	6:  "database/storage",
 	7:  "computation/database/storage"`)
 
-	FsDescriptionCreate.String(FlagMoniker, "", "The node's name")
-	FsDescriptionCreate.String(FlagIdentity, "", "The optional identity signature (ex. UPort or Keybase)")
-	FsDescriptionCreate.String(FlagWebsite, "", "The node's (optional) website")
-	FsDescriptionCreate.String(FlagSecurityContact, "", "The node's (optional) security contact email")
-	FsDescriptionCreate.String(FlagDetails, "", "The node's (optional) details")
+	FsDescription.String(FlagMoniker, "", "The node's name")
+	FsDescription.String(FlagIdentity, "", "The optional identity signature (ex. UPort or Keybase)")
+	FsDescription.String(FlagWebsite, "", "The node's (optional) website")
+	FsDescription.String(FlagSecurityContact, "", "The node's (optional) security contact email")
+	FsDescription.String(FlagDetails, "", "The node's (optional) details")
 
 	FsNodeAddress.String(FlagNodeAddress, "The address of the PP node", "")
 	FsOwnerAddress.String(FlagOwnerAddress, "", "")

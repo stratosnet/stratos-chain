@@ -74,7 +74,7 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 		},
 	}
 	cmd.Flags().AddFlagSet(FsNetworkID)
-	cmd.Flags().AddFlagSet(FsDescriptionCreate)
+	cmd.Flags().AddFlagSet(FsDescription)
 	//_ = cmd.MarkFlagRequired(FlagNetworkID)
 
 	return cmd
@@ -154,7 +154,7 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 		},
 	}
 	cmd.Flags().AddFlagSet(FsNetworkID)
-	cmd.Flags().AddFlagSet(FsDescriptionCreate)
+	cmd.Flags().AddFlagSet(FsDescription)
 	//_ = cmd.MarkFlagRequired(FlagNetworkID)
 
 	return cmd
