@@ -158,6 +158,20 @@ func Test(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, res)
 
+	// set the status of indexing nodes to bonded
+	idxUnBondedPool := k.RegisterKeeper.GetIndexingNodeNotBondedToken(ctx)
+	k.RegisterKeeper.SetIndexingNodeBondedToken(ctx, idxUnBondedPool)
+	k.RegisterKeeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
+	idxNode1, _ := k.RegisterKeeper.GetIndexingNode(ctx, addrIdx1)
+	idxNode2, _ := k.RegisterKeeper.GetIndexingNode(ctx, addrIdx2)
+	idxNode3, _ := k.RegisterKeeper.GetIndexingNode(ctx, addrIdx3)
+	idxNode1.Status = sdk.Bonded
+	idxNode2.Status = sdk.Bonded
+	idxNode3.Status = sdk.Bonded
+	k.RegisterKeeper.SetIndexingNode(ctx, idxNode1)
+	k.RegisterKeeper.SetIndexingNode(ctx, idxNode2)
+	k.RegisterKeeper.SetIndexingNode(ctx, idxNode3)
+
 	//build traffic list
 	var trafficList []types.SingleNodeVolume
 	trafficList = append(trafficList, types.NewSingleNodeVolume(addrRes1, sdk.NewInt(resourceNodeVolume1)))
