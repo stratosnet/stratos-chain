@@ -19,6 +19,9 @@ $(BUILDDIR)/:
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
+clean:
+	rm -rf $(BUILDDIR)/
+
 ###############################################################################
 ###                                Localnet                                 ###
 ###############################################################################
@@ -35,3 +38,5 @@ localnet-start: build-linux localnet-stop
 # Stop testnet
 localnet-stop:
 	docker-compose down
+
+.PHONY: build-linux build clean
