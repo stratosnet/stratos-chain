@@ -1,6 +1,8 @@
 ## Statos-Chain
 
-Official Golang implementation of the Stratos protocol.
+
+`Stratos` is the first decentralized data architecture that provides scalable, reliable, self-balanced storage, database and computation network, and offers a solid foundation for data processing.
+`Stratos-Chain` is a Golang implementation of the `Stratos` protocol.
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/stratosnet/stratos-chain)](https://goreportcard.com/badge/github.com/stratosnet/stratos-chain)
 
@@ -9,36 +11,98 @@ archives are published at https://geth.ethereum.org/downloads/.
 
 ## Building the source
 
-For prerequisites and detailed build instructions please read the [Installation Instructions](https://geth.ethereum.org/docs/install-and-build/installing-geth).
+Prerequisites:
+* [Go 1.15+](https://golang.org/doc/install)
+* [git](https://github.com/git-guides/install-git)
+* [wget](https://phoenixnap.com/kb/wget-command-with-examples)
 
-Building `geth` requires both a Go (version 1.14 or later) and a C compiler. You can install
-them using your favourite package manager. Once the dependencies are installed, run
+Platform:
+* Linux(tested on Ubuntu18.04)
+* Mac OS
 
-```shell
-make geth
-```
-
-or, to build the full suite of utilities:
-
-```shell
-make all
-```
+For details about building from the source code, please read the [Installation Instructions](https://github.com/stratosnet/stratos-chain-testnet/blob/main/README.md).
 
 ## Executables
 
-The stratos-chain project comes with several wrappers/executables found in the `cmd`
-directory.
+The `Stratos-Chain` comes with several wrappers/executables that can be found in the `cmd` directory.
 
-|    Command    | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
-| :-----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  **`geth`**   | Our main Stratos CLI client. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints exposed on top of HTTP, WebSocket and/or IPC transports. `geth --help` and the [CLI page](https://geth.ethereum.org/docs/interface/command-line-options) for command line options.          |
-|   `clef`    | Stand-alone signing tool, which can be used as a backend signer for `geth`.  |
-|   `devp2p`    | Utilities to interact with nodes on the networking layer, without running a full blockchain. |
-|   `abigen`    | Source code generator to convert Stratos contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [Ethereum contract ABIs](https://docs.soliditylang.org/en/develop/abi-spec.html) with expanded functionality if the contract bytecode is also available. However, it also accepts Solidity source files, making development much more streamlined. Please see our [Native DApps](https://geth.ethereum.org/docs/dapp/native-bindings) page for details. |
-|  `bootnode`   | Stripped down version of our Stratos client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.                                                                                                                                                                                                                                                                 |
-|     `evm`     | Developer utility version of the EVM (Stratos Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of EVM opcodes (e.g. `evm --code 60ff60ff --debug run`).                                                                                                                                                                                                                                                                     |
-|   `rlpdump`   | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://eth.wiki/en/fundamentals/rlp)) dumps (data encoding used by the Stratos protocol both network as well as consensus wise) to user-friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`).                                                                                                                                                                                                                                 |
-|   `puppeth`   | a CLI wizard that aids in creating a new Stratos network.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+|    Command          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :----------- :      | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  **`stchaincli`**   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options.          |
+|   **`stchaind`**    | the app Daemon (server). Use `stchaind --help` and the [stchaind Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+
+
+### `stchaincli`
+
+#### Available Commands:
+
+|    Command                  | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :----------- :              | ----------------------------------------------------------------------------------- |
+|  **`status`**               | Query remote node for status     |
+|   **`config`**              | Create or query an application CLI configuration file  |
+|   **`query`**               | Querying subcommands |
+|   **`tx`**                  | Transactions subcommands|
+|                             |               |
+|   **`rest-server`**         | Start LCD (light-client daemon), a local REST server |
+|                             |               |
+|   **`keys`**                | Add or view local private keys| 
+|                             |               |
+|   **`version`**             | Print the app version| 
+|   **`help`**                | Help about any command| 
+
+#### Available Flags(options):
+
+|      flag                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| :----------- :                            | -----------------------------------------------------------------|
+|   **` --chain-id string `**               | Chain ID of tendermint node   |
+|   **` - -e, --encoding string`**          | Binary encoding (hex|b64|btc) (default "hex")   |
+|   **` -h, --help `**                      | Help for stchaincli    |
+|   **` --home string`**                    | Directory for config and data (default "/home/node0/.stchaincli")  |
+|   **`-o, --output string`**               | Output format (text/json) (default "text") |
+|   **`--log_level string`**                | Log level (default "main:info,state:info,*:error")|
+|   **` --trace`**                          | Print out full stack trace on errors |
+
+#### Getting detailed command Help Info
+Use `stchaincli [command] --help` for more information about a command or sub-command.
+
+
+### `stchaind`
+
+#### Available Commands:
+
+|    Command                        | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| :----------- :                    | ----------------------------------------------------------------------------------- |
+|  **`init`**                       | Initialize private validator, p2p, genesis, and application configuration files     |
+|   **`collect-gentxs`**            | Collect genesis txs and output a `genesis.json` file  |
+|   **`migrate`**                   | Migrate genesis to a specified target version  |
+|   **`gentx`**                     | Generate a genesis tx carrying a self delegation|
+|   **`collect-gentxs`**            | Collect genesis txs and output a `genesis.json` file |
+|   **`validate-genesis`**          | Validates the genesis file at the default location or at the location passed as an arg| 
+|   **`add-genesis-account`**       | Add a genesis account to `genesis.json` file| 
+|   **`faucet`**                    | Run a faucet cmd| 
+|   **`debug`**                     | Tool for helping with debugging your application| 
+|   **`start`**                     | Run a full node| 
+|   **`unsafe-reset-all`**          |Resets the blockchain database, removes address book files, and resets priv_validator.json to the genesis state| 
+|                                   |               | 
+|   **`tendermint`**                |  Tendermint subcommands| 
+|   **`export`**                    | Export current state to a `.json` file| 
+|                                   |               |
+|   **`version`**                   |  Print the app version| 
+|   **`help`**                      |  Help about any command| 
+
+#### Available Flags(options):
+
+|      flag                                 | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| :----------- :                            | -----------------------------------------------------------------|
+|   **` -h, --help `**                      | Help for stchaind    |
+|   **` --home string`**                    | Directory for config and data (default "/home/node0/.stchaind")  |
+|   **`--inv-check-period uint`**           | Assert registered invariants every N blocks |
+|   **`--log_level string`**                | Log level (default "main:info,state:info,*:error")|
+|   **` --trace`**                          | Print out full stack trace on errors |
+
+#### Getting detailed command Help Info
+Use `stchaind [command] --help` for more information about a command or sub-command.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 ## Connect to `Stratos` Network
 
