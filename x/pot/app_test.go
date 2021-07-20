@@ -18,12 +18,12 @@ import (
 const (
 	stopFlagOutOfTotalMiningReward = true
 	stopFlagSpecificMinedReward    = false
-	stopFlagSpecificEpoch          = false
+	stopFlagSpecificEpoch          = true
 )
 
 var (
 	paramSpecificMinedReward = sdk.NewInt(160000000000)
-	paramSpecificEpoch       = sdk.NewInt(100)
+	paramSpecificEpoch       = sdk.NewInt(10)
 )
 
 // initialize data of volume report
