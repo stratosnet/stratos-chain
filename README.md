@@ -24,16 +24,23 @@ For details about building from the source code, please read the [Installation I
 
 ## Executables
 
-|    Command          | Description        || :-----------:     | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ||  **`stchaincli`**   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. ||   **`stchaind`**    | the app Daemon (server). Use `stchaind --help` and the [stchaind Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+The `Stratos-Chain` comes with several wrappers/executables that can be found in the `cmd` directory.
+
+
+|    Command          | Description        |
+| :-----------:     | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+|   `stchaind`   | the app Daemon (server). Use `stchaind --help` and the [stchaind Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+
 
 ### `stchaincli`
-```shell
+```
 Usage:
   stchaincli [command]
 ```
 
 #### Available Commands
-```shell
+```
 Commands:
   status      Query remote node for status
   config      Create or query an application CLI configuration file
@@ -46,12 +53,11 @@ Commands:
               
   version     Print the app version
   help        Help about any command
-
 ```
 
 #### Available Flags(options)
 
-```shell
+```
 Flags:
       --chain-id string   Chain ID of tendermint node
   -e, --encoding string   Binary encoding (hex|b64|btc) (default "hex")
@@ -59,24 +65,23 @@ Flags:
       --home string       directory for config and data (default "/home/node0/.stchaincli")
   -o, --output string     Output format (text|json) (default "text")
       --trace             Print out full stack trace on errors
-
 ```
 
 #### Getting detailed command Help Info
-```shell
-stchaincli [command] --help      More information about a `stchaincli` command or sub-command 
+```
+stchaincli [command] --help      More information about a 'stchaincli' command or sub-command 
 ```
 
 
 ### `stchaind`
 
-```shell
+```
 Usage:
   stchaind [command]
 ```
 
 #### Available Commands
-```shell
+```
 Commands:
   init                Initialize private validator, p2p, genesis, and application configuration files
   collect-gentxs      Collect genesis txs and output a genesis.json file
@@ -94,11 +99,10 @@ Commands:
                       
   version             Print the app version
   help                Help about any command
-
 ```
 
 #### Available Flags(options)
-```shell
+```
 Flags:
   -h, --help                    help for stchaind
       --home string             directory for config and data (default "/home/hong/.stchaind")
@@ -109,8 +113,8 @@ Flags:
 
 
 #### Getting detailed command Help Info
-```shell
-stchaind [command] --help      More information about a `stchaind` command or sub-command 
+```
+stchaind [command] --help      More information about a 'stchaind' command or sub-command 
 ```
 ## Connect to `Stratos` Network
 
