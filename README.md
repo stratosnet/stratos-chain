@@ -49,7 +49,7 @@ Usage:
   stchaincli [command]
 ```
 
-#### Available Commands
+#### Available Commands[index][(https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands]
 ```
 Commands:
   status      Query remote node for status
@@ -69,7 +69,7 @@ Usage:
   stchaind [command]
 ```
 
-#### Available Commands
+#### Available Commands[[index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands]
 ```
 Commands:
   init                Initialize private validator, p2p, genesis, and application configuration files
