@@ -6,6 +6,8 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/stratosnet/stratos-chain)](https://goreportcard.com/badge/github.com/stratosnet/stratos-chain)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
+--- ---
+
 ## Building the source
 
 Prerequisites:
@@ -28,6 +30,8 @@ make build-mac
 ```
 
 Then the binary can be found in ./build folder
+
+--- ---
 
 ## Executables
 
@@ -84,6 +88,8 @@ Commands:
   help                Help about any command
 ```
 
+--- ---
+
 ## Connect to `Stratos` Network
 
 Going through all the possible command line flags is out of scope here,
@@ -95,6 +101,8 @@ For prerequisites and detailed instructions of connecting to test network, pleas
 
 ### Full node on the main Stratos network - TBA
 Prerequisites and detailed instructions of main network will be added later.
+
+--- ---
 
 ## Contribution
 
@@ -113,6 +121,8 @@ Please make sure your contributions adhere to our coding guidelines:
  * Pull requests need to be based on and opened against the `master` branch.
  * Commit messages should be prefixed with the package(s) they modify.
    * E.g. "eth, rpc: make trace configs optional"
+
+--- ---
 
 ## License
 
