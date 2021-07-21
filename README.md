@@ -39,19 +39,17 @@ The `Stratos-Chain` comes with 2 types of executables that can be found in the `
 
 |    Command          | Description        |
 | :-----------:     | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli Index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
-|   `stchaind`   | the app Daemon (server). Use `stchaind --help` and the [stchaind index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli command index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+|   `stchaind`   | the app Daemon (server). Use `stchaind --help` and the [stchaind command index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
 
 
-### `stchaincli`
+### [`stchaincli`](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands)
+
 ```
 Usage:
   stchaincli [command]
-```
 
-#### Available Commands[index][(https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands]
-```
-Commands:
+Available Commands:
   status      Query remote node for status
   config      Create or query an application CLI configuration file
   query       Querying subcommands
@@ -62,16 +60,13 @@ Commands:
   help        Help about any command
 ```
 
-### `stchaind`
+### [`stchaind`](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands)
 
 ```
 Usage:
   stchaind [command]
-```
 
-#### Available Commands[[index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands]
-```
-Commands:
+Available Commands:
   init                Initialize private validator, p2p, genesis, and application configuration files
   collect-gentxs      Collect genesis txs and output a genesis.json file
   migrate             Migrate genesis to a specified target version
