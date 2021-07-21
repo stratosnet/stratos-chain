@@ -11,12 +11,12 @@ archives are published at https://geth.ethereum.org/downloads/.
 
 ## Building the source
 
-Prerequisites:
+Prerequisites
 * [Go 1.15+](https://golang.org/doc/install)
 * [git](https://github.com/git-guides/install-git)
 * [wget](https://phoenixnap.com/kb/wget-command-with-examples)
 
-Platform:
+Platform
 * Linux(tested on Ubuntu18.04)
 * Mac OS
 
