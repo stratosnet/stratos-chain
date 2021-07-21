@@ -117,13 +117,23 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxOwnerInitBalance)},
 	}
 
+	resNodeAcc2 := &auth.BaseAccount{
+		Address: resNodeAddr2,
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+	}
+
 	idxNodeAcc1 := &auth.BaseAccount{
 		Address: idxNodeAddr1,
 		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
+	idxNodeAcc3 := &auth.BaseAccount{
+		Address: idxNodeAddr3,
+		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+	}
+
 	accs := []authexported.Account{
-		resOwnerAcc1, resOwnerAcc2, idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3, idxNodeAcc1,
+		resOwnerAcc1, resOwnerAcc2, idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3, resNodeAcc2, idxNodeAcc1, idxNodeAcc3,
 	}
 
 	return accs

@@ -40,10 +40,15 @@ func Test(t *testing.T) {
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
 	registerResNodeMsg := types.NewMsgCreateResourceNode("sds://resourceNode2", resNodePubKey2, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake), resOwnerAddr2, NewDescription("sds://resourceNode2", "", "", "", ""), "4")
-	resNodeAcc2 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr2)
-	accNum := resNodeAcc2.GetAccountNumber()
-	accSeq := resNodeAcc2.GetSequence()
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerResNodeMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey2)
+	resNodeOwnerAcc2 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr2)
+	accNumOwner := resNodeOwnerAcc2.GetAccountNumber()
+	accSeqOwner := resNodeOwnerAcc2.GetSequence()
+
+	resNodeAcc2 := mApp.AccountKeeper.GetAccount(ctx, resNodeAddr2)
+	accNumNode := resNodeAcc2.GetAccountNumber()
+	accSeqNode := resNodeAcc2.GetSequence()
+
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerResNodeMsg}, []uint64{accNumOwner, accNumNode}, []uint64{accSeqOwner, accSeqNode}, true, true, resOwnerPrivKey2, resNodePrivKey2)
 
 	/*-------------------- commit & check result --------------------*/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
@@ -63,9 +68,14 @@ func Test(t *testing.T) {
 	ctx = mApp.BaseApp.NewContext(true, header)
 	registerIdxNodeMsg := types.NewMsgCreateIndexingNode("sds://indexingNode3", idxNodePubKey3, sdk.NewCoin(k.BondDenom(ctx), idxNodeInitStake), idxOwnerAddr3, NewDescription("sds://indexingNode3", "", "", "", ""))
 	idxOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr3)
-	accNum = idxOwnerAcc3.GetAccountNumber()
-	accSeq = idxOwnerAcc3.GetSequence()
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerIdxNodeMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, idxOwnerPrivKey3)
+	accNumOwner = idxOwnerAcc3.GetAccountNumber()
+	accSeqOwner = idxOwnerAcc3.GetSequence()
+
+	idxNodeAcc3 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr3)
+	accNumNode = idxNodeAcc3.GetAccountNumber()
+	accSeqNode = idxNodeAcc3.GetSequence()
+
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerIdxNodeMsg}, []uint64{accNumOwner, accNumNode}, []uint64{accSeqOwner, accSeqNode}, true, true, idxOwnerPrivKey3, idxNodePrivKey3)
 
 	/*-------------------- commit & check result, stake should be stored in the not bonded pool --------------------*/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
@@ -85,8 +95,8 @@ func Test(t *testing.T) {
 	ctx = mApp.BaseApp.NewContext(true, header)
 	voteMsg := types.NewMsgIndexingNodeRegistrationVote(idxNodeAddr3, idxOwnerAddr3, types.Approve, idxNodeAddr1, idxOwnerAddr1)
 	idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr1)
-	accNumOwner := idxOwnerAcc1.GetAccountNumber()
-	accSeqOwner := idxOwnerAcc1.GetSequence()
+	accNumOwner = idxOwnerAcc1.GetAccountNumber()
+	accSeqOwner = idxOwnerAcc1.GetSequence()
 	idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
 	accNumVoter := idxNodeAcc1.GetAccountNumber()
 	accSeqVoter := idxNodeAcc1.GetSequence()

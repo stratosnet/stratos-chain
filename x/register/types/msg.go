@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -75,9 +76,9 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
-	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
-	//}
+	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+		addrs = append(addrs, msg.PubKey.Address().Bytes())
+	}
 	return addrs
 }
 
@@ -139,9 +140,9 @@ func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
-	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
-	//}
+	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+		addrs = append(addrs, msg.PubKey.Address().Bytes())
+	}
 	return addrs
 }
 
