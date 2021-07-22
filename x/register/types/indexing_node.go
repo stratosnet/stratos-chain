@@ -114,14 +114,11 @@ func (v IndexingNode) String() string {
 // AddToken adds tokens to a indexing node
 func (v IndexingNode) AddToken(amount sdk.Int) IndexingNode {
 	v.Tokens = v.Tokens.Add(amount)
-	//if v.Status.Equal(sdk.Unbonded) {
-	//	v.Status = sdk.Bonded
-	//}
 	return v
 }
 
-// RemoveToken removes tokens from a indexing node
-func (v IndexingNode) RemoveToken(tokens sdk.Int) IndexingNode {
+// SubToken removes tokens from a indexing node
+func (v IndexingNode) SubToken(tokens sdk.Int) IndexingNode {
 	if tokens.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", tokens))
 	}

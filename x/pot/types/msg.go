@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 const MsgType = "volume_report"
@@ -15,9 +14,10 @@ var (
 
 type MsgVolumeReport struct {
 	NodesVolume     []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
-	Reporter        sdk.AccAddress     `json:"reporter" yaml:"reporter"`                 // volume reporter
+	Reporter        sdk.AccAddress     `json:"reporter" yaml:"reporter"`                 // node address of the reporter
 	Epoch           sdk.Int            `json:"report_epoch" yaml:"report_epoch"`         // volume report epoch
 	ReportReference string             `json:"report_reference" yaml:"report_reference"` // volume report reference
+	ReporterOwner   sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
 }
 
 // NewMsgVolumeReport creates a new Msg<Action> instance
@@ -26,12 +26,14 @@ func NewMsgVolumeReport(
 	reporter sdk.AccAddress,
 	epoch sdk.Int,
 	reportReference string,
+	reporterOwner sdk.AccAddress,
 ) MsgVolumeReport {
 	return MsgVolumeReport{
 		NodesVolume:     nodesVolume,
 		Reporter:        reporter,
 		Epoch:           epoch,
 		ReportReference: reportReference,
+		ReporterOwner:   reporterOwner,
 	}
 }
 
@@ -40,7 +42,10 @@ func (msg MsgVolumeReport) Route() string { return RouterKey }
 
 // GetSigners Implement
 func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Reporter}
+	var addrs []sdk.AccAddress
+	addrs = append(addrs, msg.Reporter)
+	addrs = append(addrs, msg.ReporterOwner)
+	return addrs
 }
 
 // Type Implement
@@ -55,26 +60,29 @@ func (msg MsgVolumeReport) GetSignBytes() []byte {
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgVolumeReport) ValidateBasic() error {
 	if msg.Reporter.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing reporter address")
+		return ErrEmptyReporterAddr
 	}
 	if !(len(msg.NodesVolume) > 0) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "no node reports volume")
+		return ErrEmptyNodesVolume
 	}
 
 	if !(msg.Epoch.IsPositive()) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid report epoch")
+		return ErrEpochNotPositive
 	}
 
 	if !(len(msg.ReportReference) > 0) {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "invalid report reference hash")
+		return ErrEmptyReportReference
+	}
+	if msg.ReporterOwner.Empty() {
+		return ErrEmptyReporterOwnerAddr
 	}
 
 	for _, item := range msg.NodesVolume {
 		if item.Volume.IsNegative() {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "report volume is negative")
+			return ErrNegativeVolume
 		}
 		if item.NodeAddress.Empty() {
-			return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing node address")
+			return ErrMissingNodeAddress
 		}
 	}
 	return nil

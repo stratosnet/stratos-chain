@@ -40,14 +40,15 @@ func VolumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		reporter, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		reporterStr := req.Reporter
+		reporter, err := sdk.AccAddressFromBech32(reporterStr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
 		reportReference := req.ReportReference
-		epoch := sdk.NewInt(int64(req.Epoch))
+		epoch := sdk.NewInt(req.Epoch)
 
 		var nodesVolume []types.SingleNodeVolume
 		for _, v := range req.NodesVolume {
@@ -55,7 +56,13 @@ func VolumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			nodesVolume = append(nodesVolume, singleNodeVolume)
 		}
 
-		msg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference)
+		reporterOwner, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

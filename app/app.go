@@ -190,9 +190,9 @@ func NewInitApp(
 	app.registerKeeper = register.NewKeeper(
 		app.cdc,
 		keys[register.StoreKey],
+		app.subspaces[register.ModuleName],
 		app.accountKeeper,
 		app.bankKeeper,
-		app.subspaces[register.ModuleName],
 	)
 
 	app.potKeeper = pot.NewKeeper(
