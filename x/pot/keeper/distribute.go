@@ -314,7 +314,7 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 	totalUsedFromTrafficPool = sdk.ZeroInt()
 
 	// 1, calc stake reward
-	totalStakeOfResourceNodes := k.RegisterKeeper.GetLastResourceNodeTotalStake(ctx)
+	totalStakeOfResourceNodes := k.RegisterKeeper.GetResourceNodeBondedToken(ctx).Amount
 	resourceNodeList := k.RegisterKeeper.GetAllResourceNodes(ctx)
 	for _, node := range resourceNodeList {
 		nodeAddr := node.GetNetworkAddr()
@@ -389,7 +389,7 @@ func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 	totalUsedIndexingRewardFromMiningPool := sdk.ZeroInt()
 	totalUsedIndexingRewardFromTrafficPool := sdk.ZeroInt()
 
-	totalStakeOfIndexingNodes := k.RegisterKeeper.GetLastIndexingNodeTotalStake(ctx)
+	totalStakeOfIndexingNodes := k.RegisterKeeper.GetIndexingNodeBondedToken(ctx).Amount
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
 	indexingNodeCnt := sdk.NewInt(int64(len(indexingNodeList)))
 	for _, node := range indexingNodeList {
@@ -449,8 +449,9 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 ) (validatorReward sdk.Int, resourceNodeReward sdk.Int, indexingNodeReward sdk.Int) {
 
 	validatorBondedTokens := k.StakingKeeper.TotalBondedTokens(ctx).ToDec()
-	resourceNodeBondedTokens := k.RegisterKeeper.GetLastResourceNodeTotalStake(ctx).ToDec()
-	indexingNodeBondedTokens := k.RegisterKeeper.GetLastIndexingNodeTotalStake(ctx).ToDec()
+	resourceNodeBondedTokens := k.RegisterKeeper.GetResourceNodeBondedToken(ctx).Amount.ToDec()
+	indexingNodeBondedTokens := k.RegisterKeeper.GetIndexingNodeBondedToken(ctx).Amount.ToDec()
+
 	totalBondedTokens := validatorBondedTokens.Add(resourceNodeBondedTokens).Add(indexingNodeBondedTokens)
 
 	validatorReward = totalReward.ToDec().Mul(validatorBondedTokens).Quo(totalBondedTokens).TruncateInt()

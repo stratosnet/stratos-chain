@@ -135,8 +135,29 @@ func (k Keeper) IterateLastIndexingNodeStakes(ctx sdk.Context, handler func(node
 	}
 }
 
+func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+	description types.Description, stake sdk.Coin) error {
+
+	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description)
+
+	err := k.AddIndexingNodeStake(ctx, indexingNode, stake)
+	if err != nil {
+		return err
+	}
+
+	var approveList = make([]sdk.AccAddress, 0)
+	var rejectList = make([]sdk.AccAddress, 0)
+	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
+	expireTime := time.Now().Add(votingValidityPeriod)
+
+	votePool := types.NewRegistrationVotePool(indexingNode.GetNetworkAddr(), approveList, rejectList, expireTime)
+	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
+
+	return nil
+}
+
 // AddIndexingNodeStake Update the tokens of an existing indexing node
-func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, coinToAdd sdk.Coin) error {
+func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToAdd sdk.Coin) error {
 	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetNetworkAddr())
 	if nodeAcc == nil {
 		ctx.Logger().Info(fmt.Sprintf("create new account: %s", indexingNode.GetNetworkAddr()))
@@ -144,59 +165,75 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 		k.accountKeeper.SetAccount(ctx, nodeAcc)
 	}
 
-	coins := sdk.NewCoins(coinToAdd)
+	coins := sdk.NewCoins(tokenToAdd)
 	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.OwnerAddress, coins)
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
 
-	err := k.bankKeeper.SendCoins(ctx, indexingNode.GetOwnerAddr(), indexingNode.GetNetworkAddr(), coins)
+	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetOwnerAddr(), coins)
 	if err != nil {
 		return err
 	}
 
-	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
-	oldTotalStake := k.GetLastIndexingNodeTotalStake(ctx)
+	indexingNode = indexingNode.AddToken(tokenToAdd.Amount)
 
-	indexingNode = indexingNode.AddToken(coinToAdd.Amount)
+	//TODO: Add logic for unBonding status
+	if indexingNode.GetStatus() == sdk.Unbonded {
+		notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
+		notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
+		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
+	} else if indexingNode.GetStatus() == sdk.Bonded {
+		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
+		bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
+		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
+	}
+
 	newStake := indexingNode.GetTokens()
-	newTotalStake := oldTotalStake.Sub(oldStake).Add(newStake)
 
 	k.SetIndexingNode(ctx, indexingNode)
 	k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
-	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
-	k.increaseOzoneLimitByAddStake(ctx, coinToAdd.Amount)
+	k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return nil
 }
 
 // SubtractIndexingNodeStake Update the tokens of an existing indexing node
-func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokensToRemove sdk.Int) error {
+func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
 	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
 	if ownerAcc == nil {
 		return types.ErrNoOwnerAccountFound
 	}
 
-	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), tokensToRemove))
-	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.GetNetworkAddr(), coins)
-	if !hasCoin {
-		return types.ErrInsufficientBalance
+	coins := sdk.NewCoins(tokenToSub)
+
+	//TODO: Add logic for unBonding status
+	if indexingNode.GetStatus() == sdk.Unbonded {
+		notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
+		if notBondedTokenInPool.IsLT(tokenToSub) {
+			return types.ErrInsufficientBalanceOfNotBondedPool
+		}
+		notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
+		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
+	} else if indexingNode.GetStatus() == sdk.Bonded {
+		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
+		if bondedTokenInPool.IsLT(tokenToSub) {
+			return types.ErrInsufficientBalanceOfBondedPool
+		}
+		bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
+		if indexingNode.GetTokens().Equal(tokenToSub.Amount) {
+			return types.ErrSubAllTokens
+		}
+		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
 	}
-	_, err := k.bankKeeper.SubtractCoins(ctx, indexingNode.GetNetworkAddr(), coins)
-	if err != nil {
-		return err
-	}
-	_, err = k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
+
+	_, err := k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
 	if err != nil {
 		return err
 	}
 
-	oldStake := k.GetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
-	oldTotalStake := k.GetLastIndexingNodeTotalStake(ctx)
-
-	indexingNode = indexingNode.RemoveToken(tokensToRemove)
+	indexingNode = indexingNode.SubToken(tokenToSub.Amount)
 	newStake := indexingNode.GetTokens()
-	newTotalStake := oldTotalStake.Sub(oldStake).Add(newStake)
 
 	k.SetIndexingNode(ctx, indexingNode)
 
@@ -209,8 +246,8 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	} else {
 		k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	}
-	k.SetLastIndexingNodeTotalStake(ctx, newTotalStake)
-	k.decreaseOzoneLimitBySubtractStake(ctx, tokensToRemove)
+
+	k.decreaseOzoneLimitBySubtractStake(ctx, tokenToSub.Amount)
 	return nil
 }
 
@@ -260,27 +297,6 @@ func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (r
 	return resourceNodes, nil
 }
 
-func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, stake sdk.Coin) error {
-
-	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description)
-
-	err := k.AddIndexingNodeStake(ctx, indexingNode, stake)
-	if err != nil {
-		return err
-	}
-
-	var approveList = make([]sdk.AccAddress, 0)
-	var rejectList = make([]sdk.AccAddress, 0)
-	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
-	expireTime := time.Now().Add(votingValidityPeriod)
-
-	votePool := types.NewRegistrationVotePool(indexingNode.GetNetworkAddr(), approveList, rejectList, expireTime)
-	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
-
-	return nil
-}
-
 func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
 	opinion types.VoteOpinion, voterAddr sdk.AccAddress) (err error) {
 
@@ -310,12 +326,29 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	}
 	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
 
+	if node.Status == sdk.Bonded {
+		return nil
+	}
+
 	totalSpCount := len(k.GetAllValidIndexingNodes(ctx))
 	voteCountRequiredToPass := totalSpCount*2/3 + 1
 	//unbounded to bounded
 	if len(votePool.ApproveList) >= voteCountRequiredToPass {
 		node.Status = sdk.Bonded
 		k.SetIndexingNode(ctx, node)
+
+		// move stake from not bonded pool to bonded pool
+		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), node.GetTokens())
+		notBondedToken := k.GetIndexingNodeNotBondedToken(ctx)
+		bondedToken := k.GetIndexingNodeBondedToken(ctx)
+
+		if notBondedToken.IsLT(tokenToBond) {
+			return types.ErrInsufficientBalance
+		}
+		notBondedToken = notBondedToken.Sub(tokenToBond)
+		bondedToken = bondedToken.Add(tokenToBond)
+		k.SetIndexingNodeNotBondedToken(ctx, notBondedToken)
+		k.SetIndexingNodeBondedToken(ctx, bondedToken)
 	}
 
 	return nil
@@ -365,4 +398,36 @@ func (k Keeper) UpdateIndexingNode(ctx sdk.Context, networkID string, descriptio
 	k.SetIndexingNode(ctx, node)
 
 	return nil
+}
+
+func (k Keeper) SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	store.Set(types.IndexingNodeBondedTokenKey, bz)
+}
+
+func (k Keeper) GetIndexingNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.IndexingNodeBondedTokenKey)
+	if bz == nil {
+		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	return token
+}
+
+func (k Keeper) SetIndexingNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	store.Set(types.IndexingNodeNotBondedTokenKey, bz)
+}
+
+func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.IndexingNodeNotBondedTokenKey)
+	if bz == nil {
+		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	return token
 }

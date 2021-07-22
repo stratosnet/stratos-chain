@@ -64,7 +64,7 @@ func TestExpiredVote(t *testing.T) {
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
-	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4)))
 	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 
 	//Register new SP node after genesis initialized
@@ -112,7 +112,7 @@ func TestDuplicateVote(t *testing.T) {
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
-	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4)))
 	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 
 	//Register new SP node after genesis initialized
@@ -127,14 +127,14 @@ func TestDuplicateVote(t *testing.T) {
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1, spNodeOwner1))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1, spNodeOwner1))
 	require.Error(t, types.ErrDuplicateVoting)
 }
 
@@ -164,11 +164,14 @@ func TestSpRegistrationApproval(t *testing.T) {
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr2, initialStake2)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr3, initialStake3)
 	k.SetLastIndexingNodeStake(ctx, spNodeAddr4, initialStake4)
-	k.SetLastIndexingNodeTotalStake(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
+	k.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4)))
 	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 
 	//Register new SP node after genesis initialized
 	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+	//_, err := k.bankKeeper.AddCoins(ctx, spNodeAddr4, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), sdk.NewInt(10000000000000))))
+	//require.NoError(t, err)
+
 	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
 		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
 	require.NoError(t, err)
@@ -179,28 +182,28 @@ func TestSpRegistrationApproval(t *testing.T) {
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node1 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr1, spNodeOwner1))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node2 vote to approve, the status of new SP node is UNBONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr2))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr2, spNodeOwner2))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Unbonded)
 
 	//Exist SP Node3 vote to approve, the status of new SP node changes to BONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr3))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr3, spNodeOwner3))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
 	require.Equal(t, newNode.Status, sdk.Bonded)
 
 	//Exist SP Node4 vote to approve, the status of new SP node is BONDED
-	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr4))
+	err = handlerSimulate(ctx, k, types.NewMsgIndexingNodeRegistrationVote(spNodeAddrNew, spNodeOwnerNew, types.Approve, spNodeAddr4, spNodeOwner4))
 	require.NoError(t, err)
 	newNode, found = k.GetIndexingNode(ctx, spNodeAddrNew)
 	require.True(t, found)
@@ -218,10 +221,10 @@ func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgIndexingNodeRegistr
 
 	approver, found := k.GetIndexingNode(ctx, msg.VoterAddress)
 	if !found {
-		return types.ErrInvalidApproverAddr
+		return types.ErrInvalidVoterAddr
 	}
 	if !approver.Status.Equal(sdk.Bonded) || approver.IsSuspended() {
-		return types.ErrInvalidApproverStatus
+		return types.ErrInvalidVoterStatus
 	}
 
 	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
