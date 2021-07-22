@@ -19,6 +19,9 @@ $(BUILDDIR)/:
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
+build-mac: go.sum
+	LEDGER_ENABLED=false GOOS=darwin GOARCH=amd64 $(MAKE) build
+
 ###############################################################################
 ###                                Localnet                                 ###
 ###############################################################################

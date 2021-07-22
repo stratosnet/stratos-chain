@@ -18,26 +18,27 @@ import (
 const (
 	stopFlagOutOfTotalMiningReward = true
 	stopFlagSpecificMinedReward    = false
-	stopFlagSpecificEpoch          = false
+	stopFlagSpecificEpoch          = true
 )
 
 var (
 	paramSpecificMinedReward = sdk.NewInt(160000000000)
-	paramSpecificEpoch       = sdk.NewInt(100)
+	paramSpecificEpoch       = sdk.NewInt(10)
 )
 
 // initialize data of volume report
 func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
-	volume1 := types.NewSingleNodeVolume(addrRes1, resourceNodeVolume1)
-	volume2 := types.NewSingleNodeVolume(addrRes2, resourceNodeVolume2)
-	volume3 := types.NewSingleNodeVolume(addrRes3, resourceNodeVolume3)
+	volume1 := types.NewSingleNodeVolume(resNodeAddr1, resourceNodeVolume1)
+	volume2 := types.NewSingleNodeVolume(resNodeAddr2, resourceNodeVolume2)
+	volume3 := types.NewSingleNodeVolume(resNodeAddr3, resourceNodeVolume3)
 
 	nodesVolume := []types.SingleNodeVolume{volume1, volume2, volume3}
-	reporter := addrIdx1
+	reporter := idxNodeAddr1
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
+	reporterOwner := idxOwner1
 
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference)
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
 
 	return volumeReportMsg
 }
@@ -69,15 +70,23 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
 
 	/********************* create validator with 50% commission *********************/
+	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
+	ctx := mApp.BaseApp.NewContext(true, header)
+
 	commission := staking.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	description := staking.NewDescription("foo_moniker", "", "", "", "")
 	createValidatorMsg := staking.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, sdk.NewCoin("ustos", valInitialStake), description, commission, sdk.OneInt())
 
-	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, []uint64{8}, []uint64{0}, true, true, valOpPrivKey1)
+	valOpAcc1 := mApp.AccountKeeper.GetAccount(ctx, valOpAccAddr1)
+	accNum := valOpAcc1.GetAccountNumber()
+	accSeq := valOpAcc1.GetSequence()
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
 	mock.CheckBalance(t, mApp, valOpAccAddr1, nil)
 
+	/********************** commit **********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
+	ctx = mApp.BaseApp.NewContext(true, header)
+
 	mApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	stakingKeeper.ApplyAndReturnValidatorSetUpdates(mApp.BaseApp.NewContext(true, header))
 	validator := checkValidator(t, mApp, stakingKeeper, valOpValAddr1, true)
@@ -85,17 +94,8 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	require.Equal(t, valOpValAddr1, validator.OperatorAddress)
 	require.Equal(t, sdk.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
-	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
-	ctx := mApp.BaseApp.NewContext(true, header)
-	/*
-		the sequence of the account list is related to the value of parameter "accNums" of mock.SignCheckDeliver() method
-		accs := []authexported.Account{
-			resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
-			idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3, valOwnerAcc1,
-			resNodeAcc1, resNodeAcc2, resNodeAcc3, resNodeAcc4, resNodeAcc5,
-			idxNodeAcc1, idxNodeAcc2, idxNodeAcc3,
-		}
-	*/
+
+	/********************** loop sending volume report **********************/
 	var i int64
 	i = 0
 	for {
@@ -132,37 +132,37 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		rewardDetailMap := make(map[string]types.Reward)
 		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.NodesVolume, distributeGoalBalance, rewardDetailMap)
 		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
-		ctx.Logger().Info("resourceNode1:  address = " + addrRes1.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes1.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes1.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resourceNode1:  address = " + resNodeAddr1.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr1.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr1.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode2:  address = " + addrRes2.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes2.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes2.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resourceNode2:  address = " + resNodeAddr2.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr2.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr2.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode3:  address = " + addrRes3.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes3.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes3.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resourceNode3:  address = " + resNodeAddr3.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr3.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr3.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode4:  address = " + addrRes4.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes4.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes4.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resourceNode4:  address = " + resNodeAddr4.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr4.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr4.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode5:  address = " + addrRes5.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrRes5.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrRes5.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resourceNode5:  address = " + resNodeAddr5.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr5.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr5.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("indexingNode1:  address = " + addrIdx1.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrIdx1.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrIdx1.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("indexingNode1:  address = " + idxNodeAddr1.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxNodeAddr1.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxNodeAddr1.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("indexingNode2:  address = " + addrIdx2.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrIdx2.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrIdx2.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("indexingNode2:  address = " + idxNodeAddr2.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxNodeAddr2.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxNodeAddr2.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("indexingNode3:  address = " + addrIdx3.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[addrIdx3.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[addrIdx3.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("indexingNode3:  address = " + idxNodeAddr3.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxNodeAddr3.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxNodeAddr3.String()].RewardFromTrafficPool.String())
 		ctx.Logger().Info("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
@@ -172,7 +172,15 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 
 		/********************* deliver tx *********************/
-		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{14}, []uint64{uint64(i)}, true, true, privKeyIdx1)
+		idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
+		nodeAccNum := idxNodeAcc1.GetAccountNumber()
+		nodeAccSeq := idxNodeAcc1.GetSequence()
+
+		idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwner1)
+		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
+		ownerAccSeq := idxOwnerAcc1.GetSequence()
+
+		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{nodeAccNum, ownerAccNum}, []uint64{nodeAccSeq, ownerAccSeq}, true, true, idxNodePrivKey1, idxOwnerPrivKey1)
 
 		/********************* commit & check result *********************/
 		header = abci.Header{Height: mApp.LastBlockHeight() + 1}
@@ -257,7 +265,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, staking.Keeper, bank.Keeper, s
 	}
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
-	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.AccountKeeper, bankKeeper, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace))
+	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
 
 	keeper := NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
 
@@ -285,26 +293,22 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		mapp.InitChainer(ctx, req)
 
-		lastResourceNodeTotalStake := initialStakeRes1.Add(initialStakeRes2).Add(initialStakeRes3).Add(initialStakeRes4).Add(initialStakeRes5)
-		lastIndexingNodeTotalStake := initialStakeIdx1.Add(initialStakeIdx2).Add(initialStakeIdx3)
-
 		var lastResourceNodeStakes []register.LastResourceNodeStake
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes1, Stake: initialStakeRes1})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes2, Stake: initialStakeRes2})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes3, Stake: initialStakeRes3})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes4, Stake: initialStakeRes4})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes5, Stake: initialStakeRes5})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr1, Stake: resNodeInitialStake1})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr2, Stake: resNodeInitialStake2})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr3, Stake: resNodeInitialStake3})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr4, Stake: resNodeInitialStake4})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr5, Stake: resNodeInitialStake5})
 
 		var lastIndexingNodeStakes []register.LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx1, Stake: initialStakeIdx1})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx2, Stake: initialStakeIdx2})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx3, Stake: initialStakeIdx3})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr1, Stake: idxNodeInitialStake1})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr2, Stake: idxNodeInitialStake2})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr3, Stake: idxNodeInitialStake3})
 
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeTotalStake, lastResourceNodeStakes, resourceNodes,
-			lastIndexingNodeTotalStake, lastIndexingNodeStakes, indexingNodes)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes)
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 

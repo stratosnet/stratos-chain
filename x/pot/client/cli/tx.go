@@ -103,36 +103,46 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	cmd.Flags().AddFlagSet(FsReporter)
 	cmd.Flags().AddFlagSet(FsEpoch)
 	cmd.Flags().AddFlagSet(FsReportReference)
 	cmd.Flags().AddFlagSet(FsNodesVolume)
 
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagReporter)
 	_ = cmd.MarkFlagRequired(FlagEpoch)
 	_ = cmd.MarkFlagRequired(FlagReportReference)
 	_ = cmd.MarkFlagRequired(FlagNodesVolume)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
 }
 
 func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	reporter := cliCtx.GetFromAddress()
-	reportReference := viper.GetString(FlagReportReference)
-	value, er := strconv.ParseInt(viper.GetString(FlagEpoch), 10, 64)
-	if er != nil {
-		return txBldr, nil, er
-	}
-	epoch := sdk.NewInt(value)
-	var nodesVolume = make([]types.SingleNodeVolume, 0)
-	err := cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolume)
+	reporterStr := viper.GetString(FlagReporter)
+	reporter, err := sdk.AccAddressFromBech32(reporterStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
+
+	reportReference := viper.GetString(FlagReportReference)
+	value, err := strconv.ParseInt(viper.GetString(FlagEpoch), 10, 64)
+	if err != nil {
+		return txBldr, nil, err
+	}
+	epoch := sdk.NewInt(value)
+	var nodesVolume = make([]types.SingleNodeVolume, 0)
+	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolume)
+	if err != nil {
+		return txBldr, nil, err
+	}
+	reporterOwner := cliCtx.GetFromAddress()
+
 	msg := types.NewMsgVolumeReport(
 		nodesVolume,
 		reporter,
 		epoch,
 		reportReference,
+		reporterOwner,
 	)
 	return txBldr, msg, nil
 }

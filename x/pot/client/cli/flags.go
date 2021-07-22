@@ -9,8 +9,8 @@ const (
 	FlagEpoch           = "epoch"
 	FlagReportReference = "reference"
 	FlagNodesVolume     = "nodes-volume"
-	FlagAmount      = "amount"
-	FlagNodeAddress = "node-address"
+	FlagAmount          = "amount"
+	FlagNodeAddress     = "node-address"
 )
 
 var (
@@ -18,8 +18,8 @@ var (
 	FsEpoch           = flag.NewFlagSet("", flag.ContinueOnError)
 	FsReportReference = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNodesVolume     = flag.NewFlagSet("", flag.ContinueOnError)
-	FsAmount      = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNodeAddress = flag.NewFlagSet("", flag.ContinueOnError)
+	FsAmount          = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNodeAddress     = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {

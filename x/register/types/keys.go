@@ -20,13 +20,15 @@ const (
 )
 
 var (
-	UpperBoundOfTotalOzoneKey = []byte{0x01}
+	ResourceNodeNotBondedTokenKey = []byte{0x01}
+	ResourceNodeBondedTokenKey    = []byte{0x02}
+	IndexingNodeNotBondedTokenKey = []byte{0x03}
+	IndexingNodeBondedTokenKey    = []byte{0x04}
+	UpperBoundOfTotalOzoneKey     = []byte{0x05}
 
-	LastResourceNodeStakeKey      = []byte{0x11} // prefix for each key to a resource node index, for bonded resource nodes
-	LastResourceNodeTotalStakeKey = []byte{0x12} // prefix for the total bonded tokens of resource nodes
-	LastIndexingNodeStakeKey      = []byte{0x13} // prefix for each key to a indexing node index, for bonded indexing nodes
-	LastIndexingNodeTotalStakeKey = []byte{0x14} // prefix for the total bonded tokens of indexing nodes
-	InitialGenesisStakeTotalKey   = []byte{0x15} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
+	LastResourceNodeStakeKey    = []byte{0x11} // prefix for each key to a resource node index, for bonded resource nodes
+	LastIndexingNodeStakeKey    = []byte{0x12} // prefix for each key to a indexing node index, for bonded indexing nodes
+	InitialGenesisStakeTotalKey = []byte{0x13} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
 
 	ResourceNodeKey                  = []byte{0x21} // prefix for each key to a resource node
 	IndexingNodeKey                  = []byte{0x22} // prefix for each key to a indexing node

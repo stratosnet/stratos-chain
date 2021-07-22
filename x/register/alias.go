@@ -32,8 +32,8 @@ var (
 	ErrNoResourceNodeFound      = types.ErrNoResourceNodeFound
 	ErrNoIndexingNodeFound      = types.ErrNoIndexingNodeFound
 	ErrInvalidOwnerAddr         = types.ErrInvalidOwnerAddr
-	ErrInvalidApproverAddr      = types.ErrInvalidApproverAddr
-	ErrInvalidApproverStatus    = types.ErrInvalidApproverStatus
+	ErrInvalidApproverAddr      = types.ErrInvalidVoterAddr
+	ErrInvalidApproverStatus    = types.ErrInvalidVoterStatus
 
 	DefaultParams            = types.DefaultParams
 	DefaultGenesisState      = types.DefaultGenesisState

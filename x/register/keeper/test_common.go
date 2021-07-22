@@ -54,7 +54,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, auth.AccountKee
 	accountKeeper := auth.NewAccountKeeper(cdc, keyAcc, pk.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
 	bankKeeper := bank.NewBaseKeeper(accountKeeper, pk.Subspace(bank.DefaultParamspace), nil)
 
-	keeper := NewKeeper(cdc, keyRegister, accountKeeper, bankKeeper, pk.Subspace(types.DefaultParamSpace))
+	keeper := NewKeeper(cdc, keyRegister, pk.Subspace(types.DefaultParamSpace), accountKeeper, bankKeeper)
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	return ctx, accountKeeper, bankKeeper, keeper, pk
