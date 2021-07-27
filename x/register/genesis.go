@@ -48,6 +48,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	}
 
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+	keeper.SetRemainingOzoneLimit(ctx, initialStakeTotal)
 }
 
 // ExportGenesis writes the current store values
