@@ -27,7 +27,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case types.MsgUpdateIndexingNode:
 			return handleMsgUpdateIndexingNode(ctx, msg, k)
 		case types.MsgIndexingNodeRegistrationVote:
-			return handleSpRegistrationVote(ctx, msg, k)
+			return handleMsgIndexingNodeRegistrationVote(ctx, msg, k)
 
 		// this line is used by starport scaffolding # 1
 		default:
@@ -100,7 +100,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	if !found {
 		return nil, ErrNoResourceNodeFound
 	}
-	err := k.SubtractResourceNodeStake(ctx, resourceNode, resourceNode.GetTokens())
+	err := k.SubtractResourceNodeStake(ctx, resourceNode, sdk.NewCoin(k.BondDenom(ctx), resourceNode.GetTokens()))
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +124,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	if !found {
 		return nil, ErrNoIndexingNodeFound
 	}
-	err := k.SubtractIndexingNodeStake(ctx, indexingNode, indexingNode.GetTokens())
+	err := k.SubtractIndexingNodeStake(ctx, indexingNode, sdk.NewCoin(k.BondDenom(ctx), indexingNode.GetTokens()))
 	if err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
-func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {
+func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {
 	nodeToApprove, found := k.GetIndexingNode(ctx, msg.NodeAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
@@ -152,11 +152,11 @@ func handleSpRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistra
 		return nil, ErrInvalidOwnerAddr
 	}
 
-	approver, found := k.GetIndexingNode(ctx, msg.VoterAddress)
+	voter, found := k.GetIndexingNode(ctx, msg.VoterAddress)
 	if !found {
 		return nil, ErrInvalidApproverAddr
 	}
-	if !approver.Status.Equal(sdk.Bonded) || approver.IsSuspended() {
+	if !voter.Status.Equal(sdk.Bonded) || voter.IsSuspended() {
 		return nil, ErrInvalidApproverStatus
 	}
 

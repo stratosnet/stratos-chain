@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -75,9 +76,9 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
-	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
-	//}
+	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+		addrs = append(addrs, msg.PubKey.Address().Bytes())
+	}
 	return addrs
 }
 
@@ -139,9 +140,9 @@ func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
-	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
-	//}
+	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+		addrs = append(addrs, msg.PubKey.Address().Bytes())
+	}
 	return addrs
 }
 
@@ -333,19 +334,22 @@ func (msg MsgUpdateIndexingNode) ValidateBasic() error {
 }
 
 type MsgIndexingNodeRegistrationVote struct {
-	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
-	Opinion      VoteOpinion    `json:"opinion" yaml:"opinion"`
-	VoterAddress sdk.AccAddress `json:"voter_address" yaml:"voter_address"` // address of voter (other existed indexing node)
+	NodeAddress       sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
+	OwnerAddress      sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
+	Opinion           VoteOpinion    `json:"opinion" yaml:"opinion"`
+	VoterAddress      sdk.AccAddress `json:"voter_address" yaml:"voter_address"`             // address of voter (other existed indexing node)
+	VoterOwnerAddress sdk.AccAddress `json:"voter_owner_address" yaml:"voter_owner_address"` // address of owner of the voter (other existed indexing node)
 }
 
-func NewMsgIndexingNodeRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion, approverAddress sdk.AccAddress,
-) MsgIndexingNodeRegistrationVote {
+func NewMsgIndexingNodeRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion,
+	voterAddress sdk.AccAddress, voterOwnerAddress sdk.AccAddress) MsgIndexingNodeRegistrationVote {
+
 	return MsgIndexingNodeRegistrationVote{
-		NodeAddress:  nodeAddress,
-		OwnerAddress: ownerAddress,
-		Opinion:      opinion,
-		VoterAddress: approverAddress,
+		NodeAddress:       nodeAddress,
+		OwnerAddress:      ownerAddress,
+		Opinion:           opinion,
+		VoterAddress:      voterAddress,
+		VoterOwnerAddress: voterOwnerAddress,
 	}
 }
 
@@ -365,9 +369,12 @@ func (m MsgIndexingNodeRegistrationVote) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 	if m.VoterAddress.Empty() {
-		return ErrEmptyApproverAddr
+		return ErrEmptyVoterAddr
 	}
-	if m.OwnerAddress.Equals(m.VoterAddress) {
+	if m.VoterOwnerAddress.Empty() {
+		return ErrEmptyVoterOwnerAddr
+	}
+	if m.NodeAddress.Equals(m.VoterAddress) {
 		return ErrSameAddr
 	}
 	return nil
@@ -379,6 +386,8 @@ func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
 }
 
 func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
-	addrs := []sdk.AccAddress{m.VoterAddress}
+	var addrs []sdk.AccAddress
+	addrs = append(addrs, m.VoterAddress)
+	addrs = append(addrs, m.VoterOwnerAddress)
 	return addrs
 }

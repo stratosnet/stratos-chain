@@ -144,14 +144,11 @@ func (v ResourceNode) String() string {
 // AddToken adds tokens to a resource node
 func (v ResourceNode) AddToken(amount sdk.Int) ResourceNode {
 	v.Tokens = v.Tokens.Add(amount)
-	if v.Status.Equal(sdk.Unbonded) {
-		v.Status = sdk.Bonded
-	}
 	return v
 }
 
-// RemoveToken removes tokens from a resource node
-func (v ResourceNode) RemoveToken(tokens sdk.Int) ResourceNode {
+// SubToken removes tokens from a resource node
+func (v ResourceNode) SubToken(tokens sdk.Int) ResourceNode {
 	if tokens.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", tokens))
 	}

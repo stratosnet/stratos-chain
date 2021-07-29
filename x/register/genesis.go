@@ -11,16 +11,33 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
 
 	initialStakeTotal := sdk.ZeroInt()
-
+	resNodeBondedToken := sdk.ZeroInt()
+	resNodeNotBondedToken := sdk.ZeroInt()
 	for _, resourceNode := range data.ResourceNodes {
-		initialStakeTotal = initialStakeTotal.Add(resourceNode.GetTokens())
+		if resourceNode.Status == sdk.Bonded {
+			initialStakeTotal = initialStakeTotal.Add(resourceNode.GetTokens())
+			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.GetTokens())
+		} else if resourceNode.Status == sdk.Unbonded {
+			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.GetTokens())
+		}
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
+	keeper.SetResourceNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeBondedToken))
+	keeper.SetResourceNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeNotBondedToken))
 
+	idxNodeBondedToken := sdk.ZeroInt()
+	idxNodeNotBondedToken := sdk.ZeroInt()
 	for _, indexingNode := range data.IndexingNodes {
-		initialStakeTotal = initialStakeTotal.Add(indexingNode.GetTokens())
+		if indexingNode.Status == sdk.Bonded {
+			initialStakeTotal = initialStakeTotal.Add(indexingNode.GetTokens())
+			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.GetTokens())
+		} else if indexingNode.Status == sdk.Unbonded {
+			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.GetTokens())
+		}
 		keeper.SetIndexingNode(ctx, indexingNode)
 	}
+	keeper.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
+	keeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
 
 	for _, resStake := range data.LastResourceNodeStakes {
 		keeper.SetLastResourceNodeStake(ctx, resStake.Address, resStake.Stake)
@@ -30,9 +47,8 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 		keeper.SetLastIndexingNodeStake(ctx, idxStake.Address, idxStake.Stake)
 	}
 
-	keeper.SetLastResourceNodeTotalStake(ctx, data.LastResourceNodeTotalStake)
-	keeper.SetLastIndexingNodeTotalStake(ctx, data.LastIndexingNodeTotalStake)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+	keeper.SetRemainingOzoneLimit(ctx, initialStakeTotal)
 }
 
 // ExportGenesis writes the current store values
@@ -40,9 +56,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
-
-	lastResourceNodeTotalStake := keeper.GetLastResourceNodeTotalStake(ctx)
-	lastIndexingNodeTotalStake := keeper.GetLastIndexingNodeTotalStake(ctx)
 
 	var lastResourceNodeStakes []types.LastResourceNodeStake
 	keeper.IterateLastResourceNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
@@ -60,12 +73,10 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	indexingNodes := keeper.GetAllIndexingNodes(ctx)
 
 	return types.GenesisState{
-		Params:                     params,
-		LastResourceNodeTotalStake: lastResourceNodeTotalStake,
-		LastResourceNodeStakes:     lastResourceNodeStakes,
-		ResourceNodes:              resourceNodes,
-		LastIndexingNodeTotalStake: lastIndexingNodeTotalStake,
-		LastIndexingNodeStakes:     lastIndexingNodeStakes,
-		IndexingNodes:              indexingNodes,
+		Params:                 params,
+		LastResourceNodeStakes: lastResourceNodeStakes,
+		ResourceNodes:          resourceNodes,
+		LastIndexingNodeStakes: lastIndexingNodeStakes,
+		IndexingNodes:          indexingNodes,
 	}
 }

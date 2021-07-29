@@ -81,7 +81,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	stakingKeeper := staking.NewKeeper(cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace))
 	StakingParam := staking.NewParams(staking.DefaultUnbondingTime, staking.DefaultMaxValidators, staking.DefaultMaxEntries, 0, "ustos")
 	stakingKeeper.SetParams(ctx, StakingParam)
-	registerKeeper := register.NewKeeper(cdc, keyRegister, accountKeeper, bankKeeper, pk.Subspace(register.DefaultParamSpace))
+	registerKeeper := register.NewKeeper(cdc, keyRegister, pk.Subspace(register.DefaultParamSpace), accountKeeper, bankKeeper)
 	registerKeeper.SetParams(ctx, register.DefaultParams())
 
 	keeper := NewKeeper(cdc, keyPot, pk.Subspace(types.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, accountKeeper, stakingKeeper, registerKeeper)

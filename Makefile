@@ -19,6 +19,9 @@ $(BUILDDIR)/:
 build-linux: go.sum
 	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
 
+build-mac: go.sum
+	LEDGER_ENABLED=false GOOS=darwin GOARCH=amd64 $(MAKE) build
+
 clean:
 	rm -rf $(BUILDDIR)/
 
@@ -39,4 +42,4 @@ localnet-start: build-linux localnet-stop
 localnet-stop:
 	docker-compose down
 
-.PHONY: build-linux build clean
+.PHONY: build-linux build-mac build clean
