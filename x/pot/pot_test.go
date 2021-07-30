@@ -34,8 +34,7 @@ var (
 	resourceNodeVolume3 = sdk.NewInt(200000000000)
 
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000")
-	remainingOzoneLimit, _ = sdk.NewIntFromString("500000000000000000000")
+	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	initialOzonePrice      = sdk.NewInt(10000000000)
 	foundationAccAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	foundationDeposit      = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(40000000000000000)))
