@@ -306,7 +306,7 @@ func NewInitApp(
 		auth.NewAnteHandler(
 			app.accountKeeper,
 			app.supplyKeeper,
-			auth.DefaultSigVerificationGasConsumer,
+			mySigVerificationGasConsumer,
 		),
 	)
 
