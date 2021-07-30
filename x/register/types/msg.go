@@ -76,11 +76,12 @@ func (msg MsgCreateResourceNode) GetSignBytes() []byte {
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
+	// and since the second signer
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
-	//if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-	//	addrs = append(addrs, msg.PubKey.Address().Bytes())
-	//}
+	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
+		addrs = append(addrs, msg.PubKey.Address().Bytes())
+	}
 	return addrs
 }
 
