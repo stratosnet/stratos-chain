@@ -38,8 +38,8 @@ func TestRegister(t *testing.T) {
 		sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake),
 		resOwnerAddr3,
 		NewDescription("sds://resourceNode3", "", "", "", ""),
-		"4")
-
+		"4",
+	)
 	t.Log("registerResNodeMsg: ", registerResNodeMsg)
 
 	resNodeOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr3)
@@ -74,10 +74,5 @@ func TestRegister(t *testing.T) {
 	}
 
 	t.Log("gasInfo: ", gasInfo)
-	t.Log("gasInfo used: ", gasInfo.GasUsed)
-	t.Log("Data: ", result.Data)
-	t.Log("Log: ", result.Log)
-
-	t.Log("Events: ", sdk.StringifyEvents(result.Events.ToABCIEvents()))
-
+	t.Log("Result: ", result)
 }
