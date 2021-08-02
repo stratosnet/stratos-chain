@@ -2,6 +2,7 @@ package app
 
 import (
 	"encoding/json"
+	"github.com/stratosnet/stratos-chain/helpers"
 	"io"
 	"os"
 
@@ -306,7 +307,7 @@ func NewInitApp(
 		auth.NewAnteHandler(
 			app.accountKeeper,
 			app.supplyKeeper,
-			mySigVerificationGasConsumer,
+			helpers.StSigVerificationGasConsumer,
 		),
 	)
 

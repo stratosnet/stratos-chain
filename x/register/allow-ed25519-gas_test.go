@@ -15,8 +15,6 @@ func TestRegister(t *testing.T) {
 	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
 	mApp, k, _, _ := getMockApp(t)
 	accounts := setupAccounts(mApp)
-	//anteHandler := ante.NewAnteHandler(mApp.AccountKeeper, suppyKeeper, utils.MySigVerificationGasConsumer)
-	//mApp.SetAnteHandler(anteHandler)
 	mock.SetGenesis(mApp, accounts)
 
 	header := abci.Header{}
