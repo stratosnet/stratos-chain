@@ -23,7 +23,7 @@ type MsgCreateResourceNode struct {
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
 	Description  Description    `json:"description" yaml:"description"`
 	NodeType     string         `json:"node_type" yaml:"node_type"`
-	NodeSign     string         `json:"node_sign" yaml:"node_sign""`
+	NodeSign     string         `json:"node_sign" yaml:"node_sign"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
