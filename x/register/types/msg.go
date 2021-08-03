@@ -76,7 +76,7 @@ func (msg MsgCreateResourceNode) GetSignBytes() []byte {
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
-	// and since the second signer
+	// and since the second signer is used for validating the tx, it does not pay for proposing the tx. The tx should be signed in the same order.
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
 	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
