@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -22,6 +23,7 @@ type MsgCreateResourceNode struct {
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
 	Description  Description    `json:"description" yaml:"description"`
 	NodeType     string         `json:"node_type" yaml:"node_type"`
+	NodeSign     string         `json:"node_sign" yaml:"node_sign"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
@@ -74,6 +76,7 @@ func (msg MsgCreateResourceNode) GetSignBytes() []byte {
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 	// OwnerAddress is first signer so Owner pays fees
+	// and since the second signer is used for validating the tx, it does not pay for proposing the tx. The tx should be signed in the same order.
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
 
 	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
