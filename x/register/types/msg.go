@@ -1,8 +1,6 @@
 package types
 
 import (
-	"bytes"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -23,7 +21,6 @@ type MsgCreateResourceNode struct {
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
 	Description  Description    `json:"description" yaml:"description"`
 	NodeType     string         `json:"node_type" yaml:"node_type"`
-	NodeSign     string         `json:"node_sign" yaml:"node_sign"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
@@ -75,13 +72,8 @@ func (msg MsgCreateResourceNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
-	// OwnerAddress is first signer so Owner pays fees
-	// and since the second signer
+	// Owner pays the tx fees
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
-
-	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-		addrs = append(addrs, msg.PubKey.Address().Bytes())
-	}
 	return addrs
 }
 
@@ -140,12 +132,8 @@ func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
 }
 
 func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
-	// OwnerAddress is first signer so Owner pays fees
+	// Owner pays the tx fees
 	addrs := []sdk.AccAddress{msg.OwnerAddress}
-
-	if !bytes.Equal(msg.OwnerAddress.Bytes(), msg.PubKey.Address().Bytes()) {
-		addrs = append(addrs, msg.PubKey.Address().Bytes())
-	}
 	return addrs
 }
 
