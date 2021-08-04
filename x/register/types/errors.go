@@ -34,4 +34,5 @@ var (
 	ErrInsufficientBalanceOfBondedPool    = sdkerrors.Register(ModuleName, 27, "insufficient balance of bonded pool")
 	ErrInsufficientBalanceOfNotBondedPool = sdkerrors.Register(ModuleName, 28, "insufficient balance of not bonded pool")
 	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, 29, "error sub all tokens")
+	ErrED25519InvalidPubKey               = sdkerrors.Register(ModuleName, 30, "ED25519 public keys are unsupported")
 )
