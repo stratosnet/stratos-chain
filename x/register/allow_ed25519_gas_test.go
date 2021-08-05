@@ -27,7 +27,7 @@ func TestRegister(t *testing.T) {
 
 	registerResNodeMsg := types.NewMsgCreateResourceNode(
 		"sds://resourceNode3",
-		resOwnerPrivKey3.PubKey(),
+		resNodePubKey3,
 		sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake),
 		resOwnerAddr3,
 		NewDescription("sds://resourceNode3", "", "", "", ""),

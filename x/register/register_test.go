@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/mock"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
@@ -40,8 +41,8 @@ var (
 
 	resNodePrivKey1 = secp256k1.GenPrivKey()
 	resNodePrivKey2 = secp256k1.GenPrivKey()
-	//resNodePrivKey3 = ed25519.GenPrivKey()
-	resNodePrivKey3 = secp256k1.GenPrivKey()
+	resNodePrivKey3 = ed25519.GenPrivKey()
+	//resNodePrivKey3 = secp256k1.GenPrivKey()
 	idxNodePrivKey1 = secp256k1.GenPrivKey()
 	idxNodePrivKey2 = secp256k1.GenPrivKey()
 	idxNodePrivKey3 = secp256k1.GenPrivKey()
