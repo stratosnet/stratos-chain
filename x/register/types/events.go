@@ -12,6 +12,7 @@ const (
 	AttributeKeyResourceNode = "resource_node"
 	AttributeKeyIndexingNode = "indexing_node"
 	AttributeKeyNodeAddress  = "node_address"
+	AttributeKeyNodePubkey   = "node_pubkey"
 
 	AttributeValueCategory = ModuleName
 )

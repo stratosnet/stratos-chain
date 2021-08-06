@@ -1,6 +1,7 @@
 package register
 
 import (
+	"encoding/hex"
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -57,6 +58,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 			types.EventTypeCreateResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
+			sdk.NewAttribute(types.AttributeKeyNodePubkey, hex.EncodeToString(msg.PubKey.Bytes())),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
