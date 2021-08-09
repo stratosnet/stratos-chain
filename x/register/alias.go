@@ -43,6 +43,8 @@ var (
 	NewDescription           = types.NewDescription
 	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
 	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
+
+	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
 )
 
 type (

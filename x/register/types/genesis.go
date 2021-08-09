@@ -1,14 +1,19 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	"encoding/json"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/register/exported"
+)
 
 // GenesisState - all register state that must be provided at genesis
 type GenesisState struct {
-	Params                 Params                  `json:"params" yaml:"params"`
-	LastResourceNodeStakes []LastResourceNodeStake `json:"last_resource_node_stakes" yaml:"last_resource_node_stakes"`
-	ResourceNodes          ResourceNodes           `json:"resource_nodes" yaml:"resource_nodes"`
-	LastIndexingNodeStakes []LastIndexingNodeStake `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
-	IndexingNodes          IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
+	Params                 Params                        `json:"params" yaml:"params"`
+	LastResourceNodeStakes []LastResourceNodeStake       `json:"last_resource_node_stakes" yaml:"last_resource_node_stakes"`
+	ResourceNodes          exported.GenesisResourceNodes `json:"resource_nodes" yaml:"resource_nodes"`
+	LastIndexingNodeStakes []LastIndexingNodeStake       `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
+	IndexingNodes          exported.GenesisIndexingNodes `json:"indexing_nodes" yaml:"indexing_nodes"`
 }
 
 // LastResourceNodeStake required for resource node set update logic
@@ -25,8 +30,8 @@ type LastIndexingNodeStake struct {
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params,
-	lastResourceNodeStakes []LastResourceNodeStake, resourceNodes []ResourceNode,
-	lastIndexingNodeStakes []LastIndexingNodeStake, indexingNodes []IndexingNode,
+	lastResourceNodeStakes []LastResourceNodeStake, resourceNodes exported.GenesisResourceNodes,
+	lastIndexingNodeStakes []LastIndexingNodeStake, indexingNodes exported.GenesisIndexingNodes,
 ) GenesisState {
 	return GenesisState{
 		Params:                 params,
@@ -42,6 +47,17 @@ func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Params: DefaultParams(),
 	}
+}
+
+// GetGenesisStateFromAppState returns x/auth GenesisState given raw application
+// genesis state.
+func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawMessage) GenesisState {
+	var genesisState GenesisState
+	if appState[ModuleName] != nil {
+		cdc.MustUnmarshalJSON(appState[ModuleName], &genesisState)
+	}
+
+	return genesisState
 }
 
 // ValidateGenesis validates the register genesis parameters
