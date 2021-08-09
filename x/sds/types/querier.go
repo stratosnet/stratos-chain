@@ -4,9 +4,10 @@ import "github.com/cosmos/cosmos-sdk/types"
 
 // querier keys
 const (
-	QueryParams       = "params"
-	QueryUploadedFile = "uploaded_file"
-	QueryPrepay       = "prepay"
+	QueryParams         = "params"
+	QueryUploadedFile   = "uploaded_file"
+	QueryPrepay         = "prepay"
+	QuerySimulatePrepay = "simulate_prepay"
 )
 
 // params for query 'custom/distr/validator_outstanding_rewards'

@@ -13,7 +13,7 @@ import (
 func QueryUploadedFile(cliCtx context.CLIContext, queryRoute, fileHashHex string) ([]byte, int64, error) {
 	fileHashByteArr, err := hex.DecodeString(fileHashHex)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Invalid file hash, please specify a hash in hex format %w", err)
+		return nil, 0, fmt.Errorf("invalid file hash, please specify a hash in hex format %w", err)
 	}
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryUploadedFile)
 	return cliCtx.QueryWithData(route, fileHashByteArr)
@@ -23,8 +23,18 @@ func QueryUploadedFile(cliCtx context.CLIContext, queryRoute, fileHashHex string
 func QueryPrepayBalance(cliCtx context.CLIContext, queryRoute, sender string) ([]byte, int64, error) {
 	accAddr, err := sdk.AccAddressFromBech32(sender)
 	if err != nil {
-		return nil, 0, fmt.Errorf("Invalid sender, please specify a sender in Bech32 format %w", err)
+		return nil, 0, fmt.Errorf("invalid sender, please specify a sender in Bech32 format %w", err)
 	}
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryPrepay)
 	return cliCtx.QueryWithData(route, accAddr)
+}
+
+// QuerySimulatePrepay queries the ongoing price for prepay
+func QuerySimulatePrepay(cliCtx context.CLIContext, queryRoute string, amtToPrepay sdk.Int) ([]byte, int64, error) {
+	amtByteArry, err := amtToPrepay.MarshalJSON()
+	if err != nil {
+		return nil, 0, fmt.Errorf("invalid amount, please specify a valid amount to simulate prepay %w", err)
+	}
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QuerySimulatePrepay)
+	return cliCtx.QueryWithData(route, amtByteArry)
 }
