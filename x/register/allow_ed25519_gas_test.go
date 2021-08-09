@@ -25,11 +25,6 @@ func TestRegister(t *testing.T) {
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
 
-	t.Log("resNodePrivKey3: ", resNodePrivKey3)
-	t.Log("resNodePubKey3: ", resNodePubKey3)
-	resNodeAcc3 := mApp.AccountKeeper.GetAccount(ctx, resNodeAddr3)
-	t.Log("resNodeAcc3: ", resNodeAcc3)
-
 	registerResNodeMsg := types.NewMsgCreateResourceNode(
 		"sds://resourceNode3",
 		resNodePubKey3,
@@ -40,17 +35,17 @@ func TestRegister(t *testing.T) {
 	)
 	t.Log("registerResNodeMsg: ", registerResNodeMsg)
 
-	resNodeOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr3)
-	accNumOwner := resNodeOwnerAcc3.GetAccountNumber()
+	resOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr3)
+	accNumOwner := resOwnerAcc3.GetAccountNumber()
 	t.Log("accNumOwner: ", accNumOwner)
-	accSeqOwner := resNodeOwnerAcc3.GetSequence()
+	accSeqOwner := resOwnerAcc3.GetSequence()
 	t.Log("accSeqOwner: ", accSeqOwner)
 	t.Log("resOwnerPrivKey3: ", resOwnerPrivKey3)
 	t.Log("resOwnerPubKey3: ", resOwnerPrivKey3.PubKey())
 
-	accNumNode := resNodeAcc3.GetAccountNumber()
+	accNumNode := resOwnerAcc3.GetAccountNumber()
 	t.Log("accNumNode: ", accNumNode)
-	accSeqNode := resNodeAcc3.GetSequence()
+	accSeqNode := resOwnerAcc3.GetSequence()
 	t.Log("accSeqNode: ", accSeqNode)
 
 	gasInfo, result, e := mock.SignCheckDeliver(
@@ -64,7 +59,6 @@ func TestRegister(t *testing.T) {
 		true,
 		true,
 		resOwnerPrivKey3,
-		resNodePrivKey3,
 	)
 
 	if e != nil {
