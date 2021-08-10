@@ -29,16 +29,3 @@ type IndexingNodeI interface {
 	GetTokens() sdk.Int             // staking tokens of the node
 	GetOwnerAddr() sdk.AccAddress   // owner address of the node
 }
-
-type GenesisResourceNodes []GenesisResourceNode
-type GenesisIndexingNodes []GenesisIndexingNode
-
-type GenesisResourceNode interface {
-	ResourceNodeI
-	Validate() error
-}
-
-type GenesisIndexingNode interface {
-	IndexingNodeI
-	Validate() error
-}

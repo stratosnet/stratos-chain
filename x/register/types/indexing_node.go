@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/register/exported"
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
@@ -29,14 +28,6 @@ func (v IndexingNodes) String() (out string) {
 		out += node.String() + "\n"
 	}
 	return strings.TrimSpace(out)
-}
-
-// ToSDKIndexingNodes -  convenience function convert []IndexingNodes to []sdk.IndexingNodes
-func (v IndexingNodes) ToSDKIndexingNodes() (indexingNodes []exported.IndexingNodeI) {
-	for _, node := range v {
-		indexingNodes = append(indexingNodes, node)
-	}
-	return indexingNodes
 }
 
 // Sort IndexingNodes sorts IndexingNode array in ascending owner address order

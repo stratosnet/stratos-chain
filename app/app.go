@@ -62,9 +62,9 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
+		register.AppModuleBasic{},
 		pot.AppModuleBasic{},
 		sds.AppModuleBasic{},
-		register.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
@@ -114,9 +114,9 @@ type NewApp struct {
 	stakingKeeper  staking.Keeper
 	supplyKeeper   supply.Keeper
 	paramsKeeper   params.Keeper
-	sdsKeeper      sds.Keeper
-	potKeeper      pot.Keeper
 	registerKeeper register.Keeper
+	potKeeper      pot.Keeper
+	sdsKeeper      sds.Keeper
 	govKeeper      gov.Keeper
 	slashingKeeper slashing.Keeper
 	mintKeeper     mint.Keeper
@@ -278,8 +278,8 @@ func NewInitApp(
 		crisis.ModuleName,
 		genutil.ModuleName,
 		register.ModuleName,
-		sds.ModuleName,
 		pot.ModuleName,
+		sds.ModuleName,
 		upgrade.ModuleName,
 		supply.ModuleName,
 

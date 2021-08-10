@@ -12,7 +12,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stratosnet/stratos-chain/x/register"
-	registerexported "github.com/stratosnet/stratos-chain/x/register/exported"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmtypes "github.com/tendermint/tendermint/types"
 	"io/ioutil"
@@ -35,7 +34,7 @@ type GenesisAccountsIterator interface {
 }
 
 func getIndexingNodeInfoFromFile(cdc *codec.Codec, genIdxNodesDir string, genDoc tmtypes.GenesisDoc, genAccIterator GenesisAccountsIterator,
-) (appGenIdxNodes registerexported.GenesisIndexingNodes, err error) {
+) (appGenIdxNodes []register.IndexingNode, err error) {
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genIdxNodesDir)
 	if err != nil {
@@ -69,15 +68,11 @@ func getIndexingNodeInfoFromFile(cdc *codec.Codec, genIdxNodesDir string, genDoc
 			return appGenIdxNodes, err
 		}
 
-		var genIdxNode registerexported.GenesisIndexingNode
+		var genIdxNode register.IndexingNode
 		if err = cdc.UnmarshalJSON(jsonRawIdxNode, &genIdxNode); err != nil {
 			return appGenIdxNodes, err
 		}
 		appGenIdxNodes = append(appGenIdxNodes, genIdxNode)
-
-		if err := genIdxNode.Validate(); err != nil {
-			return appGenIdxNodes, fmt.Errorf("failed to validate new genesis account: %w", err)
-		}
 
 		ownerAddrStr := genIdxNode.GetOwnerAddr().String()
 		ownerAccount, ownerOk := addrMap[ownerAddrStr]
