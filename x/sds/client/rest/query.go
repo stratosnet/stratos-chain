@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"encoding/json"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/sds/client/common"
 	"net/http"
@@ -15,12 +16,20 @@ import (
 func registerSdsQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
 	r.HandleFunc(
 		"/sds/simulatePrepay/{amtToPrepay}",
-		SimulatePrelayHandlerFn(cliCtx, queryRoute),
+		SimulatePrepayHandlerFn(cliCtx, queryRoute),
+	).Methods("GET")
+	r.HandleFunc(
+		"/sds/uozPrice",
+		UozPriceHandlerFn(cliCtx, queryRoute),
+	).Methods("GET")
+	r.HandleFunc(
+		"/sds/uozSupply",
+		UozSupplyHandlerFn(cliCtx, queryRoute),
 	).Methods("GET")
 }
 
-// HTTP request handler to query the total rewards balance from all delegations
-func SimulatePrelayHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+// HTTP request handler to query the simulated purchased amt of prepay
+func SimulatePrepayHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -44,6 +53,58 @@ func SimulatePrelayHandlerFn(cliCtx context.CLIContext, queryRoute string) http.
 		}
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, simulatePrepayOut)
+	}
+}
+
+// HTTP request handler to query ongoing uoz price
+func UozPriceHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+		resp, height, err := common.QueryCurrUozPrice(cliCtx, queryRoute)
+
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		var uozPrice sdk.Int
+		err = uozPrice.UnmarshalJSON(resp)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, uozPrice)
+	}
+}
+
+// HTTP request handler to query uoz supply details
+func UozSupplyHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+		resp, height, err := common.QueryUozSupply(cliCtx, queryRoute)
+
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		type Supply struct {
+			Remaining sdk.Int
+			Total     sdk.Int
+		}
+		var uozSupply Supply
+		err = json.Unmarshal(resp, &uozSupply)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, uozSupply)
 	}
 }
 

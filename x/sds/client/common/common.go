@@ -31,10 +31,22 @@ func QueryPrepayBalance(cliCtx context.CLIContext, queryRoute, sender string) ([
 
 // QuerySimulatePrepay queries the ongoing price for prepay
 func QuerySimulatePrepay(cliCtx context.CLIContext, queryRoute string, amtToPrepay sdk.Int) ([]byte, int64, error) {
-	amtByteArry, err := amtToPrepay.MarshalJSON()
+	amtByteArray, err := amtToPrepay.MarshalJSON()
 	if err != nil {
 		return nil, 0, fmt.Errorf("invalid amount, please specify a valid amount to simulate prepay %w", err)
 	}
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QuerySimulatePrepay)
-	return cliCtx.QueryWithData(route, amtByteArry)
+	return cliCtx.QueryWithData(route, amtByteArray)
+}
+
+// QueryCurrUozPrice queries the current price for uoz
+func QueryCurrUozPrice(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryCurrUozPrice)
+	return cliCtx.QueryWithData(route, nil)
+}
+
+// QueryCurrUozPrice queries the current price for uoz
+func QueryUozSupply(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryUozSupply)
+	return cliCtx.QueryWithData(route, nil)
 }

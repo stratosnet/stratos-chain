@@ -2,6 +2,8 @@ package keeper
 
 import (
 	"encoding/hex"
+	"encoding/json"
+
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -13,6 +15,8 @@ const (
 	QueryFileHash       = "uploaded_file"
 	QueryPrepay         = "prepay"
 	QuerySimulatePrepay = "simulate_prepay"
+	QueryCurrUozPrice   = "curr_uoz_price"
+	QueryUozSupply      = "uoz_supply"
 )
 
 // NewQuerier creates a new querier for sds clients.
@@ -25,6 +29,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPrepay(ctx, req, k)
 		case QuerySimulatePrepay:
 			return querySimulatePrepay(ctx, req, k)
+		case QueryCurrUozPrice:
+			return queryCurrUozPrice(ctx, req, k)
+		case QueryUozSupply:
+			return queryUozSupply(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown sds query endpoint "+req.String()+hex.EncodeToString(req.Data))
 		}
@@ -60,4 +68,23 @@ func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 	uozAmt := k.simulatePurchaseUoz(ctx, amtToPrepay)
 	uozAmtByte, _ := uozAmt.MarshalJSON()
 	return uozAmtByte, nil
+}
+
+// queryCurrUozPrice fetch current uoz price.
+func queryCurrUozPrice(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	uozPrice := k.currUozPrice(ctx)
+	uozPriceByte, _ := uozPrice.MarshalJSON()
+	return uozPriceByte, nil
+}
+
+// queryUozSupply fetch remaining/total uoz supply.
+func queryUozSupply(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	type Supply struct {
+		Remaining sdk.Int
+		Total     sdk.Int
+	}
+	var uozSupply Supply
+	uozSupply.Remaining, uozSupply.Total = k.uozSupply(ctx)
+	uozSupplyByte, _ := json.Marshal(uozSupply)
+	return uozSupplyByte, nil
 }
