@@ -61,6 +61,36 @@ func GetGenesisStateFromAppState(cdc *codec.Codec, appState map[string]json.RawM
 
 // ValidateGenesis validates the register genesis parameters
 func ValidateGenesis(data GenesisState) error {
-	// TODO: Create a sanity check to make sure the state conforms to the modules needs
+	if err := data.Params.Validate(); err != nil {
+		return err
+	}
+	if err := data.ResourceNodes.Validate(); err != nil {
+		return err
+	}
+	if err := data.IndexingNodes.Validate(); err != nil {
+		return err
+	}
+
+	if data.LastResourceNodeStakes != nil {
+		for _, nodeStake := range data.LastResourceNodeStakes {
+			if nodeStake.Address.Empty() {
+				return ErrEmptyNodeAddr
+			}
+			if nodeStake.Stake.LT(sdk.ZeroInt()) {
+				return ErrValueNegative
+			}
+		}
+	}
+
+	if data.LastIndexingNodeStakes != nil {
+		for _, nodeStake := range data.LastIndexingNodeStakes {
+			if nodeStake.Address.Empty() {
+				return ErrEmptyNodeAddr
+			}
+			if nodeStake.Stake.LT(sdk.ZeroInt()) {
+				return ErrValueNegative
+			}
+		}
+	}
 	return nil
 }

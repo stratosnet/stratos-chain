@@ -34,4 +34,6 @@ var (
 	ErrInsufficientBalanceOfBondedPool    = sdkerrors.Register(ModuleName, 27, "insufficient balance of bonded pool")
 	ErrInsufficientBalanceOfNotBondedPool = sdkerrors.Register(ModuleName, 28, "insufficient balance of not bonded pool")
 	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, 29, "error sub all tokens")
+	ErrEmptyNodeId                        = sdkerrors.Register(ModuleName, 30, "missing node id")
+	ErrEmptyPubKey                        = sdkerrors.Register(ModuleName, 31, "missing public key")
 )
