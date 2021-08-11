@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/multisig"
@@ -20,7 +21,7 @@ func StSigVerificationGasConsumer(
 	switch pubkey := pubkey.(type) {
 	case ed25519.PubKeyEd25519:
 		meter.ConsumeGas(params.SigVerifyCostED25519, "ante verify: ed25519")
-		return nil
+		return registertypes.ErrED25519InvalidPubKey
 
 	case secp256k1.PubKeySecp256k1:
 		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: secp256k1")

@@ -23,8 +23,8 @@ var (
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
-	resOwnerPrivKey3 = ed25519.GenPrivKey()
-	//resOwnerPrivKey3 = secp256k1.GenPrivKey()
+	//resOwnerPrivKey3 = ed25519.GenPrivKey()
+	resOwnerPrivKey3 = secp256k1.GenPrivKey()
 	idxOwnerPrivKey1 = secp256k1.GenPrivKey()
 	idxOwnerPrivKey2 = secp256k1.GenPrivKey()
 	idxOwnerPrivKey3 = secp256k1.GenPrivKey()
@@ -41,8 +41,8 @@ var (
 
 	resNodePrivKey1 = secp256k1.GenPrivKey()
 	resNodePrivKey2 = secp256k1.GenPrivKey()
-	//resNodePrivKey3 = ed25519.GenPrivKey()
-	resNodePrivKey3 = secp256k1.GenPrivKey()
+	resNodePrivKey3 = ed25519.GenPrivKey()
+	//resNodePrivKey3 = secp256k1.GenPrivKey()
 	idxNodePrivKey1 = secp256k1.GenPrivKey()
 	idxNodePrivKey2 = secp256k1.GenPrivKey()
 	idxNodePrivKey3 = secp256k1.GenPrivKey()

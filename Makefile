@@ -22,6 +22,9 @@ build-linux: go.sum
 build-mac: go.sum
 	LEDGER_ENABLED=false GOOS=darwin GOARCH=amd64 $(MAKE) build
 
+build-windows: go.sum
+	LEDGER_ENABLED=false GOOS=windows GOARCH=amd64 $(MAKE) build
+
 clean:
 	rm -rf $(BUILDDIR)/
 
