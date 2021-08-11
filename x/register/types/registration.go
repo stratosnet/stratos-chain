@@ -1,6 +1,7 @@
 package types
 
 import (
+	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
@@ -53,4 +54,14 @@ func (d Description) EnsureLength() (Description, error) {
 	}
 
 	return d, nil
+}
+
+func (d Description) String() string {
+	return fmt.Sprintf(`Description:{
+		Moniker:			%s
+  		Identity:			%s
+  		Website:			%s
+  		SecurityContact:	%s
+  		Details:			%s
+	}`, d.Moniker, d.Identity, d.Website, d.SecurityContact, d.Details)
 }

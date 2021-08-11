@@ -94,3 +94,40 @@ func ValidateGenesis(data GenesisState) error {
 	}
 	return nil
 }
+
+type GenesisIndexingNode struct {
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network address of the indexing node
+	PubKey       string         `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
+	Tokens       string         `json:"tokens" yaml:"tokens"`               // delegated tokens
+	OwnerAddress string         `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
+	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
+}
+
+func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
+	pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
+	if err != nil {
+		panic(err)
+	}
+
+	tokens, ok := sdk.NewIntFromString(v.Tokens)
+	if !ok {
+		panic(ErrInvalidGenesisToken)
+	}
+
+	ownerAddress, err := sdk.AccAddressFromBech32(v.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+
+	return IndexingNode{
+		NetworkID:    v.NetworkID,
+		PubKey:       pubKey,
+		Suspend:      v.Suspend,
+		Status:       v.Status,
+		Tokens:       tokens,
+		OwnerAddress: ownerAddress,
+		Description:  v.Description,
+	}
+}

@@ -24,7 +24,7 @@ const (
 	flagGenIdxNodeDir = "gen-idx-node-dir"
 )
 
-// GenesisAccountsIterator defines the expected iterating genesis accounts object (noalias)
+// GenesisAccountsIterator defines the expected iterating genesis accounts object
 type GenesisAccountsIterator interface {
 	IterateGenesisAccounts(
 		cdc *codec.Codec,
@@ -41,8 +41,6 @@ func getIndexingNodeInfoFromFile(cdc *codec.Codec, genIdxNodesDir string, genDoc
 		return appGenIdxNodes, err
 	}
 
-	// prepare a map of all accounts in genesis state to then validate
-	// against the validators addresses
 	var appState map[string]json.RawMessage
 	if err := cdc.UnmarshalJSON(genDoc.AppState, &appState); err != nil {
 		return appGenIdxNodes, err
@@ -62,48 +60,51 @@ func getIndexingNodeInfoFromFile(cdc *codec.Codec, genIdxNodesDir string, genDoc
 			continue
 		}
 
-		// get the genStdTx
+		// get the node info
 		var jsonRawIdxNode []byte
 		if jsonRawIdxNode, err = ioutil.ReadFile(filename); err != nil {
 			return appGenIdxNodes, err
 		}
 
-		var genIdxNode register.IndexingNode
+		var genIdxNode register.GenesisIndexingNode
 		if err = cdc.UnmarshalJSON(jsonRawIdxNode, &genIdxNode); err != nil {
 			return appGenIdxNodes, err
 		}
-		appGenIdxNodes = append(appGenIdxNodes, genIdxNode)
 
-		ownerAddrStr := genIdxNode.GetOwnerAddr().String()
+		indexingNode := genIdxNode.ToIndexingNode()
+		appGenIdxNodes = append(appGenIdxNodes, indexingNode)
+
+		ownerAddrStr := indexingNode.GetOwnerAddr().String()
 		ownerAccount, ownerOk := addrMap[ownerAddrStr]
 		if !ownerOk {
 			return appGenIdxNodes, fmt.Errorf(
 				"account %v not in genesis.json: %+v", ownerAccount, addrMap)
 		}
 
-		if ownerAccount.GetCoins().AmountOf(defaultDemon).LT(genIdxNode.GetTokens()) {
+		if ownerAccount.GetCoins().AmountOf(defaultDemon).LT(indexingNode.GetTokens()) {
 			return appGenIdxNodes, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",
-				ownerAccount.GetAddress(), ownerAccount.GetCoins().AmountOf(defaultDemon), genIdxNode.GetTokens(),
+				ownerAccount.GetAddress(), ownerAccount.GetCoins().AmountOf(defaultDemon), indexingNode.GetTokens(),
 			)
 		}
+		fmt.Println("Add indexing node: " + indexingNode.NetworkID + " success.")
 	}
 
 	return appGenIdxNodes, nil
 }
 
-// AddGenesisAccountCmd returns add-genesis-account cobra Command.
+// AddGenesisIndexingNodeCmd returns add-genesis-indexing-node cobra Command.
 func AddGenesisIndexingNodeCmd(
 	ctx *server.Context, cdc *codec.Codec, defaultNodeHome, defaultClientHome string, genAccIterator GenesisAccountsIterator,
 ) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "add-genesis-indexing-node [node_name]",
+		Use:   "add-genesis-indexing-node",
 		Short: "Add a genesis indexing node to genesis.json",
 		Long: `Add a genesis indexing node to genesis.json. If a node name is given,
 the address will be looked up in the local Keybase.
 `,
-		Args: cobra.ExactArgs(1),
+		Args: cobra.ExactArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			config := ctx.Config
 			config.SetRoot(viper.GetString(cli.HomeFlag))
@@ -119,6 +120,9 @@ the address will be looked up in the local Keybase.
 			}
 
 			appIdxNodes, err := getIndexingNodeInfoFromFile(cdc, genIdxNodesDir, *genDoc, genAccIterator)
+			if err != nil {
+				return fmt.Errorf("failed to get indexing node from file: %w", err)
+			}
 
 			genFile := config.GenesisFile()
 			appState, genDoc, err := genutil.GenesisStateFromGenFile(cdc, genFile)
@@ -154,6 +158,6 @@ the address will be looked up in the local Keybase.
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flagClientHome, defaultClientHome, "client's home directory")
-
+	cmd.Flags().String(flagGenIdxNodeDir, "", "directory of genesis indexing nodes info")
 	return cmd
 }
