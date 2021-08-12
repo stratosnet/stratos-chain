@@ -298,25 +298,25 @@ func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (r
 }
 
 func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
-	opinion types.VoteOpinion, voterAddr sdk.AccAddress) (err error) {
+	opinion types.VoteOpinion, voterAddr sdk.AccAddress) (nodeStatus sdk.BondStatus, err error) {
 
 	votePool, found := k.GetIndexingNodeRegistrationVotePool(ctx, nodeAddr)
 	if !found {
-		return types.ErrNoRegistrationVotePoolFound
+		return sdk.Unbonded, types.ErrNoRegistrationVotePoolFound
 	}
 	if votePool.ExpireTime.Before(time.Now()) {
-		return types.ErrVoteExpired
+		return sdk.Unbonded, types.ErrVoteExpired
 	}
 	if k.hasValue(votePool.ApproveList, voterAddr) || k.hasValue(votePool.RejectList, voterAddr) {
-		return types.ErrDuplicateVoting
+		return sdk.Unbonded, types.ErrDuplicateVoting
 	}
 
 	node, found := k.GetIndexingNode(ctx, nodeAddr)
 	if !found {
-		return types.ErrNoIndexingNodeFound
+		return sdk.Unbonded, types.ErrNoIndexingNodeFound
 	}
 	if !node.OwnerAddress.Equals(ownerAddr) {
-		return types.ErrInvalidOwnerAddr
+		return node.Status, types.ErrInvalidOwnerAddr
 	}
 
 	if opinion.Equal(types.Approve) {
@@ -327,7 +327,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
 
 	if node.Status == sdk.Bonded {
-		return nil
+		return node.Status, nil
 	}
 
 	totalSpCount := len(k.GetAllValidIndexingNodes(ctx))
@@ -343,7 +343,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 		bondedToken := k.GetIndexingNodeBondedToken(ctx)
 
 		if notBondedToken.IsLT(tokenToBond) {
-			return types.ErrInsufficientBalance
+			return node.Status, types.ErrInsufficientBalance
 		}
 		notBondedToken = notBondedToken.Sub(tokenToBond)
 		bondedToken = bondedToken.Add(tokenToBond)
@@ -351,7 +351,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 		k.SetIndexingNodeBondedToken(ctx, bondedToken)
 	}
 
-	return nil
+	return node.Status, nil
 }
 
 func (k Keeper) hasValue(items []sdk.AccAddress, item sdk.AccAddress) bool {

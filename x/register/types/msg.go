@@ -78,9 +78,8 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 }
 
 type MsgCreateIndexingNode struct {
-	NetworkID string        `json:"network_id" yaml:"network_id"`
-	PubKey    crypto.PubKey `json:"pubkey" yaml:"pubkey"`
-	//NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	NetworkID    string         `json:"network_id" yaml:"network_id"`
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
 	Value        sdk.Coin       `json:"value" yaml:"value"`
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
 	Description  Description    `json:"description" yaml:"description"`
@@ -325,22 +324,22 @@ func (msg MsgUpdateIndexingNode) ValidateBasic() error {
 }
 
 type MsgIndexingNodeRegistrationVote struct {
-	NodeAddress       sdk.AccAddress `json:"node_address" yaml:"node_address"`   // node address of indexing node
-	OwnerAddress      sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of indexing node
-	Opinion           VoteOpinion    `json:"opinion" yaml:"opinion"`
-	VoterAddress      sdk.AccAddress `json:"voter_address" yaml:"voter_address"`             // address of voter (other existed indexing node)
-	VoterOwnerAddress sdk.AccAddress `json:"voter_owner_address" yaml:"voter_owner_address"` // address of owner of the voter (other existed indexing node)
+	CandidateNetworkAddress sdk.AccAddress `json:"candidate_network_address" yaml:"candidate_network_address"` // node address of indexing node
+	CandidateOwnerAddress   sdk.AccAddress `json:"candidate_owner_address" yaml:"candidate_owner_address"`     // owner address of indexing node
+	Opinion                 VoteOpinion    `json:"opinion" yaml:"opinion"`
+	VoterNetworkAddress     sdk.AccAddress `json:"voter_network_address" yaml:"voter_network_address"` // address of voter (other existed indexing node)
+	VoterOwnerAddress       sdk.AccAddress `json:"voter_owner_address" yaml:"voter_owner_address"`     // address of owner of the voter (other existed indexing node)
 }
 
-func NewMsgIndexingNodeRegistrationVote(nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress, opinion VoteOpinion,
-	voterAddress sdk.AccAddress, voterOwnerAddress sdk.AccAddress) MsgIndexingNodeRegistrationVote {
+func NewMsgIndexingNodeRegistrationVote(candidateNetworkAddress sdk.AccAddress, candidateOwnerAddress sdk.AccAddress, opinion VoteOpinion,
+	voterNetworkAddress sdk.AccAddress, voterOwnerAddress sdk.AccAddress) MsgIndexingNodeRegistrationVote {
 
 	return MsgIndexingNodeRegistrationVote{
-		NodeAddress:       nodeAddress,
-		OwnerAddress:      ownerAddress,
-		Opinion:           opinion,
-		VoterAddress:      voterAddress,
-		VoterOwnerAddress: voterOwnerAddress,
+		CandidateNetworkAddress: candidateNetworkAddress,
+		CandidateOwnerAddress:   candidateOwnerAddress,
+		Opinion:                 opinion,
+		VoterNetworkAddress:     voterNetworkAddress,
+		VoterOwnerAddress:       voterOwnerAddress,
 	}
 }
 
@@ -353,19 +352,19 @@ func (m MsgIndexingNodeRegistrationVote) Type() string {
 }
 
 func (m MsgIndexingNodeRegistrationVote) ValidateBasic() error {
-	if m.NodeAddress.Empty() {
-		return ErrEmptyNodeAddr
+	if m.CandidateNetworkAddress.Empty() {
+		return ErrEmptyCandidateNetworkAddr
 	}
-	if m.OwnerAddress.Empty() {
-		return ErrEmptyOwnerAddr
+	if m.CandidateOwnerAddress.Empty() {
+		return ErrEmptyCandidateOwnerAddr
 	}
-	if m.VoterAddress.Empty() {
-		return ErrEmptyVoterAddr
+	if m.VoterNetworkAddress.Empty() {
+		return ErrEmptyVoterNetworkAddr
 	}
 	if m.VoterOwnerAddress.Empty() {
 		return ErrEmptyVoterOwnerAddr
 	}
-	if m.NodeAddress.Equals(m.VoterAddress) {
+	if m.CandidateNetworkAddress.Equals(m.VoterNetworkAddress) {
 		return ErrSameAddr
 	}
 	return nil
@@ -378,7 +377,7 @@ func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
 
 func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
-	addrs = append(addrs, m.VoterAddress)
+	addrs = append(addrs, m.VoterNetworkAddress)
 	addrs = append(addrs, m.VoterOwnerAddress)
 	return addrs
 }

@@ -14,10 +14,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	resNodeBondedToken := sdk.ZeroInt()
 	resNodeNotBondedToken := sdk.ZeroInt()
 	for _, resourceNode := range data.ResourceNodes {
-		if resourceNode.Status == sdk.Bonded {
+		if resourceNode.GetStatus() == sdk.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.GetTokens())
 			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.GetTokens())
-		} else if resourceNode.Status == sdk.Unbonded {
+		} else if resourceNode.GetStatus() == sdk.Unbonded {
 			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.GetTokens())
 		}
 		keeper.SetResourceNode(ctx, resourceNode)
@@ -28,10 +28,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	idxNodeBondedToken := sdk.ZeroInt()
 	idxNodeNotBondedToken := sdk.ZeroInt()
 	for _, indexingNode := range data.IndexingNodes {
-		if indexingNode.Status == sdk.Bonded {
+		if indexingNode.GetStatus() == sdk.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(indexingNode.GetTokens())
 			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.GetTokens())
-		} else if indexingNode.Status == sdk.Unbonded {
+		} else if indexingNode.GetStatus() == sdk.Unbonded {
 			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.GetTokens())
 		}
 		keeper.SetIndexingNode(ctx, indexingNode)

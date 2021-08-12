@@ -53,6 +53,13 @@ func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	}
 }
 
+func (p Params) Validate() error {
+	if err := validateBondDenom(p.BondDenom); err != nil {
+		return err
+	}
+	return nil
+}
+
 // DefaultParams defines the parameters for this module
 func DefaultParams() Params {
 	return NewParams(DefaultBondDenom)
