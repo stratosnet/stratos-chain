@@ -74,7 +74,7 @@ func ValidateGenesis(data GenesisState) error {
 	if data.LastResourceNodeStakes != nil {
 		for _, nodeStake := range data.LastResourceNodeStakes {
 			if nodeStake.Address.Empty() {
-				return ErrEmptyNodeAddr
+				return ErrEmptyNetworkAddr
 			}
 			if nodeStake.Stake.LT(sdk.ZeroInt()) {
 				return ErrValueNegative
@@ -85,7 +85,7 @@ func ValidateGenesis(data GenesisState) error {
 	if data.LastIndexingNodeStakes != nil {
 		for _, nodeStake := range data.LastIndexingNodeStakes {
 			if nodeStake.Address.Empty() {
-				return ErrEmptyNodeAddr
+				return ErrEmptyNetworkAddr
 			}
 			if nodeStake.Stake.LT(sdk.ZeroInt()) {
 				return ErrValueNegative

@@ -37,6 +37,10 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		"/register/updateIndexingNode",
 		postUpdateIndexingNodeHandlerFn(cliCtx),
 	).Methods("POST")
+	r.HandleFunc(
+		"/register/indexingNodeRegVote",
+		postIndexingNodeRegVoteFn(cliCtx),
+	).Methods("POST")
 }
 
 type (
@@ -80,6 +84,14 @@ type (
 		NetworkID      string            `json:"network_id" yaml:"network_id"`
 		Description    types.Description `json:"description" yaml:"description"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
+	}
+
+	IndexingNodeRegVoteRequest struct {
+		BaseReq                 rest.BaseReq `json:"base_req" yaml:"base_req"`
+		CandidateNetworkAddress string       `json:"candidate_network_address" yaml:"candidate_network_address"`
+		CandidateOwnerAddress   string       `json:"candidate_owner_address" yaml:"candidate_owner_address"`
+		Opinion                 bool         `json:"opinion" yaml:"opinion"`
+		VoterNetworkAddress     string       `json:"voter_network_address" yaml:"voter_network_address"`
 	}
 )
 
@@ -295,6 +307,54 @@ func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 		}
 
 		msg := types.NewMsgUpdateIndexingNode(req.NetworkID, req.Description, networkAddr, ownerAddr)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req IndexingNodeRegVoteRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		candidateNetworkAddr, err := sdk.AccAddressFromBech32(req.CandidateNetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		candidateOwnerAddr, err := sdk.AccAddressFromBech32(req.CandidateOwnerAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		}
+
+		voteOpinion := types.VoteOpinionFromBool(req.Opinion)
+
+		voterNetworkAddr, err := sdk.AccAddressFromBech32(req.VoterNetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		}
+
+		voterOwnerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if er != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
+			return
+		}
+
+		//candidateNetworkAddr, candidateOwnerAddr, opinion, voterNetworkAddr, voterOwnerAddr
+		msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, voteOpinion, voterNetworkAddr, voterOwnerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

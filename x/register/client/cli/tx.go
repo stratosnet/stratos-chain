@@ -242,38 +242,40 @@ func IndexingNodeRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsNodeAddress)
-	cmd.Flags().AddFlagSet(FsOwnerAddress)
+	cmd.Flags().AddFlagSet(FsCandidateNetworkAddress)
+	cmd.Flags().AddFlagSet(FsCandidateOwnerAddress)
 	cmd.Flags().AddFlagSet(FsOpinion)
+	cmd.Flags().AddFlagSet(FsVoterNetworkAddress)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagNodeAddress)
-	_ = cmd.MarkFlagRequired(FlagOwnerAddress)
+	_ = cmd.MarkFlagRequired(FlagCandidateNetworkAddress)
+	_ = cmd.MarkFlagRequired(FlagCandidateOwnerAddress)
 	_ = cmd.MarkFlagRequired(FlagOpinion)
+	_ = cmd.MarkFlagRequired(FlagVoterNetworkAddress)
 	return cmd
 }
 
 func buildIndexingNodeRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	nodeAddrStr := viper.GetString(FlagNodeAddress)
-	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
+	candidateNetworkAddrStr := viper.GetString(FlagCandidateNetworkAddress)
+	candidateNetworkAddr, err := sdk.AccAddressFromBech32(candidateNetworkAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
-	ownerAddrStr := viper.GetString(FlagOwnerAddress)
-	ownerAddr, err := sdk.AccAddressFromBech32(ownerAddrStr)
+	candidateOwnerAddrStr := viper.GetString(FlagCandidateOwnerAddress)
+	candidateOwnerAddr, err := sdk.AccAddressFromBech32(candidateOwnerAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 	opinionVal := viper.GetBool(FlagOpinion)
 	opinion := types.VoteOpinionFromBool(opinionVal)
-	voterAddrStr := viper.GetString(FlagVoterAddress)
-	voterAddr, err := sdk.AccAddressFromBech32(voterAddrStr)
+	voterNetworkAddrStr := viper.GetString(FlagVoterNetworkAddress)
+	voterNetworkAddr, err := sdk.AccAddressFromBech32(voterNetworkAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 	voterOwnerAddr := cliCtx.GetFromAddress()
 
-	msg := types.NewMsgIndexingNodeRegistrationVote(nodeAddr, ownerAddr, opinion, voterAddr, voterOwnerAddr)
+	msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinion, voterNetworkAddr, voterOwnerAddr)
 	return txBldr, msg, nil
 }
 
@@ -296,12 +298,12 @@ func UpdateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsDescription)
 	cmd.Flags().AddFlagSet(FsNodeType)
-	cmd.Flags().AddFlagSet(FsNodeAddress)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
 
 	_ = cmd.MarkFlagRequired(FlagNetworkID)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
-	_ = cmd.MarkFlagRequired(FlagNodeAddress)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -321,7 +323,7 @@ func buildUpdateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 
 	nodeType := viper.GetString(FlagNodeType)
 
-	nodeAddrStr := viper.GetString(FlagNodeAddress)
+	nodeAddrStr := viper.GetString(FlagNetworkAddress)
 	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
 	if err != nil {
 		return txBldr, nil, err
@@ -351,11 +353,11 @@ func UpdateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd.Flags().AddFlagSet(FsNetworkID)
 	cmd.Flags().AddFlagSet(FsDescription)
-	cmd.Flags().AddFlagSet(FsNodeAddress)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
 
 	_ = cmd.MarkFlagRequired(FlagNetworkID)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
-	_ = cmd.MarkFlagRequired(FlagNodeAddress)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -373,7 +375,7 @@ func buildUpdateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagDetails),
 	)
 
-	nodeAddrStr := viper.GetString(FlagNodeAddress)
+	nodeAddrStr := viper.GetString(FlagNetworkAddress)
 	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
 	if err != nil {
 		return txBldr, nil, err

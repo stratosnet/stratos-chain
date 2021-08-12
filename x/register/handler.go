@@ -57,8 +57,8 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 		sdk.NewEvent(
 			types.EventTypeCreateResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
-			sdk.NewAttribute(types.AttributeKeyNodePubkey, hex.EncodeToString(msg.PubKey.Bytes())),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
+			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(msg.PubKey.Bytes())),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -87,7 +87,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 		sdk.NewEvent(
 			types.EventTypeCreateIndexingNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -146,15 +146,15 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 }
 
 func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {
-	nodeToApprove, found := k.GetIndexingNode(ctx, msg.NodeAddress)
+	nodeToApprove, found := k.GetIndexingNode(ctx, msg.CandidateNetworkAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
 	}
-	if !nodeToApprove.GetOwnerAddr().Equals(msg.OwnerAddress) {
+	if !nodeToApprove.GetOwnerAddr().Equals(msg.CandidateOwnerAddress) {
 		return nil, ErrInvalidOwnerAddr
 	}
 
-	voter, found := k.GetIndexingNode(ctx, msg.VoterAddress)
+	voter, found := k.GetIndexingNode(ctx, msg.VoterNetworkAddress)
 	if !found {
 		return nil, ErrInvalidApproverAddr
 	}
@@ -162,7 +162,7 @@ func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexin
 		return nil, ErrInvalidApproverStatus
 	}
 
-	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
+	nodeStatus, err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.CandidateNetworkAddress, msg.CandidateOwnerAddress, msg.Opinion, msg.VoterNetworkAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -170,8 +170,9 @@ func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexin
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIndexingNodeRegistrationVote,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NodeAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterNetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyCandidateNetworkAddress, msg.CandidateNetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyCandidateStatus, nodeStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -191,7 +192,7 @@ func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNod
 		sdk.NewEvent(
 			types.EventTypeUpdateResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -210,7 +211,7 @@ func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNod
 		sdk.NewEvent(
 			types.EventTypeUpdateIndexingNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeAddress, msg.NetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
