@@ -133,6 +133,9 @@ func SetConfig() {
 
 func setupAccounts(mApp *mock.App) []authexported.Account {
 
+	//str,_ := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, sdsAccPubKey1)
+	//fmt.Println("sdsAccPubKey1="+str)
+
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{
 		Address: resOwner1,

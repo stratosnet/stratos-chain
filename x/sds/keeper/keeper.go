@@ -93,6 +93,40 @@ func (fk Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 	return purchased
 }
 
+func (fk Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
+	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
+	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	purchased := Lt.ToDec().
+		Mul(amount.ToDec()).
+		Quo((S.
+			Add(Pt).
+			Add(amount)).ToDec()).
+		TruncateInt()
+	return purchased
+}
+
+// calc current uoz price
+func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Int {
+	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
+	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
+	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	currUozPrice := Lt.ToDec().
+		Quo((S.
+			Add(Pt)).ToDec()).
+		TruncateInt()
+	return currUozPrice
+}
+
+// calc remaining/total supply for uoz
+func (fk Keeper) uozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
+	remaining = fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	// TODO create a dedicated storeKey in pot module for total ozone supply and keep updating it along with related operations (like AddResourceNodeStake)
+	// fake return of total
+	total, _ = sdk.NewIntFromString("-1")
+	return remaining, total
+}
+
 // Prepay transfers coins from bank to sds (volumn) pool
 func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
 	// src - hasCoins?

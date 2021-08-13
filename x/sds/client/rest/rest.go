@@ -14,10 +14,10 @@ import (
 )
 
 // RegisterRoutes registers sds-related REST handlers to a router
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
 	r.HandleFunc("/sds/file/upload", FileUploadRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/sds/prepay", PrepayRequestHandlerFn(cliCtx)).Methods("POST")
-
+	registerSdsQueryRoutes(cliCtx, r, queryRoute)
 }
 
 // FileUploadReq defines the properties of a file upload request's body.

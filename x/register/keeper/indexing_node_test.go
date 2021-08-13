@@ -211,15 +211,15 @@ func TestSpRegistrationApproval(t *testing.T) {
 }
 
 func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgIndexingNodeRegistrationVote) error {
-	nodeToApprove, found := k.GetIndexingNode(ctx, msg.NodeAddress)
+	nodeToApprove, found := k.GetIndexingNode(ctx, msg.CandidateNetworkAddress)
 	if !found {
 		return types.ErrNoIndexingNodeFound
 	}
-	if !nodeToApprove.GetOwnerAddr().Equals(msg.OwnerAddress) {
+	if !nodeToApprove.GetOwnerAddr().Equals(msg.CandidateOwnerAddress) {
 		return types.ErrInvalidOwnerAddr
 	}
 
-	approver, found := k.GetIndexingNode(ctx, msg.VoterAddress)
+	approver, found := k.GetIndexingNode(ctx, msg.VoterNetworkAddress)
 	if !found {
 		return types.ErrInvalidVoterAddr
 	}
@@ -227,7 +227,7 @@ func handlerSimulate(ctx sdk.Context, k Keeper, msg types.MsgIndexingNodeRegistr
 		return types.ErrInvalidVoterStatus
 	}
 
-	err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.NodeAddress, msg.OwnerAddress, msg.Opinion, msg.VoterAddress)
+	_, err := k.HandleVoteForIndexingNodeRegistration(ctx, msg.CandidateNetworkAddress, msg.CandidateOwnerAddress, msg.Opinion, msg.VoterNetworkAddress)
 	if err != nil {
 		return err
 	}

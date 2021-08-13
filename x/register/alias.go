@@ -43,6 +43,8 @@ var (
 	NewDescription           = types.NewDescription
 	NewMsgCreateResourceNode = types.NewMsgCreateResourceNode
 	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
+
+	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
 )
 
 type (
@@ -50,6 +52,7 @@ type (
 	ResourceNode          = types.ResourceNode
 	IndexingNode          = types.IndexingNode
 	Description           = types.Description
+	GenesisIndexingNode   = types.GenesisIndexingNode
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
 	LastResourceNodeStake = types.LastResourceNodeStake
