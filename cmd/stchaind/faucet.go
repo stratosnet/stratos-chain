@@ -43,6 +43,7 @@ const (
 	defaultChainId        = "test-chain"
 	defaultAddrCap        = 1
 	defaultIpCap          = 3
+	capDuration           = 60 // in minutes
 
 	maxAmtFaucet = 100000000000
 )
@@ -137,16 +138,16 @@ func AddFaucetCmd(
 			addrCap := viper.GetInt(flagAddrCap)
 			ipCap := viper.GetInt(flagIpCap)
 
-			ctx.Logger.Info("Set addrCap = " + strconv.Itoa(addrCap) + ", ipCap = " + strconv.Itoa(ipCap))
+			ctx.Logger.Info("Set hourly addrCap = " + strconv.Itoa(addrCap) + ", hourly ipCap = " + strconv.Itoa(ipCap))
 
 			faucetToCache := ttlcache.NewCache()
-			faucetToCache.SetTTL(60 * time.Minute)
+			faucetToCache.SetTTL(capDuration * time.Minute)
 			faucetToCache.SkipTTLExtensionOnHit(true)
 			faucetToCache.SetCacheSizeLimit(65535)
 			ftm := FaucetToMiddleware{AddrCache: faucetToCache, Cap: addrCap}
 
 			fromIpCache := ttlcache.NewCache()
-			fromIpCache.SetTTL(60 * time.Minute)
+			fromIpCache.SetTTL(capDuration * time.Minute)
 			fromIpCache.SkipTTLExtensionOnHit(true)
 			fromIpCache.SetCacheSizeLimit(65535)
 			fim := FromIpMiddleware{IpCache: fromIpCache, Cap: ipCap}
@@ -180,28 +181,6 @@ func AddFaucetCmd(
 
 			ctx.Logger.Info("Starting faucet...")
 
-			// start threads
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			viper.Set(flags.FlagBroadcastMode, "sync")
-			if !viper.IsSet(flags.FlagChainID) {
-				viper.Set(flags.FlagChainID, defaultChainId)
-			}
-			viper.Set(flags.FlagSkipConfirmation, true)
-			if !viper.IsSet(flags.FlagKeyringBackend) {
-				viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
-			}
-			if !viper.IsSet(flags.FlagNode) {
-				viper.Set(flags.FlagNode, defaultNodeURI)
-			}
-			if !viper.IsSet(flags.FlagHome) {
-				viper.Set(flags.FlagHome, defaultHome)
-			}
-			viper.Set(flags.FlagTrustNode, true)
-			viper.Set(cli.OutputFlag, defaultOutputFlag)
-
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
-
 			// listen to localhost:26600
 			listener, err := net.Listen("tcp", ":"+faucetArgs.port)
 			ctx.Logger.Info("listen to [" + ":" + faucetArgs.port + "]")
@@ -212,6 +191,8 @@ func AddFaucetCmd(
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("ok\n"))
 			})
+
+			startSeq, iter := 0, 0
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -223,7 +204,46 @@ func AddFaucetCmd(
 					writer.Write([]byte(err.Error()))
 				}
 				ctx.Logger.Info("received faucet request: ", "toAddr", addr, "fromIp", realIp)
-				err = doTransfer(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)).WithGas(uint64(400000)), toAddr, faucetArgs.from, coin) // send coin to temp account
+
+				// start threads
+				inBuf := bufio.NewReader(cmd.InOrStdin())
+				txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+				viper.Set(flags.FlagBroadcastMode, "async")
+				if !viper.IsSet(flags.FlagChainID) {
+					viper.Set(flags.FlagChainID, defaultChainId)
+				}
+				viper.Set(flags.FlagSkipConfirmation, true)
+				if !viper.IsSet(flags.FlagKeyringBackend) {
+					viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
+				}
+				if !viper.IsSet(flags.FlagNode) {
+					viper.Set(flags.FlagNode, defaultNodeURI)
+				}
+				if !viper.IsSet(flags.FlagHome) {
+					viper.Set(flags.FlagHome, defaultHome)
+				}
+				viper.Set(flags.FlagTrustNode, true)
+				viper.Set(cli.OutputFlag, defaultOutputFlag)
+
+				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
+
+				txBldr, _ = utils.PrepareTxBuilder(txBldr, cliCtx) // get updated seq
+				if startSeq < int(txBldr.Sequence()) {
+					iter = 0
+					startSeq = int(txBldr.Sequence())
+				}
+				newSeq := uint64(startSeq + iter)
+				ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", int(newSeq), startSeq, iter))
+				iter++
+
+				err = doTransfer(cliCtx,
+					txBldr.
+						WithSequence(newSeq).
+						WithChainID(viper.GetString(flags.FlagChainID)).
+						WithGas(uint64(400000)).
+						//WithMemo("faucetToAddr="+ addr + ",amt=" + faucetArgs.coins.String() + ",seq=" + strconv.Itoa(int(newSeq)) + ",requestIp=" + realIp),
+						WithMemo(strconv.Itoa(int(txBldr.Sequence()))+","+realIp),
+					toAddr, faucetArgs.from, coin)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
@@ -293,7 +313,7 @@ func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (ac
 func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin) error {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
-	cliCtx.BroadcastMode = "sync"
+	cliCtx.BroadcastMode = "async"
 	err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 	return err
 }
