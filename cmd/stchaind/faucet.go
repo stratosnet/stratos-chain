@@ -199,6 +199,7 @@ func AddFaucetCmd(
 			}
 			viper.Set(flags.FlagTrustNode, true)
 			viper.Set(cli.OutputFlag, defaultOutputFlag)
+
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
 
 			// listen to localhost:26600
@@ -222,7 +223,7 @@ func AddFaucetCmd(
 					writer.Write([]byte(err.Error()))
 				}
 				ctx.Logger.Info("received faucet request: ", "toAddr", addr, "fromIp", realIp)
-				err = doTransfer(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)), toAddr, faucetArgs.from, coin) // send coin to temp account
+				err = doTransfer(cliCtx, txBldr.WithChainID(viper.GetString(flags.FlagChainID)).WithGas(uint64(400000)), toAddr, faucetArgs.from, coin) // send coin to temp account
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
