@@ -1,0 +1,15 @@
+{
+  "network_id":"sds://indexingNode0",
+  "pubkey":"stpub1addwnpepqfd7mehvyz2k24vv8fmfeq02qjh8xvcedx3wsaula47nzmsg8f202llk4xu",
+  "suspend":false,
+  "status":2,
+  "tokens":"100000000000",
+  "owner_address":"st1fp974hhty0wwq5zpxjncaj50ax3ydx3kmzuty9",
+  "description":{
+    "moniker":"sds://indexingNode0",
+    "identity":"",
+    "website":"",
+    "security_contact":"",
+    "details":""
+  }
+}

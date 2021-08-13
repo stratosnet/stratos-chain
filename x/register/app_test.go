@@ -3,11 +3,13 @@ package register
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	helpers "github.com/stratosnet/stratos-chain/helpers"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -148,6 +150,9 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, bank.Keeper, supply.Keeper) {
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
 	keeper := NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
+
+	anteHandler := ante.NewAnteHandler(mApp.AccountKeeper, supplyKeeper, helpers.StSigVerificationGasConsumer)
+	mApp.SetAnteHandler(anteHandler)
 
 	mApp.Router().AddRoute(bank.RouterKey, bank.NewHandler(bankKeeper))
 	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))

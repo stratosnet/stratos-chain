@@ -4,22 +4,11 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/register/exported"
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
 	"time"
 )
-
-type IndexingNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network address of the indexing node
-	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
-	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
-	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
-	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
-	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
-}
 
 // IndexingNodes is a collection of indexing node
 type IndexingNodes []IndexingNode
@@ -29,14 +18,6 @@ func (v IndexingNodes) String() (out string) {
 		out += node.String() + "\n"
 	}
 	return strings.TrimSpace(out)
-}
-
-// ToSDKIndexingNodes -  convenience function convert []IndexingNodes to []sdk.IndexingNodes
-func (v IndexingNodes) ToSDKIndexingNodes() (indexingNodes []exported.IndexingNodeI) {
-	for _, node := range v {
-		indexingNodes = append(indexingNodes, node)
-	}
-	return indexingNodes
 }
 
 // Sort IndexingNodes sorts IndexingNode array in ascending owner address order
@@ -61,6 +42,25 @@ func (v IndexingNodes) Swap(i, j int) {
 	v[j] = it
 }
 
+func (v IndexingNodes) Validate() error {
+	for _, node := range v {
+		if err := node.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type IndexingNode struct {
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network address of the indexing node
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
+	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
+}
+
 // NewIndexingNode - initialize a new indexing node
 func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description) IndexingNode {
 	return IndexingNode{
@@ -72,26 +72,6 @@ func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 		OwnerAddress: ownerAddr,
 		Description:  description,
 	}
-}
-
-// MustMarshalIndexingNode returns the indexingNode bytes. Panics if fails
-func MustMarshalIndexingNode(cdc *codec.Codec, indexingNode IndexingNode) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(indexingNode)
-}
-
-// MustUnmarshalIndexingNode unmarshal a indexing node from a store value. Panics if fails
-func MustUnmarshalIndexingNode(cdc *codec.Codec, value []byte) IndexingNode {
-	indexingNode, err := UnmarshalIndexingNode(cdc, value)
-	if err != nil {
-		panic(err)
-	}
-	return indexingNode
-}
-
-// UnmarshalIndexingNode unmarshal a indexing node from a store value
-func UnmarshalIndexingNode(cdc *codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &indexingNode)
-	return indexingNode, err
 }
 
 // String returns a human readable string representation of a indexing node.
@@ -129,6 +109,25 @@ func (v IndexingNode) SubToken(tokens sdk.Int) IndexingNode {
 	return v
 }
 
+func (v IndexingNode) Validate() error {
+	if v.NetworkID == "" {
+		return ErrEmptyNodeId
+	}
+	if len(v.PubKey.Bytes()) == 0 {
+		return ErrEmptyPubKey
+	}
+	if v.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if v.Tokens.LT(sdk.ZeroInt()) {
+		return ErrValueNegative
+	}
+	if v.Description.Moniker == "" {
+		return ErrEmptyMoniker
+	}
+	return nil
+}
+
 func (v IndexingNode) IsSuspended() bool              { return v.Suspend }
 func (v IndexingNode) GetMoniker() string             { return v.Description.Moniker }
 func (v IndexingNode) GetStatus() sdk.BondStatus      { return v.Status }
@@ -137,6 +136,26 @@ func (v IndexingNode) GetPubKey() crypto.PubKey       { return v.PubKey }
 func (v IndexingNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
 func (v IndexingNode) GetTokens() sdk.Int             { return v.Tokens }
 func (v IndexingNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
+
+// MustMarshalIndexingNode returns the indexingNode bytes. Panics if fails
+func MustMarshalIndexingNode(cdc *codec.Codec, indexingNode IndexingNode) []byte {
+	return cdc.MustMarshalBinaryLengthPrefixed(indexingNode)
+}
+
+// MustUnmarshalIndexingNode unmarshal a indexing node from a store value. Panics if fails
+func MustUnmarshalIndexingNode(cdc *codec.Codec, value []byte) IndexingNode {
+	indexingNode, err := UnmarshalIndexingNode(cdc, value)
+	if err != nil {
+		panic(err)
+	}
+	return indexingNode
+}
+
+// UnmarshalIndexingNode unmarshal a indexing node from a store value
+func UnmarshalIndexingNode(cdc *codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
+	err = cdc.UnmarshalBinaryLengthPrefixed(value, &indexingNode)
+	return indexingNode, err
+}
 
 type VoteOpinion bool
 

@@ -9,9 +9,12 @@ const (
 	EventTypeUpdateIndexingNode           = "update_indexing_node"
 	EventTypeIndexingNodeRegistrationVote = "indexing_node_reg_vote"
 
-	AttributeKeyResourceNode = "resource_node"
-	AttributeKeyIndexingNode = "indexing_node"
-	AttributeKeyNodeAddress  = "node_address"
+	AttributeKeyResourceNode            = "resource_node"
+	AttributeKeyIndexingNode            = "indexing_node"
+	AttributeKeyNetworkAddress          = "network_address"
+	AttributeKeyPubKey                  = "pub_key"
+	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
+	AttributeKeyCandidateStatus         = "candidate_status"
 
 	AttributeValueCategory = ModuleName
 )
