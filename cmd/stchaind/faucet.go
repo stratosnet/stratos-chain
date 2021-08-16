@@ -284,10 +284,6 @@ func AddFaucetCmd(
 	return cmd
 }
 
-func checkCap(s string, s2 string) bool {
-	return true
-}
-
 func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (accAddr sdk.AccAddress, err error) {
 	var genDoc *tmtypes.GenesisDoc
 	if genDoc, err = tmtypes.GenesisDocFromFile(strings.ReplaceAll(genesisFilePath, "cli", "d")); err != nil {
