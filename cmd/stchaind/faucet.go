@@ -165,6 +165,28 @@ func AddFaucetCmd(
 				faucetArgs.from = fromAddrBytes
 			}
 
+			// start threads
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			viper.Set(flags.FlagBroadcastMode, "block")
+			if !viper.IsSet(flags.FlagChainID) {
+				viper.Set(flags.FlagChainID, defaultChainId)
+			}
+			viper.Set(flags.FlagSkipConfirmation, true)
+			if !viper.IsSet(flags.FlagKeyringBackend) {
+				viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
+			}
+			if !viper.IsSet(flags.FlagNode) {
+				viper.Set(flags.FlagNode, defaultNodeURI)
+			}
+			if !viper.IsSet(flags.FlagHome) {
+				viper.Set(flags.FlagHome, defaultHome)
+			}
+			viper.Set(flags.FlagTrustNode, true)
+			viper.Set(cli.OutputFlag, defaultOutputFlag)
+
+			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
+
 			if faucetArgs.from == nil {
 				genesis := ctx.Config.GenesisFile()
 				faucetArgs.from, err = getFirstAccAddressFromGenesis(cdc, genesis)
@@ -209,32 +231,14 @@ func AddFaucetCmd(
 				}
 				ctx.Logger.Info("received faucet request: ", "toAddr", addr, "fromIp", realIp)
 
-				// start threads
-				inBuf := bufio.NewReader(cmd.InOrStdin())
-				txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-				viper.Set(flags.FlagBroadcastMode, "async")
-				if !viper.IsSet(flags.FlagChainID) {
-					viper.Set(flags.FlagChainID, defaultChainId)
+				// get latest seq
+				_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(faucetArgs.from)
+				if err != nil {
+					return
 				}
-				viper.Set(flags.FlagSkipConfirmation, true)
-				if !viper.IsSet(flags.FlagKeyringBackend) {
-					viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
-				}
-				if !viper.IsSet(flags.FlagNode) {
-					viper.Set(flags.FlagNode, defaultNodeURI)
-				}
-				if !viper.IsSet(flags.FlagHome) {
-					viper.Set(flags.FlagHome, defaultHome)
-				}
-				viper.Set(flags.FlagTrustNode, true)
-				viper.Set(cli.OutputFlag, defaultOutputFlag)
-
-				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
-
-				txBldr, _ = utils.PrepareTxBuilder(txBldr, cliCtx) // get updated seq
-				if startSeq < int(txBldr.Sequence()) {
+				if startSeq < int(latestSeq) {
 					iter = 0
-					startSeq = int(txBldr.Sequence())
+					startSeq = int(latestSeq)
 				}
 				newSeq := uint64(startSeq + iter)
 				ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", int(newSeq), startSeq, iter))
@@ -245,8 +249,7 @@ func AddFaucetCmd(
 						WithSequence(newSeq).
 						WithChainID(viper.GetString(flags.FlagChainID)).
 						WithGas(uint64(400000)).
-						//WithMemo("faucetToAddr="+ addr + ",amt=" + faucetArgs.coins.String() + ",seq=" + strconv.Itoa(int(newSeq)) + ",requestIp=" + realIp),
-						WithMemo(strconv.Itoa(int(txBldr.Sequence()))+","+realIp),
+						WithMemo(strconv.Itoa(int(newSeq))+","+realIp),
 					toAddr, faucetArgs.from, coin, writer)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
