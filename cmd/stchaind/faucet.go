@@ -7,10 +7,13 @@ import (
 	"github.com/ReneKroon/ttlcache/v2"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/input"
+	"github.com/cosmos/cosmos-sdk/client/keys"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -23,6 +26,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -174,7 +178,7 @@ func AddFaucetCmd(
 			ctx.Logger.Info("funding address: ", "addr", faucetArgs.from.String())
 			var toTransferAmt int
 			if toTransferAmt = viper.GetInt(flagAmt); toTransferAmt <= 0 || toTransferAmt > maxAmtFaucet {
-				return fmt.Errorf("Invalid amount in faucet")
+				return fmt.Errorf("invalid amount in faucet")
 			}
 			coin := sdk.Coin{Amount: sdk.NewInt(int64(toTransferAmt)), Denom: defaultDenom}
 			faucetArgs.coins = sdk.Coins{coin}
@@ -236,23 +240,20 @@ func AddFaucetCmd(
 				ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", int(newSeq), startSeq, iter))
 				iter++
 
-				err = doTransfer(cliCtx,
+				_, err = doTransfer(cliCtx,
 					txBldr.
 						WithSequence(newSeq).
 						WithChainID(viper.GetString(flags.FlagChainID)).
 						WithGas(uint64(400000)).
 						//WithMemo("faucetToAddr="+ addr + ",amt=" + faucetArgs.coins.String() + ",seq=" + strconv.Itoa(int(newSeq)) + ",requestIp=" + realIp),
 						WithMemo(strconv.Itoa(int(txBldr.Sequence()))+","+realIp),
-					toAddr, faucetArgs.from, coin)
+					toAddr, faucetArgs.from, coin, writer)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
 				}
 				ctx.Logger.Info("send", "addr", addr, "amount", coin.String())
 
-				msg := fmt.Sprintf("Faucet successfully triggered, sending %s to %s\n", coin.String(), addr)
-				writer.WriteHeader(http.StatusOK)
-				writer.Write([]byte(msg))
 				return
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
@@ -306,12 +307,74 @@ func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (ac
 	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }
 
-func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin) error {
+func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, writer http.ResponseWriter) (sdk.TxResponse, error) {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
-	cliCtx.BroadcastMode = "async"
-	err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-	return err
+	msgs := []sdk.Msg{msg}
+	cliCtx.BroadcastMode = "block"
+	//err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	fromName := cliCtx.GetFromName()
+
+	if txBldr.SimulateAndExecute() || cliCtx.Simulate {
+		txBldr, err = utils.EnrichWithGas(txBldr, cliCtx, msgs)
+		if err != nil {
+			return sdk.TxResponse{}, err
+		}
+
+		gasEst := utils.GasEstimateResponse{GasEstimate: txBldr.Gas()}
+		_, _ = fmt.Fprintf(os.Stderr, "%s\n", gasEst.String())
+	}
+
+	if cliCtx.Simulate {
+		return sdk.TxResponse{}, nil
+	}
+
+	if !cliCtx.SkipConfirm {
+		stdSignMsg, err := txBldr.BuildSignMsg(msgs)
+		if err != nil {
+			return sdk.TxResponse{}, err
+		}
+
+		var json []byte
+		if viper.GetBool(flags.FlagIndentResponse) {
+			json, err = cliCtx.Codec.MarshalJSONIndent(stdSignMsg, "", "  ")
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			json = cliCtx.Codec.MustMarshalJSON(stdSignMsg)
+		}
+
+		_, _ = fmt.Fprintf(os.Stderr, "%s\n\n", json)
+
+		buf := bufio.NewReader(os.Stdin)
+		ok, err := input.GetConfirmation("confirm transaction before signing and broadcasting", buf)
+		if err != nil || !ok {
+			_, _ = fmt.Fprintf(os.Stderr, "%s\n", "cancelled transaction")
+			return sdk.TxResponse{}, err
+		}
+	}
+
+	// build and sign the transaction
+	txBytes, err := txBldr.BuildAndSign(fromName, keys.DefaultKeyPass, msgs)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	// broadcast to a Tendermint node
+	res, err := cliCtx.BroadcastTx(txBytes)
+	if err != nil {
+		return sdk.TxResponse{}, err
+	}
+
+	rest.PostProcessResponseBare(writer, cliCtx, res)
+	return res, nil
 }
 
 func getRealAddr(r *http.Request) string {
