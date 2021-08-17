@@ -29,6 +29,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -125,6 +126,29 @@ type FaucetArgs struct {
 	port  string
 }
 
+type SeqInfo struct {
+	StartSeq int
+	Iter     int
+	mu       sync.Mutex
+}
+
+func (si *SeqInfo) GetNewSeq(newStartSeq int) (int, int, int) {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+	if si.StartSeq < newStartSeq {
+		si.Iter = 0
+		si.StartSeq = newStartSeq
+	}
+	startSeq := si.StartSeq
+	iter := si.Iter
+	newSeq := startSeq + iter
+	if si.Iter != 0 {
+		time.Sleep(time.Second) // avoid invalid tx seq caused by non-finished checkTx()
+	}
+	si.Iter++
+	return newSeq, startSeq, iter
+}
+
 // AddFaucetCmd returns faucet cobra Command
 func AddFaucetCmd(
 	ctx *server.Context, cdc *codec.Codec, defaultNodeHome, defaultClientHome string,
@@ -218,7 +242,8 @@ func AddFaucetCmd(
 				w.Write([]byte("ok\n"))
 			})
 
-			startSeq, iter := 0, 0
+			seqInfo := SeqInfo{StartSeq: 0, Iter: 0}
+
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -236,27 +261,20 @@ func AddFaucetCmd(
 				if err != nil {
 					return
 				}
-				if startSeq < int(latestSeq) {
-					iter = 0
-					startSeq = int(latestSeq)
-				}
-				newSeq := uint64(startSeq + iter)
-				ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", int(newSeq), startSeq, iter))
-				iter++
-
-				_, err = doTransfer(cliCtx,
+				newSeq, startSeq, iter := seqInfo.GetNewSeq(int(latestSeq))
+				ctx.Logger.Info(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter))
+				resChan := make(chan sdk.TxResponse)
+				go doTransfer(cliCtx,
 					txBldr.
-						WithSequence(newSeq).
+						WithSequence(uint64(newSeq)).
 						WithChainID(viper.GetString(flags.FlagChainID)).
 						WithGas(uint64(400000)).
 						WithMemo(strconv.Itoa(int(newSeq))+","+realIp),
-					toAddr, faucetArgs.from, coin, writer)
-				if err != nil {
-					writer.WriteHeader(http.StatusBadRequest)
-					writer.Write([]byte(err.Error()))
-				}
+					toAddr, faucetArgs.from, coin, &resChan)
 				ctx.Logger.Info("send", "addr", addr, "amount", coin.String())
-
+				res := <-resChan
+				rest.PostProcessResponseBare(writer, cliCtx, res)
+				close(resChan)
 				return
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
@@ -310,7 +328,7 @@ func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (ac
 	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }
 
-func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, writer http.ResponseWriter) (sdk.TxResponse, error) {
+func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, resChan *chan sdk.TxResponse) {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
@@ -319,7 +337,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {
-		return sdk.TxResponse{}, err
+		return
 	}
 
 	fromName := cliCtx.GetFromName()
@@ -327,7 +345,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	if txBldr.SimulateAndExecute() || cliCtx.Simulate {
 		txBldr, err = utils.EnrichWithGas(txBldr, cliCtx, msgs)
 		if err != nil {
-			return sdk.TxResponse{}, err
+			return
 		}
 
 		gasEst := utils.GasEstimateResponse{GasEstimate: txBldr.Gas()}
@@ -335,13 +353,13 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	}
 
 	if cliCtx.Simulate {
-		return sdk.TxResponse{}, nil
+		return
 	}
 
 	if !cliCtx.SkipConfirm {
 		stdSignMsg, err := txBldr.BuildSignMsg(msgs)
 		if err != nil {
-			return sdk.TxResponse{}, err
+			return
 		}
 
 		var json []byte
@@ -360,24 +378,19 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 		ok, err := input.GetConfirmation("confirm transaction before signing and broadcasting", buf)
 		if err != nil || !ok {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", "cancelled transaction")
-			return sdk.TxResponse{}, err
+			return
 		}
 	}
 
 	// build and sign the transaction
 	txBytes, err := txBldr.BuildAndSign(fromName, keys.DefaultKeyPass, msgs)
 	if err != nil {
-		return sdk.TxResponse{}, err
+		return
 	}
 
 	// broadcast to a Tendermint node
 	res, err := cliCtx.BroadcastTx(txBytes)
-	if err != nil {
-		return sdk.TxResponse{}, err
-	}
-
-	rest.PostProcessResponseBare(writer, cliCtx, res)
-	return res, nil
+	*resChan <- res
 }
 
 func getRealAddr(r *http.Request) string {
