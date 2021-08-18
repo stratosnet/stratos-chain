@@ -50,7 +50,8 @@ const (
 	defaultIpCap          = 3
 	capDuration           = 60 // in minutes
 
-	maxAmtFaucet = 100000000000
+	maxAmtFaucet    = 100000000000
+	requestInterval = 50 * time.Millisecond
 )
 
 type FaucetToMiddleware struct {
@@ -143,7 +144,7 @@ func (si *SeqInfo) GetNewSeq(newStartSeq int) (int, int, int) {
 	iter := si.Iter
 	newSeq := startSeq + iter
 	if si.Iter != 0 {
-		time.Sleep(time.Second) // avoid invalid tx seq caused by non-finished checkTx()
+		time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
 	}
 	si.Iter++
 	return newSeq, startSeq, iter
@@ -243,7 +244,6 @@ func AddFaucetCmd(
 			})
 
 			seqInfo := SeqInfo{StartSeq: 0, Iter: 0}
-			resChan := make(chan sdk.TxResponse)
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -262,8 +262,8 @@ func AddFaucetCmd(
 					return
 				}
 				newSeq, startSeq, iter := seqInfo.GetNewSeq(int(latestSeq))
-				ctx.Logger.Info(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter))
-
+				ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter))
+				resChan := make(chan sdk.TxResponse)
 				go doTransfer(cliCtx,
 					txBldr.
 						WithSequence(uint64(newSeq)).
@@ -274,6 +274,7 @@ func AddFaucetCmd(
 				ctx.Logger.Info("send", "addr", addr, "amount", coin.String())
 				res := <-resChan
 				rest.PostProcessResponseBare(writer, cliCtx, res)
+				close(resChan)
 				return
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
@@ -284,7 +285,6 @@ func AddFaucetCmd(
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			close(resChan)
 			// print stats
 			fmt.Println("####################################################################")
 			fmt.Println("################        Terminating faucet        ##################")
@@ -332,8 +332,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
-	cliCtx.BroadcastMode = "sync"
-	//err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+	cliCtx.BroadcastMode = "block"
 
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {
@@ -350,10 +349,6 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 
 		gasEst := utils.GasEstimateResponse{GasEstimate: txBldr.Gas()}
 		_, _ = fmt.Fprintf(os.Stderr, "%s\n", gasEst.String())
-	}
-
-	if cliCtx.Simulate {
-		return
 	}
 
 	if !cliCtx.SkipConfirm {
