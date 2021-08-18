@@ -243,7 +243,7 @@ func AddFaucetCmd(
 			})
 
 			seqInfo := SeqInfo{StartSeq: 0, Iter: 0}
-
+			resChan := make(chan sdk.TxResponse)
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -263,18 +263,17 @@ func AddFaucetCmd(
 				}
 				newSeq, startSeq, iter := seqInfo.GetNewSeq(int(latestSeq))
 				ctx.Logger.Info(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter))
-				resChan := make(chan sdk.TxResponse)
+
 				go doTransfer(cliCtx,
 					txBldr.
 						WithSequence(uint64(newSeq)).
 						WithChainID(viper.GetString(flags.FlagChainID)).
 						WithGas(uint64(400000)).
-						WithMemo(strconv.Itoa(int(newSeq))+","+realIp),
+						WithMemo(strconv.Itoa(newSeq)+","+realIp),
 					toAddr, faucetArgs.from, coin, &resChan)
 				ctx.Logger.Info("send", "addr", addr, "amount", coin.String())
 				res := <-resChan
 				rest.PostProcessResponseBare(writer, cliCtx, res)
-				close(resChan)
 				return
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
@@ -285,6 +284,7 @@ func AddFaucetCmd(
 			if err != nil {
 				fmt.Println(err.Error())
 			}
+			close(resChan)
 			// print stats
 			fmt.Println("####################################################################")
 			fmt.Println("################        Terminating faucet        ##################")
@@ -332,7 +332,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
-	cliCtx.BroadcastMode = "block"
+	cliCtx.BroadcastMode = "sync"
 	//err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
