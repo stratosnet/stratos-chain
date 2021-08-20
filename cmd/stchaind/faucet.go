@@ -51,7 +51,7 @@ const (
 	capDuration           = 60 // in minutes
 
 	maxAmtFaucet    = 100000000000
-	requestInterval = 50 * time.Millisecond
+	requestInterval = 20 * time.Millisecond
 )
 
 type FaucetToMiddleware struct {
