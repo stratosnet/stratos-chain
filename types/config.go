@@ -81,6 +81,9 @@ func (config *Config) assertNotSealed() {
 // SetBech32PrefixForAccount builds the Config with Bech32 addressPrefix and publKeyPrefix for accounts
 // and returns the config instance
 func (config *Config) SetBech32PrefixForAccount(addressPrefix, pubKeyPrefix string) {
+	sdkConfig := sdk.GetConfig()
+	sdkConfig.SetBech32PrefixForAccount(addressPrefix, pubKeyPrefix)
+
 	config.assertNotSealed()
 	config.bech32AddressPrefix["account_addr"] = addressPrefix
 	config.bech32AddressPrefix["account_pub"] = pubKeyPrefix
@@ -89,6 +92,9 @@ func (config *Config) SetBech32PrefixForAccount(addressPrefix, pubKeyPrefix stri
 // SetBech32PrefixForValidator builds the Config with Bech32 addressPrefix and publKeyPrefix for validators
 //  and returns the config instance
 func (config *Config) SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix string) {
+	sdkConfig := sdk.GetConfig()
+	sdkConfig.SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix)
+
 	config.assertNotSealed()
 	config.bech32AddressPrefix["validator_addr"] = addressPrefix
 	config.bech32AddressPrefix["validator_pub"] = pubKeyPrefix
@@ -97,6 +103,9 @@ func (config *Config) SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix st
 // SetBech32PrefixForConsensusNode builds the Config with Bech32 addressPrefix and publKeyPrefix for consensus nodes
 // and returns the config instance
 func (config *Config) SetBech32PrefixForConsensusNode(addressPrefix, pubKeyPrefix string) {
+	sdkConfig := sdk.GetConfig()
+	sdkConfig.SetBech32PrefixForConsensusNode(addressPrefix, pubKeyPrefix)
+
 	config.assertNotSealed()
 	config.bech32AddressPrefix["consensus_addr"] = addressPrefix
 	config.bech32AddressPrefix["consensus_pub"] = pubKeyPrefix

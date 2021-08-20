@@ -73,7 +73,7 @@ func setupAllResourceNodes() []ResourceNode {
 	resourceNode1.Status = sdk.Bonded
 
 	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	resourceNode3 = resourceNode1.AddToken(resNodeInitStake)
+	resourceNode3 = resourceNode3.AddToken(resNodeInitStake)
 	resourceNode3.Status = sdk.Bonded
 
 	var resourceNodes []ResourceNode
