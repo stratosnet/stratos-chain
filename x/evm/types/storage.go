@@ -2,7 +2,10 @@ package types
 
 import (
 	"fmt"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	ethcmn "github.com/ethereum/go-ethereum/common"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // Storage represents the account Storage map as a slice of single key value
@@ -52,15 +55,15 @@ type State struct {
 
 // Validate performs a basic validation of the State fields.
 func (s State) Validate() error {
-	//if ethermint.IsEmptyHash(s.Key) {
-	//	return sdkerrors.Wrap(ErrInvalidState, "state key hash cannot be empty")
-	//}
+	if stratos.IsEmptyHash(s.Key) {
+		return sdkerrors.Wrap(ErrInvalidState, "state key hash cannot be empty")
+	}
 	// NOTE: state value can be empty
 	return nil
 }
 
 // NewState creates a new State instance
-func NewState(key, value Hash) State { // nolint: interfacer
+func NewState(key, value ethcmn.Hash) State { // nolint: interfacer
 	return State{
 		Key:   key.String(),
 		Value: value.String(),

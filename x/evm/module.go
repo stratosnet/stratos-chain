@@ -2,137 +2,135 @@ package evm
 
 import (
 	"encoding/json"
+	"github.com/stratosnet/stratos-chain/x/evm/client/cli"
+	"github.com/stratosnet/stratos-chain/x/evm/keeper"
+	"github.com/stratosnet/stratos-chain/x/evm/types"
+
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-	"github.com/stratosnet/stratos-chain/x/evm/client/cli"
-	"github.com/stratosnet/stratos-chain/x/evm/keeper"
-	"github.com/stratosnet/stratos-chain/x/evm/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// Type check to ensure the interface is properly implemented
-var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
-)
+var _ module.AppModuleBasic = AppModuleBasic{}
+var _ module.AppModule = AppModule{}
 
-// AppModuleBasic defines the basic application module used by the pot module.
+// AppModuleBasic struct
 type AppModuleBasic struct{}
 
-// Name returns the pot module's name.
+// Name for app module basic
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterCodec registers the pot module's types for the given codec.
+// RegisterCodec registers types for module
 func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
 	types.RegisterCodec(cdc)
 }
 
-// DefaultGenesis returns default genesis state as raw bytes for the pot
-// module.
+// DefaultGenesis is json default structure
 func (AppModuleBasic) DefaultGenesis() json.RawMessage {
 	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
-// ValidateGenesis performs genesis state validation for the pot module.
+// ValidateGenesis is the validation check of the Genesis
 func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
-	var data types.GenesisState
-	err := types.ModuleCdc.UnmarshalJSON(bz, &data)
+	var genesisState types.GenesisState
+	err := types.ModuleCdc.UnmarshalJSON(bz, &genesisState)
 	if err != nil {
 		return err
 	}
-	return types.ValidateGenesis(data)
+
+	return genesisState.Validate()
 }
 
-// RegisterRESTRoutes registers the REST routes for the pot module.
+// RegisterRESTRoutes Registers rest routes
 func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	//rest.RegisterRoutes(ctx, rtr)
 }
 
-// GetTxCmd returns the root tx command for the pot module.
+// GetQueryCmd Gets the root query command of this module
+func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
+	return cli.GetQueryCmd(types.ModuleName, cdc)
+}
+
+// GetTxCmd Gets the root tx command of this module
 func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	return nil
 }
 
-// GetQueryCmd returns no root query command for the pot module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(types.StoreKey, cdc)
-}
-
 //____________________________________________________________________________
 
-// AppModule implements an application module for the pot module.
+// AppModule implements an application module for the evm module.
 type AppModule struct {
 	AppModuleBasic
-	keeper        keeper.Keeper
-	accountKeeper types.AccountKeeper
+	keeper *Keeper
+	ak     types.AccountKeeper
 }
 
-// NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, accountKeeper types.AccountKeeper) AppModule {
+// NewAppModule creates a new AppModule Object
+func NewAppModule(k *Keeper, ak types.AccountKeeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
-		accountKeeper:  accountKeeper,
+		ak:             ak,
 	}
 }
 
-// Name returns the pot module's name.
+// Name is module name
 func (AppModule) Name() string {
 	return types.ModuleName
 }
 
-// RegisterInvariants registers the pot module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
+// RegisterInvariants interface for registering invariants
+func (am AppModule) RegisterInvariants(ir sdk.InvariantRegistry) {
+	keeper.RegisterInvariants(ir, *am.keeper)
+}
 
-// Route returns the message routing key for the pot module.
-func (AppModule) Route() string {
+// Route specifies path for transactions
+func (am AppModule) Route() string {
 	return types.RouterKey
 }
 
-// NewHandler returns an sdk.Handler for the pot module.
+// NewHandler sets up a new handler for module
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
 }
 
-// QuerierRoute returns the pot module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
+// QuerierRoute sets up path for queries
+func (am AppModule) QuerierRoute() string {
+	return types.ModuleName
 }
 
-// NewQuerierHandler returns the pot module sdk.Querier.
+// NewQuerierHandler sets up new querier handler for module
 func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
+	//return keeper.NewQuerier(*am.keeper)
+	return nil
 }
 
-// InitGenesis performs genesis initialization for the pot module. It returns
-// no validator updates.
+// BeginBlock function for module at start of each block
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	am.keeper.BeginBlock(ctx, req)
+}
+
+// EndBlock function for module at end of block
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return am.keeper.EndBlock(ctx, req)
+}
+
+// InitGenesis instantiates the genesis state
 func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
 	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
-	return []abci.ValidatorUpdate{}
+	return InitGenesis(ctx, *am.keeper, am.ak, genesisState)
 }
 
-// ExportGenesis returns the exported genesis state as raw bytes for the pot
-// module.
+// ExportGenesis exports the genesis state to be used by daemon
 func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
-	gs := ExportGenesis(ctx, am.keeper)
+	gs := ExportGenesis(ctx, *am.keeper, am.ak)
 	return types.ModuleCdc.MustMarshalJSON(gs)
-}
-
-// BeginBlock returns the begin blocker for the pot module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(ctx, req, am.keeper)
-}
-
-// EndBlock returns the end blocker for the pot module. It returns no validator
-// updates.
-func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return []abci.ValidatorUpdate{}
 }

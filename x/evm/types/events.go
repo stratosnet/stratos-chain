@@ -2,7 +2,8 @@ package types
 
 // Evm module events
 const (
-	EventTypeStratosTx = TypeMsgStratosTx
+	EventTypeStratosTx  = TypeMsgStratosTx
+	EventTypeEthereumTx = TypeMsgEthereumTx
 
 	AttributeKeyContractAddress = "contract"
 	AttributeKeyRecipient       = "recipient"

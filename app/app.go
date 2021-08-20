@@ -2,7 +2,8 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/stratosnet/stratos-chain/helpers"
+	"github.com/stratosnet/stratos-chain/app/ante"
+	"github.com/stratosnet/stratos-chain/x/evm"
 	"io"
 	"os"
 
@@ -34,6 +35,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
@@ -67,6 +69,7 @@ var (
 		sds.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
+		evm.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
 	)
 
@@ -123,6 +126,7 @@ type NewApp struct {
 	upgradeKeeper  upgrade.Keeper
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisis.Keeper
+	EvmKeeper      *evm.Keeper
 	// this line is used by starport scaffolding # 3
 	mm *module.Manager
 
@@ -137,7 +141,8 @@ func NewInitApp(
 ) *NewApp {
 	cdc := MakeCodec()
 
-	bApp := bam.NewBaseApp(appName, logger, db, auth.DefaultTxDecoder(cdc), baseAppOptions...)
+	// NOTE we use custom transaction decoder that supports the sdk.Tx interface instead of sdk.StdTx
+	bApp := bam.NewBaseApp(appName, logger, db, evm.TxDecoder(cdc), baseAppOptions...)
 	bApp.SetCommitMultiStoreTracer(traceStore)
 	bApp.SetAppVersion(version.Version)
 
@@ -155,6 +160,7 @@ func NewInitApp(
 		register.StoreKey,
 		pot.StoreKey,
 		sds.StoreKey,
+		evm.StoreKey,
 		// this line is used by starport scaffolding # 5
 	)
 
@@ -182,9 +188,10 @@ func NewInitApp(
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
 	app.subspaces[pot.ModuleName] = app.paramsKeeper.Subspace(pot.DefaultParamSpace)
 	app.subspaces[register.ModuleName] = app.paramsKeeper.Subspace(register.DefaultParamSpace)
+	app.subspaces[evm.ModuleName] = app.paramsKeeper.Subspace(evm.DefaultParamSpace)
 	// this line is used by starport scaffolding # 5.1
 
-	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount)
+	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], stratos.ProtoAccount)
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, app.subspaces[bank.ModuleName], app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
 
@@ -223,7 +230,12 @@ func NewInitApp(
 	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper, app.subspaces[slashing.ModuleName])
 	app.crisisKeeper = crisis.NewKeeper(app.subspaces[crisis.ModuleName], invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 	app.upgradeKeeper = upgrade.NewKeeper(map[int64]bool{}, keys[upgrade.StoreKey], app.cdc)
-
+	app.EvmKeeper = evm.NewKeeper(
+		app.cdc,
+		keys[evm.StoreKey],
+		app.subspaces[evm.ModuleName],
+		app.accountKeeper,
+	)
 	// register the staking hooks
 	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
 	app.stakingKeeper = *stakingKeeper.SetHooks(
@@ -258,11 +270,17 @@ func NewInitApp(
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
 		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper),
+		evm.NewAppModule(app.EvmKeeper, app.accountKeeper),
 		// this line is used by starport scaffolding # 6
 	)
 
+	app.mm.SetOrderBeginBlockers(
+		evm.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
+		evidence.ModuleName,
+	)
+
 	app.mm.SetOrderEndBlockers(
-		crisis.ModuleName, gov.ModuleName, staking.ModuleName,
+		evm.ModuleName, crisis.ModuleName, gov.ModuleName, staking.ModuleName,
 		// this line is used by starport scaffolding # 6.1
 	)
 
@@ -275,6 +293,7 @@ func NewInitApp(
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
+		evm.ModuleName,
 		crisis.ModuleName,
 		genutil.ModuleName,
 		register.ModuleName,
@@ -304,10 +323,11 @@ func NewInitApp(
 	)
 
 	app.SetAnteHandler(
-		auth.NewAnteHandler(
+		ante.NewAnteHandler(
 			app.accountKeeper,
+			app.EvmKeeper,
 			app.supplyKeeper,
-			helpers.StSigVerificationGasConsumer,
+			//helpers.StSigVerificationGasConsumer, //TODO: check this parameter
 		),
 	)
 

@@ -5,13 +5,12 @@ import (
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
-// GetParams returns the total set of pot parameters.
+// GetParams returns the total set of evm parameters.
 func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSet(ctx, &params)
-	return params
+	return k.CommitStateDB.WithContext(ctx).GetParams()
 }
 
-// SetParams sets the pot parameters to the param space.
+// SetParams sets the evm parameters to the param space.
 func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
+	k.CommitStateDB.WithContext(ctx).SetParams(params)
 }

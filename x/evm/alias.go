@@ -13,12 +13,11 @@ const (
 )
 
 var (
-	NewKeeper       = keeper.NewKeeper
-	RegisterCodec   = types.RegisterCodec
-	ParamKeyTable   = types.ParamKeyTable
-	NewGenesisState = types.NewGenesisState
+	NewKeeper = keeper.NewKeeper
+	TxDecoder = types.TxDecoder
 )
 
 type (
-	Keeper = keeper.Keeper
+	Keeper       = keeper.Keeper
+	GenesisState = types.GenesisState
 )
