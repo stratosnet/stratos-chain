@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
-	"github.com/stratosnet/stratos-chain/x/register/client/common"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
@@ -68,36 +67,19 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 	}
 }
 
-// GET request handler to query a resource nodes list
-func resourceNodeListByNetworkIDHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-		resp, height, err := common.QueryResourceNodeList(cliCtx, queryRoute)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, resp)
-	}
-}
-
 // GET request handler to query a indexing nodes list
-func indexingNodesWithParamsFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-		if !ok {
-			return
-		}
-		resp, height, err := common.QueryIndexingNodeList(cliCtx, queryRoute)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
-		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, resp)
-	}
-}
+//func indexingNodesWithParamsFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+//		if !ok {
+//			return
+//		}
+//		resp, height, err := common.QueryIndexingNodeList(cliCtx, queryRoute)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+//			return
+//		}
+//		cliCtx = cliCtx.WithHeight(height)
+//		rest.PostProcessResponse(w, cliCtx, resp)
+//	}
+//}
