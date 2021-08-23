@@ -1,6 +1,6 @@
 {
-  "network_id":"sds://indexingNode0",
-  "pubkey":"stpub1addwnpepqfd7mehvyz2k24vv8fmfeq02qjh8xvcedx3wsaula47nzmsg8f202llk4xu",
+  "network_id":"sds://st1fp974hhty0wwq5zpxjncaj50ax3ydx3kmzuty9@127.0.0.1:8080",
+  "pubkey":"stsdsp2p1addwnpepq0c7356e4s5kg6g4tamd0wwalaun5pk7fcphpk0zjdskeg52m5s3vyqvl9r",
   "suspend":false,
   "status":2,
   "tokens":"100000000000",

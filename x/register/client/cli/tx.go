@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -126,9 +127,7 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	pkStr := viper.GetString(FlagPubKey)
 	nodeTypeRef := viper.GetInt(FlagNodeType)
 
-	//pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
-	pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pkStr)
-	//pk, er := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyType(types.Bech32PubKeyTypesdsPub), pkStr)
+	pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
 	if er != nil {
 		return txBldr, nil, err
 	}
@@ -145,7 +144,7 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
 		return txBldr, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgCreateResourceNode(networkID, pk, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
+	msg := types.NewMsgCreateResourceNode(networkID, pubKey, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
 	return txBldr, msg, nil
 }
 
@@ -161,9 +160,8 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 
-	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeConsPub, pkStr)
-	pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, pkStr)
-	//pk, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyType(types.Bech32PubKeyTypesdsPub), pkStr)
+	pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
+
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -175,7 +173,7 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-	msg := types.NewMsgCreateIndexingNode(networkID, pk, amount, ownerAddr, desc)
+	msg := types.NewMsgCreateIndexingNode(networkID, pubKey, amount, ownerAddr, desc)
 	return txBldr, msg, nil
 }
 
