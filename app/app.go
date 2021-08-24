@@ -2,8 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/stratosnet/stratos-chain/app/ante"
-	"github.com/stratosnet/stratos-chain/x/evm"
 	"io"
 	"os"
 
@@ -35,7 +33,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+
+	"github.com/stratosnet/stratos-chain/app/ante"
+	cryptocodec "github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 	stratos "github.com/stratosnet/stratos-chain/types"
+	"github.com/stratosnet/stratos-chain/x/evm"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
@@ -96,6 +98,8 @@ func MakeCodec() *codec.Codec {
 
 	ModuleBasics.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
+	stratos.RegisterCodec(cdc)
+	cryptocodec.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 
 	return cdc.Seal()
