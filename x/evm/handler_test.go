@@ -40,8 +40,8 @@ func (suite *EvmTestSuite) SetupTest() {
 
 	suite.app = app.Setup(checkTx)
 	suite.ctx = suite.app.BaseApp.NewContext(checkTx, abci.Header{Height: 1, ChainID: "stratos-3", Time: time.Now().UTC()})
-	suite.handler = evm.NewHandler(suite.app.EvmKeeper)
-	suite.querier = keeper.NewQuerier(*suite.app.EvmKeeper)
+	suite.handler = evm.NewHandler(suite.app.GetEvmKeeper())
+	suite.querier = keeper.NewQuerier(*suite.app.GetEvmKeeper())
 	suite.codec = codec.New()
 }
 
@@ -64,7 +64,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 		{
 			"passed",
 			func() {
-				suite.app.EvmKeeper.SetBalance(suite.ctx, sender, big.NewInt(100))
+				suite.app.GetEvmKeeper().SetBalance(suite.ctx, sender, big.NewInt(100))
 				tx = types.NewMsgEthereumTx(0, &sender, big.NewInt(100), 0, big.NewInt(10000), nil)
 
 				// parse context chain ID to big.Int
@@ -151,7 +151,7 @@ func (suite *EvmTestSuite) TestMsgStratosTx() {
 			"passed",
 			func() {
 				tx = types.NewMsgStratosTx(0, &to, sdk.NewInt(1), 100000, sdk.NewInt(2), []byte("test"), from)
-				suite.app.EvmKeeper.SetBalance(suite.ctx, ethcmn.BytesToAddress(from.Bytes()), big.NewInt(100))
+				suite.app.GetEvmKeeper().SetBalance(suite.ctx, ethcmn.BytesToAddress(from.Bytes()), big.NewInt(100))
 			},
 			true,
 		},
@@ -232,10 +232,10 @@ func (suite *EvmTestSuite) TestHandlerLogs() {
 	suite.Require().Equal(len(resultData.Logs[0].Topics), 2)
 
 	hash := []byte{1}
-	err = suite.app.EvmKeeper.SetLogs(suite.ctx, ethcmn.BytesToHash(hash), resultData.Logs)
+	err = suite.app.GetEvmKeeper().SetLogs(suite.ctx, ethcmn.BytesToHash(hash), resultData.Logs)
 	suite.Require().NoError(err)
 
-	logs, err := suite.app.EvmKeeper.GetLogs(suite.ctx, ethcmn.BytesToHash(hash))
+	logs, err := suite.app.GetEvmKeeper().GetLogs(suite.ctx, ethcmn.BytesToHash(hash))
 	suite.Require().NoError(err, "failed to get logs")
 
 	suite.Require().Equal(logs, resultData.Logs)
@@ -267,7 +267,7 @@ func (suite *EvmTestSuite) TestQueryTxLogs() {
 	// get logs by tx hash
 	hash := resultData.TxHash.Bytes()
 
-	logs, err := suite.app.EvmKeeper.GetLogs(suite.ctx, ethcmn.BytesToHash(hash))
+	logs, err := suite.app.GetEvmKeeper().GetLogs(suite.ctx, ethcmn.BytesToHash(hash))
 	suite.Require().NoError(err, "failed to get logs")
 
 	suite.Require().Equal(logs, resultData.Logs)
@@ -399,7 +399,7 @@ func (suite *EvmTestSuite) TestSendTransaction() {
 	suite.Require().NoError(err, "failed to create key")
 	pub := priv.ToECDSA().Public().(*ecdsa.PublicKey)
 
-	suite.app.EvmKeeper.SetBalance(suite.ctx, ethcrypto.PubkeyToAddress(*pub), big.NewInt(100))
+	suite.app.GetEvmKeeper().SetBalance(suite.ctx, ethcrypto.PubkeyToAddress(*pub), big.NewInt(100))
 
 	// send simple value transfer with gasLimit=21000
 	tx := types.NewMsgEthereumTx(1, &ethcmn.Address{0x1}, big.NewInt(1), gasLimit, gasPrice, nil)
@@ -479,12 +479,12 @@ func (suite *EvmTestSuite) TestOutOfGasWhenDeployContract() {
 	tx.Sign(big.NewInt(3), priv.ToECDSA())
 	suite.Require().NoError(err)
 
-	snapshotCommitStateDBJson, err := json.Marshal(suite.app.EvmKeeper.CommitStateDB)
+	snapshotCommitStateDBJson, err := json.Marshal(suite.app.GetEvmKeeper().CommitStateDB)
 	suite.Require().Nil(err)
 
 	defer func() {
 		if r := recover(); r != nil {
-			currentCommitStateDBJson, err := json.Marshal(suite.app.EvmKeeper.CommitStateDB)
+			currentCommitStateDBJson, err := json.Marshal(suite.app.GetEvmKeeper().CommitStateDB)
 			suite.Require().Nil(err)
 			suite.Require().Equal(snapshotCommitStateDBJson, currentCommitStateDBJson)
 		} else {
@@ -509,13 +509,13 @@ func (suite *EvmTestSuite) TestErrorWhenDeployContract() {
 	tx.Sign(big.NewInt(3), priv.ToECDSA())
 	suite.Require().NoError(err)
 
-	snapshotCommitStateDBJson, err := json.Marshal(suite.app.EvmKeeper.CommitStateDB)
+	snapshotCommitStateDBJson, err := json.Marshal(suite.app.GetEvmKeeper().CommitStateDB)
 	suite.Require().Nil(err)
 
 	_, sdkErr := suite.handler(suite.ctx, tx)
 	suite.Require().NotNil(sdkErr)
 
-	currentCommitStateDBJson, err := json.Marshal(suite.app.EvmKeeper.CommitStateDB)
+	currentCommitStateDBJson, err := json.Marshal(suite.app.GetEvmKeeper().CommitStateDB)
 	suite.Require().Nil(err)
 	suite.Require().Equal(snapshotCommitStateDBJson, currentCommitStateDBJson)
 }

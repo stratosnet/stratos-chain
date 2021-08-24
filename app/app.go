@@ -130,11 +130,19 @@ type NewApp struct {
 	upgradeKeeper  upgrade.Keeper
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisis.Keeper
-	EvmKeeper      *evm.Keeper
+	evmKeeper      *evm.Keeper
 	// this line is used by starport scaffolding # 3
 	mm *module.Manager
 
 	sm *module.SimulationManager
+}
+
+func (app NewApp) GetAccountKeeper() auth.AccountKeeper {
+	return app.accountKeeper
+}
+
+func (app NewApp) GetEvmKeeper() *evm.Keeper {
+	return app.evmKeeper
 }
 
 var _ simapp.App = (*NewApp)(nil)
@@ -234,7 +242,7 @@ func NewInitApp(
 	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper, app.subspaces[slashing.ModuleName])
 	app.crisisKeeper = crisis.NewKeeper(app.subspaces[crisis.ModuleName], invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
 	app.upgradeKeeper = upgrade.NewKeeper(map[int64]bool{}, keys[upgrade.StoreKey], app.cdc)
-	app.EvmKeeper = evm.NewKeeper(
+	app.evmKeeper = evm.NewKeeper(
 		app.cdc,
 		keys[evm.StoreKey],
 		app.subspaces[evm.ModuleName],
@@ -274,7 +282,7 @@ func NewInitApp(
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
 		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper),
-		evm.NewAppModule(app.EvmKeeper, app.accountKeeper),
+		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		// this line is used by starport scaffolding # 6
 	)
 
@@ -329,7 +337,7 @@ func NewInitApp(
 	app.SetAnteHandler(
 		ante.NewAnteHandler(
 			app.accountKeeper,
-			app.EvmKeeper,
+			app.evmKeeper,
 			app.supplyKeeper,
 			//helpers.StSigVerificationGasConsumer, //TODO: check this parameter
 		),
