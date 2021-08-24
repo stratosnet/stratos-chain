@@ -14,20 +14,20 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var _ exported.Account = (*EthAccount)(nil)
-var _ exported.GenesisAccount = (*EthAccount)(nil)
+var _ exported.Account = (*StAccount)(nil)
+var _ exported.GenesisAccount = (*StAccount)(nil)
 
 func init() {
-	authtypes.RegisterAccountTypeCodec(&EthAccount{}, EthAccountName)
+	authtypes.RegisterAccountTypeCodec(&StAccount{}, StAccountName)
 }
 
 // ----------------------------------------------------------------------------
-// Main Ethermint account
+// Main Stratos account
 // ----------------------------------------------------------------------------
 
-// EthAccount implements the auth.Account interface and embeds an
+// StAccount implements the auth.Account interface and embeds an
 // auth.BaseAccount type. It is compatible with the auth.AccountKeeper.
-type EthAccount struct {
+type StAccount struct {
 	*authtypes.BaseAccount `json:"base_account" yaml:"base_account"`
 	CodeHash               []byte `json:"code_hash" yaml:"code_hash"`
 }
@@ -35,28 +35,28 @@ type EthAccount struct {
 // ProtoAccount defines the prototype function for BaseAccount used for an
 // AccountKeeper.
 func ProtoAccount() exported.Account {
-	return &EthAccount{
+	return &StAccount{
 		BaseAccount: &auth.BaseAccount{},
 		CodeHash:    ethcrypto.Keccak256(nil),
 	}
 }
 
 // EthAddress returns the account address ethereum format.
-func (acc EthAccount) EthAddress() ethcmn.Address {
+func (acc StAccount) EthAddress() ethcmn.Address {
 	return ethcmn.BytesToAddress(acc.Address.Bytes())
 }
 
 // TODO: remove on SDK v0.40
 
 // Balance returns the balance of an account.
-func (acc EthAccount) Balance(denom string) sdk.Int {
+func (acc StAccount) Balance(denom string) sdk.Int {
 	return acc.GetCoins().AmountOf(denom)
 }
 
 // SetBalance sets an account's balance of the given coin denomination.
 //
 // CONTRACT: assumes the denomination is valid.
-func (acc *EthAccount) SetBalance(denom string, amt sdk.Int) {
+func (acc *StAccount) SetBalance(denom string, amt sdk.Int) {
 	coins := acc.GetCoins()
 	diff := amt.Sub(coins.AmountOf(denom))
 	switch {
@@ -75,7 +75,7 @@ func (acc *EthAccount) SetBalance(denom string, amt sdk.Int) {
 	}
 }
 
-type ethermintAccountPretty struct {
+type stratosAccountPretty struct {
 	Address       sdk.AccAddress `json:"address" yaml:"address"`
 	EthAddress    string         `json:"eth_address" yaml:"eth_address"`
 	Coins         sdk.Coins      `json:"coins" yaml:"coins"`
@@ -86,8 +86,8 @@ type ethermintAccountPretty struct {
 }
 
 // MarshalYAML returns the YAML representation of an account.
-func (acc EthAccount) MarshalYAML() (interface{}, error) {
-	alias := ethermintAccountPretty{
+func (acc StAccount) MarshalYAML() (interface{}, error) {
+	alias := stratosAccountPretty{
 		Address:       acc.Address,
 		EthAddress:    acc.EthAddress().String(),
 		Coins:         acc.Coins,
@@ -113,15 +113,15 @@ func (acc EthAccount) MarshalYAML() (interface{}, error) {
 	return string(bz), err
 }
 
-// MarshalJSON returns the JSON representation of an EthAccount.
-func (acc EthAccount) MarshalJSON() ([]byte, error) {
+// MarshalJSON returns the JSON representation of an StAccount.
+func (acc StAccount) MarshalJSON() ([]byte, error) {
 	var ethAddress = ""
 
 	if acc.BaseAccount != nil && acc.Address != nil {
 		ethAddress = acc.EthAddress().String()
 	}
 
-	alias := ethermintAccountPretty{
+	alias := stratosAccountPretty{
 		Address:       acc.Address,
 		EthAddress:    ethAddress,
 		Coins:         acc.Coins,
@@ -142,10 +142,10 @@ func (acc EthAccount) MarshalJSON() ([]byte, error) {
 	return json.Marshal(alias)
 }
 
-// UnmarshalJSON unmarshals raw JSON bytes into an EthAccount.
-func (acc *EthAccount) UnmarshalJSON(bz []byte) error {
+// UnmarshalJSON unmarshals raw JSON bytes into an StAccount.
+func (acc *StAccount) UnmarshalJSON(bz []byte) error {
 	var (
-		alias ethermintAccountPretty
+		alias stratosAccountPretty
 		err   error
 	)
 
@@ -202,7 +202,7 @@ func (acc *EthAccount) UnmarshalJSON(bz []byte) error {
 }
 
 // String implements the fmt.Stringer interface
-func (acc EthAccount) String() string {
+func (acc StAccount) String() string {
 	out, _ := yaml.Marshal(acc)
 	return string(out)
 }

@@ -61,7 +61,7 @@ type stateObject struct {
 	// DB error
 	dbErr   error
 	stateDB *CommitStateDB
-	account *stratos.EthAccount
+	account *stratos.StAccount
 
 	keyToOriginStorageIndex map[ethcmn.Hash]int
 	keyToDirtyStorageIndex  map[ethcmn.Hash]int
@@ -79,7 +79,7 @@ type stateObject struct {
 
 func newStateObject(db *CommitStateDB, accProto authexported.Account) *stateObject {
 	// func newStateObject(db *CommitStateDB, accProto authexported.Account, balance sdk.Int) *stateObject {
-	stAccount, ok := accProto.(*stratos.EthAccount)
+	stAccount, ok := accProto.(*stratos.StAccount)
 	if !ok {
 		panic(fmt.Sprintf("invalid account type for state object: %T", accProto))
 	}

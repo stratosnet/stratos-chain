@@ -3,18 +3,15 @@ package keeper
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/stratosnet/stratos-chain/x/evm/types"
-	"math/big"
-
-	"github.com/tendermint/tendermint/libs/log"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
-
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/tendermint/tendermint/libs/log"
+	"math/big"
 )
 
 // Keeper wraps the CommitStateDB, allowing us to pass in SDK context while adhering
@@ -31,7 +28,7 @@ type Keeper struct {
 	storeKey sdk.StoreKey
 	// Account Keeper for fetching accounts
 	accountKeeper types.AccountKeeper
-	// Ethermint concrete implementation on the EVM StateDB interface
+	// Stratos concrete implementation on the EVM StateDB interface
 	CommitStateDB *types.CommitStateDB
 	// Transaction counter in a block. Used on StateSB's Prepare function.
 	// It is reset to 0 every block on BeginBlock so there's no point in storing the counter

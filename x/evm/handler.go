@@ -10,7 +10,7 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
-// NewHandler returns a handler for Ethermint type messages.
+// NewHandler returns a handler for Stratos type messages.
 func NewHandler(k *Keeper) sdk.Handler {
 	return func(ctx sdk.Context, msg sdk.Msg) (result *sdk.Result, err error) {
 		snapshotStateDB := k.CommitStateDB.Copy()
@@ -48,7 +48,7 @@ func NewHandler(k *Keeper) sdk.Handler {
 		case types.MsgEthereumTx:
 			result, err = handleMsgEthereumTx(ctx, k, msg)
 		case types.MsgStratosTx:
-			result, err = handleMsgEthermint(ctx, k, msg)
+			result, err = handleMsgStratosTx(ctx, k, msg)
 		default:
 			return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", ModuleName, msg)
 		}
@@ -73,8 +73,8 @@ func handleMsgEthereumTx(ctx sdk.Context, k *Keeper, msg types.MsgEthereumTx) (*
 	return res, nil
 }
 
-// handleMsgEthermint handles an sdk.StdTx for an Ethereum state transition
-func handleMsgEthermint(ctx sdk.Context, k *Keeper, msg types.MsgStratosTx) (*sdk.Result, error) {
+// handleMsgStratosTx handles an sdk.StdTx for an Ethereum state transition
+func handleMsgStratosTx(ctx sdk.Context, k *Keeper, msg types.MsgStratosTx) (*sdk.Result, error) {
 	// parse the chainID from a string to a base-10 integer
 	chainIDEpoch, err := stratos.ParseChainID(ctx.ChainID())
 	if err != nil {

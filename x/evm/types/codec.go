@@ -4,9 +4,10 @@ import "github.com/cosmos/cosmos-sdk/codec"
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	// this line is used by starport scaffolding # 1
+	cdc.RegisterConcrete(MsgEthereumTx{}, "stratos/MsgEthereumTx", nil)
 	cdc.RegisterConcrete(MsgStratosTx{}, "stratos/MsgStratosTx", nil)
-	cdc.RegisterConcrete(ChainConfig{}, "ethermint/ChainConfig", nil)
+	cdc.RegisterConcrete(TxData{}, "stratos/TxData", nil)
+	cdc.RegisterConcrete(ChainConfig{}, "stratos/ChainConfig", nil)
 }
 
 // ModuleCdc defines the module codec

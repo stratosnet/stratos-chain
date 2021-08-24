@@ -29,7 +29,7 @@ func (k Keeper) BalanceInvariant() sdk.Invariant {
 		)
 
 		k.accountKeeper.IterateAccounts(ctx, func(account authexported.Account) bool {
-			ethAccount, ok := account.(*stratos.EthAccount)
+			ethAccount, ok := account.(*stratos.StAccount)
 			if !ok {
 				// ignore non EthAccounts
 				return false
@@ -69,7 +69,7 @@ func (k Keeper) NonceInvariant() sdk.Invariant {
 		)
 
 		k.accountKeeper.IterateAccounts(ctx, func(account authexported.Account) bool {
-			ethAccount, ok := account.(*stratos.EthAccount)
+			ethAccount, ok := account.(*stratos.StAccount)
 			if !ok {
 				// ignore non EthAccounts
 				return false

@@ -46,7 +46,7 @@ type MsgStratosTx struct {
 	From sdk.AccAddress `json:"from"`
 }
 
-// NewMsgEthermint returns a reference to a new Ethermint transaction
+// NewMsgStratosTx returns a reference to a new Stratos transaction
 func NewMsgStratosTx(
 	nonce uint64, to *sdk.AccAddress, amount sdk.Int,
 	gasLimit uint64, gasPrice sdk.Int, payload []byte, from sdk.AccAddress,

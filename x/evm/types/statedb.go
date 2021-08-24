@@ -697,7 +697,7 @@ func (csdb *CommitStateDB) Reset(_ ethcmn.Hash) error {
 func (csdb *CommitStateDB) UpdateAccounts() {
 	for _, stateEntry := range csdb.stateObjects {
 		currAcc := csdb.accountKeeper.GetAccount(csdb.ctx, sdk.AccAddress(stateEntry.address.Bytes()))
-		stratosAcc, ok := currAcc.(*stratos.EthAccount)
+		stratosAcc, ok := currAcc.(*stratos.StAccount)
 		if !ok {
 			continue
 		}

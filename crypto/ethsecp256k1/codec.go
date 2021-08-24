@@ -7,11 +7,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys"
 )
 
-// CryptoCodec is the default amino codec used by ethermint
+// CryptoCodec is the default amino codec used by stratos
 var CryptoCodec = codec.New()
 
 func init() {
-	// replace the keyring codec with the ethermint crypto codec to prevent
+	// replace the keyring codec with the stratos crypto codec to prevent
 	// amino panics because of unregistered Priv/PubKey
 	keys.CryptoCdc = CryptoCodec
 	keys.RegisterCodec(CryptoCodec)

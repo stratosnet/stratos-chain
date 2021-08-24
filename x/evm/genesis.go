@@ -31,11 +31,11 @@ func InitGenesis(
 			panic(fmt.Errorf("account not found for address %s", account.Address))
 		}
 
-		_, ok := acc.(*stratos.EthAccount)
+		_, ok := acc.(*stratos.StAccount)
 		if !ok {
 			panic(
 				fmt.Errorf("account %s must be an %T type, got %T",
-					account.Address, &stratos.EthAccount{}, acc,
+					account.Address, &stratos.StAccount{}, acc,
 				),
 			)
 		}
@@ -81,7 +81,7 @@ func ExportGenesis(ctx sdk.Context, k keeper.Keeper, ak types.AccountKeeper) Gen
 	// nolint: prealloc
 	var ethGenAccounts []types.GenesisAccount
 	ak.IterateAccounts(ctx, func(account authexported.Account) bool {
-		ethAccount, ok := account.(*stratos.EthAccount)
+		ethAccount, ok := account.(*stratos.StAccount)
 		if !ok {
 			// ignore non EthAccounts
 			return false

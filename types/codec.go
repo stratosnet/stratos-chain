@@ -5,12 +5,12 @@ import (
 )
 
 const (
-	// EthAccountName is the amino encoding name for EthAccount
-	EthAccountName = "stratos/EthAccount"
+	// StAccountName is the amino encoding name for StAccount
+	StAccountName = "stratos/StAccount"
 )
 
 // RegisterCodec registers the account interfaces and concrete types on the
 // provided Amino codec.
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(&EthAccount{}, EthAccountName, nil)
+	cdc.RegisterConcrete(&StAccount{}, StAccountName, nil)
 }

@@ -135,7 +135,7 @@ func (suite *EvmTestSuite) TestHandleMsgEthereumTx() {
 	}
 }
 
-func (suite *EvmTestSuite) TestMsgEthermint() {
+func (suite *EvmTestSuite) TestMsgStratosTx() {
 	var (
 		tx   types.MsgStratosTx
 		from = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
