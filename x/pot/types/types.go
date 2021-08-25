@@ -7,6 +7,11 @@ type SingleNodeVolume struct {
 	Volume      sdk.Int        `json:"node_volume" yaml:"node_volume"` //uoz
 }
 
+type SingleNodeVolumeStr struct {
+	NodeAddress string `json:"node_address"`
+	Volume      string `json:"node_volume"`
+}
+
 // NewSingleNodeVolume creates a new Msg<Action> instance
 func NewSingleNodeVolume(
 	nodeAddress sdk.AccAddress,

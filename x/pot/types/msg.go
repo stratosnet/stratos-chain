@@ -43,7 +43,7 @@ func (msg MsgVolumeReport) Route() string { return RouterKey }
 // GetSigners Implement
 func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
-	addrs = append(addrs, msg.Reporter)
+	//addrs = append(addrs, msg.Reporter)
 	addrs = append(addrs, msg.ReporterOwner)
 	return addrs
 }

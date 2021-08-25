@@ -1,86 +1,92 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-const (
-	Oz2uoz = 1000000000
-)
-
-// QueryPotRewardsParams Params for query 'custom/register/resource-nodes'
+// QueryPotRewardsParams Params for query 'custom/pot/potRewards'
 type QueryPotRewardsParams struct {
 	Page     int
 	Limit    int
 	NodeAddr sdk.AccAddress
+	Epoch    sdk.Int
 }
 
 // NewQueryPotRewardsParams creates a new instance of QueryNodesParams
-func NewQueryPotRewardsParams(page, limit int, ownerAddr sdk.AccAddress) QueryPotRewardsParams {
+func NewQueryPotRewardsParams(page, limit int, nodeAddr sdk.AccAddress, epoch int64) QueryPotRewardsParams {
 	return QueryPotRewardsParams{
 		Page:     page,
 		Limit:    limit,
-		NodeAddr: ownerAddr,
+		NodeAddr: nodeAddr,
+		Epoch:    sdk.NewInt(epoch),
 	}
 }
 
-func (k Keeper) GetResourceNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) ([]types.Reward, error) {
+type NodeRewardsInfo struct {
+	NodeAddr          sdk.AccAddress
+	FoundationAccount sdk.AccAddress
+	Epoch             sdk.Int
+	TotalMinedTokens  sdk.Coin
+	MinedTokens       sdk.Coin
+	IndividualRewards sdk.Coin
+	MatureTotal       sdk.Coin
+	ImmatureTotal     sdk.Coin
+}
+
+// NewNodeRewardsInfo creates a new instance of NodeRewardsInfo
+func NewNodeRewardsInfo(nodeAddr, foundationAccount sdk.AccAddress, epoch, totalMinedTokens, minedTokens, individualRewards, matureTotal, immatureTotal sdk.Int) NodeRewardsInfo {
+	denomName := "ustos"
+	return NodeRewardsInfo{
+		NodeAddr:          nodeAddr,
+		FoundationAccount: foundationAccount,
+		Epoch:             epoch,
+		TotalMinedTokens:  sdk.NewCoin(denomName, totalMinedTokens),
+		MinedTokens:       sdk.NewCoin(denomName, minedTokens),
+		IndividualRewards: sdk.NewCoin(denomName, individualRewards),
+		MatureTotal:       sdk.NewCoin(denomName, matureTotal),
+		ImmatureTotal:     sdk.NewCoin(denomName, immatureTotal),
+	}
+}
+
+func (k Keeper) GetResourceNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (res []NodeRewardsInfo) {
 
 	rewardAddrList := k.GetRewardAddressPool(ctx)
 
 	for _, n := range rewardAddrList {
-		// match OwnerAddr (if supplied)
-		if len(params.NodeAddr) > 0 {
+		// match NodeAddr (if supplied)
+		if !params.NodeAddr.Equals(sdk.AccAddress{}) {
 			if !n.Equals(params.NodeAddr) {
 				continue
 			}
 		}
 
+		foundationAccount := k.GetFoundationAccount(ctx)
+		totalMinedTokens := k.GetTotalMinedTokens(ctx)
+		minedTokens := k.GetMinedTokens(ctx, params.Epoch)
+		individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
+		matureTotal := k.GetMatureTotalReward(ctx, n)
+		immatureTotal := k.GetImmatureTotalReward(ctx, n)
+
+		individualResult := NewNodeRewardsInfo(
+			params.NodeAddr,
+			foundationAccount,
+			params.Epoch,
+			totalMinedTokens,
+			minedTokens,
+			individualRewards,
+			matureTotal,
+			immatureTotal,
+		)
+
+		res = append(res, individualResult)
 	}
 
-	// use registerKeeper.NewQueryNodesParams to find all filtered nodes
-	//newQueryResNodeParams := registerKeeper.NewQueryNodesParams(params.Page, params.Limit, "", "", params.OwnerAddr)
-
-	//resNodes := k.RegisterKeeper.GetResourceNodesFiltered(ctx, newQueryResNodeParams)
-	//resNodeRewards := make([]registerTypes.ResourceNode, 0, len(resNodes))
-
-	//err := k.DistributePotReward(ctx, trafficList, epoch2017)
-	//if err != nil {
-	//	return []types.Reward{}, sdkerrors.ErrUnknownRequest
-	//}
-	//rewardAddrList := k.GetRewardAddressPool(ctx)
-	//k.Logger("address pool: ")
-	//for i := 0; i < len(rewardAddrList); i++ {
-	//	fmt.Println(rewardAddrList[i].String() + ", ")
-	//}
-	//
-	//
-	//rewardDetailMap := make(map[string]types.Reward)
-	//
-	//for i, n := range resNodes {
-	//	distributeGoal := types.InitDistributeGoal()
-	//
-	//	//build traffic list
-	//	trafficList = append(trafficList, types.NewSingleNodeVolume(n.OwnerAddress, sdk.NewInt(ResourceNodeVolume[i])))
-	//	rewardDetailMap, distributeGoal = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoal, rewardDetailMap)
-	//	totalReward := k.getTrafficReward(ctx, trafficList)
-	//
-	//	idvRwdResNode1Ep1 := k.GetIndividualReward(ctx, addrRes1, epoch1)
-	//	matureTotalResNode1 := k.GetMatureTotalReward(ctx, addrRes1)
-	//	immatureTotalResNode1 := k.GetImmatureTotalReward(ctx, addrRes1)
-	//	fmt.Println("resourceNode1: address = " + addrRes1.String() + ", individual = " + idvRwdResNode1Ep1.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
-	//	require.Equal(t, idvRwdResNode1Ep1, sdk.NewInt(131089476265))
-
-	//	filteredNodes = append(filteredNodes, n)
-	//}
-	//
-	//start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-	//if start < 0 || end < 0 {
-	//	filteredNodes = []types.ResourceNode{}
-	//} else {
-	//	filteredNodes = filteredNodes[start:end]
-	//return resNodeRewards
-	return nil, sdkerrors.Error{}
+	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		return []NodeRewardsInfo{}
+	} else {
+		res = res[start:end]
+		return res
+	}
 }

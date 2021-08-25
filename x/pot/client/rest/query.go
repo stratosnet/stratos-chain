@@ -9,6 +9,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"net/http"
+	"strconv"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -30,16 +31,29 @@ func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.Ha
 		}
 
 		var nodeAddr sdk.AccAddress
+		var epoch int64
 
-		if v := r.URL.Query().Get(RestOwner); len(v) != 0 {
+		if v := r.URL.Query().Get(RestNodeAddress); len(v) != 0 {
 			nodeAddr, err = sdk.AccAddressFromBech32(v)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
 			}
+		} else {
+			nodeAddr = sdk.AccAddress{}
 		}
 
-		params := keeper.NewQueryPotRewardsParams(page, limit, nodeAddr)
+		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
+			epoch, err = strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "'epoch' is incorrect.")
+				return
+			}
+		} else {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "missing query epoch.")
+		}
+
+		params := keeper.NewQueryPotRewardsParams(page, limit, nodeAddr, epoch)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stratosnet/stratos-chain/x/pot/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -46,12 +45,10 @@ func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
-	resNodeRewards, err := k.GetResourceNodesRewards(ctx, params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, err.Error())
-	}
+	resNodeRewards := k.GetResourceNodesRewards(ctx, params)
+
 	if len(resNodeRewards) == 0 {
-		resNodeRewards = []types.Reward{}
+		resNodeRewards = []NodeRewardsInfo{}
 	}
 
 	bz, err := codec.MarshalJSONIndent(k.cdc, resNodeRewards)

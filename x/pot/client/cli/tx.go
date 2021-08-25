@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/spf13/viper"
-
 	//"encoding/hex"
 	//"encoding/json"
 	"fmt"
@@ -60,9 +59,9 @@ func WithdrawCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsAmount)
 	cmd.Flags().AddFlagSet(FsNodeAddress)
 
-	cmd.MarkFlagRequired(FlagAmount)
-	cmd.MarkFlagRequired(FlagNodeAddress)
-	cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(FlagNodeAddress)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
 }
@@ -130,11 +129,26 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		return txBldr, nil, err
 	}
 	epoch := sdk.NewInt(value)
-	var nodesVolume = make([]types.SingleNodeVolume, 0)
-	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolume)
+	var nodesVolumeStr = make([]types.SingleNodeVolumeStr, 0)
+	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolumeStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
+
+	var nodesVolume = make([]types.SingleNodeVolume, 0)
+	for _, n := range nodesVolumeStr {
+		nodeAcc, err := sdk.AccAddressFromBech32(n.NodeAddress)
+		if err != nil {
+			return txBldr, nil, err
+		}
+		volumeInt64, err := strconv.ParseInt(n.Volume, 10, 64)
+		if err != nil {
+			return txBldr, nil, err
+		}
+		nodeVolume := sdk.NewInt(volumeInt64)
+		nodesVolume = append(nodesVolume, types.NewSingleNodeVolume(nodeAcc, nodeVolume))
+	}
+
 	reporterOwner := cliCtx.GetFromAddress()
 
 	msg := types.NewMsgVolumeReport(
