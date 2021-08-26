@@ -51,7 +51,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// Set the validator hooks
+// Set the register hooks
 func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set register hooks twice")
@@ -110,10 +110,12 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
 		return
 	}
+	ctx.Logger().Info("141")
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
+	ctx.Logger().Info("142")
 }
 
 // GetResourceNetworksIterator gets an iterator over all network addresses
@@ -155,160 +157,6 @@ func removeDuplicateValues(stringSlice []string) (res []byte) {
 	}
 	return res[:len(res)-1]
 }
-
-//
-//// return a given amount of all the UnbondingIndexingNodes
-//func (k Keeper) GetUINs(ctx sdk.Context, networkAddr sdk.AccAddress,
-//	maxRetrieve uint16) (unbondingIndexingNodes []types.UnbondingIndexingNode) {
-//
-//	unbondingIndexingNodes = make([]types.UnbondingIndexingNode, maxRetrieve)
-//
-//	store := ctx.KVStore(k.storeKey)
-//	indexingNodePrefixKey := types.GetUINKey(networkAddr)
-//	iterator := sdk.KVStorePrefixIterator(store, indexingNodePrefixKey)
-//	defer iterator.Close()
-//
-//	i := 0
-//	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
-//		unbondingIndexingNode := types.MustUnmarshalUIN(k.cdc, iterator.Value())
-//		unbondingIndexingNodes[i] = unbondingIndexingNode
-//		i++
-//	}
-//	return unbondingIndexingNodes[:i] // trim if the array length < maxRetrieve
-//}
-//
-//// return a unbonding UnbondingIndexingNode
-//func (k Keeper) GetUIN(ctx sdk.Context,
-//	networkAddr sdk.AccAddress) (ubd types.UnbondingIndexingNode, found bool) {
-//
-//	store := ctx.KVStore(k.storeKey)
-//	key := types.GetUINKey(networkAddr)
-//	value := store.Get(key)
-//	if value == nil {
-//		return ubd, false
-//	}
-//
-//	ubd = types.MustUnmarshalUIN(k.cdc, value)
-//	return ubd, true
-//}
-//
-//// iterate through all of the unbonding indexingNodes
-//func (k Keeper) IterateUINs(ctx sdk.Context, fn func(index int64, ubd types.UnbondingIndexingNode) (stop bool)) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.UBDIndexingNodeKey)
-//	defer iterator.Close()
-//
-//	for i := int64(0); iterator.Valid(); iterator.Next() {
-//		ubd := types.MustUnmarshalUIN(k.cdc, iterator.Value())
-//		if stop := fn(i, ubd); stop {
-//			break
-//		}
-//		i++
-//	}
-//}
-//
-//// HasMaxUnbondingIndexingNodeEntries - check if unbonding IndexingNode has maximum number of entries
-//func (k Keeper) HasMaxUINEntries(ctx sdk.Context, networkAddr sdk.AccAddress) bool {
-//	ubd, found := k.GetUIN(ctx, networkAddr)
-//	if !found {
-//		return false
-//	}
-//	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
-//}
-//
-//// set the unbonding IndexingNode
-//func (k Keeper) SetUIN(ctx sdk.Context, ubd types.UnbondingIndexingNode) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := types.MustMarshalUIN(k.cdc, ubd)
-//	key := types.GetUINKey(ubd.GetNetworkAddr())
-//	store.Set(key, bz)
-//}
-//
-//// remove the unbonding IndexingNode object
-//func (k Keeper) RemoveUIN(ctx sdk.Context, ubd types.UnbondingIndexingNode) {
-//	store := ctx.KVStore(k.storeKey)
-//	key := types.GetUINKey(ubd.GetNetworkAddr())
-//	store.Delete(key)
-//}
-//
-//// SetUnbondingIndexingNodeEntry adds an entry to the unbonding IndexingNode at
-//// the given addresses. It creates the unbonding IndexingNode if it does not exist
-//func (k Keeper) SetUINEntry(ctx sdk.Context, networkAddr sdk.AccAddress,
-//	creationHeight int64, minTime time.Time, balance sdk.Int) types.UnbondingIndexingNode {
-//
-//	ubd, found := k.GetUIN(ctx, networkAddr)
-//	if found {
-//		ubd.AddEntry(creationHeight, minTime, balance)
-//	} else {
-//		ubd = types.NewUnbondingIndexingNode(networkAddr, creationHeight, minTime, balance)
-//	}
-//	k.SetUIN(ctx, ubd)
-//	return ubd
-//}
-//
-//// unbonding delegation queue timeslice operations
-//
-//// gets a specific unbonding queue timeslice. A timeslice is a slice of DVPairs
-//// corresponding to unbonding delegations that expire at a certain time.
-//func (k Keeper) GetUINQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (networkAddrs []sdk.AccAddress) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := store.Get(types.GetUINTimeKey(timestamp))
-//	if bz == nil {
-//		return []sdk.AccAddress{}
-//	}
-//	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &networkAddrs)
-//	return networkAddrs
-//}
-//
-//// Sets a specific unbonding queue timeslice.
-//func (k Keeper) SetUINQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []sdk.AccAddress) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := k.cdc.MustMarshalBinaryLengthPrefixed(keys)
-//	store.Set(types.GetUINTimeKey(timestamp), bz)
-//}
-//
-//// Insert an unbonding delegation to the appropriate timeslice in the unbonding queue
-//func (k Keeper) InsertUINQueue(ctx sdk.Context, ubd types.UnbondingIndexingNode,
-//	completionTime time.Time) {
-//
-//	timeSlice := k.GetUINQueueTimeSlice(ctx, completionTime)
-//	networkAddr := ubd.NetworkAddr
-//	if len(timeSlice) == 0 {
-//		k.SetUINQueueTimeSlice(ctx, completionTime, []sdk.AccAddress{networkAddr})
-//	} else {
-//		timeSlice = append(timeSlice, networkAddr)
-//		k.SetUINQueueTimeSlice(ctx, completionTime, timeSlice)
-//	}
-//}
-//
-//// Returns all the unbonding queue timeslices from time 0 until endTime
-//func (k Keeper) UINQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
-//	store := ctx.KVStore(k.storeKey)
-//	return store.Iterator(types.UBDIndexingNodeQueueKey,
-//		sdk.InclusiveEndBytes(types.GetUINTimeKey(endTime)))
-//}
-//
-//// Returns a concatenated list of all the timeslices inclusively previous to
-//// currTime, and deletes the timeslices from the queue
-//func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
-//	currTime time.Time) (matureUnbonds []sdk.AccAddress) {
-//
-//	store := ctx.KVStore(k.storeKey)
-//	// gets an iterator for all timeslices from time 0 until the current Blockheader time
-//	unbondingTimesliceIterator := k.UINQueueIterator(ctx, ctx.BlockHeader().Time)
-//	defer unbondingTimesliceIterator.Close()
-//
-//	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
-//		timeslice := []sdk.AccAddress{}
-//		value := unbondingTimesliceIterator.Value()
-//		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
-//		matureUnbonds = append(matureUnbonds, timeslice...)
-//		store.Delete(unbondingTimesliceIterator.Key())
-//	}
-//	return matureUnbonds
-//}
-
-//==========
 
 // return a given amount of all the UnbondingIndexingNodes
 func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr sdk.AccAddress,
@@ -479,13 +327,16 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 	// loop through all the entries and complete unbonding mature entries
 	for i := 0; i < len(ubd.Entries); i++ {
 		entry := ubd.Entries[i]
+		ctx.Logger().Info("110 + " + entry.Balance.String())
 		if entry.IsMature(ctxTime) {
+			ctx.Logger().Info("1101")
 			ubd.RemoveEntry(int64(i))
 			i--
 
 			// track undelegation only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
+				ctx.Logger().Info("111")
 				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
 					return nil, err
@@ -493,6 +344,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 
 				balances = balances.Add(amt)
 			}
+			ctx.Logger().Info("1112")
 		}
 	}
 
@@ -516,12 +368,14 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress) e
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of indexing node
 	if ubd.IsIndexingNode {
+		ctx.Logger().Info("112")
 		indexingNode, found := k.GetIndexingNode(ctx, ubd.NetworkAddr)
 		if !found {
 			return types.ErrNoIndexingNodeFound
 		}
 		return k.SubtractIndexingNodeStake(ctx, indexingNode, tokenToSub)
 	}
+	ctx.Logger().Info("113")
 	// case of resource node
 	resourceNode, found := k.GetResourceNode(ctx, ubd.NetworkAddr)
 	if !found {
@@ -530,7 +384,7 @@ func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 	return k.SubtractResourceNodeStake(ctx, resourceNode, tokenToSub)
 }
 
-func (k Keeper) DoRemoveResourceNode(
+func (k Keeper) UnbondResourceNode(
 	ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
 ) (time.Time, error) {
 	// transfer the node tokens to the not bonded pool
@@ -547,11 +401,6 @@ func (k Keeper) DoRemoveResourceNode(
 		return time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	returnAmount, err := k.unbond(ctx, networkAddr, false, amt)
-	if err != nil {
-		return time.Time{}, err
-	}
-
 	if resourceNode.GetStatus() == sdk.Bonded {
 		k.bondedToUnbonding(ctx, resourceNode, false)
 	}
@@ -562,7 +411,7 @@ func (k Keeper) DoRemoveResourceNode(
 		resourceNode.CreationTime.String(), params.UnbondingThreasholdTime.String(), params.UnbondingCompletionTime.String(), unbondingMatureTime.String(),
 	))
 	//unbondingNode := types.NewUnbondingNode(resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, amt)
 	// Adds to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
@@ -570,7 +419,7 @@ func (k Keeper) DoRemoveResourceNode(
 	return unbondingMatureTime, nil
 }
 
-func (k Keeper) DoRemoveIndexingNode(
+func (k Keeper) UnbondIndexingNode(
 	ctx sdk.Context, indexingNode types.IndexingNode, amt sdk.Int,
 ) (time.Time, error) {
 
@@ -584,11 +433,6 @@ func (k Keeper) DoRemoveIndexingNode(
 		return time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	returnAmount, err := k.unbond(ctx, networkAddr, true, amt)
-	if err != nil {
-		return time.Time{}, err
-	}
-
 	// transfer the node tokens to the not bonded pool
 	if indexingNode.GetStatus() == sdk.Bonded {
 		k.bondedToUnbonding(ctx, indexingNode, true)
@@ -598,7 +442,7 @@ func (k Keeper) DoRemoveIndexingNode(
 	// set the unbonding mature time and completion height appropriately
 	unbondingMatureTime := calcUnbondingMatureTime(indexingNode.CreationTime, params.UnbondingThreasholdTime, params.UnbondingCompletionTime)
 	//unbondingNode := types.NewUnbondingNode(indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, amt)
 	// Adds to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding indexing node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
@@ -609,65 +453,6 @@ func (k Keeper) DoRemoveIndexingNode(
 func (k Keeper) unbond(
 	ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool, amt sdk.Int,
 ) (amount sdk.Int, err error) {
-
-	//// check if a node object exists in the store
-	//if isIndexingNode {
-	//	node2Unbond, found := k.GetIndexingNode(ctx, networkAddr)
-	//	if !found {
-	//		return amount, types.ErrNoNodeForAddress
-	//	}
-	//} else {
-	//	node2Unbond, found := k.GetResourceNode(ctx, networkAddr)
-	//	if !found {
-	//		return amount, types.ErrNoNodeForAddress
-	//	}
-	//}
-	//
-	//// call the before-delegation-modified hook
-	//k.BeforeDelegationSharesModified(ctx, delAddr, valAddr)
-	//
-	//// ensure that we have enough shares to remove
-	//if delegation.Shares.LT(shares) {
-	//	return amount, sdkerrors.Wrap(types.ErrNotEnoughDelegationShares, delegation.Shares.String())
-	//}
-	//
-	//// get validator
-	//validator, found := k.GetValidator(ctx, valAddr)
-	//if !found {
-	//	return amount, types.ErrNoValidatorFound
-	//}
-	//
-	//// subtract shares from delegation
-	//delegation.Shares = delegation.Shares.Sub(shares)
-	//
-	//isValidatorOperator := delegation.DelegatorAddress.Equals(validator.OperatorAddress)
-	//
-	//// if the delegation is the operator of the validator and undelegating will decrease the validator's self delegation below their minimum
-	//// trigger a jail validator
-	//if isValidatorOperator && !validator.Jailed &&
-	//	validator.TokensFromShares(delegation.Shares).TruncateInt().LT(validator.MinSelfDelegation) {
-	//
-	//	k.jailValidator(ctx, validator)
-	//	validator = k.mustGetValidator(ctx, validator.OperatorAddress)
-	//}
-	//
-	//// remove the delegation
-	//if delegation.Shares.IsZero() {
-	//	k.RemoveDelegation(ctx, delegation)
-	//} else {
-	//	k.SetDelegation(ctx, delegation)
-	//	// call the after delegation modification hook
-	//	k.AfterDelegationModified(ctx, delegation.DelegatorAddress, delegation.ValidatorAddress)
-	//}
-	//
-	//// remove the shares and coins from the validator
-	//// NOTE that the amount is later (in keeper.Delegation) moved between staking module pools
-	//validator, amount = k.RemoveValidatorTokensAndShares(ctx, validator, shares)
-	//
-	//if validator.DelegatorShares.IsZero() && validator.IsUnbonded() {
-	//	// if not unbonded, we must instead remove validator in EndBlocker once it finishes its unbonding period
-	//	k.RemoveValidator(ctx, validator.OperatorAddress)
-	//}
 
 	return amount, nil
 }

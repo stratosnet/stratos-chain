@@ -130,7 +130,7 @@ func handleMsgRemoveResourceNodeNew(ctx sdk.Context, msg types.MsgRemoveResource
 
 	ctx.Logger().Info("11111111111")
 
-	completionTime, err := k.DoRemoveResourceNode(ctx, resourceNode, resourceNode.Tokens)
+	completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
@@ -184,7 +184,7 @@ func handleMsgRemoveIndexingNodeNew(ctx sdk.Context, msg types.MsgRemoveIndexing
 		return nil, ErrNoIndexingNodeFound
 	}
 
-	completionTime, err := k.DoRemoveIndexingNode(ctx, indexingNode, indexingNode.Tokens)
+	completionTime, err := k.UnbondIndexingNode(ctx, indexingNode, indexingNode.Tokens)
 	if err != nil {
 		return nil, err
 	}

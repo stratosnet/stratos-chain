@@ -12,7 +12,7 @@ import (
 // =======================
 
 // UnbondingNode stores all of a single delegator's unbonding bonds
-// for a single validator in an time-ordered list
+// for a single unbonding node in an time-ordered list
 type UnbondingNode struct {
 	NetworkAddr    sdk.AccAddress       `json:"network_addr" yaml:"network_addr"`
 	IsIndexingNode bool                 `json:"is_indexing_node yaml:"is_indexing_node`

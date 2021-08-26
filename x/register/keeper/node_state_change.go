@@ -9,7 +9,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
-// Calculate the ValidatorUpdates for the current block
 // Called in each EndBlock
 func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	// Remove all mature unbonding nodes from the ubd queue.
@@ -34,8 +33,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 	return []abci.ValidatorUpdate{}
 }
 
-// Validator state transitions
-
+// Node state transitions
 func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
 	if isIndexingNode {
 		temp := node.(types.IndexingNode)
@@ -52,21 +50,7 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingN
 	}
 }
 
-//func (k Keeper) unbondingToBonded(ctx sdk.Context, resourceNode types.ResourceNode) types.ResourceNode {
-//	if resourceNode.GetStatus() != sdk.Unbonding {
-//		panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", resourceNode))
-//	}
-//	return k.bondNode(ctx, resourceNode)
-//}
-//
-//func (k Keeper) unbondedToBonded(ctx sdk.Context, resourceNode types.ResourceNode) types.ResourceNode {
-//	if resourceNode.GetStatus() != sdk.Unbonding {
-//		panic(fmt.Sprintf("bad state transition unbondedToBonded, resourceNode: %v\n", resourceNode))
-//	}
-//	return k.bondNode(ctx, resourceNode)
-//}
-
-// switches a validator from unbonding state to unbonded state
+// switches a Node from unbonding state to unbonded state
 func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
 	if isIndexingNode {
 		temp := node.(types.IndexingNode)
@@ -83,35 +67,7 @@ func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexin
 	}
 }
 
-//func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node types.ResourceNode) types.ResourceNode {
-//	if node.GetStatus() != sdk.Unbonding {
-//		panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", node))
-//	}
-//	return k.completeUnbondingResourceNode(ctx, node)
-//}
-
-//// perform all the store operations for when a validator status becomes bonded
-//func (k Keeper) bondValidator(ctx sdk.Context, validator types.Validator) types.Validator {
-//
-//	// delete the validator by power index, as the key will change
-//	k.DeleteValidatorByPowerIndex(ctx, validator)
-//
-//	validator = validator.UpdateStatus(sdk.Bonded)
-//
-//	// save the now bonded validator record to the two referenced stores
-//	k.SetValidator(ctx, validator)
-//	k.SetValidatorByPowerIndex(ctx, validator)
-//
-//	// delete from queue if present
-//	k.DeleteValidatorQueue(ctx, validator)
-//
-//	// trigger hook
-//	k.AfterValidatorBonded(ctx, validator.ConsAddress(), validator.OperatorAddress)
-//
-//	return validator
-//}
-
-// perform all the store operations for when a validator begins unbonding
+// perform all the store operations for when a Node begins unbonding
 func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) types.ResourceNode {
 	resourceNode.Status = sdk.Unbonding
 	// save the now unbonded node record and power index
@@ -162,12 +118,12 @@ func (k Keeper) UBDNodeQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Ite
 // Returns a concatenated list of all the timeslices before currTime, and deletes the timeslices from the queue
 func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (matureValsAddrs []sdk.ValAddress) {
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
-	validatorTimesliceIterator := k.UBDNodeQueueIterator(ctx, ctx.BlockHeader().Time)
-	defer validatorTimesliceIterator.Close()
+	ubdTimesliceIterator := k.UBDNodeQueueIterator(ctx, ctx.BlockHeader().Time)
+	defer ubdTimesliceIterator.Close()
 
-	for ; validatorTimesliceIterator.Valid(); validatorTimesliceIterator.Next() {
+	for ; ubdTimesliceIterator.Valid(); ubdTimesliceIterator.Next() {
 		timeslice := []sdk.ValAddress{}
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(validatorTimesliceIterator.Value(), &timeslice)
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
 		matureValsAddrs = append(matureValsAddrs, timeslice...)
 	}
 
@@ -199,7 +155,12 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
+				ctx.Logger().Info("001")
 				k.removeIndexingNode(ctx, ubd.NetworkAddr)
+				_, found1 := k.GetIndexingNode(ctx, ubd.NetworkAddr)
+				if found1 {
+					ctx.Logger().Info("Removed indexing node with addr " + ubd.NetworkAddr.String())
+				}
 			} else {
 				node, found := k.GetResourceNode(ctx, ubd.NetworkAddr)
 				if !found {
@@ -209,7 +170,13 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
+				ctx.Logger().Info("002")
 				k.removeResourceNode(ctx, ubd.NetworkAddr)
+				_, found1 := k.GetResourceNode(ctx, ubd.NetworkAddr)
+				if found1 {
+					ctx.Logger().Info("Removed resource node with addr " + ubd.NetworkAddr.String())
+				}
+
 			}
 		}
 		store.Delete(nodeTimesliceIterator.Key())
