@@ -21,3 +21,10 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 	k.paramSpace.Get(ctx, types.KeyBondDenom, &res)
 	return
 }
+
+// MaxEntries - Maximum number of simultaneous unbonding
+// delegations or redelegations (per pair/trio)
+func (k Keeper) MaxEntries(ctx sdk.Context) (res uint16) {
+	k.paramSpace.Get(ctx, types.KeyMaxEntries, &res)
+	return
+}

@@ -7,6 +7,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
+	"time"
 )
 
 type NodeType uint8
@@ -87,11 +88,12 @@ type ResourceNode struct {
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
 	Description  Description    `json:"description" yaml:"description"`     // description terms for the resource node
 	NodeType     string         `json:"node_type" yaml:"node_type"`
+	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"`
 }
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description Description, nodeType string) ResourceNode {
+	description Description, nodeType string, creationTime time.Time) ResourceNode {
 	return ResourceNode{
 		NetworkID:    networkID,
 		PubKey:       pubKey,
@@ -101,6 +103,7 @@ func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 		OwnerAddress: ownerAddr,
 		Description:  description,
 		NodeType:     nodeType,
+		CreationTime: creationTime,
 	}
 }
 
@@ -118,7 +121,8 @@ func (v ResourceNode) String() string {
   		Tokens:				%s
 		Owner Address: 		%s
   		Description:		%s
-	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+  		CreationTime:		%s
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
 }
 
 // AddToken adds tokens to a resource node
@@ -167,6 +171,7 @@ func (v ResourceNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.
 func (v ResourceNode) GetTokens() sdk.Int             { return v.Tokens }
 func (v ResourceNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
 func (v ResourceNode) GetNodeType() string            { return v.NodeType }
+func (v ResourceNode) GetCreationTime() time.Time     { return v.CreationTime }
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
 func MustMarshalResourceNode(cdc *codec.Codec, resourceNode ResourceNode) []byte {
@@ -187,3 +192,131 @@ func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode Resourc
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &resourceNode)
 	return resourceNode, err
 }
+
+//
+//// UnbondingResourceNode stores all of a single delegator's unbonding bonds
+//// for a single validator in an time-ordered list
+//type UnbondingResourceNode struct {
+//	NetworkAddr sdk.AccAddress               `json:"network_addr" yaml:"network_addr"` // network id of the indexing node, for instance, sds://blablabla
+//	Entries      []UnbondingResourceNodeEntry `json:"entries" yaml:"entries"` // unbonding node entries
+//	//NetworkID    string                       `json:"network_id" yaml:"network_id"`       // network id of the indexing node, for instance, sds://blablabla
+//	//PubKey       crypto.PubKey                `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
+//	//Suspend      bool                         `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
+//	//Status       sdk.BondStatus               `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
+//	//Tokens       sdk.Int                      `json:"tokens" yaml:"tokens"`               // delegated tokens
+//	//OwnerAddress sdk.AccAddress               `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
+//	//Description  Description                  `json:"description" yaml:"description"`     // description terms for the indexing node
+//	//CreationTime time.Time                    `json:"creation_time" yaml:"creation_time"`
+//}
+//
+//// UnbondingResourceNodeEntry - entry to an UnbondingResourceNode
+//type UnbondingResourceNodeEntry struct {
+//	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
+//	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
+//	InitialBalance sdk.Int   `json:"initial_balance" yaml:"initial_balance"` // atoms initially scheduled to receive at completion
+//	Balance        sdk.Int   `json:"balance" yaml:"balance"`                 // atoms to receive at completion
+//}
+//
+//// IsMature - is the current entry mature
+//func (e UnbondingResourceNodeEntry) IsMature(currentTime time.Time) bool {
+//	return !e.CompletionTime.After(currentTime)
+//}
+//
+//// NewUnbondingResourceNode - create a new unbonding delegation object
+//func NewUnbondingResourceNode(networkAddr sdk.AccAddress, creationHeight int64, minTime time.Time,
+//	balance sdk.Int) UnbondingResourceNode {
+//
+//	entry := NewUnbondingResourceNodeEntry(creationHeight, minTime, balance)
+//	return UnbondingResourceNode{
+//		NetworkAddr: networkAddr,
+//		Entries:     []UnbondingResourceNodeEntry{entry},
+//		//NetworkID:    resourceNode.NetworkID,
+//		//PubKey:       resourceNode.PubKey,
+//		//Suspend:      resourceNode.Suspend,
+//		//Status:       resourceNode.Status,
+//		//Tokens:       resourceNode.Tokens,
+//		//OwnerAddress: resourceNode.OwnerAddress,
+//		//Description:  resourceNode.Description,
+//		//CreationTime: resourceNode.CreationTime,
+//	}
+//}
+//
+//// NewUnbondingResourceNodeEntry - create a new unbonding ResourceNode object
+//func NewUnbondingResourceNodeEntry(creationHeight int64, completionTime time.Time,
+//	balance sdk.Int) UnbondingResourceNodeEntry {
+//
+//	return UnbondingResourceNodeEntry{
+//		CreationHeight: creationHeight,
+//		CompletionTime: completionTime,
+//		InitialBalance: balance,
+//		Balance:        balance,
+//	}
+//}
+//
+//// AddEntry - append entry to the unbonding ResourceNode
+//func (urn *UnbondingResourceNode) AddEntry(creationHeight int64,
+//	minTime time.Time, balance sdk.Int) {
+//
+//	entry := NewUnbondingResourceNodeEntry(creationHeight, minTime, balance)
+//	urn.Entries = append(urn.Entries, entry)
+//}
+//
+//// RemoveEntry - remove entry at index i to the unbonding ResourceNode
+//func (urn *UnbondingResourceNode) RemoveEntry(i int64) {
+//	urn.Entries = append(urn.Entries[:i], urn.Entries[i+1:]...)
+//}
+//
+//// return the unbonding ResourceNode
+//func MustMarshalURN(cdc *codec.Codec, uin UnbondingResourceNode) []byte {
+//	return cdc.MustMarshalBinaryLengthPrefixed(uin)
+//}
+//
+//// unmarshal a unbonding ResourceNode from a store value
+//func MustUnmarshalURN(cdc *codec.Codec, value []byte) UnbondingResourceNode {
+//	uin, err := UnmarshalURN(cdc, value)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return uin
+//}
+//
+//// unmarshal a unbonding ResourceNode from a store value
+//func UnmarshalURN(cdc *codec.Codec, value []byte) (uin UnbondingResourceNode, err error) {
+//	err = cdc.UnmarshalBinaryLengthPrefixed(value, &uin)
+//	return uin, err
+//}
+//
+//// nolint
+//// inefficient but only used in testing
+//func (urn UnbondingResourceNode) Equal(urn2 UnbondingResourceNode) bool {
+//	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&urn)
+//	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&urn2)
+//	return bytes.Equal(bz1, bz2)
+//}
+//
+//func (urn UnbondingResourceNode) GetNetworkAddr() sdk.AccAddress { return urn.NetworkAddr}
+//
+//// String returns a human readable string representation of an UnbondingResourceNode.
+//func (urn UnbondingResourceNode) String() string {
+//	out := fmt.Sprintf(`Unbonding ResourceNodes between:
+//	NetworkAddr:    %s,
+//	Entries:`, urn.NetworkAddr)
+//	for i, entry := range urn.Entries {
+//		out += fmt.Sprintf(`    Unbonding ResourceNode %d:
+//      Creation Height:           %v
+//      Min time to unbond (unix): %v
+//      Expected balance:          %s`, i, entry.CreationHeight,
+//			entry.CompletionTime, entry.Balance)
+//	}
+//	return out
+//}
+//
+//// UnbondingResourceNodes is a collection of UnbondingResourceNode
+//type UnbondingResourceNodes []UnbondingResourceNode
+//
+//func (uins UnbondingResourceNodes) String() (out string) {
+//	for _, u := range uins {
+//		out += u.String() + "\n"
+//	}
+//	return strings.TrimSpace(out)
+//}

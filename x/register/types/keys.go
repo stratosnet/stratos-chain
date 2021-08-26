@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"time"
 )
 
 // Bech32PubKeyType defines a string type alias for a Bech32 public key type.
@@ -33,6 +34,14 @@ var (
 	ResourceNodeKey                  = []byte{0x21} // prefix for each key to a resource node
 	IndexingNodeKey                  = []byte{0x22} // prefix for each key to a indexing node
 	IndexingNodeRegistrationVotesKey = []byte{0x23} // prefix for each key to the vote for Indexing node registration
+
+	//UBDResourceNodeKey = []byte{0x31} // prefix for each key to an unbonding resource node
+	//UBDIndexingNodeKey = []byte{0x32} // prefix for each key to an unbonding indexing node
+	UBDNodeKey = []byte{0x33} // prefix for each key to an unbonding node
+
+	//UBDResourceNodeQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding resource node queue
+	//UBDIndexingNodeQueueKey    = []byte{0x42} // prefix for the timestamps in unbonding indexing node queue
+	UBDNodeQueueKey = []byte{0x43} // prefix for the timestamps in unbonding node queue
 )
 
 // GetLastResourceNodeStakeKey get the bonded resource node index key for an address
@@ -60,4 +69,37 @@ func GetIndexingNodeKey(nodeAddr sdk.AccAddress) []byte {
 // GetIndexingNodeRegistrationVotesKey get the key for the vote for Indexing node registration
 func GetIndexingNodeRegistrationVotesKey(nodeAddr sdk.AccAddress) []byte {
 	return append(IndexingNodeRegistrationVotesKey, nodeAddr.Bytes()...)
+}
+
+//// GetUINKey gets the key for the unbonding indexingNode with address
+//func GetUINKey(nodeAddr sdk.AccAddress) []byte {
+//	return append(UBDIndexingNodeKey, nodeAddr.Bytes()...)
+//}
+//
+//// GetURNKey gets the key for the unbonding resourceNode with address
+//func GetURNKey(nodeAddr sdk.AccAddress) []byte {
+//	return append(UBDResourceNodeKey, nodeAddr.Bytes()...)
+//}
+
+// GetURNKey gets the key for the unbonding Node with address
+func GetUBDNodeKey(nodeAddr sdk.AccAddress) []byte {
+	return append(UBDNodeKey, nodeAddr.Bytes()...)
+}
+
+//// gets the prefix for all unbonding ResourceNode
+//func GetURNTimeKey(timestamp time.Time) []byte {
+//	bz := sdk.FormatTimeBytes(timestamp)
+//	return append(UBDResourceNodeQueueKey, bz...)
+//}
+//
+//// gets the prefix for all unbonding IndexingNode
+//func GetUINTimeKey(timestamp time.Time) []byte {
+//	bz := sdk.FormatTimeBytes(timestamp)
+//	return append(UBDIndexingNodeQueueKey, bz...)
+//}
+
+// gets the prefix for all unbonding Node
+func GetUBDTimeKey(timestamp time.Time) []byte {
+	bz := sdk.FormatTimeBytes(timestamp)
+	return append(UBDNodeQueueKey, bz...)
 }

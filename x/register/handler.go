@@ -17,14 +17,14 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case types.MsgCreateResourceNode:
 			return handleMsgCreateResourceNode(ctx, msg, k)
 		case types.MsgRemoveResourceNode:
-			return handleMsgRemoveResourceNode(ctx, msg, k)
+			return handleMsgRemoveResourceNodeNew(ctx, msg, k)
 		case types.MsgUpdateResourceNode:
 			return handleMsgUpdateResourceNode(ctx, msg, k)
 
 		case types.MsgCreateIndexingNode:
 			return handleMsgCreateIndexingNode(ctx, msg, k)
 		case types.MsgRemoveIndexingNode:
-			return handleMsgRemoveIndexingNode(ctx, msg, k)
+			return handleMsgRemoveIndexingNodeNew(ctx, msg, k)
 		case types.MsgUpdateIndexingNode:
 			return handleMsgUpdateIndexingNode(ctx, msg, k)
 		case types.MsgIndexingNodeRegistrationVote:
@@ -102,6 +102,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	if !found {
 		return nil, ErrNoResourceNodeFound
 	}
+
 	err := k.SubtractResourceNodeStake(ctx, resourceNode, sdk.NewCoin(k.BondDenom(ctx), resourceNode.GetTokens()))
 	if err != nil {
 		return nil, err
@@ -119,6 +120,38 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgRemoveResourceNodeNew(ctx sdk.Context, msg types.MsgRemoveResourceNode, k keeper.Keeper) (*sdk.Result, error) {
+	resourceNode, found := k.GetResourceNode(ctx, msg.ResourceNodeAddress)
+	if !found {
+		return nil, ErrNoResourceNodeFound
+	}
+
+	ctx.Logger().Info("11111111111")
+
+	completionTime, err := k.DoRemoveResourceNode(ctx, resourceNode, resourceNode.Tokens)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.Logger().Info("22222222222")
+	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	//ctx.EventManager().EmitEvents(sdk.Events{
+	//	sdk.NewEvent(
+	//		types.EventTypeUnbond,
+	//		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
+	//		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+	//		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
+	//	),
+	//	sdk.NewEvent(
+	//		sdk.EventTypeMessage,
+	//		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	//		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
+	//	),
+	//})
+
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
@@ -143,6 +176,34 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgRemoveIndexingNodeNew(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
+	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
+	if !found {
+		return nil, ErrNoIndexingNodeFound
+	}
+
+	completionTime, err := k.DoRemoveIndexingNode(ctx, indexingNode, indexingNode.Tokens)
+	if err != nil {
+		return nil, err
+	}
+
+	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+	//ctx.EventManager().EmitEvents(sdk.Events{
+	//	sdk.NewEvent(
+	//		types.EventTypeRemoveIndexingNode,
+	//		sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+	//		sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
+	//	),
+	//	sdk.NewEvent(
+	//		sdk.EventTypeMessage,
+	//		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+	//	),
+	//})
+	//return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {

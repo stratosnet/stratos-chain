@@ -6,6 +6,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
 	"strings"
+	"time"
 )
 
 const resourceNodeCacheSize = 500
@@ -280,7 +281,7 @@ func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (r
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType string, stake sdk.Coin) error {
 
-	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType)
+	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, time.Now())
 	err := k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return err
 }
@@ -337,3 +338,191 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
 }
+
+//
+//
+//// return a given amount of all the UnbondingResourceNodes
+//func (k Keeper) GetURNs(ctx sdk.Context, networkAddr sdk.AccAddress,
+//	maxRetrieve uint16) (unbondingResourceNodes []types.UnbondingResourceNode) {
+//
+//	unbondingResourceNodes = make([]types.UnbondingResourceNode, maxRetrieve)
+//
+//	store := ctx.KVStore(k.storeKey)
+//	indexingNodePrefixKey := types.GetURNKey(networkAddr)
+//	iterator := sdk.KVStorePrefixIterator(store, indexingNodePrefixKey)
+//	defer iterator.Close()
+//
+//	i := 0
+//	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
+//		unbondingResourceNode := types.MustUnmarshalURN(k.cdc, iterator.Value())
+//		unbondingResourceNodes[i] = unbondingResourceNode
+//		i++
+//	}
+//	return unbondingResourceNodes[:i] // trim if the array length < maxRetrieve
+//}
+//
+//// return a unbonding UnbondingResourceNode
+//func (k Keeper) GetURN(ctx sdk.Context,
+//	networkAddr sdk.AccAddress) (ubd types.UnbondingResourceNode, found bool) {
+//
+//	store := ctx.KVStore(k.storeKey)
+//	key := types.GetURNKey(networkAddr)
+//	value := store.Get(key)
+//	if value == nil {
+//		return ubd, false
+//	}
+//
+//	ubd = types.MustUnmarshalURN(k.cdc, value)
+//	return ubd, true
+//}
+//
+//// iterate through all of the unbonding indexingNodes
+//func (k Keeper) IterateURNs(ctx sdk.Context, fn func(index int64, ubd types.UnbondingResourceNode) (stop bool)) {
+//	store := ctx.KVStore(k.storeKey)
+//	iterator := sdk.KVStorePrefixIterator(store, types.UBDResourceNodeKey)
+//	defer iterator.Close()
+//
+//	for i := int64(0); iterator.Valid(); iterator.Next() {
+//		ubd := types.MustUnmarshalURN(k.cdc, iterator.Value())
+//		if stop := fn(i, ubd); stop {
+//			break
+//		}
+//		i++
+//	}
+//}
+//
+//// HasMaxUnbondingResourceNodeEntries - check if unbonding ResourceNode has maximum number of entries
+//func (k Keeper) HasMaxURNEntries(ctx sdk.Context, networkAddr sdk.AccAddress) bool {
+//	ubd, found := k.GetURN(ctx, networkAddr)
+//	if !found {
+//		return false
+//	}
+//	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
+//}
+//
+//// set the unbonding ResourceNode
+//func (k Keeper) SetURN(ctx sdk.Context, ubd types.UnbondingResourceNode) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := types.MustMarshalURN(k.cdc, ubd)
+//	key := types.GetURNKey(ubd.GetNetworkAddr())
+//	store.Set(key, bz)
+//}
+//
+//// remove the unbonding ResourceNode object
+//func (k Keeper) RemoveURN(ctx sdk.Context, ubd types.UnbondingResourceNode) {
+//	store := ctx.KVStore(k.storeKey)
+//	key := types.GetURNKey(ubd.GetNetworkAddr())
+//	store.Delete(key)
+//}
+//
+//// SetUnbondingResourceNodeEntry adds an entry to the unbonding ResourceNode at
+//// the given addresses. It creates the unbonding ResourceNode if it does not exist
+//func (k Keeper) SetURNEntry(ctx sdk.Context, networkAddr sdk.AccAddress,
+//	creationHeight int64, minTime time.Time, balance sdk.Int) types.UnbondingResourceNode {
+//
+//	ubd, found := k.GetURN(ctx, networkAddr)
+//	if found {
+//		ubd.AddEntry(creationHeight, minTime, balance)
+//	} else {
+//		ubd = types.NewUnbondingResourceNode(networkAddr, creationHeight, minTime, balance)
+//	}
+//	k.SetURN(ctx, ubd)
+//	return ubd
+//}
+//
+//// unbonding delegation queue timeslice operations
+//
+//// gets a specific unbonding queue timeslice. A timeslice is a slice of DVPairs
+//// corresponding to unbonding delegations that expire at a certain time.
+//func (k Keeper) GetURNQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (networkAddrs []sdk.AccAddress) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := store.Get(types.GetURNTimeKey(timestamp))
+//	if bz == nil {
+//		return []sdk.AccAddress{}
+//	}
+//	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &networkAddrs)
+//	return networkAddrs
+//}
+//
+//// Sets a specific unbonding queue timeslice.
+//func (k Keeper) SetURNQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []sdk.AccAddress) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := k.cdc.MustMarshalBinaryLengthPrefixed(keys)
+//	store.Set(types.GetURNTimeKey(timestamp), bz)
+//}
+//
+//// Insert an unbonding delegation to the appropriate timeslice in the unbonding queue
+//func (k Keeper) InsertURNQueue(ctx sdk.Context, ubd types.UnbondingResourceNode,
+//	completionTime time.Time) {
+//
+//	timeSlice := k.GetURNQueueTimeSlice(ctx, completionTime)
+//	networkAddr := ubd.NetworkAddr
+//	if len(timeSlice) == 0 {
+//		k.SetURNQueueTimeSlice(ctx, completionTime, []sdk.AccAddress{networkAddr})
+//	} else {
+//		timeSlice = append(timeSlice, networkAddr)
+//		k.SetURNQueueTimeSlice(ctx, completionTime, timeSlice)
+//	}
+//}
+//
+//// Returns all the unbonding queue timeslices from time 0 until endTime
+//func (k Keeper) URNQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
+//	store := ctx.KVStore(k.storeKey)
+//	return store.Iterator(types.UBDResourceNodeQueueKey,
+//		sdk.InclusiveEndBytes(types.GetURNTimeKey(endTime)))
+//}
+//
+//// Returns a concatenated list of all the timeslices inclusively previous to
+//// currTime, and deletes the timeslices from the queue
+//func (k Keeper) DequeueAllMatureURNQueue(ctx sdk.Context,
+//	currTime time.Time) (matureUnbonds []sdk.AccAddress) {
+//
+//	store := ctx.KVStore(k.storeKey)
+//	// gets an iterator for all timeslices from time 0 until the current Blockheader time
+//	unbondingTimesliceIterator := k.URNQueueIterator(ctx, ctx.BlockHeader().Time)
+//	defer unbondingTimesliceIterator.Close()
+//
+//	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
+//		timeslice := []sdk.AccAddress{}
+//		value := unbondingTimesliceIterator.Value()
+//		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+//		matureUnbonds = append(matureUnbonds, timeslice...)
+//		store.Delete(unbondingTimesliceIterator.Key())
+//	}
+//	return matureUnbonds
+//}
+
+//
+//func (k Keeper) DoRemoveResourceNode(
+//	ctx sdk.Context, resourceNode register.ResourceNode, amt sdk.Int,
+//) (time.Time, error) {
+//
+//	ownerAcc := k.accountKeeper.GetAccount(ctx, resourceNode.OwnerAddress)
+//	if ownerAcc == nil {
+//		return time.Time{}, types.ErrNoOwnerAccountFound
+//	}
+//
+//	networkAddr := resourceNode.GetNetworkAddr()
+//	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
+//		return time.Time{}, types.ErrMaxUnbondingNodeEntries
+//	}
+//
+//	returnAmount, err := k.unbond(ctx, networkAddr, false, amt)
+//	if err != nil {
+//		return time.Time{}, err
+//	}
+//
+//	// transfer the node tokens to the not bonded pool
+//	if resourceNode.GetStatus() == sdk.Bonded {
+//		k.bondedToUnbonding(ctx, resourceNode, false)
+//	}
+//
+//	params := k.GetParams(ctx)
+//	// set the unbonding mature time and completion height appropriately
+//	unbondingMatureTime := calcUnbondingMatureTime(resourceNode.CreationTime, params.UnbondingThreasholdTime, params.UnbondingCompletionTime)
+//	unbondingNode := types.NewUnbondingNode(resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
+//	// Adds to unbonding node queue
+//	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
+//
+//	return unbondingMatureTime, nil
+//}

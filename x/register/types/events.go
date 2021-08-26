@@ -1,6 +1,9 @@
 package types
 
 const (
+	EventTypeCompleteUnbondingNode = "complete_unbonding_node"
+	EventTypeUnbondNode            = "unbond_node"
+
 	EventTypeCreateResourceNode           = "create_resource_node"
 	EventTypeRemoveResourceNode           = "remove_resource_node"
 	EventTypeUpdateResourceNode           = "update_resource_node"
@@ -15,6 +18,7 @@ const (
 	AttributeKeyPubKey                  = "pub_key"
 	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
 	AttributeKeyCandidateStatus         = "candidate_status"
+	AttributeKeyNetworkAddr             = "network_addr"
 
 	AttributeValueCategory = ModuleName
 )
