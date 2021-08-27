@@ -86,8 +86,6 @@ func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.I
 }
 
 func calcUnbondingMatureTime(creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
-	threasholdTime = 18 * time.Second
-	completionTime = 14 * time.Second
 	if creationTime.Add(threasholdTime).After(time.Now()) {
 		return creationTime.Add(threasholdTime).Add(completionTime)
 	}
@@ -155,7 +153,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				ctx.Logger().Info("001")
+				ctx.Logger().Debug("001")
 				k.removeIndexingNode(ctx, ubd.NetworkAddr)
 				_, found1 := k.GetIndexingNode(ctx, ubd.NetworkAddr)
 				if found1 {
@@ -170,7 +168,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				ctx.Logger().Info("002")
+				ctx.Logger().Debug("002")
 				k.removeResourceNode(ctx, ubd.NetworkAddr)
 				_, found1 := k.GetResourceNode(ctx, ubd.NetworkAddr)
 				if found1 {

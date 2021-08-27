@@ -110,12 +110,12 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
 		return
 	}
-	ctx.Logger().Info("141")
+	ctx.Logger().Debug("141")
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
-	ctx.Logger().Info("142")
+	ctx.Logger().Debug("142")
 }
 
 // GetResourceNetworksIterator gets an iterator over all network addresses
@@ -327,16 +327,16 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 	// loop through all the entries and complete unbonding mature entries
 	for i := 0; i < len(ubd.Entries); i++ {
 		entry := ubd.Entries[i]
-		ctx.Logger().Info("110 + " + entry.Balance.String())
+		ctx.Logger().Debug("110 + " + entry.Balance.String())
 		if entry.IsMature(ctxTime) {
-			ctx.Logger().Info("1101")
+			ctx.Logger().Debug("1101")
 			ubd.RemoveEntry(int64(i))
 			i--
 
 			// track undelegation only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
-				ctx.Logger().Info("111")
+				ctx.Logger().Debug("111")
 				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
 					return nil, err
@@ -344,7 +344,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 
 				balances = balances.Add(amt)
 			}
-			ctx.Logger().Info("1112")
+			ctx.Logger().Debug("1112")
 		}
 	}
 
@@ -368,14 +368,14 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress) e
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of indexing node
 	if ubd.IsIndexingNode {
-		ctx.Logger().Info("112")
+		ctx.Logger().Debug("112")
 		indexingNode, found := k.GetIndexingNode(ctx, ubd.NetworkAddr)
 		if !found {
 			return types.ErrNoIndexingNodeFound
 		}
 		return k.SubtractIndexingNodeStake(ctx, indexingNode, tokenToSub)
 	}
-	ctx.Logger().Info("113")
+	ctx.Logger().Debug("113")
 	// case of resource node
 	resourceNode, found := k.GetResourceNode(ctx, ubd.NetworkAddr)
 	if !found {
@@ -387,10 +387,10 @@ func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 func (k Keeper) UnbondResourceNode(
 	ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
 ) (time.Time, error) {
-	// transfer the node tokens to the not bonded pool
 	params := k.GetParams(ctx)
 	ctx.Logger().Info("Params of register module: " + params.String())
 
+	// transfer the node tokens to the not bonded pool
 	ownerAcc := k.accountKeeper.GetAccount(ctx, resourceNode.OwnerAddress)
 	if ownerAcc == nil {
 		return time.Time{}, types.ErrNoOwnerAccountFound
@@ -406,9 +406,9 @@ func (k Keeper) UnbondResourceNode(
 	}
 
 	// set the unbonding mature time and completion height appropriately
-	unbondingMatureTime := calcUnbondingMatureTime(resourceNode.CreationTime, params.UnbondingThreasholdTime, params.UnbondingCompletionTime)
+	unbondingMatureTime := calcUnbondingMatureTime(resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 	ctx.Logger().Info(fmt.Sprintf("Calculating mature time: creationTime[%s], threasholdTime[%s], completionTime[%s], matureTime[%s]",
-		resourceNode.CreationTime.String(), params.UnbondingThreasholdTime.String(), params.UnbondingCompletionTime.String(), unbondingMatureTime.String(),
+		resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx), unbondingMatureTime,
 	))
 	//unbondingNode := types.NewUnbondingNode(resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
 	unbondingNode := k.SetUnbondingNodeEntry(ctx, resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, amt)
@@ -438,21 +438,13 @@ func (k Keeper) UnbondIndexingNode(
 		k.bondedToUnbonding(ctx, indexingNode, true)
 	}
 
-	params := k.GetParams(ctx)
+	//params := k.GetParams(ctx)
 	// set the unbonding mature time and completion height appropriately
-	unbondingMatureTime := calcUnbondingMatureTime(indexingNode.CreationTime, params.UnbondingThreasholdTime, params.UnbondingCompletionTime)
+	unbondingMatureTime := calcUnbondingMatureTime(indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 	//unbondingNode := types.NewUnbondingNode(indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
 	unbondingNode := k.SetUnbondingNodeEntry(ctx, indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, amt)
 	// Adds to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding indexing node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 	return unbondingMatureTime, nil
-}
-
-// unbond a particular node and perform associated store operations
-func (k Keeper) unbond(
-	ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool, amt sdk.Int,
-) (amount sdk.Int, err error) {
-
-	return amount, nil
 }

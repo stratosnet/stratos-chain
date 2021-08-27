@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"time"
 )
 
 // NewHandler ...
@@ -17,14 +18,14 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case types.MsgCreateResourceNode:
 			return handleMsgCreateResourceNode(ctx, msg, k)
 		case types.MsgRemoveResourceNode:
-			return handleMsgRemoveResourceNodeNew(ctx, msg, k)
+			return handleMsgRemoveResourceNode(ctx, msg, k)
 		case types.MsgUpdateResourceNode:
 			return handleMsgUpdateResourceNode(ctx, msg, k)
 
 		case types.MsgCreateIndexingNode:
 			return handleMsgCreateIndexingNode(ctx, msg, k)
 		case types.MsgRemoveIndexingNode:
-			return handleMsgRemoveIndexingNodeNew(ctx, msg, k)
+			return handleMsgRemoveIndexingNode(ctx, msg, k)
 		case types.MsgUpdateIndexingNode:
 			return handleMsgUpdateIndexingNode(ctx, msg, k)
 		case types.MsgIndexingNodeRegistrationVote:
@@ -103,82 +104,34 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 		return nil, ErrNoResourceNodeFound
 	}
 
-	err := k.SubtractResourceNodeStake(ctx, resourceNode, sdk.NewCoin(k.BondDenom(ctx), resourceNode.GetTokens()))
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRemoveResourceNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgRemoveResourceNodeNew(ctx sdk.Context, msg types.MsgRemoveResourceNode, k keeper.Keeper) (*sdk.Result, error) {
-	resourceNode, found := k.GetResourceNode(ctx, msg.ResourceNodeAddress)
-	if !found {
-		return nil, ErrNoResourceNodeFound
-	}
-
-	ctx.Logger().Info("11111111111")
+	ctx.Logger().Debug("11111111111")
 
 	completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx.Logger().Info("22222222222")
+	ctx.Logger().Debug("22222222222")
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
-	//ctx.EventManager().EmitEvents(sdk.Events{
-	//	sdk.NewEvent(
-	//		types.EventTypeUnbond,
-	//		sdk.NewAttribute(types.AttributeKeyValidator, msg.ValidatorAddress.String()),
-	//		sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
-	//		sdk.NewAttribute(types.AttributeKeyCompletionTime, completionTime.Format(time.RFC3339)),
-	//	),
-	//	sdk.NewEvent(
-	//		sdk.EventTypeMessage,
-	//		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-	//		sdk.NewAttribute(sdk.AttributeKeySender, msg.DelegatorAddress.String()),
-	//	),
-	//})
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUnbondingResourceNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.ResourceNodeAddress.String()),
+			//sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
 
 	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
-	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
-	if !found {
-		return nil, ErrNoIndexingNodeFound
-	}
-	err := k.SubtractIndexingNodeStake(ctx, indexingNode, sdk.NewCoin(k.BondDenom(ctx), indexingNode.GetTokens()))
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeRemoveIndexingNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgRemoveIndexingNodeNew(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
 	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
@@ -190,18 +143,20 @@ func handleMsgRemoveIndexingNodeNew(ctx sdk.Context, msg types.MsgRemoveIndexing
 	}
 
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
-	//ctx.EventManager().EmitEvents(sdk.Events{
-	//	sdk.NewEvent(
-	//		types.EventTypeRemoveIndexingNode,
-	//		sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-	//		sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
-	//	),
-	//	sdk.NewEvent(
-	//		sdk.EventTypeMessage,
-	//		sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-	//	),
-	//})
-	//return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUnbondingIndexingNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 
 	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }

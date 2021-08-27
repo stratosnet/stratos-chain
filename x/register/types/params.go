@@ -14,11 +14,9 @@ import (
 const (
 	DefaultParamSpace                            = ModuleName
 	DefaultBondDenom                             = "ustos"
-	DefaultUnbondingThreasholdTime time.Duration = 180 * time.Second // threashold for unbonding - by default 180 days
-	DefaultUnbondingCompletionTime time.Duration = 14 * time.Second  // lead time to complete unbonding - by default 14 days
-	//DefaultUnbondingThreasholdTime time.Duration = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
-	//DefaultUnbondingCompletionTime time.Duration = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
-	DefaultMaxEntries = uint16(16)
+	DefaultUnbondingThreasholdTime time.Duration = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
+	DefaultUnbondingCompletionTime time.Duration = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
+	DefaultMaxEntries                            = uint16(16)
 )
 
 // Parameter store keys
@@ -70,9 +68,9 @@ func (p Params) String() string {
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		//params.NewParamSetPair(KeyUnbondingThreasholdTime, &p.UnbondingThreasholdTime, validateUnbondingThreasholdTime),
-		//params.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
-		//params.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
+		params.NewParamSetPair(KeyUnbondingThreasholdTime, &p.UnbondingThreasholdTime, validateUnbondingThreasholdTime),
+		params.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
+		params.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
 	}
 }
 

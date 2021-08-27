@@ -200,7 +200,7 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 
 // SubtractIndexingNodeStake Update the tokens of an existing indexing node
 func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	ctx.Logger().Info("121")
+	ctx.Logger().Debug("121")
 	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
 	if ownerAcc == nil {
 		return types.ErrNoOwnerAccountFound
@@ -209,7 +209,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	coins := sdk.NewCoins(tokenToSub)
 
 	if indexingNode.GetStatus() == sdk.Unbonded {
-		ctx.Logger().Info("122")
+		ctx.Logger().Debug("122")
 		notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
 		if notBondedTokenInPool.IsLT(tokenToSub) {
 			return types.ErrInsufficientBalanceOfNotBondedPool
@@ -217,7 +217,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 		notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
 		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
 	} else if indexingNode.GetStatus() == sdk.Bonded {
-		ctx.Logger().Info("123")
+		ctx.Logger().Debug("123")
 		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
 		if bondedTokenInPool.IsLT(tokenToSub) {
 			return types.ErrInsufficientBalanceOfBondedPool
@@ -228,7 +228,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 		}
 		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
 	} else { // unbonding
-		ctx.Logger().Info("1233")
+		ctx.Logger().Debug("1233")
 		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
 		if bondedTokenInPool.IsLT(tokenToSub) {
 			return types.ErrInsufficientBalanceOfBondedPool
@@ -249,7 +249,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	newStake := indexingNode.GetTokens()
 
 	k.SetIndexingNode(ctx, indexingNode)
-	ctx.Logger().Info("124")
+	ctx.Logger().Debug("124")
 	if indexingNode.GetTokens().IsZero() {
 		k.DeleteLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
 		err := k.removeIndexingNode(ctx, indexingNode.GetNetworkAddr())
@@ -257,10 +257,10 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 			return err
 		}
 	} else {
-		ctx.Logger().Info("125")
+		ctx.Logger().Debug("125")
 		k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	}
-	ctx.Logger().Info("126")
+	ctx.Logger().Debug("126")
 	k.decreaseOzoneLimitBySubtractStake(ctx, tokenToSub.Amount)
 	return nil
 }
