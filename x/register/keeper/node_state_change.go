@@ -12,7 +12,7 @@ import (
 // Called in each EndBlock
 func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
 	// Remove all mature unbonding nodes from the ubd queue.
-	ctx.Logger().Info("Enter BlockRegisteredNodesUpdates")
+	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
 	matureUBDs := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, networkAddr := range matureUBDs {
 		balances, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
@@ -81,7 +81,7 @@ func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.I
 	// save the now unbonded node record and power index
 	k.SetIndexingNode(ctx, indexingNode)
 	// trigger hook if registered
-	k.AfterNodeBeginUnbonding(ctx, indexingNode.GetNetworkAddr(), false)
+	k.AfterNodeBeginUnbonding(ctx, indexingNode.GetNetworkAddr(), true)
 	return indexingNode
 }
 
@@ -153,7 +153,6 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				ctx.Logger().Debug("001")
 				k.removeIndexingNode(ctx, ubd.NetworkAddr)
 				_, found1 := k.GetIndexingNode(ctx, ubd.NetworkAddr)
 				if found1 {
@@ -168,7 +167,6 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				ctx.Logger().Debug("002")
 				k.removeResourceNode(ctx, ubd.NetworkAddr)
 				_, found1 := k.GetResourceNode(ctx, ubd.NetworkAddr)
 				if found1 {

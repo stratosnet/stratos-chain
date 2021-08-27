@@ -110,12 +110,10 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
 		return
 	}
-	ctx.Logger().Debug("141")
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
-	ctx.Logger().Debug("142")
 }
 
 // GetResourceNetworksIterator gets an iterator over all network addresses
@@ -306,7 +304,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 		matureUnbonds = append(matureUnbonds, timeslice...)
 		store.Delete(unbondingTimesliceIterator.Key())
 	}
-	ctx.Logger().Info(fmt.Sprintf("DequeueAllMatureUBDQueue, %d matured unbonding nodes detected", len(matureUnbonds)))
+	ctx.Logger().Debug(fmt.Sprintf("DequeueAllMatureUBDQueue, %d matured unbonding nodes detected", len(matureUnbonds)))
 	return matureUnbonds
 }
 
@@ -323,20 +321,17 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 	bondDenom := k.GetParams(ctx).BondDenom
 	balances := sdk.NewCoins()
 	ctxTime := ctx.BlockHeader().Time
-	ctx.Logger().Info(fmt.Sprintf("Completing UnbondingWithAmount, networAddr: %s", networkAddr))
+	ctx.Logger().Debug(fmt.Sprintf("Completing UnbondingWithAmount, networAddr: %s", networkAddr))
 	// loop through all the entries and complete unbonding mature entries
 	for i := 0; i < len(ubd.Entries); i++ {
 		entry := ubd.Entries[i]
-		ctx.Logger().Debug("110 + " + entry.Balance.String())
 		if entry.IsMature(ctxTime) {
-			ctx.Logger().Debug("1101")
 			ubd.RemoveEntry(int64(i))
 			i--
 
 			// track undelegation only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
-				ctx.Logger().Debug("111")
 				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
 					return nil, err
@@ -344,7 +339,6 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 
 				balances = balances.Add(amt)
 			}
-			ctx.Logger().Debug("1112")
 		}
 	}
 
@@ -368,14 +362,12 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress) e
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of indexing node
 	if ubd.IsIndexingNode {
-		ctx.Logger().Debug("112")
 		indexingNode, found := k.GetIndexingNode(ctx, ubd.NetworkAddr)
 		if !found {
 			return types.ErrNoIndexingNodeFound
 		}
 		return k.SubtractIndexingNodeStake(ctx, indexingNode, tokenToSub)
 	}
-	ctx.Logger().Debug("113")
 	// case of resource node
 	resourceNode, found := k.GetResourceNode(ctx, ubd.NetworkAddr)
 	if !found {

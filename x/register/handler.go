@@ -104,14 +104,11 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 		return nil, ErrNoResourceNodeFound
 	}
 
-	ctx.Logger().Debug("11111111111")
-
 	completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
 
-	ctx.Logger().Debug("22222222222")
 	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

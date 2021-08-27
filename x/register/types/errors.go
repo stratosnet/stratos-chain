@@ -42,4 +42,5 @@ var (
 	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, 35, "no unbonding node found")
 	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, 36, "too many unbonding node entries for networkAddr tuple")
 	ErrNoNodeForAddress                   = sdkerrors.Register(ModuleName, 37, "Registered node does not contain address")
+	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, 38, "changes cannot be made to an unbonding node")
 )
