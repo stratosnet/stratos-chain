@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // GenesisState - all register state that must be provided at genesis
@@ -106,7 +107,7 @@ type GenesisIndexingNode struct {
 }
 
 func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
-	pubKey, err := sdk.GetPubKeyFromBech32(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
+	pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, v.PubKey)
 	if err != nil {
 		panic(err)
 	}
