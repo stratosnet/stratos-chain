@@ -35,13 +35,9 @@ var (
 	IndexingNodeKey                  = []byte{0x22} // prefix for each key to a indexing node
 	IndexingNodeRegistrationVotesKey = []byte{0x23} // prefix for each key to the vote for Indexing node registration
 
-	//UBDResourceNodeKey = []byte{0x31} // prefix for each key to an unbonding resource node
-	//UBDIndexingNodeKey = []byte{0x32} // prefix for each key to an unbonding indexing node
-	UBDNodeKey = []byte{0x33} // prefix for each key to an unbonding node
+	UBDNodeKey = []byte{0x31} // prefix for each key to an unbonding node
 
-	//UBDResourceNodeQueueKey    = []byte{0x41} // prefix for the timestamps in unbonding resource node queue
-	//UBDIndexingNodeQueueKey    = []byte{0x42} // prefix for the timestamps in unbonding indexing node queue
-	UBDNodeQueueKey = []byte{0x43} // prefix for the timestamps in unbonding node queue
+	UBDNodeQueueKey = []byte{0x41} // prefix for the timestamps in unbonding node queue
 )
 
 // GetLastResourceNodeStakeKey get the bonded resource node index key for an address
