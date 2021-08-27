@@ -67,32 +67,10 @@ func GetIndexingNodeRegistrationVotesKey(nodeAddr sdk.AccAddress) []byte {
 	return append(IndexingNodeRegistrationVotesKey, nodeAddr.Bytes()...)
 }
 
-//// GetUINKey gets the key for the unbonding indexingNode with address
-//func GetUINKey(nodeAddr sdk.AccAddress) []byte {
-//	return append(UBDIndexingNodeKey, nodeAddr.Bytes()...)
-//}
-//
-//// GetURNKey gets the key for the unbonding resourceNode with address
-//func GetURNKey(nodeAddr sdk.AccAddress) []byte {
-//	return append(UBDResourceNodeKey, nodeAddr.Bytes()...)
-//}
-
 // GetURNKey gets the key for the unbonding Node with address
 func GetUBDNodeKey(nodeAddr sdk.AccAddress) []byte {
 	return append(UBDNodeKey, nodeAddr.Bytes()...)
 }
-
-//// gets the prefix for all unbonding ResourceNode
-//func GetURNTimeKey(timestamp time.Time) []byte {
-//	bz := sdk.FormatTimeBytes(timestamp)
-//	return append(UBDResourceNodeQueueKey, bz...)
-//}
-//
-//// gets the prefix for all unbonding IndexingNode
-//func GetUINTimeKey(timestamp time.Time) []byte {
-//	bz := sdk.FormatTimeBytes(timestamp)
-//	return append(UBDIndexingNodeQueueKey, bz...)
-//}
 
 // gets the prefix for all unbonding Node
 func GetUBDTimeKey(timestamp time.Time) []byte {
