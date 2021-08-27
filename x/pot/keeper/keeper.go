@@ -55,19 +55,36 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // GetVolumeReport returns the hash of volume report
-func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byte, error) {
+//func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byte, error) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := store.Get(types.VolumeReportStoreKey(reporter))
+//	if bz == nil {
+//		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
+//			"key %s does not exist", hex.EncodeToString(types.VolumeReportStoreKey(reporter)))
+//	}
+//	return bz, nil
+//}
+
+func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) ([]byte, error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.VolumeReportStoreKey(reporter))
+	bz := store.Get(types.VolumeReportStoreKey(epoch))
 	if bz == nil {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
-			"key %s does not exist", hex.EncodeToString(types.VolumeReportStoreKey(reporter)))
+			"key %s does not exist", hex.EncodeToString(types.VolumeReportStoreKey(epoch)))
 	}
 	return bz, nil
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
+//func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
+//	store := ctx.KVStore(k.storeKey)
+//	storeKey := types.VolumeReportStoreKey(reporter)
+//	store.Set(storeKey, []byte(reportReference))
+//}
+
+func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportReference string) {
 	store := ctx.KVStore(k.storeKey)
-	storeKey := types.VolumeReportStoreKey(reporter)
+	//storeKey := types.VolumeReportStoreKey(reporter)
+	storeKey := types.VolumeReportStoreKey(epoch)
 	store.Set(storeKey, []byte(reportReference))
 }
 

@@ -5,6 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/mock"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
@@ -69,12 +70,12 @@ func setupAllResourceNodes() []ResourceNode {
 	resourceNode1 = resourceNode1.AddToken(resNodeInitStake)
 	resourceNode1.Status = sdk.Bonded
 
-	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	resourceNode3 = resourceNode1.AddToken(resNodeInitStake)
-	resourceNode3.Status = sdk.Bonded
+	//resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4")
+	//resourceNode3 = resourceNode1.AddToken(resNodeInitStake)
+	//resourceNode3.Status = sdk.Bonded
 
 	var resourceNodes []ResourceNode
-	resourceNodes = append(resourceNodes, resourceNode1, resourceNode3)
+	resourceNodes = append(resourceNodes, resourceNode1)
 	return resourceNodes
 }
 

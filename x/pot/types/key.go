@@ -41,8 +41,11 @@ func GetMinedTokensKey(epoch sdk.Int) []byte {
 }
 
 // VolumeReportStoreKey turns an address to key used to get it from the account store
-func VolumeReportStoreKey(reporter sdk.AccAddress) []byte {
-	return append(VolumeReportStoreKeyPrefix, reporter.Bytes()...)
+//func VolumeReportStoreKey(reporter sdk.AccAddress) []byte {
+//	return append(VolumeReportStoreKeyPrefix, reporter.Bytes()...)
+//}
+func VolumeReportStoreKey(epoch sdk.Int) []byte {
+	return append(VolumeReportStoreKeyPrefix, epoch.String()...)
 }
 
 // GetIndividualRewardKey prefix{address}_individual_{epoch}, the amount that is matured at {epoch}

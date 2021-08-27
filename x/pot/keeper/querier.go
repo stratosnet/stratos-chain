@@ -5,12 +5,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"strconv"
 )
 
 const (
-	QueryVolumeReport = "volume_report"
-	QueryPotRewards   = "pot_rewards"
-	QueryDefaultLimit = 100
+	QueryVolumeReport     = "volume_report"
+	QueryRestVolumeReport = "rest_volume_report"
+	QueryPotRewards       = "pot_rewards"
+	QueryDefaultLimit     = 100
 )
 
 // NewQuerier creates a new querier for pot clients.
@@ -19,6 +21,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k)
+		case QueryRestVolumeReport:
+			return queryRestVolumeReport(ctx, req, k)
 		case QueryPotRewards:
 			return queryPotRewards(ctx, req, k)
 
@@ -28,9 +32,14 @@ func NewQuerier(k Keeper) sdk.Querier {
 	}
 }
 
-// queryVolumeReport fetches an hash of report volume for the supplied height.
+// queryVolumeReport fetches a hash of report volume for the supplied epoch.
 func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	volumeReportHash, err := k.GetVolumeReport(ctx, req.Data)
+	epoch, err := strconv.ParseInt(string(req.Data), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeReportHash, err := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -45,16 +54,34 @@ func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
-	resNodeRewards := k.GetResourceNodesRewards(ctx, params)
-
-	if len(resNodeRewards) == 0 {
-		resNodeRewards = []NodeRewardsInfo{}
+	nodeRewards := k.GetNodesRewards(ctx, params)
+	if len(nodeRewards) == 0 {
+		nodeRewards = []NodeRewardsInfo{}
 	}
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, resNodeRewards)
+	bz, err := codec.MarshalJSONIndent(k.cdc, nodeRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
 	return bz, nil
+}
+
+func queryRestVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	//var params QueryVolumeReportParams
+	//err := k.cdc.UnmarshalJSON(req.Data, &params)
+	//if err != nil {
+	//	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	//}
+
+	epoch, err := strconv.ParseInt(string(req.Data), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+
+	volumeReportHash, err := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return volumeReportHash, nil
 }

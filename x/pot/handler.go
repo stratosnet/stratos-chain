@@ -34,12 +34,12 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	if !(k.IsSPNode(ctx, msg.Reporter)) {
 
 		ctx.Logger().Info("Sender Info:", "IsSPNode", "false")
-		errMsg := fmt.Sprint("message is not sent by a superior peer")
+		errMsg := fmt.Sprint("Volume report is not sent by a superior peer")
 		ctx.Logger().Info(errMsg)
 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
 	}
-	k.SetVolumeReport(ctx, msg.Reporter, msg.ReportReference)
+	k.SetVolumeReport(ctx, msg.Epoch, msg.ReportReference)
 	err := k.DistributePotReward(ctx, msg.NodesVolume, msg.Epoch)
 	if err != nil {
 		return nil, err
