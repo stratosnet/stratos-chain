@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
@@ -106,7 +107,7 @@ func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 
 // String returns a human readable string representation of a resource node.
 func (v ResourceNode) String() string {
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
+	pubKey, err := stratos.Bech32ifyPubKey(stratos.Bech32PubKeyTypeAccPub, v.PubKey)
 	if err != nil {
 		panic(err)
 	}

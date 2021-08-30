@@ -8,6 +8,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -17,15 +18,16 @@ import (
 )
 
 const (
-	AccountAddressPrefix = "st"
+	StratosBech32Prefix = "st"
 )
 
 var (
-	AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
-	ValidatorAddressPrefix = AccountAddressPrefix + "valoper"
-	ValidatorPubKeyPrefix  = AccountAddressPrefix + "valoperpub"
-	ConsNodeAddressPrefix  = AccountAddressPrefix + "valcons"
-	ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
+	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
+	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
+	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
+	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
+	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
+	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
 )
 
 func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, auth.AccountKeeper, bank.Keeper, Keeper, params.Keeper) {
@@ -61,10 +63,11 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, auth.AccountKee
 }
 
 func SetConfig() {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
+	config := stratos.GetConfig()
+	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
 	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
 	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
+	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
 }
 
 // create a codec used only for testing

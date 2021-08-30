@@ -2,26 +2,20 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/params"
 )
 
-// ParamSubspace defines the expected Subspace interface
-type ParamSubspace interface {
+// ParamSubSpace defines the expected Subspace interface
+type ParamSubSpace interface {
 	WithKeyTable(table params.KeyTable) params.Subspace
 	Get(ctx sdk.Context, key []byte, ptr interface{})
 	GetParamSet(ctx sdk.Context, ps params.ParamSet)
 	SetParamSet(ctx sdk.Context, ps params.ParamSet)
-
-	//SetVolumeReportHash(ctx sdk.Context, key []byte, value string)
-	//GetVolumeReportHash(ctx sdk.Context, key []byte) MsgVolumeReport
 }
 
-/*
-When a module wishes to interact with another module, it is good practice to define what it will use
-as an interface so the module cannot use things that are not permitted.
-TODO: Create interfaces of what you expect the other keepers to have to be able to use this module.
-type BankKeeper interface {
-	SubtractCoins(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coins) (sdk.Coins, error)
-	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
+// AccountKeeper defines the expected account keeper (noalias)
+type AccountKeeper interface {
+	IterateAccounts(ctx sdk.Context, process func(authexported.Account) (stop bool))
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account // only used for simulation
 }
-*/

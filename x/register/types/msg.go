@@ -377,7 +377,6 @@ func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
 
 func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
-	addrs = append(addrs, m.VoterNetworkAddress)
 	addrs = append(addrs, m.VoterOwnerAddress)
 	return addrs
 }

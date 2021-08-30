@@ -28,9 +28,9 @@ func Test(t *testing.T) {
 	header := abci.Header{}
 	ctx := mApp.BaseApp.NewContext(true, header)
 
-	//1 bonded resource node, 1 bonded indexing node, 1 unBonded indexing node initialized by genesis
+	//2 bonded resource node, 1 bonded indexing node, 1 unBonded indexing node initialized by genesis
 	resBondedToken := k.GetResourceNodeBondedToken(ctx)
-	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake))
+	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake)))
 	resNotBondedToken := k.GetResourceNodeNotBondedToken(ctx)
 	require.EqualValues(t, resNotBondedToken, sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
 	idxBondedToken := k.GetIndexingNodeBondedToken(ctx)
@@ -50,14 +50,14 @@ func Test(t *testing.T) {
 	accNumNode := resNodeAcc2.GetAccountNumber()
 	accSeqNode := resNodeAcc2.GetSequence()
 
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerResNodeMsg}, []uint64{accNumOwner, accNumNode}, []uint64{accSeqOwner, accSeqNode}, true, true, resOwnerPrivKey2, resNodePrivKey2)
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerResNodeMsg}, []uint64{accNumOwner, accNumNode}, []uint64{accSeqOwner, accSeqNode}, true, true, resOwnerPrivKey2)
 
 	/*-------------------- commit & check result --------------------*/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
 
 	resBondedToken = k.GetResourceNodeBondedToken(ctx)
-	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake)))
+	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake).Add(resNodeInitStake)))
 	resNotBondedToken = k.GetResourceNodeNotBondedToken(ctx)
 	require.EqualValues(t, resNotBondedToken, sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
 	idxBondedToken = k.GetIndexingNodeBondedToken(ctx)
@@ -77,14 +77,14 @@ func Test(t *testing.T) {
 	accNumNode = idxNodeAcc3.GetAccountNumber()
 	accSeqNode = idxNodeAcc3.GetSequence()
 
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerIdxNodeMsg}, []uint64{accNumOwner, accNumNode}, []uint64{accSeqOwner, accSeqNode}, true, true, idxOwnerPrivKey3, idxNodePrivKey3)
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{registerIdxNodeMsg}, []uint64{accNumOwner, accNumNode}, []uint64{accSeqOwner, accSeqNode}, true, true, idxOwnerPrivKey3)
 
 	/*-------------------- commit & check result, stake should be stored in the not bonded pool --------------------*/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
 
 	resBondedToken = k.GetResourceNodeBondedToken(ctx)
-	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake)))
+	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake).Add(resNodeInitStake)))
 	resNotBondedToken = k.GetResourceNodeNotBondedToken(ctx)
 	require.EqualValues(t, resNotBondedToken, sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
 	idxBondedToken = k.GetIndexingNodeBondedToken(ctx)
@@ -110,7 +110,7 @@ func Test(t *testing.T) {
 	ctx = mApp.BaseApp.NewContext(true, header)
 
 	resBondedToken = k.GetResourceNodeBondedToken(ctx)
-	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake)))
+	require.EqualValues(t, resBondedToken, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake.Add(resNodeInitStake).Add(resNodeInitStake)))
 	resNotBondedToken = k.GetResourceNodeNotBondedToken(ctx)
 	require.EqualValues(t, resNotBondedToken, sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
 	idxBondedToken = k.GetIndexingNodeBondedToken(ctx)
