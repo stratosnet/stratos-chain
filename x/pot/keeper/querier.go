@@ -9,10 +9,9 @@ import (
 )
 
 const (
-	QueryVolumeReport     = "volume_report"
-	QueryRestVolumeReport = "rest_volume_report"
-	QueryPotRewards       = "pot_rewards"
-	QueryDefaultLimit     = 100
+	QueryVolumeReport = "volume_report"
+	QueryPotRewards   = "pot_rewards"
+	QueryDefaultLimit = 100
 )
 
 // NewQuerier creates a new querier for pot clients.
@@ -21,8 +20,6 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k)
-		case QueryRestVolumeReport:
-			return queryRestVolumeReport(ctx, req, k)
 		case QueryPotRewards:
 			return queryPotRewards(ctx, req, k)
 
@@ -65,23 +62,4 @@ func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 	}
 
 	return bz, nil
-}
-
-func queryRestVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	//var params QueryVolumeReportParams
-	//err := k.cdc.UnmarshalJSON(req.Data, &params)
-	//if err != nil {
-	//	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	//}
-
-	epoch, err := strconv.ParseInt(string(req.Data), 10, 64)
-	if err != nil {
-		return nil, err
-	}
-
-	volumeReportHash, err := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return volumeReportHash, nil
 }
