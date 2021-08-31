@@ -12,9 +12,9 @@ import (
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/pot/rewards/{epoch}", getPotRewardsHandlerFn(cliCtx, keeper.QueryPotRewards)).Methods("GET")
-	r.HandleFunc("/pot/rewards/{epoch}/{NodeWalletAddress}", getPotRewardsByNodeWalletAddrHandlerFn(cliCtx, keeper.QueryPotRewards)).Methods("GET")
-	r.HandleFunc("/pot/report/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
+	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsHandlerFn(cliCtx, keeper.QueryPotRewards)).Methods("GET")
+	r.HandleFunc("/pot/rewards/epoch/{epoch}/address/{NodeWalletAddress}", getPotRewardsByNodeWalletAddrHandlerFn(cliCtx, keeper.QueryPotRewards)).Methods("GET")
+	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
 }
 
 // GET request handler to query potRewards info
@@ -139,3 +139,13 @@ func checkNodeWalletAddr(w http.ResponseWriter, r *http.Request) (sdk.AccAddress
 	}
 	return NodeWalletAddr, true
 }
+
+//func checkNodeAddr(w http.ResponseWriter, r *http.Request) (typesTypes.Bech32PubKeyType, bool) {
+//	NodeAddrStr := mux.Vars(r)["nodeAddress"]
+//	NodeAddr, err := typesTypes.GetPubKeyFromBech32(typesTypes.Bech32PubKeyTypeSdsP2PPub, NodeAddrStr)
+//	if err != nil {
+//		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'NodeAddress'.")
+//		return "", false
+//	}
+//	return typesTypes.Bech32PubKeyType(NodeAddr.Bytes()), true
+//}

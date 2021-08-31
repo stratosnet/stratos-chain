@@ -71,8 +71,8 @@ var (
 	)
 
 	maccPerms = map[string][]string{
-		//auth.FeeCollectorName:     {"fee_collector"},
-		auth.FeeCollectorName:     nil,
+		auth.FeeCollectorName: {"fee_collector"},
+		//auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
@@ -187,19 +187,6 @@ func NewInitApp(
 
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount)
 
-	//feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
-	//notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
-	//bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
-
-	//blacklistedAddrs := make(map[string]bool)
-	//for acc := range maccPerms {
-	//	blacklistedAddrs[supply.NewModuleAddress(acc).String()] = !allowedReceivingModAcc[acc]
-	//}
-	//blacklistedAddrs[feeCollector.GetAddress().String()] = true
-	//blacklistedAddrs[notBondedPool.GetAddress().String()] = true
-	//blacklistedAddrs[bondPool.GetAddress().String()] = true
-
-	//app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, app.subspaces[bank.ModuleName], blacklistedAddrs)
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, app.subspaces[bank.ModuleName], app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
 
