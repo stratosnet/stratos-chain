@@ -393,8 +393,10 @@ func (k Keeper) UnbondResourceNode(
 		return time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
+	bondDenom := k.GetParams(ctx).BondDenom
+	coin := sdk.NewCoin(bondDenom, amt)
 	if resourceNode.GetStatus() == sdk.Bonded {
-		k.bondedToUnbonding(ctx, resourceNode, false)
+		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 	}
 
 	// set the unbonding mature time and completion height appropriately
@@ -426,8 +428,10 @@ func (k Keeper) UnbondIndexingNode(
 	}
 
 	// transfer the node tokens to the not bonded pool
+	bondDenom := k.GetParams(ctx).BondDenom
+	coin := sdk.NewCoin(bondDenom, amt)
 	if indexingNode.GetStatus() == sdk.Bonded {
-		k.bondedToUnbonding(ctx, indexingNode, true)
+		k.bondedToUnbonding(ctx, indexingNode, true, coin)
 	}
 
 	//params := k.GetParams(ctx)

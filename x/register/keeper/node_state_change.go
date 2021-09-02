@@ -34,19 +34,19 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 }
 
 // Node state transitions
-func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
+func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingNode bool, coin sdk.Coin) interface{} {
 	if isIndexingNode {
 		temp := node.(types.IndexingNode)
 		if temp.GetStatus() != sdk.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, indexingNode: %v\n", temp))
 		}
-		return k.beginUnbondingIndexingNode(ctx, temp)
+		return k.beginUnbondingIndexingNode(ctx, temp, coin)
 	} else {
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != sdk.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, resourceNode: %v\n", temp))
 		}
-		return k.beginUnbondingResourceNode(ctx, temp)
+		return k.beginUnbondingResourceNode(ctx, temp, coin)
 	}
 }
 
@@ -68,18 +68,22 @@ func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexin
 }
 
 // perform all the store operations for when a Node begins unbonding
-func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) types.ResourceNode {
+func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, coin sdk.Coin) types.ResourceNode {
+	// change node status to unbonding
 	resourceNode.Status = sdk.Unbonding
-	// save the now unbonded node record and power index
 	k.SetResourceNode(ctx, resourceNode)
+	// remove token from bonded pool, add token into NotBondedPool
+	k.RemoveTokenFromPoolWhileUnbondingResourceNode(ctx, resourceNode, coin)
 	// trigger hook if registered
 	k.AfterNodeBeginUnbonding(ctx, resourceNode.GetNetworkAddr(), false)
 	return resourceNode
 }
-func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode) types.IndexingNode {
+func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, coin sdk.Coin) types.IndexingNode {
+	// change node status to unbonding
 	indexingNode.Status = sdk.Unbonding
-	// save the now unbonded node record and power index
 	k.SetIndexingNode(ctx, indexingNode)
+	// remove token from bonded pool, add token into NotBondedPool
+	k.RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx, indexingNode, coin)
 	// trigger hook if registered
 	k.AfterNodeBeginUnbonding(ctx, indexingNode.GetNetworkAddr(), true)
 	return indexingNode
