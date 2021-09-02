@@ -178,15 +178,16 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 
 	indexingNode = indexingNode.AddToken(tokenToAdd.Amount)
 
-	if indexingNode.GetStatus() == sdk.Unbonded {
+	switch indexingNode.GetStatus() {
+	case sdk.Unbonded:
 		notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
 		notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
 		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
-	} else if indexingNode.GetStatus() == sdk.Bonded {
+	case sdk.Bonded:
 		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
 		bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
 		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
-	} else { // unbonding -> not allowed to add stake to unbonding node
+	case sdk.Unbonding:
 		return types.ErrUnbondingNode
 	}
 

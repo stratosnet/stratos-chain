@@ -126,18 +126,18 @@ func (k Keeper) UBDNodeQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Ite
 }
 
 // Returns a concatenated list of all the timeslices before currTime, and deletes the timeslices from the queue
-func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (matureValsAddrs []sdk.ValAddress) {
+func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (matureNetworkAddrs []sdk.AccAddress) {
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
 	ubdTimesliceIterator := k.UBDNodeQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer ubdTimesliceIterator.Close()
 
 	for ; ubdTimesliceIterator.Valid(); ubdTimesliceIterator.Next() {
-		timeslice := []sdk.ValAddress{}
+		timeslice := []sdk.AccAddress{}
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
-		matureValsAddrs = append(matureValsAddrs, timeslice...)
+		matureNetworkAddrs = append(matureNetworkAddrs, timeslice...)
 	}
 
-	return matureValsAddrs
+	return matureNetworkAddrs
 }
 
 // Unbonds all the unbonding validators that have finished their unbonding period

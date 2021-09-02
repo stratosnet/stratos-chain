@@ -153,7 +153,6 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 
 	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }

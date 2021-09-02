@@ -139,15 +139,16 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		return err
 	}
 
-	if resourceNode.GetStatus() == sdk.Unbonded {
+	switch resourceNode.GetStatus() {
+	case sdk.Unbonded:
 		notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
 		notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
 		k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
-	} else if resourceNode.GetStatus() == sdk.Bonded {
+	case sdk.Bonded:
 		bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
 		bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
 		k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
-	} else { // unbonding -> not allowed to add stake to unbonding node
+	case sdk.Unbonding:
 		return types.ErrUnbondingNode
 	}
 
