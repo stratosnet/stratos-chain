@@ -99,11 +99,8 @@ func Test(t *testing.T) {
 	idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr1)
 	accNumOwner = idxOwnerAcc1.GetAccountNumber()
 	accSeqOwner = idxOwnerAcc1.GetSequence()
-	idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
-	accNumVoter := idxNodeAcc1.GetAccountNumber()
-	accSeqVoter := idxNodeAcc1.GetSequence()
 
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{voteMsg}, []uint64{accNumVoter, accNumOwner}, []uint64{accSeqVoter, accSeqOwner}, true, true, idxNodePrivKey1, idxOwnerPrivKey1)
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{voteMsg}, []uint64{accNumOwner}, []uint64{accSeqOwner}, true, true, idxOwnerPrivKey1)
 
 	/*-------------------- commit & check result, stake should be transferred to the bonded pool --------------------*/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}

@@ -80,7 +80,7 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) {
+func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
@@ -90,9 +90,10 @@ func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) {
 	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
+	return limitToAdd.TruncateInt()
 }
 
-func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) {
+func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
@@ -102,6 +103,7 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
+	return limitToSub.TruncateInt()
 }
 
 // GetResourceNetworksIterator gets an iterator over all network addresses
