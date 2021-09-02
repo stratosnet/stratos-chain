@@ -392,21 +392,23 @@ func (k Keeper) UnbondResourceNode(
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
+	unbondingMatureTime := calcUnbondingMatureTime(resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
 	if resourceNode.GetStatus() == sdk.Bonded {
+		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
+		// adjust ozone limit
+		k.decreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// set the unbonding mature time and completion height appropriately
-	unbondingMatureTime := calcUnbondingMatureTime(resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 	ctx.Logger().Info(fmt.Sprintf("Calculating mature time: creationTime[%s], threasholdTime[%s], completionTime[%s], matureTime[%s]",
 		resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx), unbondingMatureTime,
 	))
-	//unbondingNode := types.NewUnbondingNode(resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
 	unbondingNode := k.SetUnbondingNodeEntry(ctx, resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, amt)
-	// Adds to unbonding node queue
+	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 
@@ -427,20 +429,69 @@ func (k Keeper) UnbondIndexingNode(
 		return time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	// transfer the node tokens to the not bonded pool
+	unbondingMatureTime := calcUnbondingMatureTime(indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
 	if indexingNode.GetStatus() == sdk.Bonded {
+		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, indexingNode, true, coin)
+		// adjust ozone limit
+		k.decreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
-	//params := k.GetParams(ctx)
-	// set the unbonding mature time and completion height appropriately
-	unbondingMatureTime := calcUnbondingMatureTime(indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
-	//unbondingNode := types.NewUnbondingNode(indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, returnAmount)
+	// Set the unbonding mature time and completion height appropriately
 	unbondingNode := k.SetUnbondingNodeEntry(ctx, indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, amt)
-	// Adds to unbonding node queue
+	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding indexing node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 	return unbondingMatureTime, nil
+}
+
+// GetAllUnbondingNodes get the set of all ubd nodes with no limits, used during genesis dump
+func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.UnbondingNode) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+		unbondingNodes = append(unbondingNodes, node)
+	}
+	return unbondingNodes
+}
+
+func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context, unbondingNodes []types.UnbondingNode) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
+	defer iterator.Close()
+
+	var ubdTotal = sdk.ZeroInt()
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+		for _, entry := range node.Entries {
+			ubdTotal.Add(entry.Balance)
+		}
+	}
+	return ubdTotal
+}
+
+// return a unbonding UnbondingIndexingNode
+func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
+	networkAddr sdk.AccAddress) sdk.Int {
+
+	balance := sdk.ZeroInt()
+
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetUBDNodeKey(networkAddr)
+	value := store.Get(key)
+	if value == nil {
+		return balance
+	}
+
+	ubd := types.MustUnmarshalUnbondingNode(k.cdc, value)
+	for _, entry := range ubd.Entries {
+		balance.Add(entry.Balance)
+	}
+	return balance
 }

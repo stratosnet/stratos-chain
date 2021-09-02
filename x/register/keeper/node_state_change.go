@@ -35,13 +35,14 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 
 // Node state transitions
 func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingNode bool, coin sdk.Coin) interface{} {
-	if isIndexingNode {
+	switch isIndexingNode {
+	case true:
 		temp := node.(types.IndexingNode)
 		if temp.GetStatus() != sdk.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, indexingNode: %v\n", temp))
 		}
 		return k.beginUnbondingIndexingNode(ctx, temp, coin)
-	} else {
+	default:
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != sdk.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, resourceNode: %v\n", temp))
@@ -52,13 +53,14 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingN
 
 // switches a Node from unbonding state to unbonded state
 func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
-	if isIndexingNode {
+	switch isIndexingNode {
+	case true:
 		temp := node.(types.IndexingNode)
 		if temp.GetStatus() != sdk.Unbonding {
 			panic(fmt.Sprintf("bad state transition unbondingToBonded, indexingNode: %v\n", temp))
 		}
 		return k.completeUnbondingNode(ctx, temp, isIndexingNode)
-	} else {
+	default:
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != sdk.Unbonding {
 			panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", temp))
@@ -89,11 +91,17 @@ func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.I
 	return indexingNode
 }
 
-func calcUnbondingMatureTime(creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
-	if creationTime.Add(threasholdTime).After(time.Now()) {
-		return creationTime.Add(threasholdTime).Add(completionTime)
+func calcUnbondingMatureTime(currStatus sdk.BondStatus, creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
+	switch currStatus {
+	case sdk.Unbonded:
+		return creationTime.Add(completionTime)
+	default:
+		// bonded
+		if creationTime.Add(threasholdTime).After(time.Now()) {
+			return creationTime.Add(threasholdTime).Add(completionTime)
+		}
+		return time.Now().Add(completionTime)
 	}
-	return time.Now().Add(completionTime)
 }
 
 // perform all the store operations for when a validator status becomes unbonded

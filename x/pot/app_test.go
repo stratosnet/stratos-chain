@@ -121,7 +121,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		ctx.Logger().Info("---------------------------")
 		distributeGoal := types.InitDistributeGoal()
-		distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.NodesVolume, distributeGoal)
+		_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.NodesVolume, distributeGoal)
 		require.NoError(t, err)
 		distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 		require.NoError(t, err)

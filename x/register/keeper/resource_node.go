@@ -213,31 +213,10 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 		}
 		notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
 		k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
-	} else {
-		// status == bonded
+	}
+	if resourceNode.GetStatus() == sdk.Bonded {
 		return types.ErrInvalidNodeStatBonded
 	}
-	//} else if resourceNode.GetStatus() == sdk.Bonded {
-	//	bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-	//	if bondedTokenInPool.IsLT(tokenToSub) {
-	//		return types.ErrInsufficientBalanceOfBondedPool
-	//	}
-	//	bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-	//	if resourceNode.GetTokens().Equal(tokenToSub.Amount) {
-	//		return types.ErrSubAllTokens
-	//	}
-	//	k.SetResourceNodeNotBondedToken(ctx, bondedTokenInPool)
-	//} else { // unbonding
-	//	bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-	//	if bondedTokenInPool.IsLT(tokenToSub) {
-	//		return types.ErrInsufficientBalanceOfBondedPool
-	//	}
-	//	bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-	//	if resourceNode.GetTokens().LT(tokenToSub.Amount) {
-	//		return types.ErrInsufficientBalance
-	//	}
-	//	k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
-	//}
 
 	_, err := k.bankKeeper.AddCoins(ctx, resourceNode.OwnerAddress, coins)
 	if err != nil {
@@ -258,8 +237,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	} else {
 		k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	}
-	k.decreaseOzoneLimitBySubtractStake(ctx, tokenToSub.Amount)
-
+	//k.decreaseOzoneLimitBySubtractStake(ctx, tokenToSub.Amount) // moved to keeper/UnbondIndexingNode()
 	return nil
 }
 
