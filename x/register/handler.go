@@ -59,7 +59,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
 			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(msg.PubKey.Bytes())),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitIncrease, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -89,7 +89,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 			types.EventTypeCreateIndexingNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitIncrease, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -114,7 +114,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 			types.EventTypeRemoveResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitDecrease, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -139,7 +139,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 			types.EventTypeRemoveIndexingNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitDecrease, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

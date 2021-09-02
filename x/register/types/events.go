@@ -16,8 +16,7 @@ const (
 	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
 	AttributeKeyCandidateStatus         = "candidate_status"
 
-	AttributeKeyOZoneLimitIncrease = "ozone_limit_increase"
-	AttributeKeyOZoneLimitDecrease = "ozone_limit_decrease"
+	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
 
 	AttributeValueCategory = ModuleName
 )
