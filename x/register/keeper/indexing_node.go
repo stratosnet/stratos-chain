@@ -201,19 +201,21 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	if indexingNode.GetStatus() == sdk.Unbonding {
-		bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-		notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
-		if bondedTokenInPool.IsLT(tokenToSub) {
-			return types.ErrInsufficientBalanceOfBondedPool
-		}
-		// remove token from BondedPool
-		bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
-		// add token into NotBondedPool
-		notBondedTokenInPool = notBondedTokenInPool.Add(tokenToSub)
-		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
+	// change node status to unbonding
+	indexingNode.Status = sdk.Unbonding
+	k.SetIndexingNode(ctx, indexingNode)
+	// get pools
+	bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
+	notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
+	if bondedTokenInPool.IsLT(tokenToSub) {
+		return types.ErrInsufficientBalanceOfBondedPool
 	}
+	// remove token from BondedPool
+	bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
+	k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
+	// add token into NotBondedPool
+	notBondedTokenInPool = notBondedTokenInPool.Add(tokenToSub)
+	k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
 	return nil
 }
 

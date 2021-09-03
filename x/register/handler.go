@@ -103,6 +103,9 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	if !found {
 		return nil, ErrNoResourceNodeFound
 	}
+	if resourceNode.GetStatus() == sdk.Unbonding {
+		return nil, types.ErrUnbondingNode
+	}
 
 	completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
 	if err != nil {
@@ -132,6 +135,10 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	indexingNode, found := k.GetIndexingNode(ctx, msg.IndexingNodeAddress)
 	if !found {
 		return nil, ErrNoIndexingNodeFound
+	}
+
+	if indexingNode.GetStatus() == sdk.Unbonding {
+		return nil, types.ErrUnbondingNode
 	}
 
 	completionTime, err := k.UnbondIndexingNode(ctx, indexingNode, indexingNode.Tokens)

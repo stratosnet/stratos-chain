@@ -182,19 +182,21 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {
-	if resourceNode.GetStatus() == sdk.Unbonding {
-		bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-		notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
-		if bondedTokenInPool.IsLT(tokenToSub) {
-			return types.ErrInsufficientBalanceOfBondedPool
-		}
-		// remove token from BondedPool
-		bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-		k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
-		// add token into NotBondedPool
-		notBondedTokenInPool = notBondedTokenInPool.Add(tokenToSub)
-		k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
+	// change node status to unbonding
+	resourceNode.Status = sdk.Unbonding
+	k.SetResourceNode(ctx, resourceNode)
+	// get pools
+	bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
+	notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
+	if bondedTokenInPool.IsLT(tokenToSub) {
+		return types.ErrInsufficientBalanceOfBondedPool
 	}
+	// remove token from BondedPool
+	bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
+	k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
+	// add token into NotBondedPool
+	notBondedTokenInPool = notBondedTokenInPool.Add(tokenToSub)
+	k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
 	return nil
 }
 

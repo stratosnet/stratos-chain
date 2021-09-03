@@ -71,20 +71,14 @@ func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexin
 
 // perform all the store operations for when a Node begins unbonding
 func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, coin sdk.Coin) types.ResourceNode {
-	// change node status to unbonding
-	resourceNode.Status = sdk.Unbonding
-	k.SetResourceNode(ctx, resourceNode)
-	// remove token from bonded pool, add token into NotBondedPool
+	// set node stat to unbonding, remove token from bonded pool, add token into NotBondedPool
 	k.RemoveTokenFromPoolWhileUnbondingResourceNode(ctx, resourceNode, coin)
 	// trigger hook if registered
 	k.AfterNodeBeginUnbonding(ctx, resourceNode.GetNetworkAddr(), false)
 	return resourceNode
 }
 func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, coin sdk.Coin) types.IndexingNode {
-	// change node status to unbonding
-	indexingNode.Status = sdk.Unbonding
-	k.SetIndexingNode(ctx, indexingNode)
-	// remove token from bonded pool, add token into NotBondedPool
+	// change node stat, remove token from bonded pool, add token into NotBondedPool
 	k.RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx, indexingNode, coin)
 	// trigger hook if registered
 	k.AfterNodeBeginUnbonding(ctx, indexingNode.GetNetworkAddr(), true)
