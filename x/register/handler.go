@@ -109,7 +109,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 		return nil, types.ErrUnbondingNode
 	}
 
-	completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
+	ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
@@ -120,7 +120,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 			types.EventTypeUnbondingResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.ResourceNodeAddress.String()),
-			//sdk.NewAttribute(sdk.AttributeKeyAmount, msg.Amount.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -143,7 +143,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 		return nil, types.ErrUnbondingNode
 	}
 
-	completionTime, err := k.UnbondIndexingNode(ctx, indexingNode, indexingNode.Tokens)
+	ozoneLimitChange, completionTime, err := k.UnbondIndexingNode(ctx, indexingNode, indexingNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
@@ -154,6 +154,7 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 			types.EventTypeUnbondingIndexingNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(

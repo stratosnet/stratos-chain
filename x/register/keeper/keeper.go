@@ -96,7 +96,7 @@ func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
-		return
+		return sdk.ZeroInt()
 	}
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
@@ -109,7 +109,7 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
-		return
+		return sdk.ZeroInt()
 	}
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
@@ -380,21 +380,21 @@ func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 
 func (k Keeper) UnbondResourceNode(
 	ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
-) (time.Time, error) {
+) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 	params := k.GetParams(ctx)
 	ctx.Logger().Info("Params of register module: " + params.String())
 
 	// transfer the node tokens to the not bonded pool
 	ownerAcc := k.accountKeeper.GetAccount(ctx, resourceNode.OwnerAddress)
 	if ownerAcc == nil {
-		return time.Time{}, types.ErrNoOwnerAccountFound
+		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	networkAddr := resourceNode.GetNetworkAddr()
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
-	unbondingMatureTime := calcUnbondingMatureTime(resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
@@ -402,7 +402,7 @@ func (k Keeper) UnbondResourceNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 		// adjust ozone limit
-		k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// set the unbonding mature time and completion height appropriately
@@ -414,24 +414,24 @@ func (k Keeper) UnbondResourceNode(
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 
-	return unbondingMatureTime, nil
+	return ozoneLimitChange, unbondingMatureTime, nil
 }
 
 func (k Keeper) UnbondIndexingNode(
 	ctx sdk.Context, indexingNode types.IndexingNode, amt sdk.Int,
-) (time.Time, error) {
+) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
 	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
 	if ownerAcc == nil {
-		return time.Time{}, types.ErrNoOwnerAccountFound
+		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	networkAddr := indexingNode.GetNetworkAddr()
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	unbondingMatureTime := calcUnbondingMatureTime(indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
@@ -439,7 +439,7 @@ func (k Keeper) UnbondIndexingNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, indexingNode, true, coin)
 		// adjust ozone limit
-		k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// Set the unbonding mature time and completion height appropriately
@@ -447,7 +447,7 @@ func (k Keeper) UnbondIndexingNode(
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding indexing node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
-	return unbondingMatureTime, nil
+	return ozoneLimitChange, unbondingMatureTime, nil
 }
 
 // GetAllUnbondingNodes get the set of all ubd nodes with no limits, used during genesis dump

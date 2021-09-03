@@ -200,7 +200,6 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
-	return nil
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
