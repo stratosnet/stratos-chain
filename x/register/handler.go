@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"time"
 )
 
 // NewHandler ...
@@ -104,24 +105,32 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 	if !found {
 		return nil, ErrNoResourceNodeFound
 	}
-	ozoneLimitChange, err := k.SubtractResourceNodeStake(ctx, resourceNode, sdk.NewCoin(k.BondDenom(ctx), resourceNode.GetTokens()))
+	if resourceNode.GetStatus() == sdk.Unbonding {
+		return nil, types.ErrUnbondingNode
+	}
+
+	ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
 
+	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeRemoveResourceNode,
+			types.EventTypeUnbondingResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.ResourceNodeAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
@@ -129,24 +138,33 @@ func handleMsgRemoveIndexingNode(ctx sdk.Context, msg types.MsgRemoveIndexingNod
 	if !found {
 		return nil, ErrNoIndexingNodeFound
 	}
-	ozoneLimitChange, err := k.SubtractIndexingNodeStake(ctx, indexingNode, sdk.NewCoin(k.BondDenom(ctx), indexingNode.GetTokens()))
+
+	if indexingNode.GetStatus() == sdk.Unbonding {
+		return nil, types.ErrUnbondingNode
+	}
+
+	ozoneLimitChange, completionTime, err := k.UnbondIndexingNode(ctx, indexingNode, indexingNode.Tokens)
 	if err != nil {
 		return nil, err
 	}
 
+	completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeRemoveIndexingNode,
+			types.EventTypeUnbondingIndexingNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.IndexingNodeAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+
+	return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
 }
 
 func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexingNodeRegistrationVote, k keeper.Keeper) (*sdk.Result, error) {

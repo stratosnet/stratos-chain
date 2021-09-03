@@ -40,7 +40,7 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
 	}
 	k.SetVolumeReport(ctx, msg.Reporter, msg.ReportReference)
-	err := k.DistributePotReward(ctx, msg.NodesVolume, msg.Epoch)
+	totalConsumedOzone, err := k.DistributePotReward(ctx, msg.NodesVolume, msg.Epoch)
 	if err != nil {
 		return nil, err
 	}
@@ -48,6 +48,7 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeVolumeReport,
+			sdk.NewAttribute(types.AttributeKeyTotalConsumedOzone, totalConsumedOzone.String()),
 			sdk.NewAttribute(types.AttributeKeyReportReference, hex.EncodeToString([]byte(msg.ReportReference))),
 			sdk.NewAttribute(types.AttributeKeyEpoch, msg.Epoch.String()),
 		),

@@ -8,6 +8,7 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"time"
 )
 
 const (
@@ -68,11 +69,11 @@ var (
 )
 
 func setupAllResourceNodes() []ResourceNode {
-	resourceNode1 := NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwnerAddr1, NewDescription("sds://resourceNode1", "", "", "", ""), "4")
+	resourceNode1 := NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwnerAddr1, NewDescription("sds://resourceNode1", "", "", "", ""), "4", time.Now())
 	resourceNode1 = resourceNode1.AddToken(resNodeInitStake)
 	resourceNode1.Status = sdk.Bonded
 
-	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4")
+	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4", time.Now())
 	resourceNode3 = resourceNode3.AddToken(resNodeInitStake)
 	resourceNode3.Status = sdk.Bonded
 
@@ -83,8 +84,8 @@ func setupAllResourceNodes() []ResourceNode {
 
 func setupAllIndexingNodes() []IndexingNode {
 	var indexingNodes []IndexingNode
-	indexingNode1 := NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwnerAddr1, NewDescription("sds://indexingNode1", "", "", "", ""))
-	indexingNode2 := NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwnerAddr2, NewDescription("sds://indexingNode2", "", "", "", ""))
+	indexingNode1 := NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwnerAddr1, NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
+	indexingNode2 := NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwnerAddr2, NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
 
 	indexingNode1 = indexingNode1.AddToken(idxNodeInitStake)
 	indexingNode2 = indexingNode2.AddToken(idxNodeInitStake)
