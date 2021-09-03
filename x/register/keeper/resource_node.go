@@ -120,7 +120,9 @@ func (k Keeper) IterateLastResourceNodeStakes(ctx sdk.Context, handler func(node
 }
 
 // AddResourceNodeStake Update the tokens of an existing resource node
-func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin) error {
+func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin,
+) (ozoneLimitChange sdk.Int, err error) {
+
 	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
 	if nodeAcc == nil {
 		ctx.Logger().Info(fmt.Sprintf("create new account: %s", resourceNode.GetNetworkAddr()))
@@ -131,12 +133,12 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	coins := sdk.NewCoins(tokenToAdd)
 	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if !hasCoin {
-		return types.ErrInsufficientBalance
+		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
 
-	_, err := k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
+	_, err = k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if err != nil {
-		return err
+		return sdk.ZeroInt(), err
 	}
 
 	switch resourceNode.GetStatus() {
@@ -149,7 +151,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
 		k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
 	case sdk.Unbonding:
-		return types.ErrUnbondingNode
+		return sdk.ZeroInt(), types.ErrUnbondingNode
 	}
 
 	resourceNode = resourceNode.AddToken(tokenToAdd.Amount)
@@ -164,7 +166,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		bondedToken := k.GetResourceNodeBondedToken(ctx)
 
 		if notBondedToken.IsLT(tokenToBond) {
-			return types.ErrInsufficientBalanceOfNotBondedPool
+			return sdk.ZeroInt(), types.ErrInsufficientBalanceOfNotBondedPool
 		}
 		notBondedToken = notBondedToken.Sub(tokenToBond)
 		bondedToken = bondedToken.Add(tokenToBond)
@@ -176,9 +178,9 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 
 	k.SetResourceNode(ctx, resourceNode)
 	k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
-	k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
-	return nil
+	return ozoneLimitChange, nil
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {
@@ -291,11 +293,11 @@ func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (r
 }
 
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, nodeType string, stake sdk.Coin) error {
+	description types.Description, nodeType string, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
 	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, time.Now())
-	err := k.AddResourceNodeStake(ctx, resourceNode, stake)
-	return err
+	ozoneLimitChange, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
+	return ozoneLimitChange, err
 }
 
 func (k Keeper) UpdateResourceNode(ctx sdk.Context, networkID string, description types.Description, nodeType string,

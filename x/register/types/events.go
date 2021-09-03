@@ -24,5 +24,7 @@ const (
 
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
 
+	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
+
 	AttributeValueCategory = ModuleName
 )

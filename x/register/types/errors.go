@@ -34,7 +34,7 @@ var (
 	ErrVoteExpired                        = sdkerrors.Register(ModuleName, 27, "vote expired")
 	ErrInsufficientBalanceOfBondedPool    = sdkerrors.Register(ModuleName, 28, "insufficient balance of bonded pool")
 	ErrInsufficientBalanceOfNotBondedPool = sdkerrors.Register(ModuleName, 29, "insufficient balance of not bonded pool")
-	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, 30, "error sub all tokens")
+	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, 30, "can not sub all tokens since the node is still bonded")
 	ErrED25519InvalidPubKey               = sdkerrors.Register(ModuleName, 31, "ED25519 public keys are unsupported")
 	ErrEmptyNodeId                        = sdkerrors.Register(ModuleName, 32, "missing node id")
 	ErrEmptyPubKey                        = sdkerrors.Register(ModuleName, 33, "missing public key")
