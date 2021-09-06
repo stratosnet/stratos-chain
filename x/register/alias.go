@@ -45,6 +45,8 @@ var (
 	NewMsgCreateIndexingNode = types.NewMsgCreateIndexingNode
 
 	GetGenesisStateFromAppState = types.GetGenesisStateFromAppState
+
+	NewMultiRegisterHooks = types.NewMultiRegisterHooks
 )
 
 type (

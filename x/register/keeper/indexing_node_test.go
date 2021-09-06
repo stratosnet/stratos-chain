@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"testing"
+	"time"
 )
 
 var (
@@ -43,10 +44,10 @@ func TestExpiredVote(t *testing.T) {
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
 
 	//genesis init Sp nodes.
-	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""))
-	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""))
-	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""))
-	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""))
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time.Now())
 	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
 	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
 	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
@@ -69,7 +70,7 @@ func TestExpiredVote(t *testing.T) {
 
 	//Register new SP node after genesis initialized
 	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
-	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
+	_, err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
 		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
 	require.NoError(t, err)
 
@@ -91,10 +92,10 @@ func TestDuplicateVote(t *testing.T) {
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
 
 	//genesis init Sp nodes.
-	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""))
-	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""))
-	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""))
-	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""))
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time.Now())
 	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
 	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
 	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
@@ -117,7 +118,7 @@ func TestDuplicateVote(t *testing.T) {
 
 	//Register new SP node after genesis initialized
 	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
-	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
+	_, err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
 		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
 	require.NoError(t, err)
 
@@ -143,10 +144,10 @@ func TestSpRegistrationApproval(t *testing.T) {
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
 
 	//genesis init Sp nodes.
-	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""))
-	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""))
-	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""))
-	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""))
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time.Now())
 	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
 	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
 	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
@@ -172,7 +173,7 @@ func TestSpRegistrationApproval(t *testing.T) {
 	//_, err := k.bankKeeper.AddCoins(ctx, spNodeAddr4, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), sdk.NewInt(10000000000000))))
 	//require.NoError(t, err)
 
-	err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
+	_, err := k.RegisterIndexingNode(ctx, "sds://newIndexingNode", spNodePubKeyNew, spNodeOwnerNew,
 		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
 	require.NoError(t, err)
 

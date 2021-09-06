@@ -5,21 +5,24 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/mock"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
+	"time"
 )
 
 const (
-	chainID              = ""
-	AccountAddressPrefix = "st"
+	chainID             = ""
+	StratosBech32Prefix = "st"
 )
 
 var (
-	AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
-	ValidatorAddressPrefix = AccountAddressPrefix + "valoper"
-	ValidatorPubKeyPrefix  = AccountAddressPrefix + "valoperpub"
-	ConsNodeAddressPrefix  = AccountAddressPrefix + "valcons"
-	ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
+	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
+	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
+	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
+	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
+	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
+	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -66,23 +69,23 @@ var (
 )
 
 func setupAllResourceNodes() []ResourceNode {
-	resourceNode1 := NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwnerAddr1, NewDescription("sds://resourceNode1", "", "", "", ""), "4")
+	resourceNode1 := NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwnerAddr1, NewDescription("sds://resourceNode1", "", "", "", ""), "4", time.Now())
 	resourceNode1 = resourceNode1.AddToken(resNodeInitStake)
 	resourceNode1.Status = sdk.Bonded
 
-	//resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	//resourceNode3 = resourceNode1.AddToken(resNodeInitStake)
-	//resourceNode3.Status = sdk.Bonded
+	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4", time.Now())
+	resourceNode3 = resourceNode3.AddToken(resNodeInitStake)
+	resourceNode3.Status = sdk.Bonded
 
 	var resourceNodes []ResourceNode
-	resourceNodes = append(resourceNodes, resourceNode1)
+	resourceNodes = append(resourceNodes, resourceNode1, resourceNode3)
 	return resourceNodes
 }
 
 func setupAllIndexingNodes() []IndexingNode {
 	var indexingNodes []IndexingNode
-	indexingNode1 := NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwnerAddr1, NewDescription("sds://indexingNode1", "", "", "", ""))
-	indexingNode2 := NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwnerAddr2, NewDescription("sds://indexingNode2", "", "", "", ""))
+	indexingNode1 := NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwnerAddr1, NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
+	indexingNode2 := NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwnerAddr2, NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
 
 	indexingNode1 = indexingNode1.AddToken(idxNodeInitStake)
 	indexingNode2 = indexingNode2.AddToken(idxNodeInitStake)
@@ -98,10 +101,11 @@ func setupAllIndexingNodes() []IndexingNode {
 }
 
 func SetConfig() {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
+	config := stratos.GetConfig()
+	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
 	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
 	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
+	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
 	config.Seal()
 }
 

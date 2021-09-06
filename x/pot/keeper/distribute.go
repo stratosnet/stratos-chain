@@ -5,20 +5,20 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
 	//1, calc traffic reward in total
-	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	totalConsumedOzone, distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	if err != nil {
-		return err
+		return totalConsumedOzone, err
 	}
 
 	//2, calc mining reward in total
 	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
-		return err
+		return totalConsumedOzone, err
 	}
 
 	/**
@@ -51,28 +51,28 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)
 	if err != nil {
-		return err
+		return totalConsumedOzone, err
 	}
 
 	//6, distribute skate reward to fee pool for validators
 	distributeGoalBalance, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoalBalance)
 	if err != nil {
-		return err
+		return totalConsumedOzone, err
 	}
 
 	//7, distribute all rewards to resource nodes & indexing nodes
 	err = k.distributeRewardToSdsNodes(ctx, rewardDetailMap, epoch)
 	if err != nil {
-		return err
+		return totalConsumedOzone, err
 	}
 
 	//8, return balance to traffic pool & mining pool
 	err = k.returnBalance(ctx, distributeGoalBalance, epoch)
 	if err != nil {
-		return err
+		return totalConsumedOzone, err
 	}
 
-	return nil
+	return totalConsumedOzone, nil
 }
 
 func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal types.DistributeGoal, epoch sdk.Int) (err error) {
@@ -153,13 +153,13 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 
 func (k Keeper) CalcTrafficRewardInTotal(
 	ctx sdk.Context, trafficList []types.SingleNodeVolume, distributeGoal types.DistributeGoal,
-) (types.DistributeGoal, error) {
+) (sdk.Dec, types.DistributeGoal, error) {
 
-	totalTrafficReward := k.getTrafficReward(ctx, trafficList)
+	totalConsumedOzone, totalTrafficReward := k.getTrafficReward(ctx, trafficList)
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
 	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 	if err != nil && err != types.ErrOutOfIssuance {
-		return distributeGoal, err
+		return sdk.Dec{}, distributeGoal, err
 	}
 	stakeReward := totalTrafficReward.
 		Mul(miningParam.BlockChainPercentageInTenThousand.ToDec()).
@@ -178,7 +178,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 	distributeGoal = distributeGoal.AddTrafficRewardToResourceNodeFromTrafficPool(trafficReward)
 	distributeGoal = distributeGoal.AddMetaNodeRewardToIndexingNodeFromTrafficPool(indexingReward)
 
-	return distributeGoal, nil
+	return totalConsumedOzone, distributeGoal, nil
 }
 
 // [S] is initial genesis deposit by all resource nodes and meta nodes at t=0
@@ -187,7 +187,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // The remaining total Ozone limit [lt] is the upper bound of total Ozone that users can purchase from Stratos blockchain.
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
-func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNodeVolume) sdk.Dec {
+func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNodeVolume) (totalConsumedOzone, result sdk.Dec) {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	if S.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
@@ -208,7 +208,7 @@ func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNode
 	if R.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("traffic reward to distribute is 0")
 	}
-	return R
+	return Y, R
 }
 
 // allocate mining reward from foundation account

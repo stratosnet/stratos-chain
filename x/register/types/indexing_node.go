@@ -53,17 +53,18 @@ func (v IndexingNodes) Validate() error {
 }
 
 type IndexingNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network address of the indexing node
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the indexing node
 	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
 	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
 	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
 	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
 	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
+	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"`
 }
 
 // NewIndexingNode - initialize a new indexing node
-func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description) IndexingNode {
+func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) IndexingNode {
 	return IndexingNode{
 		NetworkID:    networkID,
 		PubKey:       pubKey,
@@ -72,6 +73,7 @@ func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 		Tokens:       sdk.ZeroInt(),
 		OwnerAddress: ownerAddr,
 		Description:  description,
+		CreationTime: creationTime,
 	}
 }
 
@@ -89,7 +91,8 @@ func (v IndexingNode) String() string {
   		Tokens:				%s
 		Owner Address: 		%s
   		Description:		%s
-	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+		CreationTime:		%s
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
 }
 
 // AddToken adds tokens to a indexing node
@@ -137,6 +140,7 @@ func (v IndexingNode) GetPubKey() crypto.PubKey       { return v.PubKey }
 func (v IndexingNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
 func (v IndexingNode) GetTokens() sdk.Int             { return v.Tokens }
 func (v IndexingNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
+func (v IndexingNode) GetCreationTime() time.Time     { return v.CreationTime }
 
 // MustMarshalIndexingNode returns the indexingNode bytes. Panics if fails
 func MustMarshalIndexingNode(cdc *codec.Codec, indexingNode IndexingNode) []byte {
