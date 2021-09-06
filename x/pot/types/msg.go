@@ -37,6 +37,20 @@ func NewMsgVolumeReport(
 	}
 }
 
+type ReportRecord struct {
+	Reporter        sdk.AccAddress
+	ReportReference string
+	TxHash          string
+}
+
+func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) ReportRecord {
+	return ReportRecord{
+		Reporter:        reporter,
+		ReportReference: reportReference,
+		TxHash:          txHash,
+	}
+}
+
 // Route Implement
 func (msg MsgVolumeReport) Route() string { return RouterKey }
 

@@ -31,6 +31,8 @@ var (
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
 
+	EpochRewardsKeyPrefix = []byte{0x51} // key: prefix{epoch}, value: rewardDetailMap (map[node_address string]types.Reward)
+
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
 	VolumeReportStoreKeyPrefix = []byte{0x41}
 )
@@ -71,6 +73,15 @@ func GetMatureTotalRewardKey(acc sdk.AccAddress) []byte {
 func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	bKeyStr := []byte("_immature_total")
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
+	key = append(key, bKeyStr...)
+	return key
+}
+
+// GetEpochRewardsKey prefix{epoch}_rewards
+func GetEpochRewardsKey(epoch sdk.Int) []byte {
+	bKeyStr := []byte("_rewards")
+	bEpoch := []byte(epoch.String())
+	key := append(EpochRewardsKeyPrefix, bEpoch...)
 	key = append(key, bKeyStr...)
 	return key
 }

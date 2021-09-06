@@ -33,8 +33,20 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	//3, calc reward for resource node
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoalBalance, rewardDetailMap)
 
+	//// for query '/pot/rewards/epoch/{epoch}'
+	//k.setEpochReward(ctx, epoch, rewardDetailMap)
+
 	//4, calc reward from indexing node
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
+
+	// for query '/pot/rewards/epoch/{epoch}'
+	var res []types.Reward
+	for _, v := range rewardDetailMap {
+		newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
+		res = append(res, newNodeReward)
+	}
+	k.setEpochReward(ctx, epoch, res)
+	//ctx.Logger().Info("setEpochReward", "setEpochReward", "ok")
 
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)

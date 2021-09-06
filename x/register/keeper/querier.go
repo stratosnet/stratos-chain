@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"strings"
@@ -13,14 +14,15 @@ import (
 )
 
 const (
-	QueryResourceNodeList       = "resource_nodes"
-	QueryResourceNodeByMoniker  = "resource_nodes_moniker"
-	QueryIndexingNodeList       = "indexing_nodes"
-	QueryIndexingNodeByMoniker  = "indexing_nodes_moniker"
-	QueryNodesTotalStakes       = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddress = "node_stakes"
-	QueryDefaultLimit           = 20
-	defaultDenom                = "ustos"
+	QueryResourceNodeList          = "resource_nodes"
+	QueryResourceNodeByMoniker     = "resource_nodes_moniker"
+	QueryIndexingNodeList          = "indexing_nodes"
+	QueryIndexingNodeByMoniker     = "indexing_nodes_moniker"
+	QueryNodesTotalStakes          = "nodes_total_stakes"
+	QueryNodeStakeByNodeAddr       = "node_stakes"
+	QueryNodeStakeByNodeWalletAddr = "node_stakes_by_owner"
+	QueryDefaultLimit              = 20
+	defaultDenom                   = "ustos"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -35,8 +37,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return GetIndexingNodeList(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return GetNodesStakingInfo(ctx, req, k)
-		case QueryNodeStakeByNodeAddress:
+		case QueryNodeStakeByNodeAddr:
 			return GetStakingInfoByNodeAddr(ctx, req, k)
+		case QueryNodeStakeByNodeWalletAddr:
+			return GetStakingInfoByNodeWalletAddr(ctx, req, k)
 		//case QueryNetworkSet:
 		//	return GetNetworkSet(ctx, k)
 		case QueryResourceNodeByMoniker:
@@ -192,15 +196,15 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 
 func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	ctx.Logger().Info("NodeAddr", "NodeAddr", string(req.Data))
-	var params QuerynodeStakingByNodeAddressParams
+	var params QuerynodeStakingParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	ctx.Logger().Info("params", "params.NodeAddr", params.NodeAddr)
+	ctx.Logger().Info("params", "params.NodeAddr", params.AccAddr)
 
 	//NodeAddr, err := sdk.AccAddressFromBech32("st1v0r46n9vr62q3xac80xmtsf5sct3qazp7azfya")
-	NodeAddr, err := sdk.AccAddressFromBech32(params.NodeAddr.String())
+	NodeAddr, err := sdk.AccAddressFromBech32(params.AccAddr.String())
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
 	}
@@ -219,8 +223,13 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 			res = NewStakingInfoByNodeAddr(
 				//resourceNode.PubKey,
 				resourceNode.OwnerAddress,
-				resourceNode.Tokens,
+				resourceNode.GetNetworkAddr(),
+				resourceNode.Description.Moniker,
+
+				resourceNode.GetTokens(),
 				keeper.GetLastResourceNodeStake(ctx, NodeAddr),
+				sdk.NewInt(0),
+				sdk.NewInt(0),
 			)
 		}
 	} else {
@@ -228,9 +237,113 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		res = NewStakingInfoByNodeAddr(
 			//indexingNode.PubKey,
 			indexingNode.OwnerAddress,
-			indexingNode.Tokens,
+			indexingNode.GetNetworkAddr(),
+			indexingNode.Description.Moniker,
+			indexingNode.GetTokens(),
 			keeper.GetLastIndexingNodeStake(ctx, NodeAddr),
+			sdk.NewInt(0),
+			sdk.NewInt(0),
 		)
+	}
+
+	bz, err := codec.MarshalJSONIndent(keeper.cdc, res)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func GetStakingInfoByNodeWalletAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+	var params QueryNodesParams
+	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	ctx.Logger().Info("params", "params", params)
+
+	NodeWalletAddr, err := sdk.AccAddressFromBech32(params.OwnerAddr.String())
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
+	}
+	ctx.Logger().Info("OwnerAddr after converting", "OwnerAddr", NodeWalletAddr)
+
+	params2 := params
+	params2.Page = 1
+	params2.Limit = QueryDefaultLimit
+	if params.Limit > 0 {
+		params2.Limit = params.Limit
+	}
+
+	ctx.Logger().Info("params2", "params2", params2)
+	resNodes := keeper.GetResourceNodesFiltered(ctx, params2)
+	ctx.Logger().Info("resNodes", "resNodes", resNodes)
+	indNodes := keeper.GetIndexingNodesFiltered(ctx, params2)
+	ctx.Logger().Info("indNodes", "indNodes", indNodes)
+	var res []StakingInfoByNodeAddr
+	if len(indNodes) > 0 {
+		for _, n := range indNodes {
+			totalStake := keeper.GetLastIndexingNodeStake(ctx, sdk.AccAddress(n.PubKey.Address()))
+			bondedStake := sdk.NewInt(0)
+			unBondedStake := sdk.NewInt(0)
+			//unBondingStake := sdk.NewInt(0)
+
+			switch n.GetStatus() {
+			case sdk.Bonded:
+				bondedStake = totalStake
+
+			case sdk.Unbonded:
+				unBondedStake = totalStake
+			}
+
+			StakingOfIndexingNodes := NewStakingInfoByNodeAddr(
+				n.OwnerAddress,
+				sdk.AccAddress(n.PubKey.Address()),
+				n.Description.Moniker,
+				//n.GetTokens(),
+				totalStake,
+				bondedStake,
+				unBondedStake,
+				totalStake.Sub(bondedStake).Sub(unBondedStake),
+			)
+			res = append(res, StakingOfIndexingNodes)
+		}
+	}
+
+	if len(resNodes) > 0 {
+		for _, n := range resNodes {
+			totalStake := keeper.GetLastIndexingNodeStake(ctx, sdk.AccAddress(n.PubKey.Address()))
+			bondedStake := sdk.NewInt(0)
+			unBondedStake := sdk.NewInt(0)
+			//unBondingStake := sdk.NewInt(0)
+
+			switch n.GetStatus() {
+			case sdk.Bonded:
+				bondedStake = totalStake
+
+			case sdk.Unbonded:
+				unBondedStake = totalStake
+			}
+
+			StakingOfResourceNodes := NewStakingInfoByNodeAddr(
+				n.OwnerAddress,
+				sdk.AccAddress(n.PubKey.Address()),
+				n.Description.Moniker,
+				totalStake,
+				bondedStake,
+				unBondedStake,
+				totalStake.Sub(bondedStake).Sub(unBondedStake),
+			)
+			res = append(res, StakingOfResourceNodes)
+		}
+	}
+
+	ctx.Logger().Info("res", "res", res)
+	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		res = []StakingInfoByNodeAddr{}
+	} else {
+		res = res[start:end]
 	}
 
 	bz, err := codec.MarshalJSONIndent(keeper.cdc, res)

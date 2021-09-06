@@ -4,7 +4,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/gorilla/mux"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
 	"strings"
@@ -30,15 +29,15 @@ func NewQueryNodesParams(page, limit int, networkID, moniker string, ownerAddr s
 	}
 }
 
-// QuerynodeStakingByNodeAddressParams Params for query 'custom/register/staking/owner/{NodeWalletAddress}'
-type QuerynodeStakingByNodeAddressParams struct {
-	NodeAddr sdk.AccAddress
+// QuerynodeStakingParams Params for query 'custom/register/staking/owner/{NodeWalletAddress}'
+type QuerynodeStakingParams struct {
+	AccAddr sdk.AccAddress
 }
 
-// NewQuerynodeStakingByNodeAddressParams creates a new instance of QueryNodesParams
-func NewQuerynodeStakingByNodeAddressParams(nodeAddr sdk.AccAddress) QuerynodeStakingByNodeAddressParams {
-	return QuerynodeStakingByNodeAddressParams{
-		NodeAddr: nodeAddr,
+// NewQuerynodeStakingParams creates a new instance of QueryNodesParams
+func NewQuerynodeStakingParams(nodeAddr sdk.AccAddress) QuerynodeStakingParams {
+	return QuerynodeStakingParams{
+		AccAddr: nodeAddr,
 	}
 }
 
@@ -89,32 +88,51 @@ func NewQueryNodesStakingInfo(
 // StakingInfoByNodeAddr Params for query 'custom/register/staking'
 type StakingInfoByNodeAddr struct {
 	//NodePubKey   crypto.PublicKey
-	NodeAddress sdk.AccAddress
-	Tokens      sdk.Coin
-	BondedStake sdk.Coin
-	//UnbondedStake  sdk.Coin
-	//UnbondingStake sdk.Coin
+	OwnerAddress   sdk.AccAddress
+	NodeAddress    sdk.AccAddress
+	Moniker        string
+	Tokens         sdk.Coin
+	BondedStake    sdk.Coin
+	UnbondedStake  sdk.Coin
+	UnbondingStake sdk.Coin
 }
 
 // NewStakingInfoByNodeAddr creates a new instance of StakingInfoByNodeAddr
 func NewStakingInfoByNodeAddr(
 	//nodePubKey crypto.PublicKey,
+	ownerAddress sdk.AccAddress,
 	nodeAddress sdk.AccAddress,
+	moniker string,
 	tokens sdk.Int,
 	bondedStake sdk.Int,
-	//unbondedStake sdk.Int,
-	//unbondingStake sdk.Int,
+	unbondedStake sdk.Int,
+	unbondingStake sdk.Int,
 
 ) StakingInfoByNodeAddr {
 	return StakingInfoByNodeAddr{
 		//NodePubKey:   nodePubKey,
-		NodeAddress: nodeAddress,
-		Tokens:      sdk.NewCoin(defaultDenom, tokens),
-		BondedStake: sdk.NewCoin(defaultDenom, bondedStake),
-		//UnbondedStake:  sdk.NewCoin(defaultDenom, unbondedStake),
-		//UnbondingStake: sdk.NewCoin(defaultDenom, unbondingStake),
+		OwnerAddress:   ownerAddress,
+		NodeAddress:    nodeAddress,
+		Moniker:        moniker,
+		Tokens:         sdk.NewCoin(defaultDenom, tokens),
+		BondedStake:    sdk.NewCoin(defaultDenom, bondedStake),
+		UnbondedStake:  sdk.NewCoin(defaultDenom, unbondedStake),
+		UnbondingStake: sdk.NewCoin(defaultDenom, unbondingStake),
 	}
 }
+
+//// StakingInfoByNodeWalletAddr Params for query 'custom/register/staking/owner/{nodeWalletAddress}'
+//type StakingInfoByNodeWalletAddr struct {
+//	StakingInfoByNodeWalletAddr []StakingInfoByNodeAddr
+//}
+
+// NewStakingInfoByNodeWalletAddr creates a new instance of StakingInfoByNodeAddr
+//func NewStakingInfoByNodeWalletAddr(
+//	nodesStakeByNodeWalletAddr []StakingInfoByNodeAddr,
+//
+//) StakingInfoByNodeWalletAddr {
+//	return nodesStakeByNodeWalletAddr
+//}
 
 func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.ResourceNode {
 	nodes := k.GetAllResourceNodes(ctx)
@@ -136,7 +154,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 		}
 
 		// match OwnerAddr (if supplied)
-		if len(params.OwnerAddr) > 0 {
+		if !params.OwnerAddr.Empty() {
 			if !n.OwnerAddress.Equals(params.OwnerAddr) {
 				continue
 			}
@@ -145,6 +163,11 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 		filteredNodes = append(filteredNodes, n)
 	}
 
+	filteredNodes = k.resPagination(filteredNodes, params)
+	return filteredNodes
+}
+
+func (k Keeper) resPagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		filteredNodes = []types.ResourceNode{}
@@ -182,7 +205,13 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 
 		filteredNodes = append(filteredNodes, n)
 	}
+	filteredNodes = k.indPagination(filteredNodes, params)
 
+	filteredNodes = k.indPagination(filteredNodes, params)
+	return filteredNodes
+}
+
+func (k Keeper) indPagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		filteredNodes = []types.IndexingNode{}
@@ -192,13 +221,13 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 	return filteredNodes
 }
 
-func CheckNodeAddr(w http.ResponseWriter, r *http.Request) (sdk.AccAddress, bool) {
-	NodeAddrStr := mux.Vars(r)["nodeAddress"]
+func CheckAccAddr(w http.ResponseWriter, r *http.Request, data string) (sdk.AccAddress, bool) {
+	//NodeAddrStr := mux.Vars(r)["nodeAddress"]
 	//NodeAddr, err := typesTypes.GetPubKeyFromBech32(typesTypes.Bech32PubKeyTypeSdsP2PPub, NodeAddrStr)
-	NodeAddr, err := sdk.AccAddressFromBech32(NodeAddrStr)
+	AccAddr, err := sdk.AccAddressFromBech32(data)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid NodeAddress.")
 		return nil, false
 	}
-	return NodeAddr, true
+	return AccAddr, true
 }

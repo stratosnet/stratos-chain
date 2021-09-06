@@ -9,9 +9,10 @@ import (
 )
 
 const (
-	QueryVolumeReport = "volume_report"
-	QueryPotRewards   = "pot_rewards"
-	QueryDefaultLimit = 100
+	QueryVolumeReport      = "volume_report"
+	QueryPotRewards        = "pot_rewards"
+	QueryPotRewardsByEpoch = "pot_rewards_by_epoch"
+	QueryDefaultLimit      = 100
 )
 
 // NewQuerier creates a new querier for pot clients.
@@ -22,6 +23,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryVolumeReport(ctx, req, k)
 		case QueryPotRewards:
 			return queryPotRewards(ctx, req, k)
+		case QueryPotRewardsByEpoch:
+			return queryPotRewardsByEpoch(ctx, req, k)
 
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
@@ -36,17 +39,25 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 		return nil, err
 	}
 
-	volumeReportHash, err := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
+	reportRecord, err := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	return volumeReportHash, nil
+	//if len(reportRecord) == 0 {
+	//	return nil, nil
+	//}
+	bz, err := codec.MarshalJSONIndent(k.Cdc, reportRecord)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
 }
 
 // queryPotRewards fetches total rewards and owner individual rewards from traffic and mining.
 func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params QueryPotRewardsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := k.Cdc.UnmarshalJSON(req.Data, &params)
+	ctx.Logger().Info("params", "params", params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -56,7 +67,26 @@ func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 		nodeRewards = []NodeRewardsInfo{}
 	}
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, nodeRewards)
+	bz, err := codec.MarshalJSONIndent(k.Cdc, nodeRewards)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+// queryPotRewardsByEpoch fetches total rewards and owner individual rewards from traffic and mining.
+func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params QueryPotRewardsByepochParams
+	err := k.Cdc.UnmarshalJSON(req.Data, &params)
+	ctx.Logger().Info("params", "params", params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	potEpochRewards := k.GetPotRewardsByEpoch(ctx, params)
+
+	bz, err := codec.MarshalJSONIndent(k.Cdc, potEpochRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

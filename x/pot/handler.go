@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
+	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 // NewHandler ...
@@ -28,9 +29,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 // Handle handleMsgReportVolume.
 func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolumeReport) (*sdk.Result, error) {
-	//ctx.Logger().Info("enter handleMsgReportVolume start", "true")
-	//ctx.Logger().Info("ctx in pot:" + string(types.ModuleCdc.MustMarshalJSON(ctx)))
-	//ctx.Logger().Info("Reporter in pot:" + string(types.ModuleCdc.MustMarshalJSON(msg.Reporter)))
 	if !(k.IsSPNode(ctx, msg.Reporter)) {
 
 		ctx.Logger().Info("Sender Info:", "IsSPNode", "false")
@@ -39,7 +37,15 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
 	}
-	k.SetVolumeReport(ctx, msg.Epoch, msg.ReportReference)
+
+	txBytes := ctx.TxBytes()
+	//ctx.Logger().Info("txBytes:", "txBytes", txBytes)
+
+	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
+	//ctx.Logger().Info("txhash:", "txhash", txhash)
+
+	reportRecord := types.NewReportRecord(msg.Reporter, msg.ReportReference, txhash)
+	k.SetVolumeReport(ctx, msg.Epoch, reportRecord)
 	err := k.DistributePotReward(ctx, msg.NodesVolume, msg.Epoch)
 	if err != nil {
 		return nil, err
