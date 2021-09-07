@@ -89,11 +89,9 @@ func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (
 	rewardAddrList := k.GetRewardAddressPool(ctx)
 
 	for _, n := range rewardAddrList {
-		ctx.Logger().Info("n", "n", n)
 		if !(n.Equals(params.NodeAddr)) {
 			continue
 		}
-		ctx.Logger().Info("equal", "equal", true)
 
 		individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
 		matureTotal := k.GetMatureTotalReward(ctx, n)
@@ -142,7 +140,6 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 	}
 
 	epochRewards := k.GetEpochReward(ctx, params.Epoch)
-	ctx.Logger().Info("epochRewards", "epochRewards", epochRewards)
 	for _, v := range epochRewards {
 		if stringInSlice(v.NodeAddress.String(), filteredNodesAddrStr) {
 			newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
@@ -150,7 +147,6 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 		}
 
 	}
-	ctx.Logger().Info("res", "res", res)
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
@@ -174,12 +170,9 @@ func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsBy
 	rewardAddrList := k.GetRewardAddressPool(ctx)
 
 	for _, n := range rewardAddrList {
-		ctx.Logger().Info("n", "n", n)
 		if !(n.Equals(params.OwnerAddr)) {
 			continue
 		}
-		ctx.Logger().Info("equal", "equal", true)
-
 		individualRewards := k.GetIndividualReward(ctx, n, sdk.NewInt(1))
 		matureTotal := k.GetMatureTotalReward(ctx, n)
 		immatureTotal := k.GetImmatureTotalReward(ctx, n)

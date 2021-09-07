@@ -78,7 +78,6 @@ func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, 
 func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params QueryPotRewardsByepochParams
 	err := k.Cdc.UnmarshalJSON(req.Data, &params)
-	ctx.Logger().Info("params", "params", params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -96,7 +95,6 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 func queryPotRewardsByOwner(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params QueryPotRewardsByOwnerParams
 	err := k.Cdc.UnmarshalJSON(req.Data, &params)
-	ctx.Logger().Info("params", "params", params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

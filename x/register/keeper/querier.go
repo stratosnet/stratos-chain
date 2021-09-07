@@ -181,7 +181,6 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	ctx.Logger().Info("NodeAddr", "NodeAddr", string(req.Data))
 	var params QuerynodeStakingParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
