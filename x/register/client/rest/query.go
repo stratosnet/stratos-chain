@@ -17,7 +17,28 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/register/indexing-nodes", nodesWithParamsFn(cliCtx, keeper.QueryIndexingNodeList)).Methods("GET")
 	r.HandleFunc("/register/staking", nodeStakingHandlerFn(cliCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
 	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(cliCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
-	r.HandleFunc("/register/staking/owner/{nodeWalletAddress}", nodeStakingByNodeWalletAddrFn(cliCtx, keeper.QueryNodeStakeByNodeWalletAddr)).Methods("GET")
+	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(cliCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
+	r.HandleFunc("/register/params", registerParamsHandlerFn(cliCtx, keeper.QueryRegisterParams)).Methods("GET")
+}
+
+// GET request handler to query params of Register module
+func registerParamsHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
 }
 
 // GET request handler to query all resource/indexing nodes
@@ -125,7 +146,7 @@ func nodeStakingByNodeAddressFn(cliCtx context.CLIContext, queryPath string) htt
 }
 
 // GET request handler to query nodes staking info by Node wallet address
-func nodeStakingByNodeWalletAddrFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func nodeStakingByOwnerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
@@ -139,7 +160,7 @@ func nodeStakingByNodeWalletAddrFn(cliCtx context.CLIContext, queryPath string) 
 			return
 		}
 
-		nodeWalletAddressStr := mux.Vars(r)["nodeWalletAddress"]
+		nodeWalletAddressStr := mux.Vars(r)["ownerAddress"]
 		nodeWalletAddress, ok := keeper.CheckAccAddr(w, r, nodeWalletAddressStr)
 		if !ok {
 			return
@@ -163,14 +184,3 @@ func nodeStakingByNodeWalletAddrFn(cliCtx context.CLIContext, queryPath string) 
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
-
-//func checkNodeAddr(w http.ResponseWriter, r *http.Request) ([]byte, bool) {
-//	NodeAddrStr := mux.Vars(r)["nodeAddress"]
-//	//NodeAddr, err := typesTypes.GetPubKeyFromBech32(typesTypes.Bech32PubKeyTypeSdsP2PPub, NodeAddrStr)
-//	NodeAddr, err := sdk.AccAddressFromBech32(NodeAddrStr)
-//	if err != nil {
-//		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'NodeAddress'.")
-//		return nil, false
-//	}
-//	return NodeAddr.Bytes(), true
-//}

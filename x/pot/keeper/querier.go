@@ -12,6 +12,7 @@ const (
 	QueryVolumeReport      = "volume_report"
 	QueryPotRewards        = "pot_rewards"
 	QueryPotRewardsByEpoch = "pot_rewards_by_epoch"
+	QueryPotRewardsByOwner = "pot_rewards_by_owner"
 	QueryDefaultLimit      = 100
 )
 
@@ -25,7 +26,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPotRewards(ctx, req, k)
 		case QueryPotRewardsByEpoch:
 			return queryPotRewardsByEpoch(ctx, req, k)
-
+		case QueryPotRewardsByOwner:
+			return queryPotRewardsByOwner(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -43,9 +45,6 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	//if len(reportRecord) == 0 {
-	//	return nil, nil
-	//}
 	bz, err := codec.MarshalJSONIndent(k.Cdc, reportRecord)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -87,6 +86,27 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	potEpochRewards := k.GetPotRewardsByEpoch(ctx, params)
 
 	bz, err := codec.MarshalJSONIndent(k.Cdc, potEpochRewards)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func queryPotRewardsByOwner(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params QueryPotRewardsByOwnerParams
+	err := k.Cdc.UnmarshalJSON(req.Data, &params)
+	ctx.Logger().Info("params", "params", params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	nodeRewards := k.GetNodesRewardsByOwner(ctx, params)
+	if len(nodeRewards) == 0 {
+		nodeRewards = []NodeRewardsInfo{}
+	}
+
+	bz, err := codec.MarshalJSONIndent(k.Cdc, nodeRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

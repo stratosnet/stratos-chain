@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -207,4 +208,10 @@ func NewRegistrationVotePool(nodeAddress sdk.AccAddress, approveList []sdk.AccAd
 		RejectList:  rejectList,
 		ExpireTime:  expireTime,
 	}
+}
+
+func (indexingNode IndexingNode) Equal(indexingNode2 IndexingNode) bool {
+	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&indexingNode)
+	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&indexingNode2)
+	return bytes.Equal(bz1, bz2)
 }

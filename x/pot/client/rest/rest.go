@@ -8,6 +8,7 @@ import (
 const (
 	RestNodeAddress  = "nodeAddress"
 	RestOwnerAddress = "owner"
+	RestHeight       = "height"
 	RestEpoch        = "epoch"
 )
 

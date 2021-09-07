@@ -10,11 +10,12 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"net/http"
+	"strconv"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(cliCtx, keeper.QueryPotRewardsByEpoch)).Methods("GET")
-	r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsByNodeAddrHandlerFn(cliCtx, keeper.QueryPotRewards)).Methods("GET")
+	r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsByOwnerHandlerFn(cliCtx, keeper.QueryPotRewardsByOwner)).Methods("GET")
 	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
 }
 
@@ -106,30 +107,34 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 }
 
 // GET request handler to query potRewards info by nodeWalletAddr
-func getPotRewardsByNodeAddrHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func getPotRewardsByOwnerHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		nodeAddrStr := mux.Vars(r)["nodeAddress"]
-		epochStr := "1"
-		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
-			epochStr = v
-		}
-		epoch, ok := checkEpoch(epochStr)
-		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch.")
-			return
-		}
-
-		acc, err := sdk.AccAddressFromBech32(nodeAddrStr)
+		ownerAddrStr := mux.Vars(r)["ownerAddress"]
+		ownerAddr, err := sdk.AccAddressFromBech32(ownerAddrStr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		params := keeper.NewQueryPotRewardsParams(1, 1, acc, epoch)
+		var height int64
+		if v := r.URL.Query().Get(RestHeight); len(v) != 0 {
+			height, err = strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			}
+		}
+
+		params := keeper.NewQueryPotRewardsByOwnerParams(page, limit, ownerAddr, height)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -147,6 +152,49 @@ func getPotRewardsByNodeAddrHandlerFn(cliCtx context.CLIContext, queryPath strin
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
+
+//// GET request handler to query potRewards info by nodeWalletAddr
+//func getPotRewardsByNodeAddrHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+//		if !ok {
+//			return
+//		}
+//
+//		nodeAddrStr := mux.Vars(r)["nodeAddress"]
+//		epochStr := "1"
+//		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
+//			epochStr = v
+//		}
+//		epoch, ok := checkEpoch(epochStr)
+//		if !ok {
+//			rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch.")
+//			return
+//		}
+//
+//		acc, err := sdk.AccAddressFromBech32(nodeAddrStr)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+//			return
+//		}
+//		params := keeper.NewQueryPotRewardsParams(1, 1, acc, epoch)
+//		bz, err := cliCtx.Codec.MarshalJSON(params)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+//			return
+//		}
+//
+//		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+//		res, height, err := cliCtx.QueryWithData(route, bz)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+//			return
+//		}
+//
+//		cliCtx = cliCtx.WithHeight(height)
+//		rest.PostProcessResponse(w, cliCtx, res)
+//	}
+//}
 
 // GET request handler to query Volume report info
 func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {

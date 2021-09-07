@@ -75,12 +75,6 @@ func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.Repor
 	return res, nil
 }
 
-//func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
-//	store := ctx.KVStore(k.storeKey)
-//	storeKey := types.VolumeReportStoreKey(reporter)
-//	store.Set(storeKey, []byte(reportReference))
-//}
-
 func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.ReportRecord) {
 	store := ctx.KVStore(k.storeKey)
 	//storeKey := types.VolumeReportStoreKey(reporter)
