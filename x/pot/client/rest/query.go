@@ -32,7 +32,7 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		}
 
 		epochStr := mux.Vars(r)["epoch"]
-		epoch, ok := checkEpoch(epochStr)
+		epoch, ok := checkEpoch(w, r, epochStr)
 		if !ok {
 			return
 		}
@@ -123,7 +123,7 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 		}
 
 		v := mux.Vars(r)["epoch"]
-		epoch, ok := checkEpoch(v)
+		epoch, ok := checkEpoch(w, r, v)
 		if len(v) == 0 || !ok {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch.")
 			return
@@ -141,12 +141,11 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 	}
 }
 
-func checkEpoch(epochStr string) (sdk.Int, bool) {
-	//epochStr := mux.Vars(r)["epoch"]
+func checkEpoch(w http.ResponseWriter, r *http.Request, epochStr string) (sdk.Int, bool) {
 	epoch, ok := sdk.NewIntFromString(epochStr)
-	if ok != true {
-		//rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'epoch'.")
-		return sdk.Int{}, false
+	if !ok {
+		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'epoch'.")
+		return sdk.NewInt(0), false
 	}
 	return epoch, true
 }
