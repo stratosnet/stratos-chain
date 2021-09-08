@@ -79,9 +79,9 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 
 // GetEpochRewardsKey prefix{epoch}_rewards
 func GetEpochRewardsKey(epoch sdk.Int) []byte {
-	bKeyStr := []byte("_rewards")
+	bKeyStr := []byte("pot_rewards_epoch_")
 	bEpoch := []byte(epoch.String())
-	key := append(EpochRewardsKeyPrefix, bEpoch...)
-	key = append(key, bKeyStr...)
+	key := append(EpochRewardsKeyPrefix, bKeyStr...)
+	key = append(key, bEpoch...)
 	return key
 }
