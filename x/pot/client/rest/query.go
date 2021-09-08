@@ -19,45 +19,6 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
 }
 
-// GET request handler to query potRewards info
-//func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-//		if err != nil {
-//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-//			return
-//		}
-//
-//		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-//		if !ok {
-//			return
-//		}
-//
-//		epochStr := mux.Vars(r)["epoch"]
-//		epoch, ok := checkEpoch(epochStr)
-//		if !ok {
-//			return
-//		}
-//
-//		params := keeper.NewQueryPotRewardsParams(page, limit, sdk.AccAddress{}, epoch)
-//		bz, err := cliCtx.Codec.MarshalJSON(params)
-//		if err != nil {
-//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-//			return
-//		}
-//
-//		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-//		res, height, err := cliCtx.QueryWithData(route, bz)
-//		if err != nil {
-//			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-//			return
-//		}
-//
-//		cliCtx = cliCtx.WithHeight(height)
-//		rest.PostProcessResponse(w, cliCtx, res)
-//	}
-//}
-
 func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
