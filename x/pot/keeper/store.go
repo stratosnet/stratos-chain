@@ -166,20 +166,10 @@ func (k Keeper) GetImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (val
 }
 
 func (k Keeper) setEpochReward(ctx sdk.Context, epoch sdk.Int, value []types.Reward) {
-	//ctx.Logger().Info("Enter setEpochReward", "value", value)
-	//var res []types.Reward
-	//for _, v := range value {
-	//	newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
-	//	res = append(res, newNodeReward)
-	//}
-	//ctx.Logger().Info("InsetEpochReward", "res", res)
 	store := ctx.KVStore(k.storeKey)
 	b := k.Cdc.MustMarshalBinaryLengthPrefixed(value)
-	ctx.Logger().Info("In setEpochReward", "MustMarshalBinaryLengthPrefixed", true, "b", b)
 	key := types.GetEpochRewardsKey(epoch)
-	ctx.Logger().Info("In setEpochReward", "key", key)
 	store.Set(key, b)
-	ctx.Logger().Info("Leave setEpochReward")
 }
 
 func (k Keeper) GetEpochReward(ctx sdk.Context, epoch sdk.Int) (value []types.Reward) {
@@ -190,4 +180,13 @@ func (k Keeper) GetEpochReward(ctx sdk.Context, epoch sdk.Int) (value []types.Re
 	}
 	k.Cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
+}
+
+func (k Keeper) setRewardsByEpoch(ctx sdk.Context, rewardDetailMap map[string]types.Reward, epoch sdk.Int) {
+	var res []types.Reward
+	for _, v := range rewardDetailMap {
+		newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
+		res = append(res, newNodeReward)
+	}
+	k.setEpochReward(ctx, epoch, res)
 }

@@ -22,7 +22,7 @@ const (
 	QueryNodeStakeByNodeAddr   = "node_stakes"
 	QueryNodeStakeByOwner      = "node_stakes_by_owner"
 	QueryRegisterParams        = "register_params"
-	QueryDefaultLimit          = 20
+	QueryDefaultLimit          = 100
 	defaultDenom               = "ustos"
 )
 

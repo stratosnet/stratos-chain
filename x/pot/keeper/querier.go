@@ -99,12 +99,12 @@ func queryPotRewardsByOwner(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
-	nodeRewards := k.GetNodesRewardsByOwner(ctx, params)
-	if len(nodeRewards) == 0 {
-		nodeRewards = []NodeRewardsInfo{}
+	ownerRewards := k.GetNodesRewardsByOwner(ctx, params)
+	if len(ownerRewards) == 0 {
+		ownerRewards = nil
 	}
 
-	bz, err := codec.MarshalJSONIndent(k.Cdc, nodeRewards)
+	bz, err := codec.MarshalJSONIndent(k.Cdc, ownerRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
