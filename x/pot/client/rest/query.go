@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
-	typesTypes "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"net/http"
@@ -15,7 +14,7 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(cliCtx, keeper.QueryPotRewardsByEpoch)).Methods("GET")
-	r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsByOwnerHandlerFn(cliCtx, keeper.QueryPotRewardsByOwner)).Methods("GET")
+	//r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsByOwnerHandlerFn(cliCtx, keeper.QueryPotRewardsByOwner)).Methods("GET")
 	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
 }
 
@@ -114,49 +113,6 @@ func getPotRewardsByOwnerHandlerFn(cliCtx context.CLIContext, queryPath string) 
 	}
 }
 
-//// GET request handler to query potRewards info by nodeWalletAddr
-//func getPotRewardsByNodeAddrHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
-//	return func(w http.ResponseWriter, r *http.Request) {
-//		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
-//		if !ok {
-//			return
-//		}
-//
-//		nodeAddrStr := mux.Vars(r)["nodeAddress"]
-//		epochStr := "1"
-//		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
-//			epochStr = v
-//		}
-//		epoch, ok := checkEpoch(epochStr)
-//		if !ok {
-//			rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch.")
-//			return
-//		}
-//
-//		acc, err := sdk.AccAddressFromBech32(nodeAddrStr)
-//		if err != nil {
-//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-//			return
-//		}
-//		params := keeper.NewQueryPotRewardsParams(1, 1, acc, epoch)
-//		bz, err := cliCtx.Codec.MarshalJSON(params)
-//		if err != nil {
-//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-//			return
-//		}
-//
-//		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-//		res, height, err := cliCtx.QueryWithData(route, bz)
-//		if err != nil {
-//			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-//			return
-//		}
-//
-//		cliCtx = cliCtx.WithHeight(height)
-//		rest.PostProcessResponse(w, cliCtx, res)
-//	}
-//}
-
 // GET request handler to query Volume report info
 func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
 
@@ -193,24 +149,4 @@ func checkEpoch(epochStr string) (sdk.Int, bool) {
 		return sdk.Int{}, false
 	}
 	return epoch, true
-}
-
-//func checkNodeWalletAddr(w http.ResponseWriter, r *http.Request) (sdk.AccAddress, bool) {
-//	NodeWalletAddrStr := mux.Vars(r)["NodeWalletAddress"]
-//	NodeWalletAddr, err := sdk.AccAddressFromBech32(NodeWalletAddrStr)
-//	if err != nil {
-//		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'NodeWalletAddress'.")
-//		return sdk.AccAddress{}, false
-//	}
-//	return NodeWalletAddr, true
-//}
-
-func checkNodeAddr(nodeAddrStr string) (string, bool) {
-	//nodeAddrStr := mux.Vars(r)["nodeAddress"]
-	_, err := typesTypes.GetPubKeyFromBech32(typesTypes.Bech32PubKeyTypeSdsP2PPub, nodeAddrStr)
-	if err != nil {
-		//rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'NodeAddress'.")
-		return "", false
-	}
-	return nodeAddrStr, true
 }

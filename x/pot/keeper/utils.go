@@ -122,21 +122,16 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 
 	for _, n := range resourceNodesAddr {
 		// match OwnerAddr (if supplied)
-		if !params.OwnerAddr.Empty() {
-			if !n.OwnerAddress.Equals(params.OwnerAddr) {
-				continue
-			}
+		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
+			filteredNodesAddrStr = append(filteredNodesAddrStr, sdk.AccAddress(n.PubKey.Address()).String())
 		}
-		filteredNodesAddrStr = append(filteredNodesAddrStr, sdk.AccAddress(n.PubKey.Address()).String())
+
 	}
 	for _, n := range indexingNodesAddr {
 		// match OwnerAddr (if supplied)
-		if !params.OwnerAddr.Empty() {
-			if !n.OwnerAddress.Equals(params.OwnerAddr) {
-				continue
-			}
+		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
+			filteredNodesAddrStr = append(filteredNodesAddrStr, sdk.AccAddress(n.PubKey.Address()).String())
 		}
-		filteredNodesAddrStr = append(filteredNodesAddrStr, sdk.AccAddress(n.PubKey.Address()).String())
 	}
 
 	epochRewards := k.GetEpochReward(ctx, params.Epoch)
@@ -170,21 +165,19 @@ func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsBy
 	rewardAddrList := k.GetRewardAddressPool(ctx)
 
 	for _, n := range rewardAddrList {
-		if !(n.Equals(params.OwnerAddr)) {
-			continue
+		if n.Equals(params.OwnerAddr) {
+			individualRewards := k.GetIndividualReward(ctx, n, sdk.NewInt(1))
+			matureTotal := k.GetMatureTotalReward(ctx, n)
+			immatureTotal := k.GetImmatureTotalReward(ctx, n)
+
+			individualResult := NewNodeRewardsInfo(
+				n,
+				individualRewards,
+				matureTotal,
+				immatureTotal,
+			)
+			res = append(res, individualResult)
 		}
-		individualRewards := k.GetIndividualReward(ctx, n, sdk.NewInt(1))
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-
-		individualResult := NewNodeRewardsInfo(
-			n,
-			individualRewards,
-			matureTotal,
-			immatureTotal,
-		)
-
-		res = append(res, individualResult)
 	}
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {

@@ -128,13 +128,9 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 		}
 
 		// match OwnerAddr (if supplied)
-		if !params.OwnerAddr.Empty() {
-			if !n.OwnerAddress.Equals(params.OwnerAddr) {
-				continue
-			}
+		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, n)
 		}
-
-		filteredNodes = append(filteredNodes, n)
 	}
 
 	filteredNodes = k.resPagination(filteredNodes, params)
@@ -172,12 +168,9 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 		}
 
 		// match OwnerAddr (if supplied)
-		if len(params.OwnerAddr) > 0 {
-			if !n.OwnerAddress.Equals(params.OwnerAddr) {
-				continue
-			}
+		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, n)
 		}
-		filteredNodes = append(filteredNodes, n)
 	}
 	filteredNodes = k.indPagination(filteredNodes, params)
 	return filteredNodes
