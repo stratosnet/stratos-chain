@@ -287,12 +287,13 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr sdk.AccAddress) error {
 func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkID string) (indexingNodes []types.IndexingNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
 		if strings.Compare(node.NetworkID, networkID) == 0 {
 			indexingNodes = append(indexingNodes, node)
 		}
-
 	}
 	ctx.Logger().Info("IndexingNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(indexingNodes))
 	return indexingNodes, nil
@@ -301,6 +302,8 @@ func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkID string) (indexing
 func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.IndexingNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
 		if strings.Compare(node.Description.Moniker, moniker) == 0 {
