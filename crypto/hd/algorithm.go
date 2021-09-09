@@ -24,7 +24,7 @@ const (
 	EthSecp256k1 = keys.SigningAlgo(ethsecp256k1.KeyType)
 )
 
-// SupportedAlgorithms defines the list of signing algorithms used on Ethermint:
+// SupportedAlgorithms defines the list of signing algorithms used on Stratos:
 //  - eth_secp256k1 (Ethereum)
 //  - secp256k1 (Tendermint)
 var SupportedAlgorithms = []keys.SigningAlgo{EthSecp256k1, keys.Secp256k1}
@@ -32,7 +32,7 @@ var SupportedAlgorithms = []keys.SigningAlgo{EthSecp256k1, keys.Secp256k1}
 // EthSecp256k1Options defines a keys options for the ethereum Secp256k1 curve.
 func EthSecp256k1Options() []keys.KeybaseOption {
 	return []keys.KeybaseOption{
-		keys.WithKeygenFunc(EthermintKeygenFunc),
+		keys.WithKeygenFunc(StratosKeygenFunc),
 		keys.WithDeriveFunc(DeriveKey),
 		keys.WithSupportedAlgos(SupportedAlgorithms),
 		keys.WithSupportedAlgosLedger(SupportedAlgorithms),
@@ -50,9 +50,9 @@ func DeriveKey(mnemonic, bip39Passphrase, hdPath string, algo keys.SigningAlgo) 
 	}
 }
 
-// EthermintKeygenFunc is the key generation function to generate secp256k1 ToECDSA
+// StratosKeygenFunc is the key generation function to generate secp256k1 ToECDSA
 // from ethereum.
-func EthermintKeygenFunc(bz []byte, algo keys.SigningAlgo) (tmcrypto.PrivKey, error) {
+func StratosKeygenFunc(bz []byte, algo keys.SigningAlgo) (tmcrypto.PrivKey, error) {
 	if algo != EthSecp256k1 {
 		return nil, fmt.Errorf("signing algorithm must be %s, got %s", EthSecp256k1, algo)
 	}

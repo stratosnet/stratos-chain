@@ -18,7 +18,7 @@ import (
 )
 
 // Backend implements the functionality needed to filter changes.
-// Implemented by EthermintBackend.
+// Implemented by StratosBackend.
 type Backend interface {
 	// Used by block filter; also used for polling
 	BlockNumber() (hexutil.Uint64, error)
@@ -39,19 +39,19 @@ type Backend interface {
 	BloomStatus() (uint64, uint64)
 }
 
-var _ Backend = (*EthermintBackend)(nil)
+var _ Backend = (*StratosBackend)(nil)
 
-// EthermintBackend implements the Backend interface
-type EthermintBackend struct {
+// StratosBackend implements the Backend interface
+type StratosBackend struct {
 	ctx       context.Context
 	clientCtx clientcontext.CLIContext
 	logger    log.Logger
 	gasLimit  int64
 }
 
-// New creates a new EthermintBackend instance
-func New(clientCtx clientcontext.CLIContext) *EthermintBackend {
-	return &EthermintBackend{
+// New creates a new StratosBackend instance
+func New(clientCtx clientcontext.CLIContext) *StratosBackend {
+	return &StratosBackend{
 		ctx:       context.Background(),
 		clientCtx: clientCtx,
 		logger:    log.NewTMLogger(log.NewSyncWriter(os.Stdout)).With("module", "json-rpc"),
@@ -60,7 +60,7 @@ func New(clientCtx clientcontext.CLIContext) *EthermintBackend {
 }
 
 // BlockNumber returns the current block number.
-func (b *EthermintBackend) BlockNumber() (hexutil.Uint64, error) {
+func (b *StratosBackend) BlockNumber() (hexutil.Uint64, error) {
 	blockNumber, err := b.LatestBlockNumber()
 	if err != nil {
 		return hexutil.Uint64(0), err
@@ -70,7 +70,7 @@ func (b *EthermintBackend) BlockNumber() (hexutil.Uint64, error) {
 }
 
 // GetBlockByNumber returns the block identified by number.
-func (b *EthermintBackend) GetBlockByNumber(blockNum rpctypes.BlockNumber, fullTx bool) (map[string]interface{}, error) {
+func (b *StratosBackend) GetBlockByNumber(blockNum rpctypes.BlockNumber, fullTx bool) (map[string]interface{}, error) {
 	height := blockNum.Int64()
 	if height <= 0 {
 		// get latest block height
@@ -91,7 +91,7 @@ func (b *EthermintBackend) GetBlockByNumber(blockNum rpctypes.BlockNumber, fullT
 }
 
 // GetBlockByHash returns the block identified by hash.
-func (b *EthermintBackend) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error) {
+func (b *StratosBackend) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error) {
 	res, _, err := b.clientCtx.Query(fmt.Sprintf("custom/%s/%s/%s", evmtypes.ModuleName, evmtypes.QueryHashToHeight, hash.Hex()))
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (b *EthermintBackend) GetBlockByHash(hash common.Hash, fullTx bool) (map[st
 }
 
 // HeaderByNumber returns the block header identified by height.
-func (b *EthermintBackend) HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Header, error) {
+func (b *StratosBackend) HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethtypes.Header, error) {
 	height := blockNum.Int64()
 	if height <= 0 {
 		// get latest block height
@@ -142,7 +142,7 @@ func (b *EthermintBackend) HeaderByNumber(blockNum rpctypes.BlockNumber) (*ethty
 }
 
 // HeaderByHash returns the block header identified by hash.
-func (b *EthermintBackend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) {
+func (b *StratosBackend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) {
 	res, _, err := b.clientCtx.Query(fmt.Sprintf("custom/%s/%s/%s", evmtypes.ModuleName, evmtypes.QueryHashToHeight, blockHash.Hex()))
 	if err != nil {
 		return nil, err
@@ -174,7 +174,7 @@ func (b *EthermintBackend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header
 // GetTransactionLogs returns the logs given a transaction hash.
 // It returns an error if there's an encoding error.
 // If no logs are found for the tx hash, the error is nil.
-func (b *EthermintBackend) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, error) {
+func (b *StratosBackend) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, error) {
 	res, _, err := b.clientCtx.QueryWithData(fmt.Sprintf("custom/%s/%s/%s", evmtypes.ModuleName, evmtypes.QueryTransactionLogs, txHash.String()), nil)
 	if err != nil {
 		return nil, err
@@ -190,7 +190,7 @@ func (b *EthermintBackend) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.L
 
 // PendingTransactions returns the transactions that are in the transaction pool
 // and have a from address that is one of the accounts this node manages.
-func (b *EthermintBackend) PendingTransactions() ([]*rpctypes.Transaction, error) {
+func (b *StratosBackend) PendingTransactions() ([]*rpctypes.Transaction, error) {
 	pendingTxs, err := b.clientCtx.Client.UnconfirmedTxs(1000)
 	if err != nil {
 		return nil, err
@@ -200,7 +200,7 @@ func (b *EthermintBackend) PendingTransactions() ([]*rpctypes.Transaction, error
 	for _, tx := range pendingTxs.Txs {
 		ethTx, err := rpctypes.RawTxToEthTx(b.clientCtx, tx)
 		if err != nil {
-			// ignore non Ethermint EVM transactions
+			// ignore non Stratos EVM transactions
 			continue
 		}
 
@@ -215,7 +215,7 @@ func (b *EthermintBackend) PendingTransactions() ([]*rpctypes.Transaction, error
 }
 
 // GetLogs returns all the logs from all the ethereum transactions in a block.
-func (b *EthermintBackend) GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error) {
+func (b *StratosBackend) GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error) {
 	res, _, err := b.clientCtx.Query(fmt.Sprintf("custom/%s/%s/%s", evmtypes.ModuleName, evmtypes.QueryHashToHeight, blockHash.Hex()))
 	if err != nil {
 		return nil, err
@@ -252,12 +252,12 @@ func (b *EthermintBackend) GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, er
 
 // BloomStatus returns the BloomBitsBlocks and the number of processed sections maintained
 // by the chain indexer.
-func (b *EthermintBackend) BloomStatus() (uint64, uint64) {
+func (b *StratosBackend) BloomStatus() (uint64, uint64) {
 	return 4096, 0
 }
 
 // LatestBlockNumber gets the latest block height in int64 format.
-func (b *EthermintBackend) LatestBlockNumber() (int64, error) {
+func (b *StratosBackend) LatestBlockNumber() (int64, error) {
 	// NOTE: using 0 as min and max height returns the blockchain info up to the latest block.
 	info, err := b.clientCtx.Client.BlockchainInfo(0, 0)
 	if err != nil {
