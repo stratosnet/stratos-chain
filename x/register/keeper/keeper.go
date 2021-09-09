@@ -463,7 +463,7 @@ func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.Un
 	return unbondingNodes
 }
 
-func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context, unbondingNodes []types.UnbondingNode) sdk.Int {
+func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
 	defer iterator.Close()
@@ -478,7 +478,7 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context, unbondingNodes
 	return ubdTotal
 }
 
-// return a unbonding UnbondingIndexingNode
+// GetUnbondingNodeBalance returns an unbonding balance and an UnbondingNode
 func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	networkAddr sdk.AccAddress) sdk.Int {
 
@@ -488,6 +488,7 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	key := types.GetUBDNodeKey(networkAddr)
 	value := store.Get(key)
 	if value == nil {
+		//return balance
 		return balance
 	}
 
