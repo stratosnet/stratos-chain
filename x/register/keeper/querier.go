@@ -383,7 +383,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
-	filteredNodes = k.indexingNodePagination(filteredNodes, params)
+	filteredNodes = k.indexingNodesPagination(filteredNodes, params)
 	return filteredNodes
 }
 
@@ -412,11 +412,11 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 		}
 	}
 
-	filteredNodes = k.resourceNodePagination(filteredNodes, params)
+	filteredNodes = k.resourceNodesPagination(filteredNodes, params)
 	return filteredNodes
 }
 
-func (k Keeper) resourceNodePagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
+func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		filteredNodes = nil
@@ -426,7 +426,7 @@ func (k Keeper) resourceNodePagination(filteredNodes []types.ResourceNode, param
 	return filteredNodes
 }
 
-func (k Keeper) indexingNodePagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
+func (k Keeper) indexingNodesPagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		filteredNodes = nil
