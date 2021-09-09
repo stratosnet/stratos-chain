@@ -11,12 +11,12 @@ import (
 	"net/http"
 )
 
-func PotTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+//registerTxRoutes registers pot-related REST Tx handlers to a router
+func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/volume/report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/address/{nodeAddr}/rewards", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
 }
 
-// VolumeReportReq defines the properties of a send request's body.
 type (
 	withdrawRewardsReq struct {
 		BaseReq    rest.BaseReq `json:"base_req" yaml:"base_req"`
@@ -24,7 +24,7 @@ type (
 		TargetAddr string       `json:"target_addr" yaml:"target_addr"`
 	}
 
-	VolumeReportReq struct {
+	volumeReportReq struct {
 		BaseReq         rest.BaseReq             `json:"base_req" yaml:"base_req"`
 		NodesVolume     []types.SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
 		Reporter        string                   `json:"reporter" yaml:"reporter"`                 // volume reporter
@@ -36,7 +36,7 @@ type (
 // volumeReportRequestHandlerFn rest API handler to create a volume report tx.
 func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req VolumeReportReq
+		var req volumeReportReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
@@ -112,7 +112,7 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		//TODO: Add targetAddr into NewMsgWithdraw after it updates
+		//TODO: Add targetAddr after NewMsgWithdraw updates
 		fmt.Println("targetAddr", targetAddr)
 
 		ownerAddrStr := req.BaseReq.From
