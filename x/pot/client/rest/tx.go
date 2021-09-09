@@ -12,7 +12,7 @@ import (
 )
 
 func PotTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/pot/volume/report", VolumeReportRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/pot/volume/report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/address/{nodeAddr}/rewards", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
 }
 
@@ -33,8 +33,8 @@ type (
 	}
 )
 
-// VolumeReportRequestHandlerFn rest API handler to create a volume report tx.
-func VolumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+// volumeReportRequestHandlerFn rest API handler to create a volume report tx.
+func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req VolumeReportReq
 		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
