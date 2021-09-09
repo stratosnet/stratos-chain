@@ -184,7 +184,7 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var (
 		bz                 []byte
-		params             QuerynodeStakingParams
+		params             QueryNodeStakingParams
 		resourceNodeResult StakingInfoByResourceNodeAddr
 		indexingNodeResult StakingInfoByIndexingNodeAddr
 	)
@@ -205,7 +205,12 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		resourceNode, ok := keeper.GetResourceNode(ctx, NodeAddr)
 		// Adding resource node staking info
 		if ok {
-			unbondingStake, unbondedStake, bondedStake, err := getResourceNodeStakes(ctx, resourceNode, keeper)
+			unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+				ctx, keeper,
+				resourceNode.GetStatus(),
+				resourceNode.GetNetworkAddr(),
+				resourceNode.GetTokens(),
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -225,7 +230,13 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		}
 	} else {
 		// Adding indexing node staking info
-		unbondingStake, unbondedStake, bondedStake, err := getIndexingNodeStakes(ctx, indexingNode, keeper)
+
+		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+			ctx, keeper,
+			indexingNode.GetStatus(),
+			indexingNode.GetNetworkAddr(),
+			indexingNode.GetTokens(),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -271,7 +282,12 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	indNodes := keeper.GetIndexingNodesFiltered(ctx, params2)
 
 	for _, n := range indNodes {
-		unbondingStake, unbondedStake, bondedStake, err := getIndexingNodeStakes(ctx, n, keeper)
+		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+			ctx, keeper,
+			n.GetStatus(),
+			n.GetNetworkAddr(),
+			n.GetTokens(),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -287,7 +303,12 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	}
 
 	for _, n := range resNodes {
-		unbondingStake, unbondedStake, bondedStake, err := getResourceNodeStakes(ctx, n, keeper)
+		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+			ctx, keeper,
+			n.GetStatus(),
+			n.GetNetworkAddr(),
+			n.GetTokens(),
+		)
 		if err != nil {
 			return nil, err
 		}
@@ -338,41 +359,98 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	return bz, nil
 }
 
-func getIndexingNodeStakes(ctx sdk.Context, indexingNode types.IndexingNode, keeper Keeper) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
-	unbondingStake = sdk.NewInt(0)
-	unbondedStake = sdk.NewInt(0)
-	bondedStake = sdk.NewInt(0)
+func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.IndexingNode {
+	nodes := k.GetAllIndexingNodes(ctx)
+	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
 
-	switch indexingNode.GetStatus() {
-	case sdk.Unbonding:
-		unbondingStake = keeper.GetUnbondingNodeBalance(ctx, indexingNode.GetNetworkAddr())
-	case sdk.Unbonded:
-		unbondedStake = indexingNode.Tokens
-	case sdk.Bonded:
-		bondedStake = indexingNode.Tokens
-	default:
-		err := fmt.Sprintf("Invalid status of node %s, expected Bonded, Unbonded, or Unbonding, got %s",
-			indexingNode.GetNetworkAddr().String(), indexingNode.GetStatus().String())
-		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
+	for _, n := range nodes {
+		// match NetworkID (if supplied)
+		if len(params.NetworkID) > 0 {
+			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+				continue
+			}
+		}
+
+		// match Moniker (if supplied)
+		if len(params.Moniker) > 0 {
+			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+				continue
+			}
+		}
+
+		// match OwnerAddr (if supplied)
+		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, n)
+		}
 	}
-	return unbondingStake, unbondedStake, bondedStake, nil
+	filteredNodes = k.indPagination(filteredNodes, params)
+	return filteredNodes
 }
 
-func getResourceNodeStakes(ctx sdk.Context, resourceNode types.ResourceNode, keeper Keeper) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.ResourceNode {
+	nodes := k.GetAllResourceNodes(ctx)
+	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
+
+	for _, n := range nodes {
+		// match NetworkID (if supplied)
+		if len(params.NetworkID) > 0 {
+			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+				continue
+			}
+		}
+
+		// match Moniker (if supplied)
+		if len(params.Moniker) > 0 {
+			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+				continue
+			}
+		}
+
+		// match OwnerAddr (if supplied)
+		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, n)
+		}
+	}
+
+	filteredNodes = k.resPagination(filteredNodes, params)
+	return filteredNodes
+}
+
+func (k Keeper) resPagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
+	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		filteredNodes = nil
+	} else {
+		filteredNodes = filteredNodes[start:end]
+	}
+	return filteredNodes
+}
+
+func (k Keeper) indPagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
+	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		filteredNodes = nil
+	} else {
+		filteredNodes = filteredNodes[start:end]
+	}
+	return filteredNodes
+}
+
+func getNodeStakes(ctx sdk.Context, keeper Keeper, bondStatus sdk.BondStatus, nodeAddress sdk.AccAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
 	unbondingStake = sdk.NewInt(0)
 	unbondedStake = sdk.NewInt(0)
 	bondedStake = sdk.NewInt(0)
 
-	switch resourceNode.GetStatus() {
+	switch bondStatus {
 	case sdk.Unbonding:
-		unbondingStake = keeper.GetUnbondingNodeBalance(ctx, resourceNode.GetNetworkAddr())
+		unbondingStake = keeper.GetUnbondingNodeBalance(ctx, nodeAddress)
 	case sdk.Unbonded:
-		unbondedStake = resourceNode.Tokens
+		unbondedStake = tokens
 	case sdk.Bonded:
-		bondedStake = resourceNode.Tokens
+		bondedStake = tokens
 	default:
 		err := fmt.Sprintf("Invalid status of node %s, expected Bonded, Unbonded, or Unbonding, got %s",
-			resourceNode.GetNetworkAddr().String(), resourceNode.GetStatus().String())
+			nodeAddress.String(), bondStatus.String())
 		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
 	}
 	return unbondingStake, unbondedStake, bondedStake, nil

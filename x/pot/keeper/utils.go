@@ -1,12 +1,9 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-// QueryPotRewardsParams Params for query 'custom/pot/rewards'
 type QueryPotRewardsParams struct {
 	Page     int
 	Limit    int
@@ -24,7 +21,6 @@ func NewQueryPotRewardsParams(page, limit int, nodeAddr sdk.AccAddress, epoch sd
 	}
 }
 
-// QueryPotRewardsByepochParams Params for query 'custom/pot/rewards'
 type QueryPotRewardsByepochParams struct {
 	Page      int
 	Limit     int
@@ -42,7 +38,6 @@ func NewQueryPotRewardsByepochParams(page, limit int, ownerAddr sdk.AccAddress, 
 	}
 }
 
-// QueryPotRewardsByOwnerParams Params for query 'custom/pot/rewards/owner/<NodeWalletAddress>'
 type QueryPotRewardsByOwnerParams struct {
 	Page      int
 	Limit     int
@@ -78,102 +73,4 @@ func NewNodeRewardsInfo(
 		MatureTotalReward:   sdk.NewCoin(denomName, matureTotal),
 		ImmatureTotalReward: sdk.NewCoin(denomName, immatureTotal),
 	}
-}
-
-func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (res []NodeRewardsInfo) {
-
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-
-	for _, n := range rewardAddrList {
-		if !(n.Equals(params.NodeAddr)) {
-			continue
-		}
-
-		//individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-		individualResult := NewNodeRewardsInfo(
-			n,
-			matureTotal,
-			immatureTotal,
-		)
-
-		res = append(res, individualResult)
-	}
-
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return []NodeRewardsInfo{}
-	} else {
-		res = res[start:end]
-		return res
-	}
-}
-
-func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
-	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
-
-	epochRewards := k.GetEpochReward(ctx, params.Epoch)
-	epochRewardsMap := make(map[string]types.Reward)
-	for _, v := range epochRewards {
-		epochRewardsMap[v.NodeAddress.String()] = v
-	}
-
-	for _, n := range filteredNodesAddr {
-		if newNodeReward, found := epochRewardsMap[n.String()]; found {
-			res = append(res, newNodeReward)
-		}
-	}
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return nil
-	} else {
-		res = res[start:end]
-		return res
-	}
-}
-
-func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsByOwnerParams) (res []NodeRewardsInfo) {
-	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
-
-	for _, n := range filteredNodesAddr {
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-		if !matureTotal.Equal(sdk.NewInt(0)) || !immatureTotal.Equal(sdk.NewInt(0)) {
-			individualResult := NewNodeRewardsInfo(
-				n,
-				matureTotal,
-				immatureTotal,
-			)
-			res = append(res, individualResult)
-		}
-	}
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return []NodeRewardsInfo{}
-	} else {
-		res = res[start:end]
-		return res
-	}
-}
-
-func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []sdk.AccAddress {
-	resourceNodesAddr := k.RegisterKeeper.GetAllResourceNodes(ctx)
-	indexingNodesAddr := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	filteredNodesAddr := make([]sdk.AccAddress, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
-
-	for _, n := range resourceNodesAddr {
-		// match OwnerAddr (if supplied)
-		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-		}
-
-	}
-	for _, n := range indexingNodesAddr {
-		// match OwnerAddr (if supplied)
-		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-		}
-	}
-	return filteredNodesAddr
 }

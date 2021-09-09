@@ -1,12 +1,10 @@
 package keeper
 
 import (
-	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
-	"strings"
 )
 
 // QueryNodesParams Params for query 'custom/register/resource-nodes'
@@ -29,14 +27,13 @@ func NewQueryNodesParams(page, limit int, networkID, moniker string, ownerAddr s
 	}
 }
 
-// QuerynodeStakingParams Params for query 'custom/register/staking/owner/{NodeWalletAddress}'
-type QuerynodeStakingParams struct {
+type QueryNodeStakingParams struct {
 	AccAddr sdk.AccAddress
 }
 
 // NewQuerynodeStakingParams creates a new instance of QueryNodesParams
-func NewQuerynodeStakingParams(nodeAddr sdk.AccAddress) QuerynodeStakingParams {
-	return QuerynodeStakingParams{
+func NewQuerynodeStakingParams(nodeAddr sdk.AccAddress) QueryNodeStakingParams {
+	return QueryNodeStakingParams{
 		AccAddr: nodeAddr,
 	}
 }
@@ -67,7 +64,6 @@ func NewQueryNodesStakingInfo(
 	}
 }
 
-// StakingInfoByResourceNodeAddr Params for query 'custom/register/staking'
 type StakingInfoByResourceNodeAddr struct {
 	types.ResourceNode
 	BondedStake    sdk.Coin
@@ -91,7 +87,6 @@ func NewStakingInfoByResourceNodeAddr(
 	}
 }
 
-// StakingInfoByIndexingNodeAddr Params for query 'custom/register/staking'
 type StakingInfoByIndexingNodeAddr struct {
 	types.IndexingNode
 	BondedStake    sdk.Coin
@@ -112,83 +107,6 @@ func NewStakingInfoByIndexingNodeAddr(
 		UnbondedStake:  sdk.NewCoin(defaultDenom, unbondedStake),
 		BondedStake:    sdk.NewCoin(defaultDenom, bondedStake),
 	}
-}
-
-func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.ResourceNode {
-	nodes := k.GetAllResourceNodes(ctx)
-	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
-
-	for _, n := range nodes {
-		// match NetworkID (if supplied)
-		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
-		// match OwnerAddr (if supplied)
-		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
-		}
-	}
-
-	filteredNodes = k.resPagination(filteredNodes, params)
-	return filteredNodes
-}
-
-func (k Keeper) resPagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
-	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		filteredNodes = nil
-	} else {
-		filteredNodes = filteredNodes[start:end]
-	}
-	return filteredNodes
-}
-
-func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.IndexingNode {
-	nodes := k.GetAllIndexingNodes(ctx)
-	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
-
-	for _, n := range nodes {
-		// match NetworkID (if supplied)
-		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
-		// match OwnerAddr (if supplied)
-		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
-		}
-	}
-	filteredNodes = k.indPagination(filteredNodes, params)
-	return filteredNodes
-}
-
-func (k Keeper) indPagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
-	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		filteredNodes = nil
-	} else {
-		filteredNodes = filteredNodes[start:end]
-	}
-	return filteredNodes
 }
 
 func CheckAccAddr(w http.ResponseWriter, r *http.Request, data string) (sdk.AccAddress, bool) {
