@@ -2,7 +2,7 @@ BUILDDIR ?= $(CURDIR)/build
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
-VERSION := -ldflags="-X github.com/cosmos/cosmos-sdk/version.Version=v0.3.0"
+VERSION := -ldflags="-X github.com/cosmos/cosmos-sdk/version.Version=v0.4.0"
 
 BUILD_TARGETS := build install
 

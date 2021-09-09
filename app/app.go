@@ -2,7 +2,6 @@ package app
 
 import (
 	"encoding/json"
-	"github.com/stratosnet/stratos-chain/helpers"
 	"io"
 	"os"
 
@@ -34,6 +33,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+
+	"github.com/stratosnet/stratos-chain/helpers"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
@@ -42,7 +43,7 @@ import (
 
 const (
 	appName    = "stchain"
-	appVersion = "v0.3.0"
+	appVersion = "v0.4.0"
 )
 
 var (
