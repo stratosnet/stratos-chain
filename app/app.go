@@ -292,7 +292,7 @@ func NewInitApp(
 	)
 
 	app.mm.SetOrderEndBlockers(
-		evm.ModuleName, crisis.ModuleName, gov.ModuleName, staking.ModuleName,
+		evm.ModuleName, crisis.ModuleName, gov.ModuleName, staking.ModuleName, register.ModuleName,
 		// this line is used by starport scaffolding # 6.1
 	)
 

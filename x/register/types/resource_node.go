@@ -8,6 +8,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
+	"time"
 )
 
 type NodeType uint8
@@ -88,11 +89,12 @@ type ResourceNode struct {
 	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
 	Description  Description    `json:"description" yaml:"description"`     // description terms for the resource node
 	NodeType     string         `json:"node_type" yaml:"node_type"`
+	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"`
 }
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description Description, nodeType string) ResourceNode {
+	description Description, nodeType string, creationTime time.Time) ResourceNode {
 	return ResourceNode{
 		NetworkID:    networkID,
 		PubKey:       pubKey,
@@ -102,6 +104,7 @@ func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 		OwnerAddress: ownerAddr,
 		Description:  description,
 		NodeType:     nodeType,
+		CreationTime: creationTime,
 	}
 }
 
@@ -119,7 +122,8 @@ func (v ResourceNode) String() string {
   		Tokens:				%s
 		Owner Address: 		%s
   		Description:		%s
-	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+  		CreationTime:		%s
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
 }
 
 // AddToken adds tokens to a resource node
@@ -168,6 +172,7 @@ func (v ResourceNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.
 func (v ResourceNode) GetTokens() sdk.Int             { return v.Tokens }
 func (v ResourceNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
 func (v ResourceNode) GetNodeType() string            { return v.NodeType }
+func (v ResourceNode) GetCreationTime() time.Time     { return v.CreationTime }
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
 func MustMarshalResourceNode(cdc *codec.Codec, resourceNode ResourceNode) []byte {
