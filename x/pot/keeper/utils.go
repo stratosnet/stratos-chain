@@ -62,8 +62,6 @@ func NewQueryPotRewardsByOwnerParams(page, limit int, ownerAddr sdk.AccAddress, 
 
 type NodeRewardsInfo struct {
 	NodeAddress         sdk.AccAddress
-	Epoch               sdk.Int
-	IndividualRewards   sdk.Coin
 	MatureTotalReward   sdk.Coin
 	ImmatureTotalReward sdk.Coin
 }
@@ -71,16 +69,12 @@ type NodeRewardsInfo struct {
 // NewNodeRewardsInfo creates a new instance of NodeRewardsInfo
 func NewNodeRewardsInfo(
 	nodeAddress sdk.AccAddress,
-	epoch sdk.Int,
-	individualRewards,
 	matureTotal,
 	immatureTotal sdk.Int,
 ) NodeRewardsInfo {
 	denomName := "ustos"
 	return NodeRewardsInfo{
 		NodeAddress:         nodeAddress,
-		Epoch:               epoch,
-		IndividualRewards:   sdk.NewCoin(denomName, individualRewards),
 		MatureTotalReward:   sdk.NewCoin(denomName, matureTotal),
 		ImmatureTotalReward: sdk.NewCoin(denomName, immatureTotal),
 	}
@@ -95,13 +89,11 @@ func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (
 			continue
 		}
 
-		individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
+		//individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
 		matureTotal := k.GetMatureTotalReward(ctx, n)
 		immatureTotal := k.GetImmatureTotalReward(ctx, n)
 		individualResult := NewNodeRewardsInfo(
 			n,
-			params.Epoch,
-			individualRewards,
 			matureTotal,
 			immatureTotal,
 		)
@@ -119,15 +111,18 @@ func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (
 }
 
 func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
-	filteredNodesAddrStr := getFilteredNodesAddrStringByOwner(ctx, params.OwnerAddr, k)
+	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
 
 	epochRewards := k.GetEpochReward(ctx, params.Epoch)
+	epochRewardsMap := make(map[string]types.Reward)
 	for _, v := range epochRewards {
-		if stringInSlice(v.NodeAddress.String(), filteredNodesAddrStr) {
-			newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
+		epochRewardsMap[v.NodeAddress.String()] = v
+	}
+
+	for _, n := range filteredNodesAddr {
+		if newNodeReward, found := epochRewardsMap[n.String()]; found {
 			res = append(res, newNodeReward)
 		}
-
 	}
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
@@ -139,20 +134,14 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 }
 
 func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsByOwnerParams) (res []NodeRewardsInfo) {
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	filteredNodesAddrStr := getFilteredNodesAddrStringByOwner(ctx, params.OwnerAddr, k)
-	epoch := k.getLastMaturedEpoch(ctx)
+	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
 
-	for _, n := range rewardAddrList {
-		if stringInSlice(n.String(), filteredNodesAddrStr) {
-			individualRewards := k.GetIndividualReward(ctx, n, epoch)
-			matureTotal := k.GetMatureTotalReward(ctx, n)
-			immatureTotal := k.GetImmatureTotalReward(ctx, n)
-
+	for _, n := range filteredNodesAddr {
+		matureTotal := k.GetMatureTotalReward(ctx, n)
+		immatureTotal := k.GetImmatureTotalReward(ctx, n)
+		if !matureTotal.Equal(sdk.NewInt(0)) || !immatureTotal.Equal(sdk.NewInt(0)) {
 			individualResult := NewNodeRewardsInfo(
 				n,
-				epoch,
-				individualRewards,
 				matureTotal,
 				immatureTotal,
 			)
@@ -168,32 +157,23 @@ func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsBy
 	}
 }
 
-func getFilteredNodesAddrStringByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []string {
+func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []sdk.AccAddress {
 	resourceNodesAddr := k.RegisterKeeper.GetAllResourceNodes(ctx)
 	indexingNodesAddr := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	filteredNodesAddrStr := make([]string, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
+	filteredNodesAddr := make([]sdk.AccAddress, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
 
 	for _, n := range resourceNodesAddr {
 		// match OwnerAddr (if supplied)
 		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddrStr = append(filteredNodesAddrStr, sdk.AccAddress(n.PubKey.Address()).String())
+			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
 		}
 
 	}
 	for _, n := range indexingNodesAddr {
 		// match OwnerAddr (if supplied)
 		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddrStr = append(filteredNodesAddrStr, sdk.AccAddress(n.PubKey.Address()).String())
+			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
 		}
 	}
-	return filteredNodesAddrStr
-}
-
-func stringInSlice(a string, list []string) bool {
-	for _, b := range list {
-		if b == a {
-			return true
-		}
-	}
-	return false
+	return filteredNodesAddr
 }

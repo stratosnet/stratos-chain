@@ -19,7 +19,7 @@ import (
 // Keeper of the pot store
 type Keeper struct {
 	storeKey         sdk.StoreKey
-	Cdc              *codec.Codec
+	cdc              *codec.Codec
 	paramSpace       params.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
 	BankKeeper       bank.Keeper
@@ -35,7 +35,7 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, f
 	registerKeeper register.Keeper,
 ) Keeper {
 	keeper := Keeper{
-		Cdc:              cdc,
+		cdc:              cdc,
 		storeKey:         key,
 		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
 		feeCollectorName: feeCollectorName,
@@ -53,17 +53,6 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetVolumeReport returns the hash of volume report
-//func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byte, error) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := store.Get(types.VolumeReportStoreKey(reporter))
-//	if bz == nil {
-//		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
-//			"key %s does not exist", hex.EncodeToString(types.VolumeReportStoreKey(reporter)))
-//	}
-//	return bz, nil
-//}
-
 func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.ReportRecord, err error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.VolumeReportStoreKey(epoch))
@@ -71,7 +60,7 @@ func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.Repor
 		return types.ReportRecord{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest,
 			"key %s does not exist", epoch)
 	}
-	k.Cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
 	return res, nil
 }
 
@@ -79,7 +68,7 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	store := ctx.KVStore(k.storeKey)
 	//storeKey := types.VolumeReportStoreKey(reporter)
 	storeKey := types.VolumeReportStoreKey(epoch)
-	bz := k.Cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
 }
 

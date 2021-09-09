@@ -21,6 +21,11 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
+type singleNodeVolumeStr struct {
+	NodeAddress string `json:"node_address"`
+	Volume      string `json:"node_volume"`
+}
+
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	potTxCmd := &cobra.Command{
@@ -129,7 +134,7 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		return txBldr, nil, err
 	}
 	epoch := sdk.NewInt(value)
-	var nodesVolumeStr = make([]types.SingleNodeVolumeStr, 0)
+	var nodesVolumeStr = make([]singleNodeVolumeStr, 0)
 	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolumeStr)
 	if err != nil {
 		return txBldr, nil, err

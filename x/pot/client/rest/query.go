@@ -125,7 +125,6 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 		v := mux.Vars(r)["epoch"]
 		epoch, ok := checkEpoch(w, r, v)
 		if len(v) == 0 || !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch.")
 			return
 		}
 

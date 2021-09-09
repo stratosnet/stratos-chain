@@ -70,41 +70,47 @@ func NewQueryNodesStakingInfo(
 // StakingInfoByResourceNodeAddr Params for query 'custom/register/staking'
 type StakingInfoByResourceNodeAddr struct {
 	types.ResourceNode
-	UnbondingStake       sdk.Coin
-	UnbondingNodeEntries []types.UnbondingNodeEntry
+	BondedStake    sdk.Coin
+	UnbondingStake sdk.Coin
+	UnbondedStake  sdk.Coin
 }
 
 // NewStakingInfoByResourceNodeAddr creates a new instance of StakingInfoByNodeAddr
 func NewStakingInfoByResourceNodeAddr(
 	resourceNode types.ResourceNode,
 	unbondingStake sdk.Int,
-	unbondingNodeEntries []types.UnbondingNodeEntry,
+	unbondedStake sdk.Int,
+	bondedStake sdk.Int,
 
 ) StakingInfoByResourceNodeAddr {
 	return StakingInfoByResourceNodeAddr{
-		ResourceNode:         resourceNode,
-		UnbondingStake:       sdk.NewCoin(defaultDenom, unbondingStake),
-		UnbondingNodeEntries: unbondingNodeEntries,
+		ResourceNode:   resourceNode,
+		UnbondingStake: sdk.NewCoin(defaultDenom, unbondingStake),
+		UnbondedStake:  sdk.NewCoin(defaultDenom, unbondedStake),
+		BondedStake:    sdk.NewCoin(defaultDenom, bondedStake),
 	}
 }
 
 // StakingInfoByIndexingNodeAddr Params for query 'custom/register/staking'
 type StakingInfoByIndexingNodeAddr struct {
 	types.IndexingNode
-	UnbondingStake       sdk.Coin
-	UnbondingNodeEntries []types.UnbondingNodeEntry
+	BondedStake    sdk.Coin
+	UnbondingStake sdk.Coin
+	UnbondedStake  sdk.Coin
 }
 
 // NewStakingInfoByIndexingNodeAddr creates a new instance of StakingInfoByNodeAddr
 func NewStakingInfoByIndexingNodeAddr(
 	indexingNode types.IndexingNode,
 	unbondingStake sdk.Int,
-	unbondingNodeEntries []types.UnbondingNodeEntry,
+	unbondedStake sdk.Int,
+	bondedStake sdk.Int,
 ) StakingInfoByIndexingNodeAddr {
 	return StakingInfoByIndexingNodeAddr{
-		IndexingNode:         indexingNode,
-		UnbondingStake:       sdk.NewCoin(defaultDenom, unbondingStake),
-		UnbondingNodeEntries: unbondingNodeEntries,
+		IndexingNode:   indexingNode,
+		UnbondingStake: sdk.NewCoin(defaultDenom, unbondingStake),
+		UnbondedStake:  sdk.NewCoin(defaultDenom, unbondedStake),
+		BondedStake:    sdk.NewCoin(defaultDenom, bondedStake),
 	}
 }
 
@@ -140,7 +146,6 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 func (k Keeper) resPagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
-		//filteredNodes = []types.ResourceNode{}
 		filteredNodes = nil
 	} else {
 		filteredNodes = filteredNodes[start:end]
@@ -179,7 +184,6 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 func (k Keeper) indPagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
-		//filteredNodes = []types.IndexingNode{}
 		filteredNodes = nil
 	} else {
 		filteredNodes = filteredNodes[start:end]

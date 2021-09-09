@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -181,7 +182,13 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params QuerynodeStakingParams
+	var (
+		bz                 []byte
+		params             QuerynodeStakingParams
+		resourceNodeResult StakingInfoByResourceNodeAddr
+		indexingNodeResult StakingInfoByIndexingNodeAddr
+	)
+
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -192,29 +199,22 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
 	}
 
-	var unbondingStake sdk.Int
-	resourceNodeResult := StakingInfoByResourceNodeAddr{}
-	indexingNodeResult := StakingInfoByIndexingNodeAddr{}
-	unbondingNode := types.UnbondingNode{}
-	var bz []byte
-
 	indexingNode, found := keeper.GetIndexingNode(ctx, NodeAddr)
 
 	if !found {
 		resourceNode, ok := keeper.GetResourceNode(ctx, NodeAddr)
 		// Adding resource node staking info
 		if ok {
-			switch resourceNode.GetStatus() {
-			case sdk.Unbonding:
-				unbondingStake, unbondingNode = keeper.GetUnbondingNodeBalance(ctx, resourceNode.GetNetworkAddr())
-			default:
-				unbondingStake = sdk.NewInt(0)
+			unbondingStake, unbondedStake, bondedStake, err := getResourceNodeStakes(ctx, resourceNode, keeper)
+			if err != nil {
+				return nil, err
 			}
 			if !resourceNode.Equal(types.ResourceNode{}) {
 				resourceNodeResult = NewStakingInfoByResourceNodeAddr(
 					resourceNode,
 					unbondingStake,
-					unbondingNode.Entries,
+					unbondedStake,
+					bondedStake,
 				)
 				bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourceNodeResult)
 				if err != nil {
@@ -225,17 +225,16 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		}
 	} else {
 		// Adding indexing node staking info
-		switch indexingNode.GetStatus() {
-		case sdk.Unbonding:
-			unbondingStake, unbondingNode = keeper.GetUnbondingNodeBalance(ctx, indexingNode.GetNetworkAddr())
-		default:
-			unbondingStake = sdk.NewInt(0)
+		unbondingStake, unbondedStake, bondedStake, err := getIndexingNodeStakes(ctx, indexingNode, keeper)
+		if err != nil {
+			return nil, err
 		}
 		if !indexingNode.Equal(types.IndexingNode{}) {
 			indexingNodeResult = NewStakingInfoByIndexingNodeAddr(
 				indexingNode,
 				unbondingStake,
-				unbondingNode.Entries,
+				unbondedStake,
+				bondedStake,
 			)
 			bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingNodeResult)
 			if err != nil {
@@ -248,7 +247,14 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 }
 
 func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params QueryNodesParams
+	var (
+		params              QueryNodesParams
+		resourceNodeResult  StakingInfoByResourceNodeAddr
+		indexingNodeResult  StakingInfoByIndexingNodeAddr
+		resourceNodeResults []StakingInfoByResourceNodeAddr
+		indexingNodeResults []StakingInfoByIndexingNodeAddr
+	)
+
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -264,43 +270,33 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	resNodes := keeper.GetResourceNodesFiltered(ctx, params2)
 	indNodes := keeper.GetIndexingNodesFiltered(ctx, params2)
 
-	var unbondingStake sdk.Int
-
-	resourceNodeResult := StakingInfoByResourceNodeAddr{}
-	var resourceNodeResults []StakingInfoByResourceNodeAddr
-	indexingNodeResult := StakingInfoByIndexingNodeAddr{}
-	var indexingNodeResults []StakingInfoByIndexingNodeAddr
-	unbondingNode := types.UnbondingNode{}
-
 	for _, n := range indNodes {
-		switch n.GetStatus() {
-		case sdk.Unbonding:
-			unbondingStake, unbondingNode = keeper.GetUnbondingNodeBalance(ctx, n.GetNetworkAddr())
-		default:
-			unbondingStake = sdk.NewInt(0)
+		unbondingStake, unbondedStake, bondedStake, err := getIndexingNodeStakes(ctx, n, keeper)
+		if err != nil {
+			return nil, err
 		}
 		if !n.Equal(types.IndexingNode{}) {
 			indexingNodeResult = NewStakingInfoByIndexingNodeAddr(
 				n,
 				unbondingStake,
-				unbondingNode.Entries,
+				unbondedStake,
+				bondedStake,
 			)
 			indexingNodeResults = append(indexingNodeResults, indexingNodeResult)
 		}
 	}
 
 	for _, n := range resNodes {
-		switch n.GetStatus() {
-		case sdk.Unbonding:
-			unbondingStake, unbondingNode = keeper.GetUnbondingNodeBalance(ctx, n.GetNetworkAddr())
-		default:
-			unbondingStake = sdk.NewInt(0)
+		unbondingStake, unbondedStake, bondedStake, err := getResourceNodeStakes(ctx, n, keeper)
+		if err != nil {
+			return nil, err
 		}
 		if !n.Equal(types.ResourceNode{}) {
 			resourceNodeResult = NewStakingInfoByResourceNodeAddr(
 				n,
 				unbondingStake,
-				unbondingNode.Entries,
+				unbondedStake,
+				bondedStake,
 			)
 			resourceNodeResults = append(resourceNodeResults, resourceNodeResult)
 		}
@@ -340,4 +336,44 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 		bz = append(bz, bzResource...)
 	}
 	return bz, nil
+}
+
+func getIndexingNodeStakes(ctx sdk.Context, indexingNode types.IndexingNode, keeper Keeper) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+	unbondingStake = sdk.NewInt(0)
+	unbondedStake = sdk.NewInt(0)
+	bondedStake = sdk.NewInt(0)
+
+	switch indexingNode.GetStatus() {
+	case sdk.Unbonding:
+		unbondingStake = keeper.GetUnbondingNodeBalance(ctx, indexingNode.GetNetworkAddr())
+	case sdk.Unbonded:
+		unbondedStake = indexingNode.Tokens
+	case sdk.Bonded:
+		bondedStake = indexingNode.Tokens
+	default:
+		err := fmt.Sprintf("Invalid status of node %s, expected Bonded, Unbonded, or Unbonding, got %s",
+			indexingNode.GetNetworkAddr().String(), indexingNode.GetStatus().String())
+		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
+	}
+	return unbondingStake, unbondedStake, bondedStake, nil
+}
+
+func getResourceNodeStakes(ctx sdk.Context, resourceNode types.ResourceNode, keeper Keeper) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+	unbondingStake = sdk.NewInt(0)
+	unbondedStake = sdk.NewInt(0)
+	bondedStake = sdk.NewInt(0)
+
+	switch resourceNode.GetStatus() {
+	case sdk.Unbonding:
+		unbondingStake = keeper.GetUnbondingNodeBalance(ctx, resourceNode.GetNetworkAddr())
+	case sdk.Unbonded:
+		unbondedStake = resourceNode.Tokens
+	case sdk.Bonded:
+		bondedStake = resourceNode.Tokens
+	default:
+		err := fmt.Sprintf("Invalid status of node %s, expected Bonded, Unbonded, or Unbonding, got %s",
+			resourceNode.GetNetworkAddr().String(), resourceNode.GetStatus().String())
+		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
+	}
+	return unbondingStake, unbondedStake, bondedStake, nil
 }
