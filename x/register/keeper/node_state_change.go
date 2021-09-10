@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -15,7 +16,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
 	matureUBDs := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, networkAddr := range matureUBDs {
-		balances, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+		balances, isIndexingNode, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
 		if err != nil {
 			continue
 		}
@@ -25,6 +26,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				types.EventTypeCompleteUnbondingNode,
 				sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
 				sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+				sdk.NewAttribute(types.AttributeKeyIsIndexingNode, strconv.FormatBool(isIndexingNode)),
 			),
 		)
 	}
