@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/mock"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -16,26 +17,26 @@ import (
 )
 
 const (
-	chainID              = ""
-	AccountAddressPrefix = "st"
+	chainID             = ""
+	StratosBech32Prefix = "st"
 
 	stos2ustos = 1000000000
 )
 
 var (
-	AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
-	ValidatorAddressPrefix = AccountAddressPrefix + "valoper"
-	ValidatorPubKeyPrefix  = AccountAddressPrefix + "valoperpub"
-	ConsNodeAddressPrefix  = AccountAddressPrefix + "valcons"
-	ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
+	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
+	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
+	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
+	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
+	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
+	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
 
 	resourceNodeVolume1 = sdk.NewInt(500000000000)
 	resourceNodeVolume2 = sdk.NewInt(300000000000)
 	resourceNodeVolume3 = sdk.NewInt(200000000000)
 
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000")
-	remainingOzoneLimit, _ = sdk.NewIntFromString("500000000000000000000")
+	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	initialOzonePrice      = sdk.NewInt(10000000000)
 	foundationAccAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
 	foundationDeposit      = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(40000000000000000)))
@@ -102,10 +103,11 @@ var (
 )
 
 func SetConfig() {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
+	config := stratos.GetConfig()
+	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
 	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
 	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
+	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
 	config.Seal()
 }
 

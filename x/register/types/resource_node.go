@@ -1,13 +1,15 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/register/exported"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto"
 	"sort"
 	"strings"
+	"time"
 )
 
 type NodeType uint8
@@ -38,17 +40,6 @@ func (n NodeType) Type() string {
 	return "UNKNOWN"
 }
 
-type ResourceNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the resource node
-	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the public key of the resource node; bech encoded in JSON
-	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the resource node been suspended from bonded status?
-	Status       sdk.BondStatus `json:"status" yaml:"status"`               // resource node bond status (bonded/unbonding/unbonded)
-	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
-	Description  Description    `json:"description" yaml:"description"`     // description terms for the resource node
-	NodeType     string         `json:"node_type" yaml:"node_type"`
-}
-
 // ResourceNodes is a collection of resource node
 type ResourceNodes []ResourceNode
 
@@ -57,14 +48,6 @@ func (v ResourceNodes) String() (out string) {
 		out += node.String() + "\n"
 	}
 	return strings.TrimSpace(out)
-}
-
-// ToSDKResourceNodes -  convenience function convert []ResourceNodes to []sdk.ResourceNodes
-func (v ResourceNodes) ToSDKResourceNodes() (resourceNodes []exported.ResourceNodeI) {
-	for _, node := range v {
-		resourceNodes = append(resourceNodes, node)
-	}
-	return resourceNodes
 }
 
 // Sort ResourceNodes sorts ResourceNode array in ascending owner address order
@@ -89,9 +72,30 @@ func (v ResourceNodes) Swap(i, j int) {
 	v[j] = it
 }
 
+func (v ResourceNodes) Validate() error {
+	for _, node := range v {
+		if err := node.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type ResourceNode struct {
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the resource node
+	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the public key of the resource node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the resource node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`               // resource node bond status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
+	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
+	Description  Description    `json:"description" yaml:"description"`     // description terms for the resource node
+	NodeType     string         `json:"node_type" yaml:"node_type"`
+	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"`
+}
+
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description Description, nodeType string) ResourceNode {
+	description Description, nodeType string, creationTime time.Time) ResourceNode {
 	return ResourceNode{
 		NetworkID:    networkID,
 		PubKey:       pubKey,
@@ -101,8 +105,75 @@ func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 		OwnerAddress: ownerAddr,
 		Description:  description,
 		NodeType:     nodeType,
+		CreationTime: creationTime,
 	}
 }
+
+// String returns a human readable string representation of a resource node.
+func (v ResourceNode) String() string {
+	pubKey, err := stratos.Bech32ifyPubKey(stratos.Bech32PubKeyTypeAccPub, v.PubKey)
+	if err != nil {
+		panic(err)
+	}
+	return fmt.Sprintf(`ResourceNode:{
+		Network Id:	        %s
+  		Pubkey:				%s
+  		Suspend:			%v
+  		Status:				%s
+  		Tokens:				%s
+		Owner Address: 		%s
+  		Description:		%s
+  		CreationTime:		%s
+	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
+}
+
+// AddToken adds tokens to a resource node
+func (v ResourceNode) AddToken(amount sdk.Int) ResourceNode {
+	v.Tokens = v.Tokens.Add(amount)
+	return v
+}
+
+// SubToken removes tokens from a resource node
+func (v ResourceNode) SubToken(tokens sdk.Int) ResourceNode {
+	if tokens.IsNegative() {
+		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", tokens))
+	}
+	if v.Tokens.LT(tokens) {
+		panic(fmt.Sprintf("should not happen: only have %v tokens, trying to remove %v", v.Tokens, tokens))
+	}
+	v.Tokens = v.Tokens.Sub(tokens)
+	return v
+}
+
+func (v ResourceNode) Validate() error {
+	if v.NetworkID == "" {
+		return ErrEmptyNodeId
+	}
+	if len(v.PubKey.Bytes()) == 0 {
+		return ErrEmptyPubKey
+	}
+	if v.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if v.Tokens.LT(sdk.ZeroInt()) {
+		return ErrValueNegative
+	}
+	if v.Description.Moniker == "" {
+		return ErrEmptyMoniker
+	}
+	return nil
+}
+
+func (v ResourceNode) IsSuspended() bool              { return v.Suspend }
+func (v ResourceNode) GetMoniker() string             { return v.Description.Moniker }
+func (v ResourceNode) GetStatus() sdk.BondStatus      { return v.Status }
+func (v ResourceNode) GetNetworkID() string           { return v.NetworkID }
+func (v ResourceNode) GetPubKey() crypto.PubKey       { return v.PubKey }
+func (v ResourceNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
+func (v ResourceNode) GetTokens() sdk.Int             { return v.Tokens }
+func (v ResourceNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
+func (v ResourceNode) GetNodeType() string            { return v.NodeType }
+func (v ResourceNode) GetCreationTime() time.Time     { return v.CreationTime }
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
 func MustMarshalResourceNode(cdc *codec.Codec, resourceNode ResourceNode) []byte {
@@ -124,47 +195,8 @@ func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode Resourc
 	return resourceNode, err
 }
 
-// String returns a human readable string representation of a resource node.
-func (v ResourceNode) String() string {
-	pubKey, err := sdk.Bech32ifyPubKey(sdk.Bech32PubKeyTypeAccPub, v.PubKey)
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf(`ResourceNode:{
-		Network Id:	        %s
-  		Pubkey:				%s
-  		Suspend:			%v
-  		Status:				%s
-  		Tokens:				%s
-		Owner Address: 		%s
-  		Description:		%s
-	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description)
+func (resourceNode ResourceNode) Equal(resourceNode2 ResourceNode) bool {
+	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&resourceNode)
+	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&resourceNode2)
+	return bytes.Equal(bz1, bz2)
 }
-
-// AddToken adds tokens to a resource node
-func (v ResourceNode) AddToken(amount sdk.Int) ResourceNode {
-	v.Tokens = v.Tokens.Add(amount)
-	return v
-}
-
-// SubToken removes tokens from a resource node
-func (v ResourceNode) SubToken(tokens sdk.Int) ResourceNode {
-	if tokens.IsNegative() {
-		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", tokens))
-	}
-	if v.Tokens.LT(tokens) {
-		panic(fmt.Sprintf("should not happen: only have %v tokens, trying to remove %v", v.Tokens, tokens))
-	}
-	v.Tokens = v.Tokens.Sub(tokens)
-	return v
-}
-
-func (v ResourceNode) IsSuspended() bool              { return v.Suspend }
-func (v ResourceNode) GetMoniker() string             { return v.Description.Moniker }
-func (v ResourceNode) GetStatus() sdk.BondStatus      { return v.Status }
-func (v ResourceNode) GetNetworkID() string           { return v.NetworkID }
-func (v ResourceNode) GetPubKey() crypto.PubKey       { return v.PubKey }
-func (v ResourceNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
-func (v ResourceNode) GetTokens() sdk.Int             { return v.Tokens }
-func (v ResourceNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
-func (v ResourceNode) GetNodeType() string            { return v.NodeType }

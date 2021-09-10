@@ -121,7 +121,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		ctx.Logger().Info("---------------------------")
 		distributeGoal := types.InitDistributeGoal()
-		distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.NodesVolume, distributeGoal)
+		_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.NodesVolume, distributeGoal)
 		require.NoError(t, err)
 		distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 		require.NoError(t, err)
@@ -330,7 +330,6 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		validators := staking.InitGenesis(ctx, stakingKeeper, accountKeeper, supplyKeeper, stakingGenesis)
 
 		//preset
-		registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimit)
 		keeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load

@@ -1,10 +1,12 @@
 package sds
 
 import (
+	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/mock"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -12,20 +14,21 @@ import (
 )
 
 const (
-	chainID              = ""
-	AccountAddressPrefix = "st"
-	DefaultDenom         = "ustos"
-	stos2ustos           = 1000000000
+	chainID             = ""
+	StratosBech32Prefix = "st"
+	DefaultDenom        = "ustos"
+	stos2ustos          = 1000000000
 )
 
 var (
 	testFileHashHex = "c03661732294feb49caf6dc16c7cbb2534986d73"
 
-	AccountPubKeyPrefix    = AccountAddressPrefix + "pub"
-	ValidatorAddressPrefix = AccountAddressPrefix + "valoper"
-	ValidatorPubKeyPrefix  = AccountAddressPrefix + "valoperpub"
-	ConsNodeAddressPrefix  = AccountAddressPrefix + "valcons"
-	ConsNodePubKeyPrefix   = AccountAddressPrefix + "valconspub"
+	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
+	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
+	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
+	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
+	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
+	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
 
 	resourceNodeVolume1 = sdk.NewInt(500000000000)
 	resourceNodeVolume2 = sdk.NewInt(300000000000)
@@ -124,14 +127,18 @@ var (
 )
 
 func SetConfig() {
-	config := sdk.GetConfig()
-	config.SetBech32PrefixForAccount(AccountAddressPrefix, AccountPubKeyPrefix)
+	config := stratos.GetConfig()
+	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
 	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
 	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
+	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
 	config.Seal()
 }
 
 func setupAccounts(mApp *mock.App) []authexported.Account {
+
+	str, _ := stratos.Bech32ifyPubKey(stratos.Bech32PubKeyTypeSdsP2PPub, sdsAccPubKey1)
+	fmt.Println("sdsAccPubKey1=" + str)
 
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{

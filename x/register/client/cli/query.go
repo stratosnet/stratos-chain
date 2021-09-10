@@ -31,7 +31,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// this line is used by starport scaffolding # 1
 			GetCmdQueryResourceNodeList(queryRoute, cdc),
 			GetCmdQueryIndexingNodeList(queryRoute, cdc),
-			GetCmdQueryNetworkSet(queryRoute, cdc),
+			//GetCmdQueryNetworkSet(queryRoute, cdc),
 		)...,
 	)
 
@@ -198,30 +198,30 @@ func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkID string)
 	return cliCtx.QueryWithData(route, []byte(networkID))
 }
 
-// GetCmdQueryNetworkSet implements the query all indexing nodes by network id command.
-func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
-		Use: "get-network-ids",
-		//Args:  cobra.RangeArgs(0, 0),
-		Short: "Query all network ids",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all network ids.`),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
+//// GetCmdQueryNetworkSet implements the query all indexing nodes by network id command.
+//func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
+//	return &cobra.Command{
+//		Use: "get-network-ids",
+//		//Args:  cobra.RangeArgs(0, 0),
+//		Short: "Query all network ids",
+//		Long: strings.TrimSpace(
+//			fmt.Sprintf(`Query all network ids.`),
+//		),
+//		RunE: func(cmd *cobra.Command, args []string) error {
+//			cliCtx := context.NewCLIContext().WithCodec(cdc)
+//
+//			// query get-network-set by network id
+//			resp, _, err := QueryNetworkSet(cliCtx, queryRoute)
+//			if err != nil {
+//				return err
+//			}
+//			return cliCtx.PrintOutput(string(resp))
+//		},
+//	}
+//}
 
-			// query get-network-set by network id
-			resp, _, err := QueryNetworkSet(cliCtx, queryRoute)
-			if err != nil {
-				return err
-			}
-			return cliCtx.PrintOutput(string(resp))
-		},
-	}
-}
-
-// QueryNetworkSet queries all network id
-func QueryNetworkSet(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryNetworkSet)
-	return cliCtx.Query(route)
-}
+//// QueryNetworkSet queries all network id
+//func QueryNetworkSet(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
+//	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryNetworkSet)
+//	return cliCtx.Query(route)
+//}

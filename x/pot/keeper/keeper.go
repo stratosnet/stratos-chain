@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"encoding/hex"
 	"fmt"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -54,21 +53,23 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetVolumeReport returns the hash of volume report
-func (k Keeper) GetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress) ([]byte, error) {
+func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.ReportRecord, err error) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.VolumeReportStoreKey(reporter))
+	bz := store.Get(types.VolumeReportStoreKey(epoch))
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress,
-			"key %s does not exist", hex.EncodeToString(types.VolumeReportStoreKey(reporter)))
+		return types.ReportRecord{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest,
+			"key %s does not exist", epoch)
 	}
-	return bz, nil
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
+	return res, nil
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, reporter sdk.AccAddress, reportReference string) {
+func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.ReportRecord) {
 	store := ctx.KVStore(k.storeKey)
-	storeKey := types.VolumeReportStoreKey(reporter)
-	store.Set(storeKey, []byte(reportReference))
+	//storeKey := types.VolumeReportStoreKey(reporter)
+	storeKey := types.VolumeReportStoreKey(epoch)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
+	store.Set(storeKey, bz)
 }
 
 func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
