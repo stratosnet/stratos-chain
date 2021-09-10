@@ -86,7 +86,7 @@ $ %s query sds prepay st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx := context.NewCLIContext().WithCodec(cdc)
 
-			// query file by fileHash
+			// query prepay balance
 			resp, _, err := common.QueryPrepayBalance(cliCtx, queryRoute, args[0])
 			if err != nil {
 				return err

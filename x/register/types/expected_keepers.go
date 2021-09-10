@@ -47,3 +47,18 @@ type SupplyKeeper interface {
 
 	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 }
+
+// RegisterHooks event hooks for registered node object (noalias)
+type RegisterHooks interface {
+	AfterNodeCreated(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)   // Must be called when a node is created
+	BeforeNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool) // Must be called when a node's state changes
+	AfterNodeRemoved(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)   // Must be called when a node is deleted
+
+	AfterNodeBonded(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)         // Must be called when a node is bonded
+	AfterNodeBeginUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool) // Must be called when a node begins unbonding
+
+	//BeforeNodeCreated(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)  // Must be called when a node is created
+	//BeforeNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool) // Must be called when a node's shares are modified
+	//BeforeNodeRemoved(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)  // Must be called when a node is removed
+	//AfterNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)
+}

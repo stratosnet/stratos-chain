@@ -16,23 +16,25 @@ const (
 	FlagSecurityContact = "security-contact"
 	FlagDetails         = "details"
 
-	FlagNodeAddress  = "node-address"
-	FlagOwnerAddress = "owner-address"
-	FlagOpinion      = "opinion"
-	FlagVoterAddress = "voter-address"
+	FlagNetworkAddress          = "network-address"
+	FlagCandidateOwnerAddress   = "candidate-owner-address"
+	FlagCandidateNetworkAddress = "candidate-network-address"
+	FlagOpinion                 = "opinion"
+	FlagVoterNetworkAddress     = "voter-network-address"
 )
 
 // common flagsets to add to various functions
 var (
-	FsPk           = flag.NewFlagSet("", flag.ContinueOnError)
-	FsAmount       = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNetworkID    = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNodeType     = flag.NewFlagSet("", flag.ContinueOnError)
-	FsDescription  = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNodeAddress  = flag.NewFlagSet("", flag.ContinueOnError)
-	FsOwnerAddress = flag.NewFlagSet("", flag.ContinueOnError)
-	FsOpinion      = flag.NewFlagSet("", flag.ContinueOnError)
-	FsVoterAddress = flag.NewFlagSet("", flag.ContinueOnError)
+	FsPk                      = flag.NewFlagSet("", flag.ContinueOnError)
+	FsAmount                  = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNetworkID               = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNodeType                = flag.NewFlagSet("", flag.ContinueOnError)
+	FsDescription             = flag.NewFlagSet("", flag.ContinueOnError)
+	FsNetworkAddress          = flag.NewFlagSet("", flag.ContinueOnError)
+	FsCandidateNetworkAddress = flag.NewFlagSet("", flag.ContinueOnError)
+	FsCandidateOwnerAddress   = flag.NewFlagSet("", flag.ContinueOnError)
+	FsOpinion                 = flag.NewFlagSet("", flag.ContinueOnError)
+	FsVoterNetworkAddress     = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -65,8 +67,9 @@ As a result, the value of node_type should be one of the following digits:
 	FsDescription.String(FlagSecurityContact, "", "The node's (optional) security contact email")
 	FsDescription.String(FlagDetails, "", "The node's (optional) details")
 
-	FsNodeAddress.String(FlagNodeAddress, "The address of the PP node", "")
-	FsOwnerAddress.String(FlagOwnerAddress, "", "")
+	FsNetworkAddress.String(FlagNetworkAddress, "The address of the PP node", "")
+	FsCandidateNetworkAddress.String(FlagCandidateNetworkAddress, "The network address of the candidate PP node", "")
+	FsCandidateOwnerAddress.String(FlagCandidateOwnerAddress, "The owner address of the candidate PP node", "")
 	FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Indexing node.")
-	FsVoterAddress.String(FlagVoterAddress, "The address of the PP node that made the vote.", "")
+	FsVoterNetworkAddress.String(FlagVoterNetworkAddress, "The address of the PP node that made the vote.", "")
 }

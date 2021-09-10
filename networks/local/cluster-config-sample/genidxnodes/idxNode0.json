@@ -1,0 +1,15 @@
+{
+  "network_id":"sds://st1fp974hhty0wwq5zpxjncaj50ax3ydx3kmzuty9@127.0.0.1:8080",
+  "pubkey":"stsdsp2p1addwnpepq0c7356e4s5kg6g4tamd0wwalaun5pk7fcphpk0zjdskeg52m5s3vyqvl9r",
+  "suspend":false,
+  "status":2,
+  "tokens":"100000000000",
+  "owner_address":"st1fp974hhty0wwq5zpxjncaj50ax3ydx3kmzuty9",
+  "description":{
+    "moniker":"sds://indexingNode0",
+    "identity":"",
+    "website":"",
+    "security_contact":"",
+    "details":""
+  }
+}

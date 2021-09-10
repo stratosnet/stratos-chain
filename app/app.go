@@ -33,6 +33,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
+
+	"github.com/stratosnet/stratos-chain/helpers"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
@@ -41,7 +43,7 @@ import (
 
 const (
 	appName    = "stchain"
-	appVersion = "v0.3.0"
+	appVersion = "v0.4.0"
 )
 
 var (
@@ -61,16 +63,17 @@ var (
 		crisis.AppModuleBasic{},
 		slashing.AppModuleBasic{},
 		supply.AppModuleBasic{},
+		register.AppModuleBasic{},
 		pot.AppModuleBasic{},
 		sds.AppModuleBasic{},
-		register.AppModuleBasic{},
 		upgrade.AppModuleBasic{},
 		evidence.AppModuleBasic{},
 		// this line is used by starport scaffolding # 2
 	)
 
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
+		auth.FeeCollectorName: {"fee_collector"},
+		//auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
@@ -113,9 +116,9 @@ type NewApp struct {
 	stakingKeeper  staking.Keeper
 	supplyKeeper   supply.Keeper
 	paramsKeeper   params.Keeper
-	sdsKeeper      sds.Keeper
-	potKeeper      pot.Keeper
 	registerKeeper register.Keeper
+	potKeeper      pot.Keeper
+	sdsKeeper      sds.Keeper
 	govKeeper      gov.Keeper
 	slashingKeeper slashing.Keeper
 	mintKeeper     mint.Keeper
@@ -184,8 +187,35 @@ func NewInitApp(
 	// this line is used by starport scaffolding # 5.1
 
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], auth.ProtoBaseAccount)
+
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, app.subspaces[bank.ModuleName], app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
+
+	stakingKeeper := staking.NewKeeper(app.cdc, keys[staking.StoreKey], app.supplyKeeper, app.subspaces[staking.ModuleName])
+	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], app.subspaces[mint.ModuleName], &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
+	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], app.subspaces[distr.ModuleName], &stakingKeeper, app.supplyKeeper,
+		auth.FeeCollectorName, app.ModuleAccountAddrs())
+	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper, app.subspaces[slashing.ModuleName])
+	app.crisisKeeper = crisis.NewKeeper(app.subspaces[crisis.ModuleName], invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
+	app.upgradeKeeper = upgrade.NewKeeper(map[int64]bool{}, keys[upgrade.StoreKey], app.cdc)
+
+	// register the staking hooks
+	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
+	app.stakingKeeper = *stakingKeeper.SetHooks(
+		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
+	)
+	// this line is used by starport scaffolding # 4
+
+	// register the proposal types
+	govRouter := gov.NewRouter()
+	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
+		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
+		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
+		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
+	app.govKeeper = gov.NewKeeper(
+		app.cdc, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
+		&stakingKeeper, govRouter,
+	)
 
 	app.registerKeeper = register.NewKeeper(
 		app.cdc,
@@ -215,32 +245,6 @@ func NewInitApp(
 		app.potKeeper,
 	)
 
-	stakingKeeper := staking.NewKeeper(app.cdc, keys[staking.StoreKey], app.supplyKeeper, app.subspaces[staking.ModuleName])
-	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], app.subspaces[mint.ModuleName], &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
-	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], app.subspaces[distr.ModuleName], &stakingKeeper, app.supplyKeeper,
-		auth.FeeCollectorName, app.ModuleAccountAddrs())
-	app.slashingKeeper = slashing.NewKeeper(app.cdc, keys[slashing.StoreKey], &stakingKeeper, app.subspaces[slashing.ModuleName])
-	app.crisisKeeper = crisis.NewKeeper(app.subspaces[crisis.ModuleName], invCheckPeriod, app.supplyKeeper, auth.FeeCollectorName)
-	app.upgradeKeeper = upgrade.NewKeeper(map[int64]bool{}, keys[upgrade.StoreKey], app.cdc)
-
-	// register the staking hooks
-	// NOTE: stakingKeeper above is passed by reference, so that it will contain these hooks
-	app.stakingKeeper = *stakingKeeper.SetHooks(
-		staking.NewMultiStakingHooks(app.distrKeeper.Hooks(), app.slashingKeeper.Hooks()),
-	)
-	// this line is used by starport scaffolding # 4
-
-	// register the proposal types
-	govRouter := gov.NewRouter()
-	govRouter.AddRoute(gov.RouterKey, gov.ProposalHandler).
-		AddRoute(params.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
-		AddRoute(distr.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
-		AddRoute(upgrade.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper))
-	app.govKeeper = gov.NewKeeper(
-		app.cdc, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
-		&stakingKeeper, govRouter,
-	)
-
 	app.mm = module.NewManager(
 		genutil.NewAppModule(app.accountKeeper, app.stakingKeeper, app.BaseApp.DeliverTx),
 		auth.NewAppModule(app.accountKeeper),
@@ -261,7 +265,7 @@ func NewInitApp(
 	)
 
 	app.mm.SetOrderEndBlockers(
-		crisis.ModuleName, gov.ModuleName, staking.ModuleName,
+		crisis.ModuleName, gov.ModuleName, staking.ModuleName, register.ModuleName,
 		// this line is used by starport scaffolding # 6.1
 	)
 
@@ -277,8 +281,8 @@ func NewInitApp(
 		crisis.ModuleName,
 		genutil.ModuleName,
 		register.ModuleName,
-		sds.ModuleName,
 		pot.ModuleName,
+		sds.ModuleName,
 		upgrade.ModuleName,
 		supply.ModuleName,
 
@@ -306,7 +310,7 @@ func NewInitApp(
 		auth.NewAnteHandler(
 			app.accountKeeper,
 			app.supplyKeeper,
-			auth.DefaultSigVerificationGasConsumer,
+			helpers.StSigVerificationGasConsumer,
 		),
 	)
 

@@ -37,13 +37,27 @@ func NewMsgVolumeReport(
 	}
 }
 
+type ReportRecord struct {
+	Reporter        sdk.AccAddress
+	ReportReference string
+	TxHash          string
+}
+
+func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) ReportRecord {
+	return ReportRecord{
+		Reporter:        reporter,
+		ReportReference: reportReference,
+		TxHash:          txHash,
+	}
+}
+
 // Route Implement
 func (msg MsgVolumeReport) Route() string { return RouterKey }
 
 // GetSigners Implement
 func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
-	addrs = append(addrs, msg.Reporter)
+	//addrs = append(addrs, msg.Reporter)
 	addrs = append(addrs, msg.ReporterOwner)
 	return addrs
 }

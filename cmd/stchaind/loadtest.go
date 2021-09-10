@@ -154,7 +154,7 @@ func AddFixedLoadTestCmd(
 				}
 				cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, from.String()).WithCodec(cdc)
 				to := accsFromGenesis[0]
-				if len(accsFromGenesis) > i && (i != loadTestArgs.threads-1 || i == 0) {
+				if len(accsFromGenesis)-1 > i && (i != loadTestArgs.threads-1 || i == 0) {
 					to = accsFromGenesis[i+1]
 				}
 				ctx.Logger.Info(fmt.Sprintf("thread: %d, from addr %s, to addr %s", i, from, to))
@@ -184,7 +184,7 @@ func AddFixedLoadTestCmd(
 					for true {
 						currSeqInt := int(seqStart[threadIndex] + uint64(iter))
 						ctx.Logger.Info(fmt.Sprintf("thread: %d, sending tx with sequence: %d\n", threadIndex, currSeqInt))
-						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)).WithMemo(strconv.Itoa(currSeqInt)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
+						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)).WithMemo(strconv.Itoa(currSeqInt)).WithGas(uint64(400000)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
 						iter += 1
 						counterChan <- 1
 
@@ -309,6 +309,9 @@ func AddRandomLoadTestCmd(
 				if !viper.IsSet(flags.FlagChainID) {
 					viper.Set(flags.FlagChainID, defaultChainId)
 				}
+				//if !viper.IsSet("gas") {
+				//	viper.Set("gas", flags.GasFlagAuto)
+				//}
 				txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc)).WithChainID(viper.GetString(flags.FlagChainID))
 				viper.Set(flags.FlagBroadcastMode, "block")
 				viper.Set(flags.FlagSkipConfirmation, true)
@@ -352,7 +355,7 @@ func AddRandomLoadTestCmd(
 					for true {
 						currSeqInt := int(seqStart[threadIndex] + uint64(iter))
 						ctx.Logger.Info(fmt.Sprintf("thread: %d, sending tx with sequence: %d\n", threadIndex, currSeqInt))
-						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)).WithMemo(strconv.Itoa(currSeqInt)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
+						doSendTransaction(threadCliCtx, threadTxBldr.WithSequence(seqStart[threadIndex]+uint64(iter)).WithMemo(strconv.Itoa(currSeqInt)).WithGas(uint64(400000)), threadIndex, threadTo, threadFrom, loadTestArgs.randomRecv, sdk.Coin{Amount: sdk.NewInt(1), Denom: defaultDenom}, seqStart[threadIndex]) // send coin to temp account
 						iter += 1
 						counterChan <- 1
 
@@ -411,6 +414,9 @@ func initDistribution(ctx *server.Context, inBuf *bufio.Reader, cdc *codec.Codec
 	if !viper.IsSet(flags.FlagHome) {
 		viper.Set(flags.FlagHome, defaultHome)
 	}
+	//if !viper.IsSet("gas") {
+	//	viper.Set("gas", flags.GasFlagAuto)
+	//}
 	viper.Set(flags.FlagTrustNode, true)
 
 	cliCtxFund := context.NewCLIContextWithInputAndFrom(inBuf, fundFrom.String()).WithCodec(cdc)
@@ -425,7 +431,7 @@ func doInitDistribution(ctx *server.Context, cliCtx context.CLIContext, txBldr a
 		msg := bank.NewMsgSend(fundAcc, subAccs[i], sdk.Coins{coin})
 		currSeqInt := seqStartFund + uint64(i)
 		//// build and sign the transaction, then broadcast to Tendermint
-		err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr.WithSequence(currSeqInt), []sdk.Msg{msg})
+		err := utils.GenerateOrBroadcastMsgs(cliCtx, txBldr.WithSequence(currSeqInt).WithGas(uint64(400000)), []sdk.Msg{msg})
 		ctx.Logger.Info(fmt.Sprintf("Transfered fund to account %s (index: %d, seq: %d)", subAccs[i].String(), i, int(currSeqInt)))
 		if err != nil {
 			fmt.Println(err)
