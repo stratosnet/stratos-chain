@@ -28,8 +28,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPotRewards(ctx, req, k)
 		case QueryPotRewardsByEpoch:
 			return queryPotRewardsByEpoch(ctx, req, k)
+		//case QueryPotRewardsByOwner:
+		//	return queryPotRewardsByOwner(ctx, req, k)
 		case QueryPotRewardsByOwner:
-			return queryPotRewardsByOwner(ctx, req, k)
+			return queryPotRewardsWithOwnerHeight(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -208,4 +210,40 @@ func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k
 		}
 	}
 	return filteredNodesAddr
+}
+
+func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params QueryPotRewardsWithOwnerHeightParams
+	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	ownerTotalMatureRewards, ownerTotalImmatureRewards, ownerRewards := k.getOwnerRewards(ctx, params)
+	if len(ownerRewards) == 0 {
+		ownerRewards = nil
+	}
+
+	summary := OwnerRewardsSummary{
+		sdk.NewCoin(types.DefaultBondDenom, ownerTotalMatureRewards),
+		sdk.NewCoin(types.DefaultBondDenom, ownerTotalImmatureRewards),
+		ownerRewards}
+
+	bz, err := codec.MarshalJSONIndent(k.cdc, summary)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return bz, nil
+}
+
+func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (sdk.Int, sdk.Int, []OwnerRewardsInfo) {
+	ownerTotalMatureRewards, ownerTotalImmatureRewards, res := k.GetPotRewardRecords(ctx, params)
+	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		return sdk.ZeroInt(), sdk.ZeroInt(), nil
+	} else {
+		res = res[start:end]
+		return ownerTotalMatureRewards, ownerTotalImmatureRewards, res
+	}
 }

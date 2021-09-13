@@ -6,6 +6,8 @@ import (
 )
 
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
+	nodeOwnerMap := getNodeOwnerMap(ctx, k.RegisterKeeper)
+
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
@@ -50,10 +52,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	}
 
 	//7, distribute all rewards to resource nodes & indexing nodes
-	err = k.distributeRewardToSdsNodes(ctx, rewardDetailMap, epoch)
+	distributionResult, err := k.distributeRewardToSdsNodes(ctx, rewardDetailMap, epoch)
 	if err != nil {
 		return totalConsumedOzone, err
 	}
+	k.setPotRewardRecordByOwnerHeight(ctx, nodeOwnerMap, epoch, distributionResult)
 
 	//8, return balance to traffic pool & mining pool
 	err = k.returnBalance(ctx, distributeGoalBalance, epoch)
@@ -228,18 +231,19 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 	return distributeGoal, nil
 }
 
-func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (err error) {
+func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (res []NodeRewardsInfo, err error) {
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
 	for _, reward := range rewardDetailMap {
 		nodeAddr := reward.NodeAddress
 		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
-		k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward)
+		res = append(res, k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward))
 	}
 	k.setLastMaturedEpoch(ctx, currentEpoch)
-	return nil
+	//k.setPotRewardRecord(ctx, currentEpoch, res)
+	return res, nil
 }
 
-func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) {
+func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) NodeRewardsInfo {
 	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
 	matureStartEpoch := k.getLastMaturedEpoch(ctx).Int64() + 1
@@ -266,10 +270,13 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 		rewardAddressPool = append(rewardAddressPool, account)
 		k.setRewardAddressPool(ctx, rewardAddressPool)
 	}
+	potRewardsRecordVal := NewNodeRewardsInfo(account, matureTotal, immatureTotal)
 
 	k.setMatureTotalReward(ctx, account, matureTotal)
 	k.setImmatureTotalReward(ctx, account, immatureTotal)
 	k.setIndividualReward(ctx, account, matureEpoch, newReward)
+	//k.setPotRewardRecord(ctx, currentEpoch, potRewardsRecordVal)
+	return potRewardsRecordVal
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.

@@ -55,6 +55,24 @@ func NewQueryPotRewardsByOwnerParams(page, limit int, ownerAddr sdk.AccAddress, 
 	}
 }
 
+type QueryPotRewardsWithOwnerHeightParams struct {
+	Page      int
+	Limit     int
+	OwnerAddr sdk.AccAddress
+	Height    int64
+	Epoch     sdk.Int
+}
+
+func NewQueryPotRewardsWithOwnerHeightParams(page, limit int, ownerAddr sdk.AccAddress, height int64, epoch sdk.Int) QueryPotRewardsWithOwnerHeightParams {
+	return QueryPotRewardsWithOwnerHeightParams{
+		Page:      page,
+		Limit:     limit,
+		OwnerAddr: ownerAddr,
+		Height:    height,
+		Epoch:     epoch,
+	}
+}
+
 type NodeRewardsInfo struct {
 	NodeAddress         sdk.AccAddress
 	MatureTotalReward   sdk.Coin
@@ -73,4 +91,29 @@ func NewNodeRewardsInfo(
 		MatureTotalReward:   sdk.NewCoin(denomName, matureTotal),
 		ImmatureTotalReward: sdk.NewCoin(denomName, immatureTotal),
 	}
+}
+
+type OwnerRewardsInfo struct {
+	PotRewardRecordHeight int64
+	PotRewardRecordEpoch  sdk.Int
+	NodeRewardsInfo       NodeRewardsInfo
+}
+
+// NewOwnerRewardsInfo creates a new instance of NodeRewardsInfo
+func NewOwnerRewardsInfo(
+	potRewardRecordHight int64,
+	potRewardRecordEpoch sdk.Int,
+	nodeRewardsInfo NodeRewardsInfo,
+) OwnerRewardsInfo {
+	return OwnerRewardsInfo{
+		PotRewardRecordHeight: potRewardRecordHight,
+		PotRewardRecordEpoch:  potRewardRecordEpoch,
+		NodeRewardsInfo:       nodeRewardsInfo,
+	}
+}
+
+type OwnerRewardsSummary struct {
+	OwnerTotalMaturePotRewards   sdk.Coin
+	OwnerTotalImmaturePotRewards sdk.Coin
+	OwnerPotRewardsDetails       []OwnerRewardsInfo
 }

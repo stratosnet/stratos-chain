@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"strconv"
 )
 
 const (
@@ -31,7 +32,8 @@ var (
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
 
-	EpochRewardsKeyPrefix = []byte{0x51} // key: prefix{epoch}, value: rewardDetailMap (map[node_address string]types.Reward)
+	EpochRewardsKeyPrefix     = []byte{0x51} // key: prefix{epoch}, value: []types.Reward
+	PotRewardsRecordKeyPrefix = []byte{0x52}
 
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
 	VolumeReportStoreKeyPrefix = []byte{0x41}
@@ -83,5 +85,23 @@ func GetEpochRewardsKey(epoch sdk.Int) []byte {
 	bEpoch := []byte(epoch.String())
 	key := append(EpochRewardsKeyPrefix, bKeyStr...)
 	key = append(key, bEpoch...)
+	return key
+}
+
+// GetPotRewardsRecordKey prefix: potRewards_owner_{ownerAddr}_height_{height}_epoch_{epoch}
+func GetPotRewardsRecordKey(ownerAddr string, height int64, epoch sdk.Int) []byte {
+	bKeyStr1 := []byte("potRewards_owner_")
+	bKeyStr2 := []byte("_height_")
+	bKeyStr3 := []byte("_epoch_")
+	bOwner := []byte(ownerAddr)
+	bHeight := []byte(strconv.FormatInt(height, 10))
+	bEpoch := []byte(epoch.String())
+	key := append(PotRewardsRecordKeyPrefix, bKeyStr1...)
+	key = append(key, bOwner...)
+	key = append(key, bKeyStr2...)
+	key = append(key, bHeight...)
+	key = append(key, bKeyStr3...)
+	key = append(key, bEpoch...)
+
 	return key
 }

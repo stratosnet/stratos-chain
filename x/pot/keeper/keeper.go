@@ -81,3 +81,45 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
 	return found
 }
+
+func getNodeOwnerMap(ctx sdk.Context, registerKeeper register.Keeper) map[string]sdk.AccAddress {
+
+	resourceNodes := registerKeeper.GetAllResourceNodes(ctx)
+	indexingNodes := registerKeeper.GetAllIndexingNodes(ctx)
+	nodeOwnerMap := make(map[string]sdk.AccAddress)
+
+	for _, v := range indexingNodes {
+		nodeAddr := sdk.AccAddress(v.PubKey.Address())
+		nodeOwnerMap[nodeAddr.String()] = v.OwnerAddress
+	}
+
+	for _, v := range resourceNodes {
+		nodeAddr := sdk.AccAddress(v.PubKey.Address())
+		nodeOwnerMap[nodeAddr.String()] = v.OwnerAddress
+	}
+	return nodeOwnerMap
+}
+
+func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress, epoch sdk.Int, value []NodeRewardsInfo) {
+	potRewardsRecordWithOwnerAddr := make(map[string][]NodeRewardsInfo)
+	ctx.Logger().Info("In setPotRewardRecordByOwnerHeight")
+	for _, v := range value {
+		ctx.Logger().Info("In setPotRewardRecordByOwnerHeight first loop", "v", v)
+		if ownerAddr, ok := nodeOwnerMap[v.NodeAddress.String()]; ok {
+			ctx.Logger().Info("In setPotRewardRecordByOwnerHeight first loop", "ownerAddr", ownerAddr)
+			if _, ok := potRewardsRecordWithOwnerAddr[ownerAddr.String()]; !ok {
+				ctx.Logger().Info("In setPotRewardRecordByOwnerHeight first loop", "potRewardsRecordWithOwnerAddr[ownerAddr.String()]", ok)
+				potRewardsRecordWithOwnerAddr[ownerAddr.String()] = []NodeRewardsInfo{}
+			}
+
+			ctx.Logger().Info("In setPotRewardRecordByOwnerHeight first loop", "potRewardsRecordWithOwnerAddr[ownerAddr.String()]", potRewardsRecordWithOwnerAddr[ownerAddr.String()])
+			potRewardsRecordWithOwnerAddr[ownerAddr.String()] = append(potRewardsRecordWithOwnerAddr[ownerAddr.String()], v)
+			ctx.Logger().Info("In setPotRewardRecordByOwnerHeight first loop", "potRewardsRecordWithOwnerAddrKey", ownerAddr, "Value", potRewardsRecordWithOwnerAddr[ownerAddr.String()])
+		}
+	}
+
+	for key, val := range potRewardsRecordWithOwnerAddr {
+		ctx.Logger().Info("In setPotRewardRecordByOwnerHeight second loop", "key", key, "val", val)
+		k.setPotRewardRecord(ctx, key, epoch, val)
+	}
+}

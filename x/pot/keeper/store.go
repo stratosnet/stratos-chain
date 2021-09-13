@@ -1,8 +1,10 @@
 package keeper
 
 import (
+	"bytes"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
+	"strconv"
 )
 
 func (k Keeper) SetFoundationAccount(ctx sdk.Context, acc sdk.AccAddress) {
@@ -189,4 +191,158 @@ func (k Keeper) setRewardsByEpoch(ctx sdk.Context, rewardDetailMap map[string]ty
 		res = append(res, newNodeReward)
 	}
 	k.setEpochReward(ctx, epoch, res)
+}
+
+func (k Keeper) setPotRewardRecord(ctx sdk.Context, ownerAddr string, epoch sdk.Int, value []NodeRewardsInfo) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
+	height := ctx.BlockHeight()
+	key := types.GetPotRewardsRecordKey(ownerAddr, height, epoch)
+	ctx.Logger().Info("setKey", "setKey", string(key))
+	store.Set(key, b)
+}
+
+func (k Keeper) GetPotRewardRecords(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (ownerTotalMatureRewards, ownerTotalImmatureRewards sdk.Int, value []OwnerRewardsInfo) {
+	ownerTotalMatureRewards = sdk.ZeroInt()
+	ownerTotalImmatureRewards = sdk.ZeroInt()
+
+	// filter params
+	height := params.Height
+	var epoch sdk.Int
+	if params.Epoch.IsNil() {
+		epoch = sdk.ZeroInt()
+
+	} else {
+		epoch = params.Epoch
+	}
+
+	currentHeight := ctx.BlockHeight()
+
+	if height > currentHeight {
+		return sdk.ZeroInt(), sdk.ZeroInt(), nil
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	prefix := getIteratorPrefix(params)
+
+	if height > ctx.BlockHeight() {
+		return sdk.ZeroInt(), sdk.ZeroInt(), nil
+	}
+
+	if height > 0 {
+
+		prefix = append(prefix, []byte(strconv.FormatInt(height, 10))...)
+		prefix = append(prefix, []byte("_epoch_")...)
+
+		if !epoch.IsZero() && epoch.LTE(k.getLastMaturedEpoch(ctx)) {
+			prefix = append(prefix, []byte(epoch.String())...)
+		}
+	}
+
+	ctx.Logger().Info("QueryPrefix", "prefix", prefix)
+	iter := sdk.KVStorePrefixIterator(store, prefix)
+
+	defer iter.Close()
+	ctx.Logger().Info("iter.Valid()", "iter.Valid()", iter.Valid())
+	if !iter.Valid() {
+		return sdk.ZeroInt(), sdk.ZeroInt(), nil
+	}
+	delimiter := []byte{'_'}
+	var (
+		record []NodeRewardsInfo
+		//value OwnerRewardsInfo
+		recordHeight int64
+		recordEpoch  sdk.Int
+		err          error
+	)
+	for ; iter.Valid(); iter.Next() {
+		key := iter.Key()
+		ctx.Logger().Info("Querykey", "key", key)
+		splitSlice := bytes.Split(key, delimiter)
+		//recordOwnerAddr := splitSlice[2]
+		recordHeight, err = strconv.ParseInt(string(splitSlice[4]), 10, 64)
+		ctx.Logger().Info("recordHeight", "recordHeight", recordHeight)
+		if err != nil {
+			return sdk.ZeroInt(), sdk.ZeroInt(), nil
+		}
+		recordEpochInt64, err := strconv.ParseInt(string(splitSlice[6]), 10, 64)
+		ctx.Logger().Info("recordEpochInt64", "recordEpochInt64", recordEpochInt64)
+		if err != nil {
+			return sdk.ZeroInt(), sdk.ZeroInt(), nil
+		}
+		recordEpoch = sdk.NewInt(recordEpochInt64)
+
+		if !epoch.IsZero() {
+			if recordEpochInt64 == epoch.Int64() {
+				b := store.Get(key)
+				if b == nil {
+					continue
+				}
+				k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &record)
+
+				for _, v := range record {
+					newRecord := OwnerRewardsInfo{recordHeight, recordEpoch, v}
+					ownerTotalMatureRewards = ownerTotalMatureRewards.Add(v.MatureTotalReward.Amount)
+					ownerTotalImmatureRewards = ownerTotalImmatureRewards.Add(v.ImmatureTotalReward.Amount)
+					value = append(value, newRecord)
+				}
+			}
+		} else {
+			b := store.Get(key)
+			if b == nil {
+				continue
+			}
+			k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &record)
+
+			for _, v := range record {
+				newRecord := OwnerRewardsInfo{recordHeight, recordEpoch, v}
+				ownerTotalMatureRewards = ownerTotalMatureRewards.Add(v.MatureTotalReward.Amount)
+				ownerTotalImmatureRewards = ownerTotalImmatureRewards.Add(v.ImmatureTotalReward.Amount)
+				value = append(value, newRecord)
+			}
+		}
+
+	}
+	return
+}
+
+func getIteratorPrefix(params QueryPotRewardsWithOwnerHeightParams) (prefix []byte) {
+	prefix = types.PotRewardsRecordKeyPrefix
+	prefix = append(prefix, []byte("potRewards_owner_")...)
+	prefix = append(prefix, []byte(params.OwnerAddr.String())...)
+	prefix = append(prefix, []byte("_height_")...)
+	return
+}
+
+func (k Keeper) getMatchedPotRewardRecords(
+	store sdk.KVStore,
+	key, recordHeight []byte,
+	params QueryPotRewardsWithOwnerHeightParams,
+) (res []NodeRewardsInfo) {
+
+	if params.Height != 0 {
+		if bytes.Equal(recordHeight, []byte(strconv.FormatInt(params.Height, 10))) {
+			record := k.getRewardsRecord(store, key)
+			if record != nil {
+				res = append(res, record...)
+			}
+			return
+		}
+
+	} else {
+		record := k.getRewardsRecord(store, key)
+		if record != nil {
+			res = append(res, record...)
+		}
+	}
+	return
+}
+
+func (k Keeper) getRewardsRecord(store sdk.KVStore, key []byte) (record []NodeRewardsInfo) {
+	b := store.Get(key)
+	if b == nil {
+		return nil
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &record)
+	return record
 }

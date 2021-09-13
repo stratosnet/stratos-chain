@@ -14,7 +14,8 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(cliCtx, keeper.QueryPotRewardsByEpoch)).Methods("GET")
-	r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsByOwnerHandlerFn(cliCtx, keeper.QueryPotRewardsByOwner)).Methods("GET")
+	//r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsByOwnerHandlerFn(cliCtx, keeper.QueryPotRewardsByOwner)).Methods("GET")
+	r.HandleFunc("/pot/rewards/owner/{ownerAddress}", getPotRewardsHandlerFn(cliCtx, keeper.QueryPotRewardsByOwner)).Methods("GET")
 	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
 }
 
@@ -147,4 +148,70 @@ func checkEpoch(w http.ResponseWriter, r *http.Request, epochStr string) (sdk.In
 		return sdk.NewInt(0), false
 	}
 	return epoch, true
+}
+
+// GET request handler to query potRewards info by nodeWalletAddr
+func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		if !ok {
+			return
+		}
+
+		ownerAddrStr := mux.Vars(r)["ownerAddress"]
+		ownerAddr, err := sdk.AccAddressFromBech32(ownerAddrStr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		var (
+			queryHeight int64
+			queryEpoch  int64
+		)
+
+		if v := r.URL.Query().Get(RestHeight); len(v) != 0 {
+			queryHeight, err = strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+		}
+
+		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
+			queryEpoch, err = strconv.ParseInt(v, 10, 64)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			if queryEpoch < 1 {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch param: epoch should be equal or greater than 1")
+				return
+			}
+
+		}
+
+		params := keeper.NewQueryPotRewardsWithOwnerHeightParams(page, limit, ownerAddr, queryHeight, sdk.NewInt(queryEpoch))
+
+		bz, err := cliCtx.Codec.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
 }
