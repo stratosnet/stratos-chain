@@ -46,7 +46,7 @@ import (
 
 const (
 	appName    = "stchain"
-	appVersion = "v0.3.0"
+	appVersion = "v0.4.0"
 )
 
 var (
@@ -76,7 +76,8 @@ var (
 	)
 
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName:     nil,
+		auth.FeeCollectorName: {"fee_collector"},
+		//auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
@@ -207,34 +208,6 @@ func NewInitApp(
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, app.subspaces[bank.ModuleName], app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
 
-	app.registerKeeper = register.NewKeeper(
-		app.cdc,
-		keys[register.StoreKey],
-		app.subspaces[register.ModuleName],
-		app.accountKeeper,
-		app.bankKeeper,
-	)
-
-	app.potKeeper = pot.NewKeeper(
-		app.cdc,
-		keys[pot.StoreKey],
-		app.subspaces[pot.ModuleName],
-		auth.FeeCollectorName,
-		app.bankKeeper,
-		app.supplyKeeper,
-		app.accountKeeper,
-		app.stakingKeeper,
-		app.registerKeeper,
-	)
-
-	app.sdsKeeper = sds.NewKeeper(
-		app.cdc,
-		keys[sds.StoreKey],
-		app.bankKeeper,
-		app.registerKeeper,
-		app.potKeeper,
-	)
-
 	stakingKeeper := staking.NewKeeper(app.cdc, keys[staking.StoreKey], app.supplyKeeper, app.subspaces[staking.ModuleName])
 	app.mintKeeper = mint.NewKeeper(app.cdc, keys[mint.StoreKey], app.subspaces[mint.ModuleName], &stakingKeeper, app.supplyKeeper, auth.FeeCollectorName)
 	app.distrKeeper = distr.NewKeeper(app.cdc, keys[distr.StoreKey], app.subspaces[distr.ModuleName], &stakingKeeper, app.supplyKeeper,
@@ -264,6 +237,34 @@ func NewInitApp(
 	app.govKeeper = gov.NewKeeper(
 		app.cdc, keys[gov.StoreKey], app.subspaces[gov.ModuleName], app.supplyKeeper,
 		&stakingKeeper, govRouter,
+	)
+
+	app.registerKeeper = register.NewKeeper(
+		app.cdc,
+		keys[register.StoreKey],
+		app.subspaces[register.ModuleName],
+		app.accountKeeper,
+		app.bankKeeper,
+	)
+
+	app.potKeeper = pot.NewKeeper(
+		app.cdc,
+		keys[pot.StoreKey],
+		app.subspaces[pot.ModuleName],
+		auth.FeeCollectorName,
+		app.bankKeeper,
+		app.supplyKeeper,
+		app.accountKeeper,
+		app.stakingKeeper,
+		app.registerKeeper,
+	)
+
+	app.sdsKeeper = sds.NewKeeper(
+		app.cdc,
+		keys[sds.StoreKey],
+		app.bankKeeper,
+		app.registerKeeper,
+		app.potKeeper,
 	)
 
 	app.mm = module.NewManager(
