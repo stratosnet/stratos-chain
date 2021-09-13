@@ -448,3 +448,17 @@ func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
 }
+
+func (k Keeper) GetNodeOwnerMapFromIndexingNodes(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress) map[string]sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		ctx.Logger().Info("getNodeOwnerMapFromIndexingNodes", "node", node)
+		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
+	}
+	ctx.Logger().Info("getNodeOwnerMapFromIndexingNodes", "nodeOwnerMap", nodeOwnerMap)
+	return nodeOwnerMap
+}

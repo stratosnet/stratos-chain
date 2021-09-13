@@ -6,7 +6,7 @@ import (
 )
 
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
-	nodeOwnerMap := getNodeOwnerMap(ctx, k.RegisterKeeper)
+	nodeOwnerMap := k.getNodeOwnerMap(ctx)
 
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address

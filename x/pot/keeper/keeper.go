@@ -82,21 +82,11 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	return found
 }
 
-func getNodeOwnerMap(ctx sdk.Context, registerKeeper register.Keeper) map[string]sdk.AccAddress {
-
-	resourceNodes := registerKeeper.GetAllResourceNodes(ctx)
-	indexingNodes := registerKeeper.GetAllIndexingNodes(ctx)
+func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
 	nodeOwnerMap := make(map[string]sdk.AccAddress)
-
-	for _, v := range indexingNodes {
-		nodeAddr := sdk.AccAddress(v.PubKey.Address())
-		nodeOwnerMap[nodeAddr.String()] = v.OwnerAddress
-	}
-
-	for _, v := range resourceNodes {
-		nodeAddr := sdk.AccAddress(v.PubKey.Address())
-		nodeOwnerMap[nodeAddr.String()] = v.OwnerAddress
-	}
+	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
+	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
+	ctx.Logger().Info("nodeOwnerMap", "nodeOwnerMap", nodeOwnerMap)
 	return nodeOwnerMap
 }
 

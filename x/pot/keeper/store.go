@@ -225,10 +225,6 @@ func (k Keeper) GetPotRewardRecords(ctx sdk.Context, params QueryPotRewardsWithO
 	store := ctx.KVStore(k.storeKey)
 	prefix := getIteratorPrefix(params)
 
-	if height > ctx.BlockHeight() {
-		return sdk.ZeroInt(), sdk.ZeroInt(), nil
-	}
-
 	if height > 0 {
 
 		prefix = append(prefix, []byte(strconv.FormatInt(height, 10))...)
