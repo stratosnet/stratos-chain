@@ -198,9 +198,9 @@ func NewInitApp(
 	app.subspaces[slashing.ModuleName] = app.paramsKeeper.Subspace(slashing.DefaultParamspace)
 	app.subspaces[crisis.ModuleName] = app.paramsKeeper.Subspace(crisis.DefaultParamspace)
 	app.subspaces[gov.ModuleName] = app.paramsKeeper.Subspace(gov.DefaultParamspace).WithKeyTable(gov.ParamKeyTable())
+	app.subspaces[evm.ModuleName] = app.paramsKeeper.Subspace(evm.DefaultParamSpace)
 	app.subspaces[pot.ModuleName] = app.paramsKeeper.Subspace(pot.DefaultParamSpace)
 	app.subspaces[register.ModuleName] = app.paramsKeeper.Subspace(register.DefaultParamSpace)
-	app.subspaces[evm.ModuleName] = app.paramsKeeper.Subspace(evm.DefaultParamSpace)
 	// this line is used by starport scaffolding # 5.1
 
 	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], stratos.ProtoAccount)
@@ -286,10 +286,10 @@ func NewInitApp(
 		// this line is used by starport scaffolding # 6
 	)
 
-	app.mm.SetOrderBeginBlockers(
-		evm.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
-		evidence.ModuleName,
-	)
+	//app.mm.SetOrderBeginBlockers(
+	//	evm.ModuleName, mint.ModuleName, distr.ModuleName, slashing.ModuleName,
+	//	evidence.ModuleName,
+	//)
 
 	app.mm.SetOrderEndBlockers(
 		evm.ModuleName, crisis.ModuleName, gov.ModuleName, staking.ModuleName, register.ModuleName,
@@ -305,6 +305,7 @@ func NewInitApp(
 		slashing.ModuleName,
 		gov.ModuleName,
 		mint.ModuleName,
+		supply.ModuleName,
 		evm.ModuleName,
 		crisis.ModuleName,
 		genutil.ModuleName,
@@ -312,8 +313,6 @@ func NewInitApp(
 		pot.ModuleName,
 		sds.ModuleName,
 		upgrade.ModuleName,
-		supply.ModuleName,
-
 		// this line is used by starport scaffolding # 7
 	)
 
