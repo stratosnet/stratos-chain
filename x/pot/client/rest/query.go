@@ -102,6 +102,8 @@ func getPotRewardsByOwnerHandlerFn(cliCtx context.CLIContext, queryPath string) 
 			return
 		}
 
+		cliCtx = cliCtx.WithHeight(params.Height)
+
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
@@ -109,14 +111,13 @@ func getPotRewardsByOwnerHandlerFn(cliCtx context.CLIContext, queryPath string) 
 			return
 		}
 
-		cliCtx = cliCtx.WithHeight(height)
+		//cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
 // GET request handler to query Volume report info
 func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
@@ -172,7 +173,6 @@ func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.Ha
 		}
 		var (
 			queryHeight int64
-			queryEpoch  int64
 		)
 
 		if v := r.URL.Query().Get(RestHeight); len(v) != 0 {
@@ -183,20 +183,12 @@ func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.Ha
 			}
 		}
 
-		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
-			queryEpoch, err = strconv.ParseInt(v, 10, 64)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-			if queryEpoch < 1 {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch param: epoch should be equal or greater than 1")
-				return
-			}
-
+		// filtering height
+		if queryHeight == 0 || queryHeight > cliCtx.Height {
+			queryHeight = cliCtx.Height
 		}
 
-		params := keeper.NewQueryPotRewardsWithOwnerHeightParams(page, limit, ownerAddr, queryHeight, sdk.NewInt(queryEpoch))
+		params := keeper.NewQueryPotRewardsWithOwnerHeightParams(page, limit, ownerAddr, queryHeight)
 
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
@@ -204,14 +196,63 @@ func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.Ha
 			return
 		}
 
+		cliCtx = cliCtx.WithHeight(queryHeight)
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-		res, height, err := cliCtx.QueryWithData(route, bz)
+		res, _, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 
-		cliCtx = cliCtx.WithHeight(height)
+		//cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
+
+//func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+//	return func(w http.ResponseWriter, r *http.Request) {
+//		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+//			return
+//		}
+//
+//		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+//		if !ok {
+//			return
+//		}
+//
+//		ownerAddrStr := mux.Vars(r)["ownerAddress"]
+//		ownerAddr, err := sdk.AccAddressFromBech32(ownerAddrStr)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+//			return
+//		}
+//		var queryHeight int64
+//		if v := r.URL.Query().Get(RestHeight); len(v) != 0 {
+//			queryHeight, err = strconv.ParseInt(v, 10, 64)
+//			if err != nil {
+//				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+//				return
+//			}
+//		}
+//
+//		params := keeper.NewQueryPotRewardsWithOwnerHeightParams(page, limit, ownerAddr, queryHeight)
+//
+//		bz, err := cliCtx.Codec.MarshalJSON(params)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+//			return
+//		}
+//
+//		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+//		res, height, err := cliCtx.QueryWithData(route, bz)
+//		if err != nil {
+//			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+//			return
+//		}
+//
+//		cliCtx = cliCtx.WithHeight(height)
+//		rest.PostProcessResponse(w, cliCtx, res)
+//	}
+//}

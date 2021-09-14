@@ -86,24 +86,23 @@ func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
 	nodeOwnerMap := make(map[string]sdk.AccAddress)
 	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
 	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
-	ctx.Logger().Info("nodeOwnerMap", "nodeOwnerMap", nodeOwnerMap)
+	//ctx.Logger().Info("nodeOwnerMap", "nodeOwnerMap", nodeOwnerMap)
 	return nodeOwnerMap
 }
 
-func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress, epoch sdk.Int, value []NodeRewardsInfo) {
+func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress, epoch sdk.Int, value []NodeRewardsRecord) {
 	potRewardsRecordWithOwnerAddr := make(map[string][]NodeRewardsInfo)
 	for _, v := range value {
-		if ownerAddr, ok := nodeOwnerMap[v.NodeAddress.String()]; ok {
+		if ownerAddr, ok := nodeOwnerMap[v.Record.NodeAddress.String()]; ok {
 			if _, ok := potRewardsRecordWithOwnerAddr[ownerAddr.String()]; !ok {
 				potRewardsRecordWithOwnerAddr[ownerAddr.String()] = []NodeRewardsInfo{}
 			}
-
-			potRewardsRecordWithOwnerAddr[ownerAddr.String()] = append(potRewardsRecordWithOwnerAddr[ownerAddr.String()], v)
+			potRewardsRecordWithOwnerAddr[ownerAddr.String()] = append(potRewardsRecordWithOwnerAddr[ownerAddr.String()], v.Record)
 		}
 	}
 
 	for key, val := range potRewardsRecordWithOwnerAddr {
-		ctx.Logger().Info("In setPotRewardRecordByOwnerHeight second loop", "key", key, "val", val)
-		k.setPotRewardRecord(ctx, key, epoch, val)
+		//ctx.Logger().Info("In setPotRewardRecordByOwnerHeight", "key", key, "val", val)
+		k.setPotRewardRecord(ctx, epoch, key, val)
 	}
 }

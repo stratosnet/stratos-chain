@@ -363,6 +363,6 @@ func (k Keeper) GetNodeOwnerMapFromResourceNodes(ctx sdk.Context, nodeOwnerMap m
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
 	}
-	ctx.Logger().Info("getNodeOwnerMapFromResourceNodes", "nodeOwnerMap", nodeOwnerMap)
+	//ctx.Logger().Info("getNodeOwnerMapFromResourceNodes", "nodeOwnerMap", nodeOwnerMap)
 	return nodeOwnerMap
 }

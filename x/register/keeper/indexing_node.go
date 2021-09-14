@@ -456,9 +456,9 @@ func (k Keeper) GetNodeOwnerMapFromIndexingNodes(ctx sdk.Context, nodeOwnerMap m
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		ctx.Logger().Info("getNodeOwnerMapFromIndexingNodes", "node", node)
+		//ctx.Logger().Info("getNodeOwnerMapFromIndexingNodes", "node", node)
 		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
 	}
-	ctx.Logger().Info("getNodeOwnerMapFromIndexingNodes", "nodeOwnerMap", nodeOwnerMap)
+	//ctx.Logger().Info("getNodeOwnerMapFromIndexingNodes", "nodeOwnerMap", nodeOwnerMap)
 	return nodeOwnerMap
 }

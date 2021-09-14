@@ -6,7 +6,7 @@ import (
 )
 
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
-	nodeOwnerMap := k.getNodeOwnerMap(ctx)
+	//nodeOwnerMap := k.getNodeOwnerMap(ctx)
 
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
@@ -56,6 +56,7 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	if err != nil {
 		return totalConsumedOzone, err
 	}
+	nodeOwnerMap := k.getNodeOwnerMap(ctx)
 	k.setPotRewardRecordByOwnerHeight(ctx, nodeOwnerMap, epoch, distributionResult)
 
 	//8, return balance to traffic pool & mining pool
@@ -231,7 +232,7 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 	return distributeGoal, nil
 }
 
-func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (res []NodeRewardsInfo, err error) {
+func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (res []NodeRewardsRecord, err error) {
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
 	for _, reward := range rewardDetailMap {
 		nodeAddr := reward.NodeAddress
@@ -243,7 +244,7 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[
 	return res, nil
 }
 
-func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) NodeRewardsInfo {
+func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) NodeRewardsRecord {
 	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
 	matureStartEpoch := k.getLastMaturedEpoch(ctx).Int64() + 1
@@ -270,7 +271,9 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 		rewardAddressPool = append(rewardAddressPool, account)
 		k.setRewardAddressPool(ctx, rewardAddressPool)
 	}
-	potRewardsRecordVal := NewNodeRewardsInfo(account, matureTotal, immatureTotal)
+
+	distributionRecord := NewNodeRewardsInfo(account, matureTotal, immatureTotal)
+	potRewardsRecordVal := NewNodeRewardsRecord(ctx.BlockHeight(), currentEpoch, distributionRecord)
 
 	k.setMatureTotalReward(ctx, account, matureTotal)
 	k.setImmatureTotalReward(ctx, account, immatureTotal)

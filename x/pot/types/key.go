@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"strconv"
 )
 
 const (
@@ -88,20 +87,12 @@ func GetEpochRewardsKey(epoch sdk.Int) []byte {
 	return key
 }
 
-// GetPotRewardsRecordKey prefix: potRewards_owner_{ownerAddr}_height_{height}_epoch_{epoch}
-func GetPotRewardsRecordKey(ownerAddr string, height int64, epoch sdk.Int) []byte {
+// GetPotRewardsRecordKey prefix: potRewards_owner_{ownerAddr}
+func GetPotRewardsRecordKey(ownerAddr string) []byte {
 	bKeyStr1 := []byte("potRewards_owner_")
-	bKeyStr2 := []byte("_height_")
-	bKeyStr3 := []byte("_epoch_")
 	bOwner := []byte(ownerAddr)
-	bHeight := []byte(strconv.FormatInt(height, 10))
-	bEpoch := []byte(epoch.String())
 	key := append(PotRewardsRecordKeyPrefix, bKeyStr1...)
 	key = append(key, bOwner...)
-	key = append(key, bKeyStr2...)
-	key = append(key, bHeight...)
-	key = append(key, bKeyStr3...)
-	key = append(key, bEpoch...)
 
 	return key
 }

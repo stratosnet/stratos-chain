@@ -12,7 +12,6 @@ import (
 
 const (
 	QueryVolumeReport      = "volume_report"
-	QueryPotRewards        = "pot_rewards"
 	QueryPotRewardsByEpoch = "pot_rewards_by_epoch"
 	QueryPotRewardsByOwner = "pot_rewards_by_owner"
 	QueryDefaultLimit      = 100
@@ -24,8 +23,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k)
-		case QueryPotRewards:
-			return queryPotRewards(ctx, req, k)
+		//case QueryPotRewards:
+		//	return queryPotRewards(ctx, req, k)
 		case QueryPotRewardsByEpoch:
 			return queryPotRewardsByEpoch(ctx, req, k)
 		//case QueryPotRewardsByOwner:
@@ -56,28 +55,6 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 	return bz, nil
 }
 
-// queryPotRewards fetches total rewards and owner individual rewards from traffic and mining.
-func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params QueryPotRewardsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
-	ctx.Logger().Info("params", "params", params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	nodeRewards := k.GetNodesRewards(ctx, params)
-	if len(nodeRewards) == 0 {
-		nodeRewards = []NodeRewardsInfo{}
-	}
-
-	bz, err := codec.MarshalJSONIndent(k.cdc, nodeRewards)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
-}
-
 // queryPotRewardsByEpoch fetches total rewards and owner individual rewards from traffic and mining.
 func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params QueryPotRewardsByepochParams
@@ -85,65 +62,12 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
 	potEpochRewards := k.GetPotRewardsByEpoch(ctx, params)
-
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
 	return bz, nil
-}
-
-func queryPotRewardsByOwner(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params QueryPotRewardsByOwnerParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	ownerRewards := k.GetNodesRewardsByOwner(ctx, params)
-	if len(ownerRewards) == 0 {
-		ownerRewards = nil
-	}
-
-	bz, err := codec.MarshalJSONIndent(k.cdc, ownerRewards)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
-}
-
-func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (res []NodeRewardsInfo) {
-
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-
-	for _, n := range rewardAddrList {
-		if !(n.Equals(params.NodeAddr)) {
-			continue
-		}
-
-		//individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-		individualResult := NewNodeRewardsInfo(
-			n,
-			matureTotal,
-			immatureTotal,
-		)
-
-		res = append(res, individualResult)
-	}
-
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return []NodeRewardsInfo{}
-	} else {
-		res = res[start:end]
-		return res
-	}
 }
 
 func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
@@ -163,28 +87,6 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
-	} else {
-		res = res[start:end]
-		return res
-	}
-}
-
-func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsByOwnerParams) (res []NodeRewardsInfo) {
-	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
-
-	for _, n := range filteredNodesAddr {
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-		individualResult := NewNodeRewardsInfo(
-			n,
-			matureTotal,
-			immatureTotal,
-		)
-		res = append(res, individualResult)
-	}
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return []NodeRewardsInfo{}
 	} else {
 		res = res[start:end]
 		return res
@@ -218,32 +120,125 @@ func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Ke
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
-	ownerTotalMatureRewards, ownerTotalImmatureRewards, ownerRewards := k.getOwnerRewards(ctx, params)
-	if len(ownerRewards) == 0 {
-		ownerRewards = nil
-	}
-
-	summary := OwnerRewardsSummary{
-		sdk.NewCoin(types.DefaultBondDenom, ownerTotalMatureRewards),
-		sdk.NewCoin(types.DefaultBondDenom, ownerTotalImmatureRewards),
-		ownerRewards}
-
-	bz, err := codec.MarshalJSONIndent(k.cdc, summary)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 
+	recordHeight, recordEpoch, ownerRewards := k.getOwnerRewards(ctx, params)
+	if len(ownerRewards) == 0 {
+		ownerRewards = nil
+	}
+
+	record := OwnerRewardsRecord{recordHeight, recordEpoch, ownerRewards}
+	bz, err := codec.MarshalJSONIndent(k.cdc, record)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
 	return bz, nil
 }
 
-func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (sdk.Int, sdk.Int, []OwnerRewardsInfo) {
-	ownerTotalMatureRewards, ownerTotalImmatureRewards, res := k.GetPotRewardRecords(ctx, params)
+func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (recordHeight int64, recordEpoch sdk.Int, res []NodeRewardsInfo) {
+	recordHeight, recordEpoch, res = k.GetPotRewardRecords(ctx, params)
+
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
-		return sdk.ZeroInt(), sdk.ZeroInt(), nil
+		return 0, sdk.ZeroInt(), nil
 	} else {
 		res = res[start:end]
-		return ownerTotalMatureRewards, ownerTotalImmatureRewards, res
+		return
 	}
 }
+
+//func queryPotRewardsByOwner(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+//	var params QueryPotRewardsByOwnerParams
+//	err := k.cdc.UnmarshalJSON(req.Data, &params)
+//	if err != nil {
+//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//	}
+//
+//	ownerRewards := k.GetNodesRewardsByOwner(ctx, params)
+//	if len(ownerRewards) == 0 {
+//		ownerRewards = nil
+//	}
+//
+//	bz, err := codec.MarshalJSONIndent(k.cdc, ownerRewards)
+//	if err != nil {
+//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//	}
+//
+//	return bz, nil
+//}
+
+//func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (res []NodeRewardsInfo) {
+//
+//	rewardAddrList := k.GetRewardAddressPool(ctx)
+//
+//	for _, n := range rewardAddrList {
+//		if !(n.Equals(params.NodeAddr)) {
+//			continue
+//		}
+//
+//		//individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
+//		matureTotal := k.GetMatureTotalReward(ctx, n)
+//		immatureTotal := k.GetImmatureTotalReward(ctx, n)
+//		individualResult := NewNodeRewardsInfo(
+//			n,
+//			matureTotal,
+//			immatureTotal,
+//		)
+//
+//		res = append(res, individualResult)
+//	}
+//
+//	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+//	if start < 0 || end < 0 {
+//		return []NodeRewardsInfo{}
+//	} else {
+//		res = res[start:end]
+//		return res
+//	}
+//}
+
+//func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsByOwnerParams) (res []NodeRewardsInfo) {
+//	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
+//
+//	for _, n := range filteredNodesAddr {
+//		matureTotal := k.GetMatureTotalReward(ctx, n)
+//		immatureTotal := k.GetImmatureTotalReward(ctx, n)
+//		individualResult := NewNodeRewardsInfo(
+//			n,
+//			matureTotal,
+//			immatureTotal,
+//		)
+//		res = append(res, individualResult)
+//	}
+//	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+//	if start < 0 || end < 0 {
+//		return []NodeRewardsInfo{}
+//	} else {
+//		res = res[start:end]
+//		return res
+//	}
+//}
+
+// queryPotRewards fetches total rewards and owner individual rewards from traffic and mining.
+//func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+//	var params QueryPotRewardsParams
+//	err := k.cdc.UnmarshalJSON(req.Data, &params)
+//	ctx.Logger().Info("params", "params", params)
+//	if err != nil {
+//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//	}
+//
+//	nodeRewards := k.GetNodesRewards(ctx, params)
+//	if len(nodeRewards) == 0 {
+//		nodeRewards = []NodeRewardsInfo{}
+//	}
+//
+//	bz, err := codec.MarshalJSONIndent(k.cdc, nodeRewards)
+//	if err != nil {
+//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//	}
+//
+//	return bz, nil
+//}
