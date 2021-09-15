@@ -86,7 +86,6 @@ func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
 	nodeOwnerMap := make(map[string]sdk.AccAddress)
 	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
 	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
-	//ctx.Logger().Info("nodeOwnerMap", "nodeOwnerMap", nodeOwnerMap)
 	return nodeOwnerMap
 }
 
@@ -102,7 +101,6 @@ func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap ma
 	}
 
 	for key, val := range potRewardsRecordWithOwnerAddr {
-		//ctx.Logger().Info("In setPotRewardRecordByOwnerHeight", "key", key, "val", val)
 		k.setPotRewardRecord(ctx, epoch, key, val)
 	}
 }
