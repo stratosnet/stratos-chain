@@ -14,6 +14,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"testing"
+	"time"
 )
 
 const (
@@ -37,9 +38,9 @@ var (
 
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	initialOzonePrice      = sdk.NewInt(10000000000)
-	foundationAccAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	foundationDeposit      = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(40000000000000000)))
+	initialOzonePrice      = sdk.NewDecWithPrec(1000000, 9) //0.001
+	//foundationAccAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
+	foundationDeposit = sdk.NewInt(40000000000000000)
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -161,32 +162,25 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
-	foundationAcc := &auth.BaseAccount{
-		Address: foundationAccAddr,
-		Coins:   foundationDeposit,
-	}
-
 	accs := []authexported.Account{
 		resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
 		idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3,
 		valOwnerAcc1,
 		idxNodeAcc1,
-		foundationAcc,
 	}
 
 	ctx1 := mApp.BaseApp.NewContext(true, abci.Header{})
 	ctx1.Logger().Info("idxNodeAcc1 -> " + idxNodeAcc1.String())
-	ctx1.Logger().Info("foundationAcc -> " + foundationAcc.String())
 
 	return accs
 }
 
 func setupAllResourceNodes() []register.ResourceNode {
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4")
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4")
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4")
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4")
+	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4", time.Now())
+	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4", time.Now())
+	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4", time.Now())
+	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4", time.Now())
+	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4", time.Now())
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
@@ -211,9 +205,9 @@ func setupAllResourceNodes() []register.ResourceNode {
 
 func setupAllIndexingNodes() []register.IndexingNode {
 	var indexingNodes []register.IndexingNode
-	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
-	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
-	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
+	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
+	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
+	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
 
 	indexingNode1 = indexingNode1.AddToken(idxNodeInitialStake1)
 	indexingNode2 = indexingNode2.AddToken(idxNodeInitialStake2)

@@ -5,29 +5,13 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) SetFoundationAccount(ctx sdk.Context, acc sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(acc)
-	store.Set(types.FoundationAccountKey, b)
-}
-
-func (k Keeper) GetFoundationAccount(ctx sdk.Context) (acc sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.FoundationAccountKey)
-	if b == nil {
-		panic("Stored foundation account should not have been nil")
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &acc)
-	return
-}
-
-func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Int) {
+func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
-func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Int) {
+func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.InitialUOzonePriceKey)
 	if b == nil {

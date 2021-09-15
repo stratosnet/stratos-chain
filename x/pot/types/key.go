@@ -19,7 +19,6 @@ const (
 )
 
 var (
-	FoundationAccountKey   = []byte{0x01}
 	InitialUOzonePriceKey  = []byte{0x02}
 	TotalMinedTokensKey    = []byte{0x03}
 	MinedTokensKeyPrefix   = []byte{0x04} // key: prefix_epoch

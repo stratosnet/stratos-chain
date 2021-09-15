@@ -5,34 +5,35 @@ import (
 )
 
 type GenesisState struct {
-	Params            Params         `json:"params" yaml:"params"`
-	FoundationAccount sdk.AccAddress `json:"foundation_account" yaml:"foundation_account"` //foundation account address
-	InitialUozPrice   sdk.Int        `json:"initial_uoz_price" yaml:"initial_uoz_price"`   //initial price of uoz
+	Params                   Params  `json:"params" yaml:"params"`
+	FoundationAccountBalance sdk.Int `json:"foundation_account_balance" yaml:"foundation_account_balance"`
+	InitialUozPrice          sdk.Dec `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, foundationAccount sdk.AccAddress, initialUOzonePrice sdk.Int) GenesisState {
+func NewGenesisState(params Params, foundationAccountBalance sdk.Int, initialUOzonePrice sdk.Dec) GenesisState {
 	return GenesisState{
-		Params:            params,
-		FoundationAccount: foundationAccount,
-		InitialUozPrice:   initialUOzonePrice,
+		Params:                   params,
+		FoundationAccountBalance: foundationAccountBalance,
+		InitialUozPrice:          initialUOzonePrice,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:          DefaultParams(),
-		InitialUozPrice: sdk.NewInt(10000000000),
+		Params:                   DefaultParams(),
+		FoundationAccountBalance: sdk.NewInt(DefaultFoundationDeposit),
+		InitialUozPrice:          DefaultUozPrice,
 	}
 }
 
 // ValidateGenesis validates the pot genesis parameters
 func ValidateGenesis(data GenesisState) error {
-	if data.FoundationAccount == nil {
-		return ErrFoundationAccount
+	if data.FoundationAccountBalance.IsNegative() {
+		return ErrFoundationAccountBalance
 	}
-	if data.InitialUozPrice.LTE(sdk.ZeroInt()) {
+	if data.InitialUozPrice.LTE(sdk.ZeroDec()) {
 		return ErrInitialUOzonePrice
 	}
 	return nil

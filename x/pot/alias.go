@@ -10,6 +10,7 @@ const (
 	ModuleName        = types.ModuleName
 	StoreKey          = types.StoreKey
 	RouterKey         = types.RouterKey
+	FoundationAccount = types.FoundationAccount
 )
 
 var (

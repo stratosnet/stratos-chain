@@ -24,7 +24,6 @@ const (
 )
 
 var (
-	foundationAcc     = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 	foundationDeposit = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(40000000*stos2ustos)))
 
 	resOwner1 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
@@ -85,7 +84,7 @@ var (
 func Test(t *testing.T) {
 
 	//prepare keepers
-	ctx, accountKeeper, bankKeeper, k, stakingKeeper, _, _, registerKeeper := CreateTestInput(t, false)
+	ctx, accountKeeper, bankKeeper, k, stakingKeeper, _, supplyKeeper, registerKeeper := CreateTestInput(t, false)
 
 	// create validator with 50% commission
 	stakingHandler := staking.NewHandler(stakingKeeper)
@@ -109,8 +108,9 @@ func Test(t *testing.T) {
 	registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimit)
 
 	//pot genesis data load
-	k.SetFoundationAccount(ctx, foundationAcc)
-	createAccount(t, ctx, accountKeeper, bankKeeper, foundationAcc, foundationDeposit)
+	foundationAccountAddr := supplyKeeper.GetModuleAddress(types.FoundationAccount)
+	err = bankKeeper.SetCoins(ctx, foundationAccountAddr, foundationDeposit)
+	require.NoError(t, err)
 
 	//initialize owner accounts
 	createAccount(t, ctx, accountKeeper, bankKeeper, resOwner1, sdk.NewCoins(initialStakeRes1))
@@ -226,7 +226,7 @@ func testWithdraw(t *testing.T, ctx sdk.Context, k Keeper, bankKeeper bank.Keepe
 }
 
 func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keeper, trafficList []types.SingleNodeVolume) {
-	err := k.DistributePotReward(ctx, trafficList, epoch2017)
+	_, err := k.DistributePotReward(ctx, trafficList, epoch2017)
 	require.NoError(t, err)
 	fmt.Println("Distribution result at Epoch2017: ")
 	rewardAddrList := k.GetRewardAddressPool(ctx)
@@ -306,7 +306,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	//PrePay
 	k.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
 
-	err := k.DistributePotReward(ctx, trafficList, epoch1)
+	_, err := k.DistributePotReward(ctx, trafficList, epoch1)
 	require.NoError(t, err)
 
 	fmt.Println("Distribution result at Epoch1: ")
@@ -389,7 +389,7 @@ func testBlockChainRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper
 	rewardDetailMap := make(map[string]types.Reward)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	// stake reward split by the amount of delegation/deposit
@@ -449,10 +449,10 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward)
 
-	totalReward := k.getTrafficReward(ctx, trafficList)
+	_, totalReward := k.getTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
@@ -512,10 +512,10 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward)
 
-	totalReward := k.getTrafficReward(ctx, trafficList)
+	_, totalReward := k.getTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
-	distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
+	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
