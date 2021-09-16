@@ -81,3 +81,18 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
 	return found
 }
+
+func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
+	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))
+	if err != nil {
+		return err
+	}
+
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, sdk.NewCoins(amount))
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

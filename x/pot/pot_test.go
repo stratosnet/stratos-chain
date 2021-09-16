@@ -39,8 +39,10 @@ var (
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	initialOzonePrice      = sdk.NewDecWithPrec(1000000, 9) //0.001
-	//foundationAccAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	foundationDeposit = sdk.NewInt(40000000000000000)
+
+	foundationDepositorPrivKey = secp256k1.GenPrivKey()
+	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
+	foundationDeposit          = sdk.NewInt(40000000000000000)
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -162,10 +164,16 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
 	}
 
+	foundationDepositorAcc := &auth.BaseAccount{
+		Address: foundationDepositorAccAddr,
+		Coins:   sdk.NewCoins(sdk.NewCoin("ustos", foundationDeposit)),
+	}
+
 	accs := []authexported.Account{
 		resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
 		idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3,
 		valOwnerAcc1,
+		foundationDepositorAcc,
 		idxNodeAcc1,
 	}
 

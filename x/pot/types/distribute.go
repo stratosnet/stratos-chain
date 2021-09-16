@@ -6,8 +6,7 @@ import (
 )
 
 const (
-	FoundationAccount        = "foundation_account"
-	DefaultFoundationDeposit = 40000000000000000
+	FoundationAccount = "foundation_account"
 )
 
 var (

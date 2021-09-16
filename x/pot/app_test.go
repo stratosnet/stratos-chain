@@ -71,8 +71,14 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
 
-	header := abci.Header{}
+	/********************* foundation account deposit *********************/
+	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx := mApp.BaseApp.NewContext(true, header)
+	foundationDepositMsg := NewMsgFoundationDeposit(sdk.NewCoin(k.BondDenom(ctx), foundationDeposit), foundationDepositorAccAddr)
+	foundationDepositorAcc := mApp.AccountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := foundationDepositorAcc.GetAccountNumber()
+	accSeq := foundationDepositorAcc.GetSequence()
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	foundationAccAddr := supplyKeeper.GetModuleAddress(types.FoundationAccount)
 	mock.CheckBalance(t, mApp, foundationAccAddr, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), foundationDeposit)))
 
@@ -85,8 +91,8 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	createValidatorMsg := staking.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, sdk.NewCoin("ustos", valInitialStake), description, commission, sdk.OneInt())
 
 	valOpAcc1 := mApp.AccountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum := valOpAcc1.GetAccountNumber()
-	accSeq := valOpAcc1.GetSequence()
+	accNum = valOpAcc1.GetAccountNumber()
+	accSeq = valOpAcc1.GetSequence()
 	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
 	mock.CheckBalance(t, mApp, valOpAccAddr1, nil)
 
@@ -344,7 +350,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		keeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), foundationDeposit, initialOzonePrice))
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), initialOzonePrice))
 
 		return abci.ResponseInitChain{
 			Validators: validators,
