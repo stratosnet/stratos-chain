@@ -41,13 +41,15 @@ type ReportRecord struct {
 	Reporter        sdk.AccAddress
 	ReportReference string
 	TxHash          string
+	NodesVolume     []SingleNodeVolume
 }
 
-func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) ReportRecord {
+func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string, nodesVolume []SingleNodeVolume) ReportRecord {
 	return ReportRecord{
 		Reporter:        reporter,
 		ReportReference: reportReference,
 		TxHash:          txHash,
+		NodesVolume:     nodesVolume,
 	}
 }
 

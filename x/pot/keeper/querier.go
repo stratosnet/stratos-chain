@@ -62,7 +62,7 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	potEpochRewards := k.GetPotRewardsByEpoch(ctx, params)
+	potEpochRewards := k.getPotRewardsByEpoch(ctx, params)
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -70,20 +70,15 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	return bz, nil
 }
 
-func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
-	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
-
-	epochRewards := k.GetEpochReward(ctx, params.Epoch)
-	epochRewardsMap := make(map[string]types.Reward)
-	for _, v := range epochRewards {
-		epochRewardsMap[v.NodeAddress.String()] = v
+func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
+	// get volume report based on the given epoch
+	reportRecord, err := k.GetVolumeReport(ctx, params.Epoch)
+	if err != nil {
+		return nil
 	}
 
-	for _, n := range filteredNodesAddr {
-		if newNodeReward, found := epochRewardsMap[n.String()]; found {
-			res = append(res, newNodeReward)
-		}
-	}
+	res = k.getRewardsResult(ctx, params, reportRecord)
+
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
@@ -93,33 +88,85 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 	}
 }
 
-func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []sdk.AccAddress {
-	resourceNodesAddr := k.RegisterKeeper.GetAllResourceNodes(ctx)
-	indexingNodesAddr := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	filteredNodesAddr := make([]sdk.AccAddress, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
+func (k Keeper) getRewardsResult(ctx sdk.Context, params QueryPotRewardsByepochParams, reportRecord types.ReportRecord) (res []types.Reward) {
+	rewardDetailMap := k.tempClaculateNodePotRewards(ctx, reportRecord)
 
-	for _, n := range resourceNodesAddr {
-		// match OwnerAddr (if supplied)
-		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
+	for _, value := range rewardDetailMap {
+		if !params.OwnerAddr.Empty() {
+			nodeOwnerMap := make(map[string]sdk.AccAddress)
+
+			nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
+			if ownerAddr, ok := nodeOwnerMap[value.NodeAddress.String()]; ok {
+				if ownerAddr.Equals(params.OwnerAddr) {
+					res = append(res, value)
+				}
+			} else {
+				nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
+				if ownerAddr, ok := nodeOwnerMap[value.NodeAddress.String()]; ok {
+					if ownerAddr.Equals(params.OwnerAddr) {
+						res = append(res, value)
+					}
+				}
+			}
+
+		} else {
+			res = append(res, value)
 		}
 
 	}
-	for _, n := range indexingNodesAddr {
-		// match OwnerAddr (if supplied)
-		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-		}
-	}
-	return filteredNodesAddr
+	return res
 }
+
+func (k Keeper) tempClaculateNodePotRewards(ctx sdk.Context, reportRecord types.ReportRecord) map[string]types.Reward {
+	distributeGoal := types.InitDistributeGoal()
+	rewardDetailMap := make(map[string]types.Reward) //key: node address
+
+	//1, calc traffic reward in total
+	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, reportRecord.NodesVolume, distributeGoal)
+	if err != nil {
+		return nil
+	}
+
+	//2, calc mining reward in total
+	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
+	if err != nil && err != types.ErrOutOfIssuance {
+		return nil
+	}
+
+	distributeGoalBalance := distributeGoal
+
+	//3, calc reward for resource node
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, reportRecord.NodesVolume, distributeGoalBalance, rewardDetailMap)
+
+	//4, calc reward from indexing node
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
+	return rewardDetailMap
+}
+
+//func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []sdk.AccAddress {
+//	resourceNodesAddr := k.RegisterKeeper.GetAllResourceNodes(ctx)
+//	indexingNodesAddr := k.RegisterKeeper.GetAllIndexingNodes(ctx)
+//	filteredNodesAddr := make([]sdk.AccAddress, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
+//
+//	for _, n := range resourceNodesAddr {
+//		// match OwnerAddr (if supplied)
+//		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
+//			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
+//		}
+//
+//	}
+//	for _, n := range indexingNodesAddr {
+//		// match OwnerAddr (if supplied)
+//		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
+//			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
+//		}
+//	}
+//	return filteredNodesAddr
+//}
 
 func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params QueryPotRewardsWithOwnerHeightParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -130,6 +177,10 @@ func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Ke
 	}
 
 	record := OwnerRewardsRecord{recordHeight, recordEpoch, ownerRewards}
+	if len(record.NodeDetails) < 1 {
+		bz, _ := codec.MarshalJSONIndent(k.cdc, "No Pot rewards information at this height")
+		return bz, nil
+	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, record)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
