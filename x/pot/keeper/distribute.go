@@ -37,7 +37,7 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 
 	//4, calc reward from indexing node
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
-	k.setRewardsByEpoch(ctx, rewardDetailMap, epoch)
+	//k.setRewardsByEpoch(ctx, rewardDetailMap, epoch)
 
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)

@@ -63,6 +63,10 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	potEpochRewards := k.getPotRewardsByEpoch(ctx, params)
+	if len(potEpochRewards) < 1 {
+		bz, _ := codec.MarshalJSONIndent(k.cdc, "No Pot rewards information at this epoch")
+		return bz, nil
+	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -76,9 +80,7 @@ func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 	if err != nil {
 		return nil
 	}
-
 	res = k.getRewardsResult(ctx, params, reportRecord)
-
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
@@ -112,57 +114,28 @@ func (k Keeper) getRewardsResult(ctx sdk.Context, params QueryPotRewardsByepochP
 		} else {
 			res = append(res, value)
 		}
-
 	}
-	return res
+	return
 }
 
 func (k Keeper) tempClaculateNodePotRewards(ctx sdk.Context, reportRecord types.ReportRecord) map[string]types.Reward {
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
-	//1, calc traffic reward in total
 	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, reportRecord.NodesVolume, distributeGoal)
 	if err != nil {
 		return nil
 	}
-
-	//2, calc mining reward in total
 	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
 		return nil
 	}
 
 	distributeGoalBalance := distributeGoal
-
-	//3, calc reward for resource node
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, reportRecord.NodesVolume, distributeGoalBalance, rewardDetailMap)
-
-	//4, calc reward from indexing node
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
 	return rewardDetailMap
 }
-
-//func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []sdk.AccAddress {
-//	resourceNodesAddr := k.RegisterKeeper.GetAllResourceNodes(ctx)
-//	indexingNodesAddr := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-//	filteredNodesAddr := make([]sdk.AccAddress, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
-//
-//	for _, n := range resourceNodesAddr {
-//		// match OwnerAddr (if supplied)
-//		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-//			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-//		}
-//
-//	}
-//	for _, n := range indexingNodesAddr {
-//		// match OwnerAddr (if supplied)
-//		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-//			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-//		}
-//	}
-//	return filteredNodesAddr
-//}
 
 func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params QueryPotRewardsWithOwnerHeightParams
