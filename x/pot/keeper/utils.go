@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 type QueryPotRewardsParams struct {
@@ -21,20 +22,22 @@ func NewQueryPotRewardsParams(page, limit int, nodeAddr sdk.AccAddress, epoch sd
 	}
 }
 
-type QueryPotRewardsByepochParams struct {
-	Page      int
-	Limit     int
-	OwnerAddr sdk.AccAddress
-	Epoch     sdk.Int
+type QueryPotRewardsByEpochParams struct {
+	Page        int
+	Limit       int
+	OwnerAddr   sdk.AccAddress
+	Epoch       sdk.Int
+	NodeVolumes []types.SingleNodeVolume
 }
 
-// NewQueryPotRewardsByepochParams creates a new instance of QueryPotRewardsParams
-func NewQueryPotRewardsByepochParams(page, limit int, ownerAddr sdk.AccAddress, epoch sdk.Int) QueryPotRewardsByepochParams {
-	return QueryPotRewardsByepochParams{
-		Page:      page,
-		Limit:     limit,
-		OwnerAddr: ownerAddr,
-		Epoch:     epoch,
+// NewQueryPotRewardsByEpochParams creates a new instance of QueryPotRewardsParams
+func NewQueryPotRewardsByEpochParams(page, limit int, ownerAddr sdk.AccAddress, epoch sdk.Int, nodeVolumes []types.SingleNodeVolume) QueryPotRewardsByEpochParams {
+	return QueryPotRewardsByEpochParams{
+		Page:        page,
+		Limit:       limit,
+		OwnerAddr:   ownerAddr,
+		Epoch:       epoch,
+		NodeVolumes: nodeVolumes,
 	}
 }
 

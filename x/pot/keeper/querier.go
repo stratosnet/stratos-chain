@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -23,12 +24,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k)
-		//case QueryPotRewards:
-		//	return queryPotRewards(ctx, req, k)
 		case QueryPotRewardsByEpoch:
 			return queryPotRewardsByEpoch(ctx, req, k)
-		//case QueryPotRewardsByOwner:
-		//	return queryPotRewardsByOwner(ctx, req, k)
 		case QueryPotRewardsByOwner:
 			return queryPotRewardsWithOwnerHeight(ctx, req, k)
 		default:
@@ -48,6 +45,10 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+	if reportRecord.TxHash == "" {
+		bz := []byte(fmt.Sprintf("no volume report at epoch: %d", epoch))
+		return bz, nil
+	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, reportRecord)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -57,14 +58,14 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 
 // queryPotRewardsByEpoch fetches total rewards and owner individual rewards from traffic and mining.
 func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params QueryPotRewardsByepochParams
+	var params QueryPotRewardsByEpochParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	potEpochRewards := k.getPotRewardsByEpoch(ctx, params)
 	if len(potEpochRewards) < 1 {
-		bz, _ := codec.MarshalJSONIndent(k.cdc, "No Pot rewards information at this epoch")
+		bz, _ := codec.MarshalJSONIndent(k.cdc, fmt.Sprintf("no Pot rewards information at epoch: %s", params.Epoch.String()))
 		return bz, nil
 	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
@@ -74,13 +75,8 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	return bz, nil
 }
 
-func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
-	// get volume report based on the given epoch
-	reportRecord, err := k.GetVolumeReport(ctx, params.Epoch)
-	if err != nil {
-		return nil
-	}
-	res = k.getRewardsResult(ctx, params, reportRecord)
+func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByEpochParams) (res []types.Reward) {
+	res = k.getRewardsResult(ctx, params, params.NodeVolumes)
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
@@ -90,8 +86,8 @@ func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 	}
 }
 
-func (k Keeper) getRewardsResult(ctx sdk.Context, params QueryPotRewardsByepochParams, reportRecord types.ReportRecord) (res []types.Reward) {
-	rewardDetailMap := k.tempClaculateNodePotRewards(ctx, reportRecord)
+func (k Keeper) getRewardsResult(ctx sdk.Context, params QueryPotRewardsByEpochParams, nodesVolume []types.SingleNodeVolume) (res []types.Reward) {
+	rewardDetailMap := k.tempCalculateNodePotRewards(ctx, nodesVolume)
 
 	for _, value := range rewardDetailMap {
 		if !params.OwnerAddr.Empty() {
@@ -118,11 +114,11 @@ func (k Keeper) getRewardsResult(ctx sdk.Context, params QueryPotRewardsByepochP
 	return
 }
 
-func (k Keeper) tempClaculateNodePotRewards(ctx sdk.Context, reportRecord types.ReportRecord) map[string]types.Reward {
+func (k Keeper) tempCalculateNodePotRewards(ctx sdk.Context, nodesVolume []types.SingleNodeVolume) map[string]types.Reward {
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
-	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, reportRecord.NodesVolume, distributeGoal)
+	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, nodesVolume, distributeGoal)
 	if err != nil {
 		return nil
 	}
@@ -132,7 +128,7 @@ func (k Keeper) tempClaculateNodePotRewards(ctx sdk.Context, reportRecord types.
 	}
 
 	distributeGoalBalance := distributeGoal
-	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, reportRecord.NodesVolume, distributeGoalBalance, rewardDetailMap)
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, nodesVolume, distributeGoalBalance, rewardDetailMap)
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
 	return rewardDetailMap
 }

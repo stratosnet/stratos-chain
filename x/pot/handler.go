@@ -37,7 +37,7 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 
-	reportRecord := types.NewReportRecord(msg.Reporter, msg.ReportReference, txhash, msg.NodesVolume)
+	reportRecord := types.NewReportRecord(msg.Reporter, msg.ReportReference, txhash)
 	k.SetVolumeReport(ctx, msg.Epoch, reportRecord)
 	totalConsumedOzone, err := k.DistributePotReward(ctx, msg.NodesVolume, msg.Epoch)
 	if err != nil {
