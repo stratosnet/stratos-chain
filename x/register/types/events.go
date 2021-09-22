@@ -1,8 +1,9 @@
 package types
 
 const (
-	EventTypeCompleteUnbondingNode = "complete_unbonding_node"
-	EventTypeUnbondNode            = "unbond_node"
+	EventTypeCompleteUnbondingResourceNode = "complete_unbonding_resource_node"
+	EventTypeCompleteUnbondingIndexingNode = "complete_unbonding_indexing_node"
+	EventTypeUnbondNode                    = "unbond_node"
 
 	EventTypeCreateResourceNode           = "create_resource_node"
 	EventTypeRemoveResourceNode           = "remove_resource_node"

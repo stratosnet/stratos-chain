@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,15 +19,24 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 		if err != nil {
 			continue
 		}
+		if isIndexingNode {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbondingIndexingNode,
+					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+				),
+			)
+		} else {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbondingResourceNode,
+					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+				),
+			)
+		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeCompleteUnbondingNode,
-				sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-				sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
-				sdk.NewAttribute(types.AttributeKeyIsIndexingNode, strconv.FormatBool(isIndexingNode)),
-			),
-		)
 	}
 
 	// UpdateNode won't create UBD node
