@@ -15,16 +15,17 @@ import (
 )
 
 const (
-	QueryResourceNodeList      = "resource_nodes"
-	QueryResourceNodeByMoniker = "resource_nodes_moniker"
-	QueryIndexingNodeList      = "indexing_nodes"
-	QueryIndexingNodeByMoniker = "indexing_nodes_moniker"
-	QueryNodesTotalStakes      = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddr   = "node_stakes"
-	QueryNodeStakeByOwner      = "node_stakes_by_owner"
-	QueryRegisterParams        = "register_params"
-	QueryDefaultLimit          = 100
-	defaultDenom               = "ustos"
+	QueryResourceNodeList         = "resource_nodes"
+	QueryResourceNodesByNetworkID = "resource_nodes_network_id"
+	QueryResourceNodeByMoniker    = "resource_nodes_moniker"
+	QueryIndexingNodeList         = "indexing_nodes"
+	QueryIndexingNodeByMoniker    = "indexing_nodes_moniker"
+	QueryNodesTotalStakes         = "nodes_total_stakes"
+	QueryNodeStakeByNodeAddr      = "node_stakes"
+	QueryNodeStakeByOwner         = "node_stakes_by_owner"
+	QueryRegisterParams           = "register_params"
+	QueryDefaultLimit             = 100
+	defaultDenom                  = "ustos"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -32,8 +33,9 @@ func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryResourceNodeList:
-			//return GetResourceNodes(ctx, req, k)
 			return GetResourceNodeList(ctx, req, k)
+		case QueryResourceNodesByNetworkID:
+			return GetResourceNodes(ctx, req, k)
 		case QueryIndexingNodeList:
 			//return GetIndexingNodes(ctx, req, k)
 			return GetIndexingNodeList(ctx, req, k)

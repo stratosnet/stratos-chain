@@ -43,9 +43,9 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 	cmd := &cobra.Command{
 		Use: "get-resource-nodes [flags]", // []byte
 		//Args:  cobra.RangeArgs(1, 1),
-		Short: "Query all resource nodes by network id.",
+		Short: "Query all resource nodes by network id or moniker",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all resource nodes by network id.`),
+			fmt.Sprintf(`Query all resource nodes by network id or moniker`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -73,9 +73,11 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 			return cliCtx.PrintOutput(resp)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsNetworkID)
-	cmd.Flags().AddFlagSet(FsDescription)
+	//cmd.Flags().AddFlagSet(FsNetworkID)
+	//cmd.Flags().AddFlagSet(FsDescription)
 	//_ = cmd.MarkFlagRequired(FlagNetworkID)
+	cmd.Flags().String(FlagNetworkID, "", "(optional) The network id of the node")
+	cmd.Flags().String(FlagMoniker, "", "(optional) The name of the node")
 
 	return cmd
 }
@@ -113,7 +115,7 @@ func GetResNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 
 // QueryResourceNodes queries all resource nodes by network id
 func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodeList)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodesByNetworkID)
 	return cliCtx.QueryWithData(route, []byte(networkID))
 }
 
