@@ -124,9 +124,9 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 	cmd := &cobra.Command{
 		Use: "get-indexing-nodes [flags]", // []byte
 		//Args:  cobra.RangeArgs(1, 1),
-		Short: "Query all indexing nodes by network id",
+		Short: "Query all indexing nodes by network id or moniker",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all indexing nodes by network id.`),
+			fmt.Sprintf(`Query all indexing nodes by network id or moniker`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
@@ -155,9 +155,11 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 
 		},
 	}
-	cmd.Flags().AddFlagSet(FsNetworkID)
-	cmd.Flags().AddFlagSet(FsDescription)
+	//cmd.Flags().AddFlagSet(FsNetworkID)
+	//cmd.Flags().AddFlagSet(FsDescription)
 	//_ = cmd.MarkFlagRequired(FlagNetworkID)
+	cmd.Flags().String(FlagNetworkID, "", "(optional) The network id of the node")
+	cmd.Flags().String(FlagMoniker, "", "(optional) The name of the node")
 
 	return cmd
 }
@@ -196,34 +198,6 @@ func GetIndNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 
 // QueryIndexingNodes queries all resource nodes by network is
 func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodesByNetworkID)
 	return cliCtx.QueryWithData(route, []byte(networkID))
 }
-
-//// GetCmdQueryNetworkSet implements the query all indexing nodes by network id command.
-//func GetCmdQueryNetworkSet(queryRoute string, cdc *codec.Codec) *cobra.Command {
-//	return &cobra.Command{
-//		Use: "get-network-ids",
-//		//Args:  cobra.RangeArgs(0, 0),
-//		Short: "Query all network ids",
-//		Long: strings.TrimSpace(
-//			fmt.Sprintf(`Query all network ids.`),
-//		),
-//		RunE: func(cmd *cobra.Command, args []string) error {
-//			cliCtx := context.NewCLIContext().WithCodec(cdc)
-//
-//			// query get-network-set by network id
-//			resp, _, err := QueryNetworkSet(cliCtx, queryRoute)
-//			if err != nil {
-//				return err
-//			}
-//			return cliCtx.PrintOutput(string(resp))
-//		},
-//	}
-//}
-
-//// QueryNetworkSet queries all network id
-//func QueryNetworkSet(cliCtx context.CLIContext, queryRoute string) ([]byte, int64, error) {
-//	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryNetworkSet)
-//	return cliCtx.Query(route)
-//}

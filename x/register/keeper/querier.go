@@ -17,6 +17,7 @@ import (
 const (
 	QueryResourceNodeList         = "resource_nodes"
 	QueryResourceNodesByNetworkID = "resource_nodes_network_id"
+	QueryIndexingNodesByNetworkID = "indexing_nodes_network_id"
 	QueryResourceNodeByMoniker    = "resource_nodes_moniker"
 	QueryIndexingNodeList         = "indexing_nodes"
 	QueryIndexingNodeByMoniker    = "indexing_nodes_moniker"
@@ -37,8 +38,9 @@ func NewQuerier(k Keeper) sdk.Querier {
 		case QueryResourceNodesByNetworkID:
 			return GetResourceNodes(ctx, req, k)
 		case QueryIndexingNodeList:
-			//return GetIndexingNodes(ctx, req, k)
 			return GetIndexingNodeList(ctx, req, k)
+		case QueryIndexingNodesByNetworkID:
+			return GetIndexingNodes(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return GetNodesStakingInfo(ctx, req, k)
 		case QueryNodeStakeByNodeAddr:
