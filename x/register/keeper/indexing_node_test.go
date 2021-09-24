@@ -42,12 +42,12 @@ var (
 func TestExpiredVote(t *testing.T) {
 
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
-
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	//genesis init Sp nodes.
-	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
-	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
-	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
-	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time.Now())
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time)
 	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
 	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
 	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
@@ -90,12 +90,12 @@ func TestExpiredVote(t *testing.T) {
 func TestDuplicateVote(t *testing.T) {
 
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
-
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	//genesis init Sp nodes.
-	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
-	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
-	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
-	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time.Now())
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time)
 	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
 	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
 	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)
@@ -142,12 +142,12 @@ func TestDuplicateVote(t *testing.T) {
 func TestSpRegistrationApproval(t *testing.T) {
 
 	ctx, accountKeeper, bankKeeper, k, _ := CreateTestInput(t, false)
-
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	//genesis init Sp nodes.
-	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
-	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
-	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time.Now())
-	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time.Now())
+	genesisSpNode1 := types.NewIndexingNode("sds://indexingNode1", spNodePubKey1, spNodeOwner1, types.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	genesisSpNode2 := types.NewIndexingNode("sds://indexingNode2", spNodePubKey2, spNodeOwner2, types.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	genesisSpNode3 := types.NewIndexingNode("sds://indexingNode3", spNodePubKey3, spNodeOwner3, types.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	genesisSpNode4 := types.NewIndexingNode("sds://indexingNode4", spNodePubKey4, spNodeOwner4, types.NewDescription("sds://indexingNode4", "", "", "", ""), time)
 	genesisSpNode1.Tokens = genesisSpNode1.Tokens.Add(initialStake1)
 	genesisSpNode2.Tokens = genesisSpNode2.Tokens.Add(initialStake2)
 	genesisSpNode3.Tokens = genesisSpNode3.Tokens.Add(initialStake3)

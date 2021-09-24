@@ -6,7 +6,6 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
 	"strings"
-	"time"
 )
 
 const resourceNodeCacheSize = 500
@@ -296,7 +295,7 @@ func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (r
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType string, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, time.Now())
+	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
 	ozoneLimitChange, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return ozoneLimitChange, err
 }
