@@ -31,7 +31,6 @@ var (
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
 
-	EpochRewardsKeyPrefix     = []byte{0x51} // key: prefix{epoch}, value: []types.Reward
 	PotRewardsRecordKeyPrefix = []byte{0x52}
 
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
@@ -43,10 +42,6 @@ func GetMinedTokensKey(epoch sdk.Int) []byte {
 	return append(MinedTokensKeyPrefix, bEpoch...)
 }
 
-// VolumeReportStoreKey turns an address to key used to get it from the account store
-//func VolumeReportStoreKey(reporter sdk.AccAddress) []byte {
-//	return append(VolumeReportStoreKeyPrefix, reporter.Bytes()...)
-//}
 func VolumeReportStoreKey(epoch sdk.Int) []byte {
 	return append(VolumeReportStoreKeyPrefix, epoch.String()...)
 }
@@ -75,15 +70,6 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	bKeyStr := []byte("_immature_total")
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
 	key = append(key, bKeyStr...)
-	return key
-}
-
-// GetEpochRewardsKey prefix {0x51}pot_rewards_epoch_{epoch}
-func GetEpochRewardsKey(epoch sdk.Int) []byte {
-	bKeyStr := []byte("pot_rewards_epoch_")
-	bEpoch := []byte(epoch.String())
-	key := append(EpochRewardsKeyPrefix, bKeyStr...)
-	key = append(key, bEpoch...)
 	return key
 }
 
