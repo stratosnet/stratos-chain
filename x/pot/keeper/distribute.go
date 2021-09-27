@@ -6,8 +6,6 @@ import (
 )
 
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
-	//nodeOwnerMap := k.getNodeOwnerMap(ctx)
-
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
@@ -240,7 +238,6 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[
 		res = append(res, k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward))
 	}
 	k.setLastMaturedEpoch(ctx, currentEpoch)
-	//k.setPotRewardRecord(ctx, currentEpoch, res)
 	return res, nil
 }
 
@@ -278,7 +275,6 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 	k.setMatureTotalReward(ctx, account, matureTotal)
 	k.setImmatureTotalReward(ctx, account, immatureTotal)
 	k.setIndividualReward(ctx, account, matureEpoch, newReward)
-	//k.setPotRewardRecord(ctx, currentEpoch, potRewardsRecordVal)
 	return potRewardsRecordVal
 }
 

@@ -134,8 +134,11 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 		}
 
 		v := mux.Vars(r)["epoch"]
+		if len(v) == 0 {
+			return
+		}
 		epoch, ok := checkEpoch(w, r, v)
-		if len(v) == 0 || !ok {
+		if !ok {
 			return
 		}
 
@@ -154,8 +157,8 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 func checkEpoch(w http.ResponseWriter, r *http.Request, epochStr string) (sdk.Int, bool) {
 	epoch, ok := sdk.NewIntFromString(epochStr)
 	if !ok {
-		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid 'epoch'.")
-		return sdk.NewInt(0), false
+		rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch")
+		return sdk.NewInt(-1), false
 	}
 	return epoch, true
 }
@@ -208,7 +211,6 @@ func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.Ha
 			return
 		}
 
-		//cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
