@@ -189,7 +189,6 @@ func (k Keeper) GetPotRewardRecords(ctx sdk.Context, params QueryPotRewardsWithO
 
 	store := ctx.KVStore(k.storeKey)
 	key := getIteratorKey(params)
-	//ctx.Logger().Info("QueryKey", "key", key)
 
 	var record OwnerRewardsRecord
 	b := store.Get(key)
@@ -197,7 +196,6 @@ func (k Keeper) GetPotRewardRecords(ctx sdk.Context, params QueryPotRewardsWithO
 		return 0, sdk.ZeroInt(), nil
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &record)
-	//ctx.Logger().Info("Queryres", "Queryres", record)
 	var value []NodeRewardsInfo
 	value = append(value, record.NodeDetails...)
 	return record.PotRewardsRecordHeight, record.PotRewardsRecordEpoch, value
