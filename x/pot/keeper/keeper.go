@@ -52,14 +52,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.VolumeReportRecord, err error) {
+func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.VolumeReportRecord) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.VolumeReportStoreKey(epoch))
 	if bz == nil {
-		return types.VolumeReportRecord{}, nil
+		return types.VolumeReportRecord{}
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
-	return res, nil
+	return res
 }
 
 func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.VolumeReportRecord) {

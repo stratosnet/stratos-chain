@@ -23,6 +23,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 
 func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// get and verify params
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -61,7 +62,7 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		// get nodeVolumes from volumeReportRecord.TxHash
 		reportMsg := getNodeVolumes(w, cliCtx, volumeReportRecord)
 		if len(reportMsg.NodesVolume) == 0 {
-			rest.PostProcessResponse(w, cliCtx, fmt.Sprintf("no NodesVolumes in volume report at epoch: %s", epoch.String()))
+			rest.PostProcessResponse(w, cliCtx, fmt.Sprintf("no nodesVolumes in volume report at epoch: %s", epoch.String()))
 			return
 		}
 

@@ -41,10 +41,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 		return nil, err
 	}
 
-	reportRecord, err := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
+	reportRecord := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
 	if reportRecord.TxHash == "" {
 		bz := []byte(fmt.Sprintf("no volume report at epoch: %d", epoch))
 		return bz, nil
@@ -137,7 +134,7 @@ func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Ke
 	var params QueryPotRewardsWithOwnerHeightParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	recordHeight, recordEpoch, ownerRewards := k.getOwnerRewards(ctx, params)
