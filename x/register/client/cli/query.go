@@ -31,7 +31,6 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 			// this line is used by starport scaffolding # 1
 			GetCmdQueryResourceNodeList(queryRoute, cdc),
 			GetCmdQueryIndexingNodeList(queryRoute, cdc),
-			//GetCmdQueryNetworkSet(queryRoute, cdc),
 		)...,
 	)
 
@@ -41,8 +40,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryResourceNodeList implements the query all resource nodes by network id command.
 func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "get-resource-nodes [flags]", // []byte
-		//Args:  cobra.RangeArgs(1, 1),
+		Use:   "get-resource-nodes [flags]", // []byte
 		Short: "Query all resource nodes by network id or moniker",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query all resource nodes by network id or moniker`),
@@ -73,9 +71,6 @@ func GetCmdQueryResourceNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 			return cliCtx.PrintOutput(resp)
 		},
 	}
-	//cmd.Flags().AddFlagSet(FsNetworkID)
-	//cmd.Flags().AddFlagSet(FsDescription)
-	//_ = cmd.MarkFlagRequired(FlagNetworkID)
 	cmd.Flags().String(FlagNetworkID, "", "(optional) The network id of the node")
 	cmd.Flags().String(FlagMoniker, "", "(optional) The name of the node")
 
@@ -122,8 +117,7 @@ func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkID string)
 // GetCmdQueryIndexingNodeList implements the query all indexing nodes by network id command.
 func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "get-indexing-nodes [flags]", // []byte
-		//Args:  cobra.RangeArgs(1, 1),
+		Use:   "get-indexing-nodes [flags]", // []byte
 		Short: "Query all indexing nodes by network id or moniker",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query all indexing nodes by network id or moniker`),
@@ -155,9 +149,6 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 
 		},
 	}
-	//cmd.Flags().AddFlagSet(FsNetworkID)
-	//cmd.Flags().AddFlagSet(FsDescription)
-	//_ = cmd.MarkFlagRequired(FlagNetworkID)
 	cmd.Flags().String(FlagNetworkID, "", "(optional) The network id of the node")
 	cmd.Flags().String(FlagMoniker, "", "(optional) The name of the node")
 

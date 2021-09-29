@@ -4,7 +4,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"sort"
-
 )
 
 type QueryPotRewardsParams struct {
@@ -111,27 +110,19 @@ func NewNodeRewardsInfo(
 }
 
 type OwnerRewardsRecord struct {
-	PotRewardsRecordHeight int64
-	PotRewardsRecordEpoch  sdk.Int
-	NodeDetails            []NodeRewardsInfo
+	NodeDetails []NodeRewardsInfo
 }
 
 type NodeRewardsRecord struct {
-	PotRewardsRecordHeight int64
-	PotRewardsRecordEpoch  sdk.Int
-	Record                 NodeRewardsInfo
+	Record NodeRewardsInfo
 }
 
 // NewNodeRewardsRecord creates a new instance of NodeRewardsRecord
 func NewNodeRewardsRecord(
-	potRewardsRecordHeight int64,
-	potRewardsRecordEpoch sdk.Int,
 	record NodeRewardsInfo,
 
 ) NodeRewardsRecord {
 	return NodeRewardsRecord{
-		PotRewardsRecordHeight: potRewardsRecordHeight,
-		PotRewardsRecordEpoch:  potRewardsRecordEpoch,
-		Record:                 record,
+		Record: record,
 	}
 }

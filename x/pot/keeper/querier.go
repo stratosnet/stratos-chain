@@ -137,12 +137,12 @@ func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Ke
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	recordHeight, recordEpoch, ownerRewards := k.getOwnerRewards(ctx, params)
+	ownerRewards := k.getOwnerRewards(ctx, params)
 	if len(ownerRewards) == 0 {
 		ownerRewards = nil
 	}
 
-	record := OwnerRewardsRecord{recordHeight, recordEpoch, ownerRewards}
+	record := OwnerRewardsRecord{ownerRewards}
 	if len(record.NodeDetails) < 1 {
 		bz, _ := codec.MarshalJSONIndent(k.cdc, "No Pot rewards information at this height")
 		return bz, nil
@@ -154,12 +154,26 @@ func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Ke
 	return bz, nil
 }
 
-func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (recordHeight int64, recordEpoch sdk.Int, res []NodeRewardsInfo) {
-	recordHeight, recordEpoch, res = k.GetPotRewardRecords(ctx, params)
+func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (res []NodeRewardsInfo) {
+	nodeOwnerMap := k.getNodeOwnerMap(ctx)
+	var r NodeRewardsInfo
+	for nodeAccStr, OwnerAcc := range nodeOwnerMap {
+		if OwnerAcc.Equals(params.OwnerAddr) {
+			nodeAcc, err := sdk.AccAddressFromBech32(nodeAccStr)
+			if err != nil {
+				return nil
+			}
+			r.ImmatureTotalReward = sdk.NewCoin(k.BondDenom(ctx), k.GetImmatureTotalReward(ctx, nodeAcc))
+			r.MatureTotalReward = sdk.NewCoin(k.BondDenom(ctx), k.GetMatureTotalReward(ctx, nodeAcc))
+			r.NodeAddress = nodeAcc
+			res = append(res, r)
+		}
+
+	}
 
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
-		return 0, sdk.ZeroInt(), nil
+		return nil
 	} else {
 		res = res[start:end]
 		return
