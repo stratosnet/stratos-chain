@@ -239,7 +239,6 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	} else {
 		k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	}
-	//k.decreaseOzoneLimitBySubtractStake(ctx, tokenToSub.Amount) // moved to keeper/UnbondIndexingNode()
 	return nil
 }
 

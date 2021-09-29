@@ -2,17 +2,13 @@ package cli
 
 import (
 	"bufio"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/viper"
-	//"encoding/hex"
-	//"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
-	//"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
-	//"net/http"
+	"github.com/spf13/viper"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
