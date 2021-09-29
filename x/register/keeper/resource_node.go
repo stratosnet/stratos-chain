@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -124,7 +123,6 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 
 	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
 	if nodeAcc == nil {
-		ctx.Logger().Info(fmt.Sprintf("create new account: %s", resourceNode.GetNetworkAddr()))
 		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
 		k.accountKeeper.SetAccount(ctx, nodeAcc)
 	}
@@ -274,7 +272,6 @@ func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID string) (resource
 			resourceNodes = append(resourceNodes, node)
 		}
 	}
-	ctx.Logger().Info("resourceNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
 
@@ -288,7 +285,6 @@ func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (r
 			resourceNodes = append(resourceNodes, node)
 		}
 	}
-	ctx.Logger().Info("resourceNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
 
@@ -362,6 +358,5 @@ func (k Keeper) GetNodeOwnerMapFromResourceNodes(ctx sdk.Context, nodeOwnerMap m
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
 	}
-	//ctx.Logger().Info("getNodeOwnerMapFromResourceNodes", "nodeOwnerMap", nodeOwnerMap)
 	return nodeOwnerMap
 }

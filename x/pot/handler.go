@@ -16,7 +16,6 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgVolumeReport:
-			ctx.Logger().With("pot", "enter NewHandler")
 			return handleMsgReportVolume(ctx, k, msg)
 		case types.MsgWithdraw:
 			return handleMsgWithdraw(ctx, k, msg)
