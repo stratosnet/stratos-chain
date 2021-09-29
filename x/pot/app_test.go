@@ -13,7 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
-
+alexstratos
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"github.com/stratosnet/stratos-chain/x/register"
 )
@@ -185,9 +185,6 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 
 		/********************* deliver tx *********************/
-		//idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
-		//nodeAccNum := idxNodeAcc1.GetAccountNumber()
-		//nodeAccSeq := idxNodeAcc1.GetSequence()
 
 		idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwner1)
 		ownerAccNum := idxOwnerAcc1.GetAccountNumber()

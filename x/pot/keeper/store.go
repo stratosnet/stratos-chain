@@ -165,12 +165,3 @@ func (k Keeper) GetEpochReward(ctx sdk.Context, epoch sdk.Int) (value []types.Re
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
 }
-
-func (k Keeper) setRewardsByEpoch(ctx sdk.Context, rewardDetailMap map[string]types.Reward, epoch sdk.Int) {
-	var res []types.Reward
-	for _, v := range rewardDetailMap {
-		newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
-		res = append(res, newNodeReward)
-	}
-	k.setEpochReward(ctx, epoch, res)
-}

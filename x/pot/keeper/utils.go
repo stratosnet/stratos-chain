@@ -2,6 +2,8 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/pot/types"
+	"sort"
 )
 
 type QueryPotRewardsParams struct {
@@ -9,6 +11,20 @@ type QueryPotRewardsParams struct {
 	Limit    int
 	NodeAddr sdk.AccAddress
 	Epoch    sdk.Int
+}
+
+func sortDetailMapToSlice(rewardDetailMap map[string]types.Reward) (rewardDetailList []types.Reward) {
+	keys := make([]string, 0, len(rewardDetailMap))
+	for key, _ := range rewardDetailMap {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		reward := rewardDetailMap[key]
+		rewardDetailList = append(rewardDetailList, reward)
+	}
+	return rewardDetailList
 }
 
 // NewQueryPotRewardsParams creates a new instance of QueryPotRewardsParams
