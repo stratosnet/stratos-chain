@@ -155,7 +155,21 @@ func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Ke
 }
 
 func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (recordHeight int64, recordEpoch sdk.Int, res []NodeRewardsInfo) {
-	recordHeight, recordEpoch, res = k.GetPotRewardRecords(ctx, params)
+	nodeOwnerMap := k.getNodeOwnerMap(ctx)
+	var r NodeRewardsInfo
+	for nodeAccStr, OwnerAcc := range nodeOwnerMap {
+		if OwnerAcc.Equals(params.OwnerAddr) {
+			nodeAcc, err := sdk.AccAddressFromBech32(nodeAccStr)
+			if err != nil {
+				return 0, sdk.ZeroInt(), nil
+			}
+			r.ImmatureTotalReward = sdk.NewCoin(k.BondDenom(ctx), k.GetImmatureTotalReward(ctx, nodeAcc))
+			r.MatureTotalReward = sdk.NewCoin(k.BondDenom(ctx), k.GetMatureTotalReward(ctx, nodeAcc))
+			r.NodeAddress = nodeAcc
+			res = append(res, r)
+		}
+
+	}
 
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {

@@ -79,7 +79,6 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	return found
 }
 
-
 func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
 	nodeOwnerMap := make(map[string]sdk.AccAddress)
 	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
@@ -87,20 +86,21 @@ func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
 	return nodeOwnerMap
 }
 
-func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress, epoch sdk.Int, value []NodeRewardsRecord) {
-	potRewardsRecordWithOwnerAddr := make(map[string][]NodeRewardsInfo)
-	for _, v := range value {
-		if ownerAddr, ok := nodeOwnerMap[v.Record.NodeAddress.String()]; ok {
-			if _, ok := potRewardsRecordWithOwnerAddr[ownerAddr.String()]; !ok {
-				potRewardsRecordWithOwnerAddr[ownerAddr.String()] = []NodeRewardsInfo{}
-			}
-			potRewardsRecordWithOwnerAddr[ownerAddr.String()] = append(potRewardsRecordWithOwnerAddr[ownerAddr.String()], v.Record)
-		}
-	}
-
-	for key, val := range potRewardsRecordWithOwnerAddr {
-		k.setPotRewardRecord(ctx, epoch, key, val)
-	}
+//func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress, epoch sdk.Int, value []NodeRewardsRecord) {
+//	potRewardsRecordWithOwnerAddr := make(map[string][]NodeRewardsInfo)
+//	for _, v := range value {
+//		if ownerAddr, ok := nodeOwnerMap[v.Record.NodeAddress.String()]; ok {
+//			if _, ok := potRewardsRecordWithOwnerAddr[ownerAddr.String()]; !ok {
+//				potRewardsRecordWithOwnerAddr[ownerAddr.String()] = []NodeRewardsInfo{}
+//			}
+//			potRewardsRecordWithOwnerAddr[ownerAddr.String()] = append(potRewardsRecordWithOwnerAddr[ownerAddr.String()], v.Record)
+//		}
+//	}
+//
+//	for key, val := range potRewardsRecordWithOwnerAddr {
+//		k.setPotRewardRecord(ctx, epoch, key, val)
+//	}
+//}
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
 	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))

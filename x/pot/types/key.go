@@ -30,7 +30,7 @@ var (
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
 
-	PotRewardsRecordKeyPrefix = []byte{0x52}
+	//PotRewardsRecordKeyPrefix = []byte{0x52}
 
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
 	VolumeReportStoreKeyPrefix = []byte{0x41}
@@ -73,11 +73,11 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 }
 
 // GetPotRewardsRecordKey prefix: {0x52}potRewards_owner_{ownerAddr}
-func GetPotRewardsRecordKey(ownerAddr string) []byte {
-	bKeyStr1 := []byte("potRewards_owner_")
-	bOwner := []byte(ownerAddr)
-	key := append(PotRewardsRecordKeyPrefix, bKeyStr1...)
-	key = append(key, bOwner...)
-
-	return key
-}
+//func GetPotRewardsRecordKey(ownerAddr string) []byte {
+//	bKeyStr1 := []byte("potRewards_owner_")
+//	bOwner := []byte(ownerAddr)
+//	key := append(PotRewardsRecordKeyPrefix, bKeyStr1...)
+//	key = append(key, bOwner...)
+//
+//	return key
+//}
