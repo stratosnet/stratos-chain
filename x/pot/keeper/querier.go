@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +13,6 @@ import (
 
 const (
 	QueryVolumeReport      = "volume_report"
-	QueryPotRewards        = "pot_rewards"
 	QueryPotRewardsByEpoch = "pot_rewards_by_epoch"
 	QueryPotRewardsByOwner = "pot_rewards_by_owner"
 	QueryDefaultLimit      = 100
@@ -24,12 +24,10 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k)
-		case QueryPotRewards:
-			return queryPotRewards(ctx, req, k)
 		case QueryPotRewardsByEpoch:
 			return queryPotRewardsByEpoch(ctx, req, k)
 		case QueryPotRewardsByOwner:
-			return queryPotRewardsByOwner(ctx, req, k)
+			return queryPotRewardsWithOwnerHeight(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -47,6 +45,10 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
+	if reportRecord.TxHash == "" {
+		bz := []byte(fmt.Sprintf("no volume report at epoch: %d", epoch))
+		return bz, nil
+	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, reportRecord)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
@@ -54,110 +56,27 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 	return bz, nil
 }
 
-// queryPotRewards fetches total rewards and owner individual rewards from traffic and mining.
-func queryPotRewards(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params QueryPotRewardsParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
-	ctx.Logger().Info("params", "params", params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	nodeRewards := k.GetNodesRewards(ctx, params)
-	if len(nodeRewards) == 0 {
-		nodeRewards = []NodeRewardsInfo{}
-	}
-
-	bz, err := codec.MarshalJSONIndent(k.cdc, nodeRewards)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
-}
-
 // queryPotRewardsByEpoch fetches total rewards and owner individual rewards from traffic and mining.
 func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params QueryPotRewardsByepochParams
+	var params QueryPotRewardsByEpochParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
-	potEpochRewards := k.GetPotRewardsByEpoch(ctx, params)
-
+	potEpochRewards := k.getPotRewardsByEpoch(ctx, params)
+	if len(potEpochRewards) < 1 {
+		bz, _ := codec.MarshalJSONIndent(k.cdc, fmt.Sprintf("no Pot rewards information at epoch: %s", params.Epoch.String()))
+		return bz, nil
+	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
 	return bz, nil
 }
 
-func queryPotRewardsByOwner(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params QueryPotRewardsByOwnerParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	ownerRewards := k.GetNodesRewardsByOwner(ctx, params)
-	if len(ownerRewards) == 0 {
-		ownerRewards = nil
-	}
-
-	bz, err := codec.MarshalJSONIndent(k.cdc, ownerRewards)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
-}
-
-func (k Keeper) GetNodesRewards(ctx sdk.Context, params QueryPotRewardsParams) (res []NodeRewardsInfo) {
-
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-
-	for _, n := range rewardAddrList {
-		if !(n.Equals(params.NodeAddr)) {
-			continue
-		}
-
-		//individualRewards := k.GetIndividualReward(ctx, n, params.Epoch)
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-		individualResult := NewNodeRewardsInfo(
-			n,
-			matureTotal,
-			immatureTotal,
-		)
-
-		res = append(res, individualResult)
-	}
-
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return []NodeRewardsInfo{}
-	} else {
-		res = res[start:end]
-		return res
-	}
-}
-
-func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByepochParams) (res []types.Reward) {
-	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
-
-	epochRewards := k.GetEpochReward(ctx, params.Epoch)
-	epochRewardsMap := make(map[string]types.Reward)
-	for _, v := range epochRewards {
-		epochRewardsMap[v.NodeAddress.String()] = v
-	}
-
-	for _, n := range filteredNodesAddr {
-		if newNodeReward, found := epochRewardsMap[n.String()]; found {
-			res = append(res, newNodeReward)
-		}
-	}
+func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByEpochParams) (res []types.Reward) {
+	res = k.getRewardsResult(ctx, params, params.NodeVolumes)
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
@@ -167,45 +86,85 @@ func (k Keeper) GetPotRewardsByEpoch(ctx sdk.Context, params QueryPotRewardsByep
 	}
 }
 
-func (k Keeper) GetNodesRewardsByOwner(ctx sdk.Context, params QueryPotRewardsByOwnerParams) (res []NodeRewardsInfo) {
-	filteredNodesAddr := getFilteredNodesAddrByOwner(ctx, params.OwnerAddr, k)
+func (k Keeper) getRewardsResult(ctx sdk.Context, params QueryPotRewardsByEpochParams, nodesVolume []types.SingleNodeVolume) (res []types.Reward) {
+	rewardDetailMap := k.tempCalculateNodePotRewards(ctx, nodesVolume)
 
-	for _, n := range filteredNodesAddr {
-		matureTotal := k.GetMatureTotalReward(ctx, n)
-		immatureTotal := k.GetImmatureTotalReward(ctx, n)
-		individualResult := NewNodeRewardsInfo(
-			n,
-			matureTotal,
-			immatureTotal,
-		)
-		res = append(res, individualResult)
+	for _, value := range rewardDetailMap {
+		if !params.OwnerAddr.Empty() {
+			nodeOwnerMap := make(map[string]sdk.AccAddress)
+
+			nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
+			if ownerAddr, ok := nodeOwnerMap[value.NodeAddress.String()]; ok {
+				if ownerAddr.Equals(params.OwnerAddr) {
+					res = append(res, value)
+				}
+			} else {
+				nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
+				if ownerAddr, ok := nodeOwnerMap[value.NodeAddress.String()]; ok {
+					if ownerAddr.Equals(params.OwnerAddr) {
+						res = append(res, value)
+					}
+				}
+			}
+
+		} else {
+			res = append(res, value)
+		}
 	}
-	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return []NodeRewardsInfo{}
-	} else {
-		res = res[start:end]
-		return res
-	}
+	return
 }
 
-func getFilteredNodesAddrByOwner(ctx sdk.Context, ownerAddress sdk.AccAddress, k Keeper) []sdk.AccAddress {
-	resourceNodesAddr := k.RegisterKeeper.GetAllResourceNodes(ctx)
-	indexingNodesAddr := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	filteredNodesAddr := make([]sdk.AccAddress, 0, len(resourceNodesAddr)+len(indexingNodesAddr))
+func (k Keeper) tempCalculateNodePotRewards(ctx sdk.Context, nodesVolume []types.SingleNodeVolume) map[string]types.Reward {
+	distributeGoal := types.InitDistributeGoal()
+	rewardDetailMap := make(map[string]types.Reward) //key: node address
 
-	for _, n := range resourceNodesAddr {
-		// match OwnerAddr (if supplied)
-		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-		}
+	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, nodesVolume, distributeGoal)
+	if err != nil {
+		return nil
+	}
+	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
+	if err != nil && err != types.ErrOutOfIssuance {
+		return nil
+	}
 
+	distributeGoalBalance := distributeGoal
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, nodesVolume, distributeGoalBalance, rewardDetailMap)
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
+	return rewardDetailMap
+}
+
+func queryPotRewardsWithOwnerHeight(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params QueryPotRewardsWithOwnerHeightParams
+	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	for _, n := range indexingNodesAddr {
-		// match OwnerAddr (if supplied)
-		if ownerAddress.Empty() || n.OwnerAddress.Equals(ownerAddress) {
-			filteredNodesAddr = append(filteredNodesAddr, sdk.AccAddress(n.PubKey.Address()))
-		}
+
+	recordHeight, recordEpoch, ownerRewards := k.getOwnerRewards(ctx, params)
+	if len(ownerRewards) == 0 {
+		ownerRewards = nil
 	}
-	return filteredNodesAddr
+
+	record := OwnerRewardsRecord{recordHeight, recordEpoch, ownerRewards}
+	if len(record.NodeDetails) < 1 {
+		bz, _ := codec.MarshalJSONIndent(k.cdc, "No Pot rewards information at this height")
+		return bz, nil
+	}
+	bz, err := codec.MarshalJSONIndent(k.cdc, record)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func (k Keeper) getOwnerRewards(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (recordHeight int64, recordEpoch sdk.Int, res []NodeRewardsInfo) {
+	recordHeight, recordEpoch, res = k.GetPotRewardRecords(ctx, params)
+
+	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		return 0, sdk.ZeroInt(), nil
+	} else {
+		res = res[start:end]
+		return
+	}
 }

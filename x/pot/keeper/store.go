@@ -149,19 +149,41 @@ func (k Keeper) GetImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (val
 	return
 }
 
-func (k Keeper) setEpochReward(ctx sdk.Context, epoch sdk.Int, value []types.Reward) {
+func (k Keeper) setPotRewardRecord(ctx sdk.Context, epoch sdk.Int, ownerAddr string, value []NodeRewardsInfo) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-	key := types.GetEpochRewardsKey(epoch)
+	res := OwnerRewardsRecord{ctx.BlockHeight(), epoch, value}
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(res)
+	key := types.GetPotRewardsRecordKey(ownerAddr)
 	store.Set(key, b)
 }
 
-func (k Keeper) GetEpochReward(ctx sdk.Context, epoch sdk.Int) (value []types.Reward) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.GetEpochRewardsKey(epoch))
-	if b == nil {
-		return nil
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
+func getIteratorKey(params QueryPotRewardsWithOwnerHeightParams) (prefix []byte) {
+	prefix = types.PotRewardsRecordKeyPrefix
+	prefix = append(prefix, []byte("potRewards_owner_")...)
+	prefix = append(prefix, []byte(params.OwnerAddr.String())...)
 	return
+}
+
+
+func (k Keeper) GetPotRewardRecords(ctx sdk.Context, params QueryPotRewardsWithOwnerHeightParams) (int64, sdk.Int, []NodeRewardsInfo) {
+	defer func() {
+		if r := recover(); r != nil {
+			return
+		}
+	}()
+
+	store := ctx.KVStore(k.storeKey)
+	key := getIteratorKey(params)
+	//ctx.Logger().Info("QueryKey", "key", key)
+
+	var record OwnerRewardsRecord
+	b := store.Get(key)
+	if b == nil {
+		return 0, sdk.ZeroInt(), nil
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &record)
+	//ctx.Logger().Info("Queryres", "Queryres", record)
+	var value []NodeRewardsInfo
+	value = append(value, record.NodeDetails...)
+	return record.PotRewardsRecordHeight, record.PotRewardsRecordEpoch, value
 }

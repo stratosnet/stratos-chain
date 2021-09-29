@@ -42,14 +42,30 @@ func NewMsgVolumeReport(
 	}
 }
 
-type ReportRecord struct {
+type QueryVolumeReportRecord struct {
+	Reporter        sdk.AccAddress
+	ReportReference string
+	TxHash          string
+	NodesVolume     []SingleNodeVolume
+}
+
+func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string, txHash string, nodesVolume []SingleNodeVolume) QueryVolumeReportRecord {
+	return QueryVolumeReportRecord{
+		Reporter:        reporter,
+		ReportReference: reportReference,
+		TxHash:          txHash,
+		NodesVolume:     nodesVolume,
+	}
+}
+
+type VolumeReportRecord struct {
 	Reporter        sdk.AccAddress
 	ReportReference string
 	TxHash          string
 }
 
-func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) ReportRecord {
-	return ReportRecord{
+func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) VolumeReportRecord {
+	return VolumeReportRecord{
 		Reporter:        reporter,
 		ReportReference: reportReference,
 		TxHash:          txHash,

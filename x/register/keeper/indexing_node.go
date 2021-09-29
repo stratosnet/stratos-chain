@@ -310,7 +310,6 @@ func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (r
 			resourceNodes = append(resourceNodes, node)
 		}
 	}
-	ctx.Logger().Info("indexingNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
 
@@ -447,4 +446,16 @@ func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
+}
+
+func (k Keeper) GetNodeOwnerMapFromIndexingNodes(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress) map[string]sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
+	}
+	return nodeOwnerMap
 }

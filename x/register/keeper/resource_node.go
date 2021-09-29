@@ -352,3 +352,16 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
 }
+
+func (k Keeper) GetNodeOwnerMapFromResourceNodes(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress) map[string]sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
+	}
+	//ctx.Logger().Info("getNodeOwnerMapFromResourceNodes", "nodeOwnerMap", nodeOwnerMap)
+	return nodeOwnerMap
+}

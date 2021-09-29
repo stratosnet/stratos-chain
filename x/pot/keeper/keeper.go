@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -53,20 +52,18 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.ReportRecord, err error) {
+func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.VolumeReportRecord, err error) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.VolumeReportStoreKey(epoch))
 	if bz == nil {
-		return types.ReportRecord{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest,
-			"key %s does not exist", epoch)
+		return types.VolumeReportRecord{}, nil
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
 	return res, nil
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.ReportRecord) {
+func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.VolumeReportRecord) {
 	store := ctx.KVStore(k.storeKey)
-	//storeKey := types.VolumeReportStoreKey(reporter)
 	storeKey := types.VolumeReportStoreKey(epoch)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
@@ -82,6 +79,29 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	return found
 }
 
+
+func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
+	nodeOwnerMap := make(map[string]sdk.AccAddress)
+	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
+	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
+	return nodeOwnerMap
+}
+
+func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress, epoch sdk.Int, value []NodeRewardsRecord) {
+	potRewardsRecordWithOwnerAddr := make(map[string][]NodeRewardsInfo)
+	for _, v := range value {
+		if ownerAddr, ok := nodeOwnerMap[v.Record.NodeAddress.String()]; ok {
+			if _, ok := potRewardsRecordWithOwnerAddr[ownerAddr.String()]; !ok {
+				potRewardsRecordWithOwnerAddr[ownerAddr.String()] = []NodeRewardsInfo{}
+			}
+			potRewardsRecordWithOwnerAddr[ownerAddr.String()] = append(potRewardsRecordWithOwnerAddr[ownerAddr.String()], v.Record)
+		}
+	}
+
+	for key, val := range potRewardsRecordWithOwnerAddr {
+		k.setPotRewardRecord(ctx, epoch, key, val)
+	}
+
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
 	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))
 	if err != nil {
@@ -95,4 +115,5 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.Acc
 	}
 
 	return nil
+
 }
