@@ -14,6 +14,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 	"testing"
+	"time"
 )
 
 const (
@@ -182,11 +183,12 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 }
 
 func setupAllResourceNodes() []register.ResourceNode {
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4")
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4")
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4")
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4")
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4", time)
+	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4", time)
+	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4", time)
+	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4", time)
+	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4", time)
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
@@ -211,9 +213,10 @@ func setupAllResourceNodes() []register.ResourceNode {
 
 func setupAllIndexingNodes() []register.IndexingNode {
 	var indexingNodes []register.IndexingNode
-	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
-	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
-	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
 
 	indexingNode1 = indexingNode1.AddToken(idxNodeInitialStake1)
 	indexingNode2 = indexingNode2.AddToken(idxNodeInitialStake2)

@@ -35,7 +35,6 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 
 	//4, calc reward from indexing node
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
-	k.setRewardsByEpoch(ctx, rewardDetailMap, epoch)
 
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)
@@ -49,8 +48,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 		return totalConsumedOzone, err
 	}
 
+	//sort map and convert to slice to keep the order
+	rewardDetailList := sortDetailMapToSlice(rewardDetailMap)
+	k.setEpochReward(ctx, epoch, rewardDetailList)
 	//7, distribute all rewards to resource nodes & indexing nodes
-	err = k.distributeRewardToSdsNodes(ctx, rewardDetailMap, epoch)
+	err = k.distributeRewardToSdsNodes(ctx, rewardDetailList, epoch)
 	if err != nil {
 		return totalConsumedOzone, err
 	}
@@ -228,9 +230,10 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 	return distributeGoal, nil
 }
 
-func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (err error) {
+func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []types.Reward, currentEpoch sdk.Int) (err error) {
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
-	for _, reward := range rewardDetailMap {
+
+	for _, reward := range rewardDetailList {
 		nodeAddr := reward.NodeAddress
 		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
 		k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward)

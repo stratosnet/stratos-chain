@@ -3,7 +3,6 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"sort"
 )
 
 func (k Keeper) SetFoundationAccount(ctx sdk.Context, acc sdk.AccAddress) {
@@ -181,21 +180,4 @@ func (k Keeper) GetEpochReward(ctx sdk.Context, epoch sdk.Int) (value []types.Re
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
-}
-
-func (k Keeper) setRewardsByEpoch(ctx sdk.Context, rewardDetailMap map[string]types.Reward, epoch sdk.Int) {
-	var res []types.Reward
-	keys := make([]string, 0, len(rewardDetailMap))
-	for k, _ := range rewardDetailMap {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		v := rewardDetailMap[k]
-		newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
-		res = append(res, newNodeReward)
-	}
-
-	k.setEpochReward(ctx, epoch, res)
 }
