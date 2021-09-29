@@ -172,15 +172,11 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 
 		/********************* deliver tx *********************/
-		idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
-		nodeAccNum := idxNodeAcc1.GetAccountNumber()
-		nodeAccSeq := idxNodeAcc1.GetSequence()
-
 		idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwner1)
 		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
 		ownerAccSeq := idxOwnerAcc1.GetSequence()
 
-		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{nodeAccNum, ownerAccNum}, []uint64{nodeAccSeq, ownerAccSeq}, true, true, idxNodePrivKey1, idxOwnerPrivKey1)
+		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
 
 		/********************* commit & check result *********************/
 		header = abci.Header{Height: mApp.LastBlockHeight() + 1}
