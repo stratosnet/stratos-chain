@@ -10,13 +10,15 @@ const (
 	ModuleName        = types.ModuleName
 	StoreKey          = types.StoreKey
 	RouterKey         = types.RouterKey
+	FoundationAccount = types.FoundationAccount
 )
 
 var (
-	NewKeeper       = keeper.NewKeeper
-	RegisterCodec   = types.RegisterCodec
-	ParamKeyTable   = types.ParamKeyTable
-	NewGenesisState = types.NewGenesisState
+	NewKeeper               = keeper.NewKeeper
+	RegisterCodec           = types.RegisterCodec
+	ParamKeyTable           = types.ParamKeyTable
+	NewGenesisState         = types.NewGenesisState
+	NewMsgFoundationDeposit = types.NewMsgFoundationDeposit
 )
 
 type (

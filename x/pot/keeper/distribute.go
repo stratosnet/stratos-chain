@@ -79,7 +79,12 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// deduct mining reward from foundation account
-	foundationAccountAddr := k.GetFoundationAccount(ctx)
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	if foundationAccountAddr == nil {
+		ctx.Logger().Error("foundation account address of distribution module does not exist.")
+		return types.ErrUnknownAccountAddress
+	}
+
 	amountToDeduct := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), totalRewardFromMiningPool))
 	hasCoin := k.BankKeeper.HasCoins(ctx, foundationAccountAddr, amountToDeduct)
 	if !hasCoin {
@@ -119,7 +124,11 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// return balance to foundation account
-	foundationAccountAddr := k.GetFoundationAccount(ctx)
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	if foundationAccountAddr == nil {
+		ctx.Logger().Error("foundation account address of distribution module does not exist.")
+		return types.ErrUnknownAccountAddress
+	}
 	amountToAdd := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), balanceOfMiningPool))
 	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amountToAdd)
 	if err != nil {

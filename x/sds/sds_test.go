@@ -39,9 +39,8 @@ var (
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000")
 	remainingOzoneLimit, _ = sdk.NewIntFromString("500000000000000000000")
-	initialOzonePrice      = sdk.NewInt(10000000000)
-	foundationAccAddr      = sdk.AccAddress(secp256k1.GenPrivKey().PubKey().Address())
-	foundationDeposit      = sdk.NewCoins(sdk.NewCoin(DefaultDenom, sdk.NewInt(40000000000000000)))
+	initialOzonePrice      = sdk.NewDecWithPrec(10000000, 9)
+	foundationDeposit      = sdk.NewInt(40000000000000000)
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -223,11 +222,6 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, spNodeInitialStakeIdx1)},
 	}
 
-	foundationAcc := &auth.BaseAccount{
-		Address: foundationAccAddr,
-		Coins:   foundationDeposit,
-	}
-
 	//************************** setup sds module's accounts **************************
 	sdsAcc1 := &auth.BaseAccount{ // sp node owner
 		Address: sdsAccAddr1,
@@ -249,7 +243,6 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 		valOwnerAcc1,
 		resNodeAcc1, resNodeAcc2, resNodeAcc3, resNodeAcc4, resNodeAcc5,
 		idxNodeAcc1, idxNodeAcc2, idxNodeAcc3, spNodeIdxNodeAcc1,
-		foundationAcc,
 		sdsAcc1, sdsAcc2, sdsAcc3,
 	}
 
@@ -263,7 +256,7 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 	ctx1.Logger().Info("idxNodeAcc2 -> " + idxNodeAcc2.String())
 	ctx1.Logger().Info("idxNodeAcc3 -> " + idxNodeAcc3.String())
 	ctx1.Logger().Info("spNodeIdxNodeAcc1 -> " + spNodeIdxNodeAcc1.String())
-	ctx1.Logger().Info("foundationAcc -> " + foundationAcc.String())
+	//ctx1.Logger().Info("foundationAcc -> " + foundationAcc.String())
 	ctx1.Logger().Info("sdsAcc1 -> " + sdsAcc1.String())
 	ctx1.Logger().Info("sdsAcc2 -> " + sdsAcc2.String())
 	ctx1.Logger().Info("sdsAcc3 -> " + sdsAcc3.String())
@@ -296,11 +289,13 @@ func setupAllResourceNodes() []register.ResourceNode {
 
 func setupAllIndexingNodes() []register.IndexingNode {
 	var indexingNodes []register.IndexingNode
+
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", pubKeyIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time)
 	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", pubKeyIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time)
 	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", pubKeyIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
 	spNodeIndexingNode1 := register.NewIndexingNode("sds://sdsIndexingNode1", spNodePubKeyIdx1, sdsAccAddr1, register.NewDescription("sds://sdsIndexingNode1", "", "", "", ""), time)
+
 
 	indexingNode1 = indexingNode1.AddToken(initialStakeIdx1)
 	indexingNode2 = indexingNode2.AddToken(initialStakeIdx2)

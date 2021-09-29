@@ -2,8 +2,9 @@ package types
 
 // pot module event types
 const (
-	EventTypeVolumeReport = "volume_report"
-	EventTypeWithdraw     = "withdraw"
+	EventTypeVolumeReport      = "volume_report"
+	EventTypeWithdraw          = "withdraw"
+	EventTypeFoundationDeposit = "foundation_deposit"
 
 	AttributeKeyEpoch              = "report_epoch"
 	AttributeKeyReportReference    = "report_reference"

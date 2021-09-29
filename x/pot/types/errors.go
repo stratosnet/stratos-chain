@@ -17,7 +17,7 @@ var (
 	ErrInitialUOzonePrice                = sdkerrors.Register(ModuleName, 10, "initial uOzone price must be positive")
 	ErrNotTheOwner                       = sdkerrors.Register(ModuleName, 11, "not the owner of the node")
 	ErrMatureEpoch                       = sdkerrors.Register(ModuleName, 12, "mature epoch must be positive")
-	ErrFoundationAccount                 = sdkerrors.Register(ModuleName, 13, "invalid foundation account")
+	ErrEmptyFromAddr                     = sdkerrors.Register(ModuleName, 13, "missing from address")
 	ErrEmptyReporterAddr                 = sdkerrors.Register(ModuleName, 14, "missing reporter address")
 	ErrEmptyNodesVolume                  = sdkerrors.Register(ModuleName, 15, "nodes volume list empty")
 	ErrEpochNotPositive                  = sdkerrors.Register(ModuleName, 16, "report epoch is not positive")

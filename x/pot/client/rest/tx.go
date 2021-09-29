@@ -15,9 +15,16 @@ import (
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/volume/report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/address/{nodeAddr}/rewards", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/pot/foundation_deposit", foundationDepositHandlerFn(cliCtx)).Methods("POST")
 }
 
 type (
+	foundationDepositReq struct {
+		BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
+		Amount  string       `json:"amount" yaml:"amount"`
+		From    string       `json:"from" yaml:"from"`
+	}
+
 	withdrawRewardsReq struct {
 		BaseReq    rest.BaseReq `json:"base_req" yaml:"base_req"`
 		Amount     string       `json:"amount" yaml:"amount"`
@@ -122,6 +129,43 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultBondDenom, amount), nodeAddr, ownerAddr)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req foundationDepositReq
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		// read and validate URL's variables
+		amountStr := req.Amount
+		amount, ok := checkAmountVar(w, r, amountStr)
+		if !ok {
+			return
+		}
+
+		fromStr := req.From
+		fromAddr, ok := checkAccountAddressVar(w, r, fromStr)
+		if !ok {
+			return
+		}
+
+		msg := types.NewMsgFoundationDeposit(sdk.NewCoin(types.DefaultBondDenom, amount), fromAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
