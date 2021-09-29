@@ -280,7 +280,7 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 	}
 
 	distributionRecord := NewNodeRewardsInfo(account, matureTotal, immatureTotal)
-	potRewardsRecordVal := NewNodeRewardsRecord(ctx.BlockHeight(), currentEpoch, distributionRecord)
+	potRewardsRecordVal := NewNodeRewardsRecord(distributionRecord)
 
 	k.setMatureTotalReward(ctx, account, matureTotal)
 	k.setImmatureTotalReward(ctx, account, immatureTotal)
