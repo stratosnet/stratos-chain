@@ -79,6 +79,7 @@ func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	return found
 }
 
+
 func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
 	nodeOwnerMap := make(map[string]sdk.AccAddress)
 	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
@@ -100,4 +101,19 @@ func (k Keeper) setPotRewardRecordByOwnerHeight(ctx sdk.Context, nodeOwnerMap ma
 	for key, val := range potRewardsRecordWithOwnerAddr {
 		k.setPotRewardRecord(ctx, epoch, key, val)
 	}
+
+func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
+	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))
+	if err != nil {
+		return err
+	}
+
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, sdk.NewCoins(amount))
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

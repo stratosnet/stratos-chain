@@ -9,6 +9,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	// this line is used by starport scaffolding # 1
 	cdc.RegisterConcrete(MsgVolumeReport{}, "pot/MsgVolumeReport", nil)
 	cdc.RegisterConcrete(MsgWithdraw{}, "pot/MsgWithdraw", nil)
+	cdc.RegisterConcrete(MsgFoundationDeposit{}, "pot/MsgFoundationDeposit", nil)
 }
 
 // ModuleCdc defines the module codec

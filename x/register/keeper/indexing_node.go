@@ -138,7 +138,7 @@ func (k Keeper) IterateLastIndexingNodeStakes(ctx sdk.Context, handler func(node
 func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description, time.Now())
+	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description, ctx.BlockHeader().Time)
 
 	ozoneLimitChange, err = k.AddIndexingNodeStake(ctx, indexingNode, stake)
 	if err != nil {
@@ -148,7 +148,7 @@ func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey c
 	var approveList = make([]sdk.AccAddress, 0)
 	var rejectList = make([]sdk.AccAddress, 0)
 	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
-	expireTime := time.Now().Add(votingValidityPeriod)
+	expireTime := ctx.BlockHeader().Time.Add(votingValidityPeriod)
 
 	votePool := types.NewRegistrationVotePool(indexingNode.GetNetworkAddr(), approveList, rejectList, expireTime)
 	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
@@ -320,7 +320,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	if !found {
 		return sdk.Unbonded, types.ErrNoRegistrationVotePoolFound
 	}
-	if votePool.ExpireTime.Before(time.Now()) {
+	if votePool.ExpireTime.Before(ctx.BlockHeader().Time) {
 		return sdk.Unbonded, types.ErrVoteExpired
 	}
 	if k.hasValue(votePool.ApproveList, voterAddr) || k.hasValue(votePool.RejectList, voterAddr) {

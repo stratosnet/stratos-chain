@@ -20,6 +20,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgReportVolume(ctx, k, msg)
 		case types.MsgWithdraw:
 			return handleMsgWithdraw(ctx, k, msg)
+		case types.MsgFoundationDeposit:
+			return handleMsgFoundationDeposit(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -78,6 +80,26 @@ func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) 
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgFoundationDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgFoundationDeposit) (*sdk.Result, error) {
+	err := k.FoundationDeposit(ctx, msg.Amount, msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeFoundationDeposit,
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

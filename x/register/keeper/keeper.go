@@ -313,11 +313,11 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 // CompleteUnbondingWithAmount completes the unbonding of all mature entries in
 // the retrieved unbonding delegation object and returns the total unbonding
 // balance or an error upon failure.
-func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.AccAddress) (sdk.Coins, error) {
+func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.AccAddress) (sdk.Coins, bool, error) {
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
 	if !found {
 		ctx.Logger().Info(fmt.Sprintf("NetworAddr: %s not found while completing UnbondingWithAmount", networkAddr))
-		return nil, types.ErrNoUnbondingNode
+		return nil, false, types.ErrNoUnbondingNode
 	}
 
 	bondDenom := k.GetParams(ctx).BondDenom
@@ -336,7 +336,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
 				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
-					return nil, err
+					return nil, false, err
 				}
 
 				balances = balances.Add(amt)
@@ -351,13 +351,13 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 		k.SetUnbondingNode(ctx, ubd)
 	}
 
-	return balances, nil
+	return balances, ubd.IsIndexingNode, nil
 }
 
 // CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
 // it does not return the total unbonding amount.
 func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress) error {
-	_, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+	_, _, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
 	return err
 }
 
@@ -394,7 +394,7 @@ func (k Keeper) UnbondResourceNode(
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
-	unbondingMatureTime = calcUnbondingMatureTime(resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
@@ -431,7 +431,7 @@ func (k Keeper) UnbondIndexingNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	unbondingMatureTime = calcUnbondingMatureTime(indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)

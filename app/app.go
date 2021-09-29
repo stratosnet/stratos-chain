@@ -72,13 +72,13 @@ var (
 	)
 
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName: {"fee_collector"},
-		//auth.FeeCollectorName:     nil,
+		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
+		pot.FoundationAccount:     nil,
 	}
 	// module accounts that are allowed to receive tokens
 	//allowedReceivingModAcc = map[string]bool{

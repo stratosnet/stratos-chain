@@ -4,12 +4,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-const MsgType = "volume_report"
+const (
+	VolumeReportMsgType      = "volume_report"
+	WithdrawMsgType          = "withdraw"
+	FoundationDepositMsgType = "foundation_deposit"
+)
 
 // verify interface at compile time
 var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
+	_ sdk.Msg = &MsgFoundationDeposit{}
 )
 
 type MsgVolumeReport struct {
@@ -79,7 +84,7 @@ func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
 }
 
 // Type Implement
-func (msg MsgVolumeReport) Type() string { return MsgType }
+func (msg MsgVolumeReport) Type() string { return VolumeReportMsgType }
 
 // GetSignBytes gets the bytes for the message signer to sign on
 func (msg MsgVolumeReport) GetSignBytes() []byte {
@@ -141,7 +146,7 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 }
 
 // Type Implement
-func (msg MsgWithdraw) Type() string { return "withdraw" }
+func (msg MsgWithdraw) Type() string { return WithdrawMsgType }
 
 // GetSignBytes gets the bytes for the message signer to sign on
 func (msg MsgWithdraw) GetSignBytes() []byte {
@@ -159,6 +164,46 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	}
 	if msg.OwnerAddress.Empty() {
 		return ErrMissingOwnerAddress
+	}
+	return nil
+}
+
+type MsgFoundationDeposit struct {
+	Amount sdk.Coin       `json:"amount" yaml:"amount"`
+	From   sdk.AccAddress `json:"from" yaml:"from"`
+}
+
+func NewMsgFoundationDeposit(amount sdk.Coin, from sdk.AccAddress) MsgFoundationDeposit {
+	return MsgFoundationDeposit{
+		Amount: amount,
+		From:   from,
+	}
+}
+
+// Route Implement
+func (msg MsgFoundationDeposit) Route() string { return RouterKey }
+
+// GetSigners Implement
+func (msg MsgFoundationDeposit) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.From}
+}
+
+// Type Implement
+func (msg MsgFoundationDeposit) Type() string { return FoundationDepositMsgType }
+
+// GetSignBytes gets the bytes for the message signer to sign on
+func (msg MsgFoundationDeposit) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic validity check for the AnteHandler
+func (msg MsgFoundationDeposit) ValidateBasic() error {
+	if !(msg.Amount.IsPositive()) {
+		return ErrWithdrawAmountNotPositive
+	}
+	if msg.From.Empty() {
+		return ErrEmptyFromAddr
 	}
 	return nil
 }

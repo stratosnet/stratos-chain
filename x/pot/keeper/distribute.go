@@ -48,7 +48,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 		return totalConsumedOzone, err
 	}
 
+	//sort map and convert to slice to keep the order
+	rewardDetailList := sortDetailMapToSlice(rewardDetailMap)
+	k.setEpochReward(ctx, epoch, rewardDetailList)
 	//7, distribute all rewards to resource nodes & indexing nodes
+
 	distributionResult, err := k.distributeRewardToSdsNodes(ctx, rewardDetailMap, epoch)
 	if err != nil {
 		return totalConsumedOzone, err
@@ -78,7 +82,12 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// deduct mining reward from foundation account
-	foundationAccountAddr := k.GetFoundationAccount(ctx)
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	if foundationAccountAddr == nil {
+		ctx.Logger().Error("foundation account address of distribution module does not exist.")
+		return types.ErrUnknownAccountAddress
+	}
+
 	amountToDeduct := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), totalRewardFromMiningPool))
 	hasCoin := k.BankKeeper.HasCoins(ctx, foundationAccountAddr, amountToDeduct)
 	if !hasCoin {
@@ -118,7 +127,11 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// return balance to foundation account
-	foundationAccountAddr := k.GetFoundationAccount(ctx)
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	if foundationAccountAddr == nil {
+		ctx.Logger().Error("foundation account address of distribution module does not exist.")
+		return types.ErrUnknownAccountAddress
+	}
 	amountToAdd := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), balanceOfMiningPool))
 	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amountToAdd)
 	if err != nil {
@@ -229,9 +242,11 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 	return distributeGoal, nil
 }
 
+
 func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailMap map[string]types.Reward, currentEpoch sdk.Int) (res []NodeRewardsRecord, err error) {
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
-	for _, reward := range rewardDetailMap {
+
+	for _, reward := range rewardDetailList {
 		nodeAddr := reward.NodeAddress
 		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
 		res = append(res, k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward))
