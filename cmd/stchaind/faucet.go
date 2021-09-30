@@ -54,11 +54,12 @@ const (
 	requestInterval = 100 * time.Millisecond
 )
 
+// used in request channel
 type FaucetReq struct {
-	ToAddr    sdk.AccAddress
-	OutWriter http.ResponseWriter
+	ToAddr sdk.AccAddress
 }
 
+// used in response channel
 type FaucetRsp struct {
 	TxResponse sdk.TxResponse
 	Seq        uint64
@@ -295,9 +296,8 @@ func AddFaucetCmd(
 					writer.Write([]byte(err.Error()))
 				}
 				ctx.Logger.Debug("received faucet request: ", "toAddr", addr, "fromIp", realIp)
-				faucetReq := FaucetReq{ToAddr: toAddr, OutWriter: writer}
+				faucetReq := FaucetReq{ToAddr: toAddr}
 				faucetReqCh <- faucetReq
-				//return
 				ctx.Logger.Debug("tx queued")
 
 				faucetRsp := <-resChan
