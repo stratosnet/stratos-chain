@@ -43,7 +43,7 @@ import (
 
 const (
 	appName    = "stchain"
-	appVersion = "v0.4.0"
+	appVersion = "v0.5.0"
 )
 
 var (
