@@ -3,9 +3,7 @@ module github.com/stratosnet/stratos-chain
 go 1.15
 
 require (
-	github.com/HuKeping/rbtree v1.0.1 // indirect
 	github.com/ReneKroon/ttlcache/v2 v2.7.0
-	github.com/alex023/clock v0.0.0-20191208111215-c265f1b2ab18
 	github.com/cosmos/cosmos-sdk v0.39.2
 	github.com/golang/mock v1.4.3 // indirect
 	github.com/gorilla/mux v1.7.4
