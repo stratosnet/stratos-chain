@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/ReneKroon/ttlcache/v2"
-	"github.com/alex023/clock"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -52,7 +51,7 @@ const (
 	capDuration           = 60 // in minutes
 
 	maxAmtFaucet    = 100000000000
-	requestInterval = 40 * time.Millisecond
+	requestInterval = 500 * time.Millisecond
 )
 
 type FaucetReq struct {
@@ -125,8 +124,10 @@ func (fim *FromIpMiddleware) checkCap(fromIp string) bool {
 
 // global to load command line args
 var (
-	faucetArgs = FaucetArgs{}
-	seqInfo    = SeqInfo{StartSeq: 0, Iter: 0}
+	faucetArgs  = FaucetArgs{}
+	seqInfo     = SeqInfo{StartSeq: 0, Iter: 0}
+	faucetReqCh = make(chan FaucetReq, 10000)
+	resChan     = make(chan sdk.TxResponse)
 )
 
 // struct to hold the command-line args
@@ -152,39 +153,49 @@ func (si *SeqInfo) GetNewSeq(newStartSeq int) (int, int, int) {
 	startSeq := si.StartSeq
 	iter := si.Iter
 	newSeq := startSeq + iter
-	if si.Iter != 0 {
-		time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
-	}
+	//if si.Iter != 0 {
+	//	time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
+	//}
 	si.Iter++
 	return newSeq, startSeq, iter
 }
 
-func initFaucetTask(duration time.Duration, faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
-	myClock := clock.NewClock()
-	statReportCheckFunc := func() {
-		fReq := <-*faucetReq
-		resChan := make(chan sdk.TxResponse)
-		// get latest seq
-		_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
-		if err != nil {
-			return
-		}
-		//newSeq, startSeq, iter := seqInfo.GetNewSeq(int(latestSeq))
-		//fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter)
-		go doTransfer(cliCtx,
-			txBldr.
-				WithSequence(latestSeq).
-				WithChainID(viper.GetString(flags.FlagChainID)).
-				WithGas(uint64(400000)).
-				WithMemo(strconv.Itoa(int(latestSeq))),
-			fReq.ToAddr, faucetArgs.from, coin, &resChan)
-		fmt.Sprintf("send", "addr", fReq.ToAddr, "amount", coin.String())
-		res := <-resChan
-		rest.PostProcessResponseBare(fReq.OutWriter, cliCtx, res)
-		close(resChan)
+func FaucetJobFromCh(ctx *server.Context, duration time.Duration, faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
+	//myClock := clock.NewClock()
+	//statReportCheckFunc := func() {
+	//if len(*faucetReq) < 1 {
+	//	return
+	//}
+	fReq := <-*faucetReq
+	//resChan := make(chan sdk.TxResponse)
+	// get latest seq
+	_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
+	if err != nil {
 		return
 	}
-	myClock.AddJobRepeat(duration, 0, statReportCheckFunc)
+	newSeq, startSeq, iter := seqInfo.GetNewSeq(int(latestSeq))
+	ctx.Logger.Info(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter))
+	go doTransfer(cliCtx,
+		txBldr.
+			WithSequence(uint64(newSeq)).
+			WithChainID(viper.GetString(flags.FlagChainID)).
+			WithGas(uint64(400000)).
+			//WithMemo(strconv.Itoa(rand.Int())),
+			WithMemo(strconv.Itoa(newSeq)),
+		fReq.ToAddr, faucetArgs.from, coin, &resChan)
+	ctx.Logger.Info("send", "addr", fReq.ToAddr, "amount", coin.String())
+	//res := <-resChan
+	//ctx.Logger.Info("log lens: " + strconv.Itoa(len(res.RawLog)))
+	//ctx.Logger.Info("code is: " + strconv.Itoa(int(res.Code)))
+	////if len(res.RawLog) > 0 {
+	////	seqInfo.Iter--
+	////}
+	//ctx.Logger.Info(res.String())
+	//rest.PostProcessResponseBare(fReq.OutWriter, cliCtx, res)
+	//close(resChan)
+	//return
+	//}
+	//myClock.AddJobRepeat(duration, 0, statReportCheckFunc)
 }
 
 // AddFaucetCmd returns faucet cobra Command
@@ -280,7 +291,6 @@ func AddFaucetCmd(
 				w.Write([]byte("ok\n"))
 			})
 
-			faucetReqCh := make(chan FaucetReq)
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -294,12 +304,27 @@ func AddFaucetCmd(
 				ctx.Logger.Info("received faucet request: ", "toAddr", addr, "fromIp", realIp)
 				faucetReq := FaucetReq{ToAddr: toAddr, OutWriter: writer}
 				faucetReqCh <- faucetReq
+				//return
+				ctx.Logger.Info("tx queued")
+
+				res := <-resChan
+				ctx.Logger.Info("log lens: " + strconv.Itoa(len(res.RawLog)))
+				ctx.Logger.Info("code is: " + strconv.Itoa(int(res.Code)))
+				if res.Code > 0 {
+					// checkTx fails
+					seqInfo.StartSeq = 0
+					seqInfo.Iter = 0
+				}
+				ctx.Logger.Info(res.String())
+				rest.PostProcessResponseBare(writer, cliCtx, res)
+				close(resChan)
 				return
+
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
 			r.Use(fim.Middleware)
 			r.Use(ftm.Middleware)
-			initFaucetTask(requestInterval, &faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
+			go FaucetJobFromCh(ctx, requestInterval, &faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
@@ -404,8 +429,9 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	}
 
 	// broadcast to a Tendermint node
-	res, err := cliCtx.BroadcastTx(txBytes)
+	res, err := cliCtx.BroadcastTxSync(txBytes)
 	*resChan <- res
+	txBldr.WithSequence(uint64(0))
 }
 
 func getRealAddr(r *http.Request) string {
