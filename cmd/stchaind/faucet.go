@@ -51,12 +51,17 @@ const (
 	capDuration           = 60 // in minutes
 
 	maxAmtFaucet    = 100000000000
-	requestInterval = 500 * time.Millisecond
+	requestInterval = 100 * time.Millisecond
 )
 
 type FaucetReq struct {
 	ToAddr    sdk.AccAddress
 	OutWriter http.ResponseWriter
+}
+
+type FaucetRsp struct {
+	TxResponse sdk.TxResponse
+	Seq        uint64
 }
 
 type FaucetToMiddleware struct {
@@ -125,9 +130,9 @@ func (fim *FromIpMiddleware) checkCap(fromIp string) bool {
 // global to load command line args
 var (
 	faucetArgs  = FaucetArgs{}
-	seqInfo     = SeqInfo{StartSeq: 0, Iter: 0}
+	seqInfo     = SeqInfo{startSeq: 0, iter: 0}
 	faucetReqCh = make(chan FaucetReq, 10000)
-	resChan     = make(chan sdk.TxResponse)
+	resChan     = make(chan FaucetRsp)
 )
 
 // struct to hold the command-line args
@@ -138,64 +143,52 @@ type FaucetArgs struct {
 }
 
 type SeqInfo struct {
-	StartSeq int
-	Iter     int
-	mu       sync.Mutex
+	lastSuccSeq int
+	startSeq    int
+	iter        int
+	mu          sync.Mutex
 }
 
-func (si *SeqInfo) GetNewSeq(newStartSeq int) (int, int, int) {
+func (si *SeqInfo) incrLastSuccSeq(succSeq uint64) {
 	si.mu.Lock()
 	defer si.mu.Unlock()
-	if si.StartSeq < newStartSeq {
-		si.Iter = 0
-		si.StartSeq = newStartSeq
+	if si.lastSuccSeq < int(succSeq) {
+		si.lastSuccSeq = int(succSeq)
 	}
-	startSeq := si.StartSeq
-	iter := si.Iter
-	newSeq := startSeq + iter
-	//if si.Iter != 0 {
-	//	time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
-	//}
-	si.Iter++
-	return newSeq, startSeq, iter
+}
+func (si *SeqInfo) getNewSeq(newStartSeq int) int {
+	si.mu.Lock()
+	defer si.mu.Unlock()
+
+	if si.lastSuccSeq < newStartSeq-1 {
+		si.lastSuccSeq = newStartSeq - 1
+		return newStartSeq
+	} else {
+		return si.lastSuccSeq + 1
+	}
 }
 
-func FaucetJobFromCh(ctx *server.Context, duration time.Duration, faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
-	//myClock := clock.NewClock()
-	//statReportCheckFunc := func() {
-	//if len(*faucetReq) < 1 {
-	//	return
-	//}
-	fReq := <-*faucetReq
-	//resChan := make(chan sdk.TxResponse)
-	// get latest seq
-	_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
-	if err != nil {
-		return
+func FaucetJobFromCh(ctx *server.Context, faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
+	for {
+		fReq := <-*faucetReq
+		// get latest seq
+		_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
+		if err != nil {
+			return
+		}
+		newSeq := seqInfo.getNewSeq(int(latestSeq))
+		ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
+		go doTransfer(cliCtx,
+			txBldr.
+				WithSequence(uint64(newSeq)).
+				WithChainID(viper.GetString(flags.FlagChainID)).
+				WithGas(uint64(400000)).
+				//WithMemo(strconv.Itoa(rand.Int())),
+				WithMemo(strconv.Itoa(newSeq)),
+			fReq.ToAddr, faucetArgs.from, coin, &resChan)
+		ctx.Logger.Debug("send", "addr", fReq.ToAddr, "amount", coin.String())
+		time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
 	}
-	newSeq, startSeq, iter := seqInfo.GetNewSeq(int(latestSeq))
-	ctx.Logger.Info(fmt.Sprintf("sequence in this tx: %d (%d + %d)\n", newSeq, startSeq, iter))
-	go doTransfer(cliCtx,
-		txBldr.
-			WithSequence(uint64(newSeq)).
-			WithChainID(viper.GetString(flags.FlagChainID)).
-			WithGas(uint64(400000)).
-			//WithMemo(strconv.Itoa(rand.Int())),
-			WithMemo(strconv.Itoa(newSeq)),
-		fReq.ToAddr, faucetArgs.from, coin, &resChan)
-	ctx.Logger.Info("send", "addr", fReq.ToAddr, "amount", coin.String())
-	//res := <-resChan
-	//ctx.Logger.Info("log lens: " + strconv.Itoa(len(res.RawLog)))
-	//ctx.Logger.Info("code is: " + strconv.Itoa(int(res.Code)))
-	////if len(res.RawLog) > 0 {
-	////	seqInfo.Iter--
-	////}
-	//ctx.Logger.Info(res.String())
-	//rest.PostProcessResponseBare(fReq.OutWriter, cliCtx, res)
-	//close(resChan)
-	//return
-	//}
-	//myClock.AddJobRepeat(duration, 0, statReportCheckFunc)
 }
 
 // AddFaucetCmd returns faucet cobra Command
@@ -301,30 +294,27 @@ func AddFaucetCmd(
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
 				}
-				ctx.Logger.Info("received faucet request: ", "toAddr", addr, "fromIp", realIp)
+				ctx.Logger.Debug("received faucet request: ", "toAddr", addr, "fromIp", realIp)
 				faucetReq := FaucetReq{ToAddr: toAddr, OutWriter: writer}
 				faucetReqCh <- faucetReq
 				//return
-				ctx.Logger.Info("tx queued")
+				ctx.Logger.Debug("tx queued")
 
-				res := <-resChan
-				ctx.Logger.Info("log lens: " + strconv.Itoa(len(res.RawLog)))
-				ctx.Logger.Info("code is: " + strconv.Itoa(int(res.Code)))
-				if res.Code > 0 {
-					// checkTx fails
-					seqInfo.StartSeq = 0
-					seqInfo.Iter = 0
+				faucetRsp := <-resChan
+				ctx.Logger.Debug("code is: " + strconv.Itoa(int(faucetRsp.TxResponse.Code)))
+				if int(faucetRsp.TxResponse.Code) < 1 {
+					// sigverify pass
+					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
+					ctx.Logger.Debug("lastSuccSeq is " + strconv.Itoa(seqInfo.lastSuccSeq))
 				}
-				ctx.Logger.Info(res.String())
-				rest.PostProcessResponseBare(writer, cliCtx, res)
-				close(resChan)
+				ctx.Logger.Debug(faucetRsp.TxResponse.String())
+				rest.PostProcessResponseBare(writer, cliCtx, faucetRsp.TxResponse)
 				return
-
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
 			r.Use(fim.Middleware)
 			r.Use(ftm.Middleware)
-			go FaucetJobFromCh(ctx, requestInterval, &faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
+			go FaucetJobFromCh(ctx, &faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
@@ -373,7 +363,7 @@ func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (ac
 	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }
 
-func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, resChan *chan sdk.TxResponse) {
+func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, resChan *chan FaucetRsp) {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
@@ -430,8 +420,8 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 
 	// broadcast to a Tendermint node
 	res, err := cliCtx.BroadcastTxSync(txBytes)
-	*resChan <- res
-	txBldr.WithSequence(uint64(0))
+	faucetRsp := FaucetRsp{TxResponse: res, Seq: txBldr.Sequence()}
+	*resChan <- faucetRsp
 }
 
 func getRealAddr(r *http.Request) string {
