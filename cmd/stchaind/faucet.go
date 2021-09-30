@@ -131,7 +131,7 @@ func (fim *FromIpMiddleware) checkCap(fromIp string) bool {
 // global to load command line args
 var (
 	faucetArgs  = FaucetArgs{}
-	seqInfo     = SeqInfo{startSeq: 0, iter: 0}
+	seqInfo     = SeqInfo{startSeq: 0, lastSuccSeq: 0}
 	faucetReqCh = make(chan FaucetReq, 10000)
 	resChan     = make(chan FaucetRsp)
 )
@@ -146,7 +146,6 @@ type FaucetArgs struct {
 type SeqInfo struct {
 	lastSuccSeq int
 	startSeq    int
-	iter        int
 	mu          sync.Mutex
 }
 
