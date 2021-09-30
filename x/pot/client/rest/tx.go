@@ -22,7 +22,6 @@ type (
 	foundationDepositReq struct {
 		BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
 		Amount  string       `json:"amount" yaml:"amount"`
-		From    string       `json:"from" yaml:"from"`
 	}
 
 	withdrawRewardsReq struct {
@@ -159,7 +158,7 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		fromStr := req.From
+		fromStr := req.BaseReq.From
 		fromAddr, ok := checkAccountAddressVar(w, r, fromStr)
 		if !ok {
 			return

@@ -323,9 +323,6 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	indexingResultsLen := len(indexingNodeResults)
 	resourceResultsLen := len(resourceNodeResults)
 	start, end := client.Paginate(indexingResultsLen+resourceResultsLen, params.Page, params.Limit, QueryDefaultLimit)
-	ctx.Logger().Info("[start:end]", "start", start, "end", end)
-	ctx.Logger().Info("indexingResultsLen", "indexingResultsLen", indexingResultsLen)
-	ctx.Logger().Info("resourceResultsLen", "resourceResultsLen", resourceResultsLen)
 
 	var bz []byte
 	switch {

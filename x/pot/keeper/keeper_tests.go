@@ -122,11 +122,6 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
 	cdc.RegisterConcrete(register.MsgCreateResourceNode{}, "register/MsgCreateResourceNode", nil)
 	cdc.RegisterConcrete(register.MsgCreateIndexingNode{}, "register/MsgCreateIndexingNode", nil)
-	//cdc.RegisterConcrete(bank.MsgSend{}, "test/staking/Send", nil)
-	//cdc.RegisterConcrete(types.MsgCreateValidator{}, "test/staking/CreateValidator", nil)
-	//cdc.RegisterConcrete(types.MsgEditValidator{}, "test/staking/EditValidator", nil)
-	//cdc.RegisterConcrete(types.MsgUndelegate{}, "test/staking/Undelegate", nil)
-	//cdc.RegisterConcrete(types.MsgBeginRedelegate{}, "test/staking/BeginRedelegate", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)

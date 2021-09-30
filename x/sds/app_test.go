@@ -153,7 +153,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		potKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams(), foundationDeposit, initialOzonePrice))
+		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams(), initialOzonePrice))
 
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)
