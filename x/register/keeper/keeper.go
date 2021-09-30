@@ -472,7 +472,7 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
 		for _, entry := range node.Entries {
-			ubdTotal.Add(entry.Balance)
+			ubdTotal = ubdTotal.Add(entry.Balance)
 		}
 	}
 	return ubdTotal
@@ -488,13 +488,12 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	key := types.GetUBDNodeKey(networkAddr)
 	value := store.Get(key)
 	if value == nil {
-		//return balance
 		return balance
 	}
 
 	ubd := types.MustUnmarshalUnbondingNode(k.cdc, value)
 	for _, entry := range ubd.Entries {
-		balance.Add(entry.Balance)
+		balance = balance.Add(entry.Balance)
 	}
 	return balance
 }

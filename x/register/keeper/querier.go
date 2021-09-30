@@ -47,8 +47,6 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return GetStakingInfoByNodeAddr(ctx, req, k)
 		case QueryNodeStakeByOwner:
 			return GetStakingInfoByOwnerAddr(ctx, req, k)
-		//case QueryNetworkSet:
-		//	return GetNetworkSet(ctx, k)
 		case QueryResourceNodeByMoniker:
 			return GetResourceNodesByMoniker(ctx, req, k)
 		case QueryIndexingNodeByMoniker:
@@ -169,7 +167,7 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfIndexingNodes)
 	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfIndexingNodes)
 	totalUnbondingStake := keeper.GetAllUnbondingNodesTotalBalance(ctx)
-
+	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
 	res := NewQueryNodesStakingInfo(
 		totalStakeOfResourceNodes,
 		totalStakeOfIndexingNodes,
