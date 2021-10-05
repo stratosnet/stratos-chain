@@ -16,7 +16,7 @@ var (
 	ErrInsufficientUnissuedPrePayBalance = sdkerrors.Register(ModuleName, 9, "insufficient unissued prepay balance")
 	ErrInitialUOzonePrice                = sdkerrors.Register(ModuleName, 10, "initial uOzone price must be positive")
 	ErrNotTheOwner                       = sdkerrors.Register(ModuleName, 11, "not the owner of the node")
-	ErrMatureEpoch                       = sdkerrors.Register(ModuleName, 12, "mature epoch must be positive")
+	ErrMatureEpoch                       = sdkerrors.Register(ModuleName, 12, "the value of epoch must be positive and greater than its previous one")
 	ErrEmptyFromAddr                     = sdkerrors.Register(ModuleName, 13, "missing from address")
 	ErrEmptyReporterAddr                 = sdkerrors.Register(ModuleName, 14, "missing reporter address")
 	ErrEmptyNodesVolume                  = sdkerrors.Register(ModuleName, 15, "nodes volume list empty")
