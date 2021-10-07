@@ -128,8 +128,6 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		authcmd.GetEncodeCommand(cdc),
 		authcmd.GetDecodeCommand(cdc),
 		flags.LineBreak,
-		//GetFaucetCmd(cdc),
-		//flags.LineBreak,
 	)
 
 	// add modules' tx commands
