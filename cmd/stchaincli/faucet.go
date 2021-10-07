@@ -29,8 +29,8 @@ import (
 )
 
 const (
-	flagFundFrom = "fund-from" // optional
-	flagAmt      = "amt"       // denom fixed as ustos
+	flagFundFrom = "from" // optional
+	flagAmt      = "amt"  // denom fixed as ustos
 	flagPort     = "port"
 	flagChainId  = "chain-id"
 	flagAddrCap  = "addr-cap"
