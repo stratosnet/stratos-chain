@@ -41,6 +41,7 @@ const (
 	flagAddrCap = "addr-cap"
 	flagIpCap   = "ip-cap"
 
+	defaultOutputFlag     = "text"
 	defaultNodeURI        = "tcp://127.0.0.1:26657"
 	defaultKeyringBackend = "test"
 	defaultHome           = "build/node/stchaincli"
@@ -328,7 +329,7 @@ func AddFaucetCmd(
 	}
 
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
-	cmd.Flags().String(flagClientHome, defaultClientHome, "client's home directory")
+	//cmd.Flags().String(cli.HomeFlag, defaultClientHome, "client's home directory")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flagAmt, "", "amt to transfer in faucet")
 	cmd.Flags().String(flagFrom, "", "from address")
