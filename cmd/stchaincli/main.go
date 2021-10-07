@@ -67,6 +67,9 @@ func main() {
 		flags.LineBreak,
 		version.Cmd,
 		flags.NewCompletionCmd(rootCmd, true),
+		flags.LineBreak,
+		GetFaucetCmd(cdc),
+		flags.LineBreak,
 	)
 
 	// Add flags and prefix all env exposed with AA
@@ -125,6 +128,8 @@ func txCmd(cdc *amino.Codec) *cobra.Command {
 		authcmd.GetEncodeCommand(cdc),
 		authcmd.GetDecodeCommand(cdc),
 		flags.LineBreak,
+		//GetFaucetCmd(cdc),
+		//flags.LineBreak,
 	)
 
 	// add modules' tx commands
