@@ -1,12 +1,11 @@
 BUILDDIR ?= $(CURDIR)/build
 
-BRANCH := v0.5.5
-COMMIT := $(GIT_COMMIT_HASH) #f0f7b7dab7e36c20b757cebce0e8f4fc5b95de60
+APP_VER := v0.5.5
+COMMIT := $(GIT_COMMIT_HASH)
 
-VERSION := $(BRANCH)-$(COMMIT)
+VERSION := $(APP_VER)-$(COMMIT)
 
-ldflags= -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION) \
-         -X github.com/cosmos/cosmos-sdk/version.Commit=$(COMMIT)
+ldflags= -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION)
 
 BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
