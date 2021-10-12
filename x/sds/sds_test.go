@@ -296,7 +296,6 @@ func setupAllIndexingNodes() []register.IndexingNode {
 	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", pubKeyIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
 	spNodeIndexingNode1 := register.NewIndexingNode("sds://sdsIndexingNode1", spNodePubKeyIdx1, sdsAccAddr1, register.NewDescription("sds://sdsIndexingNode1", "", "", "", ""), time)
 
-
 	indexingNode1 = indexingNode1.AddToken(initialStakeIdx1)
 	indexingNode2 = indexingNode2.AddToken(initialStakeIdx2)
 	indexingNode3 = indexingNode3.AddToken(initialStakeIdx3)
