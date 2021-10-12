@@ -39,11 +39,11 @@ The `Stratos-Chain` comes with 2 types of executables that can be found in the `
 
 |    Command          | Description        |
 | :-----------:     | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli command index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
-|   `stchaind`   | the app Daemon (server). Use `stchaind --help` and the [stchaind command index](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands) for command line options. |
+|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli command index](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands) for command line options. |
+|   `stchaind`   | the app Daemon (server). Use `stchaind --help` and the [stchaind command index](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands) for command line options. |
 
 
-### [`stchaincli`](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands)
+### [`stchaincli`](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands)
 
 ```
 Usage:
@@ -60,7 +60,7 @@ Available Commands:
   help        Help about any command
 ```
 
-### [`stchaind`](https://github.com/stratosnet/stratos-chain/wiki/SC-Basic-Transaction-and-Query-Commands)
+### [`stchaind`](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands)
 
 ```
 Usage:
@@ -113,7 +113,7 @@ Please make sure your contributions adhere to our coding guidelines:
    guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
  * Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary)
    guidelines.
- * Pull requests need to be based on and opened against the `master` branch.
+ * Pull requests need to be based on and opened against the `main` branch.
  * Commit messages should be prefixed with the package(s) they modify.
    * E.g. "eth, rpc: make trace configs optional"
 
