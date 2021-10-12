@@ -36,7 +36,7 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 	}
 
 	// ensure epoch increment
-	lastEpoch := k.GetLastMaturedEpoch(ctx)
+	lastEpoch := k.GetLastReportedEpoch(ctx)
 	if msg.Epoch.LTE(lastEpoch) {
 		e := sdkerrors.Wrapf(types.ErrMatureEpoch, "expected epoch should be greater than %s, got %s",
 			lastEpoch.String(), msg.Epoch.String())
