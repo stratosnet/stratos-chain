@@ -7,7 +7,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"strconv"
@@ -131,24 +130,7 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 	if err != nil {
 		return txBldr, nil, err
 	}
-
 	epoch := sdk.NewInt(value)
-	lastEpochByte, _, err := cliCtx.QueryStore(types.LastMaturedEpochKey, types.StoreKey)
-	if err != nil {
-		return txBldr, nil, err
-	}
-	var lastEpoch sdk.Int
-	if lastEpochByte == nil {
-		lastEpoch = sdk.ZeroInt()
-	} else {
-		cliCtx.Codec.MustUnmarshalBinaryLengthPrefixed(lastEpochByte, &lastEpoch)
-	}
-	if epoch.LTE(lastEpoch) {
-		e := errors.Wrapf(types.ErrMatureEpoch, "expected epoch should be greater than %s, got %s",
-			lastEpoch.String(), epoch.String())
-		return txBldr, nil, e
-	}
-
 	var nodesVolumeStr = make([]singleNodeVolumeStr, 0)
 	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolumeStr)
 	if err != nil {

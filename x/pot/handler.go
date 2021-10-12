@@ -35,6 +35,14 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
 	}
 
+	// ensure epoch increment
+	lastEpoch := k.GetLastMaturedEpoch(ctx)
+	if msg.Epoch.LTE(lastEpoch) {
+		e := sdkerrors.Wrapf(types.ErrMatureEpoch, "expected epoch should be greater than %s, got %s",
+			lastEpoch.String(), msg.Epoch.String())
+		return nil, e
+	}
+
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 

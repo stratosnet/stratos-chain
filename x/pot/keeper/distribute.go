@@ -254,7 +254,7 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) NodeRewardsRecord {
 	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
-	matureStartEpoch := k.getLastMaturedEpoch(ctx).Int64() + 1
+	matureStartEpoch := k.GetLastMaturedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
 
 	immatureToMature := sdk.ZeroInt()

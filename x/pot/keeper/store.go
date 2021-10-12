@@ -91,7 +91,7 @@ func (k Keeper) setLastMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store.Set(types.LastMaturedEpochKey, b)
 }
 
-func (k Keeper) getLastMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
+func (k Keeper) GetLastMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.LastMaturedEpochKey)
 	if b == nil {
