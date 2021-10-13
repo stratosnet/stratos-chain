@@ -247,14 +247,14 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
 		k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward)
 	}
-	k.setLastMaturedEpoch(ctx, currentEpoch)
+	k.setLastReportedEpoch(ctx, currentEpoch)
 	return nil
 }
 
 func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) NodeRewardsRecord {
 	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
-	matureStartEpoch := k.getLastMaturedEpoch(ctx).Int64() + 1
+	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
 
 	immatureToMature := sdk.ZeroInt()

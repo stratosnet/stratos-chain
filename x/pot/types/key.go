@@ -25,7 +25,7 @@ var (
 	TotalUnissuedPrepayKey = []byte{0x05}
 
 	RewardAddressPoolKey         = []byte{0x11}
-	LastMaturedEpochKey          = []byte{0x12}
+	LastReportedEpochKey         = []byte{0x12}
 	IndividualRewardKeyPrefix    = []byte{0x13} // key: prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total

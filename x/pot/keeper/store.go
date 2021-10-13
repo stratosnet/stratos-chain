@@ -85,15 +85,15 @@ func (k Keeper) GetRewardAddressPool(ctx sdk.Context) (addressList []sdk.AccAddr
 	return
 }
 
-func (k Keeper) setLastMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
+func (k Keeper) setLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(epoch)
-	store.Set(types.LastMaturedEpochKey, b)
+	store.Set(types.LastReportedEpochKey, b)
 }
 
-func (k Keeper) getLastMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
+func (k Keeper) GetLastReportedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastMaturedEpochKey)
+	b := store.Get(types.LastReportedEpochKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
