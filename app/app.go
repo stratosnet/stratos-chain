@@ -42,8 +42,7 @@ import (
 )
 
 const (
-	appName    = "stchain"
-	appVersion = "v0.5.0"
+	appName = "stchain"
 )
 
 var (
@@ -85,10 +84,6 @@ var (
 	//	distr.ModuleName: true,
 	//}
 )
-
-func init() {
-	version.Version = appVersion
-}
 
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
@@ -295,7 +290,7 @@ func NewInitApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.upgradeKeeper.SetUpgradeHandler(appVersion, func(ctx sdk.Context, plan upgrade.Plan) {
+	app.upgradeKeeper.SetUpgradeHandler(version.Version, func(ctx sdk.Context, plan upgrade.Plan) {
 		logger.Info("Upgrade Handler working")
 	})
 	app.SetStoreLoader(bam.StoreLoaderWithUpgrade(&store.StoreUpgrades{
