@@ -63,10 +63,14 @@ func main() {
 		flags.LineBreak,
 		lcd.ServeCommand(cdc, registerRoutes),
 		flags.LineBreak,
+		GetFaucetCmd(cdc),
+		flags.LineBreak,
 		keys.Commands(),
 		flags.LineBreak,
 		version.Cmd,
 		flags.NewCompletionCmd(rootCmd, true),
+
+		flags.LineBreak,
 	)
 
 	// Add flags and prefix all env exposed with AA

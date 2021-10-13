@@ -2,28 +2,7 @@ package main
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
-	"github.com/ReneKroon/ttlcache/v2"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/cosmos/cosmos-sdk/client/keys"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
-	"github.com/cosmos/cosmos-sdk/x/auth/exported"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/gorilla/mux"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
-	"github.com/tendermint/tendermint/libs/cli"
-	tmtypes "github.com/tendermint/tendermint/types"
 	"net"
 	"net/http"
 	"os"
@@ -31,19 +10,35 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/ReneKroon/ttlcache/v2"
+	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/input"
+	"github.com/cosmos/cosmos-sdk/client/keys"
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/x/auth"
+	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/bank"
+	"github.com/gorilla/mux"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"github.com/tendermint/tendermint/libs/cli"
 )
 
 const (
-	flagFrom = "from" // optional
-	flagAmt  = "amt"  // denom fixed as ustos
-	flagPort = "port"
+	flagFundFrom = "from" // optional
+	flagAmt      = "amt"  // denom fixed as ustos
+	flagPort     = "port"
+	flagChainId  = "chain-id"
+	flagAddrCap  = "addr-cap"
+	flagIpCap    = "ip-cap"
 
-	flagAddrCap = "addr-cap"
-	flagIpCap   = "ip-cap"
-
-	defaultNodeURI        = "tcp://127.0.0.1:26657"
+	defaultOutputFlag     = "text"
 	defaultKeyringBackend = "test"
-	defaultHome           = "build/node/stchaincli"
 	defaultDenom          = "ustos"
 	defaultChainId        = "test-chain"
 	defaultAddrCap        = 1
@@ -168,7 +163,7 @@ func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 	}
 }
 
-func FaucetJobFromCh(ctx *server.Context, faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
+func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
 	for {
 		fReq := <-*faucetReq
 		// get latest seq
@@ -177,38 +172,41 @@ func FaucetJobFromCh(ctx *server.Context, faucetReq *chan FaucetReq, cliCtx cont
 			return
 		}
 		newSeq := seqInfo.getNewSeq(int(latestSeq))
-		ctx.Logger.Debug(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
+		//fmt.Print(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
 		go doTransfer(cliCtx,
 			txBldr.
 				WithSequence(uint64(newSeq)).
 				WithChainID(viper.GetString(flags.FlagChainID)).
 				WithGas(uint64(400000)).
-				//WithMemo(strconv.Itoa(rand.Int())),
 				WithMemo(strconv.Itoa(newSeq)),
 			fReq.ToAddr, faucetArgs.from, coin, &resChan)
-		ctx.Logger.Debug("send", "addr", fReq.ToAddr, "amount", coin.String())
+		//fmt.Print("send", "addr", fReq.ToAddr, "amount", coin.String())
 		time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
 	}
 }
 
-// AddFaucetCmd returns faucet cobra Command
-func AddFaucetCmd(
-	ctx *server.Context, cdc *codec.Codec, defaultNodeHome, defaultClientHome string,
-) *cobra.Command {
+// GetFaucetCmd returns faucet cobra Command
+func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "faucet",
-		Short: "Run a faucet cmd",
+		Short: "Run a faucet server",
 		Args:  cobra.RangeArgs(0, 7),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
-
-			config := ctx.Config
-			config.SetRoot(viper.GetString(cli.HomeFlag))
+			if !viper.IsSet(flagFundFrom) {
+				return fmt.Errorf("fund-from not specified")
+			}
+			if !viper.IsSet(flags.FlagChainID) {
+				return fmt.Errorf("chain-id not specified")
+			}
+			if !viper.IsSet(flags.FlagKeyringBackend) {
+				viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
+			}
 
 			addrCap := viper.GetInt(flagAddrCap)
 			ipCap := viper.GetInt(flagIpCap)
 
-			ctx.Logger.Info("Set hourly addrCap = " + strconv.Itoa(addrCap) + ", hourly ipCap = " + strconv.Itoa(ipCap))
+			fmt.Print("Set hourly addrCap = " + strconv.Itoa(addrCap) + ", hourly ipCap = " + strconv.Itoa(ipCap))
 
 			faucetToCache := ttlcache.NewCache()
 			faucetToCache.SetTTL(capDuration * time.Minute)
@@ -222,48 +220,24 @@ func AddFaucetCmd(
 			fromIpCache.SetCacheSizeLimit(65535)
 			fim := FromIpMiddleware{IpCache: fromIpCache, Cap: ipCap}
 
-			if viper.IsSet(flagFrom) {
-				fromAddr := viper.GetString(flagFrom)
-				fromAddrBytes, err := sdk.AccAddressFromBech32(fromAddr)
-				if err != nil {
-					return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
-				}
-				faucetArgs.from = fromAddrBytes
+			fromAddr := viper.GetString(flagFundFrom)
+			fromAddrBytes, err := sdk.AccAddressFromBech32(fromAddr)
+			if err != nil {
+				return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
 			}
+			faucetArgs.from = fromAddrBytes
 
 			// start threads
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			viper.Set(flags.FlagBroadcastMode, "sync")
-			if !viper.IsSet(flags.FlagChainID) {
-				viper.Set(flags.FlagChainID, defaultChainId)
-			}
 			viper.Set(flags.FlagSkipConfirmation, true)
-			if !viper.IsSet(flags.FlagKeyringBackend) {
-				viper.Set(flags.FlagKeyringBackend, defaultKeyringBackend)
-			}
-			if !viper.IsSet(flags.FlagNode) {
-				viper.Set(flags.FlagNode, defaultNodeURI)
-			}
-			if !viper.IsSet(flags.FlagHome) {
-				viper.Set(flags.FlagHome, defaultHome)
-			}
-			viper.Set(flags.FlagTrustNode, true)
 			viper.Set(cli.OutputFlag, defaultOutputFlag)
 
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
 
-			if faucetArgs.from == nil {
-				genesis := ctx.Config.GenesisFile()
-				faucetArgs.from, err = getFirstAccAddressFromGenesis(cdc, genesis)
-				if err != nil {
-					return fmt.Errorf("failed to parse genesis: %w", err)
-				}
-				fmt.Printf("No sender account specified, using account 0 for faucet\n")
-			}
 			faucetArgs.port = viper.GetString(flagPort)
 
-			ctx.Logger.Info("funding address: ", "addr", faucetArgs.from.String())
+			fmt.Print("\nfunding address: ", "addr", faucetArgs.from.String())
 			var toTransferAmt int
 			if toTransferAmt = viper.GetInt(flagAmt); toTransferAmt <= 0 || toTransferAmt > maxAmtFaucet {
 				return fmt.Errorf("invalid amount in faucet")
@@ -271,11 +245,11 @@ func AddFaucetCmd(
 			coin := sdk.Coin{Amount: sdk.NewInt(int64(toTransferAmt)), Denom: defaultDenom}
 			faucetArgs.coins = sdk.Coins{coin}
 
-			ctx.Logger.Info("Starting faucet...")
+			fmt.Print("\nStarting faucet...")
 
 			// listen to localhost:26600
 			listener, err := net.Listen("tcp", ":"+faucetArgs.port)
-			ctx.Logger.Info("listen to [" + ":" + faucetArgs.port + "]")
+			fmt.Print("\nlisten to [" + ":" + faucetArgs.port + "]")
 			// router
 			r := mux.NewRouter()
 			// health check
@@ -288,32 +262,26 @@ func AddFaucetCmd(
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
 				addr := vars["address"]
-				realIp := getRealAddr(request)
 				toAddr, err := sdk.AccAddressFromBech32(addr)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
 				}
-				ctx.Logger.Debug("received faucet request: ", "toAddr", addr, "fromIp", realIp)
 				faucetReq := FaucetReq{ToAddr: toAddr}
 				faucetReqCh <- faucetReq
-				ctx.Logger.Debug("tx queued")
 
 				faucetRsp := <-resChan
-				ctx.Logger.Debug("code is: " + strconv.Itoa(int(faucetRsp.TxResponse.Code)))
 				if int(faucetRsp.TxResponse.Code) < 1 {
 					// sigverify pass
 					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
-					ctx.Logger.Debug("lastSuccSeq is " + strconv.Itoa(seqInfo.lastSuccSeq))
 				}
-				ctx.Logger.Debug(faucetRsp.TxResponse.String())
 				rest.PostProcessResponseBare(writer, cliCtx, faucetRsp.TxResponse)
 				return
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
 			r.Use(fim.Middleware)
 			r.Use(ftm.Middleware)
-			go FaucetJobFromCh(ctx, &faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
+			go FaucetJobFromCh(&faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
@@ -327,39 +295,14 @@ func AddFaucetCmd(
 		},
 	}
 
-	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
-	cmd.Flags().String(flagClientHome, defaultClientHome, "client's home directory")
-	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
+	cmd.Flags().String(flags.FlagKeyringBackend, defaultKeyringBackend, "Select keyring's backend (os|file|test)")
 	cmd.Flags().String(flagAmt, "", "amt to transfer in faucet")
-	cmd.Flags().String(flagFrom, "", "from address")
+	cmd.Flags().String(flagFundFrom, "", "fund from address")
 	cmd.Flags().String(flagPort, "26600", "port of faucet server")
-	cmd.Flags().String(flags.FlagChainID, "", "chain id")
 	cmd.Flags().Int(flagAddrCap, defaultAddrCap, "hourly cap of faucet to a particular account address")
 	cmd.Flags().Int(flagIpCap, defaultIpCap, "hourly cap of faucet from a particular IP")
 
 	return cmd
-}
-
-func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (accAddr sdk.AccAddress, err error) {
-	var genDoc *tmtypes.GenesisDoc
-	if genDoc, err = tmtypes.GenesisDocFromFile(strings.ReplaceAll(genesisFilePath, "cli", "d")); err != nil {
-		return nil, fmt.Errorf("error loading genesis doc from %s: %s", genesisFilePath, err.Error())
-	}
-	var genState map[string]json.RawMessage
-	if err = cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
-		return nil, fmt.Errorf("error unmarshalling genesis doc %s: %s", genesisFilePath, err.Error())
-	}
-	var addresses []sdk.AccAddress
-	auth.GenesisAccountIterator{}.IterateGenesisAccounts(
-		cdc, genState, func(acc exported.Account) (stop bool) {
-			addresses = append(addresses, acc.GetAddress())
-			return false
-		},
-	)
-	if len(addresses) > 0 {
-		return addresses[0], nil
-	}
-	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }
 
 func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, resChan *chan FaucetRsp) {
