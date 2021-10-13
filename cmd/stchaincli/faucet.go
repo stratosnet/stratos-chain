@@ -3,6 +3,14 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"net"
+	"net/http"
+	"os"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
+
 	"github.com/ReneKroon/ttlcache/v2"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -19,13 +27,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/tendermint/tendermint/libs/cli"
-	"net"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
-	"sync"
-	"time"
 )
 
 const (
@@ -189,7 +190,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd := &cobra.Command{
 		Use:   "faucet",
-		Short: "Run a faucet cmd",
+		Short: "Run a faucet server",
 		Args:  cobra.RangeArgs(0, 7),
 		RunE: func(cmd *cobra.Command, args []string) (err error) {
 			if !viper.IsSet(flagFundFrom) {
