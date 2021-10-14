@@ -15,18 +15,28 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
 	matureUBDs := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, networkAddr := range matureUBDs {
-		balances, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+		balances, isIndexingNode, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
 		if err != nil {
 			continue
 		}
+		if isIndexingNode {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbondingIndexingNode,
+					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+				),
+			)
+		} else {
+			ctx.EventManager().EmitEvent(
+				sdk.NewEvent(
+					types.EventTypeCompleteUnbondingResourceNode,
+					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+				),
+			)
+		}
 
-		ctx.EventManager().EmitEvent(
-			sdk.NewEvent(
-				types.EventTypeCompleteUnbondingNode,
-				sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-				sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
-			),
-		)
 	}
 
 	// UpdateNode won't create UBD node
@@ -85,16 +95,17 @@ func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.I
 	return indexingNode
 }
 
-func calcUnbondingMatureTime(currStatus sdk.BondStatus, creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
+func calcUnbondingMatureTime(ctx sdk.Context, currStatus sdk.BondStatus, creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
 	switch currStatus {
 	case sdk.Unbonded:
 		return creationTime.Add(completionTime)
 	default:
+		now := ctx.BlockHeader().Time
 		// bonded
-		if creationTime.Add(threasholdTime).After(time.Now()) {
+		if creationTime.Add(threasholdTime).After(now) {
 			return creationTime.Add(threasholdTime).Add(completionTime)
 		}
-		return time.Now().Add(completionTime)
+		return now.Add(completionTime)
 	}
 }
 

@@ -24,7 +24,6 @@ var (
 
 func init() {
 	FsReporter.String(FlagReporter, "", "the node address of reporter")
-	//FsEpoch.Int64(FlagEpoch, 0, "the epoch when this PoT message reported.")
 	FsEpoch.String(FlagEpoch, "", "the epoch when this PoT message reported.")
 	FsReportReference.String(FlagReportReference, "", " the hash used as a reference to this PoT report")
 	FsNodesVolume.String(FlagNodesVolume, "", "a string of KEY-VALUE pairs. The KEY is 'node_address' and the VALUE is the proof of traffic of this node")

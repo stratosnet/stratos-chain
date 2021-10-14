@@ -37,6 +37,12 @@ const (
 	flagSkipInit   = "skip-init"
 
 	defaultOutputFlag = "text"
+
+	defaultNodeURI        = "tcp://127.0.0.1:26657"
+	defaultKeyringBackend = "test"
+	defaultHome           = "build/node/stchaincli"
+	defaultDenom          = "ustos"
+	defaultChainId        = "test-chain"
 )
 
 //var ModuleCdc *codec.Codec
@@ -92,7 +98,7 @@ func AddFixedLoadTestCmd(
 
 			if loadTestArgs.address == nil {
 				genesis := ctx.Config.GenesisFile()
-				faucetArgs.from, err = getFirstAccAddressFromGenesis(cdc, genesis)
+				loadTestArgs.address, err = getFirstAccAddressFromGenesis(cdc, genesis)
 				if err != nil {
 					return fmt.Errorf("failed to parse genesis: %w", err)
 				}
@@ -252,7 +258,7 @@ func AddRandomLoadTestCmd(
 
 			if loadTestArgs.address == nil {
 				genesis := ctx.Config.GenesisFile()
-				faucetArgs.from, err = getFirstAccAddressFromGenesis(cdc, genesis)
+				loadTestArgs.address, err = getFirstAccAddressFromGenesis(cdc, genesis)
 				if err != nil {
 					return fmt.Errorf("failed to parse genesis: %w", err)
 				}
@@ -506,4 +512,26 @@ func getAllAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (accA
 
 func getWaitDuration(interval int) time.Duration {
 	return time.Millisecond * time.Duration(interval)
+}
+
+func getFirstAccAddressFromGenesis(cdc *codec.Codec, genesisFilePath string) (accAddr sdk.AccAddress, err error) {
+	var genDoc *tmtypes.GenesisDoc
+	if genDoc, err = tmtypes.GenesisDocFromFile(strings.ReplaceAll(genesisFilePath, "cli", "d")); err != nil {
+		return nil, fmt.Errorf("error loading genesis doc from %s: %s", genesisFilePath, err.Error())
+	}
+	var genState map[string]json.RawMessage
+	if err = cdc.UnmarshalJSON(genDoc.AppState, &genState); err != nil {
+		return nil, fmt.Errorf("error unmarshalling genesis doc %s: %s", genesisFilePath, err.Error())
+	}
+	var addresses []sdk.AccAddress
+	auth.GenesisAccountIterator{}.IterateGenesisAccounts(
+		cdc, genState, func(acc exported.Account) (stop bool) {
+			addresses = append(addresses, acc.GetAddress())
+			return false
+		},
+	)
+	if len(addresses) > 0 {
+		return addresses[0], nil
+	}
+	return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, "No account initiated in genesis")
 }

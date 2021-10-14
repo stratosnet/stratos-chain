@@ -62,11 +62,13 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
 	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
+	foundationAccount := supply.NewEmptyModuleAccount(types.FoundationAccount)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollectorAcc.GetAddress().String()] = true
 	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 	blacklistedAddrs[bondPool.GetAddress().String()] = true
+	blacklistedAddrs[foundationAccount.GetAddress().String()] = true
 
 	cdc := MakeTestCodec()
 	pk := params.NewKeeper(cdc, keyParams, tkeyParams)
@@ -78,6 +80,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 		auth.FeeCollectorName:     nil,
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		types.FoundationAccount:   nil,
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace))
@@ -119,11 +122,6 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
 	cdc.RegisterConcrete(register.MsgCreateResourceNode{}, "register/MsgCreateResourceNode", nil)
 	cdc.RegisterConcrete(register.MsgCreateIndexingNode{}, "register/MsgCreateIndexingNode", nil)
-	//cdc.RegisterConcrete(bank.MsgSend{}, "test/staking/Send", nil)
-	//cdc.RegisterConcrete(types.MsgCreateValidator{}, "test/staking/CreateValidator", nil)
-	//cdc.RegisterConcrete(types.MsgEditValidator{}, "test/staking/EditValidator", nil)
-	//cdc.RegisterConcrete(types.MsgUndelegate{}, "test/staking/Undelegate", nil)
-	//cdc.RegisterConcrete(types.MsgBeginRedelegate{}, "test/staking/BeginRedelegate", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)

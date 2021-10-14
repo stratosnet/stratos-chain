@@ -5,17 +5,15 @@ import (
 )
 
 type GenesisState struct {
-	Params            Params         `json:"params" yaml:"params"`
-	FoundationAccount sdk.AccAddress `json:"foundation_account" yaml:"foundation_account"` //foundation account address
-	InitialUozPrice   sdk.Int        `json:"initial_uoz_price" yaml:"initial_uoz_price"`   //initial price of uoz
+	Params          Params  `json:"params" yaml:"params"`
+	InitialUozPrice sdk.Dec `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, foundationAccount sdk.AccAddress, initialUOzonePrice sdk.Int) GenesisState {
+func NewGenesisState(params Params, initialUOzonePrice sdk.Dec) GenesisState {
 	return GenesisState{
-		Params:            params,
-		FoundationAccount: foundationAccount,
-		InitialUozPrice:   initialUOzonePrice,
+		Params:          params,
+		InitialUozPrice: initialUOzonePrice,
 	}
 }
 
@@ -23,16 +21,13 @@ func NewGenesisState(params Params, foundationAccount sdk.AccAddress, initialUOz
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
 		Params:          DefaultParams(),
-		InitialUozPrice: sdk.NewInt(10000000000),
+		InitialUozPrice: DefaultUozPrice,
 	}
 }
 
 // ValidateGenesis validates the pot genesis parameters
 func ValidateGenesis(data GenesisState) error {
-	if data.FoundationAccount == nil {
-		return ErrFoundationAccount
-	}
-	if data.InitialUozPrice.LTE(sdk.ZeroInt()) {
+	if data.InitialUozPrice.LTE(sdk.ZeroDec()) {
 		return ErrInitialUOzonePrice
 	}
 	return nil

@@ -3,24 +3,16 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"strconv"
 	"strings"
-
-	// "strings"
-
-	"github.com/spf13/cobra"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-
-	// "github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/codec"
-	// sdk "github.com/cosmos/cosmos-sdk/types"
-
-	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 // GetQueryCmd returns the cli query commands for pot module
@@ -46,9 +38,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryVolumeReport implements the query volume report command.
 func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "report [flags]", // reporter: []byte
-		//Args:  cobra.RangeArgs(1, 1),
-		//Short: "Query volume report hash by reporter addr",
+		Use:   "report [flags]", // reporter: []byte
 		Short: "Query volume report hash by epoch",
 		Long: strings.TrimSpace(
 			//fmt.Sprintf(`Query volume report hash by reporter.`),
@@ -58,7 +48,6 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			//resp, _, err := QueryVolumeReport(cliCtx, queryRoute, viper.GetString(FlagReporter))
 			epochStr := viper.GetString(FlagEpoch)
 			epoch, err := checkFlagEpoch(epochStr)
 			if err != nil {
@@ -72,24 +61,11 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 
 		},
 	}
-	//_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	//cmd.Flags().AddFlagSet(FsReporter)
 	cmd.Flags().AddFlagSet(FsEpoch)
 	_ = cmd.MarkFlagRequired(FlagEpoch)
-	//_ = cmd.MarkFlagRequired(FlagReporter)
 
 	return cmd
 }
-
-// QueryVolumeReport queries the volume hash by reporter
-//func QueryVolumeReport(cliCtx context.CLIContext, queryRoute, reporter string) ([]byte, int64, error) {
-//	accAddr, err := sdk.AccAddressFromBech32(reporter)
-//	if err != nil {
-//		return nil, 0, fmt.Errorf("invalid reporter, please specify a reporter in Bech32 format %w", err)
-//	}
-//	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryVolumeReportHash)
-//	return cliCtx.QueryWithData(route, accAddr)
-//}
 
 func QueryVolumeReport(cliCtx context.CLIContext, queryRoute string, epoch sdk.Int) (types.ReportInfo, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryVolumeReportHash)

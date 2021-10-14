@@ -5,6 +5,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
+const (
+	FoundationAccount = "foundation_account"
+)
+
+var (
+	DefaultUozPrice = sdk.NewDecWithPrec(1000000, 9) //0.001
+)
+
 type DistributeGoal struct {
 	BlockChainRewardToValidatorFromMiningPool  sdk.Int `json:"block_chain_reward_to_validator_from_mining_pool" yaml:"block_chain_reward_to_validator_from_mining_pool"`   // 20% mining reward * stakeOfAllValidators / totalStake
 	BlockChainRewardToValidatorFromTrafficPool sdk.Int `json:"block_chain_reward_to_validator_from_traffic_pool" yaml:"block_chain_reward_to_validator_from_traffic_pool"` // 20% traffic reward * stakeOfAllValidators / totalStake
