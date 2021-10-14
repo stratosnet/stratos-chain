@@ -9,7 +9,6 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
-	keeper.SetFoundationAccount(ctx, data.FoundationAccount)
 	keeper.SetInitialUOzonePrice(ctx, data.InitialUozPrice)
 }
 
@@ -18,8 +17,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
-	foundationAccount := keeper.GetFoundationAccount(ctx)
 	initialUOzonePrice := keeper.GetInitialUOzonePrice(ctx)
 
-	return types.NewGenesisState(params, foundationAccount, initialUOzonePrice)
+	return types.NewGenesisState(params, initialUOzonePrice)
 }

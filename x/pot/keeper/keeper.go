@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"fmt"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -53,20 +52,18 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.ReportRecord, err error) {
+func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.VolumeReportRecord) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.VolumeReportStoreKey(epoch))
 	if bz == nil {
-		return types.ReportRecord{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest,
-			"key %s does not exist", epoch)
+		return types.VolumeReportRecord{}
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
-	return res, nil
+	return res
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.ReportRecord) {
+func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.VolumeReportRecord) {
 	store := ctx.KVStore(k.storeKey)
-	//storeKey := types.VolumeReportStoreKey(reporter)
 	storeKey := types.VolumeReportStoreKey(epoch)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
@@ -80,4 +77,27 @@ func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
 func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
 	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
 	return found
+}
+
+func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
+	nodeOwnerMap := make(map[string]sdk.AccAddress)
+	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
+	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
+	return nodeOwnerMap
+}
+
+func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
+	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))
+	if err != nil {
+		return err
+	}
+
+	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, sdk.NewCoins(amount))
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }

@@ -42,8 +42,7 @@ import (
 )
 
 const (
-	appName    = "stchain"
-	appVersion = "v0.4.0"
+	appName = "stchain"
 )
 
 var (
@@ -72,23 +71,19 @@ var (
 	)
 
 	maccPerms = map[string][]string{
-		auth.FeeCollectorName: {"fee_collector"},
-		//auth.FeeCollectorName:     nil,
+		auth.FeeCollectorName:     nil,
 		distr.ModuleName:          nil,
 		mint.ModuleName:           {supply.Minter},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		gov.ModuleName:            {supply.Burner},
+		pot.FoundationAccount:     nil,
 	}
 	// module accounts that are allowed to receive tokens
 	//allowedReceivingModAcc = map[string]bool{
 	//	distr.ModuleName: true,
 	//}
 )
-
-func init() {
-	version.Version = appVersion
-}
 
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
@@ -295,7 +290,7 @@ func NewInitApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 	app.SetEndBlocker(app.EndBlocker)
 
-	app.upgradeKeeper.SetUpgradeHandler(appVersion, func(ctx sdk.Context, plan upgrade.Plan) {
+	app.upgradeKeeper.SetUpgradeHandler(version.Version, func(ctx sdk.Context, plan upgrade.Plan) {
 		logger.Info("Upgrade Handler working")
 	})
 	app.SetStoreLoader(bam.StoreLoaderWithUpgrade(&store.StoreUpgrades{

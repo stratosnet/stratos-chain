@@ -31,7 +31,7 @@ func TestSdsMsgs(t *testing.T) {
 	mApp, _, _, _, _ := getMockApp(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
-	mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
+	//mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
 
 	///********************* create fileUpload msg *********************/
 	log.Print("====== Testing MsgFileUpload ======")
@@ -46,7 +46,7 @@ func TestSdsMsgs(t *testing.T) {
 	coinToPrepay := sdk.NewCoin(DefaultDenom, prepayAmt)
 	prepayMsg := types.NewMsgPrepay(sdsAccAddr3, sdk.NewCoins(coinToPrepay))
 	headerPrepay := abci.Header{Height: mApp.LastBlockHeight() + 1}
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, headerPrepay, []sdk.Msg{prepayMsg}, []uint64{21}, []uint64{0}, true, true, sdsAccPrivKey3)
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, headerPrepay, []sdk.Msg{prepayMsg}, []uint64{20}, []uint64{0}, true, true, sdsAccPrivKey3)
 	newBalanceInt := sdsAccBal3.Sub(prepayAmt)
 	newBalanceCoin := sdk.NewCoin(DefaultDenom, newBalanceInt)
 	mock.CheckBalance(t, mApp, sdsAccAddr3, sdk.NewCoins(newBalanceCoin))
@@ -153,7 +153,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		potKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams(), foundationAccAddr, initialOzonePrice))
+		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams(), initialOzonePrice))
 
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)

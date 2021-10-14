@@ -12,10 +12,3 @@ const (
 type QueryVolumeReportParams struct {
 	Reporter types.AccAddress `json:"reporter" yaml:"reporter"`
 }
-
-// NewQueryVolumeReportParams creates a new instance of QueryVolumeReportParams
-func NewQueryVolumeReportParams(reporter types.AccAddress) QueryVolumeReportParams {
-	return QueryVolumeReportParams{
-		Reporter: reporter,
-	}
-}

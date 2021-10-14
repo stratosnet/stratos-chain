@@ -2,17 +2,13 @@ package cli
 
 import (
 	"bufio"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/viper"
-	//"encoding/hex"
-	//"encoding/json"
 	"fmt"
 	"github.com/cosmos/cosmos-sdk/client/context"
-	//"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
-	//"net/http"
+	"github.com/spf13/viper"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -39,6 +35,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	potTxCmd.AddCommand(flags.PostCommands(
 		VolumeReportCmd(cdc),
 		WithdrawCmd(cdc),
+		FoundationDepositCmd(cdc),
 	)...)
 	return potTxCmd
 }
@@ -95,7 +92,6 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report [flags]",
 		Short: "Create and sign a volume report",
-		//Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -163,5 +159,41 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		reportReference,
 		reporterOwner,
 	)
+	return txBldr, msg, nil
+}
+
+func FoundationDepositCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "foundation-deposit",
+		Short: "Deposit to foundation account",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			txBldr, msg, err := buildFoundationDepositMsg(cliCtx, txBldr)
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	cmd.Flags().AddFlagSet(FsAmount)
+
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func buildFoundationDepositMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	amountStr := viper.GetString(FlagAmount)
+	amount, err := sdk.ParseCoin(amountStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+	from := cliCtx.GetFromAddress()
+	msg := types.NewMsgFoundationDeposit(amount, from)
 	return txBldr, msg, nil
 }

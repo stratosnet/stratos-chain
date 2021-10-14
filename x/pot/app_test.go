@@ -1,6 +1,11 @@
 package pot
 
 import (
+	"github.com/stretchr/testify/require"
+	"testing"
+
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -10,9 +15,6 @@ import (
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"github.com/stratosnet/stratos-chain/x/register"
-	"github.com/stretchr/testify/require"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
 )
 
 const (
@@ -47,7 +49,7 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 // modify stop flag & variable could make the test case stop when reach a specific condition
 func isNeedStop(ctx sdk.Context, k Keeper, epoch sdk.Int, minedToken sdk.Int) bool {
 
-	if stopFlagOutOfTotalMiningReward && minedToken.GT(foundationDeposit.AmountOf("ustos")) {
+	if stopFlagOutOfTotalMiningReward && minedToken.GT(foundationDeposit) {
 		return true
 	}
 	if stopFlagSpecificMinedReward && minedToken.GT(paramSpecificMinedReward) {
@@ -67,19 +69,29 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	mApp, k, stakingKeeper, bankKeeper, supplyKeeper := getMockApp(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
-	mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
 
-	/********************* create validator with 50% commission *********************/
+	/********************* foundation account deposit *********************/
 	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx := mApp.BaseApp.NewContext(true, header)
+	foundationDepositMsg := NewMsgFoundationDeposit(sdk.NewCoin(k.BondDenom(ctx), foundationDeposit), foundationDepositorAccAddr)
+	foundationDepositorAcc := mApp.AccountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := foundationDepositorAcc.GetAccountNumber()
+	accSeq := foundationDepositorAcc.GetSequence()
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
+	foundationAccAddr := supplyKeeper.GetModuleAddress(types.FoundationAccount)
+	mock.CheckBalance(t, mApp, foundationAccAddr, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), foundationDeposit)))
+
+	/********************* create validator with 50% commission *********************/
+	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
+	ctx = mApp.BaseApp.NewContext(true, header)
 
 	commission := staking.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	description := staking.NewDescription("foo_moniker", "", "", "", "")
 	createValidatorMsg := staking.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, sdk.NewCoin("ustos", valInitialStake), description, commission, sdk.OneInt())
 
 	valOpAcc1 := mApp.AccountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum := valOpAcc1.GetAccountNumber()
-	accSeq := valOpAcc1.GetSequence()
+	accNum = valOpAcc1.GetAccountNumber()
+	accSeq = valOpAcc1.GetSequence()
 	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
 	mock.CheckBalance(t, mApp, valOpAccAddr1, nil)
 
@@ -172,15 +184,12 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 
 		/********************* deliver tx *********************/
-		idxNodeAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxNodeAddr1)
-		nodeAccNum := idxNodeAcc1.GetAccountNumber()
-		nodeAccSeq := idxNodeAcc1.GetSequence()
 
 		idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwner1)
 		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
 		ownerAccSeq := idxOwnerAcc1.GetSequence()
 
-		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{nodeAccNum, ownerAccNum}, []uint64{nodeAccSeq, ownerAccSeq}, true, true, idxNodePrivKey1, idxOwnerPrivKey1)
+		SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
 
 		/********************* commit & check result *********************/
 		header = abci.Header{Height: mApp.LastBlockHeight() + 1}
@@ -206,6 +215,7 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 	}
 
 	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
+	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
 	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr).AmountOf("ustos")
 	newUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
 
@@ -251,17 +261,20 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, staking.Keeper, bank.Keeper, s
 	feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
 	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
+	foundationAccount := supply.NewEmptyModuleAccount(types.FoundationAccount)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollector.GetAddress().String()] = true
 	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 	blacklistedAddrs[bondPool.GetAddress().String()] = true
+	blacklistedAddrs[foundationAccount.GetAddress().String()] = true
 
 	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 	maccPerms := map[string][]string{
-		auth.FeeCollectorName:     {"fee_collector"},
+		auth.FeeCollectorName:     nil,
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		types.FoundationAccount:   nil,
 	}
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
@@ -333,7 +346,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		keeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), foundationAccAddr, initialOzonePrice))
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), initialOzonePrice))
 
 		return abci.ResponseInitChain{
 			Validators: validators,

@@ -5,29 +5,13 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) SetFoundationAccount(ctx sdk.Context, acc sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(acc)
-	store.Set(types.FoundationAccountKey, b)
-}
-
-func (k Keeper) GetFoundationAccount(ctx sdk.Context) (acc sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.FoundationAccountKey)
-	if b == nil {
-		panic("Stored foundation account should not have been nil")
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &acc)
-	return
-}
-
-func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Int) {
+func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
-func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Int) {
+func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.InitialUOzonePriceKey)
 	if b == nil {
@@ -101,15 +85,15 @@ func (k Keeper) GetRewardAddressPool(ctx sdk.Context) (addressList []sdk.AccAddr
 	return
 }
 
-func (k Keeper) setLastMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
+func (k Keeper) setLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(epoch)
-	store.Set(types.LastMaturedEpochKey, b)
+	store.Set(types.LastReportedEpochKey, b)
 }
 
-func (k Keeper) getLastMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
+func (k Keeper) GetLastReportedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastMaturedEpochKey)
+	b := store.Get(types.LastReportedEpochKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
@@ -163,30 +147,4 @@ func (k Keeper) GetImmatureTotalReward(ctx sdk.Context, acc sdk.AccAddress) (val
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
-}
-
-func (k Keeper) setEpochReward(ctx sdk.Context, epoch sdk.Int, value []types.Reward) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
-	key := types.GetEpochRewardsKey(epoch)
-	store.Set(key, b)
-}
-
-func (k Keeper) GetEpochReward(ctx sdk.Context, epoch sdk.Int) (value []types.Reward) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.GetEpochRewardsKey(epoch))
-	if b == nil {
-		return nil
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
-	return
-}
-
-func (k Keeper) setRewardsByEpoch(ctx sdk.Context, rewardDetailMap map[string]types.Reward, epoch sdk.Int) {
-	var res []types.Reward
-	for _, v := range rewardDetailMap {
-		newNodeReward := types.NewReward(v.NodeAddress, v.RewardFromMiningPool, v.RewardFromTrafficPool)
-		res = append(res, newNodeReward)
-	}
-	k.setEpochReward(ctx, epoch, res)
 }

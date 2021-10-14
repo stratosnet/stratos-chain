@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
@@ -138,7 +137,7 @@ func (k Keeper) IterateLastIndexingNodeStakes(ctx sdk.Context, handler func(node
 func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description, time.Now())
+	indexingNode := types.NewIndexingNode(networkID, pubKey, ownerAddr, description, ctx.BlockHeader().Time)
 
 	ozoneLimitChange, err = k.AddIndexingNodeStake(ctx, indexingNode, stake)
 	if err != nil {
@@ -148,7 +147,7 @@ func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID string, pubKey c
 	var approveList = make([]sdk.AccAddress, 0)
 	var rejectList = make([]sdk.AccAddress, 0)
 	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
-	expireTime := time.Now().Add(votingValidityPeriod)
+	expireTime := ctx.BlockHeader().Time.Add(votingValidityPeriod)
 
 	votePool := types.NewRegistrationVotePool(indexingNode.GetNetworkAddr(), approveList, rejectList, expireTime)
 	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
@@ -162,7 +161,6 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 
 	nodeAcc := k.accountKeeper.GetAccount(ctx, indexingNode.GetNetworkAddr())
 	if nodeAcc == nil {
-		ctx.Logger().Info(fmt.Sprintf("create new account: %s", indexingNode.GetNetworkAddr()))
 		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, indexingNode.GetNetworkAddr())
 		k.accountKeeper.SetAccount(ctx, nodeAcc)
 	}
@@ -261,7 +259,6 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	} else {
 		k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	}
-	//k.decreaseOzoneLimitBySubtractStake(ctx, tokenToSub.Amount) // moved to keeper/UnbondIndexingNode()
 	return nil
 }
 
@@ -295,7 +292,6 @@ func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkID string) (indexing
 			indexingNodes = append(indexingNodes, node)
 		}
 	}
-	ctx.Logger().Info("IndexingNodeList: "+networkID, types.ModuleCdc.MustMarshalJSON(indexingNodes))
 	return indexingNodes, nil
 }
 
@@ -310,7 +306,6 @@ func (k Keeper) GetIndexingNodeListByMoniker(ctx sdk.Context, moniker string) (r
 			resourceNodes = append(resourceNodes, node)
 		}
 	}
-	ctx.Logger().Info("indexingNodeList: "+moniker, types.ModuleCdc.MustMarshalJSON(resourceNodes))
 	return resourceNodes, nil
 }
 
@@ -321,7 +316,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	if !found {
 		return sdk.Unbonded, types.ErrNoRegistrationVotePoolFound
 	}
-	if votePool.ExpireTime.Before(time.Now()) {
+	if votePool.ExpireTime.Before(ctx.BlockHeader().Time) {
 		return sdk.Unbonded, types.ErrVoteExpired
 	}
 	if k.hasValue(votePool.ApproveList, voterAddr) || k.hasValue(votePool.RejectList, voterAddr) {
@@ -447,4 +442,16 @@ func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
+}
+
+func (k Keeper) GetNodeOwnerMapFromIndexingNodes(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress) map[string]sdk.AccAddress {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
+		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
+	}
+	return nodeOwnerMap
 }

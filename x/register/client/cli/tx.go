@@ -109,7 +109,6 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
-	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 
 	return cmd
 }

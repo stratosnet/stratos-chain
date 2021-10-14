@@ -1,8 +1,13 @@
 BUILDDIR ?= $(CURDIR)/build
 
-BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
+APP_VER := v0.5.0
+COMMIT := $(GIT_COMMIT_HASH)
 
-VERSION := -ldflags="-X github.com/cosmos/cosmos-sdk/version.Version=v0.4.0"
+VERSION := $(APP_VER)-$(COMMIT)
+
+ldflags= -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION)
+
+BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
 
 BUILD_TARGETS := build install
 
@@ -10,7 +15,7 @@ build: BUILD_ARGS=-o $(BUILDDIR)/
 
 $(BUILD_TARGETS): go.sum $(BUILDDIR)/
 # 	go $@ -mod=readonly $(BUILD_ARGS) $(VERSION) ./cmd/...
-	go $@ $(BUILD_ARGS) $(VERSION) ./cmd/...
+	go $@ $(BUILD_ARGS) $(BUILD_FLAGS) ./cmd/...
 #	CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go $@ -mod=readonly $(BUILD_ARGS) $(VERSION) -tags "cleveldb" ./cmd/...
 
 $(BUILDDIR)/:

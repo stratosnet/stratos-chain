@@ -16,10 +16,11 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		ctx = ctx.WithEventManager(sdk.NewEventManager())
 		switch msg := msg.(type) {
 		case types.MsgVolumeReport:
-			ctx.Logger().With("pot", "enter NewHandler")
 			return handleMsgReportVolume(ctx, k, msg)
 		case types.MsgWithdraw:
 			return handleMsgWithdraw(ctx, k, msg)
+		case types.MsgFoundationDeposit:
+			return handleMsgFoundationDeposit(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -30,12 +31,16 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 // Handle handleMsgReportVolume.
 func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolumeReport) (*sdk.Result, error) {
 	if !(k.IsSPNode(ctx, msg.Reporter)) {
-
-		ctx.Logger().Info("Sender Info:", "IsSPNode", "false")
 		errMsg := fmt.Sprint("Volume report is not sent by a superior peer")
-		ctx.Logger().Info(errMsg)
-
 		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
+	}
+
+	// ensure epoch increment
+	lastEpoch := k.GetLastReportedEpoch(ctx)
+	if msg.Epoch.LTE(lastEpoch) {
+		e := sdkerrors.Wrapf(types.ErrMatureEpoch, "expected epoch should be greater than %s, got %s",
+			lastEpoch.String(), msg.Epoch.String())
+		return nil, e
 	}
 
 	txBytes := ctx.TxBytes()
@@ -82,6 +87,26 @@ func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) 
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgFoundationDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgFoundationDeposit) (*sdk.Result, error) {
+	err := k.FoundationDeposit(ctx, msg.Amount, msg.From)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeFoundationDeposit,
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

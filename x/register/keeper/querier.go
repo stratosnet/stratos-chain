@@ -15,16 +15,18 @@ import (
 )
 
 const (
-	QueryResourceNodeList      = "resource_nodes"
-	QueryResourceNodeByMoniker = "resource_nodes_moniker"
-	QueryIndexingNodeList      = "indexing_nodes"
-	QueryIndexingNodeByMoniker = "indexing_nodes_moniker"
-	QueryNodesTotalStakes      = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddr   = "node_stakes"
-	QueryNodeStakeByOwner      = "node_stakes_by_owner"
-	QueryRegisterParams        = "register_params"
-	QueryDefaultLimit          = 100
-	defaultDenom               = "ustos"
+	QueryResourceNodeList         = "resource_nodes"
+	QueryResourceNodesByNetworkID = "resource_nodes_network_id"
+	QueryIndexingNodesByNetworkID = "indexing_nodes_network_id"
+	QueryResourceNodeByMoniker    = "resource_nodes_moniker"
+	QueryIndexingNodeList         = "indexing_nodes"
+	QueryIndexingNodeByMoniker    = "indexing_nodes_moniker"
+	QueryNodesTotalStakes         = "nodes_total_stakes"
+	QueryNodeStakeByNodeAddr      = "node_stakes"
+	QueryNodeStakeByOwner         = "node_stakes_by_owner"
+	QueryRegisterParams           = "register_params"
+	QueryDefaultLimit             = 100
+	defaultDenom                  = "ustos"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -32,19 +34,19 @@ func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryResourceNodeList:
-			//return GetResourceNodes(ctx, req, k)
 			return GetResourceNodeList(ctx, req, k)
+		case QueryResourceNodesByNetworkID:
+			return GetResourceNodes(ctx, req, k)
 		case QueryIndexingNodeList:
-			//return GetIndexingNodes(ctx, req, k)
 			return GetIndexingNodeList(ctx, req, k)
+		case QueryIndexingNodesByNetworkID:
+			return GetIndexingNodes(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return GetNodesStakingInfo(ctx, req, k)
 		case QueryNodeStakeByNodeAddr:
 			return GetStakingInfoByNodeAddr(ctx, req, k)
 		case QueryNodeStakeByOwner:
 			return GetStakingInfoByOwnerAddr(ctx, req, k)
-		//case QueryNetworkSet:
-		//	return GetNetworkSet(ctx, k)
 		case QueryResourceNodeByMoniker:
 			return GetResourceNodesByMoniker(ctx, req, k)
 		case QueryIndexingNodeByMoniker:
@@ -165,7 +167,7 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfIndexingNodes)
 	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfIndexingNodes)
 	totalUnbondingStake := keeper.GetAllUnbondingNodesTotalBalance(ctx)
-
+	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
 	res := NewQueryNodesStakingInfo(
 		totalStakeOfResourceNodes,
 		totalStakeOfIndexingNodes,
@@ -270,16 +272,8 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-
-	params2 := params
-	params2.Page = 1
-	params2.Limit = QueryDefaultLimit
-	if params.Limit > 0 {
-		params2.Limit = params.Limit
-	}
-
-	resNodes := keeper.GetResourceNodesFiltered(ctx, params2)
-	indNodes := keeper.GetIndexingNodesFiltered(ctx, params2)
+	resNodes := keeper.GetResourceNodesFiltered(ctx, params)
+	indNodes := keeper.GetIndexingNodesFiltered(ctx, params)
 
 	for _, n := range indNodes {
 		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
@@ -327,35 +321,67 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	indexingResultsLen := len(indexingNodeResults)
 	resourceResultsLen := len(resourceNodeResults)
 	start, end := client.Paginate(indexingResultsLen+resourceResultsLen, params.Page, params.Limit, QueryDefaultLimit)
-	var bz []byte
-	if start < 0 || end < 0 {
-		return bz, nil
-	}
-	if end <= indexingResultsLen {
-		bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingNodeResults[start:end])
-		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-		}
-		bz = append(bz, bzIndexing...)
-	} else if start > indexingResultsLen {
-		bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourceNodeResults[start:end])
-		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-		}
-		bz = append(bz, bzResource...)
-	} else {
-		bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingNodeResults[start:indexingResultsLen])
-		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-		}
-		bz = append(bz, bzIndexing...)
 
-		bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourceNodeResults[:end-indexingResultsLen])
+	var bz []byte
+	switch {
+	case start < 0 || end < 0:
+		return nil, nil
+
+	case end <= indexingResultsLen:
+		indexingPaginated1 := indexingNodeResults[start:end]
+		bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingPaginated1)
+
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
+		if len(indexingPaginated1) != 0 {
+			bz = append(bz, bzIndexing...)
+		}
+		return bz, nil
+	case start > indexingResultsLen:
+		resourcePaginated := resourceNodeResults[start-indexingResultsLen : end-indexingResultsLen]
+		bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourcePaginated)
+
+		if err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		if len(resourcePaginated) != 0 {
+			bz = append(bz, bzResource...)
+		}
+		return bz, nil
+
+	default:
+		indexingPaginated2 := indexingNodeResults[start:]
+		bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingPaginated2)
+		if err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		if len(indexingPaginated2) != 0 {
+			bz = append(bz, bzIndexing...)
+		} else {
+			bz = append(bz, []byte("[")...)
+		}
+
+		resourcePaginated2 := resourceNodeResults[:end-indexingResultsLen]
+		bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourcePaginated2)
+
+		if err != nil {
+			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		if len(resourcePaginated2) != 0 {
+			// remove "["
+			bzResource = bzResource[1:]
+		}
+
+		if len(bz) != 1 {
+			// remove "]", add ","
+			bz = bz[:len(bz)-1]
+			bz = append(bz, []byte(",")...)
+		}
+
 		bz = append(bz, bzResource...)
 	}
+
 	return bz, nil
 }
 
@@ -383,7 +409,6 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
-	filteredNodes = k.indexingNodesPagination(filteredNodes, params)
 	return filteredNodes
 }
 
@@ -412,7 +437,6 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 		}
 	}
 
-	filteredNodes = k.resourceNodesPagination(filteredNodes, params)
 	return filteredNodes
 }
 

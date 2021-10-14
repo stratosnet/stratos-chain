@@ -354,7 +354,6 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		//candidateNetworkAddr, candidateOwnerAddr, opinion, voterNetworkAddr, voterOwnerAddr
 		msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, voteOpinion, voterNetworkAddr, voterOwnerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
