@@ -68,6 +68,7 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 	cmd = flags.PostCommands(cmd)[0]
 	//cmd.Flags().String(flags.FlagFrom, "", "from address")
 	cmd.Flags().String(FlagFileHash, "", "Hash of uploaded file")
+	cmd.Flags().String(FlagReporter, "", "Reporter of file")
 	cmd.Flags().String(FlagUploader, "", "Uploader of file")
 
 	cmd.MarkFlagRequired(flags.FlagFrom)
