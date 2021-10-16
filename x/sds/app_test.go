@@ -36,9 +36,9 @@ func TestSdsMsgs(t *testing.T) {
 	///********************* create fileUpload msg *********************/
 	log.Print("====== Testing MsgFileUpload ======")
 	fileHash, _ := hex.DecodeString(testFileHashHex)
-	fileUploadMsg := types.NewMsgUpload(fileHash, spNodeAddrIdx1, sdsAccAddr2)
+	fileUploadMsg := types.NewMsgUpload(fileHash, sdsAccAddr1, spNodeAddrIdx1, sdsAccAddr2)
 	headerUpload := abci.Header{Height: mApp.LastBlockHeight() + 1}
-	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, headerUpload, []sdk.Msg{fileUploadMsg}, []uint64{17}, []uint64{0}, true, true, spNodePrivKeyIdx1)
+	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, headerUpload, []sdk.Msg{fileUploadMsg}, []uint64{18}, []uint64{0}, true, true, sdsAccPrivKey1)
 	coin := sdk.NewCoin(DefaultDenom, spNodeInitialStakeIdx1)
 	mock.CheckBalance(t, mApp, spNodeAddrIdx1, sdk.Coins{coin})
 	///********************* create prepay msg *********************/

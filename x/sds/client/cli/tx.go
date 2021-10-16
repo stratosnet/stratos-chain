@@ -50,13 +50,18 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
+			reporter, err := sdk.AccAddressFromBech32(viper.GetString(FlagReporter))
+			if err != nil {
+				return err
+			}
+
 			uploader, err := sdk.AccAddressFromBech32(viper.GetString(FlagUploader))
 			if err != nil {
 				return err
 			}
 
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgUpload(fileHash, cliCtx.GetFromAddress(), uploader)
+			msg := types.NewMsgUpload(fileHash, cliCtx.GetFromAddress(), reporter, uploader)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
@@ -67,6 +72,7 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd.MarkFlagRequired(flags.FlagFrom)
 	cmd.MarkFlagRequired(FlagFileHash)
+	cmd.MarkFlagRequired(FlagReporter)
 	cmd.MarkFlagRequired(FlagUploader)
 
 	return cmd
