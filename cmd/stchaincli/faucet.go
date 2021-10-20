@@ -188,6 +188,7 @@ func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBld
 						WithGas(uint64(400000)).
 						WithMemo(strconv.Itoa(newSeq)),
 					fReq.ToAddr, faucetArgs.from, coin, &resChan)
+
 		}
 	}
 }
@@ -329,7 +330,6 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
-	cliCtx.BroadcastMode = "block"
 
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {
@@ -381,7 +381,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	}
 
 	// broadcast to a Tendermint node
-	res, err := cliCtx.BroadcastTxSync(txBytes)
+	res, err := cliCtx.BroadcastTxCommit(txBytes)
 	faucetRsp := FaucetRsp{TxResponse: res, Seq: txBldr.Sequence()}
 	*resChan <- faucetRsp
 }
