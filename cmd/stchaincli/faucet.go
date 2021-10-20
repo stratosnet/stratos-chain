@@ -6,9 +6,11 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/ReneKroon/ttlcache/v2"
@@ -52,6 +54,7 @@ const (
 // used in request channel
 type FaucetReq struct {
 	ToAddr sdk.AccAddress
+	resChan  chan FaucetRsp
 }
 
 // used in response channel
@@ -127,8 +130,6 @@ func (fim *FromIpMiddleware) checkCap(fromIp string) bool {
 var (
 	faucetArgs  = FaucetArgs{}
 	seqInfo     = SeqInfo{startSeq: 0, lastSuccSeq: 0}
-	faucetReqCh = make(chan FaucetReq, 10000)
-	resChan     = make(chan FaucetRsp)
 )
 
 // struct to hold the command-line args
@@ -151,6 +152,7 @@ func (si *SeqInfo) incrLastSuccSeq(succSeq uint64) {
 		si.lastSuccSeq = int(succSeq)
 	}
 }
+
 func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 	si.mu.Lock()
 	defer si.mu.Unlock()
@@ -163,25 +165,30 @@ func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 	}
 }
 
-func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin) {
+func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin, quit chan os.Signal) {
 	for {
-		fReq := <-*faucetReq
-		// get latest seq
-		_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
-		if err != nil {
-			return
+		select {
+			case <- quit:
+
+				return
+			case fReq := <-*faucetReq:
+				resChan := fReq.resChan
+			// get latest seq
+				_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
+				if err != nil {
+					return
+				}
+				newSeq := seqInfo.getNewSeq(int(latestSeq))
+
+				//fmt.Print(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
+				doTransfer(cliCtx,
+					txBldr.
+						WithSequence(uint64(newSeq)).
+						WithChainID(viper.GetString(flags.FlagChainID)).
+						WithGas(uint64(400000)).
+						WithMemo(strconv.Itoa(newSeq)),
+					fReq.ToAddr, faucetArgs.from, coin, &resChan)
 		}
-		newSeq := seqInfo.getNewSeq(int(latestSeq))
-		//fmt.Print(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
-		go doTransfer(cliCtx,
-			txBldr.
-				WithSequence(uint64(newSeq)).
-				WithChainID(viper.GetString(flags.FlagChainID)).
-				WithGas(uint64(400000)).
-				WithMemo(strconv.Itoa(newSeq)),
-			fReq.ToAddr, faucetArgs.from, coin, &resChan)
-		//fmt.Print("send", "addr", fReq.ToAddr, "amount", coin.String())
-		time.Sleep(requestInterval) // avoid invalid tx seq caused by non-finished checkTx()
 	}
 }
 
@@ -257,7 +264,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("ok\n"))
 			})
-
+			faucetReqCh := make(chan FaucetReq, 10000)
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -267,7 +274,8 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
 				}
-				faucetReq := FaucetReq{ToAddr: toAddr}
+				resChan := make(chan FaucetRsp)
+				faucetReq := FaucetReq{ToAddr: toAddr, resChan: resChan}
 				faucetReqCh <- faucetReq
 
 				faucetRsp := <-resChan
@@ -281,7 +289,17 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			// ipCap check has higher priority than toAddrCap
 			r.Use(fim.Middleware)
 			r.Use(ftm.Middleware)
-			go FaucetJobFromCh(&faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin)
+
+			quit := make(chan os.Signal, 1)
+			signal.Notify(quit,
+				syscall.SIGTERM,
+				syscall.SIGINT,
+				syscall.SIGQUIT,
+				syscall.SIGKILL,
+				syscall.SIGHUP,
+			)
+
+			go FaucetJobFromCh(&faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin, quit)
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
@@ -309,7 +327,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
-	cliCtx.BroadcastMode = "sync"
+	cliCtx.BroadcastMode = "block"
 
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {

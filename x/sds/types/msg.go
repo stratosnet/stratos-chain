@@ -13,7 +13,7 @@ const (
 type MsgFileUpload struct {
 	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
 	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // sp node who reports this tx
-	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader`    // who uploads the file
+	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader"`    // who uploads the file
 }
 
 // verify interface at compile time
