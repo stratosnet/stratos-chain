@@ -269,6 +269,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
 				addr := vars["address"]
+				fmt.Println("get request from addr: ", addr)
 				toAddr, err := sdk.AccAddressFromBech32(addr)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
@@ -283,6 +284,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					// sigverify pass
 					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
 				}
+				fmt.Println("tx send: ", faucetRsp.TxResponse.TxHash)
 				rest.PostProcessResponseBare(writer, cliCtx, faucetRsp.TxResponse)
 				return
 			}).Methods("POST")
