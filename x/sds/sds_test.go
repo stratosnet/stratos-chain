@@ -143,23 +143,23 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{
 		Address: resOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc2 := &auth.BaseAccount{
 		Address: resOwner2,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc3 := &auth.BaseAccount{
 		Address: resOwner3,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc4 := &auth.BaseAccount{
 		Address: resOwner4,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc5 := &auth.BaseAccount{
 		Address: resOwner5,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 
 	//************************** setup indexing nodes owners' accounts **************************
