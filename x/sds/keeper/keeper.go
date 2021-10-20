@@ -111,9 +111,8 @@ func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Int {
 	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
 	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	currUozPrice := Lt.ToDec().
-		Quo((S.
-			Add(Pt)).ToDec()).
+	currUozPrice := (S.Add(Pt)).ToDec().
+		Quo(Lt.ToDec()).
 		TruncateInt()
 	return currUozPrice
 }
