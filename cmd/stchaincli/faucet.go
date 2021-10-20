@@ -285,7 +285,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					// sigverify pass
 					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
 				}
-				fmt.Println("tx send: ", faucetRsp.TxResponse.TxHash)
+				fmt.Println("tx send=", faucetRsp.TxResponse.TxHash, ", height=", faucetRsp.TxResponse.Height)
 				rest.PostProcessResponseBare(writer, cliCtx, faucetRsp.TxResponse)
 				return
 			}).Methods("POST")
@@ -308,6 +308,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
+			quit <- syscall.SIGQUIT
 			// print stats
 			fmt.Println("####################################################################")
 			fmt.Println("################        Terminating faucet        ##################")
