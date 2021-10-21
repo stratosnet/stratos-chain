@@ -110,26 +110,28 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 
 func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
-	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
+	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
+	limitToAdd := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	newLimit := initialOzoneLimit.Add(limitToAdd).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
 	return limitToAdd.TruncateInt()
 }
 
 func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
-	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
+	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
+	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	newLimit := initialOzoneLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
 	return limitToSub.TruncateInt()
 }
