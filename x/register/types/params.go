@@ -25,6 +25,8 @@ var (
 	KeyUnbondingThreasholdTime = []byte("UnbondingThreasholdTime")
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("KeyMaxEntries")
+
+	DefaultUozPrice = sdk.NewDecWithPrec(1000000, 9) //0.001
 )
 
 var _ subspace.ParamSet = &Params{}

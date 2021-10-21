@@ -5,22 +5,6 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(price)
-	store.Set(types.InitialUOzonePriceKey, b)
-}
-
-func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.InitialUOzonePriceKey)
-	if b == nil {
-		panic("Stored initial uOzone price should not have been nil")
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &price)
-	return
-}
-
 func (k Keeper) setTotalMinedTokens(ctx sdk.Context, totalMinedToken sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalMinedToken)
