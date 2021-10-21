@@ -56,10 +56,10 @@ var (
 	ppNodeStakeNew  = sdk.NewInt(100000000)
 )
 
-func TestOzoneLimitChange(t *testing.T) {
+func TestPurchasedUoz(t *testing.T) {
 	/********************* initialize mock app *********************/
 	SetConfig()
-	mApp, k, _, registerKeeper, _ := getMockApp(t)
+	mApp, k, _, registerKeeper, _ := getMockAppPrepay(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
 	//mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
@@ -69,20 +69,65 @@ func TestOzoneLimitChange(t *testing.T) {
 
 	initialStakeTotal := sdk.NewInt(43000000000000)
 	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
-	registerKeeper.SetRemainingOzoneLimit(ctx, initialStakeTotal)
 
 	// setup resource nodes
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 
 	resourceNodeStake := sdk.NewInt(19000000000000)
 	resouceNodeTokens := make([]sdk.Int, 0)
-	numNodes := 100
+	numNodes := 10
+	for i := 0; i < numNodes; i++ {
+		resouceNodeTokens = append(resouceNodeTokens, resourceNodeStake)
+	}
+
+	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
+	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
+	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
+	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice.ToDec()).TruncateInt()
+	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
+	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
+	for i, val := range resouceNodeTokens {
+		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), "storage", time)
+		tmpResourceNode.Tokens = val
+		tmpResourceNode.Status = sdk.Bonded
+		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
+		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
+		// doPrepay
+		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(10000000000))))
+		log.Printf("%v Uoz purchased by 10 stos, remaining ozone limit drops to %v", purchased, registerKeeper.GetRemainingOzoneLimit(ctx))
+	}
+}
+
+func TestOzoneLimitChange(t *testing.T) {
+	/********************* initialize mock app *********************/
+	SetConfig()
+	mApp, k, _, registerKeeper, _ := getMockApp(t)
+	accs := setupAccounts(mApp)
+	mock.SetGenesis(mApp, accs)
+
+	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
+	ctx := mApp.BaseApp.NewContext(true, header)
+
+	initialStakeTotal := sdk.NewInt(43000000000000)
+	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+
+	// setup resource nodes
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+
+	resourceNodeStake := sdk.NewInt(19000000000000)
+	resouceNodeTokens := make([]sdk.Int, 0)
+	numNodes := 10
 	for i := 0; i < numNodes; i++ {
 		resouceNodeTokens = append(resouceNodeTokens, resourceNodeStake)
 	}
 
 	//init pp nodes.
-	//resourceNodes := make([]regtypes.ResourceNode, 0)
+	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
+	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
+	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
+	//initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice.ToDec()).TruncateInt()
+	//registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 	for i, val := range resouceNodeTokens {
 		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), "storage", time)
@@ -202,6 +247,65 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Keeper, 
 	err := ms.LoadLatestVersion()
 	require.Nil(t, err)
 
+	feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
+	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
+	bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
+
+	blacklistedAddrs := make(map[string]bool)
+	blacklistedAddrs[feeCollector.GetAddress().String()] = true
+	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
+	blacklistedAddrs[bondPool.GetAddress().String()] = true
+
+	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
+	maccPerms := map[string][]string{
+		auth.FeeCollectorName:     {"fee_collector"},
+		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
+		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+	}
+	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
+	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
+	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
+	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
+	keeper := NewKeeper(mApp.Cdc, keySds, bankKeeper, registerKeeper, potKeeper)
+
+	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
+	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
+	mApp.SetEndBlocker(getEndBlocker(keeper))
+	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
+		[]supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper, potKeeper))
+
+	err = mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
+	require.NoError(t, err)
+
+	return mApp, keeper, bankKeeper, registerKeeper, potKeeper
+}
+
+func getMockAppPrepay(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Keeper, pot.Keeper) {
+	mApp := mock.NewApp()
+
+	RegisterCodec(mApp.Cdc)
+	supply.RegisterCodec(mApp.Cdc)
+	staking.RegisterCodec(mApp.Cdc)
+	register.RegisterCodec(mApp.Cdc)
+
+	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
+	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
+	keyStaking := sdk.NewKVStoreKey(staking.StoreKey)
+	keyRegister := sdk.NewKVStoreKey(register.StoreKey)
+	keyPot := sdk.NewKVStoreKey(pot.StoreKey)
+	keySds := sdk.NewKVStoreKey(StoreKey)
+
+	db := dbm.NewMemDB()
+	ms := store.NewCommitMultiStore(db)
+
+	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyRegister, sdk.StoreTypeIAVL, db)
+	ms.MountStoreWithDB(keyPot, sdk.StoreTypeIAVL, db)
+	err := ms.LoadLatestVersion()
+	require.Nil(t, err)
+
 	//ctx := sdk.NewContext(ms, abci.Header{ChainID: "foochainid"}, false, tmtLog.NewNopLogger())
 
 	feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
@@ -229,7 +333,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Keeper, 
 	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
 	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
 	mApp.SetEndBlocker(getEndBlocker(keeper))
-	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
+	mApp.SetInitChainer(getInitChainerTestPurchase(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
 		[]supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper, potKeeper))
 
 	err = mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
@@ -266,7 +370,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice)
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
@@ -292,7 +396,64 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		potKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams(), initialOzonePrice))
+		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams()))
+
+		// init bank genesis
+		keeper.BankKeeper.SetSendEnabled(ctx, true)
+
+		return abci.ResponseInitChain{
+			Validators: validators,
+		}
+	}
+}
+
+// getInitChainer initializes the chainer of the mock app and sets the genesis
+// state. It returns an empty ResponseInitChain.
+func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper,
+	blacklistedAddrs []supplyexported.ModuleAccountI, stakingKeeper staking.Keeper, registerKeeper register.Keeper, potKeeper pot.Keeper) sdk.InitChainer {
+	return func(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
+		// set module accounts
+		for _, macc := range blacklistedAddrs {
+			supplyKeeper.SetModuleAccount(ctx, macc)
+		}
+
+		mapp.InitChainer(ctx, req)
+
+		var lastResourceNodeStakes []register.LastResourceNodeStake
+
+		var lastIndexingNodeStakes []register.LastIndexingNodeStake
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx1, Stake: initialStakeIdx1})
+
+		//resourceNodes := setupAllResourceNodes()
+		indexingNodes := setupAllIndexingNodes()
+
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, nil, lastIndexingNodeStakes, indexingNodes, initialUOzonePriceTestPurchase)
+
+		register.InitGenesis(ctx, registerKeeper, registerGenesis)
+
+		// set module accounts
+		for _, macc := range blacklistedAddrs {
+			supplyKeeper.SetModuleAccount(ctx, macc)
+		}
+
+		stakingGenesis := staking.NewGenesisState(staking.NewParams(staking.DefaultUnbondingTime, staking.DefaultMaxValidators, staking.DefaultMaxEntries, 0, DefaultDenom), nil, nil)
+
+		totalSupply := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000)))
+		supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
+
+		// set module accounts
+		for _, macc := range blacklistedAddrs {
+			supplyKeeper.SetModuleAccount(ctx, macc)
+		}
+
+		validators := staking.InitGenesis(ctx, stakingKeeper, accountKeeper, supplyKeeper, stakingGenesis)
+
+		//preset
+		registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimitTestPurchase)
+		potKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepayTestPurchase)
+
+		//pot genesis data load
+		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams()))
 
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)

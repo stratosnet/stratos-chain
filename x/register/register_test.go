@@ -64,8 +64,9 @@ var (
 	idxNodeAddr2 = sdk.AccAddress(idxNodePubKey2.Address())
 	idxNodeAddr3 = sdk.AccAddress(idxNodePubKey3.Address())
 
-	resNodeInitStake = sdk.NewInt(10000000000)
-	idxNodeInitStake = sdk.NewInt(10000000000)
+	resNodeInitStake      = sdk.NewInt(10000000000)
+	idxNodeInitStake      = sdk.NewInt(10000000000)
+	initialUOzonePrice, _ = sdk.NewIntFromString("1000000") // 0.001 stos
 )
 
 func setupAllResourceNodes() []ResourceNode {
