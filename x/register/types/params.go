@@ -26,7 +26,7 @@ var (
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("KeyMaxEntries")
 
-	DefaultUozPrice = sdk.NewDecWithPrec(1000000, 9) //0.001
+	DefaultUozPrice, _ = sdk.NewIntFromString("1000000") // 1000000 ustos = 0.001 stos
 )
 
 var _ subspace.ParamSet = &Params{}
