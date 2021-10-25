@@ -20,6 +20,7 @@ import (
 	"github.com/tendermint/tendermint/crypto/ed25519"
 	dbm "github.com/tendermint/tm-db"
 	"log"
+	"math/rand"
 	"strconv"
 	"testing"
 	"time"
@@ -56,6 +57,50 @@ var (
 	ppNodeStakeNew  = sdk.NewInt(100000000)
 )
 
+func TestRandomPurchasedUoz(t *testing.T) {
+	/********************* initialize mock app *********************/
+	SetConfig()
+	mApp, k, _, registerKeeper, _ := getMockAppPrepay(t)
+	accs := setupAccounts(mApp)
+	mock.SetGenesis(mApp, accs)
+	//mock.CheckBalance(t, mApp, foundationAccAddr, foundationDeposit)
+
+	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
+	ctx := mApp.BaseApp.NewContext(true, header)
+
+	initialStakeTotal := sdk.NewInt(43000000000000)
+	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+
+	// setup resource nodes
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+
+	resourceNodeStake := sdk.NewInt(19000000000000)
+	resouceNodeTokens := make([]sdk.Int, 0)
+	numNodes := 10
+	for i := 0; i < numNodes; i++ {
+		resouceNodeTokens = append(resouceNodeTokens, resourceNodeStake)
+	}
+
+	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
+	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
+	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
+	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
+	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
+	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
+	for i, val := range resouceNodeTokens {
+		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), "storage", time)
+		tmpResourceNode.Tokens = val
+		tmpResourceNode.Status = sdk.Bonded
+		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
+		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
+		// doPrepay
+		randomPurchase := sdk.NewInt(int64(rand.Float64() * 100 * 1000000000))
+		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", randomPurchase)))
+		log.Printf("%v Uoz purchased by %v ustos, remaining ozone limit drops to %v", purchased, randomPurchase, registerKeeper.GetRemainingOzoneLimit(ctx))
+	}
+}
+
 func TestPurchasedUoz(t *testing.T) {
 	/********************* initialize mock app *********************/
 	SetConfig()
@@ -83,7 +128,7 @@ func TestPurchasedUoz(t *testing.T) {
 	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
 	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
 	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
-	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice.ToDec()).TruncateInt()
+	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
 	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 	for i, val := range resouceNodeTokens {

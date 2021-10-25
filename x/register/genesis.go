@@ -47,11 +47,11 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 		keeper.SetLastIndexingNodeStake(ctx, idxStake.Address, idxStake.Stake)
 	}
 
-	initialUOzonePrice := sdk.ZeroInt()
+	initialUOzonePrice := sdk.ZeroDec()
 	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
-	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice.ToDec()).TruncateInt()
+	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 }
 

@@ -60,13 +60,13 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 	return k
 }
 
-func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Int) {
+func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
-func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Int) {
+func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.InitialUOzonePriceKey)
 	if b == nil {
@@ -115,11 +115,11 @@ func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 		return sdk.ZeroInt()
 	}
 	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
-	if initialUozonePrice.Equal(sdk.ZeroInt()) {
+	if initialUozonePrice.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice.ToDec())
+	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
 	//ctx.Logger().Debug("----- initialOzoneLimit is " + initialOzoneLimit.String() + " uoz", )
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " uoz")
@@ -138,11 +138,11 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 		return sdk.ZeroInt()
 	}
 	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
-	if initialUozonePrice.Equal(sdk.ZeroInt()) {
+	if initialUozonePrice.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice.ToDec())
+	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()

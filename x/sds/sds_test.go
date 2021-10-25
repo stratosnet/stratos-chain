@@ -37,12 +37,12 @@ var (
 	prepayAmt           = sdk.NewInt(2 * stos2ustos)
 
 	depositForSendingTx, _             = sdk.NewIntFromString("100000000000000000000000000000")
-	initialUOzonePrice, _              = sdk.NewIntFromString("1000000") // 0.001 stos
+	initialUOzonePrice                 = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 	totalUnissuedPrepay, _             = sdk.NewIntFromString("100000000000000000")
 	remainingOzoneLimit, _             = sdk.NewIntFromString("500000000000000000000")
 	totalUnissuedPrepayTestPurchase, _ = sdk.NewIntFromString("0")
 	remainingOzoneLimitTestPurchase, _ = sdk.NewIntFromString("100000000000")
-	initialUOzonePriceTestPurchase, _  = sdk.NewIntFromString("1000000") // 0.001 stos
+	initialUOzonePriceTestPurchase     = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
 
 	foundationDeposit = sdk.NewInt(40000000000000000)
 
