@@ -38,7 +38,7 @@ var (
 
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	initialUOzonePrice, _  = sdk.NewIntFromString("1000000") // 0.001 stos
+	initialUOzonePrice     = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
