@@ -63,7 +63,7 @@ func handleMsgReportVolume(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.Reporter.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.ReporterOwner.String()),
 		),
 	})
 

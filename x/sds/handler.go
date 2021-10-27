@@ -43,6 +43,7 @@ func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUplo
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeFileUpload,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 			sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
 			sdk.NewAttribute(types.AttributeKeyUploader, msg.Uploader.String()),
 			sdk.NewAttribute(types.AttributeKeyFileHash, hex.EncodeToString(msg.FileHash)),
@@ -50,6 +51,7 @@ func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUplo
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 		),
 	})
 
@@ -69,13 +71,14 @@ func handleMsgPrepay(ctx sdk.Context, k keeper.Keeper, msg types.MsgPrepay) (*sd
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypePrepay,
-			sdk.NewAttribute(types.AttributeKeyReporter, msg.Sender.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
 			sdk.NewAttribute(types.AttributeKeyPurchasedUoz, purchased.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.Sender.String()),
 		),
 	})
 
