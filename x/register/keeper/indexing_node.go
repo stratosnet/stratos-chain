@@ -228,6 +228,10 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 
 	coins := sdk.NewCoins(tokenToSub)
 
+	if indexingNode.Tokens.LT(tokenToSub.Amount) {
+		return types.ErrInsufficientBalance
+	}
+
 	if indexingNode.GetStatus() == sdk.Unbonded || indexingNode.GetStatus() == sdk.Unbonding {
 		notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
 		if notBondedTokenInPool.IsLT(tokenToSub) {
@@ -237,7 +241,12 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
 	}
 	if indexingNode.GetStatus() == sdk.Bonded {
-		return types.ErrInvalidNodeStatBonded
+		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
+		if bondedTokenInPool.IsLT(tokenToSub) {
+			return types.ErrInsufficientBalanceOfBondedPool
+		}
+		bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
+		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
 	}
 
 	_, err := k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
@@ -410,6 +419,36 @@ func (k Keeper) UpdateIndexingNode(ctx sdk.Context, networkID string, descriptio
 	k.SetIndexingNode(ctx, node)
 
 	return nil
+}
+
+func (k Keeper) UpdateIndexingNodeStake(ctx sdk.Context, networkAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
+	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, err error) {
+
+	node, found := k.GetIndexingNode(ctx, networkAddr)
+	if !found {
+		return sdk.ZeroInt(), types.ErrNoIndexingNodeFound
+	}
+
+	if !node.OwnerAddress.Equals(ownerAddr) {
+		return sdk.ZeroInt(), types.ErrInvalidOwnerAddr
+	}
+
+	if incrStake {
+		ozoneLimitChange, err := k.AddIndexingNodeStake(ctx, node, stakeDelta)
+		if err != nil {
+			return sdk.ZeroInt(), err
+		}
+		k.SetIndexingNode(ctx, node)
+		return ozoneLimitChange, nil
+	}
+	// if !incrStake
+	err = k.SubtractIndexingNodeStake(ctx, node, stakeDelta)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	k.SetIndexingNode(ctx, node)
+	ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, stakeDelta.Amount)
+	return ozoneLimitChange, nil
 }
 
 func (k Keeper) SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin) {

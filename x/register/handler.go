@@ -21,6 +21,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRemoveResourceNode(ctx, msg, k)
 		case types.MsgUpdateResourceNode:
 			return handleMsgUpdateResourceNode(ctx, msg, k)
+		case types.MsgUpdateResourceNodeStake:
+			return handleMsgUpdateResourceNodeStake(ctx, msg, k)
 
 		case types.MsgCreateIndexingNode:
 			return handleMsgCreateIndexingNode(ctx, msg, k)
@@ -28,6 +30,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRemoveIndexingNode(ctx, msg, k)
 		case types.MsgUpdateIndexingNode:
 			return handleMsgUpdateIndexingNode(ctx, msg, k)
+		case types.MsgUpdateIndexingNodeStake:
+			return handleMsgUpdateIndexingNodeStake(ctx, msg, k)
 		case types.MsgIndexingNodeRegistrationVote:
 			return handleMsgIndexingNodeRegistrationVote(ctx, msg, k)
 
@@ -224,6 +228,30 @@ func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNod
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 }
 
+func handleMsgUpdateResourceNodeStake(ctx sdk.Context, msg types.MsgUpdateResourceNodeStake, k keeper.Keeper) (*sdk.Result, error) {
+	ozoneLimitChange, err := k.UpdateResourceNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+	if err != nil {
+		return nil, err
+	}
+	if !msg.IncrStake {
+		ozoneLimitChange = ozoneLimitChange.Neg()
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateResourceNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
 func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
 	err := k.UpdateIndexingNode(ctx, msg.NetworkID, msg.Description, msg.NetworkAddress, msg.OwnerAddress)
 	if err != nil {
@@ -238,6 +266,30 @@ func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUpdateIndexingNodeStake(ctx sdk.Context, msg types.MsgUpdateIndexingNodeStake, k keeper.Keeper) (*sdk.Result, error) {
+	ozoneLimitChange, err := k.UpdateIndexingNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+	if err != nil {
+		return nil, err
+	}
+	if !msg.IncrStake {
+		ozoneLimitChange = ozoneLimitChange.Neg()
+	}
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateIndexingNode,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
