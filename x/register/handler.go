@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strconv"
 	"time"
 )
 
@@ -233,15 +234,13 @@ func handleMsgUpdateResourceNodeStake(ctx sdk.Context, msg types.MsgUpdateResour
 	if err != nil {
 		return nil, err
 	}
-	if !msg.IncrStake {
-		ozoneLimitChange = ozoneLimitChange.Neg()
-	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdateResourceNode,
+			types.EventTypeUpdateResourceNodeStake,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -276,15 +275,13 @@ func handleMsgUpdateIndexingNodeStake(ctx sdk.Context, msg types.MsgUpdateIndexi
 	if err != nil {
 		return nil, err
 	}
-	if !msg.IncrStake {
-		ozoneLimitChange = ozoneLimitChange.Neg()
-	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
-			types.EventTypeUpdateIndexingNode,
+			types.EventTypeUpdateIndexingNodeStake,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
