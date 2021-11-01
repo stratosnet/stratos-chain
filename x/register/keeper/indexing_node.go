@@ -201,9 +201,6 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	// change node status to unbonding
-	indexingNode.Status = sdk.Unbonding
-	k.SetIndexingNode(ctx, indexingNode)
 	// get pools
 	bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
 	notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
@@ -232,23 +229,15 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 		return types.ErrInsufficientBalance
 	}
 
-	if indexingNode.GetStatus() == sdk.Unbonded || indexingNode.GetStatus() == sdk.Unbonding {
-		notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
-		if notBondedTokenInPool.IsLT(tokenToSub) {
-			return types.ErrInsufficientBalanceOfNotBondedPool
-		}
-		notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
-		k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
+	// deduct tokens from NotBondedPool
+	notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
+	if notBondedTokenInPool.IsLT(tokenToSub) {
+		return types.ErrInsufficientBalanceOfNotBondedPool
 	}
-	if indexingNode.GetStatus() == sdk.Bonded {
-		bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
-		if bondedTokenInPool.IsLT(tokenToSub) {
-			return types.ErrInsufficientBalanceOfBondedPool
-		}
-		bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-		k.SetIndexingNodeBondedToken(ctx, bondedTokenInPool)
-	}
+	notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
+	k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
 
+	// add tokens to owner acc
 	_, err := k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
 	if err != nil {
 		return err
@@ -259,7 +248,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 
 	k.SetIndexingNode(ctx, indexingNode)
 
-	if indexingNode.GetTokens().IsZero() {
+	if newStake.IsZero() {
 		k.DeleteLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
 		err := k.removeIndexingNode(ctx, indexingNode.GetNetworkAddr())
 		if err != nil {
@@ -422,33 +411,36 @@ func (k Keeper) UpdateIndexingNode(ctx sdk.Context, networkID string, descriptio
 }
 
 func (k Keeper) UpdateIndexingNodeStake(ctx sdk.Context, networkAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, err error) {
+	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
+	blockTime := ctx.BlockHeader().Time
 	node, found := k.GetIndexingNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), types.ErrNoIndexingNodeFound
+		return sdk.ZeroInt(), blockTime, types.ErrNoIndexingNodeFound
 	}
 
 	if !node.OwnerAddress.Equals(ownerAddr) {
-		return sdk.ZeroInt(), types.ErrInvalidOwnerAddr
+		return sdk.ZeroInt(), blockTime, types.ErrInvalidOwnerAddr
 	}
 
 	if incrStake {
 		ozoneLimitChange, err := k.AddIndexingNodeStake(ctx, node, stakeDelta)
 		if err != nil {
-			return sdk.ZeroInt(), err
+			return sdk.ZeroInt(), blockTime, err
 		}
 		k.SetIndexingNode(ctx, node)
-		return ozoneLimitChange, nil
+		return ozoneLimitChange, blockTime, nil
+	} else {
+		// if !incrStake
+		if node.GetStatus() == sdk.Unbonding {
+			return sdk.ZeroInt(), blockTime, types.ErrUnbondingNode
+		}
+		ozoneLimitChange, completionTime, err := k.UnbondIndexingNode(ctx, node, stakeDelta.Amount)
+		if err != nil {
+			return sdk.ZeroInt(), blockTime, err
+		}
+		return ozoneLimitChange, completionTime, nil
 	}
-	// if !incrStake
-	err = k.SubtractIndexingNodeStake(ctx, node, stakeDelta)
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
-	k.SetIndexingNode(ctx, node)
-	ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, stakeDelta.Amount)
-	return ozoneLimitChange, nil
 }
 
 func (k Keeper) SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin) {

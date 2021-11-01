@@ -230,25 +230,47 @@ func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNod
 }
 
 func handleMsgUpdateResourceNodeStake(ctx sdk.Context, msg types.MsgUpdateResourceNodeStake, k keeper.Keeper) (*sdk.Result, error) {
-	ozoneLimitChange, err := k.UpdateResourceNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+	ozoneLimitChange, completionTime, err := k.UpdateResourceNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateResourceNodeStake,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+
+	if msg.IncrStake {
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeUpdateResourceNodeStake,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+				sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			),
+		})
+		return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	} else {
+		// if !IncrStake
+		completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeUnbondingResourceNode,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyResourceNode, msg.NetworkAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
+				sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			),
+		})
+
+		return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
+	}
 }
 
 func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
@@ -271,23 +293,44 @@ func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNod
 }
 
 func handleMsgUpdateIndexingNodeStake(ctx sdk.Context, msg types.MsgUpdateIndexingNodeStake, k keeper.Keeper) (*sdk.Result, error) {
-	ozoneLimitChange, err := k.UpdateIndexingNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+	ozoneLimitChange, completionTime, err := k.UpdateIndexingNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, err
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateIndexingNodeStake,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+
+	if msg.IncrStake {
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeUpdateIndexingNodeStake,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+				sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			),
+		})
+		return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+	} else {
+		// if !IncrStake
+		completionTimeBz := types.ModuleCdc.MustMarshalBinaryLengthPrefixed(completionTime)
+		ctx.EventManager().EmitEvents(sdk.Events{
+			sdk.NewEvent(
+				types.EventTypeUnbondingIndexingNode,
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyResourceNode, msg.NetworkAddress.String()),
+				sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
+				sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			),
+		})
+		return &sdk.Result{Data: completionTimeBz, Events: ctx.EventManager().Events()}, nil
+	}
 }
