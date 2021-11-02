@@ -428,7 +428,6 @@ func (k Keeper) UpdateIndexingNodeStake(ctx sdk.Context, networkAddr sdk.AccAddr
 		if err != nil {
 			return sdk.ZeroInt(), blockTime, err
 		}
-		k.SetIndexingNode(ctx, node)
 		return ozoneLimitChange, blockTime, nil
 	} else {
 		// if !incrStake

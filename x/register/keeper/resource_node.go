@@ -334,7 +334,6 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr sdk.AccAddr
 		if err != nil {
 			return sdk.ZeroInt(), blockTime, err
 		}
-		k.SetResourceNode(ctx, node)
 		return ozoneLimitChange, blockTime, nil
 	} else {
 		// if !incrStake
