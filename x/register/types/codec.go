@@ -6,15 +6,15 @@ import (
 
 // RegisterCodec registers concrete types on codec
 func RegisterCodec(cdc *codec.Codec) {
-	cdc.RegisterConcrete(MsgCreateResourceNode{}, "register/MsgCreateResourceNode", nil)
-	cdc.RegisterConcrete(MsgRemoveResourceNode{}, "register/MsgRemoveResourceNode", nil)
-	cdc.RegisterConcrete(MsgUpdateResourceNode{}, "register/MsgUpdateResourceNode", nil)
+	cdc.RegisterConcrete(MsgCreateResourceNode{}, "register/CreateResourceNodeTx", nil)
+	cdc.RegisterConcrete(MsgRemoveResourceNode{}, "register/RemoveResourceNodeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateResourceNode{}, "register/UpdateResourceNodeTx", nil)
 
-	cdc.RegisterConcrete(MsgCreateIndexingNode{}, "register/MsgCreateIndexingNode", nil)
-	cdc.RegisterConcrete(MsgRemoveIndexingNode{}, "register/MsgRemoveIndexingNode", nil)
-	cdc.RegisterConcrete(MsgUpdateIndexingNode{}, "register/MsgUpdateIndexingNode", nil)
+	cdc.RegisterConcrete(MsgCreateIndexingNode{}, "register/CreateIndexingNodeTx", nil)
+	cdc.RegisterConcrete(MsgRemoveIndexingNode{}, "register/RemoveIndexingNodeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateIndexingNode{}, "register/UpdateIndexingNodeTx", nil)
 
-	cdc.RegisterConcrete(MsgIndexingNodeRegistrationVote{}, "register/MsgIndexingNodeRegistrationVote", nil)
+	cdc.RegisterConcrete(MsgIndexingNodeRegistrationVote{}, "register/IndexingNodeRegistrationVoteTx", nil)
 }
 
 // ModuleCdc defines the module codec
