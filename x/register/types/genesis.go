@@ -14,6 +14,7 @@ type GenesisState struct {
 	ResourceNodes          ResourceNodes           `json:"resource_nodes" yaml:"resource_nodes"`
 	LastIndexingNodeStakes []LastIndexingNodeStake `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
 	IndexingNodes          IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
+	InitialUozPrice        sdk.Dec                 `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
 }
 
 // LastResourceNodeStake required for resource node set update logic
@@ -32,6 +33,7 @@ type LastIndexingNodeStake struct {
 func NewGenesisState(params Params,
 	lastResourceNodeStakes []LastResourceNodeStake, resourceNodes ResourceNodes,
 	lastIndexingNodeStakes []LastIndexingNodeStake, indexingNodes IndexingNodes,
+	initialUOzonePrice sdk.Dec,
 ) GenesisState {
 	return GenesisState{
 		Params:                 params,
@@ -39,13 +41,15 @@ func NewGenesisState(params Params,
 		ResourceNodes:          resourceNodes,
 		LastIndexingNodeStakes: lastIndexingNodeStakes,
 		IndexingNodes:          indexingNodes,
+		InitialUozPrice:        initialUOzonePrice,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params: DefaultParams(),
+		Params:          DefaultParams(),
+		InitialUozPrice: DefaultUozPrice,
 	}
 }
 
@@ -92,6 +96,9 @@ func ValidateGenesis(data GenesisState) error {
 				return ErrValueNegative
 			}
 		}
+	}
+	if data.InitialUozPrice.LTE(sdk.ZeroDec()) {
+		return ErrInitialUOzonePrice
 	}
 	return nil
 }

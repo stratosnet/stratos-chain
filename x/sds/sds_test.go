@@ -36,11 +36,15 @@ var (
 	resourceNodeVolume3 = sdk.NewInt(200000000000)
 	prepayAmt           = sdk.NewInt(2 * stos2ustos)
 
-	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000")
-	remainingOzoneLimit, _ = sdk.NewIntFromString("500000000000000000000")
-	initialOzonePrice      = sdk.NewDecWithPrec(10000000, 9)
-	foundationDeposit      = sdk.NewInt(40000000000000000)
+	depositForSendingTx, _             = sdk.NewIntFromString("100000000000000000000000000000")
+	initialUOzonePrice                 = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
+	totalUnissuedPrepay, _             = sdk.NewIntFromString("100000000000000000")
+	remainingOzoneLimit, _             = sdk.NewIntFromString("500000000000000000000")
+	totalUnissuedPrepayTestPurchase, _ = sdk.NewIntFromString("0")
+	remainingOzoneLimitTestPurchase, _ = sdk.NewIntFromString("100000000000")
+	initialUOzonePriceTestPurchase     = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
+
+	foundationDeposit = sdk.NewInt(40000000000000000)
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -60,9 +64,10 @@ var (
 	idxOwner2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
 	idxOwner3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
 
-	pubKeyRes1       = secp256k1.GenPrivKey().PubKey()
-	addrRes1         = sdk.AccAddress(pubKeyRes1.Address())
-	initialStakeRes1 = sdk.NewInt(3 * stos2ustos)
+	pubKeyRes1                   = secp256k1.GenPrivKey().PubKey()
+	addrRes1                     = sdk.AccAddress(pubKeyRes1.Address())
+	initialStakeRes1             = sdk.NewInt(3 * stos2ustos)
+	initialStakeRes1TestPurchase = sdk.NewInt(100000000000)
 
 	pubKeyRes2       = secp256k1.GenPrivKey().PubKey()
 	addrRes2         = sdk.AccAddress(pubKeyRes2.Address())
@@ -80,10 +85,11 @@ var (
 	addrRes5         = sdk.AccAddress(pubKeyRes5.Address())
 	initialStakeRes5 = sdk.NewInt(3 * stos2ustos)
 
-	privKeyIdx1      = secp256k1.GenPrivKey()
-	pubKeyIdx1       = privKeyIdx1.PubKey()
-	addrIdx1         = sdk.AccAddress(pubKeyIdx1.Address())
-	initialStakeIdx1 = sdk.NewInt(5 * stos2ustos)
+	privKeyIdx1                  = secp256k1.GenPrivKey()
+	pubKeyIdx1                   = privKeyIdx1.PubKey()
+	addrIdx1                     = sdk.AccAddress(pubKeyIdx1.Address())
+	initialStakeIdx1             = sdk.NewInt(5 * stos2ustos)
+	initialStakeIdx1TestPurchase = sdk.NewInt(100 * stos2ustos)
 
 	pubKeyIdx2       = secp256k1.GenPrivKey().PubKey()
 	addrIdx2         = sdk.AccAddress(pubKeyIdx2.Address())
@@ -143,23 +149,23 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 	//************************** setup resource nodes owners' accounts **************************
 	resOwnerAcc1 := &auth.BaseAccount{
 		Address: resOwner1,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc2 := &auth.BaseAccount{
 		Address: resOwner2,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc3 := &auth.BaseAccount{
 		Address: resOwner3,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc4 := &auth.BaseAccount{
 		Address: resOwner4,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 	resOwnerAcc5 := &auth.BaseAccount{
 		Address: resOwner5,
-		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.ZeroInt())},
+		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, sdk.NewInt(10000000000000000))},
 	}
 
 	//************************** setup indexing nodes owners' accounts **************************

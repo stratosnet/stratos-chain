@@ -44,4 +44,5 @@ var (
 	ErrNoNodeForAddress                   = sdkerrors.Register(ModuleName, 37, "registered node does not contain address")
 	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, 38, "changes cannot be made to an unbonding node")
 	ErrInvalidNodeStatBonded              = sdkerrors.Register(ModuleName, 39, "invalid node status: bonded")
+	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, 40, "initial uOzone price must be positive")
 )
