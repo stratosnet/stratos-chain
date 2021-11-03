@@ -1,11 +1,12 @@
 package keeper
 
 import (
+	"strings"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
-	"strings"
-	"time"
 )
 
 const (
@@ -202,8 +203,8 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
 	// get pools
-	bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-	notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
+	bondedTokenInPool := k.GetIndexingNodeBondedToken(ctx)
+	notBondedTokenInPool := k.GetIndexingNodeNotBondedToken(ctx)
 	if bondedTokenInPool.IsLT(tokenToSub) {
 		return types.ErrInsufficientBalanceOfBondedPool
 	}
