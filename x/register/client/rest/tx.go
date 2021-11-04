@@ -10,6 +10,7 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"net/http"
+	"strconv"
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -25,6 +26,10 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 		"/register/updateResourceNode",
 		postUpdateResourceNodeHandlerFn(cliCtx),
 	).Methods("POST")
+	r.HandleFunc(
+		"/register/updateResourceNodeStake",
+		postUpdateResourceNodeStakeHandlerFn(cliCtx),
+	).Methods("POST")
 
 	r.HandleFunc(
 		"/register/createIndexingNode",
@@ -37,6 +42,10 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc(
 		"/register/updateIndexingNode",
 		postUpdateIndexingNodeHandlerFn(cliCtx),
+	).Methods("POST")
+	r.HandleFunc(
+		"/register/updateIndexingNodeStake",
+		postUpdateIndexingNodeStakeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
 		"/register/indexingNodeRegVote",
@@ -67,6 +76,13 @@ type (
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
+	UpdateResourceNodeStakeRequest struct {
+		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
+		NetworkAddress string       `json:"network_address" yaml:"network_address"`
+		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
+		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
+	}
+
 	CreateIndexingNodeRequest struct {
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		NetworkID   string            `json:"network_id" yaml:"network_id"`
@@ -85,6 +101,13 @@ type (
 		NetworkID      string            `json:"network_id" yaml:"network_id"`
 		Description    types.Description `json:"description" yaml:"description"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
+	}
+
+	UpdateIndexingNodeStakeRequest struct {
+		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
+		NetworkAddress string       `json:"network_address" yaml:"network_address"`
+		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
+		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
 	IndexingNodeRegVoteRequest struct {
@@ -282,6 +305,46 @@ func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 	}
 }
 
+func postUpdateResourceNodeStakeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateResourceNodeStakeRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		ownerAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		incrStake, err := strconv.ParseBool(req.IncrStake)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
 func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateIndexingNodeRequest
@@ -308,6 +371,46 @@ func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 		}
 
 		msg := types.NewMsgUpdateIndexingNode(req.NetworkID, req.Description, networkAddr, ownerAddr)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
+}
+
+func postUpdateIndexingNodeStakeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateIndexingNodeStakeRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		ownerAddr, err := sdk.AccAddressFromBech32(req.BaseReq.From)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		incrStake, err := strconv.ParseBool(req.IncrStake)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

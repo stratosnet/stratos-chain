@@ -45,4 +45,5 @@ var (
 	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, 38, "changes cannot be made to an unbonding node")
 	ErrInvalidNodeStatBonded              = sdkerrors.Register(ModuleName, 39, "invalid node status: bonded")
 	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, 40, "initial uOzone price must be positive")
+	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, 41, "invalid change for stake")
 )

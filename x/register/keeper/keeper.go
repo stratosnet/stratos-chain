@@ -437,6 +437,12 @@ func (k Keeper) UnbondResourceNode(
 		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
+	// change node status to unbonding if unbonding all tokens
+	if amt.Equal(resourceNode.Tokens) {
+		resourceNode.Status = sdk.Unbonding
+		k.SetResourceNode(ctx, resourceNode)
+	}
+
 	// set the unbonding mature time and completion height appropriately
 	ctx.Logger().Info(fmt.Sprintf("Calculating mature time: creationTime[%s], threasholdTime[%s], completionTime[%s], matureTime[%s]",
 		resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx), unbondingMatureTime,
@@ -472,6 +478,11 @@ func (k Keeper) UnbondIndexingNode(
 		k.bondedToUnbonding(ctx, indexingNode, true, coin)
 		// adjust ozone limit
 		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+	}
+	// change node status to unbonding if unbonding all tokens
+	if amt.Equal(indexingNode.Tokens) {
+		indexingNode.Status = sdk.Unbonding
+		k.SetIndexingNode(ctx, indexingNode)
 	}
 
 	// Set the unbonding mature time and completion height appropriately
