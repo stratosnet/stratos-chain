@@ -22,6 +22,7 @@ const (
 	AttributeKeyNetworkAddress          = "network_address"
 	AttributeKeyPubKey                  = "pub_key"
 	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
+	AttributeKeyVoterNetworkAddress     = "voter_network_address"
 	AttributeKeyCandidateStatus         = "candidate_status"
 	AttributeKeyNetworkAddr             = "network_addr"
 	AttributeKeyIsIndexingNode          = "is_indexing_node"

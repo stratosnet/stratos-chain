@@ -38,7 +38,7 @@ var (
 
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	initialOzonePrice      = sdk.NewDecWithPrec(1000000, 9) //0.001
+	initialUOzonePrice     = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
@@ -191,7 +191,6 @@ func setupAllResourceNodes() []register.ResourceNode {
 	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4", time)
 	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4", time)
 	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4", time)
-
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)

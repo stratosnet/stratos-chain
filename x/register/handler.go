@@ -70,6 +70,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -100,6 +101,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -197,13 +199,15 @@ func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexin
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIndexingNodeRegistrationVote,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterNetworkAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterOwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyVoterNetworkAddress, msg.VoterNetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCandidateNetworkAddress, msg.CandidateNetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCandidateStatus, nodeStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterOwnerAddress.String()),
 		),
 	})
 
@@ -224,6 +228,7 @@ func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -267,6 +272,7 @@ func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

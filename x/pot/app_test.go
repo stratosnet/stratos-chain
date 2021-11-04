@@ -321,7 +321,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice)
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
@@ -346,7 +346,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		keeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), initialOzonePrice))
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
 
 		return abci.ResponseInitChain{
 			Validators: validators,
