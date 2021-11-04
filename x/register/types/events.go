@@ -9,10 +9,12 @@ const (
 	EventTypeRemoveResourceNode           = "remove_resource_node"
 	EventTypeUnbondingResourceNode        = "unbonding_resource_node"
 	EventTypeUpdateResourceNode           = "update_resource_node"
+	EventTypeUpdateResourceNodeStake      = "update_resource_node_stake"
 	EventTypeCreateIndexingNode           = "create_indexing_node"
 	EventTypeRemoveIndexingNode           = "remove_indexing_node"
 	EventTypeUnbondingIndexingNode        = "unbonding_indexing_node"
 	EventTypeUpdateIndexingNode           = "update_indexing_node"
+	EventTypeUpdateIndexingNodeStake      = "update_indexing_node_stake"
 	EventTypeIndexingNodeRegistrationVote = "indexing_node_reg_vote"
 
 	AttributeKeyResourceNode            = "resource_node"
@@ -20,6 +22,7 @@ const (
 	AttributeKeyNetworkAddress          = "network_address"
 	AttributeKeyPubKey                  = "pub_key"
 	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
+	AttributeKeyVoterNetworkAddress     = "voter_network_address"
 	AttributeKeyCandidateStatus         = "candidate_status"
 	AttributeKeyNetworkAddr             = "network_addr"
 	AttributeKeyIsIndexingNode          = "is_indexing_node"
@@ -27,6 +30,7 @@ const (
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
 
 	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
+	AttributeKeyIncrStakeBool     = "incr_stake"
 
 	AttributeValueCategory = ModuleName
 )

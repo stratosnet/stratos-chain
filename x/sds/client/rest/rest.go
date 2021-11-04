@@ -23,6 +23,7 @@ func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string)
 // FileUploadReq defines the properties of a file upload request's body.
 type FileUploadReq struct {
 	BaseReq  rest.BaseReq `json:"base_req" yaml:"base_req"`
+	Reporter string       `json:"reporter" yaml:"reporter"`
 	FileHash string       `json:"file_hash" yaml:"file_hash"`
 	Uploader string       `json:"uploader" yaml:"uploader"`
 }
@@ -52,8 +53,14 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		fileHash, err1 := hex.DecodeString(req.FileHash)
-		if err1 != nil {
+		reporter, err := sdk.AccAddressFromBech32(req.Reporter)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		fileHash, err := hex.DecodeString(req.FileHash)
+		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -64,7 +71,7 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUpload(fileHash, fromAddr, uploader)
+		msg := types.NewMsgUpload(fileHash, fromAddr, reporter, uploader)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

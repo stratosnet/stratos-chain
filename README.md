@@ -17,33 +17,77 @@ Prerequisites:
 
 Platform:
 * Linux(tested on Ubuntu18.04)
+
+First, make a directory(e.g., `stratos`) and directly download the source
 ```bash
+mkdir stratos
+cd stratos
 git clone https://github.com/stratosnet/stratos-chain.git
 cd stratos-chain
+git checkout v0.5.0  # you may need to change to the latest version.
 make build
 ```
 * Mac OS
 ```bash
+mkdir stratos
+cd stratos
 git clone https://github.com/stratosnet/stratos-chain.git
 cd stratos-chain
+git checkout v0.5.0  # you may need to change to the latest version.
 make build-mac
 ```
 
-Then the binary can be found in ./build folder
+After `make build` or `make build-mac`, you will find the `stchaind` and `stchaincli` binary files in `stratos/stratos-chain/build`.
+
+The `build` directory is your working directory, and you can continue your operations inside this folder.
+
+Your working directory looks like
+
+```
+     .
+     ├── config
+     ├── data
+     ├── stchaincli
+     └── stchaind
+```
+The `config` folder
+```
+     .
+     ├── addrbook.json
+     ├── app.toml
+     ├── config.toml
+     ├── genesis.json
+     ├── node_key.json
+     └── priv_validator_key.json
+```
+
+In `config` folder:
+
+`addrbook.json` stores peer addresses.
+
+`app.toml` contains the default settings required for `app`.
+
+`config.toml` contains various options pertaining to the `stratos-chain` configurations.
+
+`genesis.json` defines the initial state upon genesis of `stratos-chain`.
+
+`node_key.json` contains the node private key and should thus be kept secret.
+
+`priv_validator_key.json` contains the validator address, public key and private key, and should thus be kept secret.
 
 --- ---
 
 ## Executables
 
-The `Stratos-Chain` comes with 2 types of executables that can be found in the `./build` directory.
+The `Stratos-Chain` comes with 2 types of executables that can be found in `stratos/stratos-chain/build` directory.
 
 |    Command          | Description        |
 | :-----------:     | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. Use `stchaincli --help` and the [stchaincli command index](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands) for command line options. |
-|   `stchaind`   | the app Daemon (server). Use `stchaind --help` and the [stchaind command index](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands) for command line options. |
+|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. |
+|   `stchaind`   | the app Daemon (server)|
 
 
-### [`stchaincli`](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands)
+### `stchaincli`
 
 ```
 Usage:
@@ -60,7 +104,9 @@ Available Commands:
   help        Help about any command
 ```
 
-### [`stchaind`](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands)
+Each `stchaincli` command may contain a set of flags or parameters. for more details, please refer to [Stratos-chain 'stchaincli' Commands](https://stratos.gitbook.io/st-docs/stratos-chain-english/stratos-chain-commands)
+
+### `stchaind`
 
 ```
 Usage:
@@ -83,6 +129,8 @@ Available Commands:
   help                Help about any command
 ```
 
+Each `stchaind` command may contain a set of flags or parameters. for more details, please refer to [Stratos-chain 'stchaind' Commands](https://stratos.gitbook.io/st-docs/stratos-chain-english/stratos-chain-commands/stratos-chain-stchaind-commands)
+
 --- ---
 
 ## Connect to `Stratos` Network
@@ -96,6 +144,12 @@ For prerequisites and detailed instructions of connecting to test network, pleas
 
 ### Full node on the main Stratos network - TBA
 Prerequisites and detailed instructions of main network will be added later.
+
+--- ---
+
+## Documents
+
+We published all the documents [here](https://stratos.gitbook.io/st-docs/)
 
 --- ---
 

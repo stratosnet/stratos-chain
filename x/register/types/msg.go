@@ -9,8 +9,12 @@ import (
 var (
 	_ sdk.Msg = &MsgCreateResourceNode{}
 	_ sdk.Msg = &MsgRemoveResourceNode{}
+	_ sdk.Msg = &MsgUpdateResourceNode{}
+	_ sdk.Msg = &MsgUpdateResourceNodeStake{}
 	_ sdk.Msg = &MsgCreateIndexingNode{}
 	_ sdk.Msg = &MsgRemoveIndexingNode{}
+	_ sdk.Msg = &MsgUpdateIndexingNode{}
+	_ sdk.Msg = &MsgUpdateIndexingNodeStake{}
 	_ sdk.Msg = &MsgIndexingNodeRegistrationVote{}
 )
 
@@ -272,6 +276,55 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 	return nil
 }
 
+// MsgUpdateResourceNodeStake struct for only updating resource node's stake
+type MsgUpdateResourceNodeStake struct {
+	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	StakeDelta     sdk.Coin       `json:"stake_delta" yaml:"stake_delta"`
+	IncrStake      bool           `json:"incr_stake" yaml:"incr_stake"`
+}
+
+func NewMsgUpdateResourceNodeStake(networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress,
+	stakeDelta sdk.Coin, incrStake bool) MsgUpdateResourceNodeStake {
+	return MsgUpdateResourceNodeStake{
+		NetworkAddress: networkAddress,
+		OwnerAddress:   ownerAddress,
+		StakeDelta:     stakeDelta,
+		IncrStake:      incrStake,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNodeStake) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNodeStake) Type() string { return "update_resource_node_stake" }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNodeStake) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.OwnerAddress}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNodeStake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
+	if msg.NetworkAddress.Empty() {
+		return ErrEmptyNetworkAddr
+	}
+	if msg.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if msg.StakeDelta.Amount.LTE(sdk.ZeroInt()) {
+		return ErrInvalidStakeChange
+	}
+	return nil
+}
+
 // MsgUpdateIndexingNode struct for updating indexing node
 type MsgUpdateIndexingNode struct {
 	NetworkID      string         `json:"network_id" yaml:"network_id"`
@@ -319,6 +372,55 @@ func (msg MsgUpdateIndexingNode) ValidateBasic() error {
 	}
 	if msg.Description.Moniker == "" {
 		return ErrEmptyMoniker
+	}
+	return nil
+}
+
+// MsgUpdateIndexingNodeStake struct for updating indexing node's stake
+type MsgUpdateIndexingNodeStake struct {
+	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	StakeDelta     sdk.Coin       `json:"stake_delta" yaml:"stake_delta"`
+	IncrStake      bool           `json:"incr_stake" yaml:"incr_stake"`
+}
+
+func NewMsgUpdateIndexingNodeStake(networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress,
+	stakeDelta sdk.Coin, incrStake bool) MsgUpdateIndexingNodeStake {
+	return MsgUpdateIndexingNodeStake{
+		NetworkAddress: networkAddress,
+		OwnerAddress:   ownerAddress,
+		StakeDelta:     stakeDelta,
+		IncrStake:      incrStake,
+	}
+}
+
+// Route implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNodeStake) Route() string { return RouterKey }
+
+// Type implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNodeStake) Type() string { return "update_indexing_node" }
+
+// GetSigners implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNodeStake) GetSigners() []sdk.AccAddress {
+	return []sdk.AccAddress{msg.OwnerAddress}
+}
+
+// GetSignBytes implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNodeStake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic implements the sdk.Msg interface.
+func (msg MsgUpdateIndexingNodeStake) ValidateBasic() error {
+	if msg.NetworkAddress.Empty() {
+		return ErrEmptyNetworkAddr
+	}
+	if msg.OwnerAddress.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	if msg.StakeDelta.Amount.LTE(sdk.ZeroInt()) {
+		return ErrInvalidStakeChange
 	}
 	return nil
 }
