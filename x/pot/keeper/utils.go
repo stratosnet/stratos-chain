@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"sort"
 )
 
 type QueryPotRewardsParams struct {
@@ -93,20 +94,6 @@ type NodeRewardsInfo struct {
 	NodeAddress         sdk.AccAddress
 	MatureTotalReward   sdk.Coin
 	ImmatureTotalReward sdk.Coin
-}
-
-// NewNodeRewardsInfo creates a new instance of NodeRewardsInfo
-func NewNodeRewardsInfo(
-	nodeAddress sdk.AccAddress,
-	matureTotal,
-	immatureTotal sdk.Int,
-) NodeRewardsInfo {
-	denomName := "ustos"
-	return NodeRewardsInfo{
-		NodeAddress:         nodeAddress,
-		MatureTotalReward:   sdk.NewCoin(denomName, matureTotal),
-		ImmatureTotalReward: sdk.NewCoin(denomName, immatureTotal),
-	}
 }
 
 type OwnerRewardsRecord struct {

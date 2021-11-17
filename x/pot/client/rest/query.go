@@ -3,6 +3,10 @@ package rest
 import (
 	"bytes"
 	"fmt"
+	"net/http"
+	"strconv"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -10,9 +14,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"net/http"
-	"strconv"
-	"strings"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -38,7 +39,7 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		epochStr := mux.Vars(r)["epoch"]
 		epoch, ok := checkEpoch(w, r, epochStr)
 		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid epoch"))
+			//rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid epoch"))
 			return
 		}
 
@@ -53,15 +54,17 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		}
 
 		// get volumeReportRecord from the given epoch
-		volumeReportRecord := getVolumeReport(w, cliCtx, epoch)
+		volumeReportRecord, queryHeight := getVolumeReport(w, cliCtx, epoch)
 		if volumeReportRecord.TxHash == "" {
-			rest.PostProcessResponse(w, cliCtx, fmt.Sprintf("no Pot volume report at epoch: %s", epoch.String()))
+			cliCtx = cliCtx.WithHeight(queryHeight)
+			rest.PostProcessResponse(w, cliCtx, fmt.Sprintf("no volume report at epoch: %s", epoch.String()))
 			return
 		}
 
 		// get nodeVolumes from volumeReportRecord.TxHash
 		reportMsg := getNodeVolumes(w, cliCtx, volumeReportRecord)
 		if len(reportMsg.NodesVolume) == 0 {
+			cliCtx = cliCtx.WithHeight(queryHeight)
 			rest.PostProcessResponse(w, cliCtx, fmt.Sprintf("no nodesVolumes in volume report at epoch: %s", epoch.String()))
 			return
 		}
@@ -70,14 +73,16 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		params := keeper.NewQueryPotRewardsByEpochParams(page, limit, ownerAddress, epoch, reportMsg.NodesVolume)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			cliCtx = cliCtx.WithHeight(queryHeight)
+			rest.PostProcessResponse(w, cliCtx, err.Error())
 			return
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			cliCtx = cliCtx.WithHeight(queryHeight)
+			rest.PostProcessResponse(w, cliCtx, err.Error())
 			return
 		}
 
@@ -105,24 +110,22 @@ func getNodeVolumes(w http.ResponseWriter, cliCtx context.CLIContext, volumeRepo
 	return reportMsg
 }
 
-func getVolumeReport(w http.ResponseWriter, cliCtx context.CLIContext, epoch sdk.Int) types.QueryVolumeReportRecord {
-	route1 := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, keeper.QueryVolumeReport)
-	volumeReportRecordBz, _, err := cliCtx.QueryWithData(route1, []byte(epoch.String()))
+func getVolumeReport(w http.ResponseWriter, cliCtx context.CLIContext, epoch sdk.Int) (types.QueryVolumeReportRecord, int64) {
+	route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, keeper.QueryVolumeReport)
+	volumeReportRecordBz, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
 	if err != nil {
-		rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-		return types.QueryVolumeReportRecord{}
+		return types.QueryVolumeReportRecord{}, height
 	}
 
 	if bytes.Contains(volumeReportRecordBz, []byte("no volume report at epoch")) {
-		return types.QueryVolumeReportRecord{}
+		return types.QueryVolumeReportRecord{}, height
 	}
 	var volumeReportRecord types.QueryVolumeReportRecord
 	err = cliCtx.Codec.UnmarshalJSON(volumeReportRecordBz, &volumeReportRecord)
 	if err != nil {
-		rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-		return types.QueryVolumeReportRecord{}
+		return types.QueryVolumeReportRecord{}, height
 	}
-	return volumeReportRecord
+	return volumeReportRecord, height
 }
 
 // GET request handler to query Volume report info
@@ -145,7 +148,7 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -205,12 +208,12 @@ func getPotRewardsHandlerFn(cliCtx context.CLIContext, queryPath string) http.Ha
 
 		cliCtx = cliCtx.WithHeight(queryHeight)
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		res, currentHeight, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
+		cliCtx = cliCtx.WithHeight(currentHeight)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

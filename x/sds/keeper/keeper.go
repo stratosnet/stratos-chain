@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -111,8 +112,9 @@ func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Int {
 	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
 	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	currUozPrice := (S.Add(Pt)).ToDec().
-		Quo(Lt.ToDec()).
+	currUozPrice := Lt.ToDec().
+		Quo((S.
+			Add(Pt)).ToDec()).
 		TruncateInt()
 	return currUozPrice
 }
@@ -132,8 +134,18 @@ func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins)
 	if !fk.BankKeeper.HasCoins(ctx, sender, coins) {
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
+	adjustedCoins := coins
+	for _, coin := range adjustedCoins {
+		switch coin.Denom {
+		case types.DefaultRewardDenom:
+			coin.Amount = coin.Amount.Mul(types.RewardToUstos)
+		case types.DefaultBondDenom:
+		default:
+			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Prepay contains unknown coins %s: ", coin.String())
+		}
+	}
 
-	err := fk.doPrepay(ctx, sender, coins)
+	err := fk.doPrepay(ctx, sender, adjustedCoins)
 	if err != nil {
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
@@ -144,9 +156,12 @@ func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins)
 	}
 
 	//TODO: move the definition of default denomination to params.go
-	prepay := coins.AmountOf("ustos")
-	purchased := fk.purchaseUoz(ctx, prepay)
-
+	prepay := sdk.ZeroInt()
+	purchased := sdk.ZeroInt()
+	for _, coin := range adjustedCoins {
+		prepay = prepay.Add(coins.AmountOf(coin.Denom))
+		purchased = purchased.Add(fk.purchaseUoz(ctx, prepay))
+	}
 	return purchased, nil
 }
 
