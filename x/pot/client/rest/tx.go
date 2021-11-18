@@ -2,13 +2,14 @@ package rest
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"net/http"
 )
 
 //registerTxRoutes registers pot-related REST Tx handlers to a router
@@ -127,7 +128,7 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultBondDenom, amount), nodeAddr, ownerAddr)
+		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultRewardDenom, amount), nodeAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -153,8 +154,8 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// read and validate URL's variables
 		amountStr := req.Amount
-		amount, ok := checkAmountVar(w, r, amountStr)
-		if !ok {
+		amount, err := sdk.ParseCoin(amountStr)
+		if err != nil {
 			return
 		}
 
@@ -164,7 +165,7 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgFoundationDeposit(sdk.NewCoin(types.DefaultBondDenom, amount), fromAddr)
+		msg := types.NewMsgFoundationDeposit(amount, fromAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

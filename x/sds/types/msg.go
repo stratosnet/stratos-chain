@@ -8,6 +8,15 @@ import (
 const (
 	ConstFileUpload = "FileUploadTx"
 	ConstSdsPrepay  = "SdsPrepayTx"
+
+	DefaultBondDenom   = "ustos"
+	DefaultRewardDenom = "reward"
+)
+
+var (
+	AllowDenoms = []string{DefaultBondDenom, DefaultRewardDenom}
+
+	RewardToUstos = sdk.NewInt(1)
 )
 
 type MsgFileUpload struct {
@@ -94,5 +103,21 @@ func (msg MsgPrepay) ValidateBasic() error {
 	if msg.Coins.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing coins to send")
 	}
+	for _, coin := range msg.Coins {
+		if !Contains(AllowDenoms, coin.Denom) {
+			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "MsgPrepay contains unknown coins %s: ", coin.String())
+		}
+	}
+
 	return nil
+}
+
+func Contains(s []string, str string) bool {
+	for _, v := range s {
+		if v == str {
+			return true
+		}
+	}
+
+	return false
 }
