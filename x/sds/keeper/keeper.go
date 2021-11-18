@@ -159,8 +159,8 @@ func (fk Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins)
 	purchased := sdk.ZeroInt()
 	for _, coin := range adjustedCoins {
 		prepay = prepay.Add(coins.AmountOf(coin.Denom))
-		purchased = purchased.Add(fk.purchaseUoz(ctx, prepay))
 	}
+	purchased = purchased.Add(fk.purchaseUoz(ctx, prepay))
 	return purchased, nil
 }
 
