@@ -2,9 +2,10 @@ package rest
 
 import (
 	"encoding/json"
+	"net/http"
+
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/sds/client/common"
-	"net/http"
 
 	"github.com/gorilla/mux"
 
@@ -69,14 +70,9 @@ func UozPriceHandlerFn(cliCtx context.CLIContext, queryRoute string) http.Handle
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		var uozPrice sdk.Int
-		err = uozPrice.UnmarshalJSON(resp)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
-			return
-		}
+
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, uozPrice)
+		rest.PostProcessResponse(w, cliCtx, resp)
 	}
 }
 

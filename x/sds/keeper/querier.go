@@ -72,8 +72,12 @@ func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]by
 
 // queryCurrUozPrice fetch current uoz price.
 func queryCurrUozPrice(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	uozPrice := k.currUozPrice(ctx)
-	uozPriceByte, _ := uozPrice.MarshalJSON()
+	uozPriceDec := k.currUozPrice(ctx)
+	uozPriceByte, err := json.Marshal(uozPriceDec)
+	if err != nil {
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
 	return uozPriceByte, nil
 }
 

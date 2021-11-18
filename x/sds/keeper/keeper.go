@@ -108,14 +108,13 @@ func (fk Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 }
 
 // calc current uoz price
-func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Int {
+func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Dec {
 	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
 	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 	currUozPrice := Lt.ToDec().
 		Quo((S.
-			Add(Pt)).ToDec()).
-		TruncateInt()
+			Add(Pt)).ToDec())
 	return currUozPrice
 }
 
