@@ -279,7 +279,11 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 		k.setRewardAddressPool(ctx, rewardAddressPool)
 	}
 
-	distributionRecord := NewNodeRewardsInfo(account, matureTotal, immatureTotal)
+	distributionRecord := NodeRewardsInfo{
+		NodeAddress:         account,
+		MatureTotalReward:   sdk.NewCoin(k.BondDenom(ctx), matureTotal),
+		ImmatureTotalReward: sdk.NewCoin(k.BondDenom(ctx), immatureTotal),
+	}
 	potRewardsRecordVal := NewNodeRewardsRecord(distributionRecord)
 
 	k.setMatureTotalReward(ctx, account, matureTotal)
