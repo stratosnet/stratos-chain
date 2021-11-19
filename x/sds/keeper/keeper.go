@@ -3,6 +3,7 @@ package keeper
 import (
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -107,13 +108,12 @@ func (fk Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 }
 
 // calc current uoz price
-func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Int {
+func (fk Keeper) currUozPrice(ctx sdk.Context) sdk.Dec {
 	S := fk.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := fk.PotKeeper.GetTotalUnissuedPrepay(ctx)
 	Lt := fk.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 	currUozPrice := (S.Add(Pt)).ToDec().
-		Quo(Lt.ToDec()).
-		TruncateInt()
+		Quo(Lt.ToDec())
 	return currUozPrice
 }
 
