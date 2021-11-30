@@ -3,13 +3,14 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto"
-	"sort"
-	"strings"
-	"time"
 )
 
 type NodeType uint8
@@ -82,7 +83,7 @@ func (v ResourceNodes) Validate() error {
 }
 
 type ResourceNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the resource node
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the resource node, sds://...
 	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the public key of the resource node; bech encoded in JSON
 	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the resource node been suspended from bonded status?
 	Status       sdk.BondStatus `json:"status" yaml:"status"`               // resource node bond status (bonded/unbonding/unbonded)

@@ -1,10 +1,11 @@
 package keeper
 
 import (
+	"net/http"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"net/http"
 )
 
 // QueryNodesParams Params for query 'custom/register/resource-nodes'

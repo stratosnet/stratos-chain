@@ -2,6 +2,7 @@ package pot
 
 import (
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	"github.com/stratosnet/stratos-chain/x/register"

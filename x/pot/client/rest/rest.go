@@ -6,10 +6,7 @@ import (
 )
 
 const (
-	RestNodeAddress  = "nodeAddress"
-	RestOwnerAddress = "owner"
-	RestHeight       = "height"
-	RestEpoch        = "epoch"
+	RestHeight = "height"
 )
 
 // RegisterRoutes registers pot-related REST handlers to a router

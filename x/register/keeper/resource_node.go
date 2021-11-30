@@ -1,11 +1,12 @@
 package keeper
 
 import (
+	"strings"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
-	"strings"
-	"time"
 )
 
 const resourceNodeCacheSize = 500
@@ -27,9 +28,9 @@ func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) c
 }
 
 // GetResourceNode get a single resource node
-func (k Keeper) GetResourceNode(ctx sdk.Context, addr sdk.AccAddress) (resourceNode types.ResourceNode, found bool) {
+func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress sdk.AccAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetResourceNodeKey(addr))
+	value := store.Get(types.GetResourceNodeKey(p2pAddress))
 
 	if value == nil {
 		return resourceNode, false
@@ -379,16 +380,4 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
-}
-
-func (k Keeper) GetNodeOwnerMapFromResourceNodes(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress) map[string]sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
-	}
-	return nodeOwnerMap
 }

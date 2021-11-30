@@ -3,10 +3,11 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
-	"strings"
 )
 
 // DefaultParamSpace Default parameter namespace
