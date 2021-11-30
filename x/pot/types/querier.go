@@ -29,18 +29,20 @@ func NewPotRewardInfo(
 	}
 }
 
-type QueryPotRewardsByEpochParams struct {
-	Page  int
-	Limit int
-	Epoch sdk.Int
+type QueryPotRewardsByReportEpochParams struct {
+	Page          int
+	Limit         int
+	Epoch         sdk.Int
+	WalletAddress sdk.AccAddress
 }
 
 // NewQueryPotRewardsByEpochParams creates a new instance of QueryPotRewardsParams
-func NewQueryPotRewardsByEpochParams(page, limit int, epoch sdk.Int) QueryPotRewardsByEpochParams {
-	return QueryPotRewardsByEpochParams{
-		Page:  page,
-		Limit: limit,
-		Epoch: epoch,
+func NewQueryPotRewardsByEpochParams(page, limit int, epoch sdk.Int, walletAddress sdk.AccAddress) QueryPotRewardsByReportEpochParams {
+	return QueryPotRewardsByReportEpochParams{
+		Page:          page,
+		Limit:         limit,
+		Epoch:         epoch,
+		WalletAddress: walletAddress,
 	}
 }
 

@@ -13,10 +13,10 @@ import (
 )
 
 const (
-	QueryVolumeReport           = "volume_report"
-	QueryPotRewardsByEpoch      = "pot_rewards_by_epoch"
-	QueryPotRewardsByWalletAddr = "pot_rewards_by_wallet_address"
-	QueryDefaultLimit           = 100
+	QueryVolumeReport            = "query_volume_report"
+	QueryPotRewardsByReportEpoch = "query_pot_rewards_by_report_epoch"
+	QueryPotRewardsByWalletAddr  = "query_pot_rewards_by_wallet_address"
+	QueryDefaultLimit            = 100
 )
 
 // NewQuerier creates a new querier for pot clients.
@@ -25,8 +25,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k)
-		case QueryPotRewardsByEpoch:
-			return queryPotRewardsByEpoch(ctx, req, k)
+		case QueryPotRewardsByReportEpoch:
+			return queryPotRewardsByReportEpoch(ctx, req, k)
 		case QueryPotRewardsByWalletAddr:
 			return queryPotRewardsByWalletAddress(ctx, req, k)
 		default:
@@ -54,14 +54,14 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 	return bz, nil
 }
 
-// queryPotRewardsByEpoch fetches total rewards and owner individual rewards from traffic and mining.
-func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryPotRewardsByEpochParams
+// queryPotRewardsByReportEpoch fetches total rewards and owner individual rewards from traffic and mining.
+func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryPotRewardsByReportEpochParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	potEpochRewards := k.getPotRewardsByEpoch(ctx, params)
+	potEpochRewards := k.getPotRewardsByReportEpoch(ctx, params)
 	if len(potEpochRewards) < 1 {
 		bz, _ := codec.MarshalJSONIndent(k.cdc, fmt.Sprintf("no Pot rewards information at epoch: %s", params.Epoch.String()))
 		return bz, nil
@@ -73,14 +73,24 @@ func queryPotRewardsByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([
 	return bz, nil
 }
 
-func (k Keeper) getPotRewardsByEpoch(ctx sdk.Context, params types.QueryPotRewardsByEpochParams) (res []types.Reward) {
-	rewardAddressPool := k.GetRewardAddressPool(ctx)
-	for _, walletAddress := range rewardAddressPool {
-		reward, found := k.GetIndividualReward(ctx, walletAddress, params.Epoch)
+func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPotRewardsByReportEpochParams) (res []types.Reward) {
+	matureEpoch := params.Epoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
+
+	if !params.WalletAddress.Empty() {
+		reward, found := k.GetIndividualReward(ctx, params.WalletAddress, matureEpoch)
 		if found {
 			res = append(res, reward)
 		}
+	} else {
+		rewardAddressPool := k.GetRewardAddressPool(ctx)
+		for _, walletAddress := range rewardAddressPool {
+			reward, found := k.GetIndividualReward(ctx, walletAddress, matureEpoch)
+			if found {
+				res = append(res, reward)
+			}
+		}
 	}
+
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
@@ -96,7 +106,6 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-
 	immatureTotalReward := sdk.NewCoin(k.BondDenom(ctx), k.GetImmatureTotalReward(ctx, params.WalletAddr))
 	matureTotalReward := sdk.NewCoin(k.BondDenom(ctx), k.GetMatureTotalReward(ctx, params.WalletAddr))
 	reward := types.NewPotRewardInfo(params.WalletAddr, immatureTotalReward, matureTotalReward)

@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	RestHeight = "height"
+	RestWalletAddress = "wallet_address"
+	RestHeight        = "height"
 )
 
 // RegisterRoutes registers pot-related REST handlers to a router

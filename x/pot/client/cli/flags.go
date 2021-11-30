@@ -31,5 +31,5 @@ func init() {
 	FsWalletVolumes.String(FlagWalletVolumes, "", "a string of KEY-VALUE pairs. The KEY is 'wallet-volumes' and the VALUE is the proof of traffic of this wallet`")
 	FsAmount.String(FlagAmount, "", "Amount of coins to withdraw")
 	FsWalletAddress.String(FlagWalletAddress, "", "The address of the wallet to withdraw")
-	FsWalletAddress.String(FlagTargetAddress, "", "The target account where the money is deposited after withdraw")
+	FsTargetAddress.String(FlagTargetAddress, "", "The target account where the money is deposited after withdraw")
 }

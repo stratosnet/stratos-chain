@@ -15,8 +15,8 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
-	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(cliCtx, keeper.QueryPotRewardsByEpoch)).Methods("GET")
-	r.HandleFunc("/pot/rewards/walletAddress/{walletAddress}", getPotRewardsByWalletAddrHandlerFn(cliCtx, keeper.QueryPotRewardsByWalletAddr)).Methods("GET")
+	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(cliCtx, keeper.QueryPotRewardsByReportEpoch)).Methods("GET")
+	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getPotRewardsByWalletAddrHandlerFn(cliCtx, keeper.QueryPotRewardsByWalletAddr)).Methods("GET")
 }
 
 func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
@@ -38,7 +38,17 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 			return
 		}
 
-		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch)
+		walletAddressStr := ""
+		if v := r.URL.Query().Get(RestWalletAddress); len(v) != 0 {
+			walletAddressStr = v
+		}
+		walletAddress, err := sdk.AccAddressFromBech32(walletAddressStr)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch, walletAddress)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
