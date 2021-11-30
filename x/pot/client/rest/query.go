@@ -50,7 +50,6 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch, walletAddress)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			cliCtx = cliCtx.WithHeight(queryHeight)
 			rest.PostProcessResponse(w, cliCtx, err.Error())
 			return
 		}
@@ -58,7 +57,6 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
-			cliCtx = cliCtx.WithHeight(queryHeight)
 			rest.PostProcessResponse(w, cliCtx, err.Error())
 			return
 		}
