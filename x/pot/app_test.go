@@ -1,8 +1,9 @@
 package pot
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -30,11 +31,11 @@ var (
 
 // initialize data of volume report
 func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
-	volume1 := types.NewSingleNodeVolume(resNodeAddr1, resourceNodeVolume1)
-	volume2 := types.NewSingleNodeVolume(resNodeAddr2, resourceNodeVolume2)
-	volume3 := types.NewSingleNodeVolume(resNodeAddr3, resourceNodeVolume3)
+	volume1 := types.NewSingleWalletVolume(resOwner1, resourceNodeVolume1)
+	volume2 := types.NewSingleWalletVolume(resOwner2, resourceNodeVolume2)
+	volume3 := types.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
 
-	nodesVolume := []types.SingleNodeVolume{volume1, volume2, volume3}
+	nodesVolume := []types.SingleWalletVolume{volume1, volume2, volume3}
 	reporter := idxNodeAddr1
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
@@ -125,7 +126,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		ctx.Logger().Info("epoch " + volumeReportMsg.Epoch.String())
 		S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 		Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
-		Y := k.GetTotalConsumedOzone(volumeReportMsg.NodesVolume).ToDec()
+		Y := k.GetTotalConsumedUoz(volumeReportMsg.WalletVolumes).ToDec()
 		Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 		//ctx.Logger().Info("R = (S + Pt) * Y / (Lt + Y)")
@@ -133,7 +134,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		ctx.Logger().Info("---------------------------")
 		distributeGoal := types.InitDistributeGoal()
-		_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.NodesVolume, distributeGoal)
+		_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, volumeReportMsg.WalletVolumes, distributeGoal)
 		require.NoError(t, err)
 		distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 		require.NoError(t, err)
@@ -142,39 +143,39 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		ctx.Logger().Info("---------------------------")
 		distributeGoalBalance := distributeGoal
 		rewardDetailMap := make(map[string]types.Reward)
-		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.NodesVolume, distributeGoalBalance, rewardDetailMap)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
 		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
-		ctx.Logger().Info("resourceNode1:  address = " + resNodeAddr1.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr1.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr1.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resource_wallet1:  address = " + resOwner1.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode2:  address = " + resNodeAddr2.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr2.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr2.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resource_wallet2:  address = " + resOwner2.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode3:  address = " + resNodeAddr3.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr3.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr3.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resource_wallet3:  address = " + resOwner3.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode4:  address = " + resNodeAddr4.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr4.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr4.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resource_wallet4:  address = " + resOwner4.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("resourceNode5:  address = " + resNodeAddr5.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resNodeAddr5.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resNodeAddr5.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("resource_wallet5:  address = " + resOwner5.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("indexingNode1:  address = " + idxNodeAddr1.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxNodeAddr1.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxNodeAddr1.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("indexing_wallet1:  address = " + idxOwner1.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("indexingNode2:  address = " + idxNodeAddr2.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxNodeAddr2.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxNodeAddr2.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("indexing_wallet2:  address = " + idxOwner2.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
 
-		ctx.Logger().Info("indexingNode3:  address = " + idxNodeAddr3.String())
-		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxNodeAddr3.String()].RewardFromMiningPool.String())
-		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxNodeAddr3.String()].RewardFromTrafficPool.String())
+		ctx.Logger().Info("indexing_wallet3:  address = " + idxOwner3.String())
+		ctx.Logger().Info("           miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
+		ctx.Logger().Info("          trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
 		ctx.Logger().Info("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
@@ -208,8 +209,10 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
 	rewardAddrList := k.GetRewardAddressPool(ctx)
 	for _, addr := range rewardAddrList {
-		individualReward := k.GetIndividualReward(ctx, addr, newMatureEpoch)
-		individualRewardTotal = individualRewardTotal.Add(individualReward)
+		individualReward, found := k.GetIndividualReward(ctx, addr, newMatureEpoch)
+		if found {
+			individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool).Add(individualReward.RewardFromMiningPool)
+		}
 
 		ctx.Logger().Info("individualReward of [" + addr.String() + "] = " + individualReward.String())
 	}

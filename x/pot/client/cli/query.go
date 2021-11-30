@@ -3,6 +3,9 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"strconv"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -11,8 +14,6 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"strconv"
-	"strings"
 )
 
 // GetQueryCmd returns the cli query commands for pot module

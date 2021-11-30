@@ -3,13 +3,14 @@ package cli
 import (
 	"bufio"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -17,9 +18,9 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-type singleNodeVolumeStr struct {
-	NodeAddress string `json:"node_address"`
-	Volume      string `json:"node_volume"`
+type singleWalletVolumeStr struct {
+	WalletAddress string `json:"wallet_address"`
+	Volume        string `json:"volume"`
 }
 
 // GetTxCmd returns the transaction commands for this module
@@ -59,10 +60,9 @@ func WithdrawCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNodeAddress)
+	cmd.Flags().AddFlagSet(FsTargetAddress)
 
 	_ = cmd.MarkFlagRequired(FlagAmount)
-	_ = cmd.MarkFlagRequired(FlagNodeAddress)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -75,19 +75,26 @@ func buildWithdrawMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.Tx
 	if err != nil {
 		return txBldr, nil, err
 	}
-	nodeAddressStr := viper.GetString(FlagNodeAddress)
-	nodeAddress, err := sdk.AccAddressFromBech32(nodeAddressStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-	ownerAddress := cliCtx.GetFromAddress()
 
-	msg := types.NewMsgWithdraw(amount, nodeAddress, ownerAddress)
+	walletAddress := cliCtx.GetFromAddress()
+
+	var targetAddress sdk.AccAddress
+	if viper.IsSet(FlagTargetAddress) {
+		targetAddressStr := viper.GetString(FlagTargetAddress)
+		targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
+		if err != nil {
+			return txBldr, nil, err
+		}
+	} else {
+		targetAddress = walletAddress
+	}
+
+	msg := types.NewMsgWithdraw(amount, walletAddress, targetAddress)
 
 	return txBldr, msg, nil
 }
 
-// VolumeReportCmd will report nodes volume and sign it with the given key.
+// VolumeReportCmd will report wallets volume and sign it with the given key.
 func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report [flags]",
@@ -106,12 +113,12 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsReporter)
 	cmd.Flags().AddFlagSet(FsEpoch)
 	cmd.Flags().AddFlagSet(FsReportReference)
-	cmd.Flags().AddFlagSet(FsNodesVolume)
+	cmd.Flags().AddFlagSet(FsWalletVolumes)
 
 	_ = cmd.MarkFlagRequired(FlagReporter)
 	_ = cmd.MarkFlagRequired(FlagEpoch)
 	_ = cmd.MarkFlagRequired(FlagReportReference)
-	_ = cmd.MarkFlagRequired(FlagNodesVolume)
+	_ = cmd.MarkFlagRequired(FlagWalletVolumes)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -130,15 +137,15 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		return txBldr, nil, err
 	}
 	epoch := sdk.NewInt(value)
-	var nodesVolumeStr = make([]singleNodeVolumeStr, 0)
-	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolumeStr)
+	var walletVolumesStr = make([]singleWalletVolumeStr, 0)
+	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagWalletVolumes)), &walletVolumesStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 
-	var nodesVolume = make([]types.SingleNodeVolume, 0)
-	for _, n := range nodesVolumeStr {
-		nodeAcc, err := sdk.AccAddressFromBech32(n.NodeAddress)
+	var walletVolumes = make([]types.SingleWalletVolume, 0)
+	for _, n := range walletVolumesStr {
+		walletAcc, err := sdk.AccAddressFromBech32(n.WalletAddress)
 		if err != nil {
 			return txBldr, nil, err
 		}
@@ -146,14 +153,14 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		if err != nil {
 			return txBldr, nil, err
 		}
-		nodeVolume := sdk.NewInt(volumeInt64)
-		nodesVolume = append(nodesVolume, types.NewSingleNodeVolume(nodeAcc, nodeVolume))
+		volume := sdk.NewInt(volumeInt64)
+		walletVolumes = append(walletVolumes, types.NewSingleWalletVolume(walletAcc, volume))
 	}
 
 	reporterOwner := cliCtx.GetFromAddress()
 
 	msg := types.NewMsgVolumeReport(
-		nodesVolume,
+		walletVolumes,
 		reporter,
 		epoch,
 		reportReference,

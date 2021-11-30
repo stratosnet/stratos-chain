@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -120,21 +121,21 @@ func (d DistributeGoal) String() string {
 }
 
 type Reward struct {
-	NodeAddress           sdk.AccAddress `json:"node_address" yaml:"node_address"` // account address of node
+	WalletAddress         sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"` // account address of node
 	RewardFromMiningPool  sdk.Int        `json:"reward_from_mining_pool" yaml:"reward_from_mining_pool"`
 	RewardFromTrafficPool sdk.Int        `json:"reward_from_traffic_pool" yaml:"reward_from_traffic_pool"`
 }
 
-func NewReward(nodeAddress sdk.AccAddress, rewardFromMiningPool sdk.Int, rewardFromTrafficPool sdk.Int) Reward {
+func NewReward(walletAddress sdk.AccAddress, rewardFromMiningPool sdk.Int, rewardFromTrafficPool sdk.Int) Reward {
 	return Reward{
-		NodeAddress:           nodeAddress,
+		WalletAddress:         walletAddress,
 		RewardFromMiningPool:  rewardFromMiningPool,
 		RewardFromTrafficPool: rewardFromTrafficPool,
 	}
 }
 
-func NewDefaultReward(nodeAddress sdk.AccAddress) Reward {
-	return NewReward(nodeAddress, sdk.ZeroInt(), sdk.ZeroInt())
+func NewDefaultReward(walletAddress sdk.AccAddress) Reward {
+	return NewReward(walletAddress, sdk.ZeroInt(), sdk.ZeroInt())
 }
 
 func (r Reward) AddRewardFromMiningPool(reward sdk.Int) Reward {
@@ -150,8 +151,8 @@ func (r Reward) AddRewardFromTrafficPool(reward sdk.Int) Reward {
 // String returns a human readable string representation of a Reward.
 func (r Reward) String() string {
 	return fmt.Sprintf(`Reward:{
-		NodeAddress:			%s
+		WalletAddress:			%s
   		RewardFromMiningPool:	%s
   		RewardFromTrafficPool:	%s
-	}`, r.NodeAddress, r.RewardFromMiningPool, r.RewardFromTrafficPool)
+	}`, r.WalletAddress, r.RewardFromMiningPool, r.RewardFromTrafficPool)
 }
