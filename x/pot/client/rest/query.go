@@ -34,7 +34,6 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		epochStr := mux.Vars(r)["epoch"]
 		epoch, ok := sdk.NewIntFromString(epochStr)
 		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, fmt.Sprintf("invalid epoch"))
 			return
 		}
 
@@ -51,14 +50,16 @@ func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) 
 		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch, walletAddress)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			cliCtx = cliCtx.WithHeight(queryHeight)
+			rest.PostProcessResponse(w, cliCtx, err.Error())
 			return
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			cliCtx = cliCtx.WithHeight(queryHeight)
+			rest.PostProcessResponse(w, cliCtx, err.Error())
 			return
 		}
 
@@ -89,7 +90,7 @@ func getVolumeReportHandlerFn(cliCtx context.CLIContext, queryPath string) http.
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -140,12 +141,12 @@ func getPotRewardsByWalletAddrHandlerFn(cliCtx context.CLIContext, queryPath str
 
 		cliCtx = cliCtx.WithHeight(queryHeight)
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-		res, _, err := cliCtx.QueryWithData(route, bz)
+		res, currentHeight, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
+		cliCtx = cliCtx.WithHeight(currentHeight)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

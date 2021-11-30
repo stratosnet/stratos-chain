@@ -149,8 +149,8 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// read and validate URL's variables
 		amountStr := req.Amount
-		amount, ok := checkAmountVar(w, r, amountStr)
-		if !ok {
+		amount, err := sdk.ParseCoin(amountStr)
+		if err != nil {
 			return
 		}
 
@@ -160,7 +160,7 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgFoundationDeposit(sdk.NewCoin(types.DefaultBondDenom, amount), fromAddr)
+		msg := types.NewMsgFoundationDeposit(amount, fromAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
