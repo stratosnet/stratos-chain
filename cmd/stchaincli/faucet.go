@@ -53,14 +53,21 @@ const (
 
 // used in request channel
 type FaucetReq struct {
-	ToAddr sdk.AccAddress
-	resChan  chan FaucetRsp
+	ToAddr  sdk.AccAddress
+	resChan chan FaucetRsp
 }
 
 // used in response channel
 type FaucetRsp struct {
+	ErrorMsg   string
 	TxResponse sdk.TxResponse
 	Seq        uint64
+}
+
+// used for restful response
+type RestFaucetRsp struct {
+	ErrorMsg   string
+	TxResponse sdk.TxResponse
 }
 
 type FaucetToMiddleware struct {
@@ -128,8 +135,8 @@ func (fim *FromIpMiddleware) checkCap(fromIp string) bool {
 
 // global to load command line args
 var (
-	faucetArgs  = FaucetArgs{}
-	seqInfo     = SeqInfo{startSeq: 0, lastSuccSeq: 0}
+	faucetArgs = FaucetArgs{}
+	seqInfo    = SeqInfo{startSeq: 0, lastSuccSeq: 0}
 )
 
 // struct to hold the command-line args
@@ -168,27 +175,31 @@ func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin, quit chan os.Signal) {
 	for {
 		select {
-			case <- quit:
+		case <-quit:
 
-				return
-			case fReq := <-*faucetReq:
-				resChan := fReq.resChan
+			return
+		case fReq := <-*faucetReq:
+			resChan := fReq.resChan
 			// get latest seq
-				_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
-				if err != nil {
-					return
-				}
-				newSeq := seqInfo.getNewSeq(int(latestSeq))
-
-				//fmt.Print(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
-				doTransfer(cliCtx,
-					txBldr.
-						WithSequence(uint64(newSeq)).
-						WithChainID(viper.GetString(flags.FlagChainID)).
-						WithGas(uint64(400000)).
-						WithMemo(strconv.Itoa(newSeq)),
-					fReq.ToAddr, faucetArgs.from, coin, &resChan)
-
+			_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
+			if err != nil {
+				faucetRsp := FaucetRsp{ErrorMsg: "Node is under maintenance, please try again later!"}
+				resChan <- faucetRsp
+				continue
+			}
+			newSeq := seqInfo.getNewSeq(int(latestSeq))
+			//fmt.Print(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
+			err = doTransfer(cliCtx,
+				txBldr.
+					WithSequence(uint64(newSeq)).
+					WithChainID(viper.GetString(flags.FlagChainID)).
+					WithGas(uint64(400000)).
+					WithMemo(strconv.Itoa(newSeq)),
+				fReq.ToAddr, faucetArgs.from, coin, &resChan)
+			if err != nil {
+				faucetRsp := FaucetRsp{ErrorMsg: err.Error()}
+				resChan <- faucetRsp
+			}
 		}
 	}
 }
@@ -281,12 +292,13 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				faucetReqCh <- faucetReq
 
 				faucetRsp := <-resChan
-				if int(faucetRsp.TxResponse.Code) < 1 {
+				if int(faucetRsp.TxResponse.Code) < 1 && len(faucetRsp.ErrorMsg) == 0 {
 					// sigverify pass
 					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
 				}
-				fmt.Println("tx send=", faucetRsp.TxResponse.TxHash, ", height=", faucetRsp.TxResponse.Height)
-				rest.PostProcessResponseBare(writer, cliCtx, faucetRsp.TxResponse)
+				fmt.Println("tx send=", faucetRsp.TxResponse.TxHash, ", height=", faucetRsp.TxResponse.Height, ", errorMsg=", faucetRsp.ErrorMsg)
+				restRsp := &RestFaucetRsp{ErrorMsg: faucetRsp.ErrorMsg, TxResponse: faucetRsp.TxResponse}
+				rest.PostProcessResponseBare(writer, cliCtx, restRsp)
 				return
 			}).Methods("POST")
 			// ipCap check has higher priority than toAddrCap
@@ -327,14 +339,13 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, resChan *chan FaucetRsp) {
+func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.AccAddress, from sdk.AccAddress, coin sdk.Coin, resChan *chan FaucetRsp) error {
 	//// build and sign the transaction, then broadcast to Tendermint
 	msg := bank.NewMsgSend(from, to, sdk.Coins{coin})
 	msgs := []sdk.Msg{msg}
-
 	txBldr, err := utils.PrepareTxBuilder(txBldr, cliCtx)
 	if err != nil {
-		return
+		return err
 	}
 
 	fromName := cliCtx.GetFromName()
@@ -342,7 +353,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	if txBldr.SimulateAndExecute() || cliCtx.Simulate {
 		txBldr, err = utils.EnrichWithGas(txBldr, cliCtx, msgs)
 		if err != nil {
-			return
+			return err
 		}
 
 		gasEst := utils.GasEstimateResponse{GasEstimate: txBldr.Gas()}
@@ -352,7 +363,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 	if !cliCtx.SkipConfirm {
 		stdSignMsg, err := txBldr.BuildSignMsg(msgs)
 		if err != nil {
-			return
+			return err
 		}
 
 		var json []byte
@@ -371,20 +382,23 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 		ok, err := input.GetConfirmation("confirm transaction before signing and broadcasting", buf)
 		if err != nil || !ok {
 			_, _ = fmt.Fprintf(os.Stderr, "%s\n", "cancelled transaction")
-			return
+			return err
 		}
 	}
-
 	// build and sign the transaction
 	txBytes, err := txBldr.BuildAndSign(fromName, keys.DefaultKeyPass, msgs)
 	if err != nil {
-		return
+		return err
 	}
 
 	// broadcast to a Tendermint node
 	res, err := cliCtx.BroadcastTxCommit(txBytes)
+	if err != nil {
+		return err
+	}
 	faucetRsp := FaucetRsp{TxResponse: res, Seq: txBldr.Sequence()}
 	*resChan <- faucetRsp
+	return nil
 }
 
 func getRealAddr(r *http.Request) string {
