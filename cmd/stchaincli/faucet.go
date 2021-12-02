@@ -320,7 +320,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			quit <- syscall.SIGQUIT
+			close(quit)
 			// print stats
 			fmt.Println("####################################################################")
 			fmt.Println("################        Terminating faucet        ##################")
