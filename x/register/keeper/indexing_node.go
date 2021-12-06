@@ -31,9 +31,9 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 }
 
 // GetIndexingNode get a single indexing node
-func (k Keeper) GetIndexingNode(ctx sdk.Context, addr sdk.AccAddress) (indexingNode types.IndexingNode, found bool) {
+func (k Keeper) GetIndexingNode(ctx sdk.Context, p2pAddress sdk.AccAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.GetIndexingNodeKey(addr))
+	value := store.Get(types.GetIndexingNodeKey(p2pAddress))
 	if value == nil {
 		return indexingNode, false
 	}
@@ -473,16 +473,4 @@ func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
-}
-
-func (k Keeper) GetNodeOwnerMapFromIndexingNodes(ctx sdk.Context, nodeOwnerMap map[string]sdk.AccAddress) map[string]sdk.AccAddress {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
-	defer iterator.Close()
-
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		nodeOwnerMap[node.GetNetworkAddr().String()] = node.OwnerAddress
-	}
-	return nodeOwnerMap
 }
