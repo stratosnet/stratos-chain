@@ -14,7 +14,7 @@ import (
 //registerTxRoutes registers pot-related REST Tx handlers to a router
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/volume_report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/pot/withdraw?target_addr={target_addr}", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/pot/withdraw", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/foundation_deposit", foundationDepositHandlerFn(cliCtx)).Methods("POST")
 }
 
