@@ -2,19 +2,19 @@ package types
 
 import sdk "github.com/cosmos/cosmos-sdk/types"
 
-type SingleNodeVolume struct {
-	NodeAddress sdk.AccAddress `json:"node_address" yaml:"node_address"`
-	Volume      sdk.Int        `json:"node_volume" yaml:"node_volume"` //uoz
+type SingleWalletVolume struct {
+	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
+	Volume        sdk.Int        `json:"volume" yaml:"volume"` //uoz
 }
 
-// NewSingleNodeVolume creates a new Msg<Action> instance
-func NewSingleNodeVolume(
-	nodeAddress sdk.AccAddress,
+// NewSingleWalletVolume creates a new Msg<Action> instance
+func NewSingleWalletVolume(
+	walletAddress sdk.AccAddress,
 	volume sdk.Int,
-) SingleNodeVolume {
-	return SingleNodeVolume{
-		NodeAddress: nodeAddress,
-		Volume:      volume,
+) SingleWalletVolume {
+	return SingleWalletVolume{
+		WalletAddress: walletAddress,
+		Volume:        volume,
 	}
 }
 

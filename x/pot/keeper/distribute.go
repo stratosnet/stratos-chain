@@ -5,9 +5,9 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleNodeVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
 	distributeGoal := types.InitDistributeGoal()
-	rewardDetailMap := make(map[string]types.Reward) //key: node address
+	rewardDetailMap := make(map[string]types.Reward) //key: wallet address
 
 	//1, calc traffic reward in total
 	totalConsumedOzone, distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
@@ -30,10 +30,10 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 	*/
 	distributeGoalBalance := distributeGoal
 
-	//3, calc reward for resource node
+	//3, calc reward for resource node, store to rewardDetailMap by wallet address(owner address)
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, trafficList, distributeGoalBalance, rewardDetailMap)
 
-	//4, calc reward from indexing node
+	//4, calc reward from indexing node, store to rewardDetailMap by wallet address(owner address)
 	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNode(ctx, distributeGoalBalance, rewardDetailMap)
 
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
@@ -48,16 +48,16 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleN
 		return totalConsumedOzone, err
 	}
 
-	//sort map and convert to slice to keep the order
+	//7, IMPORTANT: sort map and convert to slice to keep the order
 	rewardDetailList := sortDetailMapToSlice(rewardDetailMap)
-	//7, distribute all rewards to resource nodes & indexing nodes
 
+	//8, distribute all rewards to resource nodes & indexing nodes
 	err = k.distributeRewardToSdsNodes(ctx, rewardDetailList, epoch)
 	if err != nil {
 		return totalConsumedOzone, err
 	}
 
-	//8, return balance to traffic pool & mining pool
+	//9, return balance to traffic pool & mining pool
 	err = k.returnBalance(ctx, distributeGoalBalance, epoch)
 	if err != nil {
 		return totalConsumedOzone, err
@@ -152,7 +152,7 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 }
 
 func (k Keeper) CalcTrafficRewardInTotal(
-	ctx sdk.Context, trafficList []types.SingleNodeVolume, distributeGoal types.DistributeGoal,
+	ctx sdk.Context, trafficList []types.SingleWalletVolume, distributeGoal types.DistributeGoal,
 ) (sdk.Dec, types.DistributeGoal, error) {
 
 	totalConsumedOzone, totalTrafficReward := k.getTrafficReward(ctx, trafficList)
@@ -187,7 +187,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // The remaining total Ozone limit [lt] is the upper bound of total Ozone that users can purchase from Stratos blockchain.
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
-func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNodeVolume) (totalConsumedOzone, result sdk.Dec) {
+func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleWalletVolume) (totalConsumedOzone, result sdk.Dec) {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	if S.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
@@ -196,7 +196,7 @@ func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleNode
 	if Pt.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("total remaining prepay not issued is 0")
 	}
-	Y := k.GetTotalConsumedOzone(trafficList).ToDec()
+	Y := k.GetTotalConsumedUoz(trafficList).ToDec()
 	if Y.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("total consumed uoz is 0")
 	}
@@ -243,15 +243,15 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
 
 	for _, reward := range rewardDetailList {
-		nodeAddr := reward.NodeAddress
-		totalReward := reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
-		k.addNewRewardAndReCalcTotal(ctx, nodeAddr, currentEpoch, matureEpoch, totalReward)
+		walletAddr := reward.WalletAddress
+		k.addNewRewardAndReCalcTotal(ctx, walletAddr, currentEpoch, matureEpoch, reward)
 	}
 	k.setLastReportedEpoch(ctx, currentEpoch)
 	return nil
 }
 
-func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward sdk.Int) NodeRewardsRecord {
+func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward types.Reward) {
+	newRewardTotal := newReward.RewardFromMiningPool.Add(newReward.RewardFromTrafficPool)
 	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
 	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
@@ -259,12 +259,16 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 
 	immatureToMature := sdk.ZeroInt()
 	for i := matureStartEpoch; i <= matureEndEpoch; i++ {
-		reward := k.GetIndividualReward(ctx, account, sdk.NewInt(i))
-		immatureToMature = immatureToMature.Add(reward)
+		rewardTotal := sdk.ZeroInt()
+		reward, found := k.GetIndividualReward(ctx, account, sdk.NewInt(i))
+		if found {
+			rewardTotal = reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool)
+		}
+		immatureToMature = immatureToMature.Add(rewardTotal)
 	}
 
 	matureTotal := oldMatureTotal.Add(immatureToMature)
-	immatureTotal := oldImmatureTotal.Sub(immatureToMature).Add(newReward)
+	immatureTotal := oldImmatureTotal.Sub(immatureToMature).Add(newRewardTotal)
 
 	rewardAddressPool := k.GetRewardAddressPool(ctx)
 	addrExist := false
@@ -279,17 +283,9 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 		k.setRewardAddressPool(ctx, rewardAddressPool)
 	}
 
-	distributionRecord := NodeRewardsInfo{
-		NodeAddress:         account,
-		MatureTotalReward:   sdk.NewCoin(k.BondDenom(ctx), matureTotal),
-		ImmatureTotalReward: sdk.NewCoin(k.BondDenom(ctx), immatureTotal),
-	}
-	potRewardsRecordVal := NewNodeRewardsRecord(distributionRecord)
-
 	k.setMatureTotalReward(ctx, account, matureTotal)
 	k.setImmatureTotalReward(ctx, account, immatureTotal)
 	k.setIndividualReward(ctx, account, matureEpoch, newReward)
-	return potRewardsRecordVal
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
@@ -324,7 +320,7 @@ func (k Keeper) distributeValidatorRewardToFeePool(ctx sdk.Context, distributeGo
 	return distributeGoal, nil
 }
 
-func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.SingleNodeVolume,
+func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.SingleWalletVolume,
 	distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) (map[string]types.Reward, types.DistributeGoal) {
 
@@ -338,7 +334,7 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 	totalStakeOfResourceNodes := k.RegisterKeeper.GetResourceNodeBondedToken(ctx).Amount
 	resourceNodeList := k.RegisterKeeper.GetAllResourceNodes(ctx)
 	for _, node := range resourceNodeList {
-		nodeAddr := node.GetNetworkAddr()
+		walletAddr := node.GetOwnerAddr()
 
 		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfResourceNodes.ToDec())
 		stakeRewardFromMiningPool := distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.ToDec().Mul(shareOfToken).TruncateInt()
@@ -347,15 +343,15 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 		totalUsedFromMiningPool = totalUsedFromMiningPool.Add(stakeRewardFromMiningPool)
 		totalUsedFromTrafficPool = totalUsedFromTrafficPool.Add(stakeRewardFromTrafficPool)
 
-		if _, ok := rewardDetailMap[nodeAddr.String()]; !ok {
-			reward := types.NewDefaultReward(nodeAddr)
-			rewardDetailMap[nodeAddr.String()] = reward
+		if _, ok := rewardDetailMap[walletAddr.String()]; !ok {
+			reward := types.NewDefaultReward(walletAddr)
+			rewardDetailMap[walletAddr.String()] = reward
 		}
 
-		newReward := rewardDetailMap[nodeAddr.String()]
+		newReward := rewardDetailMap[walletAddr.String()]
 		newReward = newReward.AddRewardFromMiningPool(stakeRewardFromMiningPool)
 		newReward = newReward.AddRewardFromTrafficPool(stakeRewardFromTrafficPool)
-		rewardDetailMap[nodeAddr.String()] = newReward
+		rewardDetailMap[walletAddr.String()] = newReward
 
 	}
 	// deduct used reward from distributeGoal
@@ -368,13 +364,13 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 	totalUsedFromTrafficPool = sdk.ZeroInt()
 
 	// calc total traffic
-	totalConsumedOzone := k.GetTotalConsumedOzone(trafficList)
+	totalConsumedOzone := k.GetTotalConsumedUoz(trafficList)
 	// 2, calc traffic reward
-	for _, nodeTraffic := range trafficList {
-		nodeAddr := nodeTraffic.NodeAddress
-		nodeTraffic := nodeTraffic.Volume
+	for _, walletTraffic := range trafficList {
+		walletAddr := walletTraffic.WalletAddress
+		trafficVolume := walletTraffic.Volume
 
-		shareOfTraffic := nodeTraffic.ToDec().Quo(totalConsumedOzone.ToDec())
+		shareOfTraffic := trafficVolume.ToDec().Quo(totalConsumedOzone.ToDec())
 		trafficRewardFromMiningPool :=
 			distributeGoal.TrafficRewardToResourceNodeFromMiningPool.ToDec().Mul(shareOfTraffic).TruncateInt()
 		trafficRewardFromTrafficPool :=
@@ -383,15 +379,15 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []types.S
 		totalUsedFromMiningPool = totalUsedFromMiningPool.Add(trafficRewardFromMiningPool)
 		totalUsedFromTrafficPool = totalUsedFromTrafficPool.Add(trafficRewardFromTrafficPool)
 
-		if _, ok := rewardDetailMap[nodeAddr.String()]; !ok {
-			reward := types.NewDefaultReward(nodeAddr)
-			rewardDetailMap[nodeAddr.String()] = reward
+		if _, ok := rewardDetailMap[walletAddr.String()]; !ok {
+			reward := types.NewDefaultReward(walletAddr)
+			rewardDetailMap[walletAddr.String()] = reward
 		}
 
-		newReward := rewardDetailMap[nodeAddr.String()]
+		newReward := rewardDetailMap[walletAddr.String()]
 		newReward = newReward.AddRewardFromMiningPool(trafficRewardFromMiningPool)
 		newReward = newReward.AddRewardFromTrafficPool(trafficRewardFromTrafficPool)
-		rewardDetailMap[nodeAddr.String()] = newReward
+		rewardDetailMap[walletAddr.String()] = newReward
 	}
 	// deduct used reward from distributeGoal
 	distributeGoal.TrafficRewardToResourceNodeFromMiningPool =
@@ -414,7 +410,7 @@ func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
 	indexingNodeCnt := sdk.NewInt(int64(len(indexingNodeList)))
 	for _, node := range indexingNodeList {
-		nodeAddr := node.GetNetworkAddr()
+		walletAddr := node.GetOwnerAddr()
 
 		// 1, calc stake reward
 		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfIndexingNodes.ToDec())
@@ -435,15 +431,15 @@ func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 		totalUsedIndexingRewardFromMiningPool = totalUsedIndexingRewardFromMiningPool.Add(indexingRewardFromMiningPool)
 		totalUsedIndexingRewardFromTrafficPool = totalUsedIndexingRewardFromTrafficPool.Add(indexingRewardFromTrafficPool)
 
-		if _, ok := rewardDetailMap[nodeAddr.String()]; !ok {
-			reward := types.NewDefaultReward(nodeAddr)
-			rewardDetailMap[nodeAddr.String()] = reward
+		if _, ok := rewardDetailMap[walletAddr.String()]; !ok {
+			reward := types.NewDefaultReward(walletAddr)
+			rewardDetailMap[walletAddr.String()] = reward
 		}
 
-		newReward := rewardDetailMap[nodeAddr.String()]
+		newReward := rewardDetailMap[walletAddr.String()]
 		newReward = newReward.AddRewardFromMiningPool(stakeRewardFromMiningPool.Add(indexingRewardFromMiningPool))
 		newReward = newReward.AddRewardFromTrafficPool(stakeRewardFromTrafficPool.Add(indexingRewardFromTrafficPool))
-		rewardDetailMap[nodeAddr.String()] = newReward
+		rewardDetailMap[walletAddr.String()] = newReward
 	}
 	// deduct used reward from distributeGoal
 	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool =
@@ -458,7 +454,7 @@ func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 	return rewardDetailMap, distributeGoal
 }
 
-func (k Keeper) GetTotalConsumedOzone(trafficList []types.SingleNodeVolume) sdk.Int {
+func (k Keeper) GetTotalConsumedUoz(trafficList []types.SingleWalletVolume) sdk.Int {
 	totalTraffic := sdk.ZeroInt()
 	for _, vol := range trafficList {
 		totalTraffic = totalTraffic.Add(vol.Volume)

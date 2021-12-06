@@ -18,23 +18,23 @@ var (
 )
 
 type MsgVolumeReport struct {
-	NodesVolume     []SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
-	Reporter        sdk.AccAddress     `json:"reporter" yaml:"reporter"`                 // node address of the reporter
-	Epoch           sdk.Int            `json:"report_epoch" yaml:"report_epoch"`         // volume report epoch
-	ReportReference string             `json:"report_reference" yaml:"report_reference"` // volume report reference
-	ReporterOwner   sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
+	WalletVolumes   []SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`     // volume report
+	Reporter        sdk.AccAddress       `json:"reporter" yaml:"reporter"`                 // node p2p address of the reporter
+	Epoch           sdk.Int              `json:"epoch" yaml:"epoch"`                       // volume report epoch
+	ReportReference string               `json:"report_reference" yaml:"report_reference"` // volume report reference
+	ReporterOwner   sdk.AccAddress       `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
 }
 
 // NewMsgVolumeReport creates a new Msg<Action> instance
 func NewMsgVolumeReport(
-	nodesVolume []SingleNodeVolume,
+	walletVolumes []SingleWalletVolume,
 	reporter sdk.AccAddress,
 	epoch sdk.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
 ) MsgVolumeReport {
 	return MsgVolumeReport{
-		NodesVolume:     nodesVolume,
+		WalletVolumes:   walletVolumes,
 		Reporter:        reporter,
 		Epoch:           epoch,
 		ReportReference: reportReference,
@@ -46,15 +46,15 @@ type QueryVolumeReportRecord struct {
 	Reporter        sdk.AccAddress
 	ReportReference string
 	TxHash          string
-	NodesVolume     []SingleNodeVolume
+	walletVolumes   []SingleWalletVolume
 }
 
-func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string, txHash string, nodesVolume []SingleNodeVolume) QueryVolumeReportRecord {
+func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string, txHash string, walletVolumes []SingleWalletVolume) QueryVolumeReportRecord {
 	return QueryVolumeReportRecord{
 		Reporter:        reporter,
 		ReportReference: reportReference,
 		TxHash:          txHash,
-		NodesVolume:     nodesVolume,
+		walletVolumes:   walletVolumes,
 	}
 }
 
@@ -96,8 +96,8 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 	if msg.Reporter.Empty() {
 		return ErrEmptyReporterAddr
 	}
-	if !(len(msg.NodesVolume) > 0) {
-		return ErrEmptyNodesVolume
+	if !(len(msg.WalletVolumes) > 0) {
+		return ErrEmptyWalletVolumes
 	}
 
 	if !(msg.Epoch.IsPositive()) {
@@ -111,28 +111,28 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		return ErrEmptyReporterOwnerAddr
 	}
 
-	for _, item := range msg.NodesVolume {
+	for _, item := range msg.WalletVolumes {
 		if item.Volume.IsNegative() {
 			return ErrNegativeVolume
 		}
-		if item.NodeAddress.Empty() {
-			return ErrMissingNodeAddress
+		if item.WalletAddress.Empty() {
+			return ErrMissingWalletAddress
 		}
 	}
 	return nil
 }
 
 type MsgWithdraw struct {
-	Amount       sdk.Coin       `json:"amount" yaml:"amount"`
-	NodeAddress  sdk.AccAddress `json:"node_address" yaml:"node_address"`
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Amount        sdk.Coin       `json:"amount" yaml:"amount"`
+	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
+	TargetAddress sdk.AccAddress `json:"target_address" yaml:"target_address"`
 }
 
-func NewMsgWithdraw(amount sdk.Coin, nodeAddress sdk.AccAddress, ownerAddress sdk.AccAddress) MsgWithdraw {
+func NewMsgWithdraw(amount sdk.Coin, walletAddress sdk.AccAddress, targetAddress sdk.AccAddress) MsgWithdraw {
 	return MsgWithdraw{
-		Amount:       amount,
-		NodeAddress:  nodeAddress,
-		OwnerAddress: ownerAddress,
+		Amount:        amount,
+		WalletAddress: walletAddress,
+		TargetAddress: targetAddress,
 	}
 }
 
@@ -141,7 +141,7 @@ func (msg MsgWithdraw) Route() string { return RouterKey }
 
 // GetSigners Implement
 func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	return []sdk.AccAddress{msg.WalletAddress}
 }
 
 // Type Implement
@@ -158,11 +158,11 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if !(msg.Amount.IsPositive()) {
 		return ErrWithdrawAmountNotPositive
 	}
-	if msg.NodeAddress.Empty() {
-		return ErrMissingNodeAddress
+	if msg.WalletAddress.Empty() {
+		return ErrMissingWalletAddress
 	}
-	if msg.OwnerAddress.Empty() {
-		return ErrMissingOwnerAddress
+	if msg.TargetAddress.Empty() {
+		return ErrMissingTargetAddress
 	}
 	return nil
 }

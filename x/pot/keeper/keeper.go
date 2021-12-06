@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -69,21 +70,9 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(key)
-}
-
-func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
-	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
+func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr sdk.AccAddress) (found bool) {
+	_, found = k.RegisterKeeper.GetIndexingNode(ctx, p2pAddr)
 	return found
-}
-
-func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
-	nodeOwnerMap := make(map[string]sdk.AccAddress)
-	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
-	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
-	return nodeOwnerMap
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
