@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -114,16 +113,13 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		//TODO: Add targetAddr after NewMsgWithdraw updates
-		fmt.Println("targetAddr", targetAddr)
-
 		walletAddrStr := req.BaseReq.From
 		walletAddr, ok := checkAccountAddressVar(w, r, walletAddrStr)
 		if !ok {
 			return
 		}
 
-		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultBondDenom, amount), walletAddr, targetAddr)
+		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultRewardDenom, amount), walletAddr, targetAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
