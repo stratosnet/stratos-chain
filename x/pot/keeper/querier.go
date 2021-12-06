@@ -108,7 +108,7 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	}
 	immatureTotalReward := sdk.NewCoin(k.BondDenom(ctx), k.GetImmatureTotalReward(ctx, params.WalletAddr))
 	matureTotalReward := sdk.NewCoin(k.BondDenom(ctx), k.GetMatureTotalReward(ctx, params.WalletAddr))
-	reward := types.NewPotRewardInfo(params.WalletAddr, immatureTotalReward, matureTotalReward)
+	reward := types.NewPotRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)
 
 	bz, err := codec.MarshalJSONIndent(k.cdc, reward)
 	if err != nil {

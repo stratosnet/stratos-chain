@@ -10,7 +10,7 @@ const (
 	ConstSdsPrepay  = "SdsPrepayTx"
 
 	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "reward"
+	DefaultRewardDenom = "rstos"
 )
 
 var (
@@ -20,10 +20,10 @@ var (
 )
 
 type MsgFileUpload struct {
-	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
-	From     sdk.AccAddress `json:"from" yaml:"from"`           // wallet addr who will pay this tx
-	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // p2pAddr of sp node who reports this tx
-	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader`    // user who uploads the file
+	FileHash []byte         `json:"file_hash,string" yaml:"file_hash"` // hash of file
+	From     sdk.AccAddress `json:"from" yaml:"from"`                  // wallet addr who will pay this tx
+	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`          // p2pAddr of sp node who reports this tx
+	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader"`          // user who uploads the file
 }
 
 // verify interface at compile time

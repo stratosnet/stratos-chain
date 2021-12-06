@@ -14,7 +14,7 @@ import (
 const (
 	DefaultParamSpace  = ModuleName
 	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "reward"
+	DefaultRewardDenom = "rstos"
 	DefaultMatureEpoch = 2016
 )
 
