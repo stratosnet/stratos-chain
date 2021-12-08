@@ -60,12 +60,12 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		_, err = hex.DecodeString(req.FileHash)
+		fileHash := req.FileHash
+		_, err = hex.DecodeString(fileHash)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		fileHash := req.FileHash
 
 		uploader, err := sdk.AccAddressFromBech32(req.Uploader)
 		if err != nil {

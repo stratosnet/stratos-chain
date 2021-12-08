@@ -10,7 +10,7 @@ const (
 	ConstSdsPrepay  = "SdsPrepayTx"
 
 	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "rstos"
+	DefaultRewardDenom = "reward"
 )
 
 var (
