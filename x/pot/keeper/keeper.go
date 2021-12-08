@@ -60,9 +60,9 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWallet
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 	//distribute POT reward
 	//TODO: recovery when shift to main net
-	totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch)
+	//totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch) // Main net
 	//TODO: remove when shift to main net
-	//totalConsumedOzone, err = k.DistributePotRewardForTestnet(ctx, walletVolumes, epoch)
+	totalConsumedOzone, err = k.DistributePotRewardForTestnet(ctx, walletVolumes, epoch) // Incentive test net
 
 	return totalConsumedOzone, err
 }

@@ -139,42 +139,42 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		require.NoError(t, err)
 
 		//TODO: recovery when shift to main net
-		/********************************************************** Recover part Start *********************************************************************/
-		distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
-		require.NoError(t, err)
-		ctx.Logger().Info(distributeGoal.String())
-
-		ctx.Logger().Info("---------------------------")
-		distributeGoalBalance := distributeGoal
-		rewardDetailMap := make(map[string]types.Reward)
-		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
-		/********************************************************** Recover part End *********************************************************************/
-
-		//TODO: remove when shift to main net
-		/********************************************************** Remove part Start *********************************************************************/
-		//distributeGoal, totalNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal) //for incentive test net
+		/********************************************************** Main net part Start *********************************************************************/
+		//distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
 		//require.NoError(t, err)
 		//ctx.Logger().Info(distributeGoal.String())
+		//
 		//ctx.Logger().Info("---------------------------")
 		//distributeGoalBalance := distributeGoal
 		//rewardDetailMap := make(map[string]types.Reward)
-		//
-		//rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap, totalNodeCnt)
-		//rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, totalNodeCnt)
-		//
-		////calc mining reward to distribute to validators
-		//rewardFromMiningPool := distributeGoal.BlockChainRewardToValidatorFromMiningPool
-		//usedRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-		//validatorWalletList := make([]sdk.AccAddress, 0)
-		//validators := k.StakingKeeper.GetAllValidators(ctx)
-		//for _, validator := range validators {
-		//	if validator.IsBonded() && !validator.IsJailed() {
-		//		validatorWalletList = append(validatorWalletList, sdk.AccAddress(validator.GetOperator()))
-		//	}
-		//}
-		//rewardPerValidator := sdk.NewCoin(k.RewardDenom(ctx), rewardFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(int64(len(validatorWalletList)))).TruncateInt())
-		//usedRewardFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), rewardPerValidator.Amount.Mul(sdk.NewInt(int64(len(validatorWalletList)))))
-		/********************************************************** Remove part End *********************************************************************/
+		//rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
+		/********************************************************** Main net part End *********************************************************************/
+
+		//TODO: remove when shift to main net
+		/********************************************************** Incentive testnet part Start *********************************************************************/
+		distributeGoal, totalNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal) //for incentive test net
+		require.NoError(t, err)
+		ctx.Logger().Info(distributeGoal.String())
+		ctx.Logger().Info("---------------------------")
+		distributeGoalBalance := distributeGoal
+		rewardDetailMap := make(map[string]types.Reward)
+
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap, totalNodeCnt)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, totalNodeCnt)
+
+		//calc mining reward to distribute to validators
+		rewardFromMiningPool := distributeGoal.BlockChainRewardToValidatorFromMiningPool
+		usedRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+		validatorWalletList := make([]sdk.AccAddress, 0)
+		validators := k.StakingKeeper.GetAllValidators(ctx)
+		for _, validator := range validators {
+			if validator.IsBonded() && !validator.IsJailed() {
+				validatorWalletList = append(validatorWalletList, sdk.AccAddress(validator.GetOperator()))
+			}
+		}
+		rewardPerValidator := sdk.NewCoin(k.RewardDenom(ctx), rewardFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(int64(len(validatorWalletList)))).TruncateInt())
+		usedRewardFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), rewardPerValidator.Amount.Mul(sdk.NewInt(int64(len(validatorWalletList)))))
+		/********************************************************** Incentive testnet part End *********************************************************************/
 
 		ctx.Logger().Info("resource_wallet1:  address = " + resOwner1.String())
 		ctx.Logger().Info("           miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
@@ -228,10 +228,10 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		ctx = mApp.BaseApp.NewContext(true, header)
 
 		//TODO: recovery when shift to main net
-		checkResult(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool)
+		//checkResult(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool) // Main net
 
 		//TODO: remove when shift to main net
-		//checkResultForIncentiveTestnet(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool, usedRewardFromMiningPool)
+		checkResultForIncentiveTestnet(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool, usedRewardFromMiningPool) //Incentive test net
 
 		i++
 	}
