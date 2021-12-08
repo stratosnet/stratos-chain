@@ -3,6 +3,7 @@ package sds
 import (
 	"encoding/hex"
 	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/sds/keeper"
@@ -38,7 +39,11 @@ func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUplo
 	heightReEncoded.UnmarshalJSON(heightByteArr)
 
 	fileInfo := types.NewFileInfo(heightReEncoded, msg.Reporter, msg.Uploader)
-	k.SetFileHash(ctx, msg.FileHash, fileInfo)
+	fileHashByte, err := hex.DecodeString(msg.FileHash)
+	if err != nil {
+		return nil, err
+	}
+	k.SetFileHash(ctx, fileHashByte, fileInfo)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -46,7 +51,7 @@ func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUplo
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
 			sdk.NewAttribute(types.AttributeKeyReporter, msg.Reporter.String()),
 			sdk.NewAttribute(types.AttributeKeyUploader, msg.Uploader.String()),
-			sdk.NewAttribute(types.AttributeKeyFileHash, hex.EncodeToString(msg.FileHash)),
+			sdk.NewAttribute(types.AttributeKeyFileHash, msg.FileHash),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
