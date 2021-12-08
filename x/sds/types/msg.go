@@ -8,22 +8,13 @@ import (
 const (
 	ConstFileUpload = "FileUploadTx"
 	ConstSdsPrepay  = "SdsPrepayTx"
-
-	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "reward"
-)
-
-var (
-	AllowDenoms = []string{DefaultBondDenom, DefaultRewardDenom}
-
-	RewardToUstos = sdk.NewInt(1)
 )
 
 type MsgFileUpload struct {
 	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
 	From     sdk.AccAddress `json:"from" yaml:"from"`           // wallet addr who will pay this tx
 	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // p2pAddr of sp node who reports this tx
-	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader`    // user who uploads the file
+	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader"`   // user who uploads the file
 }
 
 // verify interface at compile time
@@ -103,21 +94,5 @@ func (msg MsgPrepay) ValidateBasic() error {
 	if msg.Coins.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing coins to send")
 	}
-	for _, coin := range msg.Coins {
-		if !Contains(AllowDenoms, coin.Denom) {
-			return sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "MsgPrepay contains unknown coins %s: ", coin.String())
-		}
-	}
-
 	return nil
-}
-
-func Contains(s []string, str string) bool {
-	for _, v := range s {
-		if v == str {
-			return true
-		}
-	}
-
-	return false
 }

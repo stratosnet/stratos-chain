@@ -2,6 +2,8 @@ package sds
 
 import (
 	"fmt"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -11,7 +13,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-	"time"
 )
 
 const (
@@ -38,7 +39,8 @@ var (
 
 	depositForSendingTx, _             = sdk.NewIntFromString("100000000000000000000000000000")
 	initialUOzonePrice                 = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
-	totalUnissuedPrepay, _             = sdk.NewIntFromString("100000000000000000")
+	totalUnissuedPrepayVal, _          = sdk.NewIntFromString("100000000000000000")
+	totalUnissuedPrepay                = sdk.NewCoin("ustos", totalUnissuedPrepayVal)
 	remainingOzoneLimit, _             = sdk.NewIntFromString("500000000000000000000")
 	totalUnissuedPrepayTestPurchase, _ = sdk.NewIntFromString("0")
 	remainingOzoneLimitTestPurchase, _ = sdk.NewIntFromString("100000000000")
@@ -138,7 +140,6 @@ func SetConfig() {
 	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
 	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
 	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
-	config.Seal()
 }
 
 func setupAccounts(mApp *mock.App) []authexported.Account {

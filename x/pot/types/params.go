@@ -14,13 +14,14 @@ import (
 const (
 	DefaultParamSpace  = ModuleName
 	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "reward"
+	DefaultRewardDenom = "utros"
 	DefaultMatureEpoch = 2016
 )
 
 // Parameter store keys
 var (
 	KeyBondDenom          = []byte("BondDenom")
+	KeyRewardDenom        = []byte("RewardDenom")
 	KeyMatureEpoch        = []byte("matureEpoch")
 	KeyMiningRewardParams = []byte("MiningRewardParams")
 )
@@ -30,6 +31,7 @@ var _ subspace.ParamSet = &Params{}
 // Params - used for initializing default parameter for pot at genesis
 type Params struct {
 	BondDenom          string              `json:"bond_denom" yaml:"bond_denom"` // bondable coin denomination
+	RewardDenom        string              `json:"reward_denom" yaml:"reward_denom"`
 	MatureEpoch        int64               `json:"mature_epoch" yaml:"mature_epoch"`
 	MiningRewardParams []MiningRewardParam `json:"mining_reward_params" yaml:"mining_reward_params"`
 }
@@ -40,9 +42,10 @@ func ParamKeyTable() params.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam) Params {
+func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam) Params {
 	return Params{
 		BondDenom:          bondDenom,
+		RewardDenom:        rewardDenom,
 		MatureEpoch:        matureEpoch,
 		MiningRewardParams: miningRewardParams,
 	}
@@ -52,44 +55,58 @@ func NewParams(bondDenom string, matureEpoch int64, miningRewardParams []MiningR
 func DefaultParams() Params {
 	var miningRewardParams []MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(0), sdk.NewInt(16819200000000000), sdk.NewInt(80000000000),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(0)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(80000000000)),
 		sdk.NewInt(6000), sdk.NewInt(2000), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(16819200000000000), sdk.NewInt(25228800000000000), sdk.NewInt(40000000000),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000000)),
 		sdk.NewInt(6200), sdk.NewInt(1800), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(25228800000000000), sdk.NewInt(29433600000000000), sdk.NewInt(20000000000),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(20000000000)),
 		sdk.NewInt(6400), sdk.NewInt(1600), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(29433600000000000), sdk.NewInt(31536000000000000), sdk.NewInt(10000000000),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(10000000000)),
 		sdk.NewInt(6600), sdk.NewInt(1400), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(31536000000000000), sdk.NewInt(32587200000000000), sdk.NewInt(5000000000),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(5000000000)),
 		sdk.NewInt(6800), sdk.NewInt(1200), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewInt(32587200000000000), sdk.NewInt(40000000000000000), sdk.NewInt(2500000000),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(2500000000)),
 		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
-	return NewParams(DefaultBondDenom, DefaultMatureEpoch, miningRewardParams)
+	return NewParams(DefaultBondDenom, DefaultRewardDenom, DefaultMatureEpoch, miningRewardParams)
 }
 
 // String implements the stringer interface for Params
 func (p Params) String() string {
 	return fmt.Sprintf(`Params:
 	BondDenom:			%s
+    RewardDenom:	%s
 	MatureEpoch:        %d
   	MiningRewardParams:	%s`,
-		p.BondDenom, p.MatureEpoch, p.MiningRewardParams)
+		p.BondDenom, p.RewardDenom, p.MatureEpoch, p.MiningRewardParams)
 }
 
 // ParamSetPairs - Implements params.ParamSet
 func (p *Params) ParamSetPairs() params.ParamSetPairs {
 	return params.ParamSetPairs{
 		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+		params.NewParamSetPair(KeyRewardDenom, &p.RewardDenom, validateRewardDenom),
 		params.NewParamSetPair(KeyMatureEpoch, &p.MatureEpoch, validateMatureEpoch),
 		params.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
 	}
@@ -103,6 +120,22 @@ func validateBondDenom(i interface{}) error {
 
 	if strings.TrimSpace(v) == "" {
 		return errors.New("bond denom cannot be blank")
+	}
+	if err := sdk.ValidateDenom(v); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func validateRewardDenom(i interface{}) error {
+	v, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if strings.TrimSpace(v) == "" {
+		return errors.New("mining reward denom cannot be blank")
 	}
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
@@ -130,6 +163,9 @@ func validateMiningRewardParams(i interface{}) error {
 
 func (p Params) ValidateBasic() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
+		return err
+	}
+	if err := validateRewardDenom(p.RewardDenom); err != nil {
 		return err
 	}
 	if err := validateMatureEpoch(p.MatureEpoch); err != nil {

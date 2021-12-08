@@ -74,10 +74,9 @@ var (
 	valConsPk1      = ed25519.GenPrivKey().PubKey()
 	valInitialStake = sdk.NewCoin("ustos", sdk.NewInt(15*stos2ustos))
 
-	totalUnissuedPrePay = sdk.NewInt(5000 * stos2ustos)
+	totalUnissuedPrePay = sdk.NewCoin("ustos", sdk.NewInt(5000*stos2ustos))
 	remainingOzoneLimit = sdk.NewInt(5000 * oz2uoz)
-	//initialUOzonePrice = sdk.NewDec(1000000)
-	initialUOzonePrice = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
+	initialUOzonePrice  = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
 
 	epoch1    = sdk.NewInt(1)
 	epoch2017 = epoch1.Add(sdk.NewInt(2016))
@@ -186,7 +185,7 @@ func Test(t *testing.T) {
 	//check prepared data
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	fmt.Println("S=" + S.String())
-	Pt := k.GetTotalUnissuedPrepay(ctx).ToDec()
+	Pt := k.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	fmt.Println("Pt=" + Pt.String())
 	Y := k.GetTotalConsumedUoz(trafficList).ToDec()
 	fmt.Println("Y=" + Y.String())
@@ -214,13 +213,13 @@ func Test(t *testing.T) {
 func testWithdraw(t *testing.T, ctx sdk.Context, k Keeper, bankKeeper bank.Keeper) {
 	AccountBalanceBefore := bankKeeper.GetCoins(ctx, resOwner1)
 
-	err := k.Withdraw(ctx, sdk.NewCoin("ustos", sdk.NewInt(68846296294)), resOwner2, resOwner2)
+	err := k.Withdraw(ctx, sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(68846296294))), resOwner2, resOwner2)
 	require.Error(t, err, types.ErrNotTheOwner)
 
-	err = k.Withdraw(ctx, sdk.NewCoin("ustos", sdk.NewInt(68846296295)), resOwner1, resOwner1)
+	err = k.Withdraw(ctx, sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(68846296295))), resOwner1, resOwner1)
 	require.Error(t, err, types.ErrInsufficientMatureTotal)
 
-	err = k.Withdraw(ctx, sdk.NewCoin("ustos", sdk.NewInt(68846296294)), resOwner1, resOwner1)
+	err = k.Withdraw(ctx, sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(68846296294))), resOwner1, resOwner1)
 	require.NoError(t, err)
 
 	AccountBalanceAfter := bankKeeper.GetCoins(ctx, resOwner1)
@@ -242,7 +241,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("----------------------------------------------------------------------------------")
 
 	idvRwdResNode1Ep1, _ := k.GetIndividualReward(ctx, resOwner1, epoch4033)
-	individualTotalReward := idvRwdResNode1Ep1.RewardFromMiningPool.Add(idvRwdResNode1Ep1.RewardFromTrafficPool)
+	individualTotalReward := idvRwdResNode1Ep1.RewardFromMiningPool.Add(idvRwdResNode1Ep1.RewardFromTrafficPool...)
 	matureTotalResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotalResNode1 := k.GetImmatureTotalReward(ctx, resOwner1)
 	fmt.Println("resource_wallet1: address = " + resOwner1.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
@@ -251,7 +250,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	require.Equal(t, immatureTotalResNode1, sdk.NewInt(67630195471))
 
 	idvRwdResNode2Ep1, _ := k.GetIndividualReward(ctx, resOwner2, epoch4033)
-	individualTotalReward = idvRwdResNode2Ep1.RewardFromMiningPool.Add(idvRwdResNode2Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode2Ep1.RewardFromMiningPool.Add(idvRwdResNode2Ep1.RewardFromTrafficPool...)
 	matureTotalResNode2 := k.GetMatureTotalReward(ctx, resOwner2)
 	immatureTotalResNode2 := k.GetImmatureTotalReward(ctx, resOwner2)
 	require.Equal(t, individualTotalReward, sdk.NewInt(41729269545))
@@ -260,7 +259,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("resource_wallet2: address = " + resOwner2.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode2.String() + ",\timmatureTotal = " + immatureTotalResNode2.String())
 
 	idvRwdResNode3Ep1, _ := k.GetIndividualReward(ctx, resOwner3, epoch4033)
-	individualTotalReward = idvRwdResNode3Ep1.RewardFromMiningPool.Add(idvRwdResNode3Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode3Ep1.RewardFromMiningPool.Add(idvRwdResNode3Ep1.RewardFromTrafficPool...)
 	matureTotalResNode3 := k.GetMatureTotalReward(ctx, resOwner3)
 	immatureTotalResNode3 := k.GetImmatureTotalReward(ctx, resOwner3)
 	require.Equal(t, individualTotalReward, sdk.NewInt(28778806582))
@@ -269,7 +268,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("resource_wallet3: address = " + resOwner3.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode3.String() + ",\timmatureTotal = " + immatureTotalResNode3.String())
 
 	idvRwdResNode4Ep1, _ := k.GetIndividualReward(ctx, resOwner4, epoch4033)
-	individualTotalReward = idvRwdResNode4Ep1.RewardFromMiningPool.Add(idvRwdResNode4Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode4Ep1.RewardFromMiningPool.Add(idvRwdResNode4Ep1.RewardFromTrafficPool...)
 	matureTotalResNode4 := k.GetMatureTotalReward(ctx, resOwner4)
 	immatureTotalResNode4 := k.GetImmatureTotalReward(ctx, resOwner4)
 	require.Equal(t, individualTotalReward, sdk.NewInt(2877880657))
@@ -278,7 +277,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("resource_wallet4: address = " + resOwner4.String() + ", individual = " + individualTotalReward.String() + ", \tmatureTotal = " + matureTotalResNode4.String() + ",\timmatureTotal = " + immatureTotalResNode4.String())
 
 	idvRwdResNode5Ep1, _ := k.GetIndividualReward(ctx, resOwner5, epoch4033)
-	individualTotalReward = idvRwdResNode5Ep1.RewardFromMiningPool.Add(idvRwdResNode5Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode5Ep1.RewardFromMiningPool.Add(idvRwdResNode5Ep1.RewardFromTrafficPool...)
 	matureTotalResNode5 := k.GetMatureTotalReward(ctx, resOwner5)
 	immatureTotalResNode5 := k.GetImmatureTotalReward(ctx, resOwner5)
 	require.Equal(t, individualTotalReward, sdk.NewInt(2877880657))
@@ -287,7 +286,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("resource_wallet5: address = " + resOwner5.String() + ", individual = " + individualTotalReward.String() + ", \tmatureTotal = " + matureTotalResNode5.String() + ",\timmatureTotal = " + immatureTotalResNode5.String())
 
 	idvRwdIdxNode1Ep1, _ := k.GetIndividualReward(ctx, idxOwner1, epoch4033)
-	individualTotalReward = idvRwdIdxNode1Ep1.RewardFromMiningPool.Add(idvRwdIdxNode1Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdIdxNode1Ep1.RewardFromMiningPool.Add(idvRwdIdxNode1Ep1.RewardFromTrafficPool...)
 	matureTotalIdxNode1 := k.GetMatureTotalReward(ctx, idxOwner1)
 	immatureTotalIdxNode1 := k.GetImmatureTotalReward(ctx, idxOwner1)
 	require.Equal(t, individualTotalReward, sdk.NewInt(19185871053))
@@ -296,7 +295,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("indexing_wallet1: address = " + idxOwner1.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalIdxNode1.String() + ",\timmatureTotal = " + immatureTotalIdxNode1.String())
 
 	idvRwdIdxNode2Ep1, _ := k.GetIndividualReward(ctx, idxOwner2, epoch4033)
-	individualTotalReward = idvRwdIdxNode2Ep1.RewardFromMiningPool.Add(idvRwdIdxNode2Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdIdxNode2Ep1.RewardFromMiningPool.Add(idvRwdIdxNode2Ep1.RewardFromTrafficPool...)
 	matureTotalIdxNode2 := k.GetMatureTotalReward(ctx, idxOwner2)
 	immatureTotalIdxNode2 := k.GetImmatureTotalReward(ctx, idxOwner2)
 	require.Equal(t, individualTotalReward, sdk.NewInt(19185871053))
@@ -305,7 +304,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	fmt.Println("indexing_wallet2: address = " + idxOwner2.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalIdxNode2.String() + ",\timmatureTotal = " + immatureTotalIdxNode2.String())
 
 	idvRwdIdxNode3Ep1, _ := k.GetIndividualReward(ctx, idxOwner3, epoch4033)
-	individualTotalReward = idvRwdIdxNode3Ep1.RewardFromMiningPool.Add(idvRwdIdxNode3Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdIdxNode3Ep1.RewardFromMiningPool.Add(idvRwdIdxNode3Ep1.RewardFromTrafficPool...)
 	matureTotalIdxNode3 := k.GetMatureTotalReward(ctx, idxOwner3)
 	immatureTotalIdxNode3 := k.GetImmatureTotalReward(ctx, idxOwner3)
 	require.Equal(t, individualTotalReward, sdk.NewInt(19185871053))
@@ -331,7 +330,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("----------------------------------------------------------------------------------")
 
 	idvRwdResNode1Ep1, _ := k.GetIndividualReward(ctx, resOwner1, epoch2017)
-	individualTotalReward := idvRwdResNode1Ep1.RewardFromMiningPool.Add(idvRwdResNode1Ep1.RewardFromTrafficPool)
+	individualTotalReward := idvRwdResNode1Ep1.RewardFromMiningPool.Add(idvRwdResNode1Ep1.RewardFromTrafficPool...)
 	matureTotalResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotalResNode1 := k.GetImmatureTotalReward(ctx, resOwner1)
 	fmt.Println("resource_wallet1: address = " + resOwner1.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
@@ -341,7 +340,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("resource_wallet1: address = " + resOwner1.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode1.String() + ",\timmatureTotal = " + immatureTotalResNode1.String())
 
 	idvRwdResNode2Ep1, _ := k.GetIndividualReward(ctx, resOwner2, epoch2017)
-	individualTotalReward = idvRwdResNode2Ep1.RewardFromMiningPool.Add(idvRwdResNode2Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode2Ep1.RewardFromMiningPool.Add(idvRwdResNode2Ep1.RewardFromTrafficPool...)
 	matureTotalResNode2 := k.GetMatureTotalReward(ctx, resOwner2)
 	immatureTotalResNode2 := k.GetImmatureTotalReward(ctx, resOwner2)
 	require.Equal(t, individualTotalReward, sdk.NewInt(42479629627))
@@ -350,7 +349,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("resource_wallet2: address = " + resOwner2.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode2.String() + ",\timmatureTotal = " + immatureTotalResNode2.String())
 
 	idvRwdResNode3Ep1, _ := k.GetIndividualReward(ctx, resOwner3, epoch2017)
-	individualTotalReward = idvRwdResNode3Ep1.RewardFromMiningPool.Add(idvRwdResNode3Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode3Ep1.RewardFromMiningPool.Add(idvRwdResNode3Ep1.RewardFromTrafficPool...)
 	matureTotalResNode3 := k.GetMatureTotalReward(ctx, resOwner3)
 	immatureTotalResNode3 := k.GetImmatureTotalReward(ctx, resOwner3)
 	require.Equal(t, individualTotalReward, sdk.NewInt(29296296294))
@@ -359,7 +358,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("resource_wallet3: address = " + resOwner3.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalResNode3.String() + ",\timmatureTotal = " + immatureTotalResNode3.String())
 
 	idvRwdResNode4Ep1, _ := k.GetIndividualReward(ctx, resOwner4, epoch2017)
-	individualTotalReward = idvRwdResNode4Ep1.RewardFromMiningPool.Add(idvRwdResNode4Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode4Ep1.RewardFromMiningPool.Add(idvRwdResNode4Ep1.RewardFromTrafficPool...)
 	matureTotalResNode4 := k.GetMatureTotalReward(ctx, resOwner4)
 	immatureTotalResNode4 := k.GetImmatureTotalReward(ctx, resOwner4)
 	require.Equal(t, individualTotalReward, sdk.NewInt(2929629628))
@@ -368,7 +367,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("resource_wallet4: address = " + resOwner4.String() + ", individual = " + individualTotalReward.String() + ", \tmatureTotal = " + matureTotalResNode4.String() + ",\timmatureTotal = " + immatureTotalResNode4.String())
 
 	idvRwdResNode5Ep1, _ := k.GetIndividualReward(ctx, resOwner5, epoch2017)
-	individualTotalReward = idvRwdResNode5Ep1.RewardFromMiningPool.Add(idvRwdResNode5Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdResNode5Ep1.RewardFromMiningPool.Add(idvRwdResNode5Ep1.RewardFromTrafficPool...)
 	matureTotalResNode5 := k.GetMatureTotalReward(ctx, resOwner5)
 	immatureTotalResNode5 := k.GetImmatureTotalReward(ctx, resOwner5)
 	require.Equal(t, individualTotalReward, sdk.NewInt(2929629628))
@@ -377,7 +376,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("resource_wallet5: address = " + resOwner5.String() + ", individual = " + individualTotalReward.String() + ", \tmatureTotal = " + matureTotalResNode5.String() + ",\timmatureTotal = " + immatureTotalResNode5.String())
 
 	idvRwdIdxNode1Ep1, _ := k.GetIndividualReward(ctx, idxOwner1, epoch2017)
-	individualTotalReward = idvRwdIdxNode1Ep1.RewardFromMiningPool.Add(idvRwdIdxNode1Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdIdxNode1Ep1.RewardFromMiningPool.Add(idvRwdIdxNode1Ep1.RewardFromTrafficPool...)
 	matureTotalIdxNode1 := k.GetMatureTotalReward(ctx, idxOwner1)
 	immatureTotalIdxNode1 := k.GetImmatureTotalReward(ctx, idxOwner1)
 	require.Equal(t, individualTotalReward, sdk.NewInt(19530864195))
@@ -386,7 +385,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("indexing_wallet1: address = " + idxOwner1.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalIdxNode1.String() + ",\timmatureTotal = " + immatureTotalIdxNode1.String())
 
 	idvRwdIdxNode2Ep1, _ := k.GetIndividualReward(ctx, idxOwner2, epoch2017)
-	individualTotalReward = idvRwdIdxNode2Ep1.RewardFromMiningPool.Add(idvRwdIdxNode2Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdIdxNode2Ep1.RewardFromMiningPool.Add(idvRwdIdxNode2Ep1.RewardFromTrafficPool...)
 	matureTotalIdxNode2 := k.GetMatureTotalReward(ctx, idxOwner2)
 	immatureTotalIdxNode2 := k.GetImmatureTotalReward(ctx, idxOwner2)
 	require.Equal(t, individualTotalReward, sdk.NewInt(19530864195))
@@ -395,7 +394,7 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	fmt.Println("indexing_wallet2: address = " + idxOwner2.String() + ", individual = " + individualTotalReward.String() + ",\tmatureTotal = " + matureTotalIdxNode2.String() + ",\timmatureTotal = " + immatureTotalIdxNode2.String())
 
 	idvRwdIdxNode3Ep1, _ := k.GetIndividualReward(ctx, idxOwner3, epoch2017)
-	individualTotalReward = idvRwdIdxNode3Ep1.RewardFromMiningPool.Add(idvRwdIdxNode3Ep1.RewardFromTrafficPool)
+	individualTotalReward = idvRwdIdxNode3Ep1.RewardFromMiningPool.Add(idvRwdIdxNode3Ep1.RewardFromTrafficPool...)
 	matureTotalIdxNode3 := k.GetMatureTotalReward(ctx, idxOwner3)
 	immatureTotalIdxNode3 := k.GetImmatureTotalReward(ctx, idxOwner3)
 	require.Equal(t, individualTotalReward, sdk.NewInt(19530864195))
@@ -420,14 +419,14 @@ func testBlockChainRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper
 	require.Equal(t, distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool, distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool)
 
 	//Only keep blockchain reward to test
-	distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.TrafficRewardToResourceNodeFromTrafficPool = sdk.ZeroInt()
+	distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.TrafficRewardToResourceNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	fmt.Println("testBlockChainRewardFromTrafficPool: \n" + distributeGoal.String())
 
 	//Get excepted reward before calculation method changed the value of distributeGoal
-	exceptedValRwd := distributeGoal.BlockChainRewardToValidatorFromTrafficPool
-	exceptedResNodeRwd := distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool.ToDec().Quo(sdk.NewDec(5)).TruncateInt()
-	exceptedIdxNodeRwd := distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
+	exceptedValRwd := distributeGoal.BlockChainRewardToValidatorFromTrafficPool.Amount
+	exceptedResNodeRwd := distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool.Amount.ToDec().Quo(sdk.NewDec(5)).TruncateInt()
+	exceptedIdxNodeRwd := distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool.Amount.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
 	feePoolBefore := getFeePoolBalance(t, ctx, k, bankKeeper)
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
@@ -478,10 +477,10 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
-	distributeGoal.BlockChainRewardToValidatorFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.TrafficRewardToResourceNodeFromTrafficPool = sdk.ZeroInt()
+	distributeGoal.BlockChainRewardToValidatorFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.TrafficRewardToResourceNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	fmt.Println("testMetaNodeRewardFromTrafficPool: \n" + distributeGoal.String())
 
 	//20% of traffic reward to meta nodes
@@ -489,7 +488,7 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	require.Equal(t, exceptedTotalRewardToMetaNodes, distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool)
 
 	//indexing node 1,2,3 have the same share of the meta node reward
-	exceptedIdxNodeRwd := distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
+	exceptedIdxNodeRwd := distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool.Amount.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
 	exceptedResNodeRwd := sdk.ZeroInt()
 	feePoolBefore := getFeePoolBalance(t, ctx, k, bankKeeper)
 
@@ -541,10 +540,10 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
-	distributeGoal.BlockChainRewardToValidatorFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool = sdk.ZeroInt()
-	distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool = sdk.ZeroInt()
+	distributeGoal.BlockChainRewardToValidatorFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToIndexingNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal.MetaNodeRewardToIndexingNodeFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	fmt.Println("testTrafficRewardFromTrafficPool: \n" + distributeGoal.String())
 
 	//60% of traffic reward to resource nodes
@@ -552,9 +551,9 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	require.Equal(t, exceptedTotalRewardToResNodes, distributeGoal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	//resource node 1,2,3 are in the volume report, so they have stake reward AND traffic reward in this epoch
-	exceptedResNode1Rwd := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.ToDec().Mul(sdk.NewDec(resourceNodeVolume1)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
-	exceptedResNode2Rwd := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.ToDec().Mul(sdk.NewDec(resourceNodeVolume2)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
-	exceptedResNode3Rwd := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.ToDec().Mul(sdk.NewDec(resourceNodeVolume3)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
+	exceptedResNode1Rwd := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.Amount.ToDec().Mul(sdk.NewDec(resourceNodeVolume1)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
+	exceptedResNode2Rwd := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.Amount.ToDec().Mul(sdk.NewDec(resourceNodeVolume2)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
+	exceptedResNode3Rwd := distributeGoal.TrafficRewardToResourceNodeFromTrafficPool.Amount.ToDec().Mul(sdk.NewDec(resourceNodeVolume3)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
 	//resource node 4&5 are not in the volume report, so they only have stake reward in this epoch
 	exceptedResNode4Rwd := sdk.ZeroInt()
 	exceptedResNode5Rwd := sdk.ZeroInt()
@@ -619,14 +618,14 @@ func testBlockChainRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper,
 	require.Equal(t, distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool, distributeGoal.BlockChainRewardToResourceNodeFromMiningPool)
 
 	//Only keep blockchain reward to test
-	distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool = sdk.ZeroInt()
-	distributeGoal.TrafficRewardToResourceNodeFromMiningPool = sdk.ZeroInt()
+	distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.TrafficRewardToResourceNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	fmt.Println("testBlockChainRewardFromMiningPool: \n" + distributeGoal.String())
 
 	//Get excepted reward before calculation method changed the value of distributeGoal
-	exceptedValRwd := distributeGoal.BlockChainRewardToValidatorFromMiningPool
-	exceptedResNodeRwd := distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.ToDec().Quo(sdk.NewDec(5)).TruncateInt()
-	exceptedIdxNodeRwd := distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
+	exceptedValRwd := distributeGoal.BlockChainRewardToValidatorFromMiningPool.Amount
+	exceptedResNodeRwd := distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(5)).TruncateInt()
+	exceptedIdxNodeRwd := distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
 	feePoolBefore := getFeePoolBalance(t, ctx, k, bankKeeper)
 
 	/********************************* after calculation method, value of distributeGoal object will change ******************************************/
@@ -677,10 +676,10 @@ func testMetaNodeRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	require.NoError(t, err)
 
 	//Only keep meta node reward to test
-	distributeGoal.BlockChainRewardToValidatorFromMiningPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToResourceNodeFromMiningPool = sdk.ZeroInt()
-	distributeGoal.TrafficRewardToResourceNodeFromMiningPool = sdk.ZeroInt()
+	distributeGoal.BlockChainRewardToValidatorFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToResourceNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.TrafficRewardToResourceNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	fmt.Println("testMetaNodeRewardFromMiningPool: \n" + distributeGoal.String())
 
 	//20% of mining reward to meta nodes
@@ -688,7 +687,7 @@ func testMetaNodeRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	require.Equal(t, exceptedTotalRewardToMetaNodes, distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool)
 
 	//indexing node 1,2,3 have the same share of the meta node reward
-	exceptedIdxNodeRwd := distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
+	exceptedIdxNodeRwd := distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(3)).TruncateInt()
 	exceptedResNodeRwd := sdk.ZeroInt()
 	feePoolBefore := getFeePoolBalance(t, ctx, k, bankKeeper)
 
@@ -740,10 +739,10 @@ func testTrafficRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, ba
 	require.NoError(t, err)
 
 	//Only keep traffic reward to test
-	distributeGoal.BlockChainRewardToValidatorFromMiningPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool = sdk.ZeroInt()
-	distributeGoal.BlockChainRewardToResourceNodeFromMiningPool = sdk.ZeroInt()
-	distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool = sdk.ZeroInt()
+	distributeGoal.BlockChainRewardToValidatorFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.BlockChainRewardToResourceNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	distributeGoal.MetaNodeRewardToIndexingNodeFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	fmt.Println("testTrafficRewardFromMiningPool: \n" + distributeGoal.String())
 
 	//60% of mining reward to resource nodes
@@ -751,9 +750,9 @@ func testTrafficRewardFromMiningPool(t *testing.T, ctx sdk.Context, k Keeper, ba
 	require.Equal(t, exceptedTotalRewardToResNodes, distributeGoal.TrafficRewardToResourceNodeFromMiningPool)
 
 	//resource node 1,2,3 are in the volume report, so they have stake reward AND traffic reward in this epoch
-	exceptedResNode1Rwd := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.ToDec().Mul(sdk.NewDec(resourceNodeVolume1)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
-	exceptedResNode2Rwd := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.ToDec().Mul(sdk.NewDec(resourceNodeVolume2)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
-	exceptedResNode3Rwd := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.ToDec().Mul(sdk.NewDec(resourceNodeVolume3)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
+	exceptedResNode1Rwd := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.Amount.ToDec().Mul(sdk.NewDec(resourceNodeVolume1)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
+	exceptedResNode2Rwd := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.Amount.ToDec().Mul(sdk.NewDec(resourceNodeVolume2)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
+	exceptedResNode3Rwd := distributeGoal.TrafficRewardToResourceNodeFromMiningPool.Amount.ToDec().Mul(sdk.NewDec(resourceNodeVolume3)).Quo(sdk.NewDec(totalVolume)).TruncateInt()
 	//resource node 4&5 are not in the volume report, so they only have stake reward in this epoch
 	exceptedResNode4Rwd := sdk.ZeroInt()
 	exceptedResNode5Rwd := sdk.ZeroInt()

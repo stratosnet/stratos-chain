@@ -53,21 +53,18 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.VolumeReportRecord) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.VolumeReportStoreKey(epoch))
-	if bz == nil {
-		return types.VolumeReportRecord{}
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
-	return res
-}
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter sdk.AccAddress,
+	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
+	//record volume report
+	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
+	k.SetVolumeReport(ctx, epoch, reportRecord)
+	//distribute POT reward
+	//TODO: recovery when shift to main net
+	totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch)
+	//TODO: remove when shift to main net
+	//totalConsumedOzone, err = k.DistributePotRewardForTestnet(ctx, walletVolumes, epoch)
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.VolumeReportRecord) {
-	store := ctx.KVStore(k.storeKey)
-	storeKey := types.VolumeReportStoreKey(epoch)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
-	store.Set(storeKey, bz)
+	return totalConsumedOzone, err
 }
 
 func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr sdk.AccAddress) (found bool) {
@@ -75,14 +72,14 @@ func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr sdk.AccAddress) (found bool) {
 	return found
 }
 
-func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
-	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))
+func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
+	_, err = k.BankKeeper.SubtractCoins(ctx, from, amount)
 	if err != nil {
 		return err
 	}
 
 	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
-	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, sdk.NewCoins(amount))
+	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amount)
 	if err != nil {
 		return err
 	}

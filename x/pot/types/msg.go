@@ -123,12 +123,12 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 }
 
 type MsgWithdraw struct {
-	Amount        sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount        sdk.Coins      `json:"amount" yaml:"amount"`
 	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
 	TargetAddress sdk.AccAddress `json:"target_address" yaml:"target_address"`
 }
 
-func NewMsgWithdraw(amount sdk.Coin, walletAddress sdk.AccAddress, targetAddress sdk.AccAddress) MsgWithdraw {
+func NewMsgWithdraw(amount sdk.Coins, walletAddress sdk.AccAddress, targetAddress sdk.AccAddress) MsgWithdraw {
 	return MsgWithdraw{
 		Amount:        amount,
 		WalletAddress: walletAddress,
@@ -155,8 +155,8 @@ func (msg MsgWithdraw) GetSignBytes() []byte {
 
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgWithdraw) ValidateBasic() error {
-	if !(msg.Amount.IsPositive()) {
-		return ErrWithdrawAmountNotPositive
+	if !(msg.Amount.IsValid()) {
+		return ErrWithdrawAmountInvalid
 	}
 	if msg.WalletAddress.Empty() {
 		return ErrMissingWalletAddress
@@ -168,11 +168,11 @@ func (msg MsgWithdraw) ValidateBasic() error {
 }
 
 type MsgFoundationDeposit struct {
-	Amount sdk.Coin       `json:"amount" yaml:"amount"`
+	Amount sdk.Coins      `json:"amount" yaml:"amount"`
 	From   sdk.AccAddress `json:"from" yaml:"from"`
 }
 
-func NewMsgFoundationDeposit(amount sdk.Coin, from sdk.AccAddress) MsgFoundationDeposit {
+func NewMsgFoundationDeposit(amount sdk.Coins, from sdk.AccAddress) MsgFoundationDeposit {
 	return MsgFoundationDeposit{
 		Amount: amount,
 		From:   from,
@@ -198,8 +198,8 @@ func (msg MsgFoundationDeposit) GetSignBytes() []byte {
 
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgFoundationDeposit) ValidateBasic() error {
-	if !(msg.Amount.IsPositive()) {
-		return ErrWithdrawAmountNotPositive
+	if !(msg.Amount.IsValid()) {
+		return ErrFoundationDepositAmountInvalid
 	}
 	if msg.From.Empty() {
 		return ErrEmptyFromAddr

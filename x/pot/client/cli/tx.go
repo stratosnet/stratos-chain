@@ -71,7 +71,7 @@ func WithdrawCmd(cdc *codec.Codec) *cobra.Command {
 // makes a new WithdrawMsg.
 func buildWithdrawMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	amountStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amountStr)
+	amount, err := sdk.ParseCoins(amountStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -196,7 +196,7 @@ func FoundationDepositCmd(cdc *codec.Codec) *cobra.Command {
 
 func buildFoundationDepositMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	amountStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amountStr)
+	amount, err := sdk.ParseCoins(amountStr)
 	if err != nil {
 		return txBldr, nil, err
 	}

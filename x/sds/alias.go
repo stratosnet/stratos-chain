@@ -13,8 +13,9 @@ const (
 )
 
 var (
-	NewKeeper     = keeper.NewKeeper
-	RegisterCodec = types.RegisterCodec
+	NewKeeper       = keeper.NewKeeper
+	RegisterCodec   = types.RegisterCodec
+	NewGenesisState = types.NewGenesisState
 )
 
 type (

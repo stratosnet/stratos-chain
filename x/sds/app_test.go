@@ -2,7 +2,12 @@ package sds
 
 import (
 	"encoding/hex"
-	"github.com/cosmos/cosmos-sdk/store"
+	"log"
+	"math/rand"
+	"strconv"
+	"testing"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
@@ -18,12 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto/ed25519"
-	dbm "github.com/tendermint/tm-db"
-	"log"
-	"math/rand"
-	"strconv"
-	"testing"
-	"time"
 )
 
 var (
@@ -220,7 +219,7 @@ func TestSdsMsgs(t *testing.T) {
 	log.Print("====== Testing uozPrice ======\n\n")
 	initS := sdk.NewInt(43000)
 	initLt := sdk.NewInt(43000)
-	initPt := sdk.NewInt(0)
+	initPt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
 
 	keeper.RegisterKeeper.SetInitialGenesisStakeTotal(ctx, initS)
 	keeper.PotKeeper.SetTotalUnissuedPrepay(ctx, initPt)
@@ -238,7 +237,7 @@ func TestSdsMsgs(t *testing.T) {
 
 	for i, val := range prepaySeq {
 		S := keeper.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-		Pt := keeper.PotKeeper.GetTotalUnissuedPrepay(ctx)
+		Pt := keeper.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
 		Lt := keeper.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 
 		uozPriceBefore := S.ToDec().Add(Pt.ToDec()).Quo(Lt.ToDec()).TruncateInt()
@@ -254,7 +253,7 @@ func TestSdsMsgs(t *testing.T) {
 
 		Pt = Pt.Add(val)
 		Lt = Lt.Sub(uozPurchased)
-		keeper.PotKeeper.SetTotalUnissuedPrepay(ctx, Pt)
+		keeper.PotKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
 		keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, Lt)
 		log.Printf("---- prepay #%v: %v ustos----", i, val)
 		log.Printf("uozPriceBefore is %v", uozPriceBefore)
@@ -273,24 +272,25 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Keeper, 
 	supply.RegisterCodec(mApp.Cdc)
 	staking.RegisterCodec(mApp.Cdc)
 	register.RegisterCodec(mApp.Cdc)
+	pot.RegisterCodec(mApp.Cdc)
 
-	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
+	//keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyStaking := sdk.NewKVStoreKey(staking.StoreKey)
 	keyRegister := sdk.NewKVStoreKey(register.StoreKey)
 	keyPot := sdk.NewKVStoreKey(pot.StoreKey)
 	keySds := sdk.NewKVStoreKey(StoreKey)
 
-	db := dbm.NewMemDB()
-	ms := store.NewCommitMultiStore(db)
-
-	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyRegister, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyPot, sdk.StoreTypeIAVL, db)
-	err := ms.LoadLatestVersion()
-	require.Nil(t, err)
+	//db := dbm.NewMemDB()
+	//ms := store.NewCommitMultiStore(db)
+	//
+	//ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keyRegister, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keyPot, sdk.StoreTypeIAVL, db)
+	//err := ms.LoadLatestVersion()
+	//require.Nil(t, err)
 
 	feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
 	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
@@ -310,8 +310,8 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Keeper, 
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
 	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
-	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
-	keeper := NewKeeper(mApp.Cdc, keySds, bankKeeper, registerKeeper, potKeeper)
+	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(pot.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
+	keeper := NewKeeper(mApp.Cdc, keySds, mApp.ParamsKeeper.Subspace(DefaultParamSpace), bankKeeper, registerKeeper, potKeeper)
 
 	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
 	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
@@ -319,7 +319,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Keeper, 
 	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
 		[]supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper, potKeeper))
 
-	err = mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
+	err := mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
 	require.NoError(t, err)
 
 	return mApp, keeper, bankKeeper, registerKeeper, potKeeper
@@ -332,35 +332,39 @@ func getMockAppPrepay(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Ke
 	supply.RegisterCodec(mApp.Cdc)
 	staking.RegisterCodec(mApp.Cdc)
 	register.RegisterCodec(mApp.Cdc)
+	pot.RegisterCodec(mApp.Cdc)
 
-	keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
+	//keyAcc := sdk.NewKVStoreKey(auth.StoreKey)
 	keySupply := sdk.NewKVStoreKey(supply.StoreKey)
 	keyStaking := sdk.NewKVStoreKey(staking.StoreKey)
 	keyRegister := sdk.NewKVStoreKey(register.StoreKey)
 	keyPot := sdk.NewKVStoreKey(pot.StoreKey)
 	keySds := sdk.NewKVStoreKey(StoreKey)
 
-	db := dbm.NewMemDB()
-	ms := store.NewCommitMultiStore(db)
-
-	ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyRegister, sdk.StoreTypeIAVL, db)
-	ms.MountStoreWithDB(keyPot, sdk.StoreTypeIAVL, db)
-	err := ms.LoadLatestVersion()
-	require.Nil(t, err)
+	//db := dbm.NewMemDB()
+	//ms := store.NewCommitMultiStore(db)
+	//
+	//ms.MountStoreWithDB(keyAcc, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keySupply, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keyStaking, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keyRegister, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keyPot, sdk.StoreTypeIAVL, db)
+	//ms.MountStoreWithDB(keySds, sdk.StoreTypeIAVL, db)
+	//err := ms.LoadLatestVersion()
+	//require.Nil(t, err)
 
 	//ctx := sdk.NewContext(ms, abci.Header{ChainID: "foochainid"}, false, tmtLog.NewNopLogger())
 
 	feeCollector := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
 	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
+	foundationAccount := supply.NewEmptyModuleAccount(pot.FoundationAccount)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollector.GetAddress().String()] = true
 	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 	blacklistedAddrs[bondPool.GetAddress().String()] = true
+	blacklistedAddrs[foundationAccount.GetAddress().String()] = true
 
 	//accountKeeper := auth.NewAccountKeeper(mApp.Cdc, keyAcc, mApp.ParamsKeeper.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
 	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
@@ -372,8 +376,9 @@ func getMockAppPrepay(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Ke
 	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
 	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
-	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
-	keeper := NewKeeper(mApp.Cdc, keySds, bankKeeper, registerKeeper, potKeeper)
+	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(pot.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
+
+	keeper := NewKeeper(mApp.Cdc, keySds, mApp.ParamsKeeper.Subspace(DefaultParamSpace), bankKeeper, registerKeeper, potKeeper)
 
 	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
 	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
@@ -381,7 +386,7 @@ func getMockAppPrepay(t *testing.T) (*mock.App, Keeper, bank.Keeper, register.Ke
 	mApp.SetInitChainer(getInitChainerTestPurchase(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
 		[]supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper, potKeeper))
 
-	err = mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
+	err := mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
 	require.NoError(t, err)
 
 	return mApp, keeper, bankKeeper, registerKeeper, potKeeper
@@ -446,6 +451,8 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)
 
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
+
 		return abci.ResponseInitChain{
 			Validators: validators,
 		}
@@ -495,13 +502,15 @@ func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper aut
 
 		//preset
 		registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimitTestPurchase)
-		potKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepayTestPurchase)
 
 		//pot genesis data load
 		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams()))
 
+		potKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(potKeeper.BondDenom(ctx), totalUnissuedPrepayTestPurchase))
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)
+
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
 
 		return abci.ResponseInitChain{
 			Validators: validators,

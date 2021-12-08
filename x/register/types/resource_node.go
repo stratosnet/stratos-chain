@@ -165,6 +165,21 @@ func (v ResourceNode) Validate() error {
 	return nil
 }
 
+// IsBonded checks if the node status equals Bonded
+func (v ResourceNode) IsBonded() bool {
+	return v.GetStatus().Equal(sdk.Bonded)
+}
+
+// IsUnBonded checks if the node status equals Unbonded
+func (v ResourceNode) IsUnBonded() bool {
+	return v.GetStatus().Equal(sdk.Unbonded)
+}
+
+// IsUnBonding checks if the node status equals Unbonding
+func (v ResourceNode) IsUnBonding() bool {
+	return v.GetStatus().Equal(sdk.Unbonding)
+}
+
 func (v ResourceNode) IsSuspended() bool              { return v.Suspend }
 func (v ResourceNode) GetMoniker() string             { return v.Description.Moniker }
 func (v ResourceNode) GetStatus() sdk.BondStatus      { return v.Status }

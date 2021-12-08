@@ -123,7 +123,7 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultBondDenom, amount), walletAddr, targetAddr)
+		msg := types.NewMsgWithdraw(amount, walletAddr, targetAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -149,8 +149,8 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		// read and validate URL's variables
 		amountStr := req.Amount
-		amount, err := sdk.ParseCoin(amountStr)
-		if err != nil {
+		amount, ok := checkAmountVar(w, r, amountStr)
+		if !ok {
 			return
 		}
 
@@ -180,11 +180,11 @@ func checkAccountAddressVar(w http.ResponseWriter, r *http.Request, accountAddrS
 	return addr, true
 }
 
-func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (sdk.Int, bool) {
-	amount, ok := sdk.NewIntFromString(amountStr)
-	if !ok {
+func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (sdk.Coins, bool) {
+	amount, err := sdk.ParseCoins(amountStr)
+	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid withdraw amount")
-		return sdk.NewInt(0), false
+		return sdk.Coins{}, false
 	}
 	return amount, true
 }

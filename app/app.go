@@ -235,6 +235,7 @@ func NewInitApp(
 	app.sdsKeeper = sds.NewKeeper(
 		app.cdc,
 		keys[sds.StoreKey],
+		app.subspaces[sds.ModuleName],
 		app.bankKeeper,
 		app.registerKeeper,
 		app.potKeeper,
@@ -255,7 +256,7 @@ func NewInitApp(
 
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
-		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper),
+		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
 		// this line is used by starport scaffolding # 6
 	)
 
