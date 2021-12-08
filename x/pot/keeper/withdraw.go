@@ -6,12 +6,11 @@ import (
 
 func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coins, walletAddress sdk.AccAddress, targetAddress sdk.AccAddress) error {
 	matureReward := k.GetMatureTotalReward(ctx, walletAddress)
-	withdrawCoins := matureReward.Sub(amount)
-	_, err := k.BankKeeper.AddCoins(ctx, targetAddress, withdrawCoins)
+	matureRewardBalance := matureReward.Sub(amount)
+	_, err := k.BankKeeper.AddCoins(ctx, targetAddress, amount)
 	if err != nil {
 		return err
 	}
-	newMatureReward := matureReward.Sub(withdrawCoins)
-	k.setMatureTotalReward(ctx, walletAddress, newMatureReward)
+	k.setMatureTotalReward(ctx, walletAddress, matureRewardBalance)
 	return nil
 }
