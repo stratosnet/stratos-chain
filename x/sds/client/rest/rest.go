@@ -2,13 +2,14 @@ package rest
 
 import (
 	"encoding/hex"
+	"net/http"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	regTypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
-	"net/http"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
 )
@@ -59,11 +60,12 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		fileHash, err := hex.DecodeString(req.FileHash)
+		_, err = hex.DecodeString(req.FileHash)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
+		fileHash := req.FileHash
 
 		uploader, err := sdk.AccAddressFromBech32(req.Uploader)
 		if err != nil {

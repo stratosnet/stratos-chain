@@ -53,7 +53,7 @@ func (fk Keeper) GetFileInfoBytesByFileHash(ctx sdk.Context, key []byte) ([]byte
 	store := ctx.KVStore(fk.key)
 	bz := store.Get(types.FileStoreKey(key))
 	if bz == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "FileHash %s does not exist", hex.EncodeToString(types.FileStoreKey(key)))
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "FileHash %s does not exist", hex.EncodeToString(types.FileStoreKey(key))[2:])
 	}
 	return bz, nil
 }
