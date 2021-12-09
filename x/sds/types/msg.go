@@ -20,17 +20,17 @@ var (
 )
 
 type MsgFileUpload struct {
-	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
+	FileHash string         `json:"file_hash" yaml:"file_hash"` // hash of file
 	From     sdk.AccAddress `json:"from" yaml:"from"`           // wallet addr who will pay this tx
 	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // p2pAddr of sp node who reports this tx
-	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader`    // user who uploads the file
+	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader"`   // user who uploads the file
 }
 
 // verify interface at compile time
 var _ sdk.Msg = &MsgFileUpload{}
 
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgUpload(fileHash []byte, from, reporter, uploader sdk.AccAddress) MsgFileUpload {
+func NewMsgUpload(fileHash string, from, reporter, uploader sdk.AccAddress) MsgFileUpload {
 	return MsgFileUpload{
 		FileHash: fileHash,
 		From:     from,
