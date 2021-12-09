@@ -27,7 +27,6 @@ const (
 	QueryNodeStakeByOwner         = "node_stakes_by_owner"
 	QueryRegisterParams           = "register_params"
 	QueryDefaultLimit             = 100
-	defaultDenom                  = "ustos"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -106,7 +105,7 @@ func GetNetworkSet(ctx sdk.Context, k Keeper) ([]byte, error) {
 }
 
 func GetResourceNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params QueryNodesParams
+	var params types.QueryNodesParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -126,7 +125,7 @@ func GetResourceNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 }
 
 func GetIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params QueryNodesParams
+	var params types.QueryNodesParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
@@ -169,7 +168,7 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfIndexingNodes)
 	totalUnbondingStake := keeper.GetAllUnbondingNodesTotalBalance(ctx)
 	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
-	res := NewQueryNodesStakingInfo(
+	res := types.NewQueryNodesStakingInfo(
 		totalStakeOfResourceNodes,
 		totalStakeOfIndexingNodes,
 		totalBondedStake,
@@ -186,10 +185,9 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 
 func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var (
-		bz                 []byte
-		params             QueryNodeStakingParams
-		resourceNodeResult StakingInfoByResourceNodeAddr
-		indexingNodeResult StakingInfoByIndexingNodeAddr
+		bz          []byte
+		params      types.QueryNodeStakingParams
+		stakingInfo types.StakingInfo
 	)
 
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
@@ -202,13 +200,42 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
 	}
 
-	indexingNode, found := keeper.GetIndexingNode(ctx, NodeAddr)
+	queryType := params.QueryType
 
-	if !found {
-		resourceNode, ok := keeper.GetResourceNode(ctx, NodeAddr)
-		// Adding resource node staking info
-		if ok {
-			unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
+		indexingNode, found := keeper.GetIndexingNode(ctx, NodeAddr)
+		if found {
+			// Adding indexing node staking info
+			unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
+				ctx, keeper,
+				indexingNode.GetStatus(),
+				indexingNode.GetNetworkAddr(),
+				indexingNode.GetTokens(),
+			)
+			if err != nil {
+				return nil, err
+			}
+			if !indexingNode.Equal(types.IndexingNode{}) {
+				stakingInfo = types.NewStakingInfoByIndexingNodeAddr(
+					indexingNode,
+					unBondingStake,
+					unBondedStake,
+					bondedStake,
+				)
+				bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, stakingInfo)
+				if err != nil {
+					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+				}
+				bz = append(bz, bzIndexing...)
+			}
+		}
+	}
+
+	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
+		resourceNode, found := keeper.GetResourceNode(ctx, NodeAddr)
+		if found {
+			// Adding resource node staking info
+			unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
 				ctx, keeper,
 				resourceNode.GetStatus(),
 				resourceNode.GetNetworkAddr(),
@@ -218,58 +245,32 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 				return nil, err
 			}
 			if !resourceNode.Equal(types.ResourceNode{}) {
-				resourceNodeResult = NewStakingInfoByResourceNodeAddr(
+				stakingInfo = types.NewStakingInfoByResourceNodeAddr(
 					resourceNode,
-					unbondingStake,
-					unbondedStake,
+					unBondingStake,
+					unBondedStake,
 					bondedStake,
 				)
-				bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourceNodeResult)
+				bzResource, err := codec.MarshalJSONIndent(keeper.cdc, stakingInfo)
 				if err != nil {
 					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 				}
 				bz = append(bz, bzResource...)
 			}
 		}
-	} else {
-		// Adding indexing node staking info
-
-		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
-			ctx, keeper,
-			indexingNode.GetStatus(),
-			indexingNode.GetNetworkAddr(),
-			indexingNode.GetTokens(),
-		)
-		if err != nil {
-			return nil, err
-		}
-		if !indexingNode.Equal(types.IndexingNode{}) {
-			indexingNodeResult = NewStakingInfoByIndexingNodeAddr(
-				indexingNode,
-				unbondingStake,
-				unbondedStake,
-				bondedStake,
-			)
-			bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingNodeResult)
-			if err != nil {
-				return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-			}
-			bz = append(bz, bzIndexing...)
-		}
 	}
+
 	return bz, nil
 }
 
-func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (result []byte, err error) {
 	var (
-		params              QueryNodesParams
-		resourceNodeResult  StakingInfoByResourceNodeAddr
-		indexingNodeResult  StakingInfoByIndexingNodeAddr
-		resourceNodeResults []StakingInfoByResourceNodeAddr
-		indexingNodeResults []StakingInfoByIndexingNodeAddr
+		params       types.QueryNodesParams
+		stakingInfo  types.StakingInfo
+		stakingInfos []types.StakingInfo
 	)
 
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	err = keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -277,7 +278,7 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	indNodes := keeper.GetIndexingNodesFiltered(ctx, params)
 
 	for _, n := range indNodes {
-		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+		unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
 			ctx, keeper,
 			n.GetStatus(),
 			n.GetNetworkAddr(),
@@ -287,18 +288,18 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 			return nil, err
 		}
 		if !n.Equal(types.IndexingNode{}) {
-			indexingNodeResult = NewStakingInfoByIndexingNodeAddr(
+			stakingInfo = types.NewStakingInfoByIndexingNodeAddr(
 				n,
-				unbondingStake,
-				unbondedStake,
+				unBondingStake,
+				unBondedStake,
 				bondedStake,
 			)
-			indexingNodeResults = append(indexingNodeResults, indexingNodeResult)
+			stakingInfos = append(stakingInfos, stakingInfo)
 		}
 	}
 
 	for _, n := range resNodes {
-		unbondingStake, unbondedStake, bondedStake, err := getNodeStakes(
+		unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
 			ctx, keeper,
 			n.GetStatus(),
 			n.GetNetworkAddr(),
@@ -308,85 +309,30 @@ func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 			return nil, err
 		}
 		if !n.Equal(types.ResourceNode{}) {
-			resourceNodeResult = NewStakingInfoByResourceNodeAddr(
+			stakingInfo = types.NewStakingInfoByResourceNodeAddr(
 				n,
-				unbondingStake,
-				unbondedStake,
+				unBondingStake,
+				unBondedStake,
 				bondedStake,
 			)
-			resourceNodeResults = append(resourceNodeResults, resourceNodeResult)
+			stakingInfos = append(stakingInfos, stakingInfo)
 		}
 	}
 
-	// pagination
-	indexingResultsLen := len(indexingNodeResults)
-	resourceResultsLen := len(resourceNodeResults)
-	start, end := client.Paginate(indexingResultsLen+resourceResultsLen, params.Page, params.Limit, QueryDefaultLimit)
-
-	var bz []byte
-	switch {
-	case start < 0 || end < 0:
+	start, end := client.Paginate(len(stakingInfos), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
 		return nil, nil
-
-	case end <= indexingResultsLen:
-		indexingPaginated1 := indexingNodeResults[start:end]
-		bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingPaginated1)
-
+	} else {
+		stakingInfos = stakingInfos[start:end]
+		result, err = codec.MarshalJSONIndent(keeper.cdc, stakingInfos)
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
-		if len(indexingPaginated1) != 0 {
-			bz = append(bz, bzIndexing...)
-		}
-		return bz, nil
-	case start > indexingResultsLen:
-		resourcePaginated := resourceNodeResults[start-indexingResultsLen : end-indexingResultsLen]
-		bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourcePaginated)
-
-		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-		}
-		if len(resourcePaginated) != 0 {
-			bz = append(bz, bzResource...)
-		}
-		return bz, nil
-
-	default:
-		indexingPaginated2 := indexingNodeResults[start:]
-		bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, indexingPaginated2)
-		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-		}
-		if len(indexingPaginated2) != 0 {
-			bz = append(bz, bzIndexing...)
-		} else {
-			bz = append(bz, []byte("[")...)
-		}
-
-		resourcePaginated2 := resourceNodeResults[:end-indexingResultsLen]
-		bzResource, err := codec.MarshalJSONIndent(keeper.cdc, resourcePaginated2)
-
-		if err != nil {
-			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-		}
-		if len(resourcePaginated2) != 0 {
-			// remove "["
-			bzResource = bzResource[1:]
-		}
-
-		if len(bz) != 1 {
-			// remove "]", add ","
-			bz = bz[:len(bz)-1]
-			bz = append(bz, []byte(",")...)
-		}
-
-		bz = append(bz, bzResource...)
+		return result, nil
 	}
-
-	return bz, nil
 }
 
-func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.IndexingNode {
+func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.IndexingNode {
 	nodes := k.GetAllIndexingNodes(ctx)
 	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
 
@@ -413,7 +359,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params QueryNodesParam
 	return filteredNodes
 }
 
-func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParams) []types.ResourceNode {
+func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
 	nodes := k.GetAllResourceNodes(ctx)
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
@@ -441,7 +387,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params QueryNodesParam
 	return filteredNodes
 }
 
-func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params QueryNodesParams) []types.ResourceNode {
+func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params types.QueryNodesParams) []types.ResourceNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		filteredNodes = nil
@@ -451,7 +397,7 @@ func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, para
 	return filteredNodes
 }
 
-func (k Keeper) indexingNodesPagination(filteredNodes []types.IndexingNode, params QueryNodesParams) []types.IndexingNode {
+func (k Keeper) indexingNodesPagination(filteredNodes []types.IndexingNode, params types.QueryNodesParams) []types.IndexingNode {
 	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		filteredNodes = nil

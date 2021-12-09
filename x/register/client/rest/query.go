@@ -2,13 +2,15 @@ package rest
 
 import (
 	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"net/http"
 )
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -71,7 +73,7 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 			}
 		}
 
-		params := keeper.NewQueryNodesParams(page, limit, networkID, moniker, ownerAddr)
+		params := types.NewQueryNodesParams(page, limit, networkID, moniker, ownerAddr)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -125,7 +127,21 @@ func nodeStakingByNodeAddressFn(cliCtx context.CLIContext, queryPath string) htt
 			return
 		}
 
-		params := keeper.NewQuerynodeStakingParams(nodeAddress)
+		var (
+			err       error
+			queryType int64
+		)
+		if v := r.URL.Query().Get(RestQueryType); len(v) != 0 {
+			queryType, err = strconv.ParseInt(v, 10, 64)
+			if err != nil || queryType < types.QueryType_All || queryType > types.QueryType_PP {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+		} else {
+			queryType = 0
+		}
+
+		params := types.NewQueryNodeStakingParams(nodeAddress, queryType)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -165,7 +181,7 @@ func nodeStakingByOwnerFn(cliCtx context.CLIContext, queryPath string) http.Hand
 			return
 		}
 
-		params := keeper.NewQueryNodesParams(page, limit, "", "", nodeWalletAddress)
+		params := types.NewQueryNodesParams(page, limit, "", "", nodeWalletAddress)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
