@@ -12,15 +12,15 @@ const (
 
 type PotRewardInfo struct {
 	WalletAddress       sdk.AccAddress
-	MatureTotalReward   sdk.Coin
-	ImmatureTotalReward sdk.Coin
+	MatureTotalReward   sdk.Coins
+	ImmatureTotalReward sdk.Coins
 }
 
 // NewPotRewardInfo creates a new instance of PotRewardInfo
 func NewPotRewardInfo(
 	walletAddress sdk.AccAddress,
-	matureTotal sdk.Coin,
-	immatureTotal sdk.Coin,
+	matureTotal sdk.Coins,
+	immatureTotal sdk.Coins,
 ) PotRewardInfo {
 	return PotRewardInfo{
 		WalletAddress:       walletAddress,

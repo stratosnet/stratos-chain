@@ -134,6 +134,21 @@ func (v IndexingNode) Validate() error {
 	return nil
 }
 
+// IsBonded checks if the node status equals Bonded
+func (v IndexingNode) IsBonded() bool {
+	return v.GetStatus().Equal(sdk.Bonded)
+}
+
+// IsUnBonded checks if the node status equals Unbonded
+func (v IndexingNode) IsUnBonded() bool {
+	return v.GetStatus().Equal(sdk.Unbonded)
+}
+
+// IsUnBonding checks if the node status equals Unbonding
+func (v IndexingNode) IsUnBonding() bool {
+	return v.GetStatus().Equal(sdk.Unbonding)
+}
+
 func (v IndexingNode) IsSuspended() bool              { return v.Suspend }
 func (v IndexingNode) GetMoniker() string             { return v.Description.Moniker }
 func (v IndexingNode) GetStatus() sdk.BondStatus      { return v.Status }

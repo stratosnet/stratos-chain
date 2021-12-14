@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
-	regTypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -32,7 +31,7 @@ type FileUploadReq struct {
 // PrepayReq defines the properties of a prepay request's body.
 type PrepayReq struct {
 	BaseReq rest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount  sdk.Int      `json:"amount" yaml:"amount"`
+	Amount  sdk.Coins    `json:"amount" yaml:"amount"`
 }
 
 // FileUploadRequestHandlerFn - http request handler for file uploading.
@@ -96,14 +95,8 @@ func PrepayRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		prepayCoin := sdk.Coin{Denom: regTypes.DefaultBondDenom, Amount: req.Amount}
-		coins := sdk.Coins{prepayCoin}
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
 
-		msg := types.NewMsgPrepay(fromAddr, coins)
+		msg := types.NewMsgPrepay(fromAddr, req.Amount)
 		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

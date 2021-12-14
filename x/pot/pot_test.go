@@ -37,13 +37,14 @@ var (
 	resourceNodeVolume2 = sdk.NewInt(300000000000)
 	resourceNodeVolume3 = sdk.NewInt(200000000000)
 
-	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	initialUOzonePrice     = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
+	depositForSendingTx, _    = sdk.NewIntFromString("100000000000000000000000000000")
+	totalUnissuedPrepayVal, _ = sdk.NewIntFromString("100000000000000000000000000000")
+	totalUnissuedPrepay       = sdk.NewCoin("ustos", totalUnissuedPrepayVal)
+	initialUOzonePrice        = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
-	foundationDeposit          = sdk.NewInt(40000000000000000)
+	foundationDeposit          = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(40000000000000000)), sdk.NewCoin("utros", sdk.NewInt(40000000000000000)))
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -167,7 +168,7 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 
 	foundationDepositorAcc := &auth.BaseAccount{
 		Address: foundationDepositorAccAddr,
-		Coins:   sdk.NewCoins(sdk.NewCoin("ustos", foundationDeposit)),
+		Coins:   foundationDeposit,
 	}
 
 	accs := []authexported.Account{
@@ -287,7 +288,7 @@ func GenTx(msgs []sdk.Msg, accnums []uint64, seq []uint64, priv ...crypto.PrivKe
 	// Make the transaction free
 	fee := auth.StdFee{
 		Amount: sdk.NewCoins(sdk.NewInt64Coin("foocoin", 0)),
-		Gas:    300000,
+		Gas:    600000,
 	}
 
 	sigs := make([]auth.StdSignature, len(priv))
