@@ -23,15 +23,17 @@ type MsgVolumeReport struct {
 	Epoch           sdk.Int              `json:"epoch" yaml:"epoch"`                       // volume report epoch
 	ReportReference string               `json:"report_reference" yaml:"report_reference"` // volume report reference
 	ReporterOwner   sdk.AccAddress       `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
+	BLSSignature    BLSSignatureInfo     `json:"bls_signature" yaml:"bls_signature"`       // information about the BLS signature
 }
 
-// NewMsgVolumeReport creates a new Msg<Action> instance
+// NewMsgVolumeReport creates a new MsgVolumeReport instance
 func NewMsgVolumeReport(
 	walletVolumes []SingleWalletVolume,
 	reporter sdk.AccAddress,
 	epoch sdk.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
+	blsSignature BLSSignatureInfo,
 ) MsgVolumeReport {
 	return MsgVolumeReport{
 		WalletVolumes:   walletVolumes,
@@ -39,6 +41,7 @@ func NewMsgVolumeReport(
 		Epoch:           epoch,
 		ReportReference: reportReference,
 		ReporterOwner:   reporterOwner,
+		BLSSignature:    blsSignature,
 	}
 }
 
@@ -119,6 +122,19 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 			return ErrMissingWalletAddress
 		}
 	}
+
+	if len(msg.BLSSignature.Signature) == 0 {
+		return ErrBLSSignatureInvalid
+	}
+	if len(msg.BLSSignature.TxData) == 0 {
+		return ErrBLSTxDataInvalid
+	}
+	for _, pubKey := range msg.BLSSignature.PubKeys {
+		if len(pubKey) == 0 {
+			return ErrBLSPubkeysInvalid
+		}
+	}
+
 	return nil
 }
 

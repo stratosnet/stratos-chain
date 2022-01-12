@@ -24,4 +24,7 @@ var (
 	ErrEmptyReporterOwnerAddr            = sdkerrors.Register(ModuleName, 17, "missing reporter owner address")
 	ErrNegativeVolume                    = sdkerrors.Register(ModuleName, 18, "report volume is negative")
 	ErrFoundationDepositAmountInvalid    = sdkerrors.Register(ModuleName, 19, "foundation deposit amount is invalid")
+	ErrBLSSignatureInvalid               = sdkerrors.Register(ModuleName, 20, "BLS signature is invalid")
+	ErrBLSTxDataInvalid                  = sdkerrors.Register(ModuleName, 21, "BLS signature txData is invalid")
+	ErrBLSPubkeysInvalid                 = sdkerrors.Register(ModuleName, 22, "BLS signature pubkeys are invalid")
 )

@@ -38,3 +38,17 @@ func NewMiningRewardParam(totalMinedValveStart sdk.Coin, totalMinedValveEnd sdk.
 		MetaNodePercentageInTenThousand:     metaNodePercentageInTenThousand,
 	}
 }
+
+type BLSSignatureInfo struct {
+	PubKeys   [][]byte `json:"pub_keys" yaml:"pub_keys"`
+	Signature []byte   `json:"signature" yaml:"signature"`
+	TxData    []byte   `json:"tx_data" yaml:"tx_data"`
+}
+
+func NewBLSSignatureInfo(pubKeys [][]byte, signature []byte, txData []byte) BLSSignatureInfo {
+	return BLSSignatureInfo{
+		PubKeys:   pubKeys,
+		Signature: signature,
+		TxData:    txData,
+	}
+}

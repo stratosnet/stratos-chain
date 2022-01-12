@@ -76,7 +76,7 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner)
+		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner, types.BLSSignatureInfo{})
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
