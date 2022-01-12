@@ -1,7 +1,6 @@
 package sds
 
 import (
-	"encoding/hex"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -39,10 +38,7 @@ func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUplo
 	heightReEncoded.UnmarshalJSON(heightByteArr)
 
 	fileInfo := types.NewFileInfo(heightReEncoded, msg.Reporter, msg.Uploader)
-	fileHashByte, err := hex.DecodeString(msg.FileHash)
-	if err != nil {
-		return nil, err
-	}
+	fileHashByte := []byte(msg.FileHash)
 	k.SetFileHash(ctx, fileHashByte, fileInfo)
 
 	ctx.EventManager().EmitEvents(sdk.Events{
