@@ -38,11 +38,10 @@ import (
 	cryptocodec "github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm"
-	"github.com/stratosnet/stratos-chain/helpers"
+	//"github.com/stratosnet/stratos-chain/helpers"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
-	// this line is used by starport scaffolding # 1
 )
 
 const (

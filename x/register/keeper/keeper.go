@@ -522,7 +522,7 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	return ubdTotal
 }
 
-// return a unbonding UnbondingIndexingNode
+// GetUnbondingNodeBalance returns an unbonding balance and an UnbondingNode
 func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	networkAddr sdk.AccAddress) sdk.Int {
 
