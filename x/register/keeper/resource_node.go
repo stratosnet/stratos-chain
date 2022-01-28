@@ -265,12 +265,12 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID string) (resourceNodes []types.ResourceNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		if strings.Compare(node.NetworkID, networkID) == 0 {
 			resourceNodes = append(resourceNodes, node)
 		}
-
 	}
 	return resourceNodes, nil
 }
@@ -278,6 +278,7 @@ func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID string) (resource
 func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		if strings.Compare(node.Description.Moniker, moniker) == 0 {

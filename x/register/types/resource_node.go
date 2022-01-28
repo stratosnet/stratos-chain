@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strings"
@@ -208,4 +209,10 @@ func MustUnmarshalResourceNode(cdc *codec.Codec, value []byte) ResourceNode {
 func UnmarshalResourceNode(cdc *codec.Codec, value []byte) (resourceNode ResourceNode, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &resourceNode)
 	return resourceNode, err
+}
+
+func (resourceNode ResourceNode) Equal(resourceNode2 ResourceNode) bool {
+	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&resourceNode)
+	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&resourceNode2)
+	return bytes.Equal(bz1, bz2)
 }

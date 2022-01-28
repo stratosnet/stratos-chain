@@ -3,6 +3,8 @@ package keeper
 import (
 	"container/list"
 	"fmt"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -10,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/libs/log"
-	"time"
 )
 
 // Keeper of the register store
@@ -506,7 +507,7 @@ func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.Un
 	return unbondingNodes
 }
 
-func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context, unbondingNodes []types.UnbondingNode) sdk.Int {
+func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
 	defer iterator.Close()

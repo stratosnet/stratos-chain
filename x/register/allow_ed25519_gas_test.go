@@ -1,11 +1,12 @@
 package register
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
 )
 
 func TestRegister(t *testing.T) {
@@ -41,7 +42,9 @@ func TestRegister(t *testing.T) {
 	accSeqOwner := resOwnerAcc3.GetSequence()
 	t.Log("accSeqOwner: ", accSeqOwner)
 	t.Log("resOwnerPrivKey3: ", resOwnerPrivKey3)
+	t.Log("resNodePrivKey3: ", resNodePrivKey3)
 	t.Log("resOwnerPubKey3: ", resOwnerPrivKey3.PubKey())
+	t.Log("resNodePubKey3: ", resNodePubKey3)
 
 	accNumNode := resOwnerAcc3.GetAccountNumber()
 	t.Log("accNumNode: ", accNumNode)
