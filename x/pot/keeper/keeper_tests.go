@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +19,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-	"testing"
 )
 
 const (
@@ -62,11 +63,13 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	feeCollectorAcc := supply.NewEmptyModuleAccount(auth.FeeCollectorName)
 	notBondedPool := supply.NewEmptyModuleAccount(staking.NotBondedPoolName, supply.Burner, supply.Staking)
 	bondPool := supply.NewEmptyModuleAccount(staking.BondedPoolName, supply.Burner, supply.Staking)
+	foundationAccount := supply.NewEmptyModuleAccount(types.FoundationAccount)
 
 	blacklistedAddrs := make(map[string]bool)
 	blacklistedAddrs[feeCollectorAcc.GetAddress().String()] = true
 	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 	blacklistedAddrs[bondPool.GetAddress().String()] = true
+	blacklistedAddrs[foundationAccount.GetAddress().String()] = true
 
 	cdc := MakeTestCodec()
 	pk := params.NewKeeper(cdc, keyParams, tkeyParams)
@@ -78,6 +81,7 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 		auth.FeeCollectorName:     nil,
 		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 		staking.BondedPoolName:    {supply.Burner, supply.Staking},
+		types.FoundationAccount:   nil,
 	}
 	supplyKeeper := supply.NewKeeper(cdc, keySupply, accountKeeper, bankKeeper, maccPerms)
 	stakingKeeper := staking.NewKeeper(cdc, keyStaking, supplyKeeper, pk.Subspace(staking.DefaultParamspace))
@@ -90,14 +94,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
-
-	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, sdk.NewInt(1000000000000)))
-
-	foundationAcc, err := sdk.AccAddressFromBech32("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw")
-	if err != nil {
-		panic(err)
-	}
-	bankKeeper.AddCoins(ctx, foundationAcc, initCoins)
 
 	return ctx, accountKeeper, bankKeeper, keeper, stakingKeeper, pk, supplyKeeper, registerKeeper
 }
@@ -119,11 +115,6 @@ func MakeTestCodec() *codec.Codec {
 	cdc.RegisterInterface((*sdk.Msg)(nil), nil)
 	cdc.RegisterConcrete(register.MsgCreateResourceNode{}, "register/MsgCreateResourceNode", nil)
 	cdc.RegisterConcrete(register.MsgCreateIndexingNode{}, "register/MsgCreateIndexingNode", nil)
-	//cdc.RegisterConcrete(bank.MsgSend{}, "test/staking/Send", nil)
-	//cdc.RegisterConcrete(types.MsgCreateValidator{}, "test/staking/CreateValidator", nil)
-	//cdc.RegisterConcrete(types.MsgEditValidator{}, "test/staking/EditValidator", nil)
-	//cdc.RegisterConcrete(types.MsgUndelegate{}, "test/staking/Undelegate", nil)
-	//cdc.RegisterConcrete(types.MsgBeginRedelegate{}, "test/staking/BeginRedelegate", nil)
 
 	// Register AppAccount
 	cdc.RegisterInterface((*authexported.Account)(nil), nil)

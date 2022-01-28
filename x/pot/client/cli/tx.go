@@ -2,25 +2,26 @@ package cli
 
 import (
 	"bufio"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/spf13/viper"
-
-	//"encoding/hex"
-	//"encoding/json"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
-	//"github.com/cosmos/cosmos-sdk/types/rest"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
-	//"net/http"
-	"strconv"
+	"github.com/spf13/viper"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
+
+type singleWalletVolumeStr struct {
+	WalletAddress string `json:"wallet_address"`
+	Volume        string `json:"volume"`
+}
 
 // GetTxCmd returns the transaction commands for this module
 func GetTxCmd(cdc *codec.Codec) *cobra.Command {
@@ -35,6 +36,7 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 	potTxCmd.AddCommand(flags.PostCommands(
 		VolumeReportCmd(cdc),
 		WithdrawCmd(cdc),
+		FoundationDepositCmd(cdc),
 	)...)
 	return potTxCmd
 }
@@ -58,11 +60,10 @@ func WithdrawCmd(cdc *codec.Codec) *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNodeAddress)
+	cmd.Flags().AddFlagSet(FsTargetAddress)
 
-	cmd.MarkFlagRequired(FlagAmount)
-	cmd.MarkFlagRequired(FlagNodeAddress)
-	cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
 }
@@ -70,28 +71,34 @@ func WithdrawCmd(cdc *codec.Codec) *cobra.Command {
 // makes a new WithdrawMsg.
 func buildWithdrawMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	amountStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amountStr)
+	amount, err := sdk.ParseCoins(amountStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
-	nodeAddressStr := viper.GetString(FlagNodeAddress)
-	nodeAddress, err := sdk.AccAddressFromBech32(nodeAddressStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-	ownerAddress := cliCtx.GetFromAddress()
 
-	msg := types.NewMsgWithdraw(amount, nodeAddress, ownerAddress)
+	walletAddress := cliCtx.GetFromAddress()
+
+	var targetAddress sdk.AccAddress
+	if viper.IsSet(FlagTargetAddress) {
+		targetAddressStr := viper.GetString(FlagTargetAddress)
+		targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
+		if err != nil {
+			return txBldr, nil, err
+		}
+	} else {
+		targetAddress = walletAddress
+	}
+
+	msg := types.NewMsgWithdraw(amount, walletAddress, targetAddress)
 
 	return txBldr, msg, nil
 }
 
-// VolumeReportCmd will report nodes volume and sign it with the given key.
+// VolumeReportCmd will report wallets volume and sign it with the given key.
 func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report [flags]",
 		Short: "Create and sign a volume report",
-		//Args:  cobra.ExactArgs(4),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
@@ -106,12 +113,12 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 	cmd.Flags().AddFlagSet(FsReporter)
 	cmd.Flags().AddFlagSet(FsEpoch)
 	cmd.Flags().AddFlagSet(FsReportReference)
-	cmd.Flags().AddFlagSet(FsNodesVolume)
+	cmd.Flags().AddFlagSet(FsWalletVolumes)
 
 	_ = cmd.MarkFlagRequired(FlagReporter)
 	_ = cmd.MarkFlagRequired(FlagEpoch)
 	_ = cmd.MarkFlagRequired(FlagReportReference)
-	_ = cmd.MarkFlagRequired(FlagNodesVolume)
+	_ = cmd.MarkFlagRequired(FlagWalletVolumes)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -130,19 +137,71 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		return txBldr, nil, err
 	}
 	epoch := sdk.NewInt(value)
-	var nodesVolume = make([]types.SingleNodeVolume, 0)
-	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagNodesVolume)), &nodesVolume)
+	var walletVolumesStr = make([]singleWalletVolumeStr, 0)
+	err = cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagWalletVolumes)), &walletVolumesStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
+
+	var walletVolumes = make([]types.SingleWalletVolume, 0)
+	for _, n := range walletVolumesStr {
+		walletAcc, err := sdk.AccAddressFromBech32(n.WalletAddress)
+		if err != nil {
+			return txBldr, nil, err
+		}
+		volumeInt64, err := strconv.ParseInt(n.Volume, 10, 64)
+		if err != nil {
+			return txBldr, nil, err
+		}
+		volume := sdk.NewInt(volumeInt64)
+		walletVolumes = append(walletVolumes, types.NewSingleWalletVolume(walletAcc, volume))
+	}
+
 	reporterOwner := cliCtx.GetFromAddress()
 
 	msg := types.NewMsgVolumeReport(
-		nodesVolume,
+		walletVolumes,
 		reporter,
 		epoch,
 		reportReference,
 		reporterOwner,
+		types.BLSSignatureInfo{},
 	)
+	return txBldr, msg, nil
+}
+
+func FoundationDepositCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "foundation-deposit",
+		Short: "Deposit to foundation account",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+
+			txBldr, msg, err := buildFoundationDepositMsg(cliCtx, txBldr)
+			if err != nil {
+				return err
+			}
+
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+	cmd.Flags().AddFlagSet(FsAmount)
+
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func buildFoundationDepositMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	amountStr := viper.GetString(FlagAmount)
+	amount, err := sdk.ParseCoins(amountStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+	from := cliCtx.GetFromAddress()
+	msg := types.NewMsgFoundationDeposit(amount, from)
 	return txBldr, msg, nil
 }

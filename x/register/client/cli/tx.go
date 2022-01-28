@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/viper"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strconv"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -31,10 +32,12 @@ func GetTxCmd(cdc *codec.Codec) *cobra.Command {
 		CreateResourceNodeCmd(cdc),
 		RemoveResourceNodeCmd(cdc),
 		UpdateResourceNodeCmd(cdc),
+		UpdateResourceNodeStakeCmd(cdc),
 
 		CreateIndexingNodeCmd(cdc),
 		RemoveIndexingNodeCmd(cdc),
 		UpdateIndexingNodeCmd(cdc),
+		UpdateIndexingNodeStakeCmd(cdc),
 		IndexingNodeRegistrationVoteCmd(cdc),
 	)...)
 
@@ -79,6 +82,34 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
+// UpdateResourceNodeStakeCmd will add/subtract resource node's stake.
+func UpdateResourceNodeStakeCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-resource-node-stake [flags]",
+		Short: "update resource node's stake",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			txBldr, msg, err := buildUpdateResourceNodeStakeMsg(cliCtx, txBldr)
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsIncrStake)
+	cmd.Flags().AddFlagSet(FsStakeDelta)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagStakeDelta)
+	_ = cmd.MarkFlagRequired(FlagIncrStake)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+	return cmd
+}
+
 // CreateIndexingNodeCmd will create a file upload tx and sign it with the given key.
 func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
@@ -109,8 +140,35 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
-	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
 
+	return cmd
+}
+
+// UpdateIndexingNodeStakeCmd will add/subtract indexing node's stake.
+func UpdateIndexingNodeStakeCmd(cdc *codec.Codec) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-indexing-node-stake [flags]",
+		Short: "update indexing node's stake",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			txBldr, msg, err := buildUpdateIndexingNodeStakeMsg(cliCtx, txBldr)
+			if err != nil {
+				return err
+			}
+			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+		},
+	}
+
+	cmd.Flags().AddFlagSet(FsIncrStake)
+	cmd.Flags().AddFlagSet(FsStakeDelta)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagStakeDelta)
+	_ = cmd.MarkFlagRequired(FlagIncrStake)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	return cmd
 }
 
@@ -148,6 +206,32 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	return txBldr, msg, nil
 }
 
+// makes a new UpdateResourceNodeStakeMsg.
+func buildUpdateResourceNodeStakeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	stakeDeltaStr := viper.GetString(FlagStakeDelta)
+	stakeDelta, err := sdk.ParseCoin(stakeDeltaStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	incrStakeStr := viper.GetString(FlagIncrStake)
+	incrStake, err := strconv.ParseBool(incrStakeStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	networkAddrStr := viper.GetString(FlagNetworkAddress)
+	networkAddr, err := sdk.AccAddressFromBech32(networkAddrStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	ownerAddr := cliCtx.GetFromAddress()
+
+	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
+	return txBldr, msg, nil
+}
+
 // makes a new MsgCreateIndexingNode.
 func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	amountStr := viper.GetString(FlagAmount)
@@ -174,6 +258,32 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagDetails),
 	)
 	msg := types.NewMsgCreateIndexingNode(networkID, pubKey, amount, ownerAddr, desc)
+	return txBldr, msg, nil
+}
+
+// makes a new UpdateIndexingNodeStakeMsg.
+func buildUpdateIndexingNodeStakeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
+	stakeDeltaStr := viper.GetString(FlagStakeDelta)
+	stakeDelta, err := sdk.ParseCoin(stakeDeltaStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	incrStakeStr := viper.GetString(FlagIncrStake)
+	incrStake, err := strconv.ParseBool(incrStakeStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	networkAddrStr := viper.GetString(FlagNetworkAddress)
+	networkAddr, err := sdk.AccAddressFromBech32(networkAddrStr)
+	if err != nil {
+		return txBldr, nil, err
+	}
+
+	ownerAddr := cliCtx.GetFromAddress()
+
+	msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
 	return txBldr, msg, nil
 }
 

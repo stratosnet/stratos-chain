@@ -7,6 +7,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"strconv"
 	"time"
 )
 
@@ -21,6 +22,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRemoveResourceNode(ctx, msg, k)
 		case types.MsgUpdateResourceNode:
 			return handleMsgUpdateResourceNode(ctx, msg, k)
+		case types.MsgUpdateResourceNodeStake:
+			return handleMsgUpdateResourceNodeStake(ctx, msg, k)
 
 		case types.MsgCreateIndexingNode:
 			return handleMsgCreateIndexingNode(ctx, msg, k)
@@ -28,6 +31,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgRemoveIndexingNode(ctx, msg, k)
 		case types.MsgUpdateIndexingNode:
 			return handleMsgUpdateIndexingNode(ctx, msg, k)
+		case types.MsgUpdateIndexingNodeStake:
+			return handleMsgUpdateIndexingNodeStake(ctx, msg, k)
 		case types.MsgIndexingNodeRegistrationVote:
 			return handleMsgIndexingNodeRegistrationVote(ctx, msg, k)
 
@@ -65,6 +70,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -95,6 +101,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -119,7 +126,7 @@ func handleMsgRemoveResourceNode(ctx sdk.Context, msg types.MsgRemoveResourceNod
 		sdk.NewEvent(
 			types.EventTypeUnbondingResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyIndexingNode, msg.ResourceNodeAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
@@ -192,13 +199,15 @@ func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexin
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeIndexingNodeRegistrationVote,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterNetworkAddress.String()),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterOwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyVoterNetworkAddress, msg.VoterNetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCandidateNetworkAddress, msg.CandidateNetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyCandidateStatus, nodeStatus.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterOwnerAddress.String()),
 		),
 	})
 
@@ -219,6 +228,31 @@ func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUpdateResourceNodeStake(ctx sdk.Context, msg types.MsgUpdateResourceNodeStake, k keeper.Keeper) (*sdk.Result, error) {
+	ozoneLimitChange, completionTime, err := k.UpdateResourceNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateResourceNodeStake,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
@@ -238,6 +272,31 @@ func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNod
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
 			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgUpdateIndexingNodeStake(ctx sdk.Context, msg types.MsgUpdateIndexingNodeStake, k keeper.Keeper) (*sdk.Result, error) {
+	ozoneLimitChange, completionTime, err := k.UpdateIndexingNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+	if err != nil {
+		return nil, err
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateIndexingNodeStake,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
+			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress.String()),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil

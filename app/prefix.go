@@ -6,9 +6,7 @@ import (
 
 const (
 	StratosBech32Prefix = "st"
-)
 
-var (
 	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
 	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
 	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"

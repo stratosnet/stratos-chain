@@ -30,6 +30,7 @@ var (
 	LastResourceNodeStakeKey    = []byte{0x11} // prefix for each key to a resource node index, for bonded resource nodes
 	LastIndexingNodeStakeKey    = []byte{0x12} // prefix for each key to a indexing node index, for bonded indexing nodes
 	InitialGenesisStakeTotalKey = []byte{0x13} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
+	InitialUOzonePriceKey       = []byte{0x14} // key of initial uoz price at t=0
 
 	ResourceNodeKey                  = []byte{0x21} // prefix for each key to a resource node
 	IndexingNodeKey                  = []byte{0x22} // prefix for each key to a indexing node

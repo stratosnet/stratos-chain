@@ -64,16 +64,18 @@ var (
 	idxNodeAddr2 = sdk.AccAddress(idxNodePubKey2.Address())
 	idxNodeAddr3 = sdk.AccAddress(idxNodePubKey3.Address())
 
-	resNodeInitStake = sdk.NewInt(10000000000)
-	idxNodeInitStake = sdk.NewInt(10000000000)
+	resNodeInitStake   = sdk.NewInt(10000000000)
+	idxNodeInitStake   = sdk.NewInt(10000000000)
+	initialUOzonePrice = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 )
 
 func setupAllResourceNodes() []ResourceNode {
-	resourceNode1 := NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwnerAddr1, NewDescription("sds://resourceNode1", "", "", "", ""), "4", time.Now())
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	resourceNode1 := NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwnerAddr1, NewDescription("sds://resourceNode1", "", "", "", ""), "4", time)
 	resourceNode1 = resourceNode1.AddToken(resNodeInitStake)
 	resourceNode1.Status = sdk.Bonded
 
-	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4", time.Now())
+	resourceNode3 := NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwnerAddr3, NewDescription("sds://resourceNode3", "", "", "", ""), "4", time)
 	resourceNode3 = resourceNode3.AddToken(resNodeInitStake)
 	resourceNode3.Status = sdk.Bonded
 
@@ -84,8 +86,9 @@ func setupAllResourceNodes() []ResourceNode {
 
 func setupAllIndexingNodes() []IndexingNode {
 	var indexingNodes []IndexingNode
-	indexingNode1 := NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwnerAddr1, NewDescription("sds://indexingNode1", "", "", "", ""), time.Now())
-	indexingNode2 := NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwnerAddr2, NewDescription("sds://indexingNode2", "", "", "", ""), time.Now())
+	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	indexingNode1 := NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwnerAddr1, NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	indexingNode2 := NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwnerAddr2, NewDescription("sds://indexingNode2", "", "", "", ""), time)
 
 	indexingNode1 = indexingNode1.AddToken(idxNodeInitStake)
 	indexingNode2 = indexingNode2.AddToken(idxNodeInitStake)

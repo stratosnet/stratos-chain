@@ -47,8 +47,12 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 		keeper.SetLastIndexingNodeStake(ctx, idxStake.Address, idxStake.Stake)
 	}
 
+	initialUOzonePrice := sdk.ZeroDec()
+	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
-	keeper.SetRemainingOzoneLimit(ctx, initialStakeTotal)
+	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
+	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
+	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 }
 
 // ExportGenesis writes the current store values
@@ -71,6 +75,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
 	indexingNodes := keeper.GetAllIndexingNodes(ctx)
+	initialUOzonePrice := keeper.GetInitialUOzonePrice(ctx)
 
 	return types.GenesisState{
 		Params:                 params,
@@ -78,5 +83,6 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 		ResourceNodes:          resourceNodes,
 		LastIndexingNodeStakes: lastIndexingNodeStakes,
 		IndexingNodes:          indexingNodes,
+		InitialUozPrice:        initialUOzonePrice,
 	}
 }

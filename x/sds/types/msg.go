@@ -11,18 +11,20 @@ const (
 )
 
 type MsgFileUpload struct {
-	FileHash []byte         `json:"file_hash" yaml:"file_hash"` // hash of file
-	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // sp node who reports this tx
-	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader`    // who uploads the file
+	FileHash string         `json:"file_hash" yaml:"file_hash"` // hash of file
+	From     sdk.AccAddress `json:"from" yaml:"from"`           // wallet addr who will pay this tx
+	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // p2pAddr of sp node who reports this tx
+	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader"`   // user who uploads the file
 }
 
 // verify interface at compile time
 var _ sdk.Msg = &MsgFileUpload{}
 
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgUpload(fileHash []byte, reporter, uploader sdk.AccAddress) MsgFileUpload {
+func NewMsgUpload(fileHash string, from, reporter, uploader sdk.AccAddress) MsgFileUpload {
 	return MsgFileUpload{
 		FileHash: fileHash,
+		From:     from,
 		Reporter: reporter,
 		Uploader: uploader,
 	}
@@ -32,7 +34,7 @@ func NewMsgUpload(fileHash []byte, reporter, uploader sdk.AccAddress) MsgFileUpl
 func (msg MsgFileUpload) Route() string { return RouterKey }
 func (msg MsgFileUpload) Type() string  { return ConstFileUpload }
 func (msg MsgFileUpload) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.Reporter}
+	return []sdk.AccAddress{msg.From}
 }
 
 // GetSignBytes gets the bytes for the message signer to sign on

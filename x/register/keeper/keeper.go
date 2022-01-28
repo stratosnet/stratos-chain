@@ -60,6 +60,22 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 	return k
 }
 
+func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(price)
+	store.Set(types.InitialUOzonePriceKey, b)
+}
+
+func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.InitialUOzonePriceKey)
+	if b == nil {
+		panic("Stored initial uOzone price should not have been nil")
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &price)
+	return
+}
+
 func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
@@ -98,9 +114,19 @@ func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
+	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
+	if initialUozonePrice.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
+		return sdk.ZeroInt()
+	}
+	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
+	//ctx.Logger().Debug("----- initialOzoneLimit is " + initialOzoneLimit.String() + " uoz", )
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " uoz")
+	limitToAdd := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	//ctx.Logger().Info("----- limitToAdd is " + limitToAdd.String() + " uoz")
 	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
+	//ctx.Logger().Info("----- newLimit is " + newLimit.String() + " uoz")
 	k.SetRemainingOzoneLimit(ctx, newLimit)
 	return limitToAdd.TruncateInt()
 }
@@ -111,8 +137,14 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
 		return sdk.ZeroInt()
 	}
+	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
+	if initialUozonePrice.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
+		return sdk.ZeroInt()
+	}
+	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
 	return limitToSub.TruncateInt()
@@ -313,11 +345,11 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 // CompleteUnbondingWithAmount completes the unbonding of all mature entries in
 // the retrieved unbonding delegation object and returns the total unbonding
 // balance or an error upon failure.
-func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.AccAddress) (sdk.Coins, error) {
+func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.AccAddress) (sdk.Coins, bool, error) {
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
 	if !found {
 		ctx.Logger().Info(fmt.Sprintf("NetworAddr: %s not found while completing UnbondingWithAmount", networkAddr))
-		return nil, types.ErrNoUnbondingNode
+		return nil, false, types.ErrNoUnbondingNode
 	}
 
 	bondDenom := k.GetParams(ctx).BondDenom
@@ -336,7 +368,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 				amt := sdk.NewCoin(bondDenom, entry.Balance)
 				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
-					return nil, err
+					return nil, false, err
 				}
 
 				balances = balances.Add(amt)
@@ -351,13 +383,13 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr sdk.Acc
 		k.SetUnbondingNode(ctx, ubd)
 	}
 
-	return balances, nil
+	return balances, ubd.IsIndexingNode, nil
 }
 
 // CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
 // it does not return the total unbonding amount.
 func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress) error {
-	_, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+	_, _, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
 	return err
 }
 
@@ -394,7 +426,7 @@ func (k Keeper) UnbondResourceNode(
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
-	unbondingMatureTime = calcUnbondingMatureTime(resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
@@ -403,6 +435,12 @@ func (k Keeper) UnbondResourceNode(
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 		// adjust ozone limit
 		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+	}
+
+	// change node status to unbonding if unbonding all tokens
+	if amt.Equal(resourceNode.Tokens) {
+		resourceNode.Status = sdk.Unbonding
+		k.SetResourceNode(ctx, resourceNode)
 	}
 
 	// set the unbonding mature time and completion height appropriately
@@ -431,7 +469,7 @@ func (k Keeper) UnbondIndexingNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	unbondingMatureTime = calcUnbondingMatureTime(indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
@@ -440,6 +478,11 @@ func (k Keeper) UnbondIndexingNode(
 		k.bondedToUnbonding(ctx, indexingNode, true, coin)
 		// adjust ozone limit
 		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+	}
+	// change node status to unbonding if unbonding all tokens
+	if amt.Equal(indexingNode.Tokens) {
+		indexingNode.Status = sdk.Unbonding
+		k.SetIndexingNode(ctx, indexingNode)
 	}
 
 	// Set the unbonding mature time and completion height appropriately
@@ -472,7 +515,7 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context, unbondingNodes
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
 		for _, entry := range node.Entries {
-			ubdTotal.Add(entry.Balance)
+			ubdTotal = ubdTotal.Add(entry.Balance)
 		}
 	}
 	return ubdTotal
@@ -493,7 +536,7 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 
 	ubd := types.MustUnmarshalUnbondingNode(k.cdc, value)
 	for _, entry := range ubd.Entries {
-		balance.Add(entry.Balance)
+		balance = balance.Add(entry.Balance)
 	}
 	return balance
 }
