@@ -10,6 +10,8 @@ require (
 	github.com/ethereum/go-ethereum v1.9.25
 	github.com/golang/mock v1.4.3 // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/minio/highwayhash v1.0.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v1.1.1
