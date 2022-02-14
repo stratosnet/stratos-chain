@@ -113,6 +113,7 @@ func (fim *FromIpMiddleware) Middleware(h http.Handler) http.Handler {
 		if fim.checkCap(realIp) {
 			h.ServeHTTP(w, r)
 		} else {
+			fmt.Printf("  ********** request from %s breached ip cap", realIp)
 			w.WriteHeader(http.StatusTooManyRequests)
 			w.Write([]byte("Faucet request from Ip " + realIp + " exceeds hourly cap (" + strconv.Itoa(fim.Cap) + " request(s) per hour)!"))
 		}
@@ -281,7 +282,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
 				addr := vars["address"]
-				fmt.Println("get request from addr: ", addr)
+				fmt.Printf("get request from ip [%s] for account [%s]: ", getRealAddr(request), addr)
 				toAddr, err := sdk.AccAddressFromBech32(addr)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
@@ -402,13 +403,13 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 }
 
 func getRealAddr(r *http.Request) string {
-	fmt.Printf("parsing IP: remote_addr=[%s], X-Forwarded-For=[%s], X-Real-Ip=[%s]", r.RemoteAddr, r.Header.Get("X-Forwarded-For"), r.Header.Get("X-Real-Ip"))
+	fmt.Printf("parsing IP: remote_addr=[%s], X-Forwarded-For=[%s]", r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
 	remoteIP := ""
 	// the default is the originating ip. but we try to find better options because this is almost
 	// never the right IP
 	if parts := strings.Split(r.RemoteAddr, ":"); len(parts) == 2 {
 		remoteIP = parts[0]
-		fmt.Printf("==== remoteIp[%s] parsed from RemoteAddr", remoteIP)
+		//fmt.Printf("==== remoteIp[%s] parsed from RemoteAddr", remoteIP)
 	}
 	// If we have a forwarded-for header, take the address from there
 	if xff := strings.Trim(r.Header.Get("X-Forwarded-For"), ","); len(xff) > 0 {
