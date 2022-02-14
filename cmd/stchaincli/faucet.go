@@ -402,11 +402,13 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 }
 
 func getRealAddr(r *http.Request) string {
+	fmt.Printf("parsing IP: remote_addr=[%s], X-Forwarded-For=[%s], X-Real-Ip=[%s]", r.RemoteAddr, r.Header.Get("X-Forwarded-For"), r.Header.Get("X-Real-Ip"))
 	remoteIP := ""
 	// the default is the originating ip. but we try to find better options because this is almost
 	// never the right IP
 	if parts := strings.Split(r.RemoteAddr, ":"); len(parts) == 2 {
 		remoteIP = parts[0]
+		fmt.Printf("==== remoteIp[%s] parsed from RemoteAddr", remoteIP)
 	}
 	// If we have a forwarded-for header, take the address from there
 	if xff := strings.Trim(r.Header.Get("X-Forwarded-For"), ","); len(xff) > 0 {
@@ -415,11 +417,13 @@ func getRealAddr(r *http.Request) string {
 		if ip := net.ParseIP(lastFwd); ip != nil {
 			remoteIP = ip.String()
 		}
+		fmt.Printf("==== remoteIp[%s] parsed from X-Forwarded-For", remoteIP)
 		// parse X-Real-Ip header
 	} else if xri := r.Header.Get("X-Real-Ip"); len(xri) > 0 {
 		if ip := net.ParseIP(xri); ip != nil {
 			remoteIP = ip.String()
 		}
+		fmt.Printf("==== remoteIp[%s] parsed from X-Real-Ip", remoteIP)
 	}
 	return remoteIP
 }
