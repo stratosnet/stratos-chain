@@ -282,7 +282,8 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
 				addr := vars["address"]
-				fmt.Printf("get request from ip [%s] for account [%s]\n", getRealAddr(request), addr)
+				remoteIp := getRealAddr(request)
+				fmt.Printf("get request from ip [%s] for account [%s]\n", remoteIp, addr)
 				toAddr, err := sdk.AccAddressFromBech32(addr)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
@@ -297,7 +298,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					// sigverify pass
 					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
 				}
-				fmt.Println("tx send=", faucetRsp.TxResponse.TxHash, ", height=", faucetRsp.TxResponse.Height, ", errorMsg=", faucetRsp.ErrorMsg)
+				fmt.Println("tx send=", faucetRsp.TxResponse.TxHash, ", height=", faucetRsp.TxResponse.Height, ", errorMsg=", faucetRsp.ErrorMsg, ", ip=", remoteIp, ", acc=", addr)
 				restRsp := &RestFaucetRsp{ErrorMsg: faucetRsp.ErrorMsg, TxResponse: faucetRsp.TxResponse}
 				rest.PostProcessResponseBare(writer, cliCtx, restRsp)
 				return
@@ -403,13 +404,11 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 }
 
 func getRealAddr(r *http.Request) string {
-	fmt.Printf("parsing IP: remote_addr=[%s], X-Forwarded-For=[%s]\n", r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
 	remoteIP := ""
 	// the default is the originating ip. but we try to find better options because this is almost
 	// never the right IP
 	if parts := strings.Split(r.RemoteAddr, ":"); len(parts) == 2 {
 		remoteIP = parts[0]
-		//fmt.Printf("==== remoteIp[%s] parsed from RemoteAddr", remoteIP)
 	}
 	// If we have a forwarded-for header, take the address from there
 	if xff := strings.Trim(r.Header.Get("X-Forwarded-For"), ","); len(xff) > 0 {
@@ -418,13 +417,11 @@ func getRealAddr(r *http.Request) string {
 		if ip := net.ParseIP(lastFwd); ip != nil {
 			remoteIP = ip.String()
 		}
-		fmt.Printf("==== remoteIp[%s] parsed from X-Forwarded-For\n", remoteIP)
 		// parse X-Real-Ip header
 	} else if xri := r.Header.Get("X-Real-Ip"); len(xri) > 0 {
 		if ip := net.ParseIP(xri); ip != nil {
 			remoteIP = ip.String()
 		}
-		fmt.Printf("==== remoteIp[%s] parsed from X-Real-Ip\n", remoteIP)
 	}
 	return remoteIP
 }
