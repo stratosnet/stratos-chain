@@ -113,7 +113,7 @@ func (fim *FromIpMiddleware) Middleware(h http.Handler) http.Handler {
 		if fim.checkCap(realIp) {
 			h.ServeHTTP(w, r)
 		} else {
-			fmt.Printf("  ********** request from %s breached ip cap", realIp)
+			fmt.Printf("  ********** request from %s breached ip cap\n", realIp)
 			w.WriteHeader(http.StatusTooManyRequests)
 			w.Write([]byte("Faucet request from Ip " + realIp + " exceeds hourly cap (" + strconv.Itoa(fim.Cap) + " request(s) per hour)!"))
 		}
@@ -282,7 +282,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
 				addr := vars["address"]
-				fmt.Printf("get request from ip [%s] for account [%s]: ", getRealAddr(request), addr)
+				fmt.Printf("get request from ip [%s] for account [%s]\n", getRealAddr(request), addr)
 				toAddr, err := sdk.AccAddressFromBech32(addr)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
@@ -403,7 +403,7 @@ func doTransfer(cliCtx context.CLIContext, txBldr authtypes.TxBuilder, to sdk.Ac
 }
 
 func getRealAddr(r *http.Request) string {
-	fmt.Printf("parsing IP: remote_addr=[%s], X-Forwarded-For=[%s]", r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
+	fmt.Printf("parsing IP: remote_addr=[%s], X-Forwarded-For=[%s]\n", r.RemoteAddr, r.Header.Get("X-Forwarded-For"))
 	remoteIP := ""
 	// the default is the originating ip. but we try to find better options because this is almost
 	// never the right IP
@@ -418,13 +418,13 @@ func getRealAddr(r *http.Request) string {
 		if ip := net.ParseIP(lastFwd); ip != nil {
 			remoteIP = ip.String()
 		}
-		fmt.Printf("==== remoteIp[%s] parsed from X-Forwarded-For", remoteIP)
+		fmt.Printf("==== remoteIp[%s] parsed from X-Forwarded-For\n", remoteIP)
 		// parse X-Real-Ip header
 	} else if xri := r.Header.Get("X-Real-Ip"); len(xri) > 0 {
 		if ip := net.ParseIP(xri); ip != nil {
 			remoteIP = ip.String()
 		}
-		fmt.Printf("==== remoteIp[%s] parsed from X-Real-Ip", remoteIP)
+		fmt.Printf("==== remoteIp[%s] parsed from X-Real-Ip\n", remoteIP)
 	}
 	return remoteIP
 }
