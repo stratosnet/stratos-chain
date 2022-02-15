@@ -1,6 +1,9 @@
 package pot
 
 import (
+	"testing"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -13,8 +16,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
-	"testing"
-	"time"
 )
 
 const (
@@ -36,13 +37,14 @@ var (
 	resourceNodeVolume2 = sdk.NewInt(300000000000)
 	resourceNodeVolume3 = sdk.NewInt(200000000000)
 
-	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepay, _ = sdk.NewIntFromString("100000000000000000000000000000")
-	initialOzonePrice      = sdk.NewDecWithPrec(1000000, 9) //0.001
+	depositForSendingTx, _    = sdk.NewIntFromString("100000000000000000000000000000")
+	totalUnissuedPrepayVal, _ = sdk.NewIntFromString("100000000000000000000000000000")
+	totalUnissuedPrepay       = sdk.NewCoin("ustos", totalUnissuedPrepayVal)
+	initialUOzonePrice        = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
-	foundationDeposit          = sdk.NewInt(40000000000000000)
+	foundationDeposit          = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(40000000000000000)), sdk.NewCoin("utros", sdk.NewInt(40000000000000000)))
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -166,7 +168,7 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 
 	foundationDepositorAcc := &auth.BaseAccount{
 		Address: foundationDepositorAccAddr,
-		Coins:   sdk.NewCoins(sdk.NewCoin("ustos", foundationDeposit)),
+		Coins:   foundationDeposit,
 	}
 
 	accs := []authexported.Account{
@@ -191,7 +193,6 @@ func setupAllResourceNodes() []register.ResourceNode {
 	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4", time)
 	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4", time)
 	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4", time)
-
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
@@ -287,7 +288,7 @@ func GenTx(msgs []sdk.Msg, accnums []uint64, seq []uint64, priv ...crypto.PrivKe
 	// Make the transaction free
 	fee := auth.StdFee{
 		Amount: sdk.NewCoins(sdk.NewInt64Coin("foocoin", 0)),
-		Gas:    300000,
+		Gas:    600000,
 	}
 
 	sigs := make([]auth.StdSignature, len(priv))

@@ -2,19 +2,20 @@ package rest
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"net/http"
 )
 
 //registerTxRoutes registers pot-related REST Tx handlers to a router
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/pot/volume/report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
-	r.HandleFunc("/pot/address/{nodeAddr}/rewards", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/pot/volume_report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/pot/withdraw", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/foundation_deposit", foundationDepositHandlerFn(cliCtx)).Methods("POST")
 }
 
@@ -25,17 +26,17 @@ type (
 	}
 
 	withdrawRewardsReq struct {
-		BaseReq    rest.BaseReq `json:"base_req" yaml:"base_req"`
-		Amount     string       `json:"amount" yaml:"amount"`
-		TargetAddr string       `json:"target_addr" yaml:"target_addr"`
+		BaseReq       rest.BaseReq `json:"base_req" yaml:"base_req"`
+		Amount        string       `json:"amount" yaml:"amount"`
+		TargetAddress string       `json:"target_address" yaml:"target_address"`
 	}
 
 	volumeReportReq struct {
-		BaseReq         rest.BaseReq             `json:"base_req" yaml:"base_req"`
-		NodesVolume     []types.SingleNodeVolume `json:"nodes_volume" yaml:"nodes_volume"`         // volume report
-		Reporter        string                   `json:"reporter" yaml:"reporter"`                 // volume reporter
-		Epoch           int64                    `json:"report_epoch" yaml:"report_epoch"`         // volume report epoch
-		ReportReference string                   `json:"report_reference" yaml:"report_reference"` // volume report reference
+		BaseReq         rest.BaseReq               `json:"base_req" yaml:"base_req"`
+		WalletVolumes   []types.SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`     // volume report
+		Reporter        string                     `json:"reporter" yaml:"reporter"`                 // volume reporter
+		Epoch           int64                      `json:"epoch" yaml:"epoch"`                       // volume report epoch
+		ReportReference string                     `json:"report_reference" yaml:"report_reference"` // volume report reference
 	}
 )
 
@@ -63,10 +64,10 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		reportReference := req.ReportReference
 		epoch := sdk.NewInt(req.Epoch)
 
-		var nodesVolume []types.SingleNodeVolume
-		for _, v := range req.NodesVolume {
-			singleNodeVolume := types.NewSingleNodeVolume(v.NodeAddress, v.Volume)
-			nodesVolume = append(nodesVolume, singleNodeVolume)
+		var walletVolumes []types.SingleWalletVolume
+		for _, v := range req.WalletVolumes {
+			singleWalletVolume := types.NewSingleWalletVolume(v.WalletAddress, v.Volume)
+			walletVolumes = append(walletVolumes, singleWalletVolume)
 		}
 
 		reporterOwner, err := sdk.AccAddressFromBech32(req.BaseReq.From)
@@ -75,7 +76,7 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
+		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner, types.BLSSignatureInfo{})
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -106,13 +107,8 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		if !ok {
 			return
 		}
-		nodeAddrStr := mux.Vars(r)["nodeAddr"]
-		nodeAddr, ok := checkAccountAddressVar(w, r, nodeAddrStr)
-		if !ok {
-			return
-		}
 
-		targetAddrStr := req.TargetAddr
+		targetAddrStr := req.TargetAddress
 		targetAddr, ok := checkAccountAddressVar(w, r, targetAddrStr)
 		if !ok {
 			return
@@ -121,13 +117,13 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		//TODO: Add targetAddr after NewMsgWithdraw updates
 		fmt.Println("targetAddr", targetAddr)
 
-		ownerAddrStr := req.BaseReq.From
-		ownerAddr, ok := checkAccountAddressVar(w, r, ownerAddrStr)
+		walletAddrStr := req.BaseReq.From
+		walletAddr, ok := checkAccountAddressVar(w, r, walletAddrStr)
 		if !ok {
 			return
 		}
 
-		msg := types.NewMsgWithdraw(sdk.NewCoin(types.DefaultBondDenom, amount), nodeAddr, ownerAddr)
+		msg := types.NewMsgWithdraw(amount, walletAddr, targetAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -164,7 +160,7 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgFoundationDeposit(sdk.NewCoin(types.DefaultBondDenom, amount), fromAddr)
+		msg := types.NewMsgFoundationDeposit(amount, fromAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -184,11 +180,11 @@ func checkAccountAddressVar(w http.ResponseWriter, r *http.Request, accountAddrS
 	return addr, true
 }
 
-func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (sdk.Int, bool) {
-	amount, ok := sdk.NewIntFromString(amountStr)
-	if !ok {
+func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (sdk.Coins, bool) {
+	amount, err := sdk.ParseCoins(amountStr)
+	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid withdraw amount")
-		return sdk.NewInt(0), false
+		return sdk.Coins{}, false
 	}
 	return amount, true
 }

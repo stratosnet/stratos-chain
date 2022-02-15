@@ -3,11 +3,12 @@ package types
 import (
 	"errors"
 	"fmt"
+	"strings"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/params/subspace"
-	"strings"
-	"time"
 )
 
 // Default parameter namespace
@@ -25,6 +26,8 @@ var (
 	KeyUnbondingThreasholdTime = []byte("UnbondingThreasholdTime")
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("KeyMaxEntries")
+
+	DefaultUozPrice = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
 )
 
 var _ subspace.ParamSet = &Params{}

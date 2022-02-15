@@ -2,6 +2,8 @@ package sds
 
 import (
 	"encoding/json"
+
+	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 
 	"github.com/gorilla/mux"
@@ -75,22 +77,20 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 // AppModule implements an application module for the sds module.
 type AppModule struct {
 	AppModuleBasic
-
 	keeper         keeper.Keeper
 	coinKeeper     bank.Keeper
 	registerKeeper register.Keeper
-	// TODO: Add keepers that your application depends on
-
+	potKeeper      pot.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, registerKeeper register.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, registerKeeper register.Keeper, potKeeper pot.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		coinKeeper:     bankKeeper,
 		registerKeeper: registerKeeper,
-		// TODO: Add keepers that your application depends on
+		potKeeper:      potKeeper,
 	}
 }
 

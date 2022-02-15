@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -17,7 +19,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-	"testing"
 )
 
 const (
@@ -93,14 +94,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
-
-	initCoins := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, sdk.NewInt(1000000000000)))
-
-	foundationAcc, err := sdk.AccAddressFromBech32("st1qr9set2jaayzjjpm9tw4f3n6f5zfu3hef8wtaw")
-	if err != nil {
-		panic(err)
-	}
-	bankKeeper.AddCoins(ctx, foundationAcc, initCoins)
 
 	return ctx, accountKeeper, bankKeeper, keeper, stakingKeeper, pk, supplyKeeper, registerKeeper
 }
