@@ -19,7 +19,6 @@ const (
 )
 
 var (
-	InitialUOzonePriceKey  = []byte{0x02}
 	TotalMinedTokensKey    = []byte{0x03}
 	MinedTokensKeyPrefix   = []byte{0x04} // key: prefix_epoch
 	TotalUnissuedPrepayKey = []byte{0x05}

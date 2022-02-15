@@ -13,6 +13,7 @@ const (
 	RestNumLimit  = "limit"
 	RestMoniker   = "moniker"
 	RestOwner     = "owner"
+	RestQueryType = "query_type"
 )
 
 // RegisterRoutes registers register-related REST handlers to a router

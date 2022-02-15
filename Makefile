@@ -1,6 +1,6 @@
 BUILDDIR ?= $(CURDIR)/build
 
-APP_VER := v0.5.0
+APP_VER := v0.6.0
 COMMIT := $(GIT_COMMIT_HASH)
 
 VERSION := $(APP_VER)-$(COMMIT)

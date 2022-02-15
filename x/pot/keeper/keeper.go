@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/params"
@@ -52,48 +53,33 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) GetVolumeReport(ctx sdk.Context, epoch sdk.Int) (res types.VolumeReportRecord) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.VolumeReportStoreKey(epoch))
-	if bz == nil {
-		return types.VolumeReportRecord{}
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
-	return res
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter sdk.AccAddress,
+	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
+	//record volume report
+	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
+	k.SetVolumeReport(ctx, epoch, reportRecord)
+	//distribute POT reward
+	//TODO: recovery when shift to main net
+	//totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch) // Main net
+	//TODO: remove when shift to main net
+	totalConsumedOzone, err = k.DistributePotRewardForTestnet(ctx, walletVolumes, epoch) // Incentive test net
+
+	return totalConsumedOzone, err
 }
 
-func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord types.VolumeReportRecord) {
-	store := ctx.KVStore(k.storeKey)
-	storeKey := types.VolumeReportStoreKey(epoch)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
-	store.Set(storeKey, bz)
-}
-
-func (k Keeper) DeleteVolumeReport(ctx sdk.Context, key []byte) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(key)
-}
-
-func (k Keeper) IsSPNode(ctx sdk.Context, addr sdk.AccAddress) (found bool) {
-	_, found = k.RegisterKeeper.GetIndexingNode(ctx, addr)
+func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr sdk.AccAddress) (found bool) {
+	_, found = k.RegisterKeeper.GetIndexingNode(ctx, p2pAddr)
 	return found
 }
 
-func (k Keeper) getNodeOwnerMap(ctx sdk.Context) map[string]sdk.AccAddress {
-	nodeOwnerMap := make(map[string]sdk.AccAddress)
-	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromIndexingNodes(ctx, nodeOwnerMap)
-	nodeOwnerMap = k.RegisterKeeper.GetNodeOwnerMapFromResourceNodes(ctx, nodeOwnerMap)
-	return nodeOwnerMap
-}
-
-func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coin, from sdk.AccAddress) (err error) {
-	_, err = k.BankKeeper.SubtractCoins(ctx, from, sdk.NewCoins(amount))
+func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
+	_, err = k.BankKeeper.SubtractCoins(ctx, from, amount)
 	if err != nil {
 		return err
 	}
 
 	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
-	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, sdk.NewCoins(amount))
+	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amount)
 	if err != nil {
 		return err
 	}

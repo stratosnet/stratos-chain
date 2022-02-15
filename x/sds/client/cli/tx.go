@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"encoding/hex"
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
@@ -45,7 +46,13 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			fileHash, err := hex.DecodeString(viper.GetString(FlagFileHash))
+			fileHash := viper.GetString(FlagFileHash)
+			_, err := hex.DecodeString(fileHash)
+			if err != nil {
+				return err
+			}
+
+			reporter, err := sdk.AccAddressFromBech32(viper.GetString(FlagReporter))
 			if err != nil {
 				return err
 			}
@@ -56,17 +63,19 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 			}
 
 			// build and sign the transaction, then broadcast to Tendermint
-			msg := types.NewMsgUpload(fileHash, cliCtx.GetFromAddress(), uploader)
+			msg := types.NewMsgUpload(fileHash, cliCtx.GetFromAddress(), reporter, uploader)
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 	cmd = flags.PostCommands(cmd)[0]
 	//cmd.Flags().String(flags.FlagFrom, "", "from address")
 	cmd.Flags().String(FlagFileHash, "", "Hash of uploaded file")
+	cmd.Flags().String(FlagReporter, "", "Reporter of file")
 	cmd.Flags().String(FlagUploader, "", "Uploader of file")
 
 	cmd.MarkFlagRequired(flags.FlagFrom)
 	cmd.MarkFlagRequired(FlagFileHash)
+	cmd.MarkFlagRequired(FlagReporter)
 	cmd.MarkFlagRequired(FlagUploader)
 
 	return cmd

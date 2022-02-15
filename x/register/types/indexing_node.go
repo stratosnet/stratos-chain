@@ -3,13 +3,14 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto"
-	"sort"
-	"strings"
-	"time"
 )
 
 // IndexingNodes is a collection of indexing node
@@ -54,7 +55,7 @@ func (v IndexingNodes) Validate() error {
 }
 
 type IndexingNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the indexing node
+	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the indexing node, sds://...
 	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
 	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
 	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
@@ -131,6 +132,21 @@ func (v IndexingNode) Validate() error {
 		return ErrEmptyMoniker
 	}
 	return nil
+}
+
+// IsBonded checks if the node status equals Bonded
+func (v IndexingNode) IsBonded() bool {
+	return v.GetStatus().Equal(sdk.Bonded)
+}
+
+// IsUnBonded checks if the node status equals Unbonded
+func (v IndexingNode) IsUnBonded() bool {
+	return v.GetStatus().Equal(sdk.Unbonded)
+}
+
+// IsUnBonding checks if the node status equals Unbonding
+func (v IndexingNode) IsUnBonding() bool {
+	return v.GetStatus().Equal(sdk.Unbonding)
 }
 
 func (v IndexingNode) IsSuspended() bool              { return v.Suspend }

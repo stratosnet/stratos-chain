@@ -22,6 +22,11 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 	return
 }
 
+func (k Keeper) RewardDenom(ctx sdk.Context) (res string) {
+	k.paramSpace.Get(ctx, types.KeyRewardDenom, &res)
+	return
+}
+
 func (k Keeper) MatureEpoch(ctx sdk.Context) (res int64) {
 	k.paramSpace.Get(ctx, types.KeyMatureEpoch, &res)
 	return
@@ -32,10 +37,10 @@ func (k Keeper) MiningRewardParams(ctx sdk.Context) (res []types.MiningRewardPar
 	return
 }
 
-func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk.Int) (types.MiningRewardParam, error) {
+func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk.Coin) (types.MiningRewardParam, error) {
 	miningRewardParams := k.MiningRewardParams(ctx)
 	for _, param := range miningRewardParams {
-		if minedToken.GTE(param.TotalMinedValveStart) && minedToken.LT(param.TotalMinedValveEnd) {
+		if minedToken.IsGTE(param.TotalMinedValveStart) && minedToken.IsLT(param.TotalMinedValveEnd) {
 			return param, nil
 		}
 	}
