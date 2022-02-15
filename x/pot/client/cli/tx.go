@@ -165,6 +165,7 @@ func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (au
 		epoch,
 		reportReference,
 		reporterOwner,
+		types.BLSSignatureInfo{},
 	)
 	return txBldr, msg, nil
 }

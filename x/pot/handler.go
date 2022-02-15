@@ -44,6 +44,8 @@ func handleMsgVolumeReport(ctx sdk.Context, k keeper.Keeper, msg types.MsgVolume
 		return nil, e
 	}
 
+	// TODO: verify BLS signature
+
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 
