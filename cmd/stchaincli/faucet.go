@@ -287,6 +287,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				return fmt.Errorf("at least 1 funding acc need to be specified for faucet")
 			}
 			inBuf := bufio.NewReader(cmd.InOrStdin())
+			faucetReqChList := make([]chan FaucetReq, 0)
 			for _, acc := range fundAccs {
 				fromAddress, fromName, err := context.GetFromFields(inBuf, acc, false)
 				if err != nil {
@@ -301,8 +302,14 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					seqInfo:     SeqInfo{startSeq: 0, lastSuccSeq: 0},
 				}
 				faucetServices = append(faucetServices, service)
+				// new reqCh for service
+				reqCh := make(chan FaucetReq, 10000)
+				faucetReqChList = append(faucetReqChList, reqCh)
 			}
-			fmt.Printf("FaucetServices are [%v]", faucetServices)
+			if len(faucetServices) != len(faucetReqChList) {
+				return fmt.Errorf("failed to setup context for each funding accs")
+			}
+			//fmt.Printf("FaucetServices are [%v]", faucetServices)
 			// start threads
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			viper.Set(flags.FlagSkipConfirmation, true)
@@ -319,7 +326,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			fmt.Print("\nStarting faucet...")
 			// listen to localhost:faucetPort
 			listener, err := net.Listen("tcp", ":"+faucetPort)
-			fmt.Print("\nlisten to [" + ":" + faucetPort + "]")
+			fmt.Print("\nlisten to [" + ":" + faucetPort + "]\n")
 
 			// init serviceIndex
 			serviceIndex := ServiceIndex{
@@ -334,7 +341,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				w.WriteHeader(http.StatusOK)
 				w.Write([]byte("ok\n"))
 			})
-			faucetReqCh := make(chan FaucetReq, 10000)
+			//faucetReqCh := make(chan FaucetReq, 10000)
 			//faucet
 			r.HandleFunc("/faucet/{address}", func(writer http.ResponseWriter, request *http.Request) {
 				vars := mux.Vars(request)
@@ -357,7 +364,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					resChan:     resChan,
 					Index:       reqIndex,
 				}
-				faucetReqCh <- faucetReq
+				faucetReqChList[reqIndex] <- faucetReq
 
 				faucetRsp := <-resChan
 				if int(faucetRsp.TxResponse.Code) < 1 && len(faucetRsp.ErrorMsg) == 0 {
@@ -382,7 +389,9 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				syscall.SIGHUP,
 			)
 
-			go FaucetJobFromCh(&faucetReqCh, cliCtx, txBldr, faucetServices[0].fromAddress, coin, quit)
+			for i, _ := range faucetServices {
+				go FaucetJobFromCh(&faucetReqChList[i], cliCtx, txBldr, faucetServices[i].fromAddress, coin, quit)
+			}
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
