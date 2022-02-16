@@ -204,24 +204,23 @@ func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 
 func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin, quit chan os.Signal) {
 	for {
-		fmt.Printf("----%s channel started-----\n", cliCtx.FromName)
 		select {
 		case <-quit:
 
 			return
 		case fReq := <-*faucetReq:
 			resChan := fReq.resChan
-			// modify cliCtx
+			// update cliCtx
 			cliCtx := cliCtx.WithFromName(fReq.FromName).WithFrom(fReq.From).WithFromAddress(fReq.FromAddress)
 
-			// get latest seq
+			// get latest seq and accountNumber by FromAddress
 			accountNumber, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(fReq.FromAddress)
 			if err != nil {
 				faucetRsp := FaucetRsp{ErrorMsg: "Node is under maintenance, please try again later!"}
 				resChan <- faucetRsp
 				continue
 			}
-			fmt.Printf("----sender[%s] accNum[%s] lastSeq[%s] -----\n", cliCtx.From, int(accountNumber), int(latestSeq))
+			fmt.Printf("----sender[%s] senderIdx[%d] accNum[%d] lastSeq[%d] -----\n", cliCtx.From, fReq.Index, int(accountNumber), int(latestSeq))
 			newSeq := faucetServices[fReq.Index].seqInfo.getNewSeq(int(latestSeq))
 			err = doTransfer(cliCtx,
 				txBldr.
@@ -289,11 +288,6 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			}
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			for _, acc := range fundAccs {
-				//fromAddrBytes, err := sdk.AccAddressFromBech32(acc)
-				//if err != nil {
-				//	return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
-				//}
-
 				fromAddress, fromName, err := context.GetFromFields(inBuf, acc, false)
 				if err != nil {
 					return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
@@ -308,7 +302,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				}
 				faucetServices = append(faucetServices, service)
 			}
-
+			fmt.Printf("FaucetServices are [%v]", faucetServices)
 			// start threads
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			viper.Set(flags.FlagSkipConfirmation, true)
@@ -346,7 +340,6 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				vars := mux.Vars(request)
 				addr := vars["address"]
 				remoteIp := getRealAddr(request)
-				fmt.Printf("get request from ip [%s] for account [%s]\n", remoteIp, addr)
 				toAddr, err := sdk.AccAddressFromBech32(addr)
 				if err != nil {
 					writer.WriteHeader(http.StatusBadRequest)
@@ -354,6 +347,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				}
 				// select a context (bonded with funding acc)
 				reqIndex := serviceIndex.getIndexAndScrollNext()
+				fmt.Printf("get request from ip [%s], faucet to account [%s], senderIdx[%d]\n", remoteIp, addr, reqIndex)
 				resChan := make(chan FaucetRsp)
 				faucetReq := FaucetReq{
 					FromAddress: faucetServices[reqIndex].fromAddress,
