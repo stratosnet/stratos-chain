@@ -43,6 +43,7 @@ const (
 	defaultKeyringBackend = "test"
 	defaultDenom          = "ustos"
 	defaultChainId        = "test-chain"
+	defaultPort           = "26600"
 	defaultAddrCap        = 1
 	defaultIpCap          = 3
 	capDuration           = 60 // in minutes
@@ -53,8 +54,13 @@ const (
 
 // used in request channel
 type FaucetReq struct {
+	FromAddress sdk.AccAddress
+	FromName    string
+	From        string
+
 	ToAddr  sdk.AccAddress
 	resChan chan FaucetRsp
+	Index   int
 }
 
 // used in response channel
@@ -136,15 +142,38 @@ func (fim *FromIpMiddleware) checkCap(fromIp string) bool {
 
 // global to load command line args
 var (
-	faucetArgs = FaucetArgs{}
-	seqInfo    = SeqInfo{startSeq: 0, lastSuccSeq: 0}
+	faucetServices = make([]FaucetService, 0)
+	faucetPort     = defaultPort
 )
 
 // struct to hold the command-line args
-type FaucetArgs struct {
-	from  sdk.AccAddress
-	coins sdk.Coins
-	port  string
+type FaucetService struct {
+	fromAddress sdk.AccAddress
+	fromName    string
+	from        string
+	coins       sdk.Coins
+	seqInfo     SeqInfo
+}
+
+type ServiceIndex struct {
+	nextServiceIndex int
+	lenOfService     int
+	mux              sync.Mutex
+}
+
+func (si *ServiceIndex) getIndexAndScrollNext() int {
+	if si.lenOfService < 1 {
+		return 0
+	}
+	si.mux.Lock()
+	defer si.mux.Unlock()
+	ret := si.nextServiceIndex
+	if si.nextServiceIndex < si.lenOfService-1 {
+		si.nextServiceIndex += 1
+	} else {
+		si.nextServiceIndex = 0
+	}
+	return ret
 }
 
 type SeqInfo struct {
@@ -175,28 +204,33 @@ func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 
 func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin, quit chan os.Signal) {
 	for {
+		fmt.Printf("----%s channel started-----\n", cliCtx.FromName)
 		select {
 		case <-quit:
 
 			return
 		case fReq := <-*faucetReq:
 			resChan := fReq.resChan
+			// modify cliCtx
+			cliCtx := cliCtx.WithFromName(fReq.FromName).WithFrom(fReq.From).WithFromAddress(fReq.FromAddress)
+
 			// get latest seq
-			_, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(from)
+			accountNumber, latestSeq, err := authtypes.NewAccountRetriever(cliCtx).GetAccountNumberSequence(fReq.FromAddress)
 			if err != nil {
 				faucetRsp := FaucetRsp{ErrorMsg: "Node is under maintenance, please try again later!"}
 				resChan <- faucetRsp
 				continue
 			}
-			newSeq := seqInfo.getNewSeq(int(latestSeq))
-			//fmt.Print(fmt.Sprintf("sequence in this tx: %d\n", newSeq))
+			fmt.Printf("----sender[%s] accNum[%s] lastSeq[%s] -----\n", cliCtx.From, int(accountNumber), int(latestSeq))
+			newSeq := faucetServices[fReq.Index].seqInfo.getNewSeq(int(latestSeq))
 			err = doTransfer(cliCtx,
 				txBldr.
+					WithAccountNumber(accountNumber).
 					WithSequence(uint64(newSeq)).
 					WithChainID(viper.GetString(flags.FlagChainID)).
 					WithGas(uint64(400000)).
 					WithMemo(strconv.Itoa(newSeq)),
-				fReq.ToAddr, faucetArgs.from, coin, &resChan)
+				fReq.ToAddr, fReq.FromAddress, coin, &resChan)
 			if err != nil {
 				faucetRsp := FaucetRsp{ErrorMsg: err.Error()}
 				resChan <- faucetRsp
@@ -240,36 +274,65 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			fromIpCache.SetCacheSizeLimit(65535)
 			fim := FromIpMiddleware{IpCache: fromIpCache, Cap: ipCap}
 
-			fromAddr := viper.GetString(flagFundFrom)
-			fromAddrBytes, err := sdk.AccAddressFromBech32(fromAddr)
-			if err != nil {
-				return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
-			}
-			faucetArgs.from = fromAddrBytes
-
-			// start threads
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			viper.Set(flags.FlagSkipConfirmation, true)
-			viper.Set(cli.OutputFlag, defaultOutputFlag)
-
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetArgs.from.String()).WithCodec(cdc)
-
-			faucetArgs.port = viper.GetString(flagPort)
-
-			fmt.Print("\nfunding address: ", "addr", faucetArgs.from.String())
+			// parse coins to transfer
 			var toTransferAmt int
 			if toTransferAmt = viper.GetInt(flagAmt); toTransferAmt <= 0 || toTransferAmt > maxAmtFaucet {
 				return fmt.Errorf("invalid amount in faucet")
 			}
 			coin := sdk.Coin{Amount: sdk.NewInt(int64(toTransferAmt)), Denom: defaultDenom}
-			faucetArgs.coins = sdk.Coins{coin}
 
+			// parse funding accs
+			fromAddressesStr := viper.GetString(flagFundFrom)
+			fundAccs := strings.Split(fromAddressesStr, ",")
+			if len(fundAccs) < 1 {
+				return fmt.Errorf("at least 1 funding acc need to be specified for faucet")
+			}
+			inBuf := bufio.NewReader(cmd.InOrStdin())
+			for _, acc := range fundAccs {
+				//fromAddrBytes, err := sdk.AccAddressFromBech32(acc)
+				//if err != nil {
+				//	return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
+				//}
+
+				fromAddress, fromName, err := context.GetFromFields(inBuf, acc, false)
+				if err != nil {
+					return fmt.Errorf("failed to parse bech32 address fro FROM Address: %w", err)
+				}
+
+				service := FaucetService{
+					fromAddress: fromAddress,
+					fromName:    fromName,
+					from:        acc,
+					coins:       sdk.Coins{coin},
+					seqInfo:     SeqInfo{startSeq: 0, lastSuccSeq: 0},
+				}
+				faucetServices = append(faucetServices, service)
+			}
+
+			// start threads
+			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
+			viper.Set(flags.FlagSkipConfirmation, true)
+			viper.Set(cli.OutputFlag, defaultOutputFlag)
+
+			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, faucetServices[0].fromAddress.String()).WithCodec(cdc)
+
+			// setup port
+			portFromCmd := viper.GetString(flagPort)
+			if len(portFromCmd) > 0 {
+				faucetPort = portFromCmd
+			}
+			fmt.Print("\nfunding address: ", "addr", fromAddressesStr)
 			fmt.Print("\nStarting faucet...")
+			// listen to localhost:faucetPort
+			listener, err := net.Listen("tcp", ":"+faucetPort)
+			fmt.Print("\nlisten to [" + ":" + faucetPort + "]")
 
-			// listen to localhost:26600
-			listener, err := net.Listen("tcp", ":"+faucetArgs.port)
-			fmt.Print("\nlisten to [" + ":" + faucetArgs.port + "]")
+			// init serviceIndex
+			serviceIndex := ServiceIndex{
+				nextServiceIndex: 0,
+				lenOfService:     len(faucetServices),
+			}
+
 			// router
 			r := mux.NewRouter()
 			// health check
@@ -289,14 +352,23 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 					writer.WriteHeader(http.StatusBadRequest)
 					writer.Write([]byte(err.Error()))
 				}
+				// select a context (bonded with funding acc)
+				reqIndex := serviceIndex.getIndexAndScrollNext()
 				resChan := make(chan FaucetRsp)
-				faucetReq := FaucetReq{ToAddr: toAddr, resChan: resChan}
+				faucetReq := FaucetReq{
+					FromAddress: faucetServices[reqIndex].fromAddress,
+					FromName:    faucetServices[reqIndex].fromName,
+					From:        faucetServices[reqIndex].from,
+					ToAddr:      toAddr,
+					resChan:     resChan,
+					Index:       reqIndex,
+				}
 				faucetReqCh <- faucetReq
 
 				faucetRsp := <-resChan
 				if int(faucetRsp.TxResponse.Code) < 1 && len(faucetRsp.ErrorMsg) == 0 {
 					// sigverify pass
-					seqInfo.incrLastSuccSeq(faucetRsp.Seq)
+					faucetServices[reqIndex].seqInfo.incrLastSuccSeq(faucetRsp.Seq)
 				}
 				fmt.Println("tx send=", faucetRsp.TxResponse.TxHash, ", height=", faucetRsp.TxResponse.Height, ", errorMsg=", faucetRsp.ErrorMsg, ", ip=", remoteIp, ", acc=", addr)
 				restRsp := &RestFaucetRsp{ErrorMsg: faucetRsp.ErrorMsg, TxResponse: faucetRsp.TxResponse}
@@ -316,7 +388,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				syscall.SIGHUP,
 			)
 
-			go FaucetJobFromCh(&faucetReqCh, cliCtx, txBldr, faucetArgs.from, coin, quit)
+			go FaucetJobFromCh(&faucetReqCh, cliCtx, txBldr, faucetServices[0].fromAddress, coin, quit)
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
