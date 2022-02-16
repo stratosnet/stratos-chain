@@ -17,7 +17,7 @@ func (k Keeper) DistributePotRewardForTestnet(ctx sdk.Context, trafficList []typ
 
 	//2, calc mining reward in total,
 	//*************** For incentive testnet, the mining reward to blockchain (stakeReward) are evenly distributed to all the nodes *****************
-	distributeGoal, totalNodesCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal)
+	distributeGoal, idxNodeCnt, resNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
 		return totalConsumedOzone, err
 	}
@@ -32,10 +32,10 @@ func (k Keeper) DistributePotRewardForTestnet(ctx sdk.Context, trafficList []typ
 	distributeGoalBalance := distributeGoal
 
 	//3, calc reward for resource node, store to rewardDetailMap by wallet address(owner address)
-	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, trafficList, distributeGoalBalance, rewardDetailMap, totalNodesCnt)
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, trafficList, distributeGoalBalance, rewardDetailMap, resNodeCnt)
 
 	//4, calc reward from indexing node, store to rewardDetailMap by wallet address(owner address)
-	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, totalNodesCnt)
+	rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, idxNodeCnt)
 
 	//5, deduct reward from provider account (the value of parameter of distributeGoal will not change)
 	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)
@@ -68,13 +68,13 @@ func (k Keeper) DistributePotRewardForTestnet(ctx sdk.Context, trafficList []typ
 }
 
 // allocate mining reward from foundation account
-func (k Keeper) CalcMiningRewardInTotalForTestnet(ctx sdk.Context, distributeGoal types.DistributeGoal) (types.DistributeGoal, sdk.Int, error) {
+func (k Keeper) CalcMiningRewardInTotalForTestnet(ctx sdk.Context, distributeGoal types.DistributeGoal) (types.DistributeGoal, sdk.Int, sdk.Int, error) {
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
 	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 
 	totalMiningReward := miningParam.MiningReward
 	if err != nil {
-		return distributeGoal, sdk.ZeroInt(), err
+		return distributeGoal, sdk.ZeroInt(), sdk.ZeroInt(), err
 	}
 	stakeReward := totalMiningReward.Amount.ToDec().
 		Mul(miningParam.BlockChainPercentageInTenThousand.ToDec()).
@@ -86,17 +86,17 @@ func (k Keeper) CalcMiningRewardInTotalForTestnet(ctx sdk.Context, distributeGoa
 		Mul(miningParam.MetaNodePercentageInTenThousand.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 
-	stakeRewardToValidators, stakeRewardToResourceNodes, stakeRewardToIndexingNodes, totalNodesCnt := k.splitRewardEvenly(ctx, stakeReward)
+	stakeRewardToValidators, stakeRewardToResourceNodes, stakeRewardToIndexingNodes, idxNodeCnt, resNodeCnt := k.splitRewardEvenly(ctx, stakeReward)
 	distributeGoal = distributeGoal.AddBlockChainRewardToValidatorFromMiningPool(sdk.NewCoin(k.RewardDenom(ctx), stakeRewardToValidators))
 	distributeGoal = distributeGoal.AddBlockChainRewardToResourceNodeFromMiningPool(sdk.NewCoin(k.RewardDenom(ctx), stakeRewardToResourceNodes))
 	distributeGoal = distributeGoal.AddBlockChainRewardToIndexingNodeFromMiningPool(sdk.NewCoin(k.RewardDenom(ctx), stakeRewardToIndexingNodes))
 	distributeGoal = distributeGoal.AddTrafficRewardToResourceNodeFromMiningPool(sdk.NewCoin(k.RewardDenom(ctx), trafficReward))
 	distributeGoal = distributeGoal.AddMetaNodeRewardToIndexingNodeFromMiningPool(sdk.NewCoin(k.RewardDenom(ctx), indexingReward))
-	return distributeGoal, totalNodesCnt, nil
+	return distributeGoal, idxNodeCnt, resNodeCnt, nil
 }
 
 func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
-) (validatorReward sdk.Int, resourceNodeReward sdk.Int, indexingNodeReward sdk.Int, totalNodesCnt sdk.Int) {
+) (validatorReward sdk.Int, resourceNodeReward sdk.Int, indexingNodeReward sdk.Int, idxNodeCnt sdk.Int, resNodeCnt sdk.Int) {
 	validatorCnt := sdk.ZeroDec()
 	indexingNodeCnt := sdk.ZeroDec()
 	resourceNodeCnt := sdk.ZeroDec()
@@ -127,7 +127,8 @@ func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
 	validatorReward = totalReward.ToDec().Mul(validatorCnt).Quo(totalNodes).TruncateInt()
 	indexingNodeReward = totalReward.ToDec().Mul(indexingNodeCnt).Quo(totalNodes).TruncateInt()
 	resourceNodeReward = totalReward.ToDec().Mul(resourceNodeCnt).Quo(totalNodes).TruncateInt()
-	totalNodesCnt = totalNodes.TruncateInt()
+	idxNodeCnt = indexingNodeCnt.TruncateInt()
+	resNodeCnt = resourceNodeCnt.TruncateInt()
 	return
 }
 

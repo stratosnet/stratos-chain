@@ -41,7 +41,7 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 	reportReference := "report for epoch " + epoch.String()
 	reporterOwner := idxOwner1
 
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, types.BLSSignatureInfo{})
 
 	return volumeReportMsg
 }
@@ -152,15 +152,15 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		//TODO: remove when shift to main net
 		/********************************************************** Incentive testnet part Start *********************************************************************/
-		distributeGoal, totalNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal) //for incentive test net
+		distributeGoal, idxNodeCnt, resNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal) //for incentive test net
 		require.NoError(t, err)
 		ctx.Logger().Info(distributeGoal.String())
 		ctx.Logger().Info("---------------------------")
 		distributeGoalBalance := distributeGoal
 		rewardDetailMap := make(map[string]types.Reward)
 
-		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap, totalNodeCnt)
-		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, totalNodeCnt)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap, resNodeCnt)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, idxNodeCnt)
 
 		//calc mining reward to distribute to validators
 		rewardFromMiningPool := distributeGoal.BlockChainRewardToValidatorFromMiningPool
