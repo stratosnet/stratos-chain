@@ -15,7 +15,7 @@ import (
 
 func TestAppExport(t *testing.T) {
 	db := dbm.NewMemDB()
-	app := NewInitApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	app := NewInitApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, nil)
 
 	genesisState := ModuleBasics.DefaultGenesis()
 	stateBytes, err := codec.MarshalJSONIndent(app.cdc, genesisState)
@@ -31,7 +31,7 @@ func TestAppExport(t *testing.T) {
 	app.Commit()
 
 	// Making a new app object with the db, so that initchain hasn't been called
-	app2 := NewInitApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0)
+	app2 := NewInitApp(log.NewTMLogger(log.NewSyncWriter(os.Stdout)), db, nil, true, 0, nil)
 	_, _, err = app2.ExportAppStateAndValidators(false, []string{})
 	require.NoError(t, err, "ExportAppStateAndValidators should not have an error")
 }

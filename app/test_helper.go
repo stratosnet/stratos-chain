@@ -9,7 +9,7 @@ import (
 
 func Setup(isCheckTx bool) *NewApp {
 	db := dbm.NewMemDB()
-	app := NewInitApp(log.NewNopLogger(), db, nil, true, 0)
+	app := NewInitApp(log.NewNopLogger(), db, nil, true, 0, nil)
 
 	if !isCheckTx {
 		// init chain must be called to stop deliverState from being nil

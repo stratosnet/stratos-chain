@@ -6,6 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/stratosnet/stratos-chain/web3/config"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/cli"
@@ -81,14 +82,29 @@ func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer) abci.Application
 	if err != nil {
 		panic(err)
 	}
-	return app.NewInitApp(
-		logger, db, traceStore, true, invCheckPeriod,
+
+	app := app.NewInitApp(
+		logger, db, traceStore, true, invCheckPeriod, initWeb3Config(),
 		baseapp.SetPruning(pruningOpts),
 		baseapp.SetMinGasPrices(viper.GetString(server.FlagMinGasPrices)),
 		baseapp.SetHaltHeight(viper.GetUint64(server.FlagHaltHeight)),
 		baseapp.SetHaltTime(viper.GetUint64(server.FlagHaltTime)),
 		baseapp.SetInterBlockCache(cache),
 	)
+
+	err = app.StartWeb3Server()
+	if err != nil {
+		panic(err)
+	}
+
+	return app
+}
+
+func initWeb3Config() (apiCfg *config.APIConfig) {
+	apiCfg = config.DefaultAPIConfig()
+	apiCfg.HTTPConfig.Enabled = true
+	apiCfg.WSConfig.Enabled = true
+	return apiCfg
 }
 
 func exportAppStateAndTMValidators(
@@ -96,7 +112,7 @@ func exportAppStateAndTMValidators(
 ) (json.RawMessage, []tmtypes.GenesisValidator, error) {
 
 	if height != -1 {
-		aApp := app.NewInitApp(logger, db, traceStore, false, uint(1))
+		aApp := app.NewInitApp(logger, db, traceStore, false, uint(1), nil)
 		err := aApp.LoadHeight(height)
 		if err != nil {
 			return nil, nil, err
@@ -104,7 +120,7 @@ func exportAppStateAndTMValidators(
 		return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 	}
 
-	aApp := app.NewInitApp(logger, db, traceStore, true, uint(1))
+	aApp := app.NewInitApp(logger, db, traceStore, true, uint(1), nil)
 
 	return aApp.ExportAppStateAndValidators(forZeroHeight, jailWhiteList)
 }

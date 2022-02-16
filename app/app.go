@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 
+	"github.com/stratosnet/stratos-chain/web3"
+	"github.com/stratosnet/stratos-chain/web3/config"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -103,8 +105,8 @@ func MakeCodec() *codec.Codec {
 
 type NewApp struct {
 	*bam.BaseApp
-	cdc *codec.Codec
-
+	cdc            *codec.Codec
+	web3           *web3.Server
 	invCheckPeriod uint
 
 	keys  map[string]*sdk.KVStoreKey
@@ -127,10 +129,8 @@ type NewApp struct {
 	distrKeeper    distr.Keeper
 	crisisKeeper   crisis.Keeper
 	evmKeeper      *evm.Keeper
-	// this line is used by starport scaffolding # 3
-	mm *module.Manager
-
-	sm *module.SimulationManager
+	mm             *module.Manager
+	sm             *module.SimulationManager
 }
 
 func (app NewApp) GetAccountKeeper() auth.AccountKeeper {
@@ -145,7 +145,7 @@ var _ simapp.App = (*NewApp)(nil)
 
 func NewInitApp(
 	logger log.Logger, db dbm.DB, traceStore io.Writer, loadLatest bool,
-	invCheckPeriod uint, baseAppOptions ...func(*bam.BaseApp),
+	invCheckPeriod uint, web3Cfg *config.APIConfig, baseAppOptions ...func(*bam.BaseApp),
 ) *NewApp {
 	cdc := MakeCodec()
 
@@ -183,6 +183,7 @@ func NewInitApp(
 		subspaces:      make(map[string]params.Subspace),
 	}
 
+	app.web3 = web3.NewServer(web3Cfg)
 	// add keepers
 	app.paramsKeeper = params.NewKeeper(app.cdc, keys[params.StoreKey], tKeys[params.TStoreKey])
 
@@ -396,6 +397,25 @@ func (app *NewApp) Codec() *codec.Codec {
 
 func (app *NewApp) SimulationManager() *module.SimulationManager {
 	return app.sm
+}
+
+func (app *NewApp) StartWeb3Server() (err error) {
+
+	web3Services := app.web3.ServiceList()
+
+	// Starting new (web3) RPC
+	err = app.web3.StartHTTP(web3Services)
+	if err != nil {
+		app.Logger().Error("Failed to start web3 http rpc, details", err)
+		return err
+	}
+
+	err = app.web3.StartWS(web3Services)
+	if err != nil {
+		app.Logger().Error("Failed to start web3 ws rpc, details", err)
+		return err
+	}
+	return nil
 }
 
 func GetMaccPerms() map[string][]string {

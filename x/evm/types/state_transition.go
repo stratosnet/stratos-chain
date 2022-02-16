@@ -7,6 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
+	ethcore "github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/core/vm"
 
@@ -109,10 +110,24 @@ func (st StateTransition) newEVM(
 	return vm.NewEVM(blockCtx, txCtx, csdb, config.EthereumConfig(st.ChainID), vmConfig)
 }
 
+func (st *StateTransition) preCheck() error {
+	stNonce := st.Csdb.GetNonce(st.Sender)
+	msgNonce := st.AccountNonce
+	if stNonce > msgNonce {
+		return fmt.Errorf("%w: address %v, tx: %d state: %d", ethcore.ErrNonceTooLow,
+			st.Sender, msgNonce, stNonce)
+	}
+	return nil
+}
+
 // TransitionDb will transition the state by applying the current transaction and
 // returning the evm execution result.
 // NOTE: State transition checks are run during AnteHandler execution.
 func (st StateTransition) TransitionDb(ctx sdk.Context, config ChainConfig) (*ExecutionResult, error) {
+	if err := st.preCheck(); err != nil {
+		return nil, err
+	}
+
 	contractCreation := st.Recipient == nil
 
 	cost, err := core.IntrinsicGas(st.Payload, contractCreation, config.IsHomestead(), config.IsIstanbul())
