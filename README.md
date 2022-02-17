@@ -107,7 +107,7 @@ Prerequisites and detailed instructions of main network will be added later.
 
 ## Stratos Explorer
 
-* https://explorer-test.thestratos.org/
+* https://explorer-tropos.thestratos.org/
 
 ---
 
