@@ -263,7 +263,6 @@ func (k Keeper) IteratePrepay(ctx sdk.Context, handler func(sdk.AccAddress, sdk.
 		if err != nil {
 			panic("invalid prepay amount")
 		}
-		//k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &amt)
 		if handler(senderAddr, amt) {
 			break
 		}

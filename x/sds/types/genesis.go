@@ -11,7 +11,6 @@ import (
 type GenesisState struct {
 	Params     Params       `json:"params" yaml:"params"`
 	FileUpload []FileUpload `json:"file_upload" yaml:"file_upload"`
-	Prepay     []Prepay     `json:"prepay" yaml:"prepay"`
 }
 
 // FileUpload required for fileInfo set update logic
@@ -20,18 +19,11 @@ type FileUpload struct {
 	FileInfo FileInfo `json:"file_info" yaml:"file_info"`
 }
 
-// Prepay required for prepay set update logic
-type Prepay struct {
-	Sender sdk.AccAddress `json:"sender" yaml:"sender"`
-	Coins  sdk.Coins      `json:"coins" yaml:"coins"`
-}
-
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, fileUpload []FileUpload, prepay []Prepay) GenesisState {
+func NewGenesisState(params Params, fileUpload []FileUpload) GenesisState {
 	return GenesisState{
 		Params:     params,
 		FileUpload: fileUpload,
-		Prepay:     prepay,
 	}
 }
 
@@ -72,17 +64,6 @@ func ValidateGenesis(data GenesisState) error {
 			}
 			if upload.FileInfo.Uploader.Empty() {
 				return ErrEmptyUploaderAddr
-			}
-		}
-	}
-
-	if len(data.Prepay) > 0 {
-		for _, p := range data.Prepay {
-			if p.Sender.Empty() {
-				return ErrEmptySenderAddr
-			}
-			if !p.Coins.IsValid() {
-				return ErrInvalidHeight
 			}
 		}
 	}

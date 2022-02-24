@@ -13,10 +13,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	for _, file := range data.FileUpload {
 		keeper.SetFileHash(ctx, []byte(file.FileHash), file.FileInfo)
 	}
-
-	for _, p := range data.Prepay {
-		keeper.SetPrepay(ctx, p.Sender, p.Coins)
-	}
 }
 
 // ExportGenesis writes the current store values
@@ -31,14 +27,5 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 		return false
 	})
 
-	var prepay []types.Prepay
-	keeper.IteratePrepay(ctx, func(sender sdk.AccAddress, amt sdk.Int) (stop bool) {
-		coins := sdk.NewCoins(sdk.Coin{
-			Denom:  params.BondDenom,
-			Amount: amt,
-		})
-		prepay = append(prepay, types.Prepay{Sender: sender, Coins: coins})
-		return false
-	})
-	return types.NewGenesisState(params, fileUpload, prepay)
+	return types.NewGenesisState(params, fileUpload)
 }
