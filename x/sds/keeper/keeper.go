@@ -189,7 +189,7 @@ func (k Keeper) GetPrepayBytes(ctx sdk.Context, sender sdk.AccAddress) ([]byte, 
 }
 
 // SetPrepay Sets init coins
-func (k Keeper) setPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (k Keeper) SetPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	store := ctx.KVStore(k.key)
 	storeKey := types.PrepayBalanceKey(sender)
 	balance := sdk.NewInt(0)
@@ -233,5 +233,39 @@ func (k Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins
 		return k.appendPrepay(ctx, sender, coins)
 	}
 	// doesn't have key - create new
-	return k.setPrepay(ctx, sender, coins)
+	return k.SetPrepay(ctx, sender, coins)
+}
+
+// IterateFileUpload Iterate over all uploaded files.
+func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
+	store := ctx.KVStore(k.key)
+	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
+		var fileInfo types.FileInfo
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &fileInfo)
+		if handler(fileHash, fileInfo) {
+			break
+		}
+	}
+}
+
+// IteratePrepay Iterate over all prepay KVs.
+func (k Keeper) IteratePrepay(ctx sdk.Context, handler func(sdk.AccAddress, sdk.Int) (stop bool)) {
+	store := ctx.KVStore(k.key)
+	iter := sdk.KVStorePrefixIterator(store, types.PrepayBalancePrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		senderAddr := sdk.AccAddress(iter.Key()[len(types.PrepayBalancePrefix):])
+		var amt sdk.Int
+		err := amt.UnmarshalJSON(iter.Value())
+		if err != nil {
+			panic("invalid prepay amount")
+		}
+		//k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &amt)
+		if handler(senderAddr, amt) {
+			break
+		}
+	}
 }

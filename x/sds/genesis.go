@@ -9,6 +9,14 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
+
+	for _, file := range data.FileUpload {
+		keeper.SetFileHash(ctx, []byte(file.FileHash), file.FileInfo)
+	}
+
+	for _, p := range data.Prepay {
+		keeper.SetPrepay(ctx, p.Sender, p.Coins)
+	}
 }
 
 // ExportGenesis writes the current store values
@@ -16,5 +24,21 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
-	return types.NewGenesisState(params)
+
+	var fileUpload []types.FileUpload
+	keeper.IterateFileUpload(ctx, func(fileHash string, fileInfo types.FileInfo) (stop bool) {
+		fileUpload = append(fileUpload, types.FileUpload{FileHash: fileHash, FileInfo: fileInfo})
+		return false
+	})
+
+	var prepay []types.Prepay
+	keeper.IteratePrepay(ctx, func(sender sdk.AccAddress, amt sdk.Int) (stop bool) {
+		coins := sdk.NewCoins(sdk.Coin{
+			Denom:  params.BondDenom,
+			Amount: amt,
+		})
+		prepay = append(prepay, types.Prepay{Sender: sender, Coins: coins})
+		return false
+	})
+	return types.NewGenesisState(params, fileUpload, prepay)
 }
