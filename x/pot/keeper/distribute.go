@@ -103,12 +103,12 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 	k.setMinedTokens(ctx, epoch, totalRewardFromMiningPool)
 
 	// deduct traffic reward from prepay pool
-	totalUnIssuedPrepay := k.GetTotalUnissuedPrepay(ctx)
+	totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
 	newTotalUnIssuedPrePay := totalUnIssuedPrepay.Sub(totalRewardFromTrafficPool)
 	if newTotalUnIssuedPrePay.IsNegative() {
 		return types.ErrInsufficientUnissuedPrePayBalance
 	}
-	k.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
+	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
 
 	return nil
 }
@@ -144,9 +144,9 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 	k.setMinedTokens(ctx, epoch, newMinedToken)
 
 	// return balance to prepay pool
-	totalUnIssuedPrepay := k.GetTotalUnissuedPrepay(ctx)
+	totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
 	newTotalUnIssuedPrePay := totalUnIssuedPrepay.Add(balanceOfTrafficPool)
-	k.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
+	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
 
 	return nil
 }
@@ -192,7 +192,7 @@ func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleWall
 	if S.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
 	}
-	Pt := k.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
+	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	if Pt.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("total remaining prepay not issued is 0")
 	}

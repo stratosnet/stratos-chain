@@ -37,22 +37,6 @@ func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.C
 	return
 }
 
-func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
-	store.Set(types.TotalUnissuedPrepayKey, b)
-}
-
-func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.TotalUnissuedPrepayKey)
-	if b == nil {
-		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
-	return
-}
-
 func (k Keeper) setRewardAddressPool(ctx sdk.Context, walletAddressList []sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(walletAddressList)

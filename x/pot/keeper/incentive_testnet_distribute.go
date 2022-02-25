@@ -341,9 +341,9 @@ func (k Keeper) returnBalanceForTestnet(ctx sdk.Context, goal types.DistributeGo
 	k.setMinedTokens(ctx, epoch, newMinedToken)
 
 	// return balance to prepay pool
-	totalUnIssuedPrepay := k.GetTotalUnissuedPrepay(ctx)
+	totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
 	newTotalUnIssuedPrePay := totalUnIssuedPrepay.Add(balanceOfTrafficPool)
-	k.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
+	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
 
 	return nil
 }

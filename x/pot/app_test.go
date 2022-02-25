@@ -126,7 +126,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		/********************* print info *********************/
 		ctx.Logger().Info("epoch " + volumeReportMsg.Epoch.String())
 		S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
-		Pt := k.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
+		Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 		Y := k.GetTotalConsumedUoz(volumeReportMsg.WalletVolumes).ToDec()
 		Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
@@ -213,7 +213,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		feePoolAccAddr := supplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 		lastFoundationAccBalance := bankKeeper.GetCoins(ctx, foundationAccAddr)
 		lastFeePool := bankKeeper.GetCoins(ctx, feePoolAccAddr)
-		lastUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx)
+		lastUnissuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
 
 		/********************* deliver tx *********************/
 
@@ -257,7 +257,7 @@ func checkResultForIncentiveTestnet(t *testing.T, ctx sdk.Context, k Keeper, cur
 	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
 	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr)
-	newUnissuedPrepay := sdk.NewCoins(k.GetTotalUnissuedPrepay(ctx))
+	newUnissuedPrepay := sdk.NewCoins(k.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
@@ -296,7 +296,7 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
 	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr)
-	newUnissuedPrepay := sdk.NewCoins(k.GetTotalUnissuedPrepay(ctx))
+	newUnissuedPrepay := sdk.NewCoins(k.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
@@ -422,7 +422,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		validators := staking.InitGenesis(ctx, stakingKeeper, accountKeeper, supplyKeeper, stakingGenesis)
 
 		//preset
-		keeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
+		keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
 		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
