@@ -154,7 +154,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	}
 
 	resourceNode = resourceNode.AddToken(tokenToAdd.Amount)
-
+	resourceNode.Suspend = false
 	// set status from unBonded to bonded & move stake from not bonded token pool to bonded token pool
 	// since resource node registration does not require voting for now
 	if resourceNode.Status.Equal(sdk.Unbonded) {

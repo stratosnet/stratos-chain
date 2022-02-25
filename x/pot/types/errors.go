@@ -27,4 +27,7 @@ var (
 	ErrBLSSignatureInvalid               = sdkerrors.Register(ModuleName, 20, "BLS signature is invalid")
 	ErrBLSTxDataInvalid                  = sdkerrors.Register(ModuleName, 21, "BLS signature txData is invalid")
 	ErrBLSPubkeysInvalid                 = sdkerrors.Register(ModuleName, 22, "BLS signature pubkeys are invalid")
+	ErrReporterAddress                   = sdkerrors.Register(ModuleName, 23, "invalid reporter address")
+	ErrNodeStatusSuspend                 = sdkerrors.Register(ModuleName, 24, "node already in status expected")
+	ErrInvalidAmount                     = sdkerrors.Register(ModuleName, 25, "invalid amount")
 )

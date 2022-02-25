@@ -15,6 +15,7 @@ var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
+	_ sdk.Msg = &MsgSlashingResourceNode{}
 )
 
 type MsgVolumeReport struct {
@@ -221,4 +222,47 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 		return ErrEmptyFromAddr
 	}
 	return nil
+}
+
+type MsgSlashingResourceNode struct {
+	Reporter       []sdk.AccAddress `json:"reporters" yaml:"reporters"`           //reporter p2p address
+	ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"` //report wallet address
+	NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"`
+	Slashing       sdk.Int          `json:"slashing" yaml:"slashing"`
+	Suspend        bool             `json:"suspend" yaml:"suspend"`
+}
+
+func (m MsgSlashingResourceNode) Route() string {
+
+	return RouterKey
+}
+
+func (m MsgSlashingResourceNode) Type() string {
+	return "slashing_resource_node"
+}
+
+func (m MsgSlashingResourceNode) ValidateBasic() error {
+	if m.NetworkAddress.Empty() {
+		return ErrMissingTargetAddress
+	}
+
+	for _, r := range m.Reporter {
+		if r.Empty() {
+			return ErrReporterAddress
+		}
+	}
+
+	if m.Slashing.LT(sdk.ZeroInt()) {
+		return ErrInvalidAmount
+	}
+	return nil
+}
+
+func (m MsgSlashingResourceNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
+	return m.ReporterOwner
 }

@@ -149,3 +149,20 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
 }
+
+func (k Keeper) SetSlashing(ctx sdk.Context, epoch sdk.Int, acc sdk.AccAddress, slashingCoins sdk.Coins) {
+	store := ctx.KVStore(k.storeKey)
+	storekey := types.GetSlashingKey(acc, epoch)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(slashingCoins)
+	store.Set(storekey, bz)
+}
+
+func (k Keeper) GetSlashing(ctx sdk.Context, epoch sdk.Int, acc sdk.AccAddress) (res sdk.Coins) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetSlashingKey(acc, epoch))
+	if bz == nil {
+		return []sdk.Coin{}
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
+	return
+}

@@ -28,7 +28,7 @@ var (
 	IndividualRewardKeyPrefix    = []byte{0x13} // key: prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
-
+	SlashingPrefix               = []byte{0x16} // key: prefix{address}_{epoch}
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
 	VolumeReportStoreKeyPrefix = []byte{0x41}
 )
@@ -66,5 +66,15 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	bKeyStr := []byte("_immature_total")
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
 	key = append(key, bKeyStr...)
+	return key
+}
+
+func GetSlashingKey(acc sdk.AccAddress, epoch sdk.Int) []byte {
+	bKeyStr := []byte("_")
+	bEpoch := []byte(epoch.String())
+
+	key := append(SlashingPrefix, acc...)
+	key = append(key, bKeyStr...)
+	key = append(key, bEpoch...)
 	return key
 }
