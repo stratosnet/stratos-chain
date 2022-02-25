@@ -81,7 +81,7 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
 func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
+	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 
 	purchased := Lt.ToDec().
@@ -93,7 +93,7 @@ func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 
 	// update total unissued prepay
 	newTotalUnissuedPrepay := Pt.Add(amount)
-	k.PotKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
+	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
 
 	// update remaining uoz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
@@ -104,7 +104,7 @@ func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 
 func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
+	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 	purchased := Lt.ToDec().
 		Mul(amount.ToDec()).
@@ -113,25 +113,6 @@ func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 			Add(amount)).ToDec()).
 		TruncateInt()
 	return purchased
-}
-
-// calc current uoz price
-func (k Keeper) currUozPrice(ctx sdk.Context) sdk.Dec {
-	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	currUozPrice := (S.Add(Pt)).ToDec().
-		Quo(Lt.ToDec())
-	return currUozPrice
-}
-
-// calc remaining/total supply for uoz
-func (k Keeper) uozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
-	remaining = k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	// TODO create a dedicated storeKey in pot module for total ozone supply and keep updating it along with related operations (like AddResourceNodeStake)
-	// fake return of total
-	total, _ = sdk.NewIntFromString("-1")
-	return remaining, total
 }
 
 // Prepay transfers coins from bank to sds (volumn) pool

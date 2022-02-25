@@ -19,9 +19,8 @@ const (
 )
 
 var (
-	TotalMinedTokensKey    = []byte{0x03}
-	MinedTokensKeyPrefix   = []byte{0x04} // key: prefix_epoch
-	TotalUnissuedPrepayKey = []byte{0x05}
+	TotalMinedTokensKey  = []byte{0x03}
+	MinedTokensKeyPrefix = []byte{0x04} // key: prefix_epoch
 
 	RewardAddressPoolKey         = []byte{0x11}
 	LastReportedEpochKey         = []byte{0x12}
