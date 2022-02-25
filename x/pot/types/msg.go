@@ -62,20 +62,6 @@ func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string,
 	}
 }
 
-type VolumeReportRecord struct {
-	Reporter        sdk.AccAddress
-	ReportReference string
-	TxHash          string
-}
-
-func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) VolumeReportRecord {
-	return VolumeReportRecord{
-		Reporter:        reporter,
-		ReportReference: reportReference,
-		TxHash:          txHash,
-	}
-}
-
 // Route Implement
 func (msg MsgVolumeReport) Route() string { return RouterKey }
 
@@ -225,15 +211,15 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 }
 
 type MsgSlashingResourceNode struct {
-	Reporter       []sdk.AccAddress `json:"reporters" yaml:"reporters"`           //reporter p2p address
-	ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"` //report wallet address
-	NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"`
+	Reporter       []sdk.AccAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
+	ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
+	NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
+	WalletAddress  sdk.AccAddress   `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
 	Slashing       sdk.Int          `json:"slashing" yaml:"slashing"`
 	Suspend        bool             `json:"suspend" yaml:"suspend"`
 }
 
 func (m MsgSlashingResourceNode) Route() string {
-
 	return RouterKey
 }
 
@@ -245,7 +231,9 @@ func (m MsgSlashingResourceNode) ValidateBasic() error {
 	if m.NetworkAddress.Empty() {
 		return ErrMissingTargetAddress
 	}
-
+	if m.WalletAddress.Empty() {
+		return ErrMissingWalletAddress
+	}
 	for _, r := range m.Reporter {
 		if r.Empty() {
 			return ErrReporterAddress

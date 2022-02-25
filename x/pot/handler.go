@@ -115,8 +115,13 @@ func handleMsgFoundationDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgF
 }
 
 func handleMsgSlashingResourceNode(ctx sdk.Context, k keeper.Keeper, msg types.MsgSlashingResourceNode) (*sdk.Result, error) {
-	//todo: verify msg.Reporter is indexing node.
+	for _, reporter := range msg.Reporter {
+		if !(k.IsSPNode(ctx, reporter)) {
+			errMsg := fmt.Sprint("Slashing msg is not sent by a superior peer")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
+		}
+	}
 
-	err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.Slashing, msg.Suspend)
+	err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.WalletAddress, msg.Slashing, msg.Suspend)
 	return &sdk.Result{}, err
 }

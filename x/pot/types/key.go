@@ -69,12 +69,7 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	return key
 }
 
-func GetSlashingKey(acc sdk.AccAddress, epoch sdk.Int) []byte {
-	bKeyStr := []byte("_")
-	bEpoch := []byte(epoch.String())
-
-	key := append(SlashingPrefix, acc...)
-	key = append(key, bKeyStr...)
-	key = append(key, bEpoch...)
+func GetSlashingKey(p2pAddress sdk.AccAddress) []byte {
+	key := append(SlashingPrefix, p2pAddress...)
 	return key
 }

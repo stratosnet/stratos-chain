@@ -6,7 +6,7 @@ import (
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, amt sdk.Int, suspend bool) (err error) {
+func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, walletAddr sdk.AccAddress, amt sdk.Int, suspend bool) (err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
@@ -23,27 +23,44 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, am
 		Volume:        amt,
 	}})
 
-	oldMatureTotal := k.GetMatureTotalReward(ctx, p2pAddr)
-	oldImmatureTotal := k.GetImmatureTotalReward(ctx, p2pAddr)
-	epoch := k.GetLastReportedEpoch(ctx).Add(sdk.NewInt(1))
+	oldMatureTotal := k.GetMatureTotalReward(ctx, walletAddr)
+	oldImmatureTotal := k.GetImmatureTotalReward(ctx, walletAddr)
+	oldSlashing := k.GetSlashing(ctx, p2pAddr)
 
-	//todo: add previous slashing
+	stakeDenom := k.BondDenom(ctx)
+	rewardDenom := k.RewardDenom(ctx)
 	// only slashing the reward token for now.
-	slashingCoins := sdk.NewCoins(sdk.NewCoin(k.RewardDenom(ctx), slash.TruncateInt()))
+	slashingCoins := sdk.NewCoins(sdk.NewCoin(rewardDenom, slash.TruncateInt())).Add(oldSlashing.SlashingCoins...)
 
-	oldtotal := oldMatureTotal.Add(oldImmatureTotal...)
-	if !oldtotal.IsAllGTE(slashingCoins) {
+	// deduct from matured reward
+	deductFromMatureReward := sdk.ZeroInt()
+	if slashingCoins.AmountOf(rewardDenom).GT(oldMatureTotal.AmountOf(rewardDenom)) {
+		deductFromMatureReward = oldMatureTotal.AmountOf(rewardDenom)
+	} else {
+		deductFromMatureReward = slashingCoins.AmountOf(rewardDenom)
+	}
+	newMatureTotal := oldMatureTotal.Sub(sdk.NewCoins(sdk.NewCoin(rewardDenom, deductFromMatureReward)))
+	slashingCoins = slashingCoins.Sub(sdk.NewCoins(sdk.NewCoin(rewardDenom, deductFromMatureReward)))
+
+	// TODO: (add to reward distribution?) deduct from immature reward (would affect immatureToMature)
+
+	oldTotal := oldMatureTotal.Add(oldImmatureTotal...)
+	if !oldTotal.IsAllGTE(slashingCoins) {
 		// need to deduct from stake
-		stakeDenom := k.BondDenom(ctx)
-		deductFromStake := sdk.NewCoin(stakeDenom, sdk.ZeroInt())
-		if tmp := slashingCoins.AmountOf(stakeDenom).Sub(oldtotal.AmountOf(stakeDenom)); tmp.GT(sdk.ZeroInt()) {
-			deductFromStake.Add(sdk.NewCoin(stakeDenom, tmp))
-			node.Tokens = node.Tokens.Sub(tmp)
+		deductFromStake := sdk.ZeroInt()
+		if slashingCoins.AmountOf(rewardDenom).GT(oldTotal.AmountOf(stakeDenom)) {
+			deductFromStake = oldTotal.AmountOf(stakeDenom)
+		} else {
+			deductFromStake = slashingCoins.AmountOf(rewardDenom)
 		}
-		slashingCoins = slashingCoins.Sub(sdk.NewCoins(deductFromStake))
+		node = node.SubToken(deductFromStake)
+		slashingCoins = slashingCoins.Sub(sdk.NewCoins(sdk.NewCoin(rewardDenom, deductFromStake)))
 	}
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetLastResourceNodeStake(ctx, node.GetNetworkAddr(), node.Tokens)
-	k.SetSlashing(ctx, epoch, p2pAddr, slashingCoins)
+
+	k.setMatureTotalReward(ctx, walletAddr, newMatureTotal)
+	newSlashing := types.NewSlashing(p2pAddr, slashingCoins)
+	k.SetSlashing(ctx, p2pAddr, newSlashing)
 	return nil
 }
