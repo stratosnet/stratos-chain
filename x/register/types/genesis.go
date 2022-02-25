@@ -16,7 +16,7 @@ type GenesisState struct {
 	LastIndexingNodeStakes []LastIndexingNodeStake `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
 	IndexingNodes          IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
 	InitialUozPrice        sdk.Dec                 `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
-	TotalUnissuedPrepay    sdk.Int                 `json:"total_unissued_prepay", yaml:"total_unissued_prepay"`
+	TotalUnissuedPrepay    sdk.Int                 `json:"total_unissued_prepay" yaml:"total_unissued_prepay"`
 }
 
 // LastResourceNodeStake required for resource node set update logic
