@@ -39,17 +39,19 @@ func NewQuerier(k Keeper) sdk.Querier {
 func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	epoch, err := strconv.ParseInt(string(req.Data), 10, 64)
 	if err != nil {
-		return nil, err
+		return []byte{}, err
 	}
 
 	reportRecord := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
 	if reportRecord.TxHash == "" {
-		bz := []byte(fmt.Sprintf("no volume report at epoch: %d", epoch))
-		return bz, nil
+		e := sdkerrors.Wrapf(types.ErrCannotFindReport,
+			fmt.Sprintf("no volume report found at epoch %d. Current epoch is %s",
+				epoch, k.GetLastReportedEpoch(ctx).String()))
+		return []byte{}, e
 	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, reportRecord)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -59,16 +61,16 @@ func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keep
 	var params types.QueryPotRewardsByReportEpochParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	potEpochRewards := k.getPotRewardsByReportEpoch(ctx, params)
 	if len(potEpochRewards) < 1 {
-		bz, _ := codec.MarshalJSONIndent(k.cdc, fmt.Sprintf("no Pot rewards information at epoch: %s", params.Epoch.String()))
-		return bz, nil
+		e := sdkerrors.Wrapf(types.ErrCannotFindReward, fmt.Sprintf("no Pot rewards information at epoch %s", params.Epoch.String()))
+		return []byte{}, e
 	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
