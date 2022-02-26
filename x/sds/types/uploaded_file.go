@@ -46,7 +46,7 @@ func UnmarshalFileInfo(cdc *codec.Codec, value []byte) (fi FileInfo, err error) 
 func (fi FileInfo) String() string {
 	return fmt.Sprintf(`FileInfo:{
 		Height:				%s
-  		Reporters:			%s
+  		Reporter:			%s
   		Uploader:			%s
 	}`, fi.Height.String(), fi.Reporter.String(), fi.Uploader.String())
 }
