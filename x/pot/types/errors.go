@@ -32,4 +32,5 @@ var (
 	ErrInvalidAmount                     = sdkerrors.Register(ModuleName, 25, "invalid amount")
 	ErrCannotFindReport                  = sdkerrors.Register(ModuleName, 26, "Can not find report")
 	ErrCannotFindReward                  = sdkerrors.Register(ModuleName, 27, "Can not find Pot rewards")
+	ErrInvalidAddress                    = sdkerrors.Register(ModuleName, 28, "invalid address")
 )

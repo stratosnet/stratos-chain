@@ -123,11 +123,10 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 }
 
 func queryPotSlashingByP2pAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	var params types.QueryPotSlashingParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	addr, err := sdk.AccAddressFromBech32(string(req.Data))
 	if err != nil {
-		return []byte(sdk.ZeroInt().String()), sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
 	}
 
-	return []byte(k.GetSlashing(ctx, params.P2pAddress).String()), nil
+	return []byte(k.GetSlashing(ctx, addr).String()), nil
 }

@@ -73,7 +73,3 @@ func NewReportInfo(epoch sdk.Int, reference string) ReportInfo {
 		Reference: reference,
 	}
 }
-
-type QueryPotSlashingParams struct {
-	P2pAddress sdk.AccAddress
-}
