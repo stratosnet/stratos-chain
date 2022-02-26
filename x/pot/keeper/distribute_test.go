@@ -105,7 +105,7 @@ func Test(t *testing.T) {
 	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialGenesisStakeTotal.Amount)
 
 	//PrePay
-	k.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
+	registerKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
 	//remaining ozone limit
 	registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimit)
 	//initial uoz price
@@ -185,7 +185,7 @@ func Test(t *testing.T) {
 	//check prepared data
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	fmt.Println("S=" + S.String())
-	Pt := k.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
+	Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	fmt.Println("Pt=" + Pt.String())
 	Y := k.GetTotalConsumedUoz(trafficList).ToDec()
 	fmt.Println("Y=" + Y.String())
@@ -316,7 +316,7 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 
 func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, trafficList []types.SingleWalletVolume) {
 	//PrePay
-	k.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
+	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrePay)
 
 	_, err := k.DistributePotReward(ctx, trafficList, epoch1)
 	require.NoError(t, err)

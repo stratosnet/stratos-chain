@@ -30,4 +30,6 @@ var (
 	ErrReporterAddress                   = sdkerrors.Register(ModuleName, 23, "invalid reporter address")
 	ErrNodeStatusSuspend                 = sdkerrors.Register(ModuleName, 24, "node already in status expected")
 	ErrInvalidAmount                     = sdkerrors.Register(ModuleName, 25, "invalid amount")
+	ErrCannotFindReport                  = sdkerrors.Register(ModuleName, 26, "Can not find report")
+	ErrCannotFindReward                  = sdkerrors.Register(ModuleName, 27, "Can not find Pot rewards")
 )

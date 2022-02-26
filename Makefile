@@ -1,9 +1,13 @@
 BUILDDIR ?= $(CURDIR)/build
 
-APP_VER := v0.6.1
+APP_VER := v0.6.2
 COMMIT := $(GIT_COMMIT_HASH)
 
-VERSION := $(APP_VER)-$(COMMIT)
+ifeq ($(COMMIT),)
+    VERSION := $(APP_VER)
+else
+	VERSION := $(APP_VER)-$(COMMIT)
+endif
 
 ldflags= -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION)
 

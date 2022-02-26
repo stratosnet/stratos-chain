@@ -1,7 +1,6 @@
 package sds
 
 import (
-	"encoding/hex"
 	"log"
 	"math/rand"
 	"strconv"
@@ -197,8 +196,8 @@ func TestSdsMsgs(t *testing.T) {
 
 	///********************* create fileUpload msg *********************/
 	log.Print("====== Testing MsgFileUpload ======")
-	fileHash, _ := hex.DecodeString(testFileHashHex)
-	fileUploadMsg := types.NewMsgUpload(fileHash, sdsAccAddr1, spNodeAddrIdx1, sdsAccAddr2)
+	//fileHash, _ := hex.DecodeString(testFileHashHex)
+	fileUploadMsg := types.NewMsgUpload(testFileHashHex, sdsAccAddr1, spNodeAddrIdx1, sdsAccAddr2)
 	headerUpload := abci.Header{Height: mApp.LastBlockHeight() + 1}
 	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, headerUpload, []sdk.Msg{fileUploadMsg}, []uint64{18}, []uint64{0}, true, true, sdsAccPrivKey1)
 	coin := sdk.NewCoin(DefaultDenom, spNodeInitialStakeIdx1)
@@ -222,11 +221,11 @@ func TestSdsMsgs(t *testing.T) {
 	initPt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
 
 	keeper.RegisterKeeper.SetInitialGenesisStakeTotal(ctx, initS)
-	keeper.PotKeeper.SetTotalUnissuedPrepay(ctx, initPt)
+	keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, initPt)
 	keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, initLt)
 
 	log.Printf("==== init stake total is %v", keeper.RegisterKeeper.GetInitialGenesisStakeTotal(ctx))
-	log.Printf("==== init prepay is %v", keeper.PotKeeper.GetTotalUnissuedPrepay(ctx))
+	log.Printf("==== init prepay is %v", keeper.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
 	log.Printf("==== ozone limit is %v\n\n", keeper.RegisterKeeper.GetRemainingOzoneLimit(ctx))
 
 	numPrepay := 5
@@ -237,7 +236,7 @@ func TestSdsMsgs(t *testing.T) {
 
 	for i, val := range prepaySeq {
 		S := keeper.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-		Pt := keeper.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
+		Pt := keeper.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 		Lt := keeper.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 
 		uozPriceBefore := S.ToDec().Add(Pt.ToDec()).Quo(Lt.ToDec()).TruncateInt()
@@ -253,7 +252,7 @@ func TestSdsMsgs(t *testing.T) {
 
 		Pt = Pt.Add(val)
 		Lt = Lt.Sub(uozPurchased)
-		keeper.PotKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
+		keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
 		keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, Lt)
 		log.Printf("---- prepay #%v: %v ustos----", i, val)
 		log.Printf("uozPriceBefore is %v", uozPriceBefore)
@@ -443,7 +442,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		//preset
 		registerKeeper.SetRemainingOzoneLimit(ctx, remainingOzoneLimit)
-		potKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
+		registerKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
 		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams()))
@@ -451,7 +450,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)
 
-		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), nil))
 
 		return abci.ResponseInitChain{
 			Validators: validators,
@@ -506,11 +505,11 @@ func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper aut
 		//pot genesis data load
 		pot.InitGenesis(ctx, potKeeper, pot.NewGenesisState(pottypes.DefaultParams()))
 
-		potKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(potKeeper.BondDenom(ctx), totalUnissuedPrepayTestPurchase))
+		registerKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(potKeeper.BondDenom(ctx), totalUnissuedPrepayTestPurchase))
 		// init bank genesis
 		keeper.BankKeeper.SetSendEnabled(ctx, true)
 
-		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
+		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), nil))
 
 		return abci.ResponseInitChain{
 			Validators: validators,
