@@ -2,6 +2,7 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
@@ -45,7 +46,7 @@ func UnmarshalFileInfo(cdc *codec.Codec, value []byte) (fi FileInfo, err error) 
 func (fi FileInfo) String() string {
 	return fmt.Sprintf(`FileInfo:{
 		Height:				%s
-  		Reporter:			%s
+  		Reporters:			%s
   		Uploader:			%s
 	}`, fi.Height.String(), fi.Reporter.String(), fi.Uploader.String())
 }

@@ -211,12 +211,24 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 }
 
 type MsgSlashingResourceNode struct {
-	Reporter       []sdk.AccAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
+	Reporters      []sdk.AccAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
 	ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
 	NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
 	WalletAddress  sdk.AccAddress   `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
 	Slashing       sdk.Int          `json:"slashing" yaml:"slashing"`
 	Suspend        bool             `json:"suspend" yaml:"suspend"`
+}
+
+func NewMsgSlashingResourceNode(reporters []sdk.AccAddress, reporterOwner []sdk.AccAddress,
+	networkAddress sdk.AccAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) MsgSlashingResourceNode {
+	return MsgSlashingResourceNode{
+		Reporters:      reporters,
+		ReporterOwner:  reporterOwner,
+		NetworkAddress: networkAddress,
+		WalletAddress:  walletAddress,
+		Slashing:       slashing,
+		Suspend:        suspend,
+	}
 }
 
 func (m MsgSlashingResourceNode) Route() string {
@@ -234,7 +246,7 @@ func (m MsgSlashingResourceNode) ValidateBasic() error {
 	if m.WalletAddress.Empty() {
 		return ErrMissingWalletAddress
 	}
-	for _, r := range m.Reporter {
+	for _, r := range m.Reporters {
 		if r.Empty() {
 			return ErrReporterAddress
 		}

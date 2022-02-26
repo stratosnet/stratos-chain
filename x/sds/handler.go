@@ -30,7 +30,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 func handleMsgFileUpload(ctx sdk.Context, k keeper.Keeper, msg types.MsgFileUpload) (*sdk.Result, error) {
 	// check if reporter addr belongs to an registered sp node
 	if _, found := k.RegisterKeeper.GetIndexingNode(ctx, msg.Reporter); found == false {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.Reporter.String())
+		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporters %s isn't an SP node", msg.Reporter.String())
 	}
 	height := sdk.NewInt(ctx.BlockHeight())
 	heightByteArr, _ := height.MarshalJSON()
