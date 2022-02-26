@@ -12,7 +12,7 @@ const (
 	FlagAmount          = "amount"
 	FlagWalletAddress   = "wallet-address"
 	FlagTargetAddress   = "target-address"
-	FlagReporter        = "reporter"
+	FlagReporters       = "reporters"
 	FlagReporterOwner   = "reporter-owner"
 	FlagNetworkAddress  = "network-address"
 	FlagSlashing        = "slashing"
@@ -27,7 +27,7 @@ var (
 	FsAmount          = flag.NewFlagSet("", flag.ContinueOnError)
 	FsWalletAddress   = flag.NewFlagSet("", flag.ContinueOnError)
 	FsTargetAddress   = flag.NewFlagSet("", flag.ContinueOnError)
-	FsReporter        = flag.NewFlagSet("", flag.ContinueOnError)
+	FsReporters       = flag.NewFlagSet("", flag.ContinueOnError)
 	FsReportOwner     = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNetworkAddress  = flag.NewFlagSet("", flag.ContinueOnError)
 	FsSlashing        = flag.NewFlagSet("", flag.ContinueOnError)
@@ -42,7 +42,7 @@ func init() {
 	FsAmount.String(FlagAmount, "", "Amount of coins to withdraw")
 	FsWalletAddress.String(FlagWalletAddress, "", "The address of the wallet to withdraw")
 	FsTargetAddress.String(FlagTargetAddress, "", "The target account where the money is deposited after withdraw")
-	FsReporter.String(FlagReporter, "", "the node address list of reporters")
+	FsReporters.String(FlagReporters, "", "the node address list of reporters")
 	FsReportOwner.String(FlagReporterOwner, "", "the node address list of reporters")
 	FsNetworkAddress.String(FlagNetworkAddress, "", "the node address of resource node to slashing")
 	FsSlashing.String(FlagSlashing, "", "the amount of slashing")

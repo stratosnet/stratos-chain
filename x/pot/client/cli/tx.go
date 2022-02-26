@@ -224,14 +224,14 @@ func SlashingResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-	cmd.Flags().AddFlagSet(FsReporter)
+	cmd.Flags().AddFlagSet(FsReporters)
 	cmd.Flags().AddFlagSet(FsReportOwner)
 	cmd.Flags().AddFlagSet(FsNetworkAddress)
 	cmd.Flags().AddFlagSet(FsWalletAddress)
 	cmd.Flags().AddFlagSet(FsSlashing)
 	cmd.Flags().AddFlagSet(FsSuspend)
 
-	_ = cmd.MarkFlagRequired(FlagReporter)
+	_ = cmd.MarkFlagRequired(FlagReporters)
 	_ = cmd.MarkFlagRequired(FlagReporterOwner)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagWalletAddress)
@@ -244,7 +244,7 @@ func SlashingResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 func buildSlashingResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	var reportersStr = make([]string, 0)
-	err := cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagReporter)), &reportersStr)
+	err := cliCtx.Codec.UnmarshalJSON([]byte(viper.GetString(FlagReporters)), &reportersStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
