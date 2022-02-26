@@ -16,6 +16,7 @@ const (
 	QueryVolumeReport            = "query_volume_report"
 	QueryPotRewardsByReportEpoch = "query_pot_rewards_by_report_epoch"
 	QueryPotRewardsByWalletAddr  = "query_pot_rewards_by_wallet_address"
+	QueryPotSlashingByP2pAddr    = "query_pot_slashing_by_p2p_address"
 	QueryDefaultLimit            = 100
 )
 
@@ -29,6 +30,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPotRewardsByReportEpoch(ctx, req, k)
 		case QueryPotRewardsByWalletAddr:
 			return queryPotRewardsByWalletAddress(ctx, req, k)
+		case QueryPotSlashingByP2pAddr:
+			return queryPotSlashingByP2pAddress(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -117,4 +120,13 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
+}
+
+func queryPotSlashingByP2pAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	addr, err := sdk.AccAddressFromBech32(string(req.Data))
+	if err != nil {
+		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
+	}
+
+	return []byte(k.GetSlashing(ctx, addr).String()), nil
 }

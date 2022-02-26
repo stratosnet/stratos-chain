@@ -15,6 +15,7 @@ var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
+	_ sdk.Msg = &MsgSlashingResourceNode{}
 )
 
 type MsgVolumeReport struct {
@@ -58,20 +59,6 @@ func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string,
 		ReportReference: reportReference,
 		TxHash:          txHash,
 		walletVolumes:   walletVolumes,
-	}
-}
-
-type VolumeReportRecord struct {
-	Reporter        sdk.AccAddress
-	ReportReference string
-	TxHash          string
-}
-
-func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) VolumeReportRecord {
-	return VolumeReportRecord{
-		Reporter:        reporter,
-		ReportReference: reportReference,
-		TxHash:          txHash,
 	}
 }
 
@@ -221,4 +208,61 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 		return ErrEmptyFromAddr
 	}
 	return nil
+}
+
+type MsgSlashingResourceNode struct {
+	Reporters      []sdk.AccAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
+	ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
+	NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
+	WalletAddress  sdk.AccAddress   `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
+	Slashing       sdk.Int          `json:"slashing" yaml:"slashing"`
+	Suspend        bool             `json:"suspend" yaml:"suspend"`
+}
+
+func NewMsgSlashingResourceNode(reporters []sdk.AccAddress, reporterOwner []sdk.AccAddress,
+	networkAddress sdk.AccAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) MsgSlashingResourceNode {
+	return MsgSlashingResourceNode{
+		Reporters:      reporters,
+		ReporterOwner:  reporterOwner,
+		NetworkAddress: networkAddress,
+		WalletAddress:  walletAddress,
+		Slashing:       slashing,
+		Suspend:        suspend,
+	}
+}
+
+func (m MsgSlashingResourceNode) Route() string {
+	return RouterKey
+}
+
+func (m MsgSlashingResourceNode) Type() string {
+	return "slashing_resource_node"
+}
+
+func (m MsgSlashingResourceNode) ValidateBasic() error {
+	if m.NetworkAddress.Empty() {
+		return ErrMissingTargetAddress
+	}
+	if m.WalletAddress.Empty() {
+		return ErrMissingWalletAddress
+	}
+	for _, r := range m.Reporters {
+		if r.Empty() {
+			return ErrReporterAddress
+		}
+	}
+
+	if m.Slashing.LT(sdk.ZeroInt()) {
+		return ErrInvalidAmount
+	}
+	return nil
+}
+
+func (m MsgSlashingResourceNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
+	return m.ReporterOwner
 }

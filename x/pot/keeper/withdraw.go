@@ -14,6 +14,7 @@ func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coins, walletAddress sdk.Ac
 	if err != nil {
 		return err
 	}
+	// mature = 1, slashing= 5  ===> withdraw =0 , slashing=4
 	matureRewardBalance := matureReward.Sub(amount)
 	k.setMatureTotalReward(ctx, walletAddress, matureRewardBalance)
 	return nil

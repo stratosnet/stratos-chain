@@ -39,6 +39,20 @@ func NewMiningRewardParam(totalMinedValveStart sdk.Coin, totalMinedValveEnd sdk.
 	}
 }
 
+type VolumeReportRecord struct {
+	Reporter        sdk.AccAddress
+	ReportReference string
+	TxHash          string
+}
+
+func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) VolumeReportRecord {
+	return VolumeReportRecord{
+		Reporter:        reporter,
+		ReportReference: reportReference,
+		TxHash:          txHash,
+	}
+}
+
 type BLSSignatureInfo struct {
 	PubKeys   [][]byte `json:"pub_keys" yaml:"pub_keys"`
 	Signature []byte   `json:"signature" yaml:"signature"`
