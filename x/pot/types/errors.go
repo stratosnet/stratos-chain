@@ -27,4 +27,6 @@ var (
 	ErrBLSSignatureInvalid               = sdkerrors.Register(ModuleName, 20, "BLS signature is invalid")
 	ErrBLSTxDataInvalid                  = sdkerrors.Register(ModuleName, 21, "BLS signature txData is invalid")
 	ErrBLSPubkeysInvalid                 = sdkerrors.Register(ModuleName, 22, "BLS signature pubkeys are invalid")
+	ErrCannotFindReport                  = sdkerrors.Register(ModuleName, 23, "Can not find report")
+	ErrCannotFindReward                  = sdkerrors.Register(ModuleName, 24, "Can not find Pot rewards")
 )
