@@ -134,18 +134,18 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) SetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress, slashing types.Slashing) {
+func (k Keeper) SetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress, slashing sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetSlashingKey(p2pAddress)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(slashing)
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) GetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress) (res types.Slashing) {
+func (k Keeper) GetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress) (res sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetSlashingKey(p2pAddress))
 	if bz == nil {
-		return types.Slashing{}
+		return sdk.ZeroInt()
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
 	return
