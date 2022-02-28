@@ -19,16 +19,15 @@ const (
 )
 
 var (
-	TotalMinedTokensKey    = []byte{0x03}
-	MinedTokensKeyPrefix   = []byte{0x04} // key: prefix_epoch
-	TotalUnissuedPrepayKey = []byte{0x05}
+	TotalMinedTokensKey  = []byte{0x03}
+	MinedTokensKeyPrefix = []byte{0x04} // key: prefix_epoch
 
 	RewardAddressPoolKey         = []byte{0x11}
 	LastReportedEpochKey         = []byte{0x12}
 	IndividualRewardKeyPrefix    = []byte{0x13} // key: prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
-
+	SlashingPrefix               = []byte{0x16} // key: prefix{address}_{epoch}
 	// VolumeReportStoreKeyPrefix prefix for volumeReport store
 	VolumeReportStoreKeyPrefix = []byte{0x41}
 )
@@ -66,5 +65,10 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	bKeyStr := []byte("_immature_total")
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
 	key = append(key, bKeyStr...)
+	return key
+}
+
+func GetSlashingKey(p2pAddress sdk.AccAddress) []byte {
+	key := append(SlashingPrefix, p2pAddress...)
 	return key
 }

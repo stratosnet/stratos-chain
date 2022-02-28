@@ -81,7 +81,7 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
 func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
+	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 
 	purchased := Lt.ToDec().
@@ -93,7 +93,7 @@ func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 
 	// update total unissued prepay
 	newTotalUnissuedPrepay := Pt.Add(amount)
-	k.PotKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
+	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
 
 	// update remaining uoz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
@@ -104,7 +104,7 @@ func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 
 func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
+	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 	purchased := Lt.ToDec().
 		Mul(amount.ToDec()).
@@ -113,25 +113,6 @@ func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 			Add(amount)).ToDec()).
 		TruncateInt()
 	return purchased
-}
-
-// calc current uoz price
-func (k Keeper) currUozPrice(ctx sdk.Context) sdk.Dec {
-	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.PotKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	currUozPrice := (S.Add(Pt)).ToDec().
-		Quo(Lt.ToDec())
-	return currUozPrice
-}
-
-// calc remaining/total supply for uoz
-func (k Keeper) uozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
-	remaining = k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	// TODO create a dedicated storeKey in pot module for total ozone supply and keep updating it along with related operations (like AddResourceNodeStake)
-	// fake return of total
-	total, _ = sdk.NewIntFromString("-1")
-	return remaining, total
 }
 
 // Prepay transfers coins from bank to sds (volumn) pool
@@ -189,7 +170,7 @@ func (k Keeper) GetPrepayBytes(ctx sdk.Context, sender sdk.AccAddress) ([]byte, 
 }
 
 // SetPrepay Sets init coins
-func (k Keeper) setPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
+func (k Keeper) SetPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
 	store := ctx.KVStore(k.key)
 	storeKey := types.PrepayBalanceKey(sender)
 	balance := sdk.NewInt(0)
@@ -233,5 +214,38 @@ func (k Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins
 		return k.appendPrepay(ctx, sender, coins)
 	}
 	// doesn't have key - create new
-	return k.setPrepay(ctx, sender, coins)
+	return k.SetPrepay(ctx, sender, coins)
+}
+
+// IterateFileUpload Iterate over all uploaded files.
+func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
+	store := ctx.KVStore(k.key)
+	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
+		var fileInfo types.FileInfo
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &fileInfo)
+		if handler(fileHash, fileInfo) {
+			break
+		}
+	}
+}
+
+// IteratePrepay Iterate over all prepay KVs.
+func (k Keeper) IteratePrepay(ctx sdk.Context, handler func(sdk.AccAddress, sdk.Int) (stop bool)) {
+	store := ctx.KVStore(k.key)
+	iter := sdk.KVStorePrefixIterator(store, types.PrepayBalancePrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		senderAddr := sdk.AccAddress(iter.Key()[len(types.PrepayBalancePrefix):])
+		var amt sdk.Int
+		err := amt.UnmarshalJSON(iter.Value())
+		if err != nil {
+			panic("invalid prepay amount")
+		}
+		if handler(senderAddr, amt) {
+			break
+		}
+	}
 }

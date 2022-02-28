@@ -37,22 +37,6 @@ func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.C
 	return
 }
 
-func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
-	store.Set(types.TotalUnissuedPrepayKey, b)
-}
-
-func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.TotalUnissuedPrepayKey)
-	if b == nil {
-		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
-	return
-}
-
 func (k Keeper) setRewardAddressPool(ctx sdk.Context, walletAddressList []sdk.AccAddress) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(walletAddressList)
@@ -148,4 +132,21 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	storeKey := types.VolumeReportStoreKey(epoch)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
+}
+
+func (k Keeper) SetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress, slashing sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	storeKey := types.GetSlashingKey(p2pAddress)
+	bz := k.cdc.MustMarshalBinaryLengthPrefixed(slashing)
+	store.Set(storeKey, bz)
+}
+
+func (k Keeper) GetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress) (res sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetSlashingKey(p2pAddress))
+	if bz == nil {
+		return sdk.ZeroInt()
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
+	return
 }

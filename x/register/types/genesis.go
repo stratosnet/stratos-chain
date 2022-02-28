@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -15,6 +16,7 @@ type GenesisState struct {
 	LastIndexingNodeStakes []LastIndexingNodeStake `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
 	IndexingNodes          IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
 	InitialUozPrice        sdk.Dec                 `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
+	TotalUnissuedPrepay    sdk.Int                 `json:"total_unissued_prepay" yaml:"total_unissued_prepay"`
 }
 
 // LastResourceNodeStake required for resource node set update logic
@@ -33,7 +35,7 @@ type LastIndexingNodeStake struct {
 func NewGenesisState(params Params,
 	lastResourceNodeStakes []LastResourceNodeStake, resourceNodes ResourceNodes,
 	lastIndexingNodeStakes []LastIndexingNodeStake, indexingNodes IndexingNodes,
-	initialUOzonePrice sdk.Dec,
+	initialUOzonePrice sdk.Dec, totalUnissuedPrepay sdk.Int,
 ) GenesisState {
 	return GenesisState{
 		Params:                 params,
@@ -42,14 +44,16 @@ func NewGenesisState(params Params,
 		LastIndexingNodeStakes: lastIndexingNodeStakes,
 		IndexingNodes:          indexingNodes,
 		InitialUozPrice:        initialUOzonePrice,
+		TotalUnissuedPrepay:    totalUnissuedPrepay,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params:          DefaultParams(),
-		InitialUozPrice: DefaultUozPrice,
+		Params:              DefaultParams(),
+		InitialUozPrice:     DefaultUozPrice,
+		TotalUnissuedPrepay: DefaultTotalUnissuedPrepay,
 	}
 }
 
@@ -98,6 +102,10 @@ func ValidateGenesis(data GenesisState) error {
 		}
 	}
 	if data.InitialUozPrice.LTE(sdk.ZeroDec()) {
+		return ErrInitialUOzonePrice
+	}
+
+	if data.TotalUnissuedPrepay.LT(sdk.ZeroInt()) {
 		return ErrInitialUOzonePrice
 	}
 	return nil

@@ -10,6 +10,7 @@ func RegisterCodec(cdc *codec.Codec) {
 	cdc.RegisterConcrete(MsgVolumeReport{}, "pot/VolumeReportTx", nil)
 	cdc.RegisterConcrete(MsgWithdraw{}, "pot/WithdrawTx", nil)
 	cdc.RegisterConcrete(MsgFoundationDeposit{}, "pot/FoundationDepositTx", nil)
+	cdc.RegisterConcrete(MsgSlashingResourceNode{}, "pot/SlashingResourceNodeTx", nil)
 }
 
 // ModuleCdc defines the module codec
