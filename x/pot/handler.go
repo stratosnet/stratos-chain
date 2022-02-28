@@ -22,6 +22,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			return handleMsgWithdraw(ctx, k, msg)
 		case types.MsgFoundationDeposit:
 			return handleMsgFoundationDeposit(ctx, k, msg)
+		case types.MsgSlashingResourceNode:
+			return handleMsgSlashingResourceNode(ctx, k, msg)
 		default:
 			errMsg := fmt.Sprintf("unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, errMsg)
@@ -110,4 +112,16 @@ func handleMsgFoundationDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgF
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+}
+
+func handleMsgSlashingResourceNode(ctx sdk.Context, k keeper.Keeper, msg types.MsgSlashingResourceNode) (*sdk.Result, error) {
+	for _, reporter := range msg.Reporters {
+		if !(k.IsSPNode(ctx, reporter)) {
+			errMsg := fmt.Sprint("Slashing msg is not sent by a meta node")
+			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
+		}
+	}
+
+	err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.WalletAddress, msg.Slashing, msg.Suspend)
+	return &sdk.Result{}, err
 }

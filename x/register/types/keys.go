@@ -1,8 +1,9 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // Bech32PubKeyType defines a string type alias for a Bech32 public key type.
@@ -26,6 +27,7 @@ var (
 	IndexingNodeNotBondedTokenKey = []byte{0x03}
 	IndexingNodeBondedTokenKey    = []byte{0x04}
 	UpperBoundOfTotalOzoneKey     = []byte{0x05}
+	TotalUnissuedPrepayKey        = []byte{0x06}
 
 	LastResourceNodeStakeKey    = []byte{0x11} // prefix for each key to a resource node index, for bonded resource nodes
 	LastIndexingNodeStakeKey    = []byte{0x12} // prefix for each key to a indexing node index, for bonded indexing nodes

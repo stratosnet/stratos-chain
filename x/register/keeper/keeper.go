@@ -3,6 +3,8 @@ package keeper
 import (
 	"container/list"
 	"fmt"
+	"time"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
@@ -10,7 +12,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/libs/log"
-	"time"
 )
 
 // Keeper of the register store
@@ -73,6 +74,22 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 		panic("Stored initial uOzone price should not have been nil")
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &price)
+	return
+}
+
+func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
+	store.Set(types.TotalUnissuedPrepayKey, b)
+}
+
+func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.TotalUnissuedPrepayKey)
+	if b == nil {
+		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	}
+	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
 	return
 }
 
@@ -539,4 +556,24 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 		balance = balance.Add(entry.Balance)
 	}
 	return balance
+}
+
+// calc current uoz price
+func (k Keeper) CurrUozPrice(ctx sdk.Context) sdk.Dec {
+	S := k.GetInitialGenesisStakeTotal(ctx)
+	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
+	Lt := k.GetRemainingOzoneLimit(ctx)
+	currUozPrice := (S.Add(Pt)).ToDec().
+		Quo(Lt.ToDec())
+	return currUozPrice
+}
+
+// calc remaining/total supply for uoz
+func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
+	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
+	S := k.GetInitialGenesisStakeTotal(ctx)
+	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
+	// total supply = Lt * ( 1 + Pt / S )
+	total = (Pt.ToDec().Quo(S.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
+	return remaining, total
 }

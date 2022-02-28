@@ -9,6 +9,10 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
+
+	for _, file := range data.FileUpload {
+		keeper.SetFileHash(ctx, []byte(file.FileHash), file.FileInfo)
+	}
 }
 
 // ExportGenesis writes the current store values
@@ -16,5 +20,12 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
-	return types.NewGenesisState(params)
+
+	var fileUpload []types.FileUpload
+	keeper.IterateFileUpload(ctx, func(fileHash string, fileInfo types.FileInfo) (stop bool) {
+		fileUpload = append(fileUpload, types.FileUpload{FileHash: fileHash, FileInfo: fileInfo})
+		return false
+	})
+
+	return types.NewGenesisState(params, fileUpload)
 }

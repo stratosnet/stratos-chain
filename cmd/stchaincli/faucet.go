@@ -205,9 +205,9 @@ func (si *SeqInfo) getNewSeq(newStartSeq int) int {
 func FaucetJobFromCh(faucetReq *chan FaucetReq, cliCtx context.CLIContext, txBldr authtypes.TxBuilder, from sdk.AccAddress, coin sdk.Coin, quit chan os.Signal) {
 	for {
 		select {
-		case <-quit:
-
-			return
+		case sig := <-quit:
+			fmt.Printf("**** faucet service (sender[%s]) quit after receiving signal[%s] ****\n", from, sig.String())
+			os.Exit(0)
 		case fReq := <-*faucetReq:
 			resChan := fReq.resChan
 			// update cliCtx
@@ -288,6 +288,7 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			}
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			faucetReqChList := make([]chan FaucetReq, 0)
+			chQuitSlice := make([]chan os.Signal, 0)
 			for _, acc := range fundAccs {
 				fromAddress, fromName, err := context.GetFromFields(inBuf, acc, false)
 				if err != nil {
@@ -305,6 +306,17 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 				// new reqCh for service
 				reqCh := make(chan FaucetReq, 10000)
 				faucetReqChList = append(faucetReqChList, reqCh)
+
+				// new quit signal
+				quit := make(chan os.Signal, 1)
+				signal.Notify(quit,
+					syscall.SIGTERM,
+					syscall.SIGINT,
+					syscall.SIGQUIT,
+					syscall.SIGKILL,
+					syscall.SIGHUP,
+				)
+				chQuitSlice = append(chQuitSlice, quit)
 			}
 			if len(faucetServices) != len(faucetReqChList) {
 				return fmt.Errorf("failed to setup context for each funding accs")
@@ -380,24 +392,14 @@ func GetFaucetCmd(cdc *codec.Codec) *cobra.Command {
 			r.Use(fim.Middleware)
 			r.Use(ftm.Middleware)
 
-			quit := make(chan os.Signal, 1)
-			signal.Notify(quit,
-				syscall.SIGTERM,
-				syscall.SIGINT,
-				syscall.SIGQUIT,
-				syscall.SIGKILL,
-				syscall.SIGHUP,
-			)
-
 			for i, _ := range faucetServices {
-				go FaucetJobFromCh(&faucetReqChList[i], cliCtx, txBldr, faucetServices[i].fromAddress, coin, quit)
+				go FaucetJobFromCh(&faucetReqChList[i], cliCtx, txBldr, faucetServices[i].fromAddress, coin, chQuitSlice[i])
 			}
 			//start the server
 			err = http.Serve(listener, r)
 			if err != nil {
 				fmt.Println(err.Error())
 			}
-			close(quit)
 			// print stats
 			fmt.Println("####################################################################")
 			fmt.Println("################        Terminating faucet        ##################")
