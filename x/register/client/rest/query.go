@@ -83,7 +83,7 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
 
