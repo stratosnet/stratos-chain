@@ -104,6 +104,12 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.Reso
 	return resourceNodes
 }
 
+func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	return iterator
+}
+
 // IterateLastResourceNodeStakes Iterate over last resource node stakes.
 func (k Keeper) IterateLastResourceNodeStakes(ctx sdk.Context, handler func(nodeAddr sdk.AccAddress, stake sdk.Int) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)

@@ -7,6 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/tendermint/libs/bech32"
 
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -34,9 +35,9 @@ func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryResourceNodeList:
-			return GetResourceNodeList(ctx, req, k)
+			return GetResourceNodeByNetworkId(ctx, req, k)
 		case QueryResourceNodesByNetworkID:
-			return GetResourceNodes(ctx, req, k)
+			return GetResourceNodeByNetworkId(ctx, req, k)
 		case QueryIndexingNodeList:
 			return GetIndexingNodeList(ctx, req, k)
 		case QueryIndexingNodesByNetworkID:
@@ -70,6 +71,32 @@ func GetResourceNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
+}
+
+func GetResourceNodeByNetworkId(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	var params types.QueryNodesParams
+	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+	networkId := params.NetworkID
+	if len(networkId) == 0 {
+		return nil, types.ErrEmptyNetworkAddr
+	}
+	ids := strings.Split(networkId, ":")
+	if len(ids) < 2 {
+		return nil, types.ErrInvalidNetworkAddr
+	}
+	p2pAddrStr := ids[1][:47]
+	prefix, p2pAddr, err := bech32.DecodeAndConvert(p2pAddrStr)
+	if err != nil && prefix != "stsdsp2p" {
+		return nil, types.ErrInvalidNetworkAddr
+	}
+	node, ok := k.GetResourceNode(ctx, sdk.AccAddress(p2pAddr))
+	if !ok {
+		return nil, types.ErrNoResourceNodeFound
+	}
+	return types.ModuleCdc.MustMarshalJSON(node), nil
 }
 
 func GetIndexingNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
@@ -359,32 +386,31 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 	return filteredNodes
 }
 
-func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
-	nodes := k.GetAllResourceNodes(ctx)
-	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
-
-	for _, n := range nodes {
+func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) (nodes []types.ResourceNode) {
+	iterator := k.GetResourceNodeIterator(ctx)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
 		// match NetworkID (if supplied)
 		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+			if strings.Compare(node.NetworkID, params.NetworkID) != 0 {
 				continue
 			}
 		}
 
 		// match Moniker (if supplied)
 		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+			if strings.Compare(node.Description.Moniker, params.Moniker) != 0 {
 				continue
 			}
 		}
 
 		// match OwnerAddr (if supplied)
-		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
+		if params.OwnerAddr.Empty() || node.OwnerAddress.Equals(params.OwnerAddr) {
+			nodes = append(nodes, node)
 		}
 	}
-
-	return filteredNodes
+	return
 }
 
 func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params types.QueryNodesParams) []types.ResourceNode {

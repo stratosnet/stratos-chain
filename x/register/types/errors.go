@@ -47,4 +47,5 @@ var (
 	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, 40, "initial uOzone price must be positive")
 	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, 41, "invalid change for stake")
 	ErrTotalUnissuedPrepay                = sdkerrors.Register(ModuleName, 42, "total unissued prepay must be non-negative")
+	ErrInvalidNetworkAddr                 = sdkerrors.Register(ModuleName, 43, "invalid network address or id")
 )
