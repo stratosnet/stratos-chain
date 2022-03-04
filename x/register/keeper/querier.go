@@ -96,7 +96,8 @@ func GetResourceNodeByNetworkId(ctx sdk.Context, req abci.RequestQuery, k Keeper
 	if !ok {
 		return nil, types.ErrNoResourceNodeFound
 	}
-	return types.ModuleCdc.MustMarshalJSON(node), nil
+	nodeList := []types.ResourceNode{node}
+	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
 }
 
 func GetIndexingNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
