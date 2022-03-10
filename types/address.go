@@ -12,10 +12,23 @@ type Bech32PubKeyType string
 
 // Bech32 conversion constants
 const (
+	StratosBech32Prefix = "st"
+
 	Bech32PubKeyTypeAccPub    Bech32PubKeyType = "accpub"
 	Bech32PubKeyTypeValPub    Bech32PubKeyType = "valpub"
 	Bech32PubKeyTypeConsPub   Bech32PubKeyType = "conspub"
 	Bech32PubKeyTypeSdsP2PPub Bech32PubKeyType = "sdsp2p"
+
+	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
+	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
+	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
+	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
+	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
+	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
+
+	CoinType = 606
+
+	HDPath = "m/44'/606'/0'/0/0"
 )
 
 // Bech32ifyPubKey returns a Bech32 encoded string containing the appropriate

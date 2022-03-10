@@ -2,9 +2,10 @@ package types
 
 import (
 	"context"
+	"sync"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"sync"
 )
 
 // DefaultKeyringServiceName defines a default service name for the keyring.
@@ -31,21 +32,20 @@ var (
 
 // New returns a new Config with default values.
 func NewConfig() *Config {
-	sdkConfig := sdk.NewConfig()
 
 	return &Config{
 		sealedch: make(chan struct{}),
 		bech32AddressPrefix: map[string]string{
-			"account_addr":   sdkConfig.GetBech32AccountAddrPrefix(),
-			"validator_addr": sdkConfig.GetBech32ValidatorAddrPrefix(),
-			"consensus_addr": sdkConfig.GetBech32ConsensusAddrPrefix(),
-			"account_pub":    sdkConfig.GetBech32AccountPubPrefix(),
-			"validator_pub":  sdkConfig.GetBech32ValidatorPubPrefix(),
-			"consensus_pub":  sdkConfig.GetBech32ConsensusPubPrefix(),
-			"sdsp2p_pub":     "",
+			"account_addr":   StratosBech32Prefix,
+			"validator_addr": ValidatorAddressPrefix,
+			"consensus_addr": ConsNodeAddressPrefix,
+			"account_pub":    AccountPubKeyPrefix,
+			"validator_pub":  ValidatorPubKeyPrefix,
+			"consensus_pub":  ConsNodePubKeyPrefix,
+			"sdsp2p_pub":     SdsNodeP2PKeyPrefix,
 		},
-		coinType:           sdk.CoinType,
-		fullFundraiserPath: sdk.FullFundraiserPath,
+		coinType:           CoinType,
+		fullFundraiserPath: HDPath,
 		txEncoder:          nil,
 	}
 }
@@ -143,7 +143,16 @@ func (config *Config) SetFullFundraiserPath(fullFundraiserPath string) {
 
 // Seal seals the config such that the config state could not be modified further
 func (config *Config) Seal() *Config {
-	sdk.GetConfig().Seal()
+
+	sdkCfg := sdk.GetConfig()
+	sdkCfg.SetBech32PrefixForAccount(config.GetBech32AccountAddrPrefix(), config.GetBech32AccountPubPrefix())
+	sdkCfg.SetBech32PrefixForValidator(config.GetBech32ValidatorAddrPrefix(), config.GetBech32ValidatorPubPrefix())
+	sdkCfg.SetBech32PrefixForConsensusNode(config.GetBech32ConsensusAddrPrefix(), config.GetBech32ConsensusPubPrefix())
+	sdkCfg.SetCoinType(config.GetCoinType())
+	sdkCfg.SetFullFundraiserPath(config.GetFullFundraiserPath())
+	sdkCfg.SetAddressVerifier(config.addressVerifier)
+	sdkCfg.SetTxEncoder(config.txEncoder)
+	sdkCfg.Seal()
 
 	config.mtx.Lock()
 
