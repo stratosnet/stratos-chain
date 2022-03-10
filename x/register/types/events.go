@@ -30,6 +30,7 @@ const (
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
 
 	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
+	AttributeKeyInitialStake      = "initial_stake"
 	AttributeKeyIncrStakeBool     = "incr_stake"
 
 	AttributeValueCategory = ModuleName

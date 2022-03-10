@@ -3,12 +3,13 @@ package register
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"strconv"
-	"time"
 )
 
 // NewHandler ...
@@ -66,6 +67,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, sdk.AccAddress(msg.PubKey.Address()).String()),
 			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(msg.PubKey.Bytes())),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
+			sdk.NewAttribute(types.AttributeKeyInitialStake, msg.Value.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
