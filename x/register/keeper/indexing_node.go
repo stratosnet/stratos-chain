@@ -346,6 +346,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	//unbounded to bounded
 	if len(votePool.ApproveList) >= voteCountRequiredToPass {
 		node.Status = sdk.Bonded
+		node.Suspend = false
 		k.SetIndexingNode(ctx, node)
 
 		// move stake from not bonded pool to bonded pool

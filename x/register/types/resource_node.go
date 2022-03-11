@@ -100,7 +100,7 @@ func NewResourceNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 	return ResourceNode{
 		NetworkID:    networkID,
 		PubKey:       pubKey,
-		Suspend:      false,
+		Suspend:      true,
 		Status:       sdk.Unbonded,
 		Tokens:       sdk.ZeroInt(),
 		OwnerAddress: ownerAddr,

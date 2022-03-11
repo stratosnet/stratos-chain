@@ -122,6 +122,13 @@ func handleMsgSlashingResourceNode(ctx sdk.Context, k keeper.Keeper, msg types.M
 		}
 	}
 
-	err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.WalletAddress, msg.Slashing, msg.Suspend)
-	return &sdk.Result{}, err
+	amt, err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.WalletAddress, msg.Slashing, msg.Suspend)
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeSlashing,
+			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, amt.String()),
+		),
+	})
+	return &sdk.Result{Events: ctx.EventManager().Events()}, err
 }

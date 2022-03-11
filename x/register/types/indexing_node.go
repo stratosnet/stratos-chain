@@ -70,7 +70,7 @@ func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAd
 	return IndexingNode{
 		NetworkID:    networkID,
 		PubKey:       pubKey,
-		Suspend:      false,
+		Suspend:      true,
 		Status:       sdk.Unbonded,
 		Tokens:       sdk.ZeroInt(),
 		OwnerAddress: ownerAddr,
