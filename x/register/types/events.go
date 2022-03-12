@@ -31,6 +31,7 @@ const (
 
 	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
 	AttributeKeyInitialStake      = "initial_stake"
+	AttributeKeyStakeDelta        = "stake_delta"
 	AttributeKeyIncrStakeBool     = "incr_stake"
 
 	AttributeValueCategory = ModuleName
