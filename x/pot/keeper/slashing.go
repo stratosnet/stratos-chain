@@ -36,3 +36,17 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, wa
 	k.SetSlashing(ctx, p2pAddr, newSlashing)
 	return nil
 }
+
+func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(p2pAddress sdk.AccAddress, slashing sdk.Int) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.SlashingPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.AccAddress(iter.Key()[len(types.SlashingPrefix):])
+		var slashing sdk.Int
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &slashing)
+		if handler(addr, slashing) {
+			break
+		}
+	}
+}

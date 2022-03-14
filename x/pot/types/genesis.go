@@ -1,24 +1,85 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 type GenesisState struct {
-	Params Params `json:"params" yaml:"params"`
+	Params               Params          `json:"params" yaml:"params"`
+	TotalMinedToken      sdk.Coin        `json:"total_mined_token" yaml:"total_mined_token"`
+	LastReportedEpoch    int64           `json:"last_reported_epoch" yaml:"last_reported_epoch"`
+	ImmatureTotalInfo    []ImmatureTotal `json:"immature_total_info" yaml:"immature_total_info"`
+	MatureTotalInfo      []MatureTotal   `json:"mature_total_info" yaml:"mature_total_info"`
+	IndividualRewardInfo []Reward        `json:"individual_reward_info" yaml:"individual_reward_info"`
+	SlashingInfo         []Slashing      `json:"slashing_info" yaml:"slashing_info"`
 }
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params) GenesisState {
+func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch int64,
+	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward, slashingInfo []Slashing,
+) GenesisState {
+
 	return GenesisState{
-		Params: params,
+		Params:               params,
+		TotalMinedToken:      totalMinedToken,
+		LastReportedEpoch:    lastReportedEpoch,
+		ImmatureTotalInfo:    immatureTotalInfo,
+		MatureTotalInfo:      matureTotalInfo,
+		IndividualRewardInfo: individualRewardInfo,
+		SlashingInfo:         slashingInfo,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() GenesisState {
 	return GenesisState{
-		Params: DefaultParams(),
+		Params:               DefaultParams(),
+		TotalMinedToken:      sdk.NewCoin(DefaultRewardDenom, sdk.ZeroInt()),
+		LastReportedEpoch:    0,
+		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
+		MatureTotalInfo:      make([]MatureTotal, 0),
+		IndividualRewardInfo: make([]Reward, 0),
+		SlashingInfo:         make([]Slashing, 0),
 	}
 }
 
 // ValidateGenesis validates the pot genesis parameters
 func ValidateGenesis(data GenesisState) error {
 	return nil
+}
+
+type ImmatureTotal struct {
+	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
+	Value         sdk.Coins      `json:"value" yaml:"value"`
+}
+
+func NewImmatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) ImmatureTotal {
+	return ImmatureTotal{
+		WalletAddress: walletAddress,
+		Value:         value,
+	}
+}
+
+type MatureTotal struct {
+	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
+	Value         sdk.Coins      `json:"value" yaml:"value"`
+}
+
+func NewMatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) MatureTotal {
+	return MatureTotal{
+		WalletAddress: walletAddress,
+		Value:         value,
+	}
+}
+
+type Slashing struct {
+	P2pAddress sdk.AccAddress
+	Value      sdk.Int
+}
+
+func NewSlashing(p2pAddress sdk.AccAddress, value sdk.Int) Slashing {
+	return Slashing{
+		P2pAddress: p2pAddress,
+		Value:      value,
+	}
 }
