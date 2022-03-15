@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -12,7 +14,6 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"strings"
 )
 
 // GetQueryCmd returns the cli query commands for register module
@@ -99,7 +100,7 @@ func GetResNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 	queryFlagNetworkID := viper.GetString(FlagNetworkID)
 	queryByFlagNetworkIDList := strings.Split(queryFlagNetworkID, ";")
 	for _, v := range queryByFlagNetworkIDList {
-		resp, _, err := QueryResourceNodes(cliCtx, queryRoute, v)
+		resp, _, err := QueryResourceNode(cliCtx, queryRoute, v)
 		if err != nil {
 			return "null", err
 		}
@@ -108,9 +109,9 @@ func GetResNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 	return res[:len(res)-1], nil
 }
 
-// QueryResourceNodes queries all resource nodes by network id
-func QueryResourceNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodesByNetworkID)
+// QueryResourceNode queries resource node by network addr
+func QueryResourceNode(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodesByNetworkAddr)
 	return cliCtx.QueryWithData(route, []byte(networkID))
 }
 
@@ -189,6 +190,6 @@ func GetIndNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 
 // QueryIndexingNodes queries all resource nodes by network is
 func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodesByNetworkID)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodesByNetworkAddr)
 	return cliCtx.QueryWithData(route, []byte(networkID))
 }

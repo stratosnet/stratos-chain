@@ -56,7 +56,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 type (
 	CreateResourceNodeRequest struct {
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkID   string            `json:"network_id" yaml:"network_id"`
+		NetworkAddr string            `json:"network_address" yaml:"network_address"`
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
 		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
@@ -70,7 +70,6 @@ type (
 
 	UpdateResourceNodeRequest struct {
 		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkID      string            `json:"network_id" yaml:"network_id"`
 		Description    types.Description `json:"description" yaml:"description"`
 		NodeType       int               `json:"node_type" yaml:"node_type"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
@@ -85,7 +84,7 @@ type (
 
 	CreateIndexingNodeRequest struct {
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkID   string            `json:"network_id" yaml:"network_id"`
+		NetworkAddr string            `json:"network_address" yaml:"network_address"`
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
 		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
@@ -98,7 +97,6 @@ type (
 
 	UpdateIndexingNodeRequest struct {
 		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkID      string            `json:"network_id" yaml:"network_id"`
 		Description    types.Description `json:"description" yaml:"description"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
@@ -148,7 +146,7 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
-		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkID)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -188,7 +186,7 @@ func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkID)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

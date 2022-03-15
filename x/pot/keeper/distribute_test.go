@@ -38,35 +38,35 @@ var (
 	idxOwner3 = sdk.AccAddress(ed25519.GenPrivKey().PubKey().Address())
 
 	pubKeyRes1       = ed25519.GenPrivKey().PubKey()
-	addrRes1         = sdk.AccAddress(pubKeyRes1.Address())
+	addrRes1         = stratos.SdsAddress(pubKeyRes1.Address())
 	initialStakeRes1 = sdk.NewCoin("ustos", sdk.NewInt(3*stos2ustos))
 
 	pubKeyRes2       = ed25519.GenPrivKey().PubKey()
-	addrRes2         = sdk.AccAddress(pubKeyRes2.Address())
+	addrRes2         = stratos.SdsAddress(pubKeyRes2.Address())
 	initialStakeRes2 = sdk.NewCoin("ustos", sdk.NewInt(3*stos2ustos))
 
 	pubKeyRes3       = ed25519.GenPrivKey().PubKey()
-	addrRes3         = sdk.AccAddress(pubKeyRes3.Address())
+	addrRes3         = stratos.SdsAddress(pubKeyRes3.Address())
 	initialStakeRes3 = sdk.NewCoin("ustos", sdk.NewInt(3*stos2ustos))
 
 	pubKeyRes4       = ed25519.GenPrivKey().PubKey()
-	addrRes4         = sdk.AccAddress(pubKeyRes4.Address())
+	addrRes4         = stratos.SdsAddress(pubKeyRes4.Address())
 	initialStakeRes4 = sdk.NewCoin("ustos", sdk.NewInt(3*stos2ustos))
 
 	pubKeyRes5       = ed25519.GenPrivKey().PubKey()
-	addrRes5         = sdk.AccAddress(pubKeyRes5.Address())
+	addrRes5         = stratos.SdsAddress(pubKeyRes5.Address())
 	initialStakeRes5 = sdk.NewCoin("ustos", sdk.NewInt(3*stos2ustos))
 
 	pubKeyIdx1       = ed25519.GenPrivKey().PubKey()
-	addrIdx1         = sdk.AccAddress(pubKeyIdx1.Address())
+	addrIdx1         = stratos.SdsAddress(pubKeyIdx1.Address())
 	initialStakeIdx1 = sdk.NewCoin("ustos", sdk.NewInt(5*stos2ustos))
 
 	pubKeyIdx2       = ed25519.GenPrivKey().PubKey()
-	addrIdx2         = sdk.AccAddress(pubKeyIdx2.Address())
+	addrIdx2         = stratos.SdsAddress(pubKeyIdx2.Address())
 	initialStakeIdx2 = sdk.NewCoin("ustos", sdk.NewInt(5*stos2ustos))
 
 	pubKeyIdx3       = ed25519.GenPrivKey().PubKey()
-	addrIdx3         = sdk.AccAddress(pubKeyIdx3.Address())
+	addrIdx3         = stratos.SdsAddress(pubKeyIdx3.Address())
 	initialStakeIdx3 = sdk.NewCoin("ustos", sdk.NewInt(5*stos2ustos))
 
 	valOpPk1        = ed25519.GenPrivKey().PubKey()
@@ -127,14 +127,14 @@ func Test(t *testing.T) {
 	createAccount(t, ctx, accountKeeper, bankKeeper, idxOwner2, sdk.NewCoins(initialStakeIdx2))
 	createAccount(t, ctx, accountKeeper, bankKeeper, idxOwner3, sdk.NewCoins(initialStakeIdx3))
 	//initialize sds node register msg
-	msgRes1 := register.NewMsgCreateResourceNode("sds://resourceNode1", pubKeyRes1, initialStakeRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4)
-	msgRes2 := register.NewMsgCreateResourceNode("sds://resourceNode2", pubKeyRes2, initialStakeRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4)
-	msgRes3 := register.NewMsgCreateResourceNode("sds://resourceNode3", pubKeyRes3, initialStakeRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4)
-	msgRes4 := register.NewMsgCreateResourceNode("sds://resourceNode4", pubKeyRes4, initialStakeRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4)
-	msgRes5 := register.NewMsgCreateResourceNode("sds://resourceNode5", pubKeyRes5, initialStakeRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4)
-	msgIdx1 := register.NewMsgCreateIndexingNode("sds://indexingNode1", pubKeyIdx1, initialStakeIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
-	msgIdx2 := register.NewMsgCreateIndexingNode("sds://indexingNode2", pubKeyIdx2, initialStakeIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
-	msgIdx3 := register.NewMsgCreateIndexingNode("sds://indexingNode3", pubKeyIdx3, initialStakeIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
+	msgRes1 := register.NewMsgCreateResourceNode(addrRes1, pubKeyRes1, initialStakeRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4)
+	msgRes2 := register.NewMsgCreateResourceNode(addrRes2, pubKeyRes2, initialStakeRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4)
+	msgRes3 := register.NewMsgCreateResourceNode(addrRes3, pubKeyRes3, initialStakeRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4)
+	msgRes4 := register.NewMsgCreateResourceNode(addrRes4, pubKeyRes4, initialStakeRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4)
+	msgRes5 := register.NewMsgCreateResourceNode(addrRes5, pubKeyRes5, initialStakeRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4)
+	msgIdx1 := register.NewMsgCreateIndexingNode(addrIdx1, pubKeyIdx1, initialStakeIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
+	msgIdx2 := register.NewMsgCreateIndexingNode(addrIdx2, pubKeyIdx2, initialStakeIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
+	msgIdx3 := register.NewMsgCreateIndexingNode(addrIdx3, pubKeyIdx3, initialStakeIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
 
 	//register sds nodes
 	registerHandler := register.NewHandler(registerKeeper)

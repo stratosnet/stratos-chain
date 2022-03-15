@@ -281,15 +281,15 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr stratos.SdsAddress) err
 	return nil
 }
 
-// GetIndexingNodeList get all indexing nodes by network ID
-func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkID stratos.SdsAddress) (indexingNodes []types.IndexingNode, err error) {
+// GetIndexingNodeList get all indexing nodes by networkAddr
+func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (indexingNodes []types.IndexingNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		if node.NetworkID.Equals(networkID) {
+		if node.NetworkID.Equals(networkAddr) {
 			indexingNodes = append(indexingNodes, node)
 		}
 	}

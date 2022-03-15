@@ -20,7 +20,7 @@ var (
 )
 
 type MsgCreateResourceNode struct {
-	NetworkID    stratos.SdsAddress `json:"network_id" yaml:"network_id"`
+	NetworkAddr  stratos.SdsAddress `json:"network_address" yaml:"network_address"`
 	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`
 	Value        sdk.Coin           `json:"value" yaml:"value"`
 	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
@@ -29,11 +29,11 @@ type MsgCreateResourceNode struct {
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateResourceNode(networkID stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin,
+func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin,
 	ownerAddr sdk.AccAddress, description Description, nodeType NodeType,
 ) MsgCreateResourceNode {
 	return MsgCreateResourceNode{
-		NetworkID:    networkID,
+		NetworkAddr:  networkAddr,
 		PubKey:       pubKey,
 		Value:        value,
 		OwnerAddress: ownerAddr,
@@ -52,10 +52,10 @@ func (msg MsgCreateResourceNode) Type() string {
 
 // ValidateBasic validity check for the CreateResourceNode
 func (msg MsgCreateResourceNode) ValidateBasic() error {
-	if msg.NetworkID.Empty() {
+	if msg.NetworkAddr.Empty() {
 		return ErrEmptyNodeId
 	}
-	if msg.NetworkID.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+	if msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -89,7 +89,7 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 }
 
 type MsgCreateIndexingNode struct {
-	NetworkID    stratos.SdsAddress `json:"network_id" yaml:"network_id"`
+	NetworkAddr  stratos.SdsAddress `json:"network_addr" yaml:"network_addr"`
 	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`
 	Value        sdk.Coin           `json:"value" yaml:"value"`
 	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
@@ -97,10 +97,10 @@ type MsgCreateIndexingNode struct {
 }
 
 // NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkID stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) MsgCreateIndexingNode {
 	return MsgCreateIndexingNode{
-		NetworkID:    networkID,
+		NetworkAddr:  networkAddr,
 		PubKey:       pubKey,
 		Value:        value,
 		OwnerAddress: ownerAddr,
@@ -117,10 +117,10 @@ func (msg MsgCreateIndexingNode) Type() string {
 }
 
 func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	if msg.NetworkID.Empty() {
+	if msg.NetworkAddr.Empty() {
 		return ErrInvalidNetworkAddr
 	}
-	if msg.NetworkID.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+	if msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {

@@ -17,17 +17,17 @@ import (
 )
 
 const (
-	QueryResourceNodeList         = "resource_nodes"
-	QueryResourceNodesByNetworkID = "resource_nodes_network_id"
-	QueryIndexingNodesByNetworkID = "indexing_nodes_network_id"
-	QueryResourceNodeByMoniker    = "resource_nodes_moniker"
-	QueryIndexingNodeList         = "indexing_nodes"
-	QueryIndexingNodeByMoniker    = "indexing_nodes_moniker"
-	QueryNodesTotalStakes         = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddr      = "node_stakes"
-	QueryNodeStakeByOwner         = "node_stakes_by_owner"
-	QueryRegisterParams           = "register_params"
-	QueryDefaultLimit             = 100
+	QueryResourceNodeList           = "resource_nodes"
+	QueryResourceNodesByNetworkAddr = "resource_nodes_network_id"
+	QueryIndexingNodesByNetworkAddr = "indexing_nodes_network_id"
+	QueryResourceNodeByMoniker      = "resource_nodes_moniker"
+	QueryIndexingNodeList           = "indexing_nodes"
+	QueryIndexingNodeByMoniker      = "indexing_nodes_moniker"
+	QueryNodesTotalStakes           = "nodes_total_stakes"
+	QueryNodeStakeByNodeAddr        = "node_stakes"
+	QueryNodeStakeByOwner           = "node_stakes_by_owner"
+	QueryRegisterParams             = "register_params"
+	QueryDefaultLimit               = 100
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -36,12 +36,12 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryResourceNodeList:
 			return GetResourceNodeList(ctx, req, k)
-		//case QueryResourceNodesByNetworkID:
-		//	return GetResourceNodes(ctx, req, k)
+		case QueryResourceNodesByNetworkAddr:
+			return GetResourceNode(ctx, req, k)
 		case QueryIndexingNodeList:
 			return GetIndexingNodeList(ctx, req, k)
-		//case QueryIndexingNodesByNetworkID:
-		//	return GetIndexingNodes(ctx, req, k)
+		case QueryIndexingNodesByNetworkAddr:
+			return GetIndexingNode(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return GetNodesStakingInfo(ctx, req, k)
 		case QueryNodeStakeByNodeAddr:
@@ -81,23 +81,24 @@ func GetIndexingNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
 }
 
-// GetResourceNodes fetches all resource nodes by network address.
-//func GetResourceNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-//	nodeList, err := k.GetResourceNodeList(ctx, string(req.Data))
-//	if err != nil {
-//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-//	}
-//	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-//}
+//GetResourceNodes fetches  resource nodes by network address.
+func GetResourceNode(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 
-// GetIndexingNodes fetches all indexing nodes by network address.
-//func GetIndexingNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-//	nodeList, err := k.GetIndexingNodeList(ctx, string(req.Data))
-//	if err != nil {
-//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-//	}
-//	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-//}
+	nodeList, ok := k.GetResourceNode(ctx, req.Data)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, types.ErrNoResourceNodeFound.Error())
+	}
+	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
+}
+
+//GetIndexingNodes fetches all indexing nodes by network address.
+func GetIndexingNode(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	node, ok := k.GetIndexingNode(ctx, req.Data)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, types.ErrNoIndexingNodeFound.Error())
+	}
+	return types.ModuleCdc.MustMarshalJSON(node), nil
+}
 
 // GetNetworkSet fetches all network addresses.
 func GetNetworkSet(ctx sdk.Context, k Keeper) ([]byte, error) {
@@ -338,9 +339,9 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
 
 	for _, n := range nodes {
-		// match NetworkID (if supplied)
-		if !params.NetworkID.Empty() {
-			if n.NetworkID.Equals(params.NetworkID) {
+		// match NetworkAddr (if supplied)
+		if !params.NetworkAddr.Empty() {
+			if n.NetworkID.Equals(params.NetworkAddr) {
 				continue
 			}
 		}
@@ -365,9 +366,9 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
 	for _, n := range nodes {
-		// match NetworkID (if supplied)
-		if !params.NetworkID.Empty() {
-			if n.NetworkID.Equals(params.NetworkID) {
+		// match NetworkAddr (if supplied)
+		if !params.NetworkAddr.Empty() {
+			if n.NetworkID.Equals(params.NetworkAddr) {
 				continue
 			}
 		}

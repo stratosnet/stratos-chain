@@ -265,13 +265,13 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 }
 
 // GetResourceNodeList get all resource nodes by network address
-func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID stratos.SdsAddress) (resourceNodes []types.ResourceNode, err error) {
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (resourceNodes []types.ResourceNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if node.NetworkID.Equals(networkID) {
+		if node.NetworkID.Equals(networkAddr) {
 			resourceNodes = append(resourceNodes, node)
 		}
 	}

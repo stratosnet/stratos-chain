@@ -56,7 +56,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 		return nil, ErrBadDenom
 	}
 
-	ozoneLimitChange, err := k.RegisterResourceNode(ctx, msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description, msg.NodeType, msg.Value)
+	ozoneLimitChange, err := k.RegisterResourceNode(ctx, msg.NetworkAddr, msg.PubKey, msg.OwnerAddress, msg.Description, msg.NodeType, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNod
 		return nil, ErrBadDenom
 	}
 
-	ozoneLimitChange, err := k.RegisterIndexingNode(ctx, msg.NetworkID, msg.PubKey, msg.OwnerAddress, msg.Description, msg.Value)
+	ozoneLimitChange, err := k.RegisterIndexingNode(ctx, msg.NetworkAddr, msg.PubKey, msg.OwnerAddress, msg.Description, msg.Value)
 	if err != nil {
 		return nil, err
 	}

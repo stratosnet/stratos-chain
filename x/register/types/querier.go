@@ -17,21 +17,21 @@ const (
 
 // QueryNodesParams Params for query 'custom/register/resource-nodes'
 type QueryNodesParams struct {
-	Page      int
-	Limit     int
-	NetworkID stratos.SdsAddress
-	Moniker   string
-	OwnerAddr sdk.AccAddress
+	Page        int
+	Limit       int
+	NetworkAddr stratos.SdsAddress
+	Moniker     string
+	OwnerAddr   sdk.AccAddress
 }
 
 // NewQueryNodesParams creates a new instance of QueryNodesParams
 func NewQueryNodesParams(page, limit int, networkID stratos.SdsAddress, moniker string, ownerAddr sdk.AccAddress) QueryNodesParams {
 	return QueryNodesParams{
-		Page:      page,
-		Limit:     limit,
-		NetworkID: networkID,
-		Moniker:   moniker,
-		OwnerAddr: ownerAddr,
+		Page:        page,
+		Limit:       limit,
+		NetworkAddr: networkID,
+		Moniker:     moniker,
+		OwnerAddr:   ownerAddr,
 	}
 }
 
