@@ -113,17 +113,25 @@ func GetResourceNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	resNodes := keeper.GetResourceNodesFiltered(ctx, params)
-	if resNodes == nil {
-		resNodes = types.ResourceNodes{}
+	//resNodes := keeper.GetResourceNodesFiltered(ctx, params)
+	//if resNodes == nil {
+	//	resNodes = types.ResourceNodes{}
+	//}
+	//
+	//bz, err := codec.MarshalJSONIndent(keeper.cdc, resNodes)
+	//if err != nil {
+	//	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	//}
+	//
+	//return bz, nil
+	if params.NetworkAddr.Empty() {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrInvalidNetworkAddr.Error())
 	}
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, resNodes)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	node, ok := keeper.GetResourceNode(ctx, params.NetworkAddr)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoResourceNodeFound.Error())
 	}
-
-	return bz, nil
+	return types.ModuleCdc.MustMarshalJSON([]types.ResourceNode{node}), nil
 }
 
 func GetIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
@@ -385,7 +393,6 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
-
 	return filteredNodes
 }
 

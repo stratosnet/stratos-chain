@@ -8,72 +8,31 @@
 
 --- ---
 
-## Building the source
+## Recommended hardware/software
 
-Prerequisites:
-* [Go 1.15+](https://golang.org/doc/install)
-* [git](https://github.com/git-guides/install-git)
-* [wget](https://phoenixnap.com/kb/wget-command-with-examples)
+- <b>Recommended Hardware</b>
 
-Platform:
-* Linux(tested on Ubuntu18.04)
+        * CPU           i5 (4 cores)
+        * RAM           16GB
+        * Hard disk     2TB
 
-First, make a directory(e.g., `stratos`) and directly download the source
-```bash
-mkdir stratos
-cd stratos
-git clone https://github.com/stratosnet/stratos-chain.git
-cd stratos-chain
-git checkout v0.5.0  # you may need to change to the latest version.
-make build
-```
-* Mac OS
-```bash
-mkdir stratos
-cd stratos
-git clone https://github.com/stratosnet/stratos-chain.git
-cd stratos-chain
-git checkout v0.5.0  # you may need to change to the latest version.
-make build-mac
-```
 
-After `make build` or `make build-mac`, you will find the `stchaind` and `stchaincli` binary files in `stratos/stratos-chain/build`.
+- <b>Software(tested version)</b>
 
-The `build` directory is your working directory, and you can continue your operations inside this folder.
+        * Ubuntu 18.04+
+        * Go 1.16+ linux/amd64
 
-Your working directory looks like
 
-```
-     .
-     ├── config
-     ├── data
-     ├── stchaincli
-     └── stchaind
-```
-The `config` folder
-```
-     .
-     ├── addrbook.json
-     ├── app.toml
-     ├── config.toml
-     ├── genesis.json
-     ├── node_key.json
-     └── priv_validator_key.json
-```
+- <b>Platform</b>
 
-In `config` folder:
+  * Linux(tested on Ubuntu18.04 and 20.04)
+  * Mac OS
+  * Windows 
 
-`addrbook.json` stores peer addresses.
+    It is possible to build and run the software on Windows. However, we did not test it on Windows completely.
+    It may give you unexpected results, or it may require additional setup.
 
-`app.toml` contains the default settings required for `app`.
-
-`config.toml` contains various options pertaining to the `stratos-chain` configurations.
-
-`genesis.json` defines the initial state upon genesis of `stratos-chain`.
-
-`node_key.json` contains the node private key and should thus be kept secret.
-
-`priv_validator_key.json` contains the validator address, public key and private key, and should thus be kept secret.
+    An alternative option is to install a separate virtual Linux system using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) or [VMware Workstation](https://www.vmware.com/ca/products/workstation-player/workstation-player-evaluation.html)
 
 --- ---
 
@@ -104,7 +63,7 @@ Available Commands:
   help        Help about any command
 ```
 
-Each `stchaincli` command may contain a set of flags or parameters. for more details, please refer to [Stratos-chain 'stchaincli' Commands](https://stratos.gitbook.io/st-docs/stratos-chain-english/stratos-chain-commands)
+Each `stchaincli` command may contain a set of flags or parameters. for more details, please refer to [Stratos Chain `stchaincli` Commands(Part1)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part1)) and [Stratos Chain `stchaincli` Commands(Part2)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part2))
 
 ### `stchaind`
 
@@ -129,27 +88,42 @@ Available Commands:
   help                Help about any command
 ```
 
-Each `stchaind` command may contain a set of flags or parameters. for more details, please refer to [Stratos-chain 'stchaind' Commands](https://stratos.gitbook.io/st-docs/stratos-chain-english/stratos-chain-commands/stratos-chain-stchaind-commands)
+Each `stchaind` command may contain a set of flags or parameters. for more details, please refer to [Stratos-chain `stchaind` Commands](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands)
 
 --- ---
 
 ## Connect to `Stratos` Network
 
 Going through all the possible command line flags is out of scope here,
-but we've enumerated a few common parameter combos to get you up to speed quickly
-on how you can run your own `Stratos` instance.
+but we've enumerated a few common parameter combos to get you up to speed quickly on how you can run your own `Stratos` instance.
 
 ### A Full node on the test Stratos network
-For prerequisites and detailed instructions of connecting to test network, please read the [Connect to TestNet](https://github.com/stratosnet/stratos-chain-testnet).
+For prerequisites and detailed instructions of connecting to `Tropos Incentive Testnet` network, please read the [Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet).
 
 ### Full node on the main Stratos network - TBA
 Prerequisites and detailed instructions of main network will be added later.
 
 --- ---
 
-## Documents
+## Stratos Explorer
 
-We published all the documents [here](https://stratos.gitbook.io/st-docs/)
+* https://explorer-tropos.thestratos.org/
+
+---
+
+## References
+
+* [`stchaincli` Commands(Part1)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part1))
+
+* [`stchaincli` Commands(Part2)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part2))
+
+* [`stchaind` Commands](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands)
+
+* [REST APIs](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-REST-APIs)
+
+* [How to become a validator](https://github.com/stratosnet/stratos-chain/wiki/How-to-Become-a-Validator)
+
+* [`ppd terminal` subcommands](https://github.com/stratosnet/sds/wiki/%60ppd-terminal%60--subcommands)
 
 --- ---
 
@@ -163,19 +137,19 @@ for the maintainers to review and merge into the main code base.
 
 Please make sure your contributions adhere to our coding guidelines:
 
- * Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting)
-   guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
- * Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary)
-   guidelines.
- * Pull requests need to be based on and opened against the `main` branch.
- * Commit messages should be prefixed with the package(s) they modify.
-   * E.g. "eth, rpc: make trace configs optional"
+* Code must adhere to the official Go [formatting](https://golang.org/doc/effective_go.html#formatting)
+  guidelines (i.e. uses [gofmt](https://golang.org/cmd/gofmt/)).
+* Code must be documented adhering to the official Go [commentary](https://golang.org/doc/effective_go.html#commentary)
+  guidelines.
+* Pull requests need to be based on and opened against the `main` branch.
+* Commit messages should be prefixed with the package(s) they modify.
+    * E.g. "eth, rpc: make trace configs optional"
 
 --- ---
 
 ## License
 
-Copyright 2021 Stratos
+Copyright 2022 Stratos
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
