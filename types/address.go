@@ -1,6 +1,11 @@
 package types
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/tendermint/tendermint/crypto"
 	tmamino "github.com/tendermint/tendermint/crypto/encoding/amino"
@@ -19,12 +24,13 @@ const (
 	Bech32PubKeyTypeConsPub   Bech32PubKeyType = "conspub"
 	Bech32PubKeyTypeSdsP2PPub Bech32PubKeyType = "sdsp2p"
 
-	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
-	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
-	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
-	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
-	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
-	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
+	AccountPubKeyPrefix     = StratosBech32Prefix + "pub"
+	ValidatorAddressPrefix  = StratosBech32Prefix + "valoper"
+	ValidatorPubKeyPrefix   = StratosBech32Prefix + "valoperpub"
+	ConsNodeAddressPrefix   = StratosBech32Prefix + "valcons"
+	ConsNodePubKeyPrefix    = StratosBech32Prefix + "valconspub"
+	SdsNodeP2PKeyPrefix     = StratosBech32Prefix + "sdsp2p"
+	SdsNodeP2PAddressPrefix = StratosBech32Prefix + "sds"
 
 	CoinType = 606
 
@@ -83,4 +89,82 @@ func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (crypto.PubKey,
 	}
 
 	return pk, nil
+}
+
+type SdsAddress []byte
+
+func (a SdsAddress) Equals(addr sdk.Address) bool {
+	if a.Empty() && addr.Empty() {
+		return true
+	}
+
+	return bytes.Equal(a.Bytes(), addr.Bytes())
+}
+
+func (a SdsAddress) Empty() bool {
+	if a == nil {
+		return true
+	}
+
+	aa2 := SdsAddress{}
+	return bytes.Equal(a.Bytes(), aa2.Bytes())
+}
+
+func (a SdsAddress) Marshal() ([]byte, error) {
+	return a, nil
+}
+
+func (a SdsAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.String())
+}
+
+func (a SdsAddress) Bytes() []byte {
+	return a
+}
+
+func (a SdsAddress) String() string {
+	if a.Empty() {
+		return ""
+	}
+
+	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
+
+	bech32Addr, err := bech32.ConvertAndEncode(bech32PrefixSdsAddr, a.Bytes())
+	if err != nil {
+		panic(err)
+	}
+
+	return bech32Addr
+}
+
+func (a SdsAddress) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 's':
+		s.Write([]byte(a.String()))
+	case 'p':
+		s.Write([]byte(fmt.Sprintf("%p", a)))
+	default:
+		s.Write([]byte(fmt.Sprintf("%X", []byte(a))))
+	}
+}
+
+// AccAddressFromBech32 creates an AccAddress from a Bech32 string.
+func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
+	if len(strings.TrimSpace(address)) == 0 {
+		return SdsAddress{}, nil
+	}
+
+	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
+
+	bz, err := sdk.GetFromBech32(address, bech32PrefixSdsAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = sdk.VerifyAddressFormat(bz)
+	if err != nil {
+		return nil, err
+	}
+
+	return SdsAddress(bz), nil
 }

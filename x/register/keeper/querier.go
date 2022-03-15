@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 
 	// this line is used by starport scaffolding # 1
@@ -35,12 +36,12 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryResourceNodeList:
 			return GetResourceNodeList(ctx, req, k)
-		case QueryResourceNodesByNetworkID:
-			return GetResourceNodes(ctx, req, k)
+		//case QueryResourceNodesByNetworkID:
+		//	return GetResourceNodes(ctx, req, k)
 		case QueryIndexingNodeList:
 			return GetIndexingNodeList(ctx, req, k)
-		case QueryIndexingNodesByNetworkID:
-			return GetIndexingNodes(ctx, req, k)
+		//case QueryIndexingNodesByNetworkID:
+		//	return GetIndexingNodes(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return GetNodesStakingInfo(ctx, req, k)
 		case QueryNodeStakeByNodeAddr:
@@ -81,22 +82,22 @@ func GetIndexingNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 }
 
 // GetResourceNodes fetches all resource nodes by network address.
-func GetResourceNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	nodeList, err := k.GetResourceNodeList(ctx, string(req.Data))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-}
+//func GetResourceNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+//	nodeList, err := k.GetResourceNodeList(ctx, string(req.Data))
+//	if err != nil {
+//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//	}
+//	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
+//}
 
 // GetIndexingNodes fetches all indexing nodes by network address.
-func GetIndexingNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	nodeList, err := k.GetIndexingNodeList(ctx, string(req.Data))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-}
+//func GetIndexingNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+//	nodeList, err := k.GetIndexingNodeList(ctx, string(req.Data))
+//	if err != nil {
+//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//	}
+//	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
+//}
 
 // GetNetworkSet fetches all network addresses.
 func GetNetworkSet(ctx sdk.Context, k Keeper) ([]byte, error) {
@@ -195,7 +196,7 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	NodeAddr, err := sdk.AccAddressFromBech32(params.AccAddr.String())
+	NodeAddr, err := stratos.SdsAddressFromBech32(params.AccAddr.String())
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
 	}
@@ -338,8 +339,8 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 
 	for _, n := range nodes {
 		// match NetworkID (if supplied)
-		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+		if !params.NetworkID.Empty() {
+			if n.NetworkID.Equals(params.NetworkID) {
 				continue
 			}
 		}
@@ -365,8 +366,8 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 
 	for _, n := range nodes {
 		// match NetworkID (if supplied)
-		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+		if !params.NetworkID.Empty() {
+			if n.NetworkID.Equals(params.NetworkID) {
 				continue
 			}
 		}
@@ -407,7 +408,7 @@ func (k Keeper) indexingNodesPagination(filteredNodes []types.IndexingNode, para
 	return filteredNodes
 }
 
-func getNodeStakes(ctx sdk.Context, keeper Keeper, bondStatus sdk.BondStatus, nodeAddress sdk.AccAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+func getNodeStakes(ctx sdk.Context, keeper Keeper, bondStatus sdk.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
 	unbondingStake = sdk.NewInt(0)
 	unbondedStake = sdk.NewInt(0)
 	bondedStake = sdk.NewInt(0)

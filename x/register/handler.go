@@ -3,12 +3,14 @@ package register
 import (
 	"encoding/hex"
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/stratosnet/stratos-chain/x/register/keeper"
-	"github.com/stratosnet/stratos-chain/x/register/types"
 	"strconv"
 	"time"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stratos "github.com/stratosnet/stratos-chain/types"
+	"github.com/stratosnet/stratos-chain/x/register/keeper"
+	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // NewHandler ...
@@ -46,7 +48,7 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 
 func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNode, k keeper.Keeper) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
-	if _, found := k.GetResourceNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
+	if _, found := k.GetResourceNode(ctx, stratos.SdsAddress(msg.PubKey.Address())); found {
 		ctx.Logger().Error("Resource node already exist")
 		return nil, ErrResourceNodePubKeyExists
 	}
@@ -78,7 +80,7 @@ func handleMsgCreateResourceNode(ctx sdk.Context, msg types.MsgCreateResourceNod
 
 func handleMsgCreateIndexingNode(ctx sdk.Context, msg types.MsgCreateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
 	// check to see if the pubkey or sender has been registered before
-	if _, found := k.GetIndexingNode(ctx, sdk.AccAddress(msg.PubKey.Address())); found {
+	if _, found := k.GetIndexingNode(ctx, stratos.SdsAddress(msg.PubKey.Address())); found {
 		ctx.Logger().Error("Indexing node already exist")
 		return nil, ErrIndexingNodePubKeyExists
 	}
@@ -215,7 +217,7 @@ func handleMsgIndexingNodeRegistrationVote(ctx sdk.Context, msg types.MsgIndexin
 }
 
 func handleMsgUpdateResourceNode(ctx sdk.Context, msg types.MsgUpdateResourceNode, k keeper.Keeper) (*sdk.Result, error) {
-	err := k.UpdateResourceNode(ctx, msg.NetworkID, msg.Description, msg.NodeType, msg.NetworkAddress, msg.OwnerAddress)
+	err := k.UpdateResourceNode(ctx, msg.Description, msg.NodeType, msg.NetworkAddress, msg.OwnerAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -259,7 +261,7 @@ func handleMsgUpdateResourceNodeStake(ctx sdk.Context, msg types.MsgUpdateResour
 }
 
 func handleMsgUpdateIndexingNode(ctx sdk.Context, msg types.MsgUpdateIndexingNode, k keeper.Keeper) (*sdk.Result, error) {
-	err := k.UpdateIndexingNode(ctx, msg.NetworkID, msg.Description, msg.NetworkAddress, msg.OwnerAddress)
+	err := k.UpdateIndexingNode(ctx, msg.Description, msg.NetworkAddress, msg.OwnerAddress)
 	if err != nil {
 		return nil, err
 	}

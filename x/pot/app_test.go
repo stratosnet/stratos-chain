@@ -66,7 +66,6 @@ func isNeedStop(ctx sdk.Context, k Keeper, epoch sdk.Int, minedToken sdk.Coin) b
 func TestPotVolumeReportMsgs(t *testing.T) {
 
 	/********************* initialize mock app *********************/
-	SetConfig()
 	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
 	mApp, k, stakingKeeper, bankKeeper, supplyKeeper := getMockApp(t)
 	accs := setupAccounts(mApp)
@@ -400,7 +399,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 

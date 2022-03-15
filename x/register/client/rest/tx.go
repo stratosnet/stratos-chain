@@ -1,7 +1,9 @@
 package rest
 
 import (
-	"fmt"
+	"net/http"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
@@ -9,8 +11,6 @@ import (
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"net/http"
-	"strconv"
 )
 
 func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
@@ -148,8 +148,13 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
-		msg := types.NewMsgCreateResourceNode(req.NetworkID, pubKey, req.Amount, ownerAddr, req.Description,
-			fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkID)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		msg := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description,
+			types.NodeType(nodeTypeRef))
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -183,8 +188,12 @@ func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		msg := types.NewMsgCreateIndexingNode(req.NetworkID, pubKey, req.Amount, ownerAddr, req.Description)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkID)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		msg := types.NewMsgCreateIndexingNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -207,7 +216,7 @@ func postRemoveResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		nodeAddr, err := sdk.AccAddressFromBech32(req.ResourceNodeAddress)
+		nodeAddr, err := stratos.SdsAddressFromBech32(req.ResourceNodeAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -242,7 +251,7 @@ func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		nodeAddr, err := sdk.AccAddressFromBech32(req.IndexingNodeAddress)
+		nodeAddr, err := stratos.SdsAddressFromBech32(req.IndexingNodeAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -279,7 +288,7 @@ func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 
 		nodeTypeRef := req.NodeType
 
-		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -294,8 +303,8 @@ func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
-		msg := types.NewMsgUpdateResourceNode(req.NetworkID, req.Description,
-			fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()), networkAddr, ownerAddr)
+		msg := types.NewMsgUpdateResourceNode(req.Description,
+			types.NodeType(nodeTypeRef), networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -318,7 +327,7 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx context.CLIContext) http.Handle
 			return
 		}
 
-		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -358,7 +367,7 @@ func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -370,7 +379,7 @@ func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		msg := types.NewMsgUpdateIndexingNode(req.NetworkID, req.Description, networkAddr, ownerAddr)
+		msg := types.NewMsgUpdateIndexingNode(req.Description, networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -393,7 +402,7 @@ func postUpdateIndexingNodeStakeHandlerFn(cliCtx context.CLIContext) http.Handle
 			return
 		}
 
-		networkAddr, err := sdk.AccAddressFromBech32(req.NetworkAddress)
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -433,7 +442,7 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		candidateNetworkAddr, err := sdk.AccAddressFromBech32(req.CandidateNetworkAddress)
+		candidateNetworkAddr, err := stratos.SdsAddressFromBech32(req.CandidateNetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -446,7 +455,7 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 
 		voteOpinion := types.VoteOpinionFromBool(req.Opinion)
 
-		voterNetworkAddr, err := sdk.AccAddressFromBech32(req.VoterNetworkAddress)
+		voterNetworkAddr, err := stratos.SdsAddressFromBech32(req.VoterNetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		}

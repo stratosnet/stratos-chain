@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // Bech32PubKeyType defines a string type alias for a Bech32 public key type.
@@ -44,34 +45,34 @@ var (
 )
 
 // GetLastResourceNodeStakeKey get the bonded resource node index key for an address
-func GetLastResourceNodeStakeKey(nodeAddr sdk.AccAddress) []byte {
+func GetLastResourceNodeStakeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(LastResourceNodeStakeKey, nodeAddr...)
 }
 
 // GetResourceNodeKey gets the key for the resourceNode with address
 // VALUE: ResourceNode
-func GetResourceNodeKey(nodeAddr sdk.AccAddress) []byte {
+func GetResourceNodeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(ResourceNodeKey, nodeAddr.Bytes()...)
 }
 
 // GetLastIndexingNodeStakeKey get the bonded indexing node index key for an address
-func GetLastIndexingNodeStakeKey(nodeAddr sdk.AccAddress) []byte {
+func GetLastIndexingNodeStakeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(LastIndexingNodeStakeKey, nodeAddr...)
 }
 
 // GetIndexingNodeKey gets the key for the indexingNode with address
 // VALUE: ResourceNode
-func GetIndexingNodeKey(nodeAddr sdk.AccAddress) []byte {
+func GetIndexingNodeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(IndexingNodeKey, nodeAddr.Bytes()...)
 }
 
 // GetIndexingNodeRegistrationVotesKey get the key for the vote for Indexing node registration
-func GetIndexingNodeRegistrationVotesKey(nodeAddr sdk.AccAddress) []byte {
+func GetIndexingNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(IndexingNodeRegistrationVotesKey, nodeAddr.Bytes()...)
 }
 
 // GetURNKey gets the key for the unbonding Node with address
-func GetUBDNodeKey(nodeAddr sdk.AccAddress) []byte {
+func GetUBDNodeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(UBDNodeKey, nodeAddr.Bytes()...)
 }
 

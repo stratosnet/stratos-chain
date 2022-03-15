@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -15,7 +17,6 @@ import (
 	"github.com/spf13/viper"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"strconv"
 )
 
 // GetTxCmd returns the transaction commands for this module
@@ -181,6 +182,10 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	}
 
 	networkID := viper.GetString(FlagNetworkID)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkID)
+	if err != nil {
+		return txBldr, nil, err
+	}
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 	nodeTypeRef := viper.GetInt(FlagNodeType)
@@ -202,7 +207,7 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
 		return txBldr, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgCreateResourceNode(networkID, pubKey, amount, ownerAddr, desc, fmt.Sprintf("%d: %s", nodeTypeRef, types.NodeType(nodeTypeRef).Type()))
+	msg := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, desc, types.NodeType(nodeTypeRef))
 	return txBldr, msg, nil
 }
 
@@ -221,7 +226,7 @@ func buildUpdateResourceNodeStakeMsg(cliCtx context.CLIContext, txBldr auth.TxBu
 	}
 
 	networkAddrStr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := sdk.AccAddressFromBech32(networkAddrStr)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -241,6 +246,10 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	}
 
 	networkID := viper.GetString(FlagNetworkID)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkID)
+	if err != nil {
+		return txBldr, nil, err
+	}
 	ownerAddr := cliCtx.GetFromAddress()
 	pkStr := viper.GetString(FlagPubKey)
 
@@ -257,7 +266,7 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagSecurityContact),
 		viper.GetString(FlagDetails),
 	)
-	msg := types.NewMsgCreateIndexingNode(networkID, pubKey, amount, ownerAddr, desc)
+	msg := types.NewMsgCreateIndexingNode(networkAddr, pubKey, amount, ownerAddr, desc)
 	return txBldr, msg, nil
 }
 
@@ -276,7 +285,7 @@ func buildUpdateIndexingNodeStakeMsg(cliCtx context.CLIContext, txBldr auth.TxBu
 	}
 
 	networkAddrStr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := sdk.AccAddressFromBech32(networkAddrStr)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -297,7 +306,7 @@ func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[1]).WithCodec(cdc)
 
-			resourceNodeAddr, err := sdk.AccAddressFromBech32(args[0])
+			resourceNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
@@ -320,7 +329,7 @@ func RemoveIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[1]).WithCodec(cdc)
 
-			indexingNodeAddr, err := sdk.AccAddressFromBech32(args[0])
+			indexingNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
@@ -365,7 +374,7 @@ func IndexingNodeRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
 
 func buildIndexingNodeRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	candidateNetworkAddrStr := viper.GetString(FlagCandidateNetworkAddress)
-	candidateNetworkAddr, err := sdk.AccAddressFromBech32(candidateNetworkAddrStr)
+	candidateNetworkAddr, err := stratos.SdsAddressFromBech32(candidateNetworkAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -377,7 +386,7 @@ func buildIndexingNodeRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth
 	opinionVal := viper.GetBool(FlagOpinion)
 	opinion := types.VoteOpinionFromBool(opinionVal)
 	voterNetworkAddrStr := viper.GetString(FlagVoterNetworkAddress)
-	voterNetworkAddr, err := sdk.AccAddressFromBech32(voterNetworkAddrStr)
+	voterNetworkAddr, err := stratos.SdsAddressFromBech32(voterNetworkAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -419,7 +428,7 @@ func UpdateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 // makes a new MsgUpdateResourceNode.
 func buildUpdateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	networkID := viper.GetString(FlagNetworkID)
+	//networkID := viper.GetString(FlagNetworkID)
 
 	desc := types.NewDescription(
 		viper.GetString(FlagMoniker),
@@ -429,17 +438,19 @@ func buildUpdateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		viper.GetString(FlagDetails),
 	)
 
-	nodeType := viper.GetString(FlagNodeType)
+	nodeType := viper.GetInt(FlagNodeType)
 
 	nodeAddrStr := viper.GetString(FlagNetworkAddress)
-	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
+	nodeAddr, err := stratos.SdsAddressFromBech32(nodeAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 
 	ownerAddr := cliCtx.GetFromAddress()
-
-	msg := types.NewMsgUpdateResourceNode(networkID, desc, nodeType, nodeAddr, ownerAddr)
+	if t := types.NodeType(nodeType).Type(); t == "UNKNOWN" {
+		return txBldr, nil, types.ErrNodeType
+	}
+	msg := types.NewMsgUpdateResourceNode(desc, types.NodeType(nodeType), nodeAddr, ownerAddr)
 	return txBldr, msg, nil
 }
 
@@ -473,7 +484,7 @@ func UpdateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 // makes a new MsgUpdateIndexingNode.
 func buildUpdateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	networkID := viper.GetString(FlagNetworkID)
+	//networkID := viper.GetString(FlagNetworkID)
 
 	desc := types.NewDescription(
 		viper.GetString(FlagMoniker),
@@ -484,13 +495,13 @@ func buildUpdateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 	)
 
 	nodeAddrStr := viper.GetString(FlagNetworkAddress)
-	nodeAddr, err := sdk.AccAddressFromBech32(nodeAddrStr)
+	nodeAddr, err := stratos.SdsAddressFromBech32(nodeAddrStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
 
 	ownerAddr := cliCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateIndexingNode(networkID, desc, nodeAddr, ownerAddr)
+	msg := types.NewMsgUpdateIndexingNode(desc, nodeAddr, ownerAddr)
 	return txBldr, msg, nil
 }

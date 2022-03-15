@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	stratos "github.com/stratosnet/stratos-chain/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -127,7 +128,7 @@ func VolumeReportCmd(cdc *codec.Codec) *cobra.Command {
 
 func createVolumeReportMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
 	reporterStr := viper.GetString(FlagReporterAddr)
-	reporter, err := sdk.AccAddressFromBech32(reporterStr)
+	reporter, err := stratos.SdsAddressFromBech32(reporterStr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -248,9 +249,9 @@ func buildSlashingResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuild
 	if err != nil {
 		return txBldr, nil, err
 	}
-	var reporters = make([]sdk.AccAddress, 0)
+	var reporters = make([]stratos.SdsAddress, 0)
 	for _, val := range reportersStr {
-		reporterAddr, err := sdk.AccAddressFromBech32(val)
+		reporterAddr, err := stratos.SdsAddressFromBech32(val)
 		if err != nil {
 			return txBldr, nil, err
 		}
@@ -272,7 +273,7 @@ func buildSlashingResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuild
 	}
 
 	networkAddressStr := viper.GetString(FlagNetworkAddress)
-	networkAddress, err := sdk.AccAddressFromBech32(networkAddressStr)
+	networkAddress, err := stratos.SdsAddressFromBech32(networkAddressStr)
 	if err != nil {
 		return txBldr, nil, err
 	}

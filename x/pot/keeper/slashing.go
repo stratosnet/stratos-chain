@@ -2,15 +2,17 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, walletAddr sdk.AccAddress, ozAmt sdk.Int, suspend bool) (amt sdk.Int, err error) {
+func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
+	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType regtypes.NodeType, err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
-		return sdk.ZeroInt(), regtypes.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), regtypes.NodeType(0), regtypes.ErrNoResourceNodeFound
 	}
 	//if suspend == node.Suspend {
 	//	return types.ErrNodeStatusSuspend
@@ -34,5 +36,6 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, wa
 	k.RegisterKeeper.SetLastResourceNodeStake(ctx, node.GetNetworkAddr(), node.Tokens)
 
 	k.SetSlashing(ctx, p2pAddr, newSlashing)
-	return slash.TruncateInt(), nil
+
+	return slash.TruncateInt(), node.NodeType, nil
 }

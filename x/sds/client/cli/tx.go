@@ -10,6 +10,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	stratos "github.com/stratosnet/stratos-chain/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -52,7 +53,7 @@ func FileUploadTxCmd(cdc *codec.Codec) *cobra.Command {
 				return err
 			}
 
-			reporter, err := sdk.AccAddressFromBech32(viper.GetString(FlagReporter))
+			reporter, err := stratos.SdsAddressFromBech32(viper.GetString(FlagReporter))
 			if err != nil {
 				return err
 			}

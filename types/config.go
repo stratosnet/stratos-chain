@@ -43,6 +43,7 @@ func NewConfig() *Config {
 			"validator_pub":  ValidatorPubKeyPrefix,
 			"consensus_pub":  ConsNodePubKeyPrefix,
 			"sdsp2p_pub":     SdsNodeP2PKeyPrefix,
+			"sdsp2p_addr":    SdsNodeP2PAddressPrefix,
 		},
 		coinType:           CoinType,
 		fullFundraiserPath: HDPath,
@@ -111,9 +112,10 @@ func (config *Config) SetBech32PrefixForConsensusNode(addressPrefix, pubKeyPrefi
 	config.bech32AddressPrefix["consensus_pub"] = pubKeyPrefix
 }
 
-func (config *Config) SetBech32PrefixForSdsNodeP2P(pubKeyPrefix string) {
+func (config *Config) SetBech32PrefixForSdsNodeP2P(pubKeyPrefix, p2pAddrPrifx string) {
 	config.assertNotSealed()
 	config.bech32AddressPrefix["sdsp2p_pub"] = pubKeyPrefix
+	config.bech32AddressPrefix["sdsp2p_addr"] = p2pAddrPrifx
 }
 
 // SetTxEncoder builds the Config with TxEncoder used to marshal StdTx to bytes
@@ -201,6 +203,10 @@ func (config *Config) GetBech32ConsensusPubPrefix() string {
 
 func (config *Config) GetBech32SdsNodeP2PPubPrefix() string {
 	return config.bech32AddressPrefix["sdsp2p_pub"]
+}
+
+func (config *Config) GetBech32SdsNodeP2PAddrPrefix() string {
+	return config.bech32AddressPrefix["sdsp2p_addr"]
 }
 
 // GetTxEncoder return function to encode transactions

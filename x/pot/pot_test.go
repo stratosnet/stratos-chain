@@ -107,13 +107,11 @@ var (
 	valInitialStake = sdk.NewInt(15 * stos2ustos)
 )
 
-func SetConfig() {
+func TestMain(m *testing.M) {
 	config := stratos.GetConfig()
-	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
-	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
+
 	config.Seal()
+
 }
 
 func setupAccounts(mApp *mock.App) []authexported.Account {
@@ -188,11 +186,11 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 func setupAllResourceNodes() []register.ResourceNode {
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4", time)
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4", time)
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4", time)
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4", time)
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4", time)
+	resourceNode1 := register.NewResourceNode("sds://resourceNode1", resNodePubKey1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4, time)
+	resourceNode2 := register.NewResourceNode("sds://resourceNode2", resNodePubKey2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4, time)
+	resourceNode3 := register.NewResourceNode("sds://resourceNode3", resNodePubKey3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4, time)
+	resourceNode4 := register.NewResourceNode("sds://resourceNode4", resNodePubKey4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4, time)
+	resourceNode5 := register.NewResourceNode("sds://resourceNode5", resNodePubKey5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4, time)
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
@@ -219,9 +217,9 @@ func setupAllIndexingNodes() []register.IndexingNode {
 	var indexingNodes []register.IndexingNode
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time)
-	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time)
-	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	indexingNode1 := register.NewIndexingNode(stratos.SdsAddress(idxNodeAddr1), idxNodePubKey1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	indexingNode2 := register.NewIndexingNode(stratos.SdsAddress(idxNodeAddr2), idxNodePubKey2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	indexingNode3 := register.NewIndexingNode(stratos.SdsAddress(idxNodeAddr3), idxNodePubKey3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
 
 	indexingNode1 = indexingNode1.AddToken(idxNodeInitialStake1)
 	indexingNode2 = indexingNode2.AddToken(idxNodeInitialStake2)

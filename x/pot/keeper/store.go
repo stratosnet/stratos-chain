@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -134,14 +135,14 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) SetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress, slashing sdk.Int) {
+func (k Keeper) SetSlashing(ctx sdk.Context, p2pAddress stratos.SdsAddress, slashing sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetSlashingKey(p2pAddress)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(slashing)
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) GetSlashing(ctx sdk.Context, p2pAddress sdk.AccAddress) (res sdk.Int) {
+func (k Keeper) GetSlashing(ctx sdk.Context, p2pAddress stratos.SdsAddress) (res sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetSlashingKey(p2pAddress))
 	if bz == nil {

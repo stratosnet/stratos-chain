@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/cosmos/cosmos-sdk/x/staking"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stretchr/testify/require"
@@ -126,11 +127,11 @@ func Test(t *testing.T) {
 	createAccount(t, ctx, accountKeeper, bankKeeper, idxOwner2, sdk.NewCoins(initialStakeIdx2))
 	createAccount(t, ctx, accountKeeper, bankKeeper, idxOwner3, sdk.NewCoins(initialStakeIdx3))
 	//initialize sds node register msg
-	msgRes1 := register.NewMsgCreateResourceNode("sds://resourceNode1", pubKeyRes1, initialStakeRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4")
-	msgRes2 := register.NewMsgCreateResourceNode("sds://resourceNode2", pubKeyRes2, initialStakeRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4")
-	msgRes3 := register.NewMsgCreateResourceNode("sds://resourceNode3", pubKeyRes3, initialStakeRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4")
-	msgRes4 := register.NewMsgCreateResourceNode("sds://resourceNode4", pubKeyRes4, initialStakeRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4")
-	msgRes5 := register.NewMsgCreateResourceNode("sds://resourceNode5", pubKeyRes5, initialStakeRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4")
+	msgRes1 := register.NewMsgCreateResourceNode("sds://resourceNode1", pubKeyRes1, initialStakeRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4)
+	msgRes2 := register.NewMsgCreateResourceNode("sds://resourceNode2", pubKeyRes2, initialStakeRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4)
+	msgRes3 := register.NewMsgCreateResourceNode("sds://resourceNode3", pubKeyRes3, initialStakeRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4)
+	msgRes4 := register.NewMsgCreateResourceNode("sds://resourceNode4", pubKeyRes4, initialStakeRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4)
+	msgRes5 := register.NewMsgCreateResourceNode("sds://resourceNode5", pubKeyRes5, initialStakeRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4)
 	msgIdx1 := register.NewMsgCreateIndexingNode("sds://indexingNode1", pubKeyIdx1, initialStakeIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""))
 	msgIdx2 := register.NewMsgCreateIndexingNode("sds://indexingNode2", pubKeyIdx2, initialStakeIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""))
 	msgIdx3 := register.NewMsgCreateIndexingNode("sds://indexingNode3", pubKeyIdx3, initialStakeIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""))
@@ -166,9 +167,9 @@ func Test(t *testing.T) {
 	idxUnBondedPool := k.RegisterKeeper.GetIndexingNodeNotBondedToken(ctx)
 	k.RegisterKeeper.SetIndexingNodeBondedToken(ctx, idxUnBondedPool)
 	k.RegisterKeeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt()))
-	idxNode1, _ := k.RegisterKeeper.GetIndexingNode(ctx, addrIdx1)
-	idxNode2, _ := k.RegisterKeeper.GetIndexingNode(ctx, addrIdx2)
-	idxNode3, _ := k.RegisterKeeper.GetIndexingNode(ctx, addrIdx3)
+	idxNode1, _ := k.RegisterKeeper.GetIndexingNode(ctx, stratos.SdsAddress(addrIdx1))
+	idxNode2, _ := k.RegisterKeeper.GetIndexingNode(ctx, stratos.SdsAddress(addrIdx2))
+	idxNode3, _ := k.RegisterKeeper.GetIndexingNode(ctx, stratos.SdsAddress(addrIdx3))
 	idxNode1.Status = sdk.Bonded
 	idxNode2.Status = sdk.Bonded
 	idxNode3.Status = sdk.Bonded

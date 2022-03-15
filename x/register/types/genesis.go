@@ -21,14 +21,14 @@ type GenesisState struct {
 
 // LastResourceNodeStake required for resource node set update logic
 type LastResourceNodeStake struct {
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Stake   sdk.Int        `json:"stake" yaml:"stake"`
+	Address stratos.SdsAddress `json:"address" yaml:"address"`
+	Stake   sdk.Int            `json:"stake" yaml:"stake"`
 }
 
 // LastIndexingNodeStake required for indexing node set update logic
 type LastIndexingNodeStake struct {
-	Address sdk.AccAddress `json:"address" yaml:"address"`
-	Stake   sdk.Int        `json:"stake" yaml:"stake"`
+	Address stratos.SdsAddress `json:"address" yaml:"address"`
+	Stake   sdk.Int            `json:"stake" yaml:"stake"`
 }
 
 // NewGenesisState creates a new GenesisState object
@@ -83,7 +83,7 @@ func ValidateGenesis(data GenesisState) error {
 	if data.LastResourceNodeStakes != nil {
 		for _, nodeStake := range data.LastResourceNodeStakes {
 			if nodeStake.Address.Empty() {
-				return ErrEmptyNetworkAddr
+				return ErrInvalidNetworkAddr
 			}
 			if nodeStake.Stake.LT(sdk.ZeroInt()) {
 				return ErrValueNegative
@@ -94,7 +94,7 @@ func ValidateGenesis(data GenesisState) error {
 	if data.LastIndexingNodeStakes != nil {
 		for _, nodeStake := range data.LastIndexingNodeStakes {
 			if nodeStake.Address.Empty() {
-				return ErrEmptyNetworkAddr
+				return ErrInvalidNetworkAddr
 			}
 			if nodeStake.Stake.LT(sdk.ZeroInt()) {
 				return ErrValueNegative
@@ -137,8 +137,13 @@ func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
 		panic(err)
 	}
 
+	netAddr, err := stratos.SdsAddressFromBech32(v.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+
 	return IndexingNode{
-		NetworkID:    v.NetworkID,
+		NetworkID:    netAddr,
 		PubKey:       pubKey,
 		Suspend:      v.Suspend,
 		Status:       v.Status,

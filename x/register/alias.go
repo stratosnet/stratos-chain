@@ -20,7 +20,7 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	ErrInvalid                  = types.ErrInvalid
-	ErrEmptyNetworkAddr         = types.ErrEmptyNetworkAddr
+	ErrInvalidNetworkAddr       = types.ErrInvalidNetworkAddr
 	ErrEmptyOwnerAddr           = types.ErrEmptyOwnerAddr
 	ErrValueNegative            = types.ErrValueNegative
 	ErrEmptyDescription         = types.ErrEmptyDescription

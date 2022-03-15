@@ -12,6 +12,8 @@ const (
 	AttributeKeyAmount             = "amount"
 	AttributeKeyWalletAddress      = "wallet_address"
 	AttributeKeyTotalConsumedOzone = "total_consumed_ozone"
+	AttributeKeyNodeP2PAddress     = "p2p_address"
+	AttributeKeySlashingNodeType   = "slashing_type"
 
 	AttributeValueCategory = ModuleName
 )

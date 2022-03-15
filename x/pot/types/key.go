@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -68,7 +69,7 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	return key
 }
 
-func GetSlashingKey(p2pAddress sdk.AccAddress) []byte {
+func GetSlashingKey(p2pAddress stratos.SdsAddress) []byte {
 	key := append(SlashingPrefix, p2pAddress...)
 	return key
 }

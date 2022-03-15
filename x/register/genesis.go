@@ -2,6 +2,7 @@ package register
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -67,13 +68,13 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
 	var lastResourceNodeStakes []types.LastResourceNodeStake
-	keeper.IterateLastResourceNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
+	keeper.IterateLastResourceNodeStakes(ctx, func(addr stratos.SdsAddress, stake sdk.Int) (stop bool) {
 		lastResourceNodeStakes = append(lastResourceNodeStakes, types.LastResourceNodeStake{Address: addr, Stake: stake})
 		return false
 	})
 
 	var lastIndexingNodeStakes []types.LastIndexingNodeStake
-	keeper.IterateLastIndexingNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
+	keeper.IterateLastIndexingNodeStakes(ctx, func(addr stratos.SdsAddress, stake sdk.Int) (stop bool) {
 		lastIndexingNodeStakes = append(lastIndexingNodeStakes, types.LastIndexingNodeStake{Address: addr, Stake: stake})
 		return false
 	})

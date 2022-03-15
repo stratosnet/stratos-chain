@@ -14,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	"github.com/stratosnet/stratos-chain/x/register"
@@ -55,9 +56,16 @@ var (
 	ppNodeStakeNew  = sdk.NewInt(100000000)
 )
 
+func TestMain(m *testing.M) {
+	config := stratos.GetConfig()
+
+	config.Seal()
+
+}
+
 func TestRandomPurchasedUoz(t *testing.T) {
 	/********************* initialize mock app *********************/
-	SetConfig()
+
 	mApp, k, _, registerKeeper, _ := getMockAppPrepay(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
@@ -86,7 +94,7 @@ func TestRandomPurchasedUoz(t *testing.T) {
 	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 	for i, val := range resouceNodeTokens {
-		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), "storage", time)
+		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), 4, time)
 		tmpResourceNode.Tokens = val
 		tmpResourceNode.Status = sdk.Bonded
 		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
@@ -101,7 +109,6 @@ func TestRandomPurchasedUoz(t *testing.T) {
 
 func TestPurchasedUoz(t *testing.T) {
 	/********************* initialize mock app *********************/
-	SetConfig()
 	mApp, k, _, registerKeeper, _ := getMockAppPrepay(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
@@ -130,7 +137,7 @@ func TestPurchasedUoz(t *testing.T) {
 	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 	for i, val := range resouceNodeTokens {
-		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), "storage", time)
+		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), 4, time)
 		tmpResourceNode.Tokens = val
 		tmpResourceNode.Status = sdk.Bonded
 		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
@@ -144,7 +151,6 @@ func TestPurchasedUoz(t *testing.T) {
 
 func TestOzoneLimitChange(t *testing.T) {
 	/********************* initialize mock app *********************/
-	SetConfig()
 	mApp, k, _, registerKeeper, _ := getMockApp(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
@@ -173,7 +179,7 @@ func TestOzoneLimitChange(t *testing.T) {
 	//registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 	for i, val := range resouceNodeTokens {
-		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), "storage", time)
+		tmpResourceNode := regtypes.NewResourceNode("sds://resourceNode"+strconv.Itoa(i+1), ppNodePubKey1, ppNodeOwner1, regtypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), 4, time)
 		tmpResourceNode.Tokens = val
 		tmpResourceNode.Status = sdk.Bonded
 		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
@@ -188,7 +194,6 @@ func TestOzoneLimitChange(t *testing.T) {
 func TestSdsMsgs(t *testing.T) {
 
 	/********************* initialize mock app *********************/
-	SetConfig()
 	mApp, keeper, _, _, _ := getMockApp(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
@@ -197,7 +202,7 @@ func TestSdsMsgs(t *testing.T) {
 	///********************* create fileUpload msg *********************/
 	log.Print("====== Testing MsgFileUpload ======")
 	//fileHash, _ := hex.DecodeString(testFileHashHex)
-	fileUploadMsg := types.NewMsgUpload(testFileHashHex, sdsAccAddr1, spNodeAddrIdx1, sdsAccAddr2)
+	fileUploadMsg := types.NewMsgUpload(testFileHashHex, sdsAccAddr1, stratos.SdsAddress(spP2pAddr), sdsAccAddr2)
 	headerUpload := abci.Header{Height: mApp.LastBlockHeight() + 1}
 	mock.SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, headerUpload, []sdk.Msg{fileUploadMsg}, []uint64{18}, []uint64{0}, true, true, sdsAccPrivKey1)
 	coin := sdk.NewCoin(DefaultDenom, spNodeInitialStakeIdx1)
@@ -419,7 +424,7 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
@@ -478,7 +483,7 @@ func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper aut
 		//resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, nil, lastIndexingNodeStakes, indexingNodes, initialUOzonePriceTestPurchase)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, nil, lastIndexingNodeStakes, indexingNodes, initialUOzonePriceTestPurchase, sdk.ZeroInt())
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
