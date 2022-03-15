@@ -99,7 +99,7 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 	// update mined token record by adding mining reward
 	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
 	newTotalMinedToken := oldTotalMinedToken.Add(totalRewardFromMiningPool)
-	k.setTotalMinedTokens(ctx, newTotalMinedToken)
+	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
 	k.setMinedTokens(ctx, epoch, totalRewardFromMiningPool)
 
 	// deduct traffic reward from prepay pool
@@ -113,7 +113,7 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 	return nil
 }
 
-func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch sdk.Int) (err error) {
+func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, currentEpoch sdk.Int) (err error) {
 	balanceOfMiningPool := goal.BlockChainRewardToIndexingNodeFromMiningPool.
 		Add(goal.MetaNodeRewardToIndexingNodeFromMiningPool).
 		Add(goal.BlockChainRewardToResourceNodeFromMiningPool).
@@ -138,10 +138,10 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, epoch 
 	//return balance to minedToken record
 	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
 	newTotalMinedToken := oldTotalMinedToken.Sub(balanceOfMiningPool)
-	oldMinedToken := k.GetMinedTokens(ctx, epoch)
+	oldMinedToken := k.GetMinedTokens(ctx, currentEpoch)
 	newMinedToken := oldMinedToken.Sub(balanceOfMiningPool)
-	k.setTotalMinedTokens(ctx, newTotalMinedToken)
-	k.setMinedTokens(ctx, epoch, newMinedToken)
+	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
+	k.setMinedTokens(ctx, currentEpoch, newMinedToken)
 
 	// return balance to prepay pool
 	totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
@@ -246,7 +246,7 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 		walletAddr := reward.WalletAddress
 		k.addNewRewardAndReCalcTotal(ctx, walletAddr, currentEpoch, matureEpoch, reward)
 	}
-	k.setLastReportedEpoch(ctx, currentEpoch)
+	k.SetLastReportedEpoch(ctx, currentEpoch)
 	return nil
 }
 
@@ -283,9 +283,9 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 		k.setRewardAddressPool(ctx, rewardAddressPool)
 	}
 
-	k.setMatureTotalReward(ctx, account, matureTotal)
-	k.setImmatureTotalReward(ctx, account, immatureTotal)
-	k.setIndividualReward(ctx, account, matureEpoch, newReward)
+	k.SetMatureTotalReward(ctx, account, matureTotal)
+	k.SetImmatureTotalReward(ctx, account, immatureTotal)
+	k.SetIndividualReward(ctx, account, matureEpoch, newReward)
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
@@ -475,4 +475,32 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 	indexingNodeReward = totalReward.ToDec().Mul(indexingNodeBondedTokens).Quo(totalBondedTokens).TruncateInt()
 
 	return
+}
+
+func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, immatureTotal sdk.Coins) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.ImmatureTotalRewardKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix) : len(types.ImmatureTotalRewardKeyPrefix)+sdk.AddrLen])
+		var immatureTotal sdk.Coins
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &immatureTotal)
+		if handler(addr, immatureTotal) {
+			break
+		}
+	}
+}
+
+func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, matureTotal sdk.Coins) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.MatureTotalRewardKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix) : len(types.MatureTotalRewardKeyPrefix)+sdk.AddrLen])
+		var matureTotal sdk.Coins
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &matureTotal)
+		if handler(addr, matureTotal) {
+			break
+		}
+	}
 }

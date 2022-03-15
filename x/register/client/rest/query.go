@@ -9,6 +9,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -57,12 +58,11 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 		}
 
 		var (
-			networkID string
-			moniker   string
-			ownerAddr sdk.AccAddress
+			networkAddr stratos.SdsAddress
+			moniker     string
+			ownerAddr   sdk.AccAddress
 		)
 
-		networkID = r.URL.Query().Get(RestNetworkID)
 		moniker = r.URL.Query().Get(RestMoniker)
 
 		if v := r.URL.Query().Get(RestOwner); len(v) != 0 {
@@ -73,7 +73,15 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 			}
 		}
 
-		params := types.NewQueryNodesParams(page, limit, networkID, moniker, ownerAddr)
+		if v := r.URL.Query().Get(RestNetworkAddr); len(v) != 0 {
+			networkAddr, err = stratos.SdsAddressFromBech32(v)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+		}
+
+		params := types.NewQueryNodesParams(page, limit, networkAddr, moniker, ownerAddr)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -83,7 +91,7 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			rest.WriteErrorResponse(w, http.StatusNotFound, err.Error())
 			return
 		}
 
@@ -122,7 +130,7 @@ func nodeStakingByNodeAddressFn(cliCtx context.CLIContext, queryPath string) htt
 		}
 
 		NodeAddrStr := mux.Vars(r)["nodeAddress"]
-		nodeAddress, ok := keeper.CheckAccAddr(w, r, NodeAddrStr)
+		nodeAddress, ok := keeper.CheckSdsAddr(w, r, NodeAddrStr)
 		if !ok {
 			return
 		}
@@ -181,7 +189,7 @@ func nodeStakingByOwnerFn(cliCtx context.CLIContext, queryPath string) http.Hand
 			return
 		}
 
-		params := types.NewQueryNodesParams(page, limit, "", "", nodeWalletAddress)
+		params := types.NewQueryNodesParams(page, limit, nil, "", nodeWalletAddress)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 
 	// this line is used by starport scaffolding # 1
@@ -16,17 +17,17 @@ import (
 )
 
 const (
-	QueryResourceNodeList         = "resource_nodes"
-	QueryResourceNodesByNetworkID = "resource_nodes_network_id"
-	QueryIndexingNodesByNetworkID = "indexing_nodes_network_id"
-	QueryResourceNodeByMoniker    = "resource_nodes_moniker"
-	QueryIndexingNodeList         = "indexing_nodes"
-	QueryIndexingNodeByMoniker    = "indexing_nodes_moniker"
-	QueryNodesTotalStakes         = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddr      = "node_stakes"
-	QueryNodeStakeByOwner         = "node_stakes_by_owner"
-	QueryRegisterParams           = "register_params"
-	QueryDefaultLimit             = 100
+	QueryResourceNodeList           = "resource_nodes"
+	QueryResourceNodesByNetworkAddr = "resource_nodes_network_addr"
+	QueryIndexingNodesByNetworkAddr = "indexing_nodes_network_addr"
+	QueryResourceNodeByMoniker      = "resource_nodes_moniker"
+	QueryIndexingNodeList           = "indexing_nodes"
+	QueryIndexingNodeByMoniker      = "indexing_nodes_moniker"
+	QueryNodesTotalStakes           = "nodes_total_stakes"
+	QueryNodeStakeByNodeAddr        = "node_stakes"
+	QueryNodeStakeByOwner           = "node_stakes_by_owner"
+	QueryRegisterParams             = "register_params"
+	QueryDefaultLimit               = 100
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -35,12 +36,12 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryResourceNodeList:
 			return GetResourceNodeList(ctx, req, k)
-		case QueryResourceNodesByNetworkID:
-			return GetResourceNodes(ctx, req, k)
+		case QueryResourceNodesByNetworkAddr:
+			return GetResourceNode(ctx, req, k)
 		case QueryIndexingNodeList:
 			return GetIndexingNodeList(ctx, req, k)
-		case QueryIndexingNodesByNetworkID:
-			return GetIndexingNodes(ctx, req, k)
+		case QueryIndexingNodesByNetworkAddr:
+			return GetIndexingNode(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return GetNodesStakingInfo(ctx, req, k)
 		case QueryNodeStakeByNodeAddr:
@@ -80,22 +81,23 @@ func GetIndexingNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper)
 	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
 }
 
-// GetResourceNodes fetches all resource nodes by network address.
-func GetResourceNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	nodeList, err := k.GetResourceNodeList(ctx, string(req.Data))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//GetResourceNodes fetches  resource nodes by network address.
+func GetResourceNode(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+
+	nodeList, ok := k.GetResourceNode(ctx, req.Data)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, types.ErrNoResourceNodeFound.Error())
 	}
 	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
 }
 
-// GetIndexingNodes fetches all indexing nodes by network address.
-func GetIndexingNodes(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	nodeList, err := k.GetIndexingNodeList(ctx, string(req.Data))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+//GetIndexingNodes fetches all indexing nodes by network address.
+func GetIndexingNode(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	node, ok := k.GetIndexingNode(ctx, req.Data)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, types.ErrNoIndexingNodeFound.Error())
 	}
-	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
+	return types.ModuleCdc.MustMarshalJSON(node), nil
 }
 
 // GetNetworkSet fetches all network addresses.
@@ -111,17 +113,25 @@ func GetResourceNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	resNodes := keeper.GetResourceNodesFiltered(ctx, params)
-	if resNodes == nil {
-		resNodes = types.ResourceNodes{}
+	//resNodes := keeper.GetResourceNodesFiltered(ctx, params)
+	//if resNodes == nil {
+	//	resNodes = types.ResourceNodes{}
+	//}
+	//
+	//bz, err := codec.MarshalJSONIndent(keeper.cdc, resNodes)
+	//if err != nil {
+	//	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	//}
+	//
+	//return bz, nil
+	if params.NetworkAddr.Empty() {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrInvalidNetworkAddr.Error())
 	}
-
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, resNodes)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	node, ok := keeper.GetResourceNode(ctx, params.NetworkAddr)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoResourceNodeFound.Error())
 	}
-
-	return bz, nil
+	return types.ModuleCdc.MustMarshalJSON([]types.ResourceNode{node}), nil
 }
 
 func GetIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
@@ -195,7 +205,7 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	NodeAddr, err := sdk.AccAddressFromBech32(params.AccAddr.String())
+	NodeAddr, err := stratos.SdsAddressFromBech32(params.AccAddr.String())
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
 	}
@@ -337,9 +347,9 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
 
 	for _, n := range nodes {
-		// match NetworkID (if supplied)
-		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+		// match NetworkAddr (if supplied)
+		if !params.NetworkAddr.Empty() {
+			if n.NetworkAddr.Equals(params.NetworkAddr) {
 				continue
 			}
 		}
@@ -364,9 +374,9 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
 	for _, n := range nodes {
-		// match NetworkID (if supplied)
-		if len(params.NetworkID) > 0 {
-			if strings.Compare(n.NetworkID, params.NetworkID) != 0 {
+		// match NetworkAddr (if supplied)
+		if !params.NetworkAddr.Empty() {
+			if n.NetworkAddr.Equals(params.NetworkAddr) {
 				continue
 			}
 		}
@@ -383,7 +393,6 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 			filteredNodes = append(filteredNodes, n)
 		}
 	}
-
 	return filteredNodes
 }
 
@@ -407,7 +416,7 @@ func (k Keeper) indexingNodesPagination(filteredNodes []types.IndexingNode, para
 	return filteredNodes
 }
 
-func getNodeStakes(ctx sdk.Context, keeper Keeper, bondStatus sdk.BondStatus, nodeAddress sdk.AccAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+func getNodeStakes(ctx sdk.Context, keeper Keeper, bondStatus sdk.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
 	unbondingStake = sdk.NewInt(0)
 	unbondedStake = sdk.NewInt(0)
 	bondedStake = sdk.NewInt(0)

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/params"
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -53,7 +54,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter sdk.AccAddress,
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
@@ -67,7 +68,7 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWallet
 	return totalConsumedOzone, err
 }
 
-func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr sdk.AccAddress) (found bool) {
+func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
 	_, found = k.RegisterKeeper.GetIndexingNode(ctx, p2pAddr)
 	return found
 }

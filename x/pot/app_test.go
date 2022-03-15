@@ -36,7 +36,7 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 	volume3 := types.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
 
 	nodesVolume := []types.SingleWalletVolume{volume1, volume2, volume3}
-	reporter := idxNodeAddr1
+	reporter := idxNodeNetworkId1
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
 	reporterOwner := idxOwner1
@@ -66,7 +66,6 @@ func isNeedStop(ctx sdk.Context, k Keeper, epoch sdk.Int, minedToken sdk.Coin) b
 func TestPotVolumeReportMsgs(t *testing.T) {
 
 	/********************* initialize mock app *********************/
-	SetConfig()
 	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
 	mApp, k, stakingKeeper, bankKeeper, supplyKeeper := getMockApp(t)
 	accs := setupAccounts(mApp)
@@ -385,22 +384,10 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		mapp.InitChainer(ctx, req)
 
-		var lastResourceNodeStakes []register.LastResourceNodeStake
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr1, Stake: resNodeInitialStake1})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr2, Stake: resNodeInitialStake2})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr3, Stake: resNodeInitialStake3})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr4, Stake: resNodeInitialStake4})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr5, Stake: resNodeInitialStake5})
-
-		var lastIndexingNodeStakes []register.LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr1, Stake: idxNodeInitialStake1})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr2, Stake: idxNodeInitialStake2})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr3, Stake: idxNodeInitialStake3})
-
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice)
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), resourceNodes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
@@ -425,7 +412,15 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, totalUnissuedPrepay)
 
 		//pot genesis data load
-		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams()))
+		InitGenesis(ctx, keeper, NewGenesisState(
+			types.DefaultParams(),
+			sdk.NewCoin(types.DefaultRewardDenom, sdk.ZeroInt()),
+			0,
+			make([]types.ImmatureTotal, 0),
+			make([]types.MatureTotal, 0),
+			make([]types.Reward, 0),
+			make([]types.Slashing, 0),
+		))
 
 		return abci.ResponseInitChain{
 			Validators: validators,

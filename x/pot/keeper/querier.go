@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -123,7 +124,7 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 }
 
 func queryPotSlashingByP2pAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	addr, err := sdk.AccAddressFromBech32(string(req.Data))
+	addr, err := stratos.SdsAddressFromBech32(string(req.Data))
 	if err != nil {
 		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
 	}
