@@ -33,8 +33,6 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	// TODO: (add to reward distribution?) deduct from immature reward (would affect immatureToMature)
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
-	k.RegisterKeeper.SetLastResourceNodeStake(ctx, node.GetNetworkAddr(), node.Tokens)
-
 	k.SetSlashing(ctx, p2pAddr, newSlashing)
 
 	return slash.TruncateInt(), node.NodeType, nil

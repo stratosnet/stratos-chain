@@ -57,7 +57,5 @@ type (
 	GenesisIndexingNode   = types.GenesisIndexingNode
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
-	LastResourceNodeStake = types.LastResourceNodeStake
-	LastIndexingNodeStake = types.LastIndexingNodeStake
 	VoteOpinion           = types.VoteOpinion
 )
