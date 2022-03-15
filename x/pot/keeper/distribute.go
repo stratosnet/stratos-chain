@@ -482,7 +482,7 @@ func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddres
 	iter := sdk.KVStorePrefixIterator(store, types.ImmatureTotalRewardKeyPrefix)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix):sdk.AddrLen])
+		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix) : len(types.ImmatureTotalRewardKeyPrefix)+sdk.AddrLen])
 		var immatureTotal sdk.Coins
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &immatureTotal)
 		if handler(addr, immatureTotal) {
@@ -496,7 +496,7 @@ func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress 
 	iter := sdk.KVStorePrefixIterator(store, types.MatureTotalRewardKeyPrefix)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix):sdk.AddrLen])
+		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix) : len(types.MatureTotalRewardKeyPrefix)+sdk.AddrLen])
 		var matureTotal sdk.Coins
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &matureTotal)
 		if handler(addr, matureTotal) {
