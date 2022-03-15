@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -12,7 +13,7 @@ import (
 const resourceNodeCacheSize = 500
 
 // Cache the amino decoding of resource nodes, as it can be the case that repeated slashing calls
-// cause many calls to getResourceNode, which were shown to throttle the state machine in our
+// cause many calls to GetResourceNode, which were shown to throttle the state machine in our
 // simulation. Note this is quite biased though, as the simulator does more slashes than a
 // live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedResourceNode struct {
@@ -27,7 +28,7 @@ func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) c
 	}
 }
 
-// getResourceNode get a single resource node
+// GetResourceNode get a single resource node
 func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetResourceNodeKey(p2pAddress))
@@ -79,7 +80,7 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.Reso
 	return resourceNodes
 }
 
-func (k Keeper) getResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
+func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	return iterator
@@ -216,37 +217,37 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 	return nil
 }
 
-// getResourceNodeList get all resource nodes by network address
-//func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (resourceNodes []types.ResourceNode, err error) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-//	defer iterator.Close()
-//	for ; iterator.Valid(); iterator.Next() {
-//		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-//		if node.NetworkID.Equals(networkAddr) {
-//			resourceNodes = append(resourceNodes, node)
-//		}
-//	}
-//	return resourceNodes, nil
-//}
+// GetResourceNodeList get all resource nodes by network address
+func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if node.NetworkAddr.Equals(networkAddr) {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	return resourceNodes, nil
+}
 
-//func (k Keeper) getResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-//	defer iterator.Close()
-//	for ; iterator.Valid(); iterator.Next() {
-//		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-//		if strings.Compare(node.Description.Moniker, moniker) == 0 {
-//			resourceNodes = append(resourceNodes, node)
-//		}
-//	}
-//	return resourceNodes, nil
-//}
+func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	defer iterator.Close()
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+		if strings.Compare(node.Description.Moniker, moniker) == 0 {
+			resourceNodes = append(resourceNodes, node)
+		}
+	}
+	return resourceNodes, nil
+}
 
-func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
+	resourceNode := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
 	ozoneLimitChange, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return ozoneLimitChange, err
 }

@@ -9,7 +9,6 @@ const (
 	FlagAmount     = "amount"
 	FlagStakeDelta = "stake-delta"
 	FlagIncrStake  = "incr-stake"
-	FlagNetworkID  = "network-id"
 	FlagNodeType   = "node-type"
 
 	FlagMoniker         = "moniker"
@@ -27,11 +26,11 @@ const (
 
 // common flagsets to add to various functions
 var (
-	FsPk                      = flag.NewFlagSet("", flag.ContinueOnError)
-	FsAmount                  = flag.NewFlagSet("", flag.ContinueOnError)
-	FsStakeDelta              = flag.NewFlagSet("", flag.ContinueOnError)
-	FsIncrStake               = flag.NewFlagSet("", flag.ContinueOnError)
-	FsNetworkID               = flag.NewFlagSet("", flag.ContinueOnError)
+	FsPk         = flag.NewFlagSet("", flag.ContinueOnError)
+	FsAmount     = flag.NewFlagSet("", flag.ContinueOnError)
+	FsStakeDelta = flag.NewFlagSet("", flag.ContinueOnError)
+	FsIncrStake  = flag.NewFlagSet("", flag.ContinueOnError)
+	//FsNetworkAddr             = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNodeType                = flag.NewFlagSet("", flag.ContinueOnError)
 	FsDescription             = flag.NewFlagSet("", flag.ContinueOnError)
 	FsNetworkAddress          = flag.NewFlagSet("", flag.ContinueOnError)
@@ -47,7 +46,7 @@ func init() {
 	FsStakeDelta.String(FlagStakeDelta, "", "Stake change of coins to be made (always positive like 100000ustos)")
 	FsIncrStake.String(FlagIncrStake, "", "Boolean indicator of increase/decrease of stake delta, true for increase and false for decrease")
 	//FsNetworkAddr.String(FlagNetworkAddress, "", "The network address of the node")
-	FsNetworkID.String(FlagNetworkID, "", "The network id of the node")
+	//FsNetworkAddr.String(FlagNetworkAddr, "", "The network address of the node")
 	FsNodeType.Int(FlagNodeType, 0, "The value of node_type is determined by the three node "+
 		"types (storage=4/database=2/computation=1) and their arbitrary combinations.")
 

@@ -42,7 +42,7 @@ func NewConfig() *Config {
 			"account_pub":    AccountPubKeyPrefix,
 			"validator_pub":  ValidatorPubKeyPrefix,
 			"consensus_pub":  ConsNodePubKeyPrefix,
-			"sdsp2p_pub":     SdsNodeP2PKeyPrefix,
+			"sdsp2p_pub":     SdsNodeP2PPubkeyPrefix,
 			"sdsp2p_addr":    SdsNodeP2PAddressPrefix,
 		},
 		coinType:           CoinType,
