@@ -132,6 +132,6 @@ func GetIndNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 
 // QueryIndexingNodes queries one indexing node by network ID
 func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeByNetworkAddr)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
 	return cliCtx.QueryWithData(route, []byte(networkID))
 }
