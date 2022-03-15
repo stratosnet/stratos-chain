@@ -10,41 +10,25 @@ import (
 
 // GenesisState - all register state that must be provided at genesis
 type GenesisState struct {
-	Params                 Params                  `json:"params" yaml:"params"`
-	LastResourceNodeStakes []LastResourceNodeStake `json:"last_resource_node_stakes" yaml:"last_resource_node_stakes"`
-	ResourceNodes          ResourceNodes           `json:"resource_nodes" yaml:"resource_nodes"`
-	LastIndexingNodeStakes []LastIndexingNodeStake `json:"last_indexing_node_stakes" yaml:"last_indexing_node_stakes"`
-	IndexingNodes          IndexingNodes           `json:"indexing_nodes" yaml:"indexing_nodes"`
-	InitialUozPrice        sdk.Dec                 `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
-	TotalUnissuedPrepay    sdk.Int                 `json:"total_unissued_prepay" yaml:"total_unissued_prepay"`
-}
-
-// LastResourceNodeStake required for resource node set update logic
-type LastResourceNodeStake struct {
-	Address stratos.SdsAddress `json:"address" yaml:"address"`
-	Stake   sdk.Int            `json:"stake" yaml:"stake"`
-}
-
-// LastIndexingNodeStake required for indexing node set update logic
-type LastIndexingNodeStake struct {
-	Address stratos.SdsAddress `json:"address" yaml:"address"`
-	Stake   sdk.Int            `json:"stake" yaml:"stake"`
+	Params              Params        `json:"params" yaml:"params"`
+	ResourceNodes       ResourceNodes `json:"resource_nodes" yaml:"resource_nodes"`
+	IndexingNodes       IndexingNodes `json:"indexing_nodes" yaml:"indexing_nodes"`
+	InitialUozPrice     sdk.Dec       `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
+	TotalUnissuedPrepay sdk.Int       `json:"total_unissued_prepay" yaml:"total_unissued_prepay"`
 }
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params,
-	lastResourceNodeStakes []LastResourceNodeStake, resourceNodes ResourceNodes,
-	lastIndexingNodeStakes []LastIndexingNodeStake, indexingNodes IndexingNodes,
+	resourceNodes ResourceNodes,
+	indexingNodes IndexingNodes,
 	initialUOzonePrice sdk.Dec, totalUnissuedPrepay sdk.Int,
 ) GenesisState {
 	return GenesisState{
-		Params:                 params,
-		LastResourceNodeStakes: lastResourceNodeStakes,
-		ResourceNodes:          resourceNodes,
-		LastIndexingNodeStakes: lastIndexingNodeStakes,
-		IndexingNodes:          indexingNodes,
-		InitialUozPrice:        initialUOzonePrice,
-		TotalUnissuedPrepay:    totalUnissuedPrepay,
+		Params:              params,
+		ResourceNodes:       resourceNodes,
+		IndexingNodes:       indexingNodes,
+		InitialUozPrice:     initialUOzonePrice,
+		TotalUnissuedPrepay: totalUnissuedPrepay,
 	}
 }
 
@@ -80,27 +64,6 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if data.LastResourceNodeStakes != nil {
-		for _, nodeStake := range data.LastResourceNodeStakes {
-			if nodeStake.Address.Empty() {
-				return ErrInvalidNetworkAddr
-			}
-			if nodeStake.Stake.LT(sdk.ZeroInt()) {
-				return ErrValueNegative
-			}
-		}
-	}
-
-	if data.LastIndexingNodeStakes != nil {
-		for _, nodeStake := range data.LastIndexingNodeStakes {
-			if nodeStake.Address.Empty() {
-				return ErrInvalidNetworkAddr
-			}
-			if nodeStake.Stake.LT(sdk.ZeroInt()) {
-				return ErrValueNegative
-			}
-		}
-	}
 	if data.InitialUozPrice.LTE(sdk.ZeroDec()) {
 		return ErrInitialUOzonePrice
 	}

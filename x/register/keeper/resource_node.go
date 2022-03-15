@@ -67,31 +67,6 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 	store.Set(types.GetResourceNodeKey(resourceNode.GetNetworkAddr()), bz)
 }
 
-// GetLastResourceNodeStake Load the last resource node stake.
-// Returns zero if the node was not a resource node last block.
-func (k Keeper) GetLastResourceNodeStake(ctx sdk.Context, nodeAddr stratos.SdsAddress) (stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastResourceNodeStakeKey(nodeAddr))
-	if bz == nil {
-		return sdk.ZeroInt()
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &stake)
-	return
-}
-
-// SetLastResourceNodeStake Set the last resource node stake.
-func (k Keeper) SetLastResourceNodeStake(ctx sdk.Context, nodeAddr stratos.SdsAddress, stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
-	store.Set(types.GetLastResourceNodeStakeKey(nodeAddr), bz)
-}
-
-// DeleteLastResourceNodeStake Delete the last resource node stake.
-func (k Keeper) DeleteLastResourceNodeStake(ctx sdk.Context, nodeAddr stratos.SdsAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetLastResourceNodeStakeKey(nodeAddr))
-}
-
 // GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
 func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
@@ -111,38 +86,17 @@ func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 	return iterator
 }
 
-// IterateLastResourceNodeStakes Iterate over last resource node stakes.
-func (k Keeper) IterateLastResourceNodeStakes(ctx sdk.Context, handler func(nodeAddr stratos.SdsAddress, stake sdk.Int) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.LastResourceNodeStakeKey)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := stratos.SdsAddress(iter.Key()[len(types.LastResourceNodeStakeKey):])
-		var stake sdk.Int
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &stake)
-		if handler(addr, stake) {
-			break
-		}
-	}
-}
-
 // AddResourceNodeStake Update the tokens of an existing resource node
 func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin,
 ) (ozoneLimitChange sdk.Int, err error) {
 
-	//todo: p2p address can't be used as normal account
-	nodeAcc := k.accountKeeper.GetAccount(ctx, sdk.AccAddress(resourceNode.GetNetworkAddr()))
-	if nodeAcc == nil {
-		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, sdk.AccAddress(resourceNode.GetNetworkAddr()))
-		k.accountKeeper.SetAccount(ctx, nodeAcc)
-	}
-
 	coins := sdk.NewCoins(tokenToAdd)
+
+	// sub coins from owner's wallet
 	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
-
 	_, err = k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
@@ -182,10 +136,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		k.SetResourceNodeBondedToken(ctx, bondedToken)
 	}
 
-	newStake := resourceNode.GetTokens()
-
 	k.SetResourceNode(ctx, resourceNode)
-	k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
@@ -240,14 +191,10 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	k.SetResourceNode(ctx, resourceNode)
 
 	if newStake.IsZero() {
-		k.DeleteLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr())
-		err := k.removeResourceNode(ctx, resourceNode.GetNetworkAddr())
-
+		err = k.removeResourceNode(ctx, resourceNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
-	} else {
-		k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	}
 	return nil
 }

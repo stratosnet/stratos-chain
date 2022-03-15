@@ -68,31 +68,6 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 	store.Set(types.GetIndexingNodeKey(indexingNode.GetNetworkAddr()), bz)
 }
 
-// GetLastIndexingNodeStake Load the last indexing node stake.
-// Returns zero if the node was not a indexing node last block.
-func (k Keeper) GetLastIndexingNodeStake(ctx sdk.Context, nodeAddr stratos.SdsAddress) (stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastIndexingNodeStakeKey(nodeAddr))
-	if bz == nil {
-		return sdk.ZeroInt()
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &stake)
-	return
-}
-
-// SetLastIndexingNodeStake Set the last indexing node stake.
-func (k Keeper) SetLastIndexingNodeStake(ctx sdk.Context, nodeAddr stratos.SdsAddress, stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
-	store.Set(types.GetLastIndexingNodeStakeKey(nodeAddr), bz)
-}
-
-// DeleteLastIndexingNodeStake Delete the last indexing node stake.
-func (k Keeper) DeleteLastIndexingNodeStake(ctx sdk.Context, nodeAddr stratos.SdsAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetLastIndexingNodeStakeKey(nodeAddr))
-}
-
 // GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
 func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes []types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
@@ -121,21 +96,6 @@ func (k Keeper) GetAllValidIndexingNodes(ctx sdk.Context) (indexingNodes []types
 	return indexingNodes
 }
 
-// IterateLastIndexingNodeStakes Iterate over last indexing node stakes.
-func (k Keeper) IterateLastIndexingNodeStakes(ctx sdk.Context, handler func(nodeAddr stratos.SdsAddress, stake sdk.Int) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.LastIndexingNodeStakeKey)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := stratos.SdsAddress(iter.Key()[len(types.LastIndexingNodeStakeKey):])
-		var stake sdk.Int
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &stake)
-		if handler(addr, stake) {
-			break
-		}
-	}
-}
-
 func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
@@ -161,19 +121,13 @@ func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkID stratos.SdsAddre
 func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToAdd sdk.Coin,
 ) (ozoneLimitChange sdk.Int, err error) {
 
-	//todo: p2p address can't be used as normal account
-	nodeAcc := k.accountKeeper.GetAccount(ctx, sdk.AccAddress(indexingNode.GetNetworkAddr()))
-	if nodeAcc == nil {
-		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, sdk.AccAddress(indexingNode.GetNetworkAddr()))
-		k.accountKeeper.SetAccount(ctx, nodeAcc)
-	}
-
 	coins := sdk.NewCoins(tokenToAdd)
+
+	// sub coins from owner's wallet
 	hasCoin := k.bankKeeper.HasCoins(ctx, indexingNode.OwnerAddress, coins)
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
-
 	_, err = k.bankKeeper.SubtractCoins(ctx, indexingNode.GetOwnerAddr(), coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
@@ -194,10 +148,7 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 		return sdk.ZeroInt(), types.ErrUnbondingNode
 	}
 
-	newStake := indexingNode.GetTokens()
-
 	k.SetIndexingNode(ctx, indexingNode)
-	k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
@@ -252,13 +203,10 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	k.SetIndexingNode(ctx, indexingNode)
 
 	if newStake.IsZero() {
-		k.DeleteLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr())
-		err := k.removeIndexingNode(ctx, indexingNode.GetNetworkAddr())
+		err = k.removeIndexingNode(ctx, indexingNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
-	} else {
-		k.SetLastIndexingNodeStake(ctx, indexingNode.GetNetworkAddr(), newStake)
 	}
 	return nil
 }
@@ -418,7 +366,7 @@ func (k Keeper) UpdateIndexingNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 	}
 
 	if incrStake {
-		ozoneLimitChange, err := k.AddIndexingNodeStake(ctx, node, stakeDelta)
+		ozoneLimitChange, err = k.AddIndexingNodeStake(ctx, node, stakeDelta)
 		if err != nil {
 			return sdk.ZeroInt(), blockTime, err
 		}
