@@ -3,6 +3,7 @@ package pot
 import (
 	"testing"
 
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -36,7 +37,7 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 	volume3 := types.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
 
 	nodesVolume := []types.SingleWalletVolume{volume1, volume2, volume3}
-	reporter := idxNodeAddr1
+	reporter := stratos.SdsAddress(idxNodeAddr1)
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
 	reporterOwner := idxOwner1
@@ -385,16 +386,16 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		mapp.InitChainer(ctx, req)
 
 		var lastResourceNodeStakes []register.LastResourceNodeStake
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr1, Stake: resNodeInitialStake1})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr2, Stake: resNodeInitialStake2})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr3, Stake: resNodeInitialStake3})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr4, Stake: resNodeInitialStake4})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: resNodeAddr5, Stake: resNodeInitialStake5})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: stratos.SdsAddress(resNodeAddr1), Stake: resNodeInitialStake1})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: stratos.SdsAddress(resNodeAddr2), Stake: resNodeInitialStake2})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: stratos.SdsAddress(resNodeAddr3), Stake: resNodeInitialStake3})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: stratos.SdsAddress(resNodeAddr4), Stake: resNodeInitialStake4})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: stratos.SdsAddress(resNodeAddr5), Stake: resNodeInitialStake5})
 
 		var lastIndexingNodeStakes []register.LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr1, Stake: idxNodeInitialStake1})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr2, Stake: idxNodeInitialStake2})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: idxNodeAddr3, Stake: idxNodeInitialStake3})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: stratos.SdsAddress(idxNodeAddr1), Stake: idxNodeInitialStake1})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: stratos.SdsAddress(idxNodeAddr2), Stake: idxNodeInitialStake2})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: stratos.SdsAddress(idxNodeAddr3), Stake: idxNodeInitialStake3})
 
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()

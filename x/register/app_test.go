@@ -49,7 +49,7 @@ func Test(t *testing.T) {
 	/********************* send register resource node msg *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	registerResNodeMsg := types.NewMsgCreateResourceNode("sds://resourceNode2", resNodePubKey2, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake), resOwnerAddr2, NewDescription("sds://resourceNode2", "", "", "", ""), 4)
+	registerResNodeMsg := types.NewMsgCreateResourceNode(stratos.SdsAddress(resNodeAddr2), resNodePubKey2, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake), resOwnerAddr2, NewDescription("sds://resourceNode2", "", "", "", ""), 4)
 	resNodeOwnerAcc2 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr2)
 	accNumOwner := resNodeOwnerAcc2.GetAccountNumber()
 	accSeqOwner := resNodeOwnerAcc2.GetSequence()
@@ -76,7 +76,7 @@ func Test(t *testing.T) {
 	/********************* send register indexing node msg *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	registerIdxNodeMsg := types.NewMsgCreateIndexingNode("sds://indexingNode3", idxNodePubKey3, sdk.NewCoin(k.BondDenom(ctx), idxNodeInitStake), idxOwnerAddr3, NewDescription("sds://indexingNode3", "", "", "", ""))
+	registerIdxNodeMsg := types.NewMsgCreateIndexingNode(stratos.SdsAddress(idxNodeAddr3), idxNodePubKey3, sdk.NewCoin(k.BondDenom(ctx), idxNodeInitStake), idxOwnerAddr3, NewDescription("sds://indexingNode3", "", "", "", ""))
 	idxOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr3)
 	accNumOwner = idxOwnerAcc3.GetAccountNumber()
 	accSeqOwner = idxOwnerAcc3.GetSequence()
@@ -103,7 +103,7 @@ func Test(t *testing.T) {
 	/********************* deliver tx to vote *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	voteMsg := types.NewMsgIndexingNodeRegistrationVote(idxNodeAddr3, idxOwnerAddr3, types.Approve, idxNodeAddr1, idxOwnerAddr1)
+	voteMsg := types.NewMsgIndexingNodeRegistrationVote(stratos.SdsAddress(idxNodeAddr3), idxOwnerAddr3, types.Approve, stratos.SdsAddress(idxNodeAddr1), idxOwnerAddr1)
 	idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr1)
 	accNumOwner = idxOwnerAcc1.GetAccountNumber()
 	accSeqOwner = idxOwnerAcc1.GetSequence()
@@ -201,11 +201,11 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		//register genesis data load
 		var lastResourceNodeStakes []LastResourceNodeStake
-		lastResourceNodeStakes = append(lastResourceNodeStakes, LastResourceNodeStake{Address: resNodeAddr1, Stake: resNodeInitStake})
+		lastResourceNodeStakes = append(lastResourceNodeStakes, LastResourceNodeStake{Address: stratos.SdsAddress(idxNodeAddr1), Stake: resNodeInitStake})
 
 		var lastIndexingNodeStakes []LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, LastIndexingNodeStake{Address: idxNodeAddr1, Stake: idxNodeInitStake})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, LastIndexingNodeStake{Address: idxNodeAddr2, Stake: idxNodeInitStake})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, LastIndexingNodeStake{Address: stratos.SdsAddress(idxNodeAddr1), Stake: idxNodeInitStake})
+		lastIndexingNodeStakes = append(lastIndexingNodeStakes, LastIndexingNodeStake{Address: stratos.SdsAddress(idxNodeAddr2), Stake: idxNodeInitStake})
 
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
