@@ -41,21 +41,25 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	var individualRewardInfo []types.Reward
 	var immatureTotalInfo []types.ImmatureTotal
 	keeper.IteratorImmatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
-		immatureTotal := types.NewImmatureTotal(walletAddress, reward)
-		immatureTotalInfo = append(immatureTotalInfo, immatureTotal)
+		if !reward.Empty() && !reward.IsZero() {
+			immatureTotal := types.NewImmatureTotal(walletAddress, reward)
+			immatureTotalInfo = append(immatureTotalInfo, immatureTotal)
 
-		miningReward := sdk.NewCoins(sdk.NewCoin(types.DefaultRewardDenom, reward.AmountOf(types.DefaultRewardDenom)))
-		trafficReward := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, reward.AmountOf(types.DefaultBondDenom)))
-		individualReward := types.NewReward(walletAddress, miningReward, trafficReward)
-		individualRewardInfo = append(individualRewardInfo, individualReward)
+			miningReward := sdk.NewCoins(sdk.NewCoin(types.DefaultRewardDenom, reward.AmountOf(types.DefaultRewardDenom)))
+			trafficReward := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, reward.AmountOf(types.DefaultBondDenom)))
+			individualReward := types.NewReward(walletAddress, miningReward, trafficReward)
+			individualRewardInfo = append(individualRewardInfo, individualReward)
 
+		}
 		return false
 	})
 
 	var matureTotalInfo []types.MatureTotal
 	keeper.IteratorMatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
-		matureTotal := types.NewMatureTotal(walletAddress, reward)
-		matureTotalInfo = append(matureTotalInfo, matureTotal)
+		if !reward.Empty() && !reward.IsZero() {
+			matureTotal := types.NewMatureTotal(walletAddress, reward)
+			matureTotalInfo = append(matureTotalInfo, matureTotal)
+		}
 		return false
 	})
 
