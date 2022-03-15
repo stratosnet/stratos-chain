@@ -54,7 +54,7 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			if !viper.IsSet(FlagNetworkID) {
+			if !viper.IsSet(FlagNetworkAddress) {
 				return errors.New("required flag(s) \"network-id\" not set")
 			}
 
@@ -71,14 +71,14 @@ func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkID)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
 	cmd.Flags().AddFlagSet(FsNodeType)
 	cmd.Flags().AddFlagSet(FsDescription)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
-	//_ = cmd.MarkFlagRequired(FlagNetworkAddr)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
 	return cmd
 }
@@ -120,7 +120,7 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			if !viper.IsSet(FlagNetworkID) {
+			if !viper.IsSet(FlagNetworkAddress) {
 				return errors.New("required flag(s) \"network-id\" not set")
 			}
 			if !viper.IsSet(FlagMoniker) {
@@ -135,7 +135,7 @@ func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 	}
 	cmd.Flags().AddFlagSet(FsPk)
 	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkID)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
 	cmd.Flags().AddFlagSet(FsDescription)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -181,8 +181,8 @@ func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		return txBldr, nil, err
 	}
 
-	networkID := viper.GetString(FlagNetworkID)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkID)
+	networkAddrstr := viper.GetString(FlagNetworkAddress)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -245,8 +245,8 @@ func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder
 		return txBldr, nil, err
 	}
 
-	networkID := viper.GetString(FlagNetworkID)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkID)
+	networkAddrstr := viper.GetString(FlagNetworkAddress)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
 	if err != nil {
 		return txBldr, nil, err
 	}
@@ -412,12 +412,12 @@ func UpdateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsNetworkID)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
 	cmd.Flags().AddFlagSet(FsDescription)
 	cmd.Flags().AddFlagSet(FsNodeType)
 	cmd.Flags().AddFlagSet(FsNetworkAddress)
 
-	_ = cmd.MarkFlagRequired(FlagNetworkID)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
@@ -428,7 +428,7 @@ func UpdateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 // makes a new MsgUpdateResourceNode.
 func buildUpdateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	//networkID := viper.GetString(FlagNetworkID)
+	//networkAddr := viper.GetString(FlagNetworkAddr)
 
 	desc := types.NewDescription(
 		viper.GetString(FlagMoniker),
@@ -470,11 +470,11 @@ func UpdateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsNetworkID)
+	cmd.Flags().AddFlagSet(FsNetworkAddress)
 	cmd.Flags().AddFlagSet(FsDescription)
 	cmd.Flags().AddFlagSet(FsNetworkAddress)
 
-	_ = cmd.MarkFlagRequired(FlagNetworkID)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -484,7 +484,7 @@ func UpdateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
 
 // makes a new MsgUpdateIndexingNode.
 func buildUpdateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	//networkID := viper.GetString(FlagNetworkID)
+	//networkAddr := viper.GetString(FlagNetworkAddr)
 
 	desc := types.NewDescription(
 		viper.GetString(FlagMoniker),

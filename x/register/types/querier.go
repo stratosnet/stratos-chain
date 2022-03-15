@@ -25,11 +25,11 @@ type QueryNodesParams struct {
 }
 
 // NewQueryNodesParams creates a new instance of QueryNodesParams
-func NewQueryNodesParams(page, limit int, networkID stratos.SdsAddress, moniker string, ownerAddr sdk.AccAddress) QueryNodesParams {
+func NewQueryNodesParams(page, limit int, networkAddr stratos.SdsAddress, moniker string, ownerAddr sdk.AccAddress) QueryNodesParams {
 	return QueryNodesParams{
 		Page:        page,
 		Limit:       limit,
-		NetworkAddr: networkID,
+		NetworkAddr: networkAddr,
 		Moniker:     moniker,
 		OwnerAddr:   ownerAddr,
 	}
@@ -75,7 +75,7 @@ func NewQueryNodesStakingInfo(
 }
 
 type StakingInfo struct {
-	NetworkID      stratos.SdsAddress `json:"network_id"`
+	NetworkAddr    stratos.SdsAddress `json:"network_address"`
 	PubKey         crypto.PubKey      `json:"pub_key"`
 	Suspend        bool               `json:"suspend"`
 	Status         sdk.BondStatus     `json:"status"`
@@ -98,7 +98,7 @@ func NewStakingInfoByResourceNodeAddr(
 
 ) StakingInfo {
 	return StakingInfo{
-		NetworkID:      resourceNode.NetworkID,
+		NetworkAddr:    resourceNode.NetworkAddr,
 		PubKey:         resourceNode.PubKey,
 		Suspend:        resourceNode.Suspend,
 		Status:         resourceNode.Status,
@@ -121,7 +121,7 @@ func NewStakingInfoByIndexingNodeAddr(
 	bondedStake sdk.Int,
 ) StakingInfo {
 	return StakingInfo{
-		NetworkID:      indexingNode.NetworkID,
+		NetworkAddr:    indexingNode.NetworkAddr,
 		PubKey:         indexingNode.PubKey,
 		Suspend:        indexingNode.Suspend,
 		Status:         indexingNode.Status,

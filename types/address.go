@@ -29,7 +29,7 @@ const (
 	ValidatorPubKeyPrefix   = StratosBech32Prefix + "valoperpub"
 	ConsNodeAddressPrefix   = StratosBech32Prefix + "valcons"
 	ConsNodePubKeyPrefix    = StratosBech32Prefix + "valconspub"
-	SdsNodeP2PKeyPrefix     = StratosBech32Prefix + "sdsp2p"
+	SdsNodeP2PPubkeyPrefix  = StratosBech32Prefix + "sdspub"
 	SdsNodeP2PAddressPrefix = StratosBech32Prefix + "sds"
 
 	CoinType = 606
