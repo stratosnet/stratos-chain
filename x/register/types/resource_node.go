@@ -87,22 +87,22 @@ func (v ResourceNodes) Validate() error {
 }
 
 type ResourceNode struct {
-	NetworkID    stratos.SdsAddress `json:"network_id" yaml:"network_id"`       // network id of the resource node, sds://...
-	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`               // the public key of the resource node; bech encoded in JSON
-	Suspend      bool               `json:"suspend" yaml:"suspend"`             // has the resource node been suspended from bonded status?
-	Status       sdk.BondStatus     `json:"status" yaml:"status"`               // resource node bond status (bonded/unbonding/unbonded)
-	Tokens       sdk.Int            `json:"tokens" yaml:"tokens"`               // delegated tokens
-	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"` // owner address of the resource node
-	Description  Description        `json:"description" yaml:"description"`     // description terms for the resource node
+	NetworkAddr  stratos.SdsAddress `json:"network_address" yaml:"network_address"` // network id of the resource node, sds://...
+	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`                   // the public key of the resource node; bech encoded in JSON
+	Suspend      bool               `json:"suspend" yaml:"suspend"`                 // has the resource node been suspended from bonded status?
+	Status       sdk.BondStatus     `json:"status" yaml:"status"`                   // resource node bond status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int            `json:"tokens" yaml:"tokens"`                   // delegated tokens
+	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`     // owner address of the resource node
+	Description  Description        `json:"description" yaml:"description"`         // description terms for the resource node
 	NodeType     NodeType           `json:"node_type" yaml:"node_type"`
 	CreationTime time.Time          `json:"creation_time" yaml:"creation_time"`
 }
 
 // NewResourceNode - initialize a new resource node
-func NewResourceNode(networkID stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+func NewResourceNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description Description, nodeType NodeType, creationTime time.Time) ResourceNode {
 	return ResourceNode{
-		NetworkID:    networkID,
+		NetworkAddr:  networkAddr,
 		PubKey:       pubKey,
 		Suspend:      true,
 		Status:       sdk.Unbonded,
@@ -129,7 +129,7 @@ func (v ResourceNode) String() string {
 		Owner Address: 		%s
   		Description:		%s
   		CreationTime:		%s
-	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
+	}`, v.NetworkAddr, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
 }
 
 // AddToken adds tokens to a resource node
@@ -151,10 +151,10 @@ func (v ResourceNode) SubToken(tokens sdk.Int) ResourceNode {
 }
 
 func (v ResourceNode) Validate() error {
-	if v.NetworkID.Empty() {
+	if v.NetworkAddr.Empty() {
 		return ErrEmptyNodeId
 	}
-	if v.NetworkID.Equals(stratos.SdsAddress(v.PubKey.Address())) {
+	if v.NetworkAddr.Equals(stratos.SdsAddress(v.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if len(v.PubKey.Bytes()) == 0 {
@@ -190,7 +190,6 @@ func (v ResourceNode) IsUnBonding() bool {
 func (v ResourceNode) IsSuspended() bool                { return v.Suspend }
 func (v ResourceNode) GetMoniker() string               { return v.Description.Moniker }
 func (v ResourceNode) GetStatus() sdk.BondStatus        { return v.Status }
-func (v ResourceNode) GetNetworkID() stratos.SdsAddress { return v.NetworkID }
 func (v ResourceNode) GetPubKey() crypto.PubKey         { return v.PubKey }
 func (v ResourceNode) GetNetworkAddr() stratos.SdsAddress {
 	return stratos.SdsAddress(v.PubKey.Address())

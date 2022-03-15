@@ -224,7 +224,7 @@ func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddr stratos.SdsAddr
 	defer iterator.Close()
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if node.NetworkID.Equals(networkAddr) {
+		if node.NetworkAddr.Equals(networkAddr) {
 			resourceNodes = append(resourceNodes, node)
 		}
 	}
@@ -244,10 +244,10 @@ func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (r
 	return resourceNodes, nil
 }
 
-func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
+	resourceNode := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
 	ozoneLimitChange, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return ozoneLimitChange, err
 }

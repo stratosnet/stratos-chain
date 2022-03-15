@@ -18,8 +18,8 @@ import (
 
 const (
 	QueryResourceNodeList           = "resource_nodes"
-	QueryResourceNodesByNetworkAddr = "resource_nodes_network_id"
-	QueryIndexingNodesByNetworkAddr = "indexing_nodes_network_id"
+	QueryResourceNodesByNetworkAddr = "resource_nodes_network_addr"
+	QueryIndexingNodesByNetworkAddr = "indexing_nodes_network_addr"
 	QueryResourceNodeByMoniker      = "resource_nodes_moniker"
 	QueryIndexingNodeList           = "indexing_nodes"
 	QueryIndexingNodeByMoniker      = "indexing_nodes_moniker"
@@ -349,7 +349,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 	for _, n := range nodes {
 		// match NetworkAddr (if supplied)
 		if !params.NetworkAddr.Empty() {
-			if n.NetworkID.Equals(params.NetworkAddr) {
+			if n.NetworkAddr.Equals(params.NetworkAddr) {
 				continue
 			}
 		}
@@ -376,7 +376,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	for _, n := range nodes {
 		// match NetworkAddr (if supplied)
 		if !params.NetworkAddr.Empty() {
-			if n.NetworkID.Equals(params.NetworkAddr) {
+			if n.NetworkAddr.Equals(params.NetworkAddr) {
 				continue
 			}
 		}
