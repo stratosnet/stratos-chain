@@ -38,7 +38,7 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return registerQueryCmd
 }
 
-// GetCmdQueryResourceNodeList implements the query all resource nodes by network id command.
+// GetCmdQueryResourceNode implements the query all resource nodes by network id command.
 func GetCmdQueryResourceNode(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get-resource-node [flags]", // []byte
