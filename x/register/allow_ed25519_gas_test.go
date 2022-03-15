@@ -1,17 +1,18 @@
 package register
 
 import (
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/mock"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
 )
 
 func TestRegister(t *testing.T) {
 
 	/********************* initialize mock app *********************/
-	SetConfig()
+	//SetConfig()
 	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
 	mApp, k, _, _ := getMockApp(t)
 	accounts := setupAccounts(mApp)
@@ -26,12 +27,12 @@ func TestRegister(t *testing.T) {
 	ctx = mApp.BaseApp.NewContext(true, header)
 
 	registerResNodeMsg := types.NewMsgCreateResourceNode(
-		"sds://resourceNode3",
+		resNodeNetworkId3,
 		resNodePubKey3,
 		sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake),
 		resOwnerAddr3,
 		NewDescription("sds://resourceNode3", "", "", "", ""),
-		"4",
+		types.STORAGE,
 	)
 	t.Log("registerResNodeMsg: ", registerResNodeMsg)
 
