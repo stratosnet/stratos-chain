@@ -6,7 +6,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) setTotalMinedTokens(ctx sdk.Context, totalMinedToken sdk.Coin) {
+func (k Keeper) SetTotalMinedTokens(ctx sdk.Context, totalMinedToken sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalMinedToken)
 	store.Set(types.TotalMinedTokensKey, b)
@@ -54,7 +54,7 @@ func (k Keeper) GetRewardAddressPool(ctx sdk.Context) (walletAddressList []sdk.A
 	return
 }
 
-func (k Keeper) setLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
+func (k Keeper) SetLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(epoch)
 	store.Set(types.LastReportedEpochKey, b)
@@ -70,7 +70,7 @@ func (k Keeper) GetLastReportedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	return
 }
 
-func (k Keeper) setIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddress, epoch sdk.Int, value types.Reward) {
+func (k Keeper) SetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddress, epoch sdk.Int, value types.Reward) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
 	store.Set(types.GetIndividualRewardKey(walletAddress, epoch), b)
@@ -86,7 +86,7 @@ func (k Keeper) GetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddres
 	return value, true
 }
 
-func (k Keeper) setMatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAddress, value sdk.Coins) {
+func (k Keeper) SetMatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAddress, value sdk.Coins) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
 	store.Set(types.GetMatureTotalRewardKey(walletAddress), b)
@@ -102,7 +102,7 @@ func (k Keeper) GetMatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAddre
 	return
 }
 
-func (k Keeper) setImmatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAddress, value sdk.Coins) {
+func (k Keeper) SetImmatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAddress, value sdk.Coins) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
 	store.Set(types.GetImmatureTotalRewardKey(walletAddress), b)

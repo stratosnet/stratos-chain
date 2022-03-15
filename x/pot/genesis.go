@@ -9,6 +9,24 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
+	keeper.SetTotalMinedTokens(ctx, data.TotalMinedToken)
+	keeper.SetLastReportedEpoch(ctx, sdk.NewInt(data.LastReportedEpoch))
+
+	for _, immatureTotal := range data.ImmatureTotalInfo {
+		keeper.SetImmatureTotalReward(ctx, immatureTotal.WalletAddress, immatureTotal.Value)
+	}
+
+	for _, matureTotal := range data.MatureTotalInfo {
+		keeper.SetMatureTotalReward(ctx, matureTotal.WalletAddress, matureTotal.Value)
+	}
+
+	for _, individual := range data.IndividualRewardInfo {
+		keeper.SetIndividualReward(ctx, individual.WalletAddress, sdk.NewInt(data.LastReportedEpoch+1), individual)
+	}
+
+	for _, slashing := range data.SlashingInfo {
+		keeper.SetSlashing(ctx, slashing.P2pAddress, slashing.Value)
+	}
 }
 
 // ExportGenesis writes the current store values
@@ -16,5 +34,37 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 // with InitGenesis
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
-	return types.NewGenesisState(params)
+	totalMinedToken := keeper.GetTotalMinedTokens(ctx)
+	lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
+
+	var individualRewardInfo []types.Reward
+	var immatureTotalInfo []types.ImmatureTotal
+	keeper.IteratorImmatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
+		immatureTotal := types.NewImmatureTotal(walletAddress, reward)
+		immatureTotalInfo = append(immatureTotalInfo, immatureTotal)
+
+		miningReward := sdk.NewCoins(sdk.NewCoin(types.DefaultRewardDenom, reward.AmountOf(types.DefaultRewardDenom)))
+		trafficReward := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, reward.AmountOf(types.DefaultBondDenom)))
+		individualReward := types.NewReward(walletAddress, miningReward, trafficReward)
+		individualRewardInfo = append(individualRewardInfo, individualReward)
+
+		return false
+	})
+
+	var matureTotalInfo []types.MatureTotal
+	keeper.IteratorMatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
+		matureTotal := types.NewMatureTotal(walletAddress, reward)
+		matureTotalInfo = append(matureTotalInfo, matureTotal)
+		return false
+	})
+
+	var slashingInfo []types.Slashing
+	keeper.IteratorSlashingInfo(ctx, func(p2pAddress sdk.AccAddress, val sdk.Int) (stop bool) {
+		slashing := types.NewSlashing(p2pAddress, val)
+		slashingInfo = append(slashingInfo, slashing)
+		return false
+	})
+
+	return types.NewGenesisState(params, totalMinedToken, lastReportedEpoch.Int64(),
+		immatureTotalInfo, matureTotalInfo, individualRewardInfo, slashingInfo)
 }
