@@ -408,23 +408,10 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 
 		mapp.InitChainer(ctx, req)
 
-		var lastResourceNodeStakes []register.LastResourceNodeStake
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes1, Stake: initialStakeRes1})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes2, Stake: initialStakeRes2})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes3, Stake: initialStakeRes3})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes4, Stake: initialStakeRes4})
-		lastResourceNodeStakes = append(lastResourceNodeStakes, register.LastResourceNodeStake{Address: addrRes5, Stake: initialStakeRes5})
-
-		var lastIndexingNodeStakes []register.LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx1, Stake: initialStakeIdx1})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx2, Stake: initialStakeIdx2})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx3, Stake: initialStakeIdx3})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: spNodeAddrIdx1, Stake: spNodeInitialStakeIdx1})
-
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), resourceNodes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
@@ -475,15 +462,10 @@ func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper aut
 
 		mapp.InitChainer(ctx, req)
 
-		var lastResourceNodeStakes []register.LastResourceNodeStake
-
-		var lastIndexingNodeStakes []register.LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, register.LastIndexingNodeStake{Address: addrIdx1, Stake: initialStakeIdx1})
-
 		//resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), lastResourceNodeStakes, nil, lastIndexingNodeStakes, indexingNodes, initialUOzonePriceTestPurchase, sdk.ZeroInt())
+		registerGenesis := register.NewGenesisState(register.DefaultParams(), nil, indexingNodes, initialUOzonePriceTestPurchase, sdk.ZeroInt())
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 

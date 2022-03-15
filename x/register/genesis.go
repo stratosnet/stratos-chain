@@ -2,7 +2,6 @@ package register
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -40,14 +39,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
 	keeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
 
-	for _, resStake := range data.LastResourceNodeStakes {
-		keeper.SetLastResourceNodeStake(ctx, resStake.Address, resStake.Stake)
-	}
-
-	for _, idxStake := range data.LastIndexingNodeStakes {
-		keeper.SetLastIndexingNodeStake(ctx, idxStake.Address, idxStake.Stake)
-	}
-
 	totalUnissuedPrepay := data.TotalUnissuedPrepay
 	initialUOzonePrice := sdk.ZeroDec()
 	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
@@ -67,30 +58,16 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
-	var lastResourceNodeStakes []types.LastResourceNodeStake
-	keeper.IterateLastResourceNodeStakes(ctx, func(addr stratos.SdsAddress, stake sdk.Int) (stop bool) {
-		lastResourceNodeStakes = append(lastResourceNodeStakes, types.LastResourceNodeStake{Address: addr, Stake: stake})
-		return false
-	})
-
-	var lastIndexingNodeStakes []types.LastIndexingNodeStake
-	keeper.IterateLastIndexingNodeStakes(ctx, func(addr stratos.SdsAddress, stake sdk.Int) (stop bool) {
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, types.LastIndexingNodeStake{Address: addr, Stake: stake})
-		return false
-	})
-
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
 	indexingNodes := keeper.GetAllIndexingNodes(ctx)
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := keeper.CurrUozPrice(ctx)
 
 	return types.GenesisState{
-		Params:                 params,
-		LastResourceNodeStakes: lastResourceNodeStakes,
-		ResourceNodes:          resourceNodes,
-		LastIndexingNodeStakes: lastIndexingNodeStakes,
-		IndexingNodes:          indexingNodes,
-		InitialUozPrice:        initialUOzonePrice,
-		TotalUnissuedPrepay:    totalUnissuedPrepay,
+		Params:              params,
+		ResourceNodes:       resourceNodes,
+		IndexingNodes:       indexingNodes,
+		InitialUozPrice:     initialUOzonePrice,
+		TotalUnissuedPrepay: totalUnissuedPrepay,
 	}
 }

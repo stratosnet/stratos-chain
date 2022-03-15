@@ -135,8 +135,6 @@ the address will be looked up in the local Keybase.
 
 			for _, appIdxNode := range appIdxNodes {
 				registerGenState.IndexingNodes = append(registerGenState.IndexingNodes, appIdxNode)
-				registerGenState.LastIndexingNodeStakes = append(registerGenState.LastIndexingNodeStakes,
-					register.LastIndexingNodeStake{Address: appIdxNode.GetNetworkAddr(), Stake: appIdxNode.GetTokens()})
 			}
 
 			registerGenStateBz, err := cdc.MarshalJSON(registerGenState)
