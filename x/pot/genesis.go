@@ -2,6 +2,7 @@ package pot
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -59,7 +60,7 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	})
 
 	var slashingInfo []types.Slashing
-	keeper.IteratorSlashingInfo(ctx, func(p2pAddress sdk.AccAddress, val sdk.Int) (stop bool) {
+	keeper.IteratorSlashingInfo(ctx, func(p2pAddress stratos.SdsAddress, val sdk.Int) (stop bool) {
 		slashing := types.NewSlashing(p2pAddress, val)
 		slashingInfo = append(slashingInfo, slashing)
 		return false

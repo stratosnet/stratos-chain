@@ -3,6 +3,7 @@ package pot
 import (
 	"encoding/hex"
 	"fmt"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -130,6 +131,7 @@ func handleMsgSlashingResourceNode(ctx sdk.Context, k keeper.Keeper, msg types.M
 			sdk.NewAttribute(types.AttributeKeyNodeP2PAddress, msg.NetworkAddress.String()),
 			sdk.NewAttribute(types.AttributeKeyAmount, amt.String()),
 			sdk.NewAttribute(types.AttributeKeySlashingNodeType, nodeType.String()),
+			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
 		),
 	})
 	return &sdk.Result{Events: ctx.EventManager().Events()}, err

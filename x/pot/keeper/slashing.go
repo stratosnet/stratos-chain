@@ -40,12 +40,12 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	return slash.TruncateInt(), node.NodeType, nil
 }
 
-func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(p2pAddress sdk.AccAddress, slashing sdk.Int) (stop bool)) {
+func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(p2pAddress stratos.SdsAddress, slashing sdk.Int) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.SlashingPrefix)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.SlashingPrefix):])
+		addr := stratos.SdsAddress(iter.Key()[len(types.SlashingPrefix):])
 		var slashing sdk.Int
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &slashing)
 		if handler(addr, slashing) {

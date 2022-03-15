@@ -14,6 +14,7 @@ const (
 	AttributeKeyTotalConsumedOzone = "total_consumed_ozone"
 	AttributeKeyNodeP2PAddress     = "p2p_address"
 	AttributeKeySlashingNodeType   = "slashing_type"
+	AttributeKeyNodeSuspended      = "suspend"
 
 	AttributeValueCategory = ModuleName
 )

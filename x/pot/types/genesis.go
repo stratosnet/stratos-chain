@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 type GenesisState struct {
@@ -73,11 +74,11 @@ func NewMatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) MatureTotal {
 }
 
 type Slashing struct {
-	P2pAddress sdk.AccAddress
+	P2pAddress stratos.SdsAddress
 	Value      sdk.Int
 }
 
-func NewSlashing(p2pAddress sdk.AccAddress, value sdk.Int) Slashing {
+func NewSlashing(p2pAddress stratos.SdsAddress, value sdk.Int) Slashing {
 	return Slashing{
 		P2pAddress: p2pAddress,
 		Value:      value,
