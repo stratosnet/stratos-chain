@@ -40,7 +40,7 @@ func TestSdsAddress_Unmarshal(t *testing.T) {
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			err = aa.UnmarshalYAML(bz.([]byte))
+			err = aa.UnmarshalYAML([]byte(bz.(string)))
 			if !aa.Equals(addr) || (err != nil) != tt.wantErr {
 				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
 			}
