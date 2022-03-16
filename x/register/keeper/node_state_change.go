@@ -25,7 +25,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingIndexingNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
 				),
 			)
 		} else {
@@ -33,7 +33,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingResourceNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
 				),
 			)
 		}

@@ -24,7 +24,6 @@ const (
 	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
 	AttributeKeyVoterNetworkAddress     = "voter_network_address"
 	AttributeKeyCandidateStatus         = "candidate_status"
-	AttributeKeyNetworkAddr             = "network_addr"
 	AttributeKeyIsIndexingNode          = "is_indexing_node"
 
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
