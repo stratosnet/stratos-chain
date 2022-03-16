@@ -154,7 +154,7 @@ func (v ResourceNode) Validate() error {
 	if v.NetworkAddr.Empty() {
 		return ErrEmptyNodeId
 	}
-	if v.NetworkAddr.Equals(stratos.SdsAddress(v.PubKey.Address())) {
+	if !v.NetworkAddr.Equals(stratos.SdsAddress(v.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if len(v.PubKey.Bytes()) == 0 {
@@ -187,10 +187,10 @@ func (v ResourceNode) IsUnBonding() bool {
 	return v.GetStatus().Equal(sdk.Unbonding)
 }
 
-func (v ResourceNode) IsSuspended() bool                { return v.Suspend }
-func (v ResourceNode) GetMoniker() string               { return v.Description.Moniker }
-func (v ResourceNode) GetStatus() sdk.BondStatus        { return v.Status }
-func (v ResourceNode) GetPubKey() crypto.PubKey         { return v.PubKey }
+func (v ResourceNode) IsSuspended() bool         { return v.Suspend }
+func (v ResourceNode) GetMoniker() string        { return v.Description.Moniker }
+func (v ResourceNode) GetStatus() sdk.BondStatus { return v.Status }
+func (v ResourceNode) GetPubKey() crypto.PubKey  { return v.PubKey }
 func (v ResourceNode) GetNetworkAddr() stratos.SdsAddress {
 	return stratos.SdsAddress(v.PubKey.Address())
 }

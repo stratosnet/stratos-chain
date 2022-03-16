@@ -94,6 +94,8 @@ func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (crypto.PubKey,
 
 type SdsAddress []byte
 
+var _ sdk.Address = SdsAddress{}
+
 func (a SdsAddress) Equals(addr sdk.Address) bool {
 	if a.Empty() && addr.Empty() {
 		return true
