@@ -10,6 +10,7 @@ import (
 	"github.com/tendermint/tendermint/crypto"
 	tmamino "github.com/tendermint/tendermint/crypto/encoding/amino"
 	"github.com/tendermint/tendermint/libs/bech32"
+	"gopkg.in/yaml.v2"
 )
 
 // Bech32PubKeyType defines a string type alias for a Bech32 public key type.
@@ -146,6 +147,61 @@ func (a SdsAddress) Format(s fmt.State, verb rune) {
 	default:
 		s.Write([]byte(fmt.Sprintf("%X", []byte(a))))
 	}
+}
+
+// Unmarshal sets the address to the given data. It is needed for protobuf
+// compatibility.
+func (a *SdsAddress) Unmarshal(data []byte) error {
+	*a = data
+	return nil
+}
+
+// MarshalYAML marshals to YAML using Bech32.
+func (a SdsAddress) MarshalYAML() (interface{}, error) {
+	return a.String(), nil
+}
+
+// UnmarshalJSON unmarshals from JSON assuming Bech32 encoding.
+func (a *SdsAddress) UnmarshalJSON(data []byte) error {
+	var s string
+	err := json.Unmarshal(data, &s)
+
+	if err != nil {
+		return err
+	}
+	if s == "" {
+		*a = SdsAddress{}
+		return nil
+	}
+
+	aa2, err := SdsAddressFromBech32(s)
+	if err != nil {
+		return err
+	}
+
+	*a = aa2
+	return nil
+}
+
+// UnmarshalYAML unmarshals from JSON assuming Bech32 encoding.
+func (a *SdsAddress) UnmarshalYAML(data []byte) error {
+	var s string
+	err := yaml.Unmarshal(data, &s)
+	if err != nil {
+		return err
+	}
+	if s == "" {
+		*a = SdsAddress{}
+		return nil
+	}
+
+	aa2, err := SdsAddressFromBech32(s)
+	if err != nil {
+		return err
+	}
+
+	*a = aa2
+	return nil
 }
 
 // AccAddressFromBech32 creates an AccAddress from a Bech32 string.
