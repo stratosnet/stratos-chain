@@ -16,7 +16,7 @@ const (
 )
 
 // Cache the amino decoding of indexing nodes, as it can be the case that repeated slashing calls
-// cause many calls to GetIndexingNode, which were shown to throttle the state machine in our
+// cause many calls to getIndexingNode, which were shown to throttle the state machine in our
 // simulation. Note this is quite biased though, as the simulator does more slashes than a
 // live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedIndexingNode struct {
@@ -31,7 +31,7 @@ func newCachedIndexingNode(indexingNode types.IndexingNode, marshalled string) c
 	}
 }
 
-// GetIndexingNode get a single indexing node
+// getIndexingNode get a single indexing node
 func (k Keeper) GetIndexingNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (indexingNode types.IndexingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetIndexingNodeKey(p2pAddress))
@@ -229,7 +229,7 @@ func (k Keeper) removeIndexingNode(ctx sdk.Context, addr stratos.SdsAddress) err
 	return nil
 }
 
-// GetIndexingNodeList get all indexing nodes by networkAddr
+// getIndexingNodeList get all indexing nodes by networkAddr
 func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (indexingNodes []types.IndexingNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)

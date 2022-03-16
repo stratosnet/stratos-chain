@@ -259,11 +259,11 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 
 func setupAllResourceNodes() []register.ResourceNode {
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", pubKeyRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4, time)
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", pubKeyRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4, time)
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", pubKeyRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4, time)
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", pubKeyRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4, time)
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", pubKeyRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4, time)
+	resourceNode1 := register.NewResourceNode(stratos.SdsAddress(addrRes1), pubKeyRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4, time)
+	resourceNode2 := register.NewResourceNode(stratos.SdsAddress(addrRes2), pubKeyRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4, time)
+	resourceNode3 := register.NewResourceNode(stratos.SdsAddress(addrRes3), pubKeyRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4, time)
+	resourceNode4 := register.NewResourceNode(stratos.SdsAddress(addrRes4), pubKeyRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4, time)
+	resourceNode5 := register.NewResourceNode(stratos.SdsAddress(addrRes5), pubKeyRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4, time)
 
 	resourceNode1 = resourceNode1.AddToken(initialStakeRes1)
 	resourceNode2 = resourceNode2.AddToken(initialStakeRes2)

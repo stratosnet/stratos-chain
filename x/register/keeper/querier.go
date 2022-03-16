@@ -17,113 +17,49 @@ import (
 )
 
 const (
-	QueryResourceNodeList           = "resource_nodes"
-	QueryResourceNodesByNetworkAddr = "resource_nodes_network_addr"
-	QueryIndexingNodesByNetworkAddr = "indexing_nodes_network_addr"
-	QueryResourceNodeByMoniker      = "resource_nodes_moniker"
-	QueryIndexingNodeList           = "indexing_nodes"
-	QueryIndexingNodeByMoniker      = "indexing_nodes_moniker"
-	QueryNodesTotalStakes           = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddr        = "node_stakes"
-	QueryNodeStakeByOwner           = "node_stakes_by_owner"
-	QueryRegisterParams             = "register_params"
-	QueryDefaultLimit               = 100
+	QueryResourceNodeByNetworkAddr = "resource_node_by_network"
+	QueryIndexingNodeList          = "indexing_nodes"
+	QueryNodesTotalStakes          = "nodes_total_stakes"
+	QueryNodeStakeByNodeAddr       = "node_stakes"
+	QueryNodeStakeByOwner          = "node_stakes_by_owner"
+	QueryRegisterParams            = "register_params"
+	QueryDefaultLimit              = 100
 )
 
 // NewQuerier creates a new querier for register clients.
 func NewQuerier(k Keeper) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case QueryResourceNodeList:
-			return GetResourceNodeList(ctx, req, k)
-		case QueryResourceNodesByNetworkAddr:
-			return GetResourceNode(ctx, req, k)
+		case QueryResourceNodeByNetworkAddr:
+			return getResourceNodeByNetworkAddr(ctx, req, k)
 		case QueryIndexingNodeList:
-			return GetIndexingNodeList(ctx, req, k)
-		case QueryIndexingNodesByNetworkAddr:
-			return GetIndexingNode(ctx, req, k)
+			return getIndexingNodeList(ctx, req, k)
 		case QueryNodesTotalStakes:
-			return GetNodesStakingInfo(ctx, req, k)
+			return getNodesStakingInfo(ctx, req, k)
 		case QueryNodeStakeByNodeAddr:
-			return GetStakingInfoByNodeAddr(ctx, req, k)
+			return getStakingInfoByNodeAddr(ctx, req, k)
 		case QueryNodeStakeByOwner:
-			return GetStakingInfoByOwnerAddr(ctx, req, k)
-		case QueryResourceNodeByMoniker:
-			return GetResourceNodesByMoniker(ctx, req, k)
-		case QueryIndexingNodeByMoniker:
-			return GetIndexingNodesByMoniker(ctx, req, k)
+			return getStakingInfoByOwnerAddr(ctx, req, k)
 		case QueryRegisterParams:
-			return GetRegisterParams(ctx, req, k)
+			return getRegisterParams(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint "+req.String()+string(req.Data))
 		}
 	}
 }
 
-func GetRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func getRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	params := k.GetParams(ctx)
 	return types.ModuleCdc.MustMarshalJSON(params), nil
 }
 
-func GetResourceNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	nodeList, err := k.GetResourceNodeListByMoniker(ctx, string(req.Data))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-}
-
-func GetIndexingNodesByMoniker(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	nodeList, err := k.GetIndexingNodeListByMoniker(ctx, string(req.Data))
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-}
-
-//GetResourceNodes fetches  resource nodes by network address.
-func GetResourceNode(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-
-	nodeList, ok := k.GetResourceNode(ctx, req.Data)
-	if !ok {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, types.ErrNoResourceNodeFound.Error())
-	}
-	return types.ModuleCdc.MustMarshalJSON(nodeList), nil
-}
-
-//GetIndexingNodes fetches all indexing nodes by network address.
-func GetIndexingNode(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	node, ok := k.GetIndexingNode(ctx, req.Data)
-	if !ok {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, types.ErrNoIndexingNodeFound.Error())
-	}
-	return types.ModuleCdc.MustMarshalJSON(node), nil
-}
-
-// GetNetworkSet fetches all network addresses.
-func GetNetworkSet(ctx sdk.Context, k Keeper) ([]byte, error) {
-	networks := k.GetNetworks(ctx, k)
-	return []byte(strings.TrimSpace(string(networks))), nil
-}
-
-func GetResourceNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var params types.QueryNodesParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	//resNodes := keeper.GetResourceNodesFiltered(ctx, params)
-	//if resNodes == nil {
-	//	resNodes = types.ResourceNodes{}
-	//}
-	//
-	//bz, err := codec.MarshalJSONIndent(keeper.cdc, resNodes)
-	//if err != nil {
-	//	return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	//}
-	//
-	//return bz, nil
 	if params.NetworkAddr.Empty() {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrInvalidNetworkAddr.Error())
 	}
@@ -134,7 +70,7 @@ func GetResourceNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return types.ModuleCdc.MustMarshalJSON([]types.ResourceNode{node}), nil
 }
 
-func GetIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var params types.QueryNodesParams
 	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -154,7 +90,7 @@ func GetIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
-func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 
 	totalBondedStakeOfResourceNodes := keeper.GetResourceNodeBondedToken(ctx).Amount
 	totalBondedStakeOfIndexingNodes := keeper.GetIndexingNodeBondedToken(ctx).Amount
@@ -193,7 +129,7 @@ func GetNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
-func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
 	var (
 		bz          []byte
 		params      types.QueryNodeStakingParams
@@ -273,7 +209,7 @@ func GetStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 	return bz, nil
 }
 
-func GetStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (result []byte, err error) {
+func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (result []byte, err error) {
 	var (
 		params       types.QueryNodesParams
 		stakingInfo  types.StakingInfo
