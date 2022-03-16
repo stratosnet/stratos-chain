@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -80,7 +79,7 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.Reso
 	return resourceNodes
 }
 
-func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
+func (k Keeper) getResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	return iterator
@@ -215,33 +214,6 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 	store := ctx.KVStore(k.storeKey)
 	store.Delete(types.GetResourceNodeKey(addr))
 	return nil
-}
-
-// GetResourceNodeList get all resource nodes by network address
-func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (resourceNodes []types.ResourceNode, err error) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if node.NetworkAddr.Equals(networkAddr) {
-			resourceNodes = append(resourceNodes, node)
-		}
-	}
-	return resourceNodes, nil
-}
-
-func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if strings.Compare(node.Description.Moniker, moniker) == 0 {
-			resourceNodes = append(resourceNodes, node)
-		}
-	}
-	return resourceNodes, nil
 }
 
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
