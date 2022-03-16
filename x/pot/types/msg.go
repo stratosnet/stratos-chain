@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -15,11 +16,12 @@ var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
+	_ sdk.Msg = &MsgSlashingResourceNode{}
 )
 
 type MsgVolumeReport struct {
 	WalletVolumes   []SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`     // volume report
-	Reporter        sdk.AccAddress       `json:"reporter" yaml:"reporter"`                 // node p2p address of the reporter
+	Reporter        stratos.SdsAddress   `json:"reporter" yaml:"reporter"`                 // node p2p address of the reporter
 	Epoch           sdk.Int              `json:"epoch" yaml:"epoch"`                       // volume report epoch
 	ReportReference string               `json:"report_reference" yaml:"report_reference"` // volume report reference
 	ReporterOwner   sdk.AccAddress       `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
@@ -29,7 +31,7 @@ type MsgVolumeReport struct {
 // NewMsgVolumeReport creates a new MsgVolumeReport instance
 func NewMsgVolumeReport(
 	walletVolumes []SingleWalletVolume,
-	reporter sdk.AccAddress,
+	reporter stratos.SdsAddress,
 	epoch sdk.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
@@ -58,20 +60,6 @@ func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string,
 		ReportReference: reportReference,
 		TxHash:          txHash,
 		walletVolumes:   walletVolumes,
-	}
-}
-
-type VolumeReportRecord struct {
-	Reporter        sdk.AccAddress
-	ReportReference string
-	TxHash          string
-}
-
-func NewReportRecord(reporter sdk.AccAddress, reportReference string, txHash string) VolumeReportRecord {
-	return VolumeReportRecord{
-		Reporter:        reporter,
-		ReportReference: reportReference,
-		TxHash:          txHash,
 	}
 }
 
@@ -221,4 +209,61 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 		return ErrEmptyFromAddr
 	}
 	return nil
+}
+
+type MsgSlashingResourceNode struct {
+	Reporters      []stratos.SdsAddress `json:"reporters" yaml:"reporters"`             // reporter p2p address
+	ReporterOwner  []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`   // reporter wallet address
+	NetworkAddress stratos.SdsAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
+	WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
+	Slashing       sdk.Int              `json:"slashing" yaml:"slashing"`
+	Suspend        bool                 `json:"suspend" yaml:"suspend"`
+}
+
+func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
+	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) MsgSlashingResourceNode {
+	return MsgSlashingResourceNode{
+		Reporters:      reporters,
+		ReporterOwner:  reporterOwner,
+		NetworkAddress: networkAddress,
+		WalletAddress:  walletAddress,
+		Slashing:       slashing,
+		Suspend:        suspend,
+	}
+}
+
+func (m MsgSlashingResourceNode) Route() string {
+	return RouterKey
+}
+
+func (m MsgSlashingResourceNode) Type() string {
+	return "slashing_resource_node"
+}
+
+func (m MsgSlashingResourceNode) ValidateBasic() error {
+	if m.NetworkAddress.Empty() {
+		return ErrMissingTargetAddress
+	}
+	if m.WalletAddress.Empty() {
+		return ErrMissingWalletAddress
+	}
+	for _, r := range m.Reporters {
+		if r.Empty() {
+			return ErrReporterAddress
+		}
+	}
+
+	if m.Slashing.LT(sdk.ZeroInt()) {
+		return ErrInvalidAmount
+	}
+	return nil
+}
+
+func (m MsgSlashingResourceNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
+	return m.ReporterOwner
 }

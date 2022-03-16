@@ -20,7 +20,7 @@ var (
 	RegisterCodec = types.RegisterCodec
 
 	ErrInvalid                  = types.ErrInvalid
-	ErrEmptyNetworkAddr         = types.ErrEmptyNetworkAddr
+	ErrInvalidNetworkAddr       = types.ErrInvalidNetworkAddr
 	ErrEmptyOwnerAddr           = types.ErrEmptyOwnerAddr
 	ErrValueNegative            = types.ErrValueNegative
 	ErrEmptyDescription         = types.ErrEmptyDescription
@@ -57,7 +57,5 @@ type (
 	GenesisIndexingNode   = types.GenesisIndexingNode
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
-	LastResourceNodeStake = types.LastResourceNodeStake
-	LastIndexingNodeStake = types.LastIndexingNodeStake
 	VoteOpinion           = types.VoteOpinion
 )

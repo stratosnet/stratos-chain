@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -17,6 +18,7 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/volume_report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/withdraw", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/foundation_deposit", foundationDepositHandlerFn(cliCtx)).Methods("POST")
+	r.HandleFunc("/pot/slashing", slashingResourceNodeHandlerFn(cliCtx)).Methods("POST")
 }
 
 type (
@@ -38,6 +40,16 @@ type (
 		Epoch           int64                      `json:"epoch" yaml:"epoch"`                       // volume report epoch
 		ReportReference string                     `json:"report_reference" yaml:"report_reference"` // volume report reference
 	}
+
+	slashingResourceNodeReq struct {
+		BaseReq        rest.BaseReq         `json:"base_req" yaml:"base_req"`
+		Reporters      []stratos.SdsAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
+		ReporterOwner  []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
+		NetworkAddress stratos.SdsAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
+		WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
+		Slashing       int64                `json:"slashing" yaml:"slashing"`
+		Suspend        bool                 `json:"suspend" yaml:"suspend"`
+	}
 )
 
 // volumeReportRequestHandlerFn rest API handler to create a volume report tx.
@@ -55,7 +67,7 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		reporterStr := req.Reporter
-		reporter, err := sdk.AccAddressFromBech32(reporterStr)
+		reporter, err := stratos.SdsAddressFromBech32(reporterStr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -187,4 +199,30 @@ func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (s
 		return sdk.Coins{}, false
 	}
 	return amount, true
+}
+
+func slashingResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req slashingResourceNodeReq
+
+		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		slashing := sdk.NewInt(req.Slashing)
+
+		msg := types.NewMsgSlashingResourceNode(req.Reporters, req.ReporterOwner, req.NetworkAddress, req.WalletAddress, slashing, req.Suspend)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+	}
 }

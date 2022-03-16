@@ -2,18 +2,20 @@ package types
 
 import (
 	"fmt"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 type FileInfo struct {
 	Height   sdk.Int
-	Reporter sdk.AccAddress
+	Reporter stratos.SdsAddress
 	Uploader sdk.AccAddress
 }
 
 // constructor
-func NewFileInfo(height sdk.Int, reporter, uploader sdk.AccAddress) FileInfo {
+func NewFileInfo(height sdk.Int, reporter stratos.SdsAddress, uploader sdk.AccAddress) FileInfo {
 	return FileInfo{
 		Height:   height,
 		Reporter: reporter,

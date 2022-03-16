@@ -1,10 +1,10 @@
 package keeper
 
 import (
-	"strings"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/tendermint/tendermint/crypto"
 )
@@ -28,7 +28,7 @@ func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) c
 }
 
 // GetResourceNode get a single resource node
-func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress sdk.AccAddress) (resourceNode types.ResourceNode, found bool) {
+func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetResourceNodeKey(p2pAddress))
 
@@ -66,31 +66,6 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 	store.Set(types.GetResourceNodeKey(resourceNode.GetNetworkAddr()), bz)
 }
 
-// GetLastResourceNodeStake Load the last resource node stake.
-// Returns zero if the node was not a resource node last block.
-func (k Keeper) GetLastResourceNodeStake(ctx sdk.Context, nodeAddr sdk.AccAddress) (stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetLastResourceNodeStakeKey(nodeAddr))
-	if bz == nil {
-		return sdk.ZeroInt()
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &stake)
-	return
-}
-
-// SetLastResourceNodeStake Set the last resource node stake.
-func (k Keeper) SetLastResourceNodeStake(ctx sdk.Context, nodeAddr sdk.AccAddress, stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
-	store.Set(types.GetLastResourceNodeStakeKey(nodeAddr), bz)
-}
-
-// DeleteLastResourceNodeStake Delete the last resource node stake.
-func (k Keeper) DeleteLastResourceNodeStake(ctx sdk.Context, nodeAddr sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	store.Delete(types.GetLastResourceNodeStakeKey(nodeAddr))
-}
-
 // GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
 func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
@@ -104,37 +79,23 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes []types.Reso
 	return resourceNodes
 }
 
-// IterateLastResourceNodeStakes Iterate over last resource node stakes.
-func (k Keeper) IterateLastResourceNodeStakes(ctx sdk.Context, handler func(nodeAddr sdk.AccAddress, stake sdk.Int) (stop bool)) {
+func (k Keeper) getResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.LastResourceNodeStakeKey)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.LastResourceNodeStakeKey):])
-		var stake sdk.Int
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &stake)
-		if handler(addr, stake) {
-			break
-		}
-	}
+	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+	return iterator
 }
 
 // AddResourceNodeStake Update the tokens of an existing resource node
 func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin,
 ) (ozoneLimitChange sdk.Int, err error) {
 
-	nodeAcc := k.accountKeeper.GetAccount(ctx, resourceNode.GetNetworkAddr())
-	if nodeAcc == nil {
-		nodeAcc = k.accountKeeper.NewAccountWithAddress(ctx, resourceNode.GetNetworkAddr())
-		k.accountKeeper.SetAccount(ctx, nodeAcc)
-	}
-
 	coins := sdk.NewCoins(tokenToAdd)
+
+	// sub coins from owner's wallet
 	hasCoin := k.bankKeeper.HasCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
-
 	_, err = k.bankKeeper.SubtractCoins(ctx, resourceNode.GetOwnerAddr(), coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
@@ -154,6 +115,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	}
 
 	resourceNode = resourceNode.AddToken(tokenToAdd.Amount)
+	//resourceNode.Suspend = false
 
 	// set status from unBonded to bonded & move stake from not bonded token pool to bonded token pool
 	// since resource node registration does not require voting for now
@@ -173,10 +135,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		k.SetResourceNodeBondedToken(ctx, bondedToken)
 	}
 
-	newStake := resourceNode.GetTokens()
-
 	k.SetResourceNode(ctx, resourceNode)
-	k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
@@ -231,20 +190,16 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	k.SetResourceNode(ctx, resourceNode)
 
 	if newStake.IsZero() {
-		k.DeleteLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr())
-		err := k.removeResourceNode(ctx, resourceNode.GetNetworkAddr())
-
+		err = k.removeResourceNode(ctx, resourceNode.GetNetworkAddr())
 		if err != nil {
 			return err
 		}
-	} else {
-		k.SetLastResourceNodeStake(ctx, resourceNode.GetNetworkAddr(), newStake)
 	}
 	return nil
 }
 
 // remove the resource node record and associated indexes
-func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
+func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) error {
 	// first retrieve the old resource node record
 	resourceNode, found := k.GetResourceNode(ctx, addr)
 	if !found {
@@ -261,43 +216,16 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr sdk.AccAddress) error {
 	return nil
 }
 
-// GetResourceNodeList get all resource nodes by network address
-func (k Keeper) GetResourceNodeList(ctx sdk.Context, networkID string) (resourceNodes []types.ResourceNode, err error) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if strings.Compare(node.NetworkID, networkID) == 0 {
-			resourceNodes = append(resourceNodes, node)
-		}
-	}
-	return resourceNodes, nil
-}
+func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-func (k Keeper) GetResourceNodeListByMoniker(ctx sdk.Context, moniker string) (resourceNodes []types.ResourceNode, err error) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-	defer iterator.Close()
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		if strings.Compare(node.Description.Moniker, moniker) == 0 {
-			resourceNodes = append(resourceNodes, node)
-		}
-	}
-	return resourceNodes, nil
-}
-
-func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, nodeType string, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
-
-	resourceNode := types.NewResourceNode(networkID, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
+	resourceNode := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
 	ozoneLimitChange, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return ozoneLimitChange, err
 }
 
-func (k Keeper) UpdateResourceNode(ctx sdk.Context, networkID string, description types.Description, nodeType string,
-	networkAddr sdk.AccAddress, ownerAddr sdk.AccAddress) error {
+func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Description, nodeType types.NodeType,
+	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) error {
 
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
@@ -308,7 +236,6 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, networkID string, descriptio
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.NetworkID = networkID
 	node.Description = description
 	node.NodeType = nodeType
 
@@ -317,7 +244,7 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, networkID string, descriptio
 	return nil
 }
 
-func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr sdk.AccAddress, ownerAddr sdk.AccAddress,
+func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
 	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
 	blockTime := ctx.BlockHeader().Time

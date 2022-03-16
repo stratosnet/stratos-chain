@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -11,17 +12,17 @@ const (
 )
 
 type MsgFileUpload struct {
-	FileHash string         `json:"file_hash" yaml:"file_hash"` // hash of file
-	From     sdk.AccAddress `json:"from" yaml:"from"`           // wallet addr who will pay this tx
-	Reporter sdk.AccAddress `json:"reporter" yaml:"reporter"`   // p2pAddr of sp node who reports this tx
-	Uploader sdk.AccAddress `json:"uploader" yaml:"uploader"`   // user who uploads the file
+	FileHash string             `json:"file_hash" yaml:"file_hash"` // hash of file
+	From     sdk.AccAddress     `json:"from" yaml:"from"`           // wallet addr who will pay this tx
+	Reporter stratos.SdsAddress `json:"reporter" yaml:"reporter"`   // p2pAddr of sp node who reports this tx
+	Uploader sdk.AccAddress     `json:"uploader" yaml:"uploader"`   // user who uploads the file
 }
 
 // verify interface at compile time
 var _ sdk.Msg = &MsgFileUpload{}
 
 // NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgUpload(fileHash string, from, reporter, uploader sdk.AccAddress) MsgFileUpload {
+func NewMsgUpload(fileHash string, from sdk.AccAddress, reporter stratos.SdsAddress, uploader sdk.AccAddress) MsgFileUpload {
 	return MsgFileUpload{
 		FileHash: fileHash,
 		From:     from,

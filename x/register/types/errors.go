@@ -6,7 +6,7 @@ import (
 
 var (
 	ErrInvalid                            = sdkerrors.Register(ModuleName, 1, "error invalid")
-	ErrEmptyNetworkAddr                   = sdkerrors.Register(ModuleName, 2, "missing network address")
+	ErrInvalidNetworkAddr                 = sdkerrors.Register(ModuleName, 2, "invalid network address")
 	ErrEmptyOwnerAddr                     = sdkerrors.Register(ModuleName, 3, "missing owner address")
 	ErrValueNegative                      = sdkerrors.Register(ModuleName, 4, "value must be positive")
 	ErrEmptyDescription                   = sdkerrors.Register(ModuleName, 5, "description must be not empty")
@@ -46,4 +46,6 @@ var (
 	ErrInvalidNodeStatBonded              = sdkerrors.Register(ModuleName, 39, "invalid node status: bonded")
 	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, 40, "initial uOzone price must be positive")
 	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, 41, "invalid change for stake")
+	ErrTotalUnissuedPrepay                = sdkerrors.Register(ModuleName, 42, "total unissued prepay must be non-negative")
+	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, 43, "invalid node type")
 )

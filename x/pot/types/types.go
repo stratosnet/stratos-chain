@@ -1,6 +1,9 @@
 package types
 
-import sdk "github.com/cosmos/cosmos-sdk/types"
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
+)
 
 type SingleWalletVolume struct {
 	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
@@ -36,6 +39,20 @@ func NewMiningRewardParam(totalMinedValveStart sdk.Coin, totalMinedValveEnd sdk.
 		BlockChainPercentageInTenThousand:   blockChainPercentageInTenThousand,
 		ResourceNodePercentageInTenThousand: resourceNodePercentageInTenThousand,
 		MetaNodePercentageInTenThousand:     metaNodePercentageInTenThousand,
+	}
+}
+
+type VolumeReportRecord struct {
+	Reporter        stratos.SdsAddress
+	ReportReference string
+	TxHash          string
+}
+
+func NewReportRecord(reporter stratos.SdsAddress, reportReference string, txHash string) VolumeReportRecord {
+	return VolumeReportRecord{
+		Reporter:        reporter,
+		ReportReference: reportReference,
+		TxHash:          txHash,
 	}
 }
 

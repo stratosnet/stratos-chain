@@ -5,6 +5,7 @@ import (
 	authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
 	"github.com/cosmos/cosmos-sdk/x/params"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // ParamSubspace defines the expected Subspace interface
@@ -50,12 +51,12 @@ type SupplyKeeper interface {
 
 // RegisterHooks event hooks for registered node object (noalias)
 type RegisterHooks interface {
-	AfterNodeCreated(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)   // Must be called when a node is created
-	BeforeNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool) // Must be called when a node's state changes
-	AfterNodeRemoved(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)   // Must be called when a node is deleted
+	AfterNodeCreated(ctx sdk.Context, networkAddr stratos.SdsAddress, isIndexingNode bool)   // Must be called when a node is created
+	BeforeNodeModified(ctx sdk.Context, networkAddr stratos.SdsAddress, isIndexingNode bool) // Must be called when a node's state changes
+	AfterNodeRemoved(ctx sdk.Context, networkAddr stratos.SdsAddress, isIndexingNode bool)   // Must be called when a node is deleted
 
-	AfterNodeBonded(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)         // Must be called when a node is bonded
-	AfterNodeBeginUnbonding(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool) // Must be called when a node begins unbonding
+	AfterNodeBonded(ctx sdk.Context, networkAddr stratos.SdsAddress, isIndexingNode bool)         // Must be called when a node is bonded
+	AfterNodeBeginUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddress, isIndexingNode bool) // Must be called when a node begins unbonding
 
 	//BeforeNodeCreated(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool)  // Must be called when a node is created
 	//BeforeNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isIndexingNode bool) // Must be called when a node's shares are modified

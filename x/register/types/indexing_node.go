@@ -55,22 +55,22 @@ func (v IndexingNodes) Validate() error {
 }
 
 type IndexingNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network id of the indexing node, sds://...
-	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
-	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
-	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
-	Tokens       sdk.Int        `json:"tokens" yaml:"tokens"`               // delegated tokens
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
-	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
-	CreationTime time.Time      `json:"creation_time" yaml:"creation_time"`
+	NetworkAddr  stratos.SdsAddress `json:"network_address" yaml:"network_address"` // network address
+	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`                   // the consensus public key of the indexing node; bech encoded in JSON
+	Suspend      bool               `json:"suspend" yaml:"suspend"`                 // has the indexing node been suspended from bonded status?
+	Status       sdk.BondStatus     `json:"status" yaml:"status"`                   // indexing node status (bonded/unbonding/unbonded)
+	Tokens       sdk.Int            `json:"tokens" yaml:"tokens"`                   // delegated tokens
+	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`     // owner address of the indexing node
+	Description  Description        `json:"description" yaml:"description"`         // description terms for the indexing node
+	CreationTime time.Time          `json:"creation_time" yaml:"creation_time"`
 }
 
 // NewIndexingNode - initialize a new indexing node
-func NewIndexingNode(networkID string, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) IndexingNode {
+func NewIndexingNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) IndexingNode {
 	return IndexingNode{
-		NetworkID:    networkID,
+		NetworkAddr:  networkAddr,
 		PubKey:       pubKey,
-		Suspend:      false,
+		Suspend:      true,
 		Status:       sdk.Unbonded,
 		Tokens:       sdk.ZeroInt(),
 		OwnerAddress: ownerAddr,
@@ -94,7 +94,7 @@ func (v IndexingNode) String() string {
 		Owner Address: 		%s
   		Description:		%s
 		CreationTime:		%s
-	}`, v.NetworkID, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
+	}`, v.NetworkAddr, pubKey, v.Suspend, v.Status, v.Tokens, v.OwnerAddress, v.Description, v.CreationTime)
 }
 
 // AddToken adds tokens to a indexing node
@@ -116,8 +116,11 @@ func (v IndexingNode) SubToken(tokens sdk.Int) IndexingNode {
 }
 
 func (v IndexingNode) Validate() error {
-	if v.NetworkID == "" {
+	if v.NetworkAddr.Empty() {
 		return ErrEmptyNodeId
+	}
+	if v.NetworkAddr.Equals(stratos.SdsAddress(v.PubKey.Address())) {
+		return ErrInvalidNetworkAddr
 	}
 	if len(v.PubKey.Bytes()) == 0 {
 		return ErrEmptyPubKey
@@ -149,15 +152,16 @@ func (v IndexingNode) IsUnBonding() bool {
 	return v.GetStatus().Equal(sdk.Unbonding)
 }
 
-func (v IndexingNode) IsSuspended() bool              { return v.Suspend }
-func (v IndexingNode) GetMoniker() string             { return v.Description.Moniker }
-func (v IndexingNode) GetStatus() sdk.BondStatus      { return v.Status }
-func (v IndexingNode) GetNetworkID() string           { return v.NetworkID }
-func (v IndexingNode) GetPubKey() crypto.PubKey       { return v.PubKey }
-func (v IndexingNode) GetNetworkAddr() sdk.AccAddress { return sdk.AccAddress(v.PubKey.Address()) }
-func (v IndexingNode) GetTokens() sdk.Int             { return v.Tokens }
-func (v IndexingNode) GetOwnerAddr() sdk.AccAddress   { return v.OwnerAddress }
-func (v IndexingNode) GetCreationTime() time.Time     { return v.CreationTime }
+func (v IndexingNode) IsSuspended() bool         { return v.Suspend }
+func (v IndexingNode) GetMoniker() string        { return v.Description.Moniker }
+func (v IndexingNode) GetStatus() sdk.BondStatus { return v.Status }
+func (v IndexingNode) GetPubKey() crypto.PubKey  { return v.PubKey }
+func (v IndexingNode) GetNetworkAddr() stratos.SdsAddress {
+	return stratos.SdsAddress(v.PubKey.Address())
+}
+func (v IndexingNode) GetTokens() sdk.Int           { return v.Tokens }
+func (v IndexingNode) GetOwnerAddr() sdk.AccAddress { return v.OwnerAddress }
+func (v IndexingNode) GetCreationTime() time.Time   { return v.CreationTime }
 
 // MustMarshalIndexingNode returns the indexingNode bytes. Panics if fails
 func MustMarshalIndexingNode(cdc *codec.Codec, indexingNode IndexingNode) []byte {
@@ -211,13 +215,13 @@ func (v VoteOpinion) String() string {
 }
 
 type IndexingNodeRegistrationVotePool struct {
-	NodeAddress sdk.AccAddress   `json:"node_address" yaml:"node_address"`
-	ApproveList []sdk.AccAddress `json:"approve_list" yaml:"approve_list"`
-	RejectList  []sdk.AccAddress `json:"reject_list" yaml:"reject_list"`
-	ExpireTime  time.Time        `json:"expire_time" yaml:"expire_time"`
+	NodeAddress stratos.SdsAddress   `json:"node_address" yaml:"node_address"`
+	ApproveList []stratos.SdsAddress `json:"approve_list" yaml:"approve_list"`
+	RejectList  []stratos.SdsAddress `json:"reject_list" yaml:"reject_list"`
+	ExpireTime  time.Time            `json:"expire_time" yaml:"expire_time"`
 }
 
-func NewRegistrationVotePool(nodeAddress sdk.AccAddress, approveList []sdk.AccAddress, rejectList []sdk.AccAddress, expireTime time.Time) IndexingNodeRegistrationVotePool {
+func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []stratos.SdsAddress, rejectList []stratos.SdsAddress, expireTime time.Time) IndexingNodeRegistrationVotePool {
 	return IndexingNodeRegistrationVotePool{
 		NodeAddress: nodeAddress,
 		ApproveList: approveList,

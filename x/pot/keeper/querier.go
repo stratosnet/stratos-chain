@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -16,6 +17,7 @@ const (
 	QueryVolumeReport            = "query_volume_report"
 	QueryPotRewardsByReportEpoch = "query_pot_rewards_by_report_epoch"
 	QueryPotRewardsByWalletAddr  = "query_pot_rewards_by_wallet_address"
+	QueryPotSlashingByP2pAddr    = "query_pot_slashing_by_p2p_address"
 	QueryDefaultLimit            = 100
 )
 
@@ -29,6 +31,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPotRewardsByReportEpoch(ctx, req, k)
 		case QueryPotRewardsByWalletAddr:
 			return queryPotRewardsByWalletAddress(ctx, req, k)
+		case QueryPotSlashingByP2pAddr:
+			return queryPotSlashingByP2pAddress(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -39,17 +43,19 @@ func NewQuerier(k Keeper) sdk.Querier {
 func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	epoch, err := strconv.ParseInt(string(req.Data), 10, 64)
 	if err != nil {
-		return nil, err
+		return []byte{}, err
 	}
 
 	reportRecord := k.GetVolumeReport(ctx, sdk.NewInt(epoch))
 	if reportRecord.TxHash == "" {
-		bz := []byte(fmt.Sprintf("no volume report at epoch: %d", epoch))
-		return bz, nil
+		e := sdkerrors.Wrapf(types.ErrCannotFindReport,
+			fmt.Sprintf("no volume report found at epoch %d. Current epoch is %s",
+				epoch, k.GetLastReportedEpoch(ctx).String()))
+		return []byte{}, e
 	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, reportRecord)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -59,16 +65,16 @@ func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keep
 	var params types.QueryPotRewardsByReportEpochParams
 	err := k.cdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	potEpochRewards := k.getPotRewardsByReportEpoch(ctx, params)
 	if len(potEpochRewards) < 1 {
-		bz, _ := codec.MarshalJSONIndent(k.cdc, fmt.Sprintf("no Pot rewards information at epoch: %s", params.Epoch.String()))
-		return bz, nil
+		e := sdkerrors.Wrapf(types.ErrCannotFindReward, fmt.Sprintf("no Pot rewards information at epoch %s", params.Epoch.String()))
+		return []byte{}, e
 	}
 	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
 }
@@ -115,4 +121,13 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return bz, nil
+}
+
+func queryPotSlashingByP2pAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	addr, err := stratos.SdsAddressFromBech32(string(req.Data))
+	if err != nil {
+		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
+	}
+
+	return []byte(k.GetSlashing(ctx, addr).String()), nil
 }
