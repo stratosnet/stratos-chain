@@ -285,7 +285,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 	for _, n := range nodes {
 		// match NetworkAddr (if supplied)
 		if !params.NetworkAddr.Empty() {
-			if n.NetworkID.Equals(params.NetworkAddr) {
+			if n.NetworkAddr.Equals(params.NetworkAddr) {
 				continue
 			}
 		}
@@ -312,7 +312,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	for _, n := range nodes {
 		// match NetworkAddr (if supplied)
 		if !params.NetworkAddr.Empty() {
-			if n.NetworkID.Equals(params.NetworkAddr) {
+			if n.NetworkAddr.Equals(params.NetworkAddr) {
 				continue
 			}
 		}

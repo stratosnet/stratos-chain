@@ -88,7 +88,7 @@ func getIndexingNodeInfoFromFile(cdc *codec.Codec, genIdxNodesDir string, genDoc
 				ownerAccount.GetAddress(), ownerAccount.GetCoins().AmountOf(defaultDemon), indexingNode.GetTokens(),
 			)
 		}
-		fmt.Println("Add indexing node: " + indexingNode.NetworkID.String() + " success.")
+		fmt.Println("Add indexing node: " + indexingNode.NetworkAddr.String() + " success.")
 	}
 
 	return appGenIdxNodes, nil

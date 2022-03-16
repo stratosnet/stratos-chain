@@ -9,11 +9,11 @@ import (
 // REST Variable names
 // nolint
 const (
-	RestNetworkID = "network"
-	RestNumLimit  = "limit"
-	RestMoniker   = "moniker"
-	RestOwner     = "owner"
-	RestQueryType = "query_type"
+	RestNetworkAddr = "network"
+	RestNumLimit    = "limit"
+	RestMoniker     = "moniker"
+	RestOwner       = "owner"
+	RestQueryType   = "query_type"
 )
 
 // RegisterRoutes registers register-related REST handlers to a router

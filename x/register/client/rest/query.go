@@ -58,9 +58,9 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 		}
 
 		var (
-			networkID stratos.SdsAddress
-			moniker   string
-			ownerAddr sdk.AccAddress
+			networkAddr stratos.SdsAddress
+			moniker     string
+			ownerAddr   sdk.AccAddress
 		)
 
 		moniker = r.URL.Query().Get(RestMoniker)
@@ -73,15 +73,15 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 			}
 		}
 
-		if v := r.URL.Query().Get(RestNetworkID); len(v) != 0 {
-			networkID, err = stratos.SdsAddressFromBech32(v)
+		if v := r.URL.Query().Get(RestNetworkAddr); len(v) != 0 {
+			networkAddr, err = stratos.SdsAddressFromBech32(v)
 			if err != nil {
 				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 				return
 			}
 		}
 
-		params := types.NewQueryNodesParams(page, limit, networkID, moniker, ownerAddr)
+		params := types.NewQueryNodesParams(page, limit, networkAddr, moniker, ownerAddr)
 		bz, err := cliCtx.Codec.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

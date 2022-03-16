@@ -75,13 +75,13 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 type GenesisIndexingNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`       // network address of the indexing node
-	PubKey       string         `json:"pubkey" yaml:"pubkey"`               // the consensus public key of the indexing node; bech encoded in JSON
-	Suspend      bool           `json:"suspend" yaml:"suspend"`             // has the indexing node been suspended from bonded status?
-	Status       sdk.BondStatus `json:"status" yaml:"status"`               // indexing node status (bonded/unbonding/unbonded)
-	Tokens       string         `json:"tokens" yaml:"tokens"`               // delegated tokens
-	OwnerAddress string         `json:"owner_address" yaml:"owner_address"` // owner address of the indexing node
-	Description  Description    `json:"description" yaml:"description"`     // description terms for the indexing node
+	NetworkAddr  string         `json:"network_address" yaml:"network_address"` // network address of the indexing node
+	PubKey       string         `json:"pubkey" yaml:"pubkey"`                   // the consensus public key of the indexing node; bech encoded in JSON
+	Suspend      bool           `json:"suspend" yaml:"suspend"`                 // has the indexing node been suspended from bonded status?
+	Status       sdk.BondStatus `json:"status" yaml:"status"`                   // indexing node status (bonded/unbonding/unbonded)
+	Tokens       string         `json:"tokens" yaml:"tokens"`                   // delegated tokens
+	OwnerAddress string         `json:"owner_address" yaml:"owner_address"`     // owner address of the indexing node
+	Description  Description    `json:"description" yaml:"description"`         // description terms for the indexing node
 }
 
 func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
@@ -100,13 +100,13 @@ func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
 		panic(err)
 	}
 
-	netAddr, err := stratos.SdsAddressFromBech32(v.OwnerAddress)
+	netAddr, err := stratos.SdsAddressFromBech32(v.NetworkAddr)
 	if err != nil {
 		panic(err)
 	}
 
 	return IndexingNode{
-		NetworkID:    netAddr,
+		NetworkAddr:  netAddr,
 		PubKey:       pubKey,
 		Suspend:      v.Suspend,
 		Status:       v.Status,

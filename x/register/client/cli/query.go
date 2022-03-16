@@ -38,39 +38,39 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	return registerQueryCmd
 }
 
-// GetCmdQueryResourceNode implements the query all resource nodes by network id command.
+// GetCmdQueryResourceNode implements the query resource nodes by network address command.
 func GetCmdQueryResourceNode(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get-resource-node [flags]", // []byte
 		Short: "Query resource node by network-id",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query resource node by network-id`),
+			fmt.Sprintf(`Query resource node by network address`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			// query resource node by network ID
-			queryFlagNetworkID := viper.GetString(FlagNetworkID)
-			if queryFlagNetworkID == "" {
-				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network-id")
+			// query resource node by network address
+			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
+			if queryFlagNetworkAddr == "" {
+				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
-			resp, err := GetResNodeByNetworkID(cliCtx, queryRoute)
+			resp, err := GetResNodesByNetworkAddr(cliCtx, queryRoute)
 			if err != nil {
 				return err
 			}
 			return cliCtx.PrintOutput(resp)
 		},
 	}
-	cmd.Flags().String(FlagNetworkID, "", "(optional) The network id of the node")
+	cmd.Flags().String(FlagNetworkAddress, "", "(optional) The network address of the node")
 	return cmd
 }
 
-// GetResNodeByNetworkID queries all resource nodes by multiple network IDs (sep: ";")
-func GetResNodeByNetworkID(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
-	queryFlagNetworkID := viper.GetString(FlagNetworkID)
-	queryByFlagNetworkIDList := strings.Split(queryFlagNetworkID, ";")
-	for _, v := range queryByFlagNetworkIDList {
+// GetResNodesByNetworkAddr queries all resource nodes by multiple network IDs (sep: ";")
+func GetResNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
+	queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
+	queryByFlagNetworkAddrList := strings.Split(queryFlagNetworkAddr, ";")
+	for _, v := range queryByFlagNetworkAddrList {
 		resp, _, err := QueryResourceNode(cliCtx, queryRoute, v)
 		if err != nil {
 			return "null", err
@@ -81,29 +81,29 @@ func GetResNodeByNetworkID(cliCtx context.CLIContext, queryRoute string) (res st
 }
 
 // QueryResourceNode queries resource node by network addr
-func QueryResourceNode(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
+func QueryResourceNode(cliCtx context.CLIContext, queryRoute, networkAddr string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodeByNetworkAddr)
-	return cliCtx.QueryWithData(route, []byte(networkID))
+	return cliCtx.QueryWithData(route, []byte(networkAddr))
 }
 
 // GetCmdQueryIndexingNodeList implements the query all indexing nodes by network id command.
 func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get-indexing-nodes [flags]", // []byte
-		Short: "Query indexing node by network-id",
+		Short: "Query all indexing nodes",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query all indexing nodes by network-id`),
+			fmt.Sprintf(`Query all indexing nodes`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			inBuf := bufio.NewReader(cmd.InOrStdin())
 			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 
-			// query all indexing nodes by network-id
-			queryFlagNetworkID := viper.GetString(FlagNetworkID)
-			if queryFlagNetworkID == "" {
-				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network-id")
+			// query all indexing nodes by network address
+			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
+			if queryFlagNetworkAddr == "" {
+				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
-			resp, err := GetIndNodesByNetworkID(cliCtx, queryRoute)
+			resp, err := GetIndNodesByNetworkAddr(cliCtx, queryRoute)
 			if err != nil {
 				return err
 			}
@@ -111,16 +111,16 @@ func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Com
 
 		},
 	}
-	cmd.Flags().String(FlagNetworkID, "", "(optional) The network id of the node")
+	cmd.Flags().String(FlagNetworkAddress, "", "(optional) The network address of the node")
 
 	return cmd
 }
 
-// GetIndNodesByNetworkID queries all indexing nodes by multiple network IDs
-func GetIndNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
-	queryFlagNetworkID := viper.GetString(FlagNetworkID)
-	queryByFlagNetworkIDList := strings.Split(queryFlagNetworkID, ";")
-	for _, v := range queryByFlagNetworkIDList {
+// GetIndNodesByNetworkAddr queries all indexing nodes by multiple network addrs (sep: ";")
+func GetIndNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
+	queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
+	queryByFlagNetworkAddrList := strings.Split(queryFlagNetworkAddr, ";")
+	for _, v := range queryByFlagNetworkAddrList {
 		resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, v)
 		if err != nil {
 			return "null", err
@@ -130,8 +130,8 @@ func GetIndNodesByNetworkID(cliCtx context.CLIContext, queryRoute string) (res s
 	return res[:len(res)-1], nil
 }
 
-// QueryIndexingNodes queries one indexing node by network ID
-func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkID string) ([]byte, int64, error) {
+// QueryIndexingNodes queries all resource nodes
+func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddr string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
-	return cliCtx.QueryWithData(route, []byte(networkID))
+	return cliCtx.QueryWithData(route, []byte(networkAddr))
 }
