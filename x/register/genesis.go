@@ -69,8 +69,10 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 
 	var slashingInfo []types.Slashing
 	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
-		slashing := types.NewSlashing(walletAddress, val)
-		slashingInfo = append(slashingInfo, slashing)
+		if val.GT(sdk.ZeroInt()) {
+			slashing := types.NewSlashing(walletAddress, val)
+			slashingInfo = append(slashingInfo, slashing)
+		}
 		return false
 	})
 
