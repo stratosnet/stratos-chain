@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -28,9 +27,8 @@ var (
 	IndividualRewardKeyPrefix    = []byte{0x13} // key: prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
 	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
-	SlashingPrefix               = []byte{0x16} // key: prefix{address}_{epoch}
-	// VolumeReportStoreKeyPrefix prefix for volumeReport store
-	VolumeReportStoreKeyPrefix = []byte{0x41}
+
+	VolumeReportStoreKeyPrefix = []byte{0x41} // VolumeReportStoreKeyPrefix prefix for volumeReport store
 )
 
 func GetMinedTokensKey(epoch sdk.Int) []byte {
@@ -66,10 +64,5 @@ func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	bKeyStr := []byte("_immature_total")
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
 	key = append(key, bKeyStr...)
-	return key
-}
-
-func GetSlashingKey(p2pAddress stratos.SdsAddress) []byte {
-	key := append(SlashingPrefix, p2pAddress...)
 	return key
 }

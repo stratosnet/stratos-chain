@@ -2,7 +2,6 @@ package pot
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -25,9 +24,6 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 		keeper.SetIndividualReward(ctx, individual.WalletAddress, sdk.NewInt(data.LastReportedEpoch+1), individual)
 	}
 
-	for _, slashing := range data.SlashingInfo {
-		keeper.SetSlashing(ctx, slashing.P2pAddress, slashing.Value)
-	}
 }
 
 // ExportGenesis writes the current store values
@@ -63,13 +59,6 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 		return false
 	})
 
-	var slashingInfo []types.Slashing
-	keeper.IteratorSlashingInfo(ctx, func(p2pAddress stratos.SdsAddress, val sdk.Int) (stop bool) {
-		slashing := types.NewSlashing(p2pAddress, val)
-		slashingInfo = append(slashingInfo, slashing)
-		return false
-	})
-
 	return types.NewGenesisState(params, totalMinedToken, lastReportedEpoch.Int64(),
-		immatureTotalInfo, matureTotalInfo, individualRewardInfo, slashingInfo)
+		immatureTotalInfo, matureTotalInfo, individualRewardInfo)
 }

@@ -216,7 +216,7 @@ type MsgSlashingResourceNode struct {
 	ReporterOwner  []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`   // reporter wallet address
 	NetworkAddress stratos.SdsAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
 	WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
-	Slashing       sdk.Int              `json:"slashing" yaml:"slashing"`
+	Slashing       sdk.Int              `json:"slashing" yaml:"slashing"`               // uoz amount
 	Suspend        bool                 `json:"suspend" yaml:"suspend"`
 }
 

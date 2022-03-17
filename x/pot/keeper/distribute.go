@@ -267,7 +267,12 @@ func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddre
 		immatureToMature = immatureToMature.Add(rewardTotal...)
 	}
 
-	matureTotal := oldMatureTotal.Add(immatureToMature...)
+	//deduct slashing amount from mature total pool
+	finalMatureTotal := k.RegisterKeeper.DeductSlashing(ctx, account, oldMatureTotal)
+	//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
+	finalNewMature := k.RegisterKeeper.DeductSlashing(ctx, account, immatureToMature)
+
+	matureTotal := finalMatureTotal.Add(finalNewMature...)
 	immatureTotal := oldImmatureTotal.Sub(immatureToMature).Add(newRewardTotal...)
 
 	rewardAddressPool := k.GetRewardAddressPool(ctx)

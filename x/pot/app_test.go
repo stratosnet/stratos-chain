@@ -3,6 +3,7 @@ package pot
 import (
 	"testing"
 
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -44,6 +45,18 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, types.BLSSignatureInfo{})
 
 	return volumeReportMsg
+}
+
+func setupSlashingMsg() types.MsgSlashingResourceNode {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, idxNodeNetworkId1)
+	reporters = append(reporters, idxNodeNetworkId2)
+	reportOwner := make([]sdk.AccAddress, 0)
+	reportOwner = append(reportOwner, idxOwner1)
+	reportOwner = append(reportOwner, idxOwner2)
+
+	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdk.NewInt(100000000000000000), true)
+	return slashingMsg
 }
 
 // Test case termination conditions
@@ -112,6 +125,23 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	var i int64
 	i = 0
 	for {
+
+		/********************* test slashing msg when i==2 *********************/
+		if i == 2 {
+			ctx.Logger().Info("*****************************************************************************")
+			slashingMsg := setupSlashingMsg()
+			/********************* deliver tx *********************/
+
+			idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwner1)
+			ownerAccNum := idxOwnerAcc1.GetAccountNumber()
+			ownerAccSeq := idxOwnerAcc1.GetSequence()
+
+			SignCheckDeliver(t, mApp.Cdc, mApp.BaseApp, header, []sdk.Msg{slashingMsg}, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+			/********************* commit & check result *********************/
+			header = abci.Header{Height: mApp.LastBlockHeight() + 1}
+			ctx = mApp.BaseApp.NewContext(true, header)
+		}
+
 		ctx.Logger().Info("*****************************************************************************")
 		/********************* prepare tx data *********************/
 		volumeReportMsg := setupMsgVolumeReport(i + 1)
@@ -387,7 +417,14 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := register.NewGenesisState(register.DefaultParams(), resourceNodes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
+		registerGenesis := register.NewGenesisState(
+			register.DefaultParams(),
+			resourceNodes,
+			indexingNodes,
+			initialUOzonePrice,
+			sdk.ZeroInt(),
+			make([]register.Slashing, 0),
+		)
 
 		register.InitGenesis(ctx, registerKeeper, registerGenesis)
 
@@ -419,7 +456,6 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 			make([]types.ImmatureTotal, 0),
 			make([]types.MatureTotal, 0),
 			make([]types.Reward, 0),
-			make([]types.Slashing, 0),
 		))
 
 		return abci.ResponseInitChain{

@@ -202,7 +202,14 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := NewGenesisState(DefaultParams(), resourceNodes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
+		registerGenesis := NewGenesisState(
+			DefaultParams(),
+			resourceNodes,
+			indexingNodes,
+			initialUOzonePrice,
+			sdk.ZeroInt(),
+			make([]Slashing, 0),
+		)
 
 		InitGenesis(ctx, keeper, registerGenesis)
 

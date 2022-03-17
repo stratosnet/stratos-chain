@@ -7,6 +7,14 @@ import (
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
+/*
+	This function only record slashing amount.
+
+	Deduct slashing amount when:
+	1, calculate upcoming mature reward, deduct from mature_total & upcoming mature reward.
+	2, unstaking indexing node.
+	3, unstaking resource node.
+*/
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
 	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType regtypes.NodeType, err error) {
 
@@ -14,9 +22,7 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	if !ok {
 		return sdk.ZeroInt(), regtypes.NodeType(0), regtypes.ErrNoResourceNodeFound
 	}
-	//if suspend == node.Suspend {
-	//	return types.ErrNodeStatusSuspend
-	//}
+
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
@@ -25,29 +31,13 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 		Volume:        ozAmt,
 	}})
 
-	oldSlashing := k.GetSlashing(ctx, p2pAddr)
+	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
 
 	// only slashing the reward token for now.
 	newSlashing := oldSlashing.Add(slash.TruncateInt())
 
-	// TODO: (add to reward distribution?) deduct from immature reward (would affect immatureToMature)
-
 	k.RegisterKeeper.SetResourceNode(ctx, node)
-	k.SetSlashing(ctx, p2pAddr, newSlashing)
+	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
 	return slash.TruncateInt(), node.NodeType, nil
-}
-
-func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(p2pAddress stratos.SdsAddress, slashing sdk.Int) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.SlashingPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := stratos.SdsAddress(iter.Key()[len(types.SlashingPrefix):])
-		var slashing sdk.Int
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &slashing)
-		if handler(addr, slashing) {
-			break
-		}
-	}
 }
