@@ -12,6 +12,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -41,8 +42,8 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 // GetCmdQueryResourceNode implements the query resource nodes by network address command.
 func GetCmdQueryResourceNode(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-resource-node [flags]", // []byte
-		Short: "Query resource node by network-id",
+		Use:   "get-resource-nodes [flags]", // []byte
+		Short: "Query resource node by network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query resource node by network address`),
 		),
@@ -83,7 +84,17 @@ func GetResNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res
 // QueryResourceNode queries resource node by network addr
 func QueryResourceNode(cliCtx context.CLIContext, queryRoute, networkAddr string) ([]byte, int64, error) {
 	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryResourceNodeByNetworkAddr)
-	return cliCtx.QueryWithData(route, []byte(networkAddr))
+	sdsAddress, err := stratos.SdsAddressFromBech32(networkAddr)
+	if err != nil {
+		return []byte{}, 0, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
+	}
+
+	params := types.NewQueryNodesParams(1, 1, sdsAddress, "", nil)
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		return []byte{}, 0, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
+	}
+	return cliCtx.QueryWithData(route, bz)
 }
 
 // GetCmdQueryIndexingNodeList implements the query all indexing nodes by network id command.
@@ -130,8 +141,18 @@ func GetIndNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res
 	return res[:len(res)-1], nil
 }
 
-// QueryIndexingNodes queries all resource nodes
+// QueryIndexingNodes queries all indexing nodes
 func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddr string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeList)
-	return cliCtx.QueryWithData(route, []byte(networkAddr))
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeByNetworkAddr)
+	sdsAddress, err := stratos.SdsAddressFromBech32(networkAddr)
+	if err != nil {
+		return []byte{}, 0, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
+	}
+
+	params := types.NewQueryNodesParams(1, 1, sdsAddress, "", nil)
+	bz, err := cliCtx.Codec.MarshalJSON(params)
+	if err != nil {
+		return []byte{}, 0, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
+	}
+	return cliCtx.QueryWithData(route, bz)
 }
