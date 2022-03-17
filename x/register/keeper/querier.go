@@ -85,12 +85,7 @@ func getIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoIndexingNodeFound.Error())
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, node)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
+	return types.ModuleCdc.MustMarshalJSON([]types.IndexingNode{node}), nil
 }
 
 func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
