@@ -19,8 +19,8 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 			slashing = sdk.ZeroInt()
 			break
 		} else {
-			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
 			slashing = slashing.Sub(coin.Amount)
+			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
 		}
 	}
 	k.SetSlashing(ctx, walletAddress, slashing)
