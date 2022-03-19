@@ -1,6 +1,7 @@
 package register
 
 import (
+	"os"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,9 +21,9 @@ import (
 
 func TestMain(m *testing.M) {
 	config := stratos.GetConfig()
-
 	config.Seal()
-
+	exitVal := m.Run()
+	os.Exit(exitVal)
 }
 
 func Test(t *testing.T) {

@@ -3,6 +3,7 @@ package sds
 import (
 	"log"
 	"math/rand"
+	"os"
 	"strconv"
 	"testing"
 	"time"
@@ -63,9 +64,9 @@ var (
 
 func TestMain(m *testing.M) {
 	config := stratos.GetConfig()
-
 	config.Seal()
-
+	exitVal := m.Run()
+	os.Exit(exitVal)
 }
 
 func TestRandomPurchasedUoz(t *testing.T) {
