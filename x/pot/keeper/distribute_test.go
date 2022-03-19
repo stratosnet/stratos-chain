@@ -234,11 +234,6 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	_, err := k.DistributePotReward(ctx, trafficList, epoch2017)
 	require.NoError(t, err)
 	fmt.Println("Distribution result at Epoch2017: ")
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	fmt.Println("address pool: ")
-	for i := 0; i < len(rewardAddrList); i++ {
-		fmt.Println(rewardAddrList[i].String() + ", ")
-	}
 	fmt.Println("----------------------------------------------------------------------------------")
 
 	idvRwdResNode1Ep1, _ := k.GetIndividualReward(ctx, resOwner1, epoch4033)
@@ -323,11 +318,6 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	require.NoError(t, err)
 
 	fmt.Println("Distribution result at Epoch1: ")
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	fmt.Println("address pool: ")
-	for i := 0; i < len(rewardAddrList); i++ {
-		fmt.Println(rewardAddrList[i].String() + ", ")
-	}
 	fmt.Println("----------------------------------------------------------------------------------")
 
 	idvRwdResNode1Ep1, _ := k.GetIndividualReward(ctx, resOwner1, epoch2017)
