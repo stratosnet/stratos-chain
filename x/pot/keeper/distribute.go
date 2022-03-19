@@ -64,7 +64,7 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleW
 	}
 
 	//10, mature rewards for all nodes
-	k.rewardMature(ctx, epoch)
+	k.rewardMatureAndSubSlashing(ctx, epoch)
 
 	//11, save reported epoch
 	k.SetLastReportedEpoch(ctx, epoch)
@@ -256,15 +256,15 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 }
 
 func (k Keeper) addNewIndividualAndUpdateImmatureTotal(ctx sdk.Context, account sdk.AccAddress, matureEpoch sdk.Int, newReward types.Reward) {
-	newRewardTotal := newReward.RewardFromMiningPool.Add(newReward.RewardFromTrafficPool...)
+	newIndividualTotal := newReward.RewardFromMiningPool.Add(newReward.RewardFromTrafficPool...)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
-	newImmatureTotal := oldImmatureTotal.Add(newRewardTotal...)
+	newImmatureTotal := oldImmatureTotal.Add(newIndividualTotal...)
 
-	k.SetImmatureTotalReward(ctx, account, newImmatureTotal)
 	k.SetIndividualReward(ctx, account, matureEpoch, newReward)
+	k.SetImmatureTotalReward(ctx, account, newImmatureTotal)
 }
 
-func (k Keeper) rewardMature(ctx sdk.Context, currentEpoch sdk.Int) {
+func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int) {
 
 	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
@@ -273,16 +273,14 @@ func (k Keeper) rewardMature(ctx sdk.Context, currentEpoch sdk.Int) {
 		k.IteratorIndividualReward(ctx, sdk.NewInt(i), func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
 			oldMatureTotal := k.GetMatureTotalReward(ctx, walletAddress)
 			oldImmatureTotal := k.GetImmatureTotalReward(ctx, walletAddress)
-
-			immatureToMature := sdk.Coins{}
-			immatureToMature = individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
+			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
 
 			//deduct slashing amount from mature total pool
-			finalMatureTotal := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
+			oldMatureTotalSubSlashing := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
 			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-			finalNewMature := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
+			immatureToMatureSubSlashing := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
 
-			matureTotal := finalMatureTotal.Add(finalNewMature...)
+			matureTotal := oldMatureTotalSubSlashing.Add(immatureToMatureSubSlashing...)
 			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
 
 			k.SetMatureTotalReward(ctx, walletAddress, matureTotal)
