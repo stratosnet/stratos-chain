@@ -471,7 +471,7 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward)
 
-	_, totalReward := k.getTrafficReward(ctx, trafficList)
+	_, totalReward := k.GetTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
 	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
@@ -534,7 +534,7 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward)
 
-	_, totalReward := k.getTrafficReward(ctx, trafficList)
+	_, totalReward := k.GetTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
 	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)

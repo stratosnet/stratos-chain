@@ -1,6 +1,7 @@
 package pot
 
 import (
+	"os"
 	"testing"
 	"time"
 
@@ -33,12 +34,14 @@ var (
 	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
 	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
 
-	resourceNodeVolume1 = sdk.NewInt(500000000000)
-	resourceNodeVolume2 = sdk.NewInt(300000000000)
-	resourceNodeVolume3 = sdk.NewInt(200000000000)
+	resNodeSlashingUOZAmt1 = sdk.NewInt(1000000000000000000)
+
+	resourceNodeVolume1 = sdk.NewInt(500000)
+	resourceNodeVolume2 = sdk.NewInt(300000)
+	resourceNodeVolume3 = sdk.NewInt(200000)
 
 	depositForSendingTx, _    = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepayVal, _ = sdk.NewIntFromString("100000000000000000000000000000")
+	totalUnissuedPrepayVal, _ = sdk.NewIntFromString("1000000000000")
 	totalUnissuedPrepay       = sdk.NewCoin("ustos", totalUnissuedPrepayVal)
 	initialUOzonePrice        = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
 
@@ -117,9 +120,9 @@ var (
 
 func TestMain(m *testing.M) {
 	config := stratos.GetConfig()
-
 	config.Seal()
-
+	exitVal := m.Run()
+	os.Exit(exitVal)
 }
 
 func setupAccounts(mApp *mock.App) []authexported.Account {
@@ -272,7 +275,6 @@ func SignCheckDeliver(
 
 	// Simulate a sending a transaction and committing a block
 	app.BeginBlock(abci.RequestBeginBlock{Header: header})
-
 	gInfo, res, err := app.Deliver(tx)
 
 	if expPass {
@@ -294,7 +296,7 @@ func GenTx(msgs []sdk.Msg, accnums []uint64, seq []uint64, priv ...crypto.PrivKe
 	// Make the transaction free
 	fee := auth.StdFee{
 		Amount: sdk.NewCoins(sdk.NewInt64Coin("foocoin", 0)),
-		Gas:    600000,
+		Gas:    5000000,
 	}
 
 	sigs := make([]auth.StdSignature, len(priv))

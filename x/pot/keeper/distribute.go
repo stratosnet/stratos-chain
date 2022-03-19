@@ -155,7 +155,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 	ctx sdk.Context, trafficList []types.SingleWalletVolume, distributeGoal types.DistributeGoal,
 ) (sdk.Dec, types.DistributeGoal, error) {
 
-	totalConsumedOzone, totalTrafficReward := k.getTrafficReward(ctx, trafficList)
+	totalConsumedOzone, totalTrafficReward := k.GetTrafficReward(ctx, trafficList)
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
 	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 	if err != nil && err != types.ErrOutOfIssuance {
@@ -187,7 +187,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // The remaining total Ozone limit [lt] is the upper bound of total Ozone that users can purchase from Stratos blockchain.
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
-func (k Keeper) getTrafficReward(ctx sdk.Context, trafficList []types.SingleWalletVolume) (totalConsumedOzone, result sdk.Dec) {
+func (k Keeper) GetTrafficReward(ctx sdk.Context, trafficList []types.SingleWalletVolume) (totalConsumedOzone, result sdk.Dec) {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	if S.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")

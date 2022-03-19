@@ -42,7 +42,14 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 	reportReference := "report for epoch " + epoch.String()
 	reporterOwner := idxOwner1
 
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, types.BLSSignatureInfo{})
+	pubKeys := make([][]byte, 1)
+	for i := range pubKeys {
+		pubKeys[i] = make([]byte, 1)
+	}
+
+	signature := types.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
+
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
 
 	return volumeReportMsg
 }
@@ -50,12 +57,10 @@ func setupMsgVolumeReport(newEpoch int64) types.MsgVolumeReport {
 func setupSlashingMsg() types.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
 	reporters = append(reporters, idxNodeNetworkId1)
-	reporters = append(reporters, idxNodeNetworkId2)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	reportOwner = append(reportOwner, idxOwner2)
 
-	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdk.NewInt(100000000000000000), true)
+	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingUOZAmt1, true)
 	return slashingMsg
 }
 
@@ -77,10 +82,8 @@ func isNeedStop(ctx sdk.Context, k Keeper, epoch sdk.Int, minedToken sdk.Coin) b
 }
 
 func TestPotVolumeReportMsgs(t *testing.T) {
-
 	/********************* initialize mock app *********************/
-	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
-	mApp, k, stakingKeeper, bankKeeper, supplyKeeper := getMockApp(t)
+	mApp, k, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper := getMockApp(t)
 	accs := setupAccounts(mApp)
 	mock.SetGenesis(mApp, accs)
 
@@ -123,12 +126,14 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	/********************** loop sending volume report **********************/
 	var i int64
+	var slashingAmtSetup sdk.Int
 	i = 0
+	slashingAmtSetup = sdk.ZeroInt()
 	for {
 
 		/********************* test slashing msg when i==2 *********************/
 		if i == 2 {
-			ctx.Logger().Info("*****************************************************************************")
+			ctx.Logger().Info("********************************* Deliver Slashing Tx START ********************************************")
 			slashingMsg := setupSlashingMsg()
 			/********************* deliver tx *********************/
 
@@ -140,6 +145,17 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			/********************* commit & check result *********************/
 			header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 			ctx = mApp.BaseApp.NewContext(true, header)
+
+			slashingAmtSetup = registerKeeper.GetSlashing(ctx, resOwner1)
+
+			_, slashingAmtCheck := k.GetTrafficReward(ctx, []types.SingleWalletVolume{{
+				WalletAddress: resOwner1,
+				Volume:        resNodeSlashingUOZAmt1,
+			}})
+			println("slashingAmtSetup=" + slashingAmtSetup.String())
+			require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
+
+			ctx.Logger().Info("********************************* Deliver Slashing Tx END ********************************************")
 		}
 
 		ctx.Logger().Info("*****************************************************************************")
@@ -169,40 +185,40 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		//TODO: recovery when shift to main net
 		/********************************************************** Main net part Start *********************************************************************/
-		//distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
-		//require.NoError(t, err)
-		//ctx.Logger().Info(distributeGoal.String())
-		//
-		//ctx.Logger().Info("---------------------------")
-		//distributeGoalBalance := distributeGoal
-		//rewardDetailMap := make(map[string]types.Reward)
-		//rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
+		distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
+		require.NoError(t, err)
+		ctx.Logger().Info(distributeGoal.String())
+
+		ctx.Logger().Info("---------------------------")
+		distributeGoalBalance := distributeGoal
+		rewardDetailMap := make(map[string]types.Reward)
+		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
 		/********************************************************** Main net part End *********************************************************************/
 
 		//TODO: remove when shift to main net
 		/********************************************************** Incentive testnet part Start *********************************************************************/
-		distributeGoal, idxNodeCnt, resNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal) //for incentive test net
-		require.NoError(t, err)
-		ctx.Logger().Info(distributeGoal.String())
-		ctx.Logger().Info("---------------------------")
-		distributeGoalBalance := distributeGoal
-		rewardDetailMap := make(map[string]types.Reward)
-
-		rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap, resNodeCnt)
-		rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, idxNodeCnt)
-
-		//calc mining reward to distribute to validators
-		rewardFromMiningPool := distributeGoal.BlockChainRewardToValidatorFromMiningPool
-		usedRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-		validatorWalletList := make([]sdk.AccAddress, 0)
-		validators := k.StakingKeeper.GetAllValidators(ctx)
-		for _, validator := range validators {
-			if validator.IsBonded() && !validator.IsJailed() {
-				validatorWalletList = append(validatorWalletList, sdk.AccAddress(validator.GetOperator()))
-			}
-		}
-		rewardPerValidator := sdk.NewCoin(k.RewardDenom(ctx), rewardFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(int64(len(validatorWalletList)))).TruncateInt())
-		usedRewardFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), rewardPerValidator.Amount.Mul(sdk.NewInt(int64(len(validatorWalletList)))))
+		//distributeGoal, idxNodeCnt, resNodeCnt, err := k.CalcMiningRewardInTotalForTestnet(ctx, distributeGoal) //for incentive test net
+		//require.NoError(t, err)
+		//ctx.Logger().Info(distributeGoal.String())
+		//ctx.Logger().Info("---------------------------")
+		//distributeGoalBalance := distributeGoal
+		//rewardDetailMap := make(map[string]types.Reward)
+		//
+		//rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNodeForTestnet(ctx, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap, resNodeCnt)
+		//rewardDetailMap, distributeGoalBalance = k.CalcRewardForIndexingNodeForTestnet(ctx, distributeGoalBalance, rewardDetailMap, idxNodeCnt)
+		//
+		////calc mining reward to distribute to validators
+		//rewardFromMiningPool := distributeGoal.BlockChainRewardToValidatorFromMiningPool
+		//usedRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+		//validatorWalletList := make([]sdk.AccAddress, 0)
+		//validators := k.StakingKeeper.GetAllValidators(ctx)
+		//for _, validator := range validators {
+		//	if validator.IsBonded() && !validator.IsJailed() {
+		//		validatorWalletList = append(validatorWalletList, sdk.AccAddress(validator.GetOperator()))
+		//	}
+		//}
+		//rewardPerValidator := sdk.NewCoin(k.RewardDenom(ctx), rewardFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(int64(len(validatorWalletList)))).TruncateInt())
+		//usedRewardFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), rewardPerValidator.Amount.Mul(sdk.NewInt(int64(len(validatorWalletList)))))
 		/********************************************************** Incentive testnet part End *********************************************************************/
 
 		ctx.Logger().Info("resource_wallet1:  address = " + resOwner1.String())
@@ -243,6 +259,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		lastFoundationAccBalance := bankKeeper.GetCoins(ctx, foundationAccAddr)
 		lastFeePool := bankKeeper.GetCoins(ctx, feePoolAccAddr)
 		lastUnissuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
+		lastMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner2)
 
 		/********************* deliver tx *********************/
 
@@ -257,58 +274,118 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		ctx = mApp.BaseApp.NewContext(true, header)
 
 		//TODO: recovery when shift to main net
-		//checkResult(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool) // Main net
+		checkResult(t, ctx, k, registerKeeper,
+			volumeReportMsg.Epoch,
+			lastFoundationAccBalance,
+			lastUnissuedPrepay,
+			lastFeePool,
+			lastMatureTotalOfResNode1,
+			slashingAmtSetup,
+		) // Main net
 
 		//TODO: remove when shift to main net
-		checkResultForIncentiveTestnet(t, ctx, k, volumeReportMsg.Epoch, lastFoundationAccBalance, lastUnissuedPrepay, lastFeePool, usedRewardFromMiningPool) //Incentive test net
+		//checkResultForIncentiveTestnet(
+		//	t, ctx, k,
+		//	volumeReportMsg.Epoch,
+		//	lastFoundationAccBalance,
+		//	lastUnissuedPrepay,
+		//	lastFeePool,
+		//	usedRewardFromMiningPool,
+		//	slashingAmtSetup,
+		//) //Incentive test net
 
 		i++
 	}
-
 }
 
 //for incentive test net
-func checkResultForIncentiveTestnet(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
-	lastFoundationAccBalance sdk.Coins, lastUnissuedPrepay sdk.Coin, lastFeePool sdk.Coins, validatorDirectDeposited sdk.Coin) {
+//func checkResultForIncentiveTestnet(t *testing.T, ctx sdk.Context, k Keeper,
+//	currentEpoch sdk.Int,
+//	lastFoundationAccBalance sdk.Coins,
+//	lastUnissuedPrepay sdk.Coin,
+//	lastFeePool sdk.Coins,
+//	validatorDirectDeposited sdk.Coin,
+//	slashingAmtSetup sdk.Int) {
+//
+//	currentSlashing := k.RegisterKeeper.GetSlashing(ctx, resNodeAddr2)
+//	println("currentSlashing=" + currentSlashing.String())
+//
+//	individualRewardTotal := sdk.Coins{}
+//	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
+//	rewardAddrList := k.GetRewardAddressPool(ctx)
+//	for _, addr := range rewardAddrList {
+//		individualReward, found := k.GetIndividualReward(ctx, addr, newMatureEpoch)
+//		if found {
+//			individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
+//		}
+//
+//		ctx.Logger().Info("individualReward of [" + addr.String() + "] = " + individualReward.String())
+//	}
+//
+//	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
+//	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+//	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr)
+//	newUnissuedPrepay := sdk.NewCoins(k.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
+//
+//	slashingChange := slashingAmtSetup.Sub(k.RegisterKeeper.GetSlashing(ctx, resOwner1))
+//	ctx.Logger().Info("resource node 1 slashing change	= " + slashingChange.String())
+//	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
+//	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
+//	ctx.Logger().Info("resource node 1 matureTotal		= " + matureTotal.String())
+//	ctx.Logger().Info("resource node 1 immatureTotal	= " + immatureTotal.String())
+//
+//	rewardSrcChange := lastFoundationAccBalance.
+//		Sub(newFoundationAccBalance).
+//		Add(lastUnissuedPrepay).
+//		Sub(newUnissuedPrepay)
+//
+//	ctx.Logger().Info("rewardSrcChange					= " + rewardSrcChange.String())
+//
+//	rewardSrcChangeSubSlashing := deductSlashingAmt(ctx, rewardSrcChange, slashingChange)
+//
+//	newFeePool := k.BankKeeper.GetCoins(ctx, feePoolAccAddr)
+//	ctx.Logger().Info("lastFeePool	= " + lastFeePool.String())
+//	ctx.Logger().Info("newFeePool	= " + newFeePool.String())
+//
+//	feePoolValChange := newFeePool.Sub(lastFeePool)
+//	ctx.Logger().Info("reward send to validator fee pool= " + feePoolValChange.String())
+//	rewardDestChange := feePoolValChange.Add(individualRewardTotal...).Add(validatorDirectDeposited)
+//
+//	rewardDestChange = k.RegisterKeeper.DeductSlashing(ctx, resOwner1, rewardDestChange)
+//
+//	ctx.Logger().Info("rewardDestChange	= " + rewardDestChange.String())
+//	require.Equal(t, rewardSrcChangeSubSlashing, rewardDestChange)
+//
+//}
 
-	individualRewardTotal := sdk.Coins{}
-	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	for _, addr := range rewardAddrList {
-		individualReward, found := k.GetIndividualReward(ctx, addr, newMatureEpoch)
-		if found {
-			individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
+// return : coins - slashing
+func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Int) sdk.Coins {
+	ret := sdk.Coins{}
+	for _, coin := range coins {
+		if coin.Amount.GTE(slashing) {
+			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
+			ret = ret.Add(coin)
+			slashing = sdk.ZeroInt()
+		} else {
+			slashing = slashing.Sub(coin.Amount)
+			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
+			ret = ret.Add(coin)
 		}
-
-		ctx.Logger().Info("individualReward of [" + addr.String() + "] = " + individualReward.String())
 	}
-
-	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
-	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
-	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr)
-	newUnissuedPrepay := sdk.NewCoins(k.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
-
-	rewardSrcChange := lastFoundationAccBalance.
-		Sub(newFoundationAccBalance).
-		Add(lastUnissuedPrepay).
-		Sub(newUnissuedPrepay)
-
-	newFeePool := k.BankKeeper.GetCoins(ctx, feePoolAccAddr)
-
-	feePoolValChange := newFeePool.Sub(lastFeePool)
-	ctx.Logger().Info("reward send to validator fee pool                               = " + feePoolValChange.String())
-
-	rewardDestChange := feePoolValChange.Add(individualRewardTotal...).Add(validatorDirectDeposited)
-
-	ctx.Logger().Info("rewardSrcChange = " + rewardSrcChange.String())
-	ctx.Logger().Info("rewardDestChange = " + rewardDestChange.String())
-	require.Equal(t, rewardSrcChange, rewardDestChange)
-
+	return ret
 }
 
 //for main net
-func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
-	lastFoundationAccBalance sdk.Coins, lastUnissuedPrepay sdk.Coin, lastFeePool sdk.Coins) {
+func checkResult(t *testing.T, ctx sdk.Context, k Keeper, registerKeeper register.Keeper,
+	currentEpoch sdk.Int,
+	lastFoundationAccBalance sdk.Coins,
+	lastUnissuedPrepay sdk.Coin,
+	lastFeePool sdk.Coins,
+	lastMatureTotalOfResNode1 sdk.Coins,
+	slashingAmtSetup sdk.Int) {
+
+	currentSlashing := registerKeeper.GetSlashing(ctx, resNodeAddr2)
+	println("currentSlashing							=" + currentSlashing.String())
 
 	individualRewardTotal := sdk.Coins{}
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
@@ -325,22 +402,58 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, currentEpoch sdk.Int,
 	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
 	newFoundationAccBalance := k.BankKeeper.GetCoins(ctx, foundationAccAddr)
-	newUnissuedPrepay := sdk.NewCoins(k.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
+	newUnissuedPrepay := sdk.NewCoins(registerKeeper.GetTotalUnissuedPrepay(ctx))
+
+	slashingChange := slashingAmtSetup.Sub(registerKeeper.GetSlashing(ctx, resOwner1))
+	ctx.Logger().Info("resource node 1 slashing change	= " + slashingChange.String())
+	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
+	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
+	ctx.Logger().Info("resource node 1 matureTotal		= " + matureTotal.String())
+	ctx.Logger().Info("resource node 1 immatureTotal	= " + immatureTotal.String())
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
+	ctx.Logger().Info("rewardSrcChange					= " + rewardSrcChange.String())
 
+	// get fee pool changes
 	newFeePool := k.BankKeeper.GetCoins(ctx, feePoolAccAddr)
+	ctx.Logger().Info("lastFeePool						= " + lastFeePool.String())
+	ctx.Logger().Info("newFeePool						= " + newFeePool.String())
 
 	feePoolValChange := newFeePool.Sub(lastFeePool)
-	ctx.Logger().Info("reward send to validator fee pool                               = " + feePoolValChange.String())
+	ctx.Logger().Info("reward send to validator fee pool= " + feePoolValChange.String())
 
 	rewardDestChange := feePoolValChange.Add(individualRewardTotal...)
+	ctx.Logger().Info("rewardDestChange					= " + rewardDestChange.String())
 
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 
+	ctx.Logger().Info("************************ slashing test***********************************")
+	ctx.Logger().Info("slashing change					= " + slashingChange.String())
+
+	upcomingMaturedIndividual := sdk.Coins{}
+	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
+	if found {
+		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
+		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingChange)
+	}
+	ctx.Logger().Info("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
+
+	// get mature total changes
+	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
+	matureTotalOfResNode1Change, _ := newMatureTotalOfResNode1.SafeSub(lastMatureTotalOfResNode1)
+
+	if upcomingMaturedIndividual == nil {
+		upcomingMaturedIndividual = sdk.Coins{}
+	}
+	if matureTotalOfResNode1Change == nil || matureTotalOfResNode1Change.IsAnyNegative() {
+		matureTotalOfResNode1Change = sdk.Coins{}
+	}
+
+	ctx.Logger().Info("matureTotalOfResNode1Change				= " + matureTotalOfResNode1Change.String())
+	require.Equal(t, matureTotalOfResNode1Change, upcomingMaturedIndividual)
 }
 
 func checkValidator(t *testing.T, mApp *mock.App, stakingKeeper staking.Keeper,
@@ -353,7 +466,7 @@ func checkValidator(t *testing.T, mApp *mock.App, stakingKeeper staking.Keeper,
 	return validator
 }
 
-func getMockApp(t *testing.T) (*mock.App, Keeper, staking.Keeper, bank.Keeper, supply.Keeper) {
+func getMockApp(t *testing.T) (*mock.App, Keeper, staking.Keeper, bank.Keeper, supply.Keeper, register.Keeper) {
 	mApp := mock.NewApp()
 
 	RegisterCodec(mApp.Cdc)
@@ -399,7 +512,7 @@ func getMockApp(t *testing.T) (*mock.App, Keeper, staking.Keeper, bank.Keeper, s
 	err := mApp.CompleteSetup(keyStaking, keySupply, keyRegister, keyPot)
 	require.NoError(t, err)
 
-	return mApp, keeper, stakingKeeper, bankKeeper, supplyKeeper
+	return mApp, keeper, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper
 }
 
 // getInitChainer initializes the chainer of the mock app and sets the genesis

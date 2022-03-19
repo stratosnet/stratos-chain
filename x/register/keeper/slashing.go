@@ -13,18 +13,20 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 		return coins
 	}
 
+	ret := sdk.Coins{}
 	for _, coin := range coins {
 		if coin.Amount.GTE(slashing) {
 			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
+			ret = ret.Add(coin)
 			slashing = sdk.ZeroInt()
-			break
 		} else {
 			slashing = slashing.Sub(coin.Amount)
 			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
+			ret = ret.Add(coin)
 		}
 	}
 	k.SetSlashing(ctx, walletAddress, slashing)
-	return coins
+	return ret
 }
 
 func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, slashing sdk.Int) (stop bool)) {
