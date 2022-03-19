@@ -87,13 +87,10 @@ func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPo
 			res = append(res, reward)
 		}
 	} else {
-		rewardAddressPool := k.GetRewardAddressPool(ctx)
-		for _, walletAddress := range rewardAddressPool {
-			reward, found := k.GetIndividualReward(ctx, walletAddress, matureEpoch)
-			if found {
-				res = append(res, reward)
-			}
-		}
+		k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+			res = append(res, individualReward)
+			return false
+		})
 	}
 
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)

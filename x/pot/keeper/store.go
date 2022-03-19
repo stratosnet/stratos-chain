@@ -37,22 +37,6 @@ func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.C
 	return
 }
 
-func (k Keeper) setRewardAddressPool(ctx sdk.Context, walletAddressList []sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(walletAddressList)
-	store.Set(types.RewardAddressPoolKey, b)
-}
-
-func (k Keeper) GetRewardAddressPool(ctx sdk.Context) (walletAddressList []sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.RewardAddressPoolKey)
-	if b == nil {
-		return nil
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &walletAddressList)
-	return
-}
-
 func (k Keeper) SetLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalBinaryLengthPrefixed(epoch)

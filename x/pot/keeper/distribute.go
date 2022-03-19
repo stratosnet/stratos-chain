@@ -63,6 +63,12 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleW
 		return totalConsumedOzone, err
 	}
 
+	//10, mature rewards for all nodes
+	k.rewardMature(ctx, epoch)
+
+	//11, save reported epoch
+	k.SetLastReportedEpoch(ctx, epoch)
+
 	return totalConsumedOzone, nil
 }
 
@@ -244,53 +250,46 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 
 	for _, reward := range rewardDetailList {
 		walletAddr := reward.WalletAddress
-		k.addNewRewardAndReCalcTotal(ctx, walletAddr, currentEpoch, matureEpoch, reward)
+		k.addNewIndividualAndUpdateImmatureTotal(ctx, walletAddr, matureEpoch, reward)
 	}
-	k.SetLastReportedEpoch(ctx, currentEpoch)
 	return nil
 }
 
-func (k Keeper) addNewRewardAndReCalcTotal(ctx sdk.Context, account sdk.AccAddress, currentEpoch sdk.Int, matureEpoch sdk.Int, newReward types.Reward) {
+func (k Keeper) addNewIndividualAndUpdateImmatureTotal(ctx sdk.Context, account sdk.AccAddress, matureEpoch sdk.Int, newReward types.Reward) {
 	newRewardTotal := newReward.RewardFromMiningPool.Add(newReward.RewardFromTrafficPool...)
-	oldMatureTotal := k.GetMatureTotalReward(ctx, account)
 	oldImmatureTotal := k.GetImmatureTotalReward(ctx, account)
+	newImmatureTotal := oldImmatureTotal.Add(newRewardTotal...)
+
+	k.SetImmatureTotalReward(ctx, account, newImmatureTotal)
+	k.SetIndividualReward(ctx, account, matureEpoch, newReward)
+}
+
+func (k Keeper) rewardMature(ctx sdk.Context, currentEpoch sdk.Int) {
+
 	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
 
-	immatureToMature := sdk.Coins{}
 	for i := matureStartEpoch; i <= matureEndEpoch; i++ {
-		rewardTotal := sdk.Coins{}
-		reward, found := k.GetIndividualReward(ctx, account, sdk.NewInt(i))
-		if found {
-			rewardTotal = reward.RewardFromMiningPool.Add(reward.RewardFromTrafficPool...)
-		}
-		immatureToMature = immatureToMature.Add(rewardTotal...)
+		k.IteratorIndividualReward(ctx, sdk.NewInt(i), func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+			oldMatureTotal := k.GetMatureTotalReward(ctx, walletAddress)
+			oldImmatureTotal := k.GetImmatureTotalReward(ctx, walletAddress)
+
+			immatureToMature := sdk.Coins{}
+			immatureToMature = individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
+
+			//deduct slashing amount from mature total pool
+			finalMatureTotal := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
+			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
+			finalNewMature := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
+
+			matureTotal := finalMatureTotal.Add(finalNewMature...)
+			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
+
+			k.SetMatureTotalReward(ctx, walletAddress, matureTotal)
+			k.SetImmatureTotalReward(ctx, walletAddress, immatureTotal)
+			return false
+		})
 	}
-
-	//deduct slashing amount from mature total pool
-	finalMatureTotal := k.RegisterKeeper.DeductSlashing(ctx, account, oldMatureTotal)
-	//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-	finalNewMature := k.RegisterKeeper.DeductSlashing(ctx, account, immatureToMature)
-
-	matureTotal := finalMatureTotal.Add(finalNewMature...)
-	immatureTotal := oldImmatureTotal.Sub(immatureToMature).Add(newRewardTotal...)
-
-	rewardAddressPool := k.GetRewardAddressPool(ctx)
-	addrExist := false
-	for i := 0; i < len(rewardAddressPool); i++ {
-		if rewardAddressPool[i].Equals(account) {
-			addrExist = true
-			break
-		}
-	}
-	if addrExist == false {
-		rewardAddressPool = append(rewardAddressPool, account)
-		k.setRewardAddressPool(ctx, rewardAddressPool)
-	}
-
-	k.SetMatureTotalReward(ctx, account, matureTotal)
-	k.SetImmatureTotalReward(ctx, account, immatureTotal)
-	k.SetIndividualReward(ctx, account, matureEpoch, newReward)
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
@@ -482,12 +481,27 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 	return
 }
 
+func (k Keeper) IteratorIndividualReward(ctx sdk.Context, epoch sdk.Int, handler func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.GetIndividualRewardIteratorKey(epoch))
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		addr := sdk.AccAddress(iter.Key()[len(types.GetIndividualRewardIteratorKey(epoch)):])
+
+		var individualReward types.Reward
+		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &individualReward)
+		if handler(addr, individualReward) {
+			break
+		}
+	}
+}
+
 func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, immatureTotal sdk.Coins) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.ImmatureTotalRewardKeyPrefix)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix) : len(types.ImmatureTotalRewardKeyPrefix)+sdk.AddrLen])
+		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix):])
 		var immatureTotal sdk.Coins
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &immatureTotal)
 		if handler(addr, immatureTotal) {
@@ -501,7 +515,7 @@ func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress 
 	iter := sdk.KVStorePrefixIterator(store, types.MatureTotalRewardKeyPrefix)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix) : len(types.MatureTotalRewardKeyPrefix)+sdk.AddrLen])
+		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix):])
 		var matureTotal sdk.Coins
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &matureTotal)
 		if handler(addr, matureTotal) {

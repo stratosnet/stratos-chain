@@ -22,11 +22,10 @@ var (
 	TotalMinedTokensKey  = []byte{0x03}
 	MinedTokensKeyPrefix = []byte{0x04} // key: prefix_epoch
 
-	RewardAddressPoolKey         = []byte{0x11}
 	LastReportedEpochKey         = []byte{0x12}
-	IndividualRewardKeyPrefix    = []byte{0x13} // key: prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
-	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}_mature_total
-	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}_immature_total
+	IndividualRewardKeyPrefix    = []byte{0x13} // key: prefix{address}_{epoch}, the amount that is matured at {epoch}
+	MatureTotalRewardKeyPrefix   = []byte{0x14} // key: prefix{address}
+	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}
 
 	VolumeReportStoreKeyPrefix = []byte{0x41} // VolumeReportStoreKeyPrefix prefix for volumeReport store
 )
@@ -40,29 +39,33 @@ func VolumeReportStoreKey(epoch sdk.Int) []byte {
 	return append(VolumeReportStoreKeyPrefix, epoch.String()...)
 }
 
-// GetIndividualRewardKey prefix{address}_individual_{epoch}, the amount that is matured at {epoch}
+// GetIndividualRewardKey prefix{epoch}_{account}, the amount that is matured at {epoch}
 func GetIndividualRewardKey(acc sdk.AccAddress, epoch sdk.Int) []byte {
-	bKeyStr := []byte("_individual_")
+	bKeyStr := []byte("_")
 	bEpoch := []byte(epoch.String())
 
-	key := append(IndividualRewardKeyPrefix, acc...)
+	key := append(IndividualRewardKeyPrefix, bEpoch...)
 	key = append(key, bKeyStr...)
-	key = append(key, bEpoch...)
+	key = append(key, acc...)
 	return key
 }
 
-// GetMatureTotalRewardKey prefix{address}_mature_total
+func GetIndividualRewardIteratorKey(epoch sdk.Int) []byte {
+	bKeyStr := []byte("_")
+	bEpoch := []byte(epoch.String())
+	key := append(IndividualRewardKeyPrefix, bEpoch...)
+	key = append(key, bKeyStr...)
+	return key
+}
+
+// GetMatureTotalRewardKey prefix{address}
 func GetMatureTotalRewardKey(acc sdk.AccAddress) []byte {
-	bKeyStr := []byte("_mature_total")
 	key := append(MatureTotalRewardKeyPrefix, acc.Bytes()...)
-	key = append(key, bKeyStr...)
 	return key
 }
 
-// GetImmatureTotalRewardKey prefix{address}_immature_total
+// GetImmatureTotalRewardKey prefix{address}
 func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
-	bKeyStr := []byte("_immature_total")
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
-	key = append(key, bKeyStr...)
 	return key
 }

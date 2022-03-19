@@ -389,15 +389,12 @@ func checkResult(t *testing.T, ctx sdk.Context, k Keeper, registerKeeper registe
 
 	individualRewardTotal := sdk.Coins{}
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	for _, addr := range rewardAddrList {
-		individualReward, found := k.GetIndividualReward(ctx, addr, newMatureEpoch)
-		if found {
-			individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
-		}
 
-		ctx.Logger().Info("individualReward of [" + addr.String() + "] = " + individualReward.String())
-	}
+	k.IteratorIndividualReward(ctx, newMatureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+		individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
+		ctx.Logger().Info("individualReward of [" + walletAddress.String() + "] = " + individualReward.String())
+		return false
+	})
 
 	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(auth.FeeCollectorName)
 	foundationAccAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
