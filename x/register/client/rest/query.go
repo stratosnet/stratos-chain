@@ -16,7 +16,7 @@ import (
 
 func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/register/resource-nodes", nodesWithParamsFn(cliCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
-	r.HandleFunc("/register/indexing-nodes", nodesWithParamsFn(cliCtx, keeper.QueryIndexingNodeList)).Methods("GET")
+	r.HandleFunc("/register/indexing-nodes", nodesWithParamsFn(cliCtx, keeper.QueryIndexingNodeByNetworkAddr)).Methods("GET")
 	r.HandleFunc("/register/staking", nodeStakingHandlerFn(cliCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
 	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(cliCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
 	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(cliCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
