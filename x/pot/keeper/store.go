@@ -2,7 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -35,22 +34,6 @@ func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.C
 		return sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	}
 	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &minedToken)
-	return
-}
-
-func (k Keeper) setRewardAddressPool(ctx sdk.Context, walletAddressList []sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(walletAddressList)
-	store.Set(types.RewardAddressPoolKey, b)
-}
-
-func (k Keeper) GetRewardAddressPool(ctx sdk.Context) (walletAddressList []sdk.AccAddress) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.RewardAddressPoolKey)
-	if b == nil {
-		return nil
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &walletAddressList)
 	return
 }
 
@@ -133,21 +116,4 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	storeKey := types.VolumeReportStoreKey(epoch)
 	bz := k.cdc.MustMarshalBinaryLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
-}
-
-func (k Keeper) SetSlashing(ctx sdk.Context, p2pAddress stratos.SdsAddress, slashing sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	storeKey := types.GetSlashingKey(p2pAddress)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(slashing)
-	store.Set(storeKey, bz)
-}
-
-func (k Keeper) GetSlashing(ctx sdk.Context, p2pAddress stratos.SdsAddress) (res sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetSlashingKey(p2pAddress))
-	if bz == nil {
-		return sdk.ZeroInt()
-	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &res)
-	return
 }

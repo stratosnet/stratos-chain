@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -17,7 +16,7 @@ const (
 	QueryVolumeReport            = "query_volume_report"
 	QueryPotRewardsByReportEpoch = "query_pot_rewards_by_report_epoch"
 	QueryPotRewardsByWalletAddr  = "query_pot_rewards_by_wallet_address"
-	QueryPotSlashingByP2pAddr    = "query_pot_slashing_by_p2p_address"
+	QueryPotSlashingByWalletAddr = "query_pot_slashing_by_wallet_address"
 	QueryDefaultLimit            = 100
 )
 
@@ -31,8 +30,8 @@ func NewQuerier(k Keeper) sdk.Querier {
 			return queryPotRewardsByReportEpoch(ctx, req, k)
 		case QueryPotRewardsByWalletAddr:
 			return queryPotRewardsByWalletAddress(ctx, req, k)
-		case QueryPotSlashingByP2pAddr:
-			return queryPotSlashingByP2pAddress(ctx, req, k)
+		case QueryPotSlashingByWalletAddr:
+			return queryPotSlashingByWalletAddress(ctx, req, k)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -88,13 +87,10 @@ func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPo
 			res = append(res, reward)
 		}
 	} else {
-		rewardAddressPool := k.GetRewardAddressPool(ctx)
-		for _, walletAddress := range rewardAddressPool {
-			reward, found := k.GetIndividualReward(ctx, walletAddress, matureEpoch)
-			if found {
-				res = append(res, reward)
-			}
-		}
+		k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+			res = append(res, individualReward)
+			return false
+		})
 	}
 
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
@@ -123,11 +119,11 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	return bz, nil
 }
 
-func queryPotSlashingByP2pAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
-	addr, err := stratos.SdsAddressFromBech32(string(req.Data))
+func queryPotSlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+	addr, err := sdk.AccAddressFromBech32(string(req.Data))
 	if err != nil {
 		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
 	}
 
-	return []byte(k.GetSlashing(ctx, addr).String()), nil
+	return []byte(k.RegisterKeeper.GetSlashing(ctx, addr).String()), nil
 }

@@ -234,11 +234,6 @@ func testFullDistributeProcessAtEpoch2017(t *testing.T, ctx sdk.Context, k Keepe
 	_, err := k.DistributePotReward(ctx, trafficList, epoch2017)
 	require.NoError(t, err)
 	fmt.Println("Distribution result at Epoch2017: ")
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	fmt.Println("address pool: ")
-	for i := 0; i < len(rewardAddrList); i++ {
-		fmt.Println(rewardAddrList[i].String() + ", ")
-	}
 	fmt.Println("----------------------------------------------------------------------------------")
 
 	idvRwdResNode1Ep1, _ := k.GetIndividualReward(ctx, resOwner1, epoch4033)
@@ -323,11 +318,6 @@ func testFullDistributeProcessAtEpoch1(t *testing.T, ctx sdk.Context, k Keeper, 
 	require.NoError(t, err)
 
 	fmt.Println("Distribution result at Epoch1: ")
-	rewardAddrList := k.GetRewardAddressPool(ctx)
-	fmt.Println("address pool: ")
-	for i := 0; i < len(rewardAddrList); i++ {
-		fmt.Println(rewardAddrList[i].String() + ", ")
-	}
 	fmt.Println("----------------------------------------------------------------------------------")
 
 	idvRwdResNode1Ep1, _ := k.GetIndividualReward(ctx, resOwner1, epoch2017)
@@ -471,7 +461,7 @@ func testMetaNodeRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, 
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward)
 
-	_, totalReward := k.getTrafficReward(ctx, trafficList)
+	_, totalReward := k.GetTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
 	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)
@@ -534,7 +524,7 @@ func testTrafficRewardFromTrafficPool(t *testing.T, ctx sdk.Context, k Keeper, b
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward)
 
-	_, totalReward := k.getTrafficReward(ctx, trafficList)
+	_, totalReward := k.GetTrafficReward(ctx, trafficList)
 
 	//1, calc traffic reward in total
 	_, distributeGoal, err := k.CalcTrafficRewardInTotal(ctx, trafficList, distributeGoal)

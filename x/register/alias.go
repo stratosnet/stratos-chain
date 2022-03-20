@@ -55,6 +55,7 @@ type (
 	IndexingNode          = types.IndexingNode
 	Description           = types.Description
 	GenesisIndexingNode   = types.GenesisIndexingNode
+	Slashing              = types.Slashing
 	MsgCreateResourceNode = types.MsgCreateResourceNode
 	MsgCreateIndexingNode = types.MsgCreateIndexingNode
 	VoteOpinion           = types.VoteOpinion

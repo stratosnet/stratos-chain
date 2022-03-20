@@ -191,6 +191,8 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
 	k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
 
+	// deduct slashing amount first
+	coins = k.DeductSlashing(ctx, indexingNode.OwnerAddress, coins)
 	// add tokens to owner acc
 	_, err := k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
 	if err != nil {

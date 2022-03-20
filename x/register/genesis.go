@@ -50,6 +50,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 		Denom:  data.Params.BondDenom,
 		Amount: totalUnissuedPrepay,
 	})
+
+	for _, slashing := range data.SlashingInfo {
+		keeper.SetSlashing(ctx, slashing.WalletAddress, slashing.Value)
+	}
 }
 
 // ExportGenesis writes the current store values
@@ -63,11 +67,21 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := keeper.CurrUozPrice(ctx)
 
+	var slashingInfo []types.Slashing
+	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
+		if val.GT(sdk.ZeroInt()) {
+			slashing := types.NewSlashing(walletAddress, val)
+			slashingInfo = append(slashingInfo, slashing)
+		}
+		return false
+	})
+
 	return types.GenesisState{
 		Params:              params,
 		ResourceNodes:       resourceNodes,
 		IndexingNodes:       indexingNodes,
 		InitialUozPrice:     initialUOzonePrice,
 		TotalUnissuedPrepay: totalUnissuedPrepay,
+		SlashingInfo:        slashingInfo,
 	}
 }
