@@ -575,6 +575,6 @@ func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	S := k.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	// total supply = Lt * ( 1 + Pt / S )
-	total = (Pt.ToDec().Quo(S.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
+	total = (Pt.ToDec().Quo(S.ToDec()).Add(sdk.NewDec(1))).Mul(remaining.ToDec()).TruncateInt()
 	return remaining, total
 }
