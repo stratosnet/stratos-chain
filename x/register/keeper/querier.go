@@ -18,7 +18,7 @@ import (
 
 const (
 	QueryResourceNodeByNetworkAddr = "resource_node_by_network"
-	QueryIndexingNodeList          = "indexing_nodes"
+	QueryIndexingNodeByNetworkAddr = "indexing_nodes"
 	QueryNodesTotalStakes          = "nodes_total_stakes"
 	QueryNodeStakeByNodeAddr       = "node_stakes"
 	QueryNodeStakeByOwner          = "node_stakes_by_owner"
@@ -32,7 +32,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 		switch path[0] {
 		case QueryResourceNodeByNetworkAddr:
 			return getResourceNodeByNetworkAddr(ctx, req, k)
-		case QueryIndexingNodeList:
+		case QueryIndexingNodeByNetworkAddr:
 			return getIndexingNodeList(ctx, req, k)
 		case QueryNodesTotalStakes:
 			return getNodesStakingInfo(ctx, req, k)
@@ -77,17 +77,15 @@ func getIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
-	resNodes := keeper.GetIndexingNodesFiltered(ctx, params)
-	if resNodes == nil {
-		resNodes = types.IndexingNodes{}
+	if params.NetworkAddr.Empty() {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrInvalidNetworkAddr.Error())
+	}
+	node, ok := keeper.GetIndexingNode(ctx, params.NetworkAddr)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoIndexingNodeFound.Error())
 	}
 
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, resNodes)
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-
-	return bz, nil
+	return types.ModuleCdc.MustMarshalJSON([]types.IndexingNode{node}), nil
 }
 
 func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {

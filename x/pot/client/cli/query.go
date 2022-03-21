@@ -13,6 +13,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -68,7 +69,7 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 }
 
 func QueryVolumeReport(cliCtx context.CLIContext, queryRoute string, epoch sdk.Int) (types.ReportInfo, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, types.QueryVolumeReportHash)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryVolumeReport)
 	resp, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
 	if err != nil {
 		return types.ReportInfo{}, height, err

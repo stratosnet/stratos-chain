@@ -5,8 +5,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/stratosnet/stratos-chain/web3"
-	"github.com/stratosnet/stratos-chain/web3/config"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -36,9 +34,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 
+	"github.com/stratosnet/stratos-chain/web3"
+	"github.com/stratosnet/stratos-chain/web3/config"
+	"github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/app/ante"
 	cryptocodec "github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm"
 	//"github.com/stratosnet/stratos-chain/helpers"
 	"github.com/stratosnet/stratos-chain/x/pot"
@@ -94,9 +94,9 @@ var (
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
 
+	types.RegisterCodec(cdc)
 	ModuleBasics.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
-	stratos.RegisterCodec(cdc)
 	cryptocodec.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)
 
@@ -201,7 +201,7 @@ func NewInitApp(
 	app.subspaces[sds.ModuleName] = app.paramsKeeper.Subspace(sds.DefaultParamSpace)
 	// this line is used by starport scaffolding # 5.1
 
-	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], stratos.ProtoAccount)
+	app.accountKeeper = auth.NewAccountKeeper(app.cdc, keys[auth.StoreKey], app.subspaces[auth.ModuleName], types.ProtoAccount)
 	app.bankKeeper = bank.NewBaseKeeper(app.accountKeeper, app.subspaces[bank.ModuleName], app.ModuleAccountAddrs())
 	app.supplyKeeper = supply.NewKeeper(app.cdc, keys[supply.StoreKey], app.accountKeeper, app.bankKeeper, maccPerms)
 

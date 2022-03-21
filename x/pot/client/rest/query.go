@@ -17,7 +17,7 @@ func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(cliCtx, keeper.QueryVolumeReport)).Methods("GET")
 	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(cliCtx, keeper.QueryPotRewardsByReportEpoch)).Methods("GET")
 	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getPotRewardsByWalletAddrHandlerFn(cliCtx, keeper.QueryPotRewardsByWalletAddr)).Methods("GET")
-	r.HandleFunc("/pot/slashing/{p2pAddress}", getPotSlashingByP2pAddressHandlerFn(cliCtx, keeper.QueryPotSlashingByP2pAddr)).Methods("GET")
+	r.HandleFunc("/pot/slashing/{walletAddress}", getPotSlashingByWalletAddressHandlerFn(cliCtx, keeper.QueryPotSlashingByWalletAddr)).Methods("GET")
 }
 
 func getPotRewardsByEpochHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
@@ -150,21 +150,21 @@ func getPotRewardsByWalletAddrHandlerFn(cliCtx context.CLIContext, queryPath str
 	}
 }
 
-func getPotSlashingByP2pAddressHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func getPotSlashingByWalletAddressHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
 
-		v := mux.Vars(r)["p2pAddress"]
+		v := mux.Vars(r)["walletAddress"]
 		if len(v) == 0 {
 			return
 		}
-		p2pAddr, err := sdk.AccAddressFromBech32(v)
+		walletAddr, err := sdk.AccAddressFromBech32(v)
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-		res, height, err := cliCtx.QueryWithData(route, []byte(p2pAddr.String()))
+		res, height, err := cliCtx.QueryWithData(route, []byte(walletAddr.String()))
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

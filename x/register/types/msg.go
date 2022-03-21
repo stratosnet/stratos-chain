@@ -55,7 +55,7 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	if msg.NetworkAddr.Empty() {
 		return ErrEmptyNodeId
 	}
-	if msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+	if !msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
@@ -120,7 +120,7 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 	if msg.NetworkAddr.Empty() {
 		return ErrInvalidNetworkAddr
 	}
-	if msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+	if !msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {

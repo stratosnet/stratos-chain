@@ -15,13 +15,16 @@ type GenesisState struct {
 	IndexingNodes       IndexingNodes `json:"indexing_nodes" yaml:"indexing_nodes"`
 	InitialUozPrice     sdk.Dec       `json:"initial_uoz_price" yaml:"initial_uoz_price"` //initial price of uoz
 	TotalUnissuedPrepay sdk.Int       `json:"total_unissued_prepay" yaml:"total_unissued_prepay"`
+	SlashingInfo        []Slashing    `json:"slashing_info" yaml:"slashing_info"`
 }
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params,
 	resourceNodes ResourceNodes,
 	indexingNodes IndexingNodes,
-	initialUOzonePrice sdk.Dec, totalUnissuedPrepay sdk.Int,
+	initialUOzonePrice sdk.Dec,
+	totalUnissuedPrepay sdk.Int,
+	slashingInfo []Slashing,
 ) GenesisState {
 	return GenesisState{
 		Params:              params,
@@ -29,6 +32,7 @@ func NewGenesisState(params Params,
 		IndexingNodes:       indexingNodes,
 		InitialUozPrice:     initialUOzonePrice,
 		TotalUnissuedPrepay: totalUnissuedPrepay,
+		SlashingInfo:        slashingInfo,
 	}
 }
 
@@ -38,6 +42,7 @@ func DefaultGenesisState() GenesisState {
 		Params:              DefaultParams(),
 		InitialUozPrice:     DefaultUozPrice,
 		TotalUnissuedPrepay: DefaultTotalUnissuedPrepay,
+		SlashingInfo:        make([]Slashing, 0),
 	}
 }
 
@@ -113,5 +118,17 @@ func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
 		Tokens:       tokens,
 		OwnerAddress: ownerAddress,
 		Description:  v.Description,
+	}
+}
+
+type Slashing struct {
+	WalletAddress sdk.AccAddress
+	Value         sdk.Int
+}
+
+func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) Slashing {
+	return Slashing{
+		WalletAddress: walletAddress,
+		Value:         value,
 	}
 }

@@ -2,7 +2,6 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 type GenesisState struct {
@@ -12,12 +11,11 @@ type GenesisState struct {
 	ImmatureTotalInfo    []ImmatureTotal `json:"immature_total_info" yaml:"immature_total_info"`
 	MatureTotalInfo      []MatureTotal   `json:"mature_total_info" yaml:"mature_total_info"`
 	IndividualRewardInfo []Reward        `json:"individual_reward_info" yaml:"individual_reward_info"`
-	SlashingInfo         []Slashing      `json:"slashing_info" yaml:"slashing_info"`
 }
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch int64,
-	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward, slashingInfo []Slashing,
+	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
 ) GenesisState {
 
 	return GenesisState{
@@ -27,7 +25,6 @@ func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch 
 		ImmatureTotalInfo:    immatureTotalInfo,
 		MatureTotalInfo:      matureTotalInfo,
 		IndividualRewardInfo: individualRewardInfo,
-		SlashingInfo:         slashingInfo,
 	}
 }
 
@@ -40,7 +37,6 @@ func DefaultGenesisState() GenesisState {
 		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
 		MatureTotalInfo:      make([]MatureTotal, 0),
 		IndividualRewardInfo: make([]Reward, 0),
-		SlashingInfo:         make([]Slashing, 0),
 	}
 }
 
@@ -70,17 +66,5 @@ func NewMatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) MatureTotal {
 	return MatureTotal{
 		WalletAddress: walletAddress,
 		Value:         value,
-	}
-}
-
-type Slashing struct {
-	P2pAddress stratos.SdsAddress
-	Value      sdk.Int
-}
-
-func NewSlashing(p2pAddress stratos.SdsAddress, value sdk.Int) Slashing {
-	return Slashing{
-		P2pAddress: p2pAddress,
-		Value:      value,
 	}
 }

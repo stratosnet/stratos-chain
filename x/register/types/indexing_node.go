@@ -119,7 +119,7 @@ func (v IndexingNode) Validate() error {
 	if v.NetworkAddr.Empty() {
 		return ErrEmptyNodeId
 	}
-	if v.NetworkAddr.Equals(stratos.SdsAddress(v.PubKey.Address())) {
+	if !v.NetworkAddr.Equals(stratos.SdsAddress(v.PubKey.Address())) {
 		return ErrInvalidNetworkAddr
 	}
 	if len(v.PubKey.Bytes()) == 0 {

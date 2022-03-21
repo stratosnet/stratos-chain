@@ -4,6 +4,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -29,6 +30,7 @@ var (
 	IndexingNodeBondedTokenKey    = []byte{0x04}
 	UpperBoundOfTotalOzoneKey     = []byte{0x05}
 	TotalUnissuedPrepayKey        = []byte{0x06}
+	SlashingPrefix                = []byte{0x07}
 
 	InitialGenesisStakeTotalKey = []byte{0x13} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
 	InitialUOzonePriceKey       = []byte{0x14} // key of initial uoz price at t=0
@@ -68,4 +70,9 @@ func GetUBDNodeKey(nodeAddr stratos.SdsAddress) []byte {
 func GetUBDTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(UBDNodeQueueKey, bz...)
+}
+
+func GetSlashingKey(walletAddress sdk.AccAddress) []byte {
+	key := append(SlashingPrefix, walletAddress...)
+	return key
 }

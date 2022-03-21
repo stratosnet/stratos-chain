@@ -1,6 +1,7 @@
 package register
 
 import (
+	"os"
 	"testing"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,9 +21,9 @@ import (
 
 func TestMain(m *testing.M) {
 	config := stratos.GetConfig()
-
 	config.Seal()
-
+	exitVal := m.Run()
+	os.Exit(exitVal)
 }
 
 func Test(t *testing.T) {
@@ -202,7 +203,14 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := NewGenesisState(DefaultParams(), resourceNodes, indexingNodes, initialUOzonePrice, sdk.ZeroInt())
+		registerGenesis := NewGenesisState(
+			DefaultParams(),
+			resourceNodes,
+			indexingNodes,
+			initialUOzonePrice,
+			sdk.ZeroInt(),
+			make([]Slashing, 0),
+		)
 
 		InitGenesis(ctx, keeper, registerGenesis)
 
