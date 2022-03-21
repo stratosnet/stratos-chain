@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"testing"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,25 +16,15 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	dbm "github.com/tendermint/tm-db"
-	"testing"
 )
 
-const (
-	StratosBech32Prefix = "st"
-)
+func TestMain(m *testing.M) {
+	config := stratos.GetConfig()
 
-var (
-	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
-	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
-	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
-	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
-	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
-	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
-)
+	config.Seal()
+}
 
 func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, auth.AccountKeeper, bank.Keeper, Keeper, params.Keeper) {
-
-	SetConfig()
 
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
@@ -60,14 +52,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (sdk.Context, auth.AccountKee
 	keeper.SetParams(ctx, types.DefaultParams())
 
 	return ctx, accountKeeper, bankKeeper, keeper, pk
-}
-
-func SetConfig() {
-	config := stratos.GetConfig()
-	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
-	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
 }
 
 // create a codec used only for testing

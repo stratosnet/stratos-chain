@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 
 	"github.com/cosmos/cosmos-sdk/client/context"
@@ -53,7 +54,7 @@ func FileUploadRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		reporter, err := sdk.AccAddressFromBech32(req.Reporter)
+		reporter, err := stratos.SdsAddressFromBech32(req.Reporter)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

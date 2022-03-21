@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto"
 )
 
@@ -19,20 +20,20 @@ var (
 )
 
 type MsgCreateResourceNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`
-	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value        sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description  Description    `json:"description" yaml:"description"`
-	NodeType     string         `json:"node_type" yaml:"node_type"`
+	NetworkAddr  stratos.SdsAddress `json:"network_address" yaml:"network_address"`
+	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`
+	Value        sdk.Coin           `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
+	Description  Description        `json:"description" yaml:"description"`
+	NodeType     NodeType           `json:"node_type" yaml:"node_type"`
 }
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateResourceNode(networkID string, pubKey crypto.PubKey, value sdk.Coin,
-	ownerAddr sdk.AccAddress, description Description, nodeType string,
+func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin,
+	ownerAddr sdk.AccAddress, description Description, nodeType NodeType,
 ) MsgCreateResourceNode {
 	return MsgCreateResourceNode{
-		NetworkID:    networkID,
+		NetworkAddr:  networkAddr,
 		PubKey:       pubKey,
 		Value:        value,
 		OwnerAddress: ownerAddr,
@@ -51,8 +52,11 @@ func (msg MsgCreateResourceNode) Type() string {
 
 // ValidateBasic validity check for the CreateResourceNode
 func (msg MsgCreateResourceNode) ValidateBasic() error {
-	if msg.NetworkID == "" {
-		return ErrEmptyNetworkAddr
+	if msg.NetworkAddr.Empty() {
+		return ErrEmptyNodeId
+	}
+	if !msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
 		return ErrEmptyOwnerAddr
@@ -66,6 +70,9 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	}
 	if msg.Description.Moniker == "" {
 		return ErrEmptyMoniker
+	}
+	if msg.NodeType > 7 || msg.NodeType < 1 {
+		return ErrInvalidNodeType
 	}
 	return nil
 }
@@ -82,18 +89,18 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 }
 
 type MsgCreateIndexingNode struct {
-	NetworkID    string         `json:"network_id" yaml:"network_id"`
-	PubKey       crypto.PubKey  `json:"pubkey" yaml:"pubkey"`
-	Value        sdk.Coin       `json:"value" yaml:"value"`
-	OwnerAddress sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	Description  Description    `json:"description" yaml:"description"`
+	NetworkAddr  stratos.SdsAddress `json:"network_addr" yaml:"network_addr"`
+	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`
+	Value        sdk.Coin           `json:"value" yaml:"value"`
+	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
+	Description  Description        `json:"description" yaml:"description"`
 }
 
 // NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkID string, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) MsgCreateIndexingNode {
 	return MsgCreateIndexingNode{
-		NetworkID:    networkID,
+		NetworkAddr:  networkAddr,
 		PubKey:       pubKey,
 		Value:        value,
 		OwnerAddress: ownerAddr,
@@ -110,8 +117,11 @@ func (msg MsgCreateIndexingNode) Type() string {
 }
 
 func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	if msg.NetworkID == "" {
-		return ErrEmptyNetworkAddr
+	if msg.NetworkAddr.Empty() {
+		return ErrInvalidNetworkAddr
+	}
+	if !msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
 		return ErrEmptyOwnerAddr
@@ -142,12 +152,12 @@ func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
 
 // MsgRemoveResourceNode - struct for removing resource node
 type MsgRemoveResourceNode struct {
-	ResourceNodeAddress sdk.AccAddress `json:"resource_node_address" yaml:"resource_node_address"`
-	OwnerAddress        sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	ResourceNodeAddress stratos.SdsAddress `json:"resource_node_address" yaml:"resource_node_address"`
+	OwnerAddress        sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
 }
 
 // NewMsgRemoveResourceNode creates a new MsgRemoveResourceNode instance.
-func NewMsgRemoveResourceNode(resourceNodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress) MsgRemoveResourceNode {
+func NewMsgRemoveResourceNode(resourceNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) MsgRemoveResourceNode {
 	return MsgRemoveResourceNode{
 		ResourceNodeAddress: resourceNodeAddr,
 		OwnerAddress:        ownerAddr,
@@ -184,12 +194,12 @@ func (msg MsgRemoveResourceNode) ValidateBasic() error {
 
 // MsgRemoveIndexingNode - struct for removing indexing node
 type MsgRemoveIndexingNode struct {
-	IndexingNodeAddress sdk.AccAddress `json:"indexing_node_address" yaml:"indexing_node_address"`
-	OwnerAddress        sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	IndexingNodeAddress stratos.SdsAddress `json:"indexing_node_address" yaml:"indexing_node_address"`
+	OwnerAddress        sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
 }
 
 // NewMsgRemoveIndexingNode creates a new MsgRemoveIndexingNode instance.
-func NewMsgRemoveIndexingNode(indexingNodeAddr sdk.AccAddress, ownerAddr sdk.AccAddress) MsgRemoveIndexingNode {
+func NewMsgRemoveIndexingNode(indexingNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) MsgRemoveIndexingNode {
 	return MsgRemoveIndexingNode{
 		IndexingNodeAddress: indexingNodeAddr,
 		OwnerAddress:        ownerAddr,
@@ -226,18 +236,16 @@ func (msg MsgRemoveIndexingNode) ValidateBasic() error {
 
 // MsgUpdateResourceNode struct for updating resource node
 type MsgUpdateResourceNode struct {
-	NetworkID      string         `json:"network_id" yaml:"network_id"`
-	Description    Description    `json:"description" yaml:"description"`
-	NodeType       string         `json:"node_type" yaml:"node_type"`
-	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description    Description        `json:"description" yaml:"description"`
+	NodeType       NodeType           `json:"node_type" yaml:"node_type"`
+	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
 }
 
-func NewMsgUpdateResourceNode(networkID string, description Description, nodeType string,
-	networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress) MsgUpdateResourceNode {
+func NewMsgUpdateResourceNode(description Description, nodeType NodeType,
+	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) MsgUpdateResourceNode {
 
 	return MsgUpdateResourceNode{
-		NetworkID:      networkID,
 		Description:    description,
 		NodeType:       nodeType,
 		NetworkAddress: networkAddress,
@@ -265,26 +273,30 @@ func (msg MsgUpdateResourceNode) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNode) ValidateBasic() error {
 	if msg.NetworkAddress.Empty() {
-		return ErrEmptyNetworkAddr
+		return ErrInvalidNetworkAddr
 	}
+
 	if msg.OwnerAddress.Empty() {
 		return ErrEmptyOwnerAddr
 	}
 	if msg.Description.Moniker == "" {
 		return ErrEmptyMoniker
 	}
+	if msg.NodeType > 7 || msg.NodeType < 1 {
+		return ErrInvalidNodeType
+	}
 	return nil
 }
 
 // MsgUpdateResourceNodeStake struct for only updating resource node's stake
 type MsgUpdateResourceNodeStake struct {
-	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	StakeDelta     sdk.Coin       `json:"stake_delta" yaml:"stake_delta"`
-	IncrStake      bool           `json:"incr_stake" yaml:"incr_stake"`
+	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
+	StakeDelta     sdk.Coin           `json:"stake_delta" yaml:"stake_delta"`
+	IncrStake      bool               `json:"incr_stake" yaml:"incr_stake"`
 }
 
-func NewMsgUpdateResourceNodeStake(networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress,
+func NewMsgUpdateResourceNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
 	stakeDelta sdk.Coin, incrStake bool) MsgUpdateResourceNodeStake {
 	return MsgUpdateResourceNodeStake{
 		NetworkAddress: networkAddress,
@@ -314,7 +326,7 @@ func (msg MsgUpdateResourceNodeStake) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
 	if msg.NetworkAddress.Empty() {
-		return ErrEmptyNetworkAddr
+		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
 		return ErrEmptyOwnerAddr
@@ -327,18 +339,15 @@ func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
 
 // MsgUpdateIndexingNode struct for updating indexing node
 type MsgUpdateIndexingNode struct {
-	NetworkID      string         `json:"network_id" yaml:"network_id"`
-	Description    Description    `json:"description" yaml:"description"`
-	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
+	Description    Description        `json:"description" yaml:"description"`
+	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
 }
 
-func NewMsgUpdateIndexingNode(
-	networkID string, description Description, networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress,
+func NewMsgUpdateIndexingNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
 ) MsgUpdateIndexingNode {
 
 	return MsgUpdateIndexingNode{
-		NetworkID:      networkID,
 		Description:    description,
 		NetworkAddress: networkAddress,
 		OwnerAddress:   ownerAddress,
@@ -365,7 +374,7 @@ func (msg MsgUpdateIndexingNode) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateIndexingNode) ValidateBasic() error {
 	if msg.NetworkAddress.Empty() {
-		return ErrEmptyNetworkAddr
+		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
 		return ErrEmptyOwnerAddr
@@ -378,13 +387,13 @@ func (msg MsgUpdateIndexingNode) ValidateBasic() error {
 
 // MsgUpdateIndexingNodeStake struct for updating indexing node's stake
 type MsgUpdateIndexingNodeStake struct {
-	NetworkAddress sdk.AccAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress `json:"owner_address" yaml:"owner_address"`
-	StakeDelta     sdk.Coin       `json:"stake_delta" yaml:"stake_delta"`
-	IncrStake      bool           `json:"incr_stake" yaml:"incr_stake"`
+	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
+	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
+	StakeDelta     sdk.Coin           `json:"stake_delta" yaml:"stake_delta"`
+	IncrStake      bool               `json:"incr_stake" yaml:"incr_stake"`
 }
 
-func NewMsgUpdateIndexingNodeStake(networkAddress sdk.AccAddress, ownerAddress sdk.AccAddress,
+func NewMsgUpdateIndexingNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
 	stakeDelta sdk.Coin, incrStake bool) MsgUpdateIndexingNodeStake {
 	return MsgUpdateIndexingNodeStake{
 		NetworkAddress: networkAddress,
@@ -414,7 +423,7 @@ func (msg MsgUpdateIndexingNodeStake) GetSignBytes() []byte {
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateIndexingNodeStake) ValidateBasic() error {
 	if msg.NetworkAddress.Empty() {
-		return ErrEmptyNetworkAddr
+		return ErrInvalidNetworkAddr
 	}
 	if msg.OwnerAddress.Empty() {
 		return ErrEmptyOwnerAddr
@@ -426,15 +435,15 @@ func (msg MsgUpdateIndexingNodeStake) ValidateBasic() error {
 }
 
 type MsgIndexingNodeRegistrationVote struct {
-	CandidateNetworkAddress sdk.AccAddress `json:"candidate_network_address" yaml:"candidate_network_address"` // node address of indexing node
-	CandidateOwnerAddress   sdk.AccAddress `json:"candidate_owner_address" yaml:"candidate_owner_address"`     // owner address of indexing node
-	Opinion                 VoteOpinion    `json:"opinion" yaml:"opinion"`
-	VoterNetworkAddress     sdk.AccAddress `json:"voter_network_address" yaml:"voter_network_address"` // address of voter (other existed indexing node)
-	VoterOwnerAddress       sdk.AccAddress `json:"voter_owner_address" yaml:"voter_owner_address"`     // address of owner of the voter (other existed indexing node)
+	CandidateNetworkAddress stratos.SdsAddress `json:"candidate_network_address" yaml:"candidate_network_address"` // node address of indexing node
+	CandidateOwnerAddress   sdk.AccAddress     `json:"candidate_owner_address" yaml:"candidate_owner_address"`     // owner address of indexing node
+	Opinion                 VoteOpinion        `json:"opinion" yaml:"opinion"`
+	VoterNetworkAddress     stratos.SdsAddress `json:"voter_network_address" yaml:"voter_network_address"` // address of voter (other existed indexing node)
+	VoterOwnerAddress       sdk.AccAddress     `json:"voter_owner_address" yaml:"voter_owner_address"`     // address of owner of the voter (other existed indexing node)
 }
 
-func NewMsgIndexingNodeRegistrationVote(candidateNetworkAddress sdk.AccAddress, candidateOwnerAddress sdk.AccAddress, opinion VoteOpinion,
-	voterNetworkAddress sdk.AccAddress, voterOwnerAddress sdk.AccAddress) MsgIndexingNodeRegistrationVote {
+func NewMsgIndexingNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, candidateOwnerAddress sdk.AccAddress, opinion VoteOpinion,
+	voterNetworkAddress stratos.SdsAddress, voterOwnerAddress sdk.AccAddress) MsgIndexingNodeRegistrationVote {
 
 	return MsgIndexingNodeRegistrationVote{
 		CandidateNetworkAddress: candidateNetworkAddress,

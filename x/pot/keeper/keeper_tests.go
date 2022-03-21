@@ -21,23 +21,15 @@ import (
 	dbm "github.com/tendermint/tm-db"
 )
 
-const (
-	StratosBech32Prefix = "st"
-)
+func TestMain(m *testing.M) {
+	config := stratos.GetConfig()
 
-var (
-	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
-	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
-	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
-	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
-	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
-	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
-)
+	config.Seal()
+
+}
 
 func CreateTestInput(t *testing.T, isCheckTx bool) (
 	sdk.Context, auth.AccountKeeper, bank.Keeper, Keeper, staking.Keeper, params.Keeper, supply.Keeper, register.Keeper) {
-
-	SetConfig()
 
 	keyParams := sdk.NewKVStoreKey(params.StoreKey)
 	tkeyParams := sdk.NewTransientStoreKey(params.TStoreKey)
@@ -96,15 +88,6 @@ func CreateTestInput(t *testing.T, isCheckTx bool) (
 	supplyKeeper.SetModuleAccount(ctx, feeCollectorAcc)
 
 	return ctx, accountKeeper, bankKeeper, keeper, stakingKeeper, pk, supplyKeeper, registerKeeper
-}
-
-func SetConfig() {
-	config := stratos.GetConfig()
-	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
-	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
-	config.Seal()
 }
 
 // create a codec used only for testing

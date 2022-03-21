@@ -12,25 +12,18 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/crypto"
+	"github.com/tendermint/tendermint/crypto/ed25519"
 	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
 const (
-	chainID             = ""
-	StratosBech32Prefix = "st"
-	DefaultDenom        = "ustos"
-	stos2ustos          = 1000000000
+	chainID      = ""
+	DefaultDenom = "ustos"
+	stos2ustos   = 1000000000
 )
 
 var (
 	testFileHashHex = "c03661732294feb49caf6dc16c7cbb2534986d73"
-
-	AccountPubKeyPrefix    = StratosBech32Prefix + "pub"
-	ValidatorAddressPrefix = StratosBech32Prefix + "valoper"
-	ValidatorPubKeyPrefix  = StratosBech32Prefix + "valoperpub"
-	ConsNodeAddressPrefix  = StratosBech32Prefix + "valcons"
-	ConsNodePubKeyPrefix   = StratosBech32Prefix + "valconspub"
-	SdsNodeP2PKeyPrefix    = StratosBech32Prefix + "sdsp2p"
 
 	resourceNodeVolume1 = sdk.NewInt(500000000000)
 	resourceNodeVolume2 = sdk.NewInt(300000000000)
@@ -87,18 +80,18 @@ var (
 	addrRes5         = sdk.AccAddress(pubKeyRes5.Address())
 	initialStakeRes5 = sdk.NewInt(3 * stos2ustos)
 
-	privKeyIdx1                  = secp256k1.GenPrivKey()
+	privKeyIdx1                  = ed25519.GenPrivKey()
 	pubKeyIdx1                   = privKeyIdx1.PubKey()
-	addrIdx1                     = sdk.AccAddress(pubKeyIdx1.Address())
+	addrIdx1                     = stratos.SdsAddress(pubKeyIdx1.Address())
 	initialStakeIdx1             = sdk.NewInt(5 * stos2ustos)
 	initialStakeIdx1TestPurchase = sdk.NewInt(100 * stos2ustos)
 
-	pubKeyIdx2       = secp256k1.GenPrivKey().PubKey()
-	addrIdx2         = sdk.AccAddress(pubKeyIdx2.Address())
+	pubKeyIdx2       = ed25519.GenPrivKey().PubKey()
+	addrIdx2         = stratos.SdsAddress(pubKeyIdx2.Address())
 	initialStakeIdx2 = sdk.NewInt(5 * stos2ustos)
 
-	pubKeyIdx3       = secp256k1.GenPrivKey().PubKey()
-	addrIdx3         = sdk.AccAddress(pubKeyIdx3.Address())
+	pubKeyIdx3       = ed25519.GenPrivKey().PubKey()
+	addrIdx3         = stratos.SdsAddress(pubKeyIdx3.Address())
 	initialStakeIdx3 = sdk.NewInt(5 * stos2ustos)
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
@@ -132,15 +125,8 @@ var (
 	spNodePubKeyIdx1       = spNodePrivKeyIdx1.PubKey()
 	spNodeAddrIdx1         = sdk.AccAddress(spNodePubKeyIdx1.Address())
 	spNodeInitialStakeIdx1 = sdk.NewInt(5 * stos2ustos)
+	spP2pAddr              = ed25519.GenPrivKey().PubKey().Address()
 )
-
-func SetConfig() {
-	config := stratos.GetConfig()
-	config.SetBech32PrefixForAccount(StratosBech32Prefix, AccountPubKeyPrefix)
-	config.SetBech32PrefixForValidator(ValidatorAddressPrefix, ValidatorPubKeyPrefix)
-	config.SetBech32PrefixForConsensusNode(ConsNodeAddressPrefix, ConsNodePubKeyPrefix)
-	config.SetBech32PrefixForSdsNodeP2P(SdsNodeP2PKeyPrefix)
-}
 
 func setupAccounts(mApp *mock.App) []authexported.Account {
 
@@ -213,15 +199,15 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 
 	//************************** setup indexing nodes' accounts **************************
 	idxNodeAcc1 := &auth.BaseAccount{
-		Address: addrIdx1,
+		Address: idxOwner1,
 		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, initialStakeIdx1.Add(depositForSendingTx))},
 	}
 	idxNodeAcc2 := &auth.BaseAccount{
-		Address: addrIdx2,
+		Address: idxOwner2,
 		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, initialStakeIdx2)},
 	}
 	idxNodeAcc3 := &auth.BaseAccount{
-		Address: addrIdx3,
+		Address: idxOwner3,
 		Coins:   sdk.Coins{sdk.NewCoin(DefaultDenom, initialStakeIdx3)},
 	}
 	spNodeIdxNodeAcc1 := &auth.BaseAccount{
@@ -273,11 +259,11 @@ func setupAccounts(mApp *mock.App) []authexported.Account {
 
 func setupAllResourceNodes() []register.ResourceNode {
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	resourceNode1 := register.NewResourceNode("sds://resourceNode1", pubKeyRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), "4", time)
-	resourceNode2 := register.NewResourceNode("sds://resourceNode2", pubKeyRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), "4", time)
-	resourceNode3 := register.NewResourceNode("sds://resourceNode3", pubKeyRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), "4", time)
-	resourceNode4 := register.NewResourceNode("sds://resourceNode4", pubKeyRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), "4", time)
-	resourceNode5 := register.NewResourceNode("sds://resourceNode5", pubKeyRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), "4", time)
+	resourceNode1 := register.NewResourceNode(stratos.SdsAddress(addrRes1), pubKeyRes1, resOwner1, register.NewDescription("sds://resourceNode1", "", "", "", ""), 4, time)
+	resourceNode2 := register.NewResourceNode(stratos.SdsAddress(addrRes2), pubKeyRes2, resOwner2, register.NewDescription("sds://resourceNode2", "", "", "", ""), 4, time)
+	resourceNode3 := register.NewResourceNode(stratos.SdsAddress(addrRes3), pubKeyRes3, resOwner3, register.NewDescription("sds://resourceNode3", "", "", "", ""), 4, time)
+	resourceNode4 := register.NewResourceNode(stratos.SdsAddress(addrRes4), pubKeyRes4, resOwner4, register.NewDescription("sds://resourceNode4", "", "", "", ""), 4, time)
+	resourceNode5 := register.NewResourceNode(stratos.SdsAddress(addrRes5), pubKeyRes5, resOwner5, register.NewDescription("sds://resourceNode5", "", "", "", ""), 4, time)
 
 	resourceNode1 = resourceNode1.AddToken(initialStakeRes1)
 	resourceNode2 = resourceNode2.AddToken(initialStakeRes2)
@@ -298,10 +284,10 @@ func setupAllIndexingNodes() []register.IndexingNode {
 	var indexingNodes []register.IndexingNode
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	indexingNode1 := register.NewIndexingNode("sds://indexingNode1", pubKeyIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time)
-	indexingNode2 := register.NewIndexingNode("sds://indexingNode2", pubKeyIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time)
-	indexingNode3 := register.NewIndexingNode("sds://indexingNode3", pubKeyIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
-	spNodeIndexingNode1 := register.NewIndexingNode("sds://sdsIndexingNode1", spNodePubKeyIdx1, sdsAccAddr1, register.NewDescription("sds://sdsIndexingNode1", "", "", "", ""), time)
+	indexingNode1 := register.NewIndexingNode(stratos.SdsAddress(addrIdx1), pubKeyIdx1, idxOwner1, register.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	indexingNode2 := register.NewIndexingNode(stratos.SdsAddress(addrIdx2), pubKeyIdx2, idxOwner2, register.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	indexingNode3 := register.NewIndexingNode(stratos.SdsAddress(addrIdx2), pubKeyIdx3, idxOwner3, register.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	spNodeIndexingNode1 := register.NewIndexingNode(stratos.SdsAddress(addrIdx2), spNodePubKeyIdx1, sdsAccAddr1, register.NewDescription("sds://sdsIndexingNode1", "", "", "", ""), time)
 
 	indexingNode1 = indexingNode1.AddToken(initialStakeIdx1)
 	indexingNode2 = indexingNode2.AddToken(initialStakeIdx2)

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
@@ -24,7 +25,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingIndexingNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
 				),
 			)
 		} else {
@@ -32,7 +33,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingResourceNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddr, networkAddr.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
 				),
 			)
 		}
@@ -152,7 +153,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 	defer nodeTimesliceIterator.Close()
 
 	for ; nodeTimesliceIterator.Valid(); nodeTimesliceIterator.Next() {
-		timeslice := []sdk.AccAddress{}
+		timeslice := []stratos.SdsAddress{}
 		k.cdc.MustUnmarshalBinaryLengthPrefixed(nodeTimesliceIterator.Value(), &timeslice)
 
 		for _, networkAddr := range timeslice {

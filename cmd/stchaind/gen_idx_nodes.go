@@ -3,6 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
+
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -14,9 +18,6 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/tendermint/tendermint/libs/cli"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"io/ioutil"
-	"os"
-	"path/filepath"
 )
 
 const (
@@ -87,7 +88,7 @@ func getIndexingNodeInfoFromFile(cdc *codec.Codec, genIdxNodesDir string, genDoc
 				ownerAccount.GetAddress(), ownerAccount.GetCoins().AmountOf(defaultDemon), indexingNode.GetTokens(),
 			)
 		}
-		fmt.Println("Add indexing node: " + indexingNode.NetworkID + " success.")
+		fmt.Println("Add indexing node: " + indexingNode.NetworkAddr.String() + " success.")
 	}
 
 	return appGenIdxNodes, nil
@@ -134,8 +135,6 @@ the address will be looked up in the local Keybase.
 
 			for _, appIdxNode := range appIdxNodes {
 				registerGenState.IndexingNodes = append(registerGenState.IndexingNodes, appIdxNode)
-				registerGenState.LastIndexingNodeStakes = append(registerGenState.LastIndexingNodeStakes,
-					register.LastIndexingNodeStake{Address: appIdxNode.GetNetworkAddr(), Stake: appIdxNode.GetTokens()})
 			}
 
 			registerGenStateBz, err := cdc.MarshalJSON(registerGenState)

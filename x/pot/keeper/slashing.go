@@ -2,37 +2,42 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr sdk.AccAddress, walletAddr sdk.AccAddress, ozAmt sdk.Int, suspend bool) (err error) {
+/*
+	This function only record slashing amount.
+
+	Deduct slashing amount when:
+	1, calculate upcoming mature reward, deduct from mature_total & upcoming mature reward.
+	2, unstaking indexing node.
+	3, unstaking resource node.
+*/
+func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
+	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType regtypes.NodeType, err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
-		return regtypes.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), regtypes.NodeType(0), regtypes.ErrNoResourceNodeFound
 	}
-	if suspend == node.Suspend {
-		return types.ErrNodeStatusSuspend
-	}
+
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
-	_, slash := k.getTrafficReward(ctx, []types.SingleWalletVolume{{
+	_, slash := k.GetTrafficReward(ctx, []types.SingleWalletVolume{{
 		WalletAddress: node.GetOwnerAddr(),
 		Volume:        ozAmt,
 	}})
 
-	oldSlashing := k.GetSlashing(ctx, p2pAddr)
+	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
 
 	// only slashing the reward token for now.
 	newSlashing := oldSlashing.Add(slash.TruncateInt())
 
-	// TODO: (add to reward distribution?) deduct from immature reward (would affect immatureToMature)
-
 	k.RegisterKeeper.SetResourceNode(ctx, node)
-	k.RegisterKeeper.SetLastResourceNodeStake(ctx, node.GetNetworkAddr(), node.Tokens)
+	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
-	k.SetSlashing(ctx, p2pAddr, newSlashing)
-	return nil
+	return slash.TruncateInt(), node.NodeType, nil
 }

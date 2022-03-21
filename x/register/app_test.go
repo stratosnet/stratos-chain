@@ -1,6 +1,9 @@
 package register
 
 import (
+	"os"
+	"testing"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/x/auth"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -9,17 +12,23 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/staking"
 	"github.com/cosmos/cosmos-sdk/x/supply"
 	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
-	helpers "github.com/stratosnet/stratos-chain/helpers"
+	"github.com/stratosnet/stratos-chain/helpers"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stretchr/testify/require"
 	abci "github.com/tendermint/tendermint/abci/types"
-	"testing"
 )
+
+func TestMain(m *testing.M) {
+	config := stratos.GetConfig()
+	config.Seal()
+	exitVal := m.Run()
+	os.Exit(exitVal)
+}
 
 func Test(t *testing.T) {
 
 	/********************* initialize mock app *********************/
-	SetConfig()
 	//mApp, k, accountKeeper, bankKeeper, stakingKeeper, registerKeeper := getMockApp(t)
 	mApp, k, _, _ := getMockApp(t)
 	accounts := setupAccounts(mApp)
@@ -41,7 +50,7 @@ func Test(t *testing.T) {
 	/********************* send register resource node msg *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	registerResNodeMsg := types.NewMsgCreateResourceNode("sds://resourceNode2", resNodePubKey2, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake), resOwnerAddr2, NewDescription("sds://resourceNode2", "", "", "", ""), "4")
+	registerResNodeMsg := types.NewMsgCreateResourceNode(resNodeNetworkId2, resNodePubKey2, sdk.NewCoin(k.BondDenom(ctx), resNodeInitStake), resOwnerAddr2, NewDescription("sds://resourceNode2", "", "", "", ""), 4)
 	resNodeOwnerAcc2 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr2)
 	accNumOwner := resNodeOwnerAcc2.GetAccountNumber()
 	accSeqOwner := resNodeOwnerAcc2.GetSequence()
@@ -68,7 +77,7 @@ func Test(t *testing.T) {
 	/********************* send register indexing node msg *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	registerIdxNodeMsg := types.NewMsgCreateIndexingNode("sds://indexingNode3", idxNodePubKey3, sdk.NewCoin(k.BondDenom(ctx), idxNodeInitStake), idxOwnerAddr3, NewDescription("sds://indexingNode3", "", "", "", ""))
+	registerIdxNodeMsg := types.NewMsgCreateIndexingNode(idxNodeNetworkId3, idxNodePubKey3, sdk.NewCoin(k.BondDenom(ctx), idxNodeInitStake), idxOwnerAddr3, NewDescription("sds://indexingNode3", "", "", "", ""))
 	idxOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr3)
 	accNumOwner = idxOwnerAcc3.GetAccountNumber()
 	accSeqOwner = idxOwnerAcc3.GetSequence()
@@ -95,7 +104,7 @@ func Test(t *testing.T) {
 	/********************* deliver tx to vote *********************/
 	header = abci.Header{Height: mApp.LastBlockHeight() + 1}
 	ctx = mApp.BaseApp.NewContext(true, header)
-	voteMsg := types.NewMsgIndexingNodeRegistrationVote(idxNodeAddr3, idxOwnerAddr3, types.Approve, idxNodeAddr1, idxOwnerAddr1)
+	voteMsg := types.NewMsgIndexingNodeRegistrationVote(idxNodeNetworkId3, idxOwnerAddr3, types.Approve, idxNodeNetworkId1, idxOwnerAddr1)
 	idxOwnerAcc1 := mApp.AccountKeeper.GetAccount(ctx, idxOwnerAddr1)
 	accNumOwner = idxOwnerAcc1.GetAccountNumber()
 	accSeqOwner = idxOwnerAcc1.GetSequence()
@@ -191,18 +200,17 @@ func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKee
 		bankGenesis := bank.NewGenesisState(true)
 		bank.InitGenesis(ctx, bankKeeper, bankGenesis)
 
-		//register genesis data load
-		var lastResourceNodeStakes []LastResourceNodeStake
-		lastResourceNodeStakes = append(lastResourceNodeStakes, LastResourceNodeStake{Address: resNodeAddr1, Stake: resNodeInitStake})
-
-		var lastIndexingNodeStakes []LastIndexingNodeStake
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, LastIndexingNodeStake{Address: idxNodeAddr1, Stake: idxNodeInitStake})
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, LastIndexingNodeStake{Address: idxNodeAddr2, Stake: idxNodeInitStake})
-
 		resourceNodes := setupAllResourceNodes()
 		indexingNodes := setupAllIndexingNodes()
 
-		registerGenesis := NewGenesisState(DefaultParams(), lastResourceNodeStakes, resourceNodes, lastIndexingNodeStakes, indexingNodes, initialUOzonePrice)
+		registerGenesis := NewGenesisState(
+			DefaultParams(),
+			resourceNodes,
+			indexingNodes,
+			initialUOzonePrice,
+			sdk.ZeroInt(),
+			make([]Slashing, 0),
+		)
 
 		InitGenesis(ctx, keeper, registerGenesis)
 

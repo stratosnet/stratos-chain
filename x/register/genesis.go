@@ -39,24 +39,21 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 	keeper.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
 	keeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
 
-	for _, resStake := range data.LastResourceNodeStakes {
-		keeper.SetLastResourceNodeStake(ctx, resStake.Address, resStake.Stake)
-	}
-
-	for _, idxStake := range data.LastIndexingNodeStakes {
-		keeper.SetLastIndexingNodeStake(ctx, idxStake.Address, idxStake.Stake)
-	}
-
+	totalUnissuedPrepay := data.TotalUnissuedPrepay
 	initialUOzonePrice := sdk.ZeroDec()
 	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
-	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
+	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 	keeper.SetTotalUnissuedPrepay(ctx, sdk.Coin{
 		Denom:  data.Params.BondDenom,
-		Amount: data.TotalUnissuedPrepay,
+		Amount: totalUnissuedPrepay,
 	})
+
+	for _, slashing := range data.SlashingInfo {
+		keeper.SetSlashing(ctx, slashing.WalletAddress, slashing.Value)
+	}
 }
 
 // ExportGenesis writes the current store values
@@ -65,30 +62,26 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
-	var lastResourceNodeStakes []types.LastResourceNodeStake
-	keeper.IterateLastResourceNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
-		lastResourceNodeStakes = append(lastResourceNodeStakes, types.LastResourceNodeStake{Address: addr, Stake: stake})
-		return false
-	})
-
-	var lastIndexingNodeStakes []types.LastIndexingNodeStake
-	keeper.IterateLastIndexingNodeStakes(ctx, func(addr sdk.AccAddress, stake sdk.Int) (stop bool) {
-		lastIndexingNodeStakes = append(lastIndexingNodeStakes, types.LastIndexingNodeStake{Address: addr, Stake: stake})
-		return false
-	})
-
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
 	indexingNodes := keeper.GetAllIndexingNodes(ctx)
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := keeper.CurrUozPrice(ctx)
 
+	var slashingInfo []types.Slashing
+	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
+		if val.GT(sdk.ZeroInt()) {
+			slashing := types.NewSlashing(walletAddress, val)
+			slashingInfo = append(slashingInfo, slashing)
+		}
+		return false
+	})
+
 	return types.GenesisState{
-		Params:                 params,
-		LastResourceNodeStakes: lastResourceNodeStakes,
-		ResourceNodes:          resourceNodes,
-		LastIndexingNodeStakes: lastIndexingNodeStakes,
-		IndexingNodes:          indexingNodes,
-		InitialUozPrice:        initialUOzonePrice,
-		TotalUnissuedPrepay:    totalUnissuedPrepay,
+		Params:              params,
+		ResourceNodes:       resourceNodes,
+		IndexingNodes:       indexingNodes,
+		InitialUozPrice:     initialUOzonePrice,
+		TotalUnissuedPrepay: totalUnissuedPrepay,
+		SlashingInfo:        slashingInfo,
 	}
 }

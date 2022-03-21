@@ -2,9 +2,10 @@ package types
 
 import (
 	"context"
+	"sync"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"sync"
 )
 
 // DefaultKeyringServiceName defines a default service name for the keyring.
@@ -31,21 +32,21 @@ var (
 
 // New returns a new Config with default values.
 func NewConfig() *Config {
-	sdkConfig := sdk.NewConfig()
 
 	return &Config{
 		sealedch: make(chan struct{}),
 		bech32AddressPrefix: map[string]string{
-			"account_addr":   sdkConfig.GetBech32AccountAddrPrefix(),
-			"validator_addr": sdkConfig.GetBech32ValidatorAddrPrefix(),
-			"consensus_addr": sdkConfig.GetBech32ConsensusAddrPrefix(),
-			"account_pub":    sdkConfig.GetBech32AccountPubPrefix(),
-			"validator_pub":  sdkConfig.GetBech32ValidatorPubPrefix(),
-			"consensus_pub":  sdkConfig.GetBech32ConsensusPubPrefix(),
-			"sdsp2p_pub":     "",
+			"account_addr":   StratosBech32Prefix,
+			"validator_addr": ValidatorAddressPrefix,
+			"consensus_addr": ConsNodeAddressPrefix,
+			"account_pub":    AccountPubKeyPrefix,
+			"validator_pub":  ValidatorPubKeyPrefix,
+			"consensus_pub":  ConsNodePubKeyPrefix,
+			"sdsp2p_pub":     SdsNodeP2PPubkeyPrefix,
+			"sdsp2p_addr":    SdsNodeP2PAddressPrefix,
 		},
-		coinType:           sdk.CoinType,
-		fullFundraiserPath: sdk.FullFundraiserPath,
+		coinType:           CoinType,
+		fullFundraiserPath: HDPath,
 		txEncoder:          nil,
 	}
 }
@@ -111,9 +112,10 @@ func (config *Config) SetBech32PrefixForConsensusNode(addressPrefix, pubKeyPrefi
 	config.bech32AddressPrefix["consensus_pub"] = pubKeyPrefix
 }
 
-func (config *Config) SetBech32PrefixForSdsNodeP2P(pubKeyPrefix string) {
+func (config *Config) SetBech32PrefixForSdsNodeP2P(pubKeyPrefix, p2pAddrPrifx string) {
 	config.assertNotSealed()
 	config.bech32AddressPrefix["sdsp2p_pub"] = pubKeyPrefix
+	config.bech32AddressPrefix["sdsp2p_addr"] = p2pAddrPrifx
 }
 
 // SetTxEncoder builds the Config with TxEncoder used to marshal StdTx to bytes
@@ -143,7 +145,16 @@ func (config *Config) SetFullFundraiserPath(fullFundraiserPath string) {
 
 // Seal seals the config such that the config state could not be modified further
 func (config *Config) Seal() *Config {
-	sdk.GetConfig().Seal()
+
+	sdkCfg := sdk.GetConfig()
+	sdkCfg.SetBech32PrefixForAccount(config.GetBech32AccountAddrPrefix(), config.GetBech32AccountPubPrefix())
+	sdkCfg.SetBech32PrefixForValidator(config.GetBech32ValidatorAddrPrefix(), config.GetBech32ValidatorPubPrefix())
+	sdkCfg.SetBech32PrefixForConsensusNode(config.GetBech32ConsensusAddrPrefix(), config.GetBech32ConsensusPubPrefix())
+	sdkCfg.SetCoinType(config.GetCoinType())
+	sdkCfg.SetFullFundraiserPath(config.GetFullFundraiserPath())
+	sdkCfg.SetAddressVerifier(config.addressVerifier)
+	sdkCfg.SetTxEncoder(config.txEncoder)
+	sdkCfg.Seal()
 
 	config.mtx.Lock()
 
@@ -192,6 +203,10 @@ func (config *Config) GetBech32ConsensusPubPrefix() string {
 
 func (config *Config) GetBech32SdsNodeP2PPubPrefix() string {
 	return config.bech32AddressPrefix["sdsp2p_pub"]
+}
+
+func (config *Config) GetBech32SdsNodeP2PAddrPrefix() string {
+	return config.bech32AddressPrefix["sdsp2p_addr"]
 }
 
 // GetTxEncoder return function to encode transactions

@@ -337,7 +337,7 @@ func (k Keeper) returnBalanceForTestnet(ctx sdk.Context, goal types.DistributeGo
 	newTotalMinedToken := oldTotalMinedToken.Sub(balanceOfMiningPool)
 	oldMinedToken := k.GetMinedTokens(ctx, epoch)
 	newMinedToken := oldMinedToken.Sub(balanceOfMiningPool)
-	k.setTotalMinedTokens(ctx, newTotalMinedToken)
+	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
 	k.setMinedTokens(ctx, epoch, newMinedToken)
 
 	// return balance to prepay pool
