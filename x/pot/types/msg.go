@@ -2,6 +2,7 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -20,7 +21,7 @@ var (
 
 type MsgVolumeReport struct {
 	WalletVolumes   []SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`     // volume report
-	Reporter        sdk.AccAddress       `json:"reporter" yaml:"reporter"`                 // node p2p address of the reporter
+	Reporter        stratos.SdsAddress   `json:"reporter" yaml:"reporter"`                 // node p2p address of the reporter
 	Epoch           sdk.Int              `json:"epoch" yaml:"epoch"`                       // volume report epoch
 	ReportReference string               `json:"report_reference" yaml:"report_reference"` // volume report reference
 	ReporterOwner   sdk.AccAddress       `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
@@ -30,7 +31,7 @@ type MsgVolumeReport struct {
 // NewMsgVolumeReport creates a new MsgVolumeReport instance
 func NewMsgVolumeReport(
 	walletVolumes []SingleWalletVolume,
-	reporter sdk.AccAddress,
+	reporter stratos.SdsAddress,
 	epoch sdk.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
@@ -211,16 +212,16 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 }
 
 type MsgSlashingResourceNode struct {
-	Reporters      []sdk.AccAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
-	ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
-	NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
-	WalletAddress  sdk.AccAddress   `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
-	Slashing       sdk.Int          `json:"slashing" yaml:"slashing"`
-	Suspend        bool             `json:"suspend" yaml:"suspend"`
+	Reporters      []stratos.SdsAddress `json:"reporters" yaml:"reporters"`             // reporter p2p address
+	ReporterOwner  []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`   // reporter wallet address
+	NetworkAddress stratos.SdsAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
+	WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
+	Slashing       sdk.Int              `json:"slashing" yaml:"slashing"`               // uoz amount
+	Suspend        bool                 `json:"suspend" yaml:"suspend"`
 }
 
-func NewMsgSlashingResourceNode(reporters []sdk.AccAddress, reporterOwner []sdk.AccAddress,
-	networkAddress sdk.AccAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) MsgSlashingResourceNode {
+func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
+	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) MsgSlashingResourceNode {
 	return MsgSlashingResourceNode{
 		Reporters:      reporters,
 		ReporterOwner:  reporterOwner,

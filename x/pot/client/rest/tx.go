@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -41,13 +42,13 @@ type (
 	}
 
 	slashingResourceNodeReq struct {
-		BaseReq        rest.BaseReq     `json:"base_req" yaml:"base_req"`
-		Reporters      []sdk.AccAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
-		ReporterOwner  []sdk.AccAddress `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
-		NetworkAddress sdk.AccAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
-		WalletAddress  sdk.AccAddress   `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
-		Slashing       int64            `json:"slashing" yaml:"slashing"`
-		Suspend        bool             `json:"suspend" yaml:"suspend"`
+		BaseReq        rest.BaseReq         `json:"base_req" yaml:"base_req"`
+		Reporters      []stratos.SdsAddress `json:"reporters" yaml:"reporters"`             // reporter(sp node) p2p address
+		ReporterOwner  []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`   // report(sp node) wallet address
+		NetworkAddress stratos.SdsAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
+		WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
+		Slashing       int64                `json:"slashing" yaml:"slashing"`
+		Suspend        bool                 `json:"suspend" yaml:"suspend"`
 	}
 )
 
@@ -66,7 +67,7 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		}
 
 		reporterStr := req.Reporter
-		reporter, err := sdk.AccAddressFromBech32(reporterStr)
+		reporter, err := stratos.SdsAddressFromBech32(reporterStr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/stratosnet/stratos-chain/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -88,6 +89,7 @@ var (
 func MakeCodec() *codec.Codec {
 	var cdc = codec.New()
 
+	types.RegisterCodec(cdc)
 	ModuleBasics.RegisterCodec(cdc)
 	sdk.RegisterCodec(cdc)
 	codec.RegisterCrypto(cdc)

@@ -3,10 +3,12 @@ package types
 import (
 	"bytes"
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"strings"
 	"time"
+
+	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // =======================
@@ -14,7 +16,7 @@ import (
 // UnbondingNode stores all of a single delegator's unbonding bonds
 // for a single unbonding node in an time-ordered list
 type UnbondingNode struct {
-	NetworkAddr    sdk.AccAddress       `json:"network_addr" yaml:"network_addr"`
+	NetworkAddr    stratos.SdsAddress   `json:"network_addr" yaml:"network_addr"`
 	IsIndexingNode bool                 `json:"is_indexing_node yaml:"is_indexing_node`
 	Entries        []UnbondingNodeEntry `json:"entries" yaml:"entries"` // unbonding node entries
 }
@@ -33,7 +35,7 @@ func (e UnbondingNodeEntry) IsMature(currentTime time.Time) bool {
 }
 
 // NewUnbondingNode - create a new unbonding Node object
-func NewUnbondingNode(networkAddr sdk.AccAddress, isIndexingNode bool, creationHeight int64, minTime time.Time,
+func NewUnbondingNode(networkAddr stratos.SdsAddress, isIndexingNode bool, creationHeight int64, minTime time.Time,
 	balance sdk.Int) UnbondingNode {
 
 	entry := NewUnbondingNodeEntry(creationHeight, minTime, balance)
@@ -97,7 +99,7 @@ func (un UnbondingNode) Equal(un2 UnbondingNode) bool {
 	return bytes.Equal(bz1, bz2)
 }
 
-func (un UnbondingNode) GetNetworkAddr() sdk.AccAddress {
+func (un UnbondingNode) GetNetworkAddr() stratos.SdsAddress {
 	return un.NetworkAddr
 }
 
