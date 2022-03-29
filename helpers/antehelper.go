@@ -1,57 +1,70 @@
 package helpers
 
 import (
-	"github.com/cosmos/cosmos-sdk/codec"
+	"fmt"
+
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	"github.com/cosmos/cosmos-sdk/crypto/types/multisig"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/tendermint/crypto"
-	"github.com/tendermint/tendermint/crypto/ed25519"
-	"github.com/tendermint/tendermint/crypto/multisig"
-	"github.com/tendermint/tendermint/crypto/secp256k1"
 )
 
 // StSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
 // for signature verification based upon the public key type. The cost is fetched from the given params and is matched
 // by the concrete type.
 func StSigVerificationGasConsumer(
-	meter sdk.GasMeter, sig []byte, pubkey crypto.PubKey, params authtypes.Params,
+	meter sdk.GasMeter, sig signing.SignatureV2, params authtypes.Params,
 ) error {
-	switch pubkey := pubkey.(type) {
-	case ed25519.PubKeyEd25519:
+	pubKey := sig.PubKey
+	switch pubKey := pubKey.(type) {
+	case *ed25519.PubKey:
 		meter.ConsumeGas(params.SigVerifyCostED25519, "ante verify: ed25519")
 		return registertypes.ErrED25519InvalidPubKey
-
-	case secp256k1.PubKeySecp256k1:
+	case *secp256k1.PubKey:
 		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: secp256k1")
 		return nil
-
-	case multisig.PubKeyMultisigThreshold:
-		var multisignature multisig.Multisignature
-		codec.Cdc.MustUnmarshalBinaryBare(sig, &multisignature)
-
-		consumeMultisignatureVerificationGas(meter, multisignature, pubkey, params)
+	case multisig.PubKey:
+		multisignature, ok := sig.Data.(*signing.MultiSignatureData)
+		if !ok {
+			return fmt.Errorf("expected %T, got, %T", &signing.MultiSignatureData{}, sig.Data)
+		}
+		err := consumeMultisignatureVerificationGas(meter, multisignature, pubKey, params, sig.Sequence)
+		if err != nil {
+			return err
+		}
 		return nil
-
 	default:
-		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubkey)
+		return sdkerrors.Wrapf(sdkerrors.ErrInvalidPubKey, "unrecognized public key type: %T", pubKey)
 	}
 }
 
 // ConsumeMultisignatureVerificationGas consumes gas from a GasMeter for verifying a multisig pubkey signature
-func consumeMultisignatureVerificationGas(meter sdk.GasMeter,
-	sig multisig.Multisignature, pubkey multisig.PubKeyMultisigThreshold,
-	params authtypes.Params) {
-	size := sig.BitArray.Size()
+func consumeMultisignatureVerificationGas(
+	meter sdk.GasMeter, sig *signing.MultiSignatureData, pubkey multisig.PubKey, params authtypes.Params, accSeq uint64,
+) error {
+	size := sig.BitArray.Count()
 	sigIndex := 0
+
 	for i := 0; i < size; i++ {
-		if sig.BitArray.GetIndex(i) {
-			err := StSigVerificationGasConsumer(meter, sig.Sigs[sigIndex], pubkey.PubKeys[i], params)
-			if err != nil {
-				return
-			}
-			sigIndex++
+		if !sig.BitArray.GetIndex(i) {
+			continue
 		}
+		sigV2 := signing.SignatureV2{
+			PubKey:   pubkey.GetPubKeys()[i],
+			Data:     sig.Signatures[sigIndex],
+			Sequence: accSeq,
+		}
+		err := StSigVerificationGasConsumer(meter, sigV2, params)
+		if err != nil {
+			return err
+		}
+		sigIndex++
 	}
+
+	return nil
 }
