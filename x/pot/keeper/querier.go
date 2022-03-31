@@ -88,7 +88,10 @@ func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPo
 		}
 	} else {
 		k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-			res = append(res, individualReward)
+			if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
+				(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
+				res = append(res, individualReward)
+			}
 			return false
 		})
 	}
