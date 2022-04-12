@@ -92,12 +92,12 @@ import (
 
 	stratosparams "github.com/stratosnet/stratos-chain/app/params"
 	"github.com/stratosnet/stratos-chain/helpers"
-	"github.com/stratosnet/stratos-chain/x/pot"
-	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
-	"github.com/stratosnet/stratos-chain/x/register"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/stratosnet/stratos-chain/x/sds"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
+	//"github.com/stratosnet/stratos-chain/x/pot"
+	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	//"github.com/stratosnet/stratos-chain/x/register"
+	//registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	//"github.com/stratosnet/stratos-chain/x/sds"
+	//sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 const (
@@ -144,14 +144,14 @@ var (
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
-		pot.FoundationAccount:          nil,
+		//pot.FoundationAccount:          nil,
 		//evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 	}
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
 		distrtypes.ModuleName: true,
-		pot.FoundationAccount: true,
+		//pot.FoundationAccount: true,
 	}
 )
 
@@ -193,9 +193,9 @@ type NewApp struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// stratos keepers
-	registerKeeper register.Keeper
-	potKeeper      pot.Keeper
-	sdsKeeper      sds.Keeper
+	//registerKeeper register.Keeper
+	//potKeeper      pot.Keeper
+	//sdsKeeper      sds.Keeper
 	//evmKeeper      *evmkeeper.Keeper
 
 	// the module manager
@@ -239,7 +239,7 @@ func NewInitApp(
 		// ibc keys
 		ibchost.StoreKey, ibctransfertypes.StoreKey,
 		// stratos keys
-		register.StoreKey, pot.StoreKey, sds.StoreKey,
+		//register.StoreKey, pot.StoreKey, sds.StoreKey,
 		//evmtypes.StoreKey,
 	)
 	tKeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -327,7 +327,7 @@ func NewInitApp(
 
 	app.govKeeper = *govKeeper.SetHooks(
 		govtypes.NewMultiGovHooks(
-			// register the governance hooks
+		// register the governance hooks
 		),
 	)
 
@@ -669,9 +669,9 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	// stratos subspaces
-	paramsKeeper.Subspace(registertypes.ModuleName)
-	paramsKeeper.Subspace(pottypes.ModuleName)
-	paramsKeeper.Subspace(sdstypes.ModuleName)
+	//paramsKeeper.Subspace(registertypes.ModuleName)
+	//paramsKeeper.Subspace(pottypes.ModuleName)
+	//paramsKeeper.Subspace(sdstypes.ModuleName)
 	//paramsKeeper.Subspace(evmtypes.ModuleName)
 
 	return paramsKeeper

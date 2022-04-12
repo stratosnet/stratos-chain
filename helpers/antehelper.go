@@ -10,8 +10,6 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // StSigVerificationGasConsumer is the default implementation of SignatureVerificationGasConsumer. It consumes gas
@@ -24,7 +22,7 @@ func StSigVerificationGasConsumer(
 	switch pubKey := pubKey.(type) {
 	case *ed25519.PubKey:
 		meter.ConsumeGas(params.SigVerifyCostED25519, "ante verify: ed25519")
-		return registertypes.ErrED25519InvalidPubKey
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidPubKey, "ED25519 public keys are unsupported")
 	case *secp256k1.PubKey:
 		meter.ConsumeGas(params.SigVerifyCostSecp256k1, "ante verify: secp256k1")
 		return nil

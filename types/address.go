@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"strings"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/tendermint/crypto"
-	tmamino "github.com/tendermint/tendermint/crypto/encoding/amino"
-	"github.com/tendermint/tendermint/libs/bech32"
 	"gopkg.in/yaml.v2"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
+
+	//tmamino "github.com/tendermint/go-amino"
+	"github.com/tendermint/tendermint/crypto"
 )
 
 // Bech32PubKeyType defines a string type alias for a Bech32 public key type.
@@ -62,35 +64,35 @@ func Bech32ifyPubKey(pkt Bech32PubKeyType, pubkey crypto.PubKey) (string, error)
 
 // GetPubKeyFromBech32 returns a PublicKey from a bech32-encoded PublicKey with
 // a given key type.
-func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (crypto.PubKey, error) {
-	var bech32Prefix string
-
-	switch pkt {
-	case Bech32PubKeyTypeAccPub:
-		bech32Prefix = GetConfig().GetBech32AccountPubPrefix()
-
-	case Bech32PubKeyTypeValPub:
-		bech32Prefix = GetConfig().GetBech32ValidatorPubPrefix()
-
-	case Bech32PubKeyTypeConsPub:
-		bech32Prefix = GetConfig().GetBech32ConsensusPubPrefix()
-
-	case Bech32PubKeyTypeSdsP2PPub:
-		bech32Prefix = GetConfig().GetBech32SdsNodeP2PPubPrefix()
-	}
-
-	bz, err := sdk.GetFromBech32(pubkeyStr, bech32Prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	pk, err := tmamino.PubKeyFromBytes(bz)
-	if err != nil {
-		return nil, err
-	}
-
-	return pk, nil
-}
+//func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (crypto.PubKey, error) {
+//	var bech32Prefix string
+//
+//	switch pkt {
+//	case Bech32PubKeyTypeAccPub:
+//		bech32Prefix = GetConfig().GetBech32AccountPubPrefix()
+//
+//	case Bech32PubKeyTypeValPub:
+//		bech32Prefix = GetConfig().GetBech32ValidatorPubPrefix()
+//
+//	case Bech32PubKeyTypeConsPub:
+//		bech32Prefix = GetConfig().GetBech32ConsensusPubPrefix()
+//
+//	case Bech32PubKeyTypeSdsP2PPub:
+//		bech32Prefix = GetConfig().GetBech32SdsNodeP2PPubPrefix()
+//	}
+//
+//	bz, err := sdk.GetFromBech32(pubkeyStr, bech32Prefix)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	pk, err := tmamino.PubKeyFromBytes(bz)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	return pk, nil
+//}
 
 type SdsAddress []byte
 
