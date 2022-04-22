@@ -9,6 +9,7 @@ import (
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
 	_ "github.com/gogo/protobuf/gogoproto"
+	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -1486,10 +1487,10 @@ type QueryClient interface {
 }
 
 type queryClient struct {
-	cc *grpc.ClientConn
+	cc grpc1.ClientConn
 }
 
-func NewQueryClient(cc *grpc.ClientConn) QueryClient {
+func NewQueryClient(cc grpc1.ClientConn) QueryClient {
 	return &queryClient{cc}
 }
 
@@ -1686,7 +1687,7 @@ func (*UnimplementedQueryServer) BlockGas(ctx context.Context, req *QueryBlockGa
 	return nil, status.Errorf(codes.Unimplemented, "method BlockGas not implemented")
 }
 
-func RegisterQueryServer(s *grpc.Server, srv QueryServer) {
+func RegisterQueryServer(s grpc1.Server, srv QueryServer) {
 	s.RegisterService(&_Query_serviceDesc, srv)
 }
 
@@ -2853,13 +2854,16 @@ func (m *QueryBaseFeeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	var l int
 	_ = l
 	if m.BaseFee != nil {
-		if len(m.BaseFee) > 0 {
-			i -= len(m.BaseFee)
-			copy(dAtA[i:], m.BaseFee)
-			i = encodeVarintQuery(dAtA, i, uint64(len(m.BaseFee)))
-			i--
-			dAtA[i] = 0xa
+		{
+			size := m.BaseFee.Size()
+			i -= size
+			if _, err := m.BaseFee.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintQuery(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -3294,10 +3298,8 @@ func (m *QueryBaseFeeResponse) Size() (n int) {
 	var l int
 	_ = l
 	if m.BaseFee != nil {
-		l = len(m.BaseFee)
-		if l > 0 {
-			n += 1 + l + sovQuery(uint64(l))
-		}
+		l = m.BaseFee.Size()
+		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
@@ -5757,7 +5759,11 @@ func (m *QueryBaseFeeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.BaseFee = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.BaseFee = &v
+			if err := m.BaseFee.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

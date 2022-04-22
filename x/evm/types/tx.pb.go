@@ -10,6 +10,7 @@ import (
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
+	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	_ "github.com/regen-network/cosmos-proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -149,8 +150,8 @@ type AccessListTx struct {
 	// value defines the unsigned integer value of the transaction amount.
 	Amount *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=value,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"value,omitempty"`
 	// input defines the data payload bytes of the transaction.
-	Data     []byte        `protobuf:"bytes,7,opt,name=data,proto3" json:"data,omitempty"`
-	Accesses []AccessTuple `protobuf:"bytes,8,rep,name=accesses,proto3" json:"accessList"`
+	Data     []byte     `protobuf:"bytes,7,opt,name=data,proto3" json:"data,omitempty"`
+	Accesses AccessList `protobuf:"bytes,8,rep,name=accesses,proto3,castrepeated=AccessList" json:"accessList"`
 	// v defines the signature value
 	V []byte `protobuf:"bytes,9,opt,name=v,proto3" json:"v,omitempty"`
 	// r defines the signature value
@@ -209,8 +210,8 @@ type DynamicFeeTx struct {
 	// value defines the the transaction amount.
 	Amount *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=value,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"value,omitempty"`
 	// input defines the data payload bytes of the transaction.
-	Data     []byte        `protobuf:"bytes,8,opt,name=data,proto3" json:"data,omitempty"`
-	Accesses []AccessTuple `protobuf:"bytes,9,rep,name=accesses,proto3" json:"accessList"`
+	Data     []byte     `protobuf:"bytes,8,opt,name=data,proto3" json:"data,omitempty"`
+	Accesses AccessList `protobuf:"bytes,9,rep,name=accesses,proto3,castrepeated=AccessList" json:"accessList"`
 	// v defines the signature value
 	V []byte `protobuf:"bytes,10,opt,name=v,proto3" json:"v,omitempty"`
 	// r defines the signature value
@@ -425,10 +426,10 @@ type MsgClient interface {
 }
 
 type msgClient struct {
-	cc *grpc.ClientConn
+	cc grpc1.ClientConn
 }
 
-func NewMsgClient(cc *grpc.ClientConn) MsgClient {
+func NewMsgClient(cc grpc1.ClientConn) MsgClient {
 	return &msgClient{cc}
 }
 
@@ -455,7 +456,7 @@ func (*UnimplementedMsgServer) EthereumTx(ctx context.Context, req *MsgEthereumT
 	return nil, status.Errorf(codes.Unimplemented, "method EthereumTx not implemented")
 }
 
-func RegisterMsgServer(s *grpc.Server, srv MsgServer) {
+func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
 	s.RegisterService(&_Msg_serviceDesc, srv)
 }
 
@@ -594,13 +595,16 @@ func (m *LegacyTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x32
 	}
 	if m.Amount != nil {
-		if len(m.Amount) > 0 {
-			i -= len(m.Amount)
-			copy(dAtA[i:], m.Amount)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.Amount)))
-			i--
-			dAtA[i] = 0x2a
+		{
+			size := m.Amount.Size()
+			i -= size
+			if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x2a
 	}
 	if len(m.To) > 0 {
 		i -= len(m.To)
@@ -615,13 +619,16 @@ func (m *LegacyTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x18
 	}
 	if m.GasPrice != nil {
-		if len(m.GasPrice) > 0 {
-			i -= len(m.GasPrice)
-			copy(dAtA[i:], m.GasPrice)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.GasPrice)))
-			i--
-			dAtA[i] = 0x12
+		{
+			size := m.GasPrice.Size()
+			i -= size
+			if _, err := m.GasPrice.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x12
 	}
 	if m.Nonce != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.Nonce))
@@ -694,13 +701,16 @@ func (m *AccessListTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x3a
 	}
 	if m.Amount != nil {
-		if len(m.Amount) > 0 {
-			i -= len(m.Amount)
-			copy(dAtA[i:], m.Amount)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.Amount)))
-			i--
-			dAtA[i] = 0x32
+		{
+			size := m.Amount.Size()
+			i -= size
+			if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x32
 	}
 	if len(m.To) > 0 {
 		i -= len(m.To)
@@ -715,13 +725,16 @@ func (m *AccessListTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x20
 	}
 	if m.GasPrice != nil {
-		if len(m.GasPrice) > 0 {
-			i -= len(m.GasPrice)
-			copy(dAtA[i:], m.GasPrice)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.GasPrice)))
-			i--
-			dAtA[i] = 0x1a
+		{
+			size := m.GasPrice.Size()
+			i -= size
+			if _, err := m.GasPrice.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x1a
 	}
 	if m.Nonce != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.Nonce))
@@ -729,13 +742,16 @@ func (m *AccessListTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x10
 	}
 	if m.ChainID != nil {
-		if len(m.ChainID) > 0 {
-			i -= len(m.ChainID)
-			copy(dAtA[i:], m.ChainID)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.ChainID)))
-			i--
-			dAtA[i] = 0xa
+		{
+			size := m.ChainID.Size()
+			i -= size
+			if _, err := m.ChainID.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -803,13 +819,16 @@ func (m *DynamicFeeTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x42
 	}
 	if m.Amount != nil {
-		if len(m.Amount) > 0 {
-			i -= len(m.Amount)
-			copy(dAtA[i:], m.Amount)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.Amount)))
-			i--
-			dAtA[i] = 0x3a
+		{
+			size := m.Amount.Size()
+			i -= size
+			if _, err := m.Amount.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x3a
 	}
 	if len(m.To) > 0 {
 		i -= len(m.To)
@@ -824,22 +843,28 @@ func (m *DynamicFeeTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x28
 	}
 	if m.GasFeeCap != nil {
-		if len(m.GasFeeCap) > 0 {
-			i -= len(m.GasFeeCap)
-			copy(dAtA[i:], m.GasFeeCap)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.GasFeeCap)))
-			i--
-			dAtA[i] = 0x22
+		{
+			size := m.GasFeeCap.Size()
+			i -= size
+			if _, err := m.GasFeeCap.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x22
 	}
 	if m.GasTipCap != nil {
-		if len(m.GasTipCap) > 0 {
-			i -= len(m.GasTipCap)
-			copy(dAtA[i:], m.GasTipCap)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.GasTipCap)))
-			i--
-			dAtA[i] = 0x1a
+		{
+			size := m.GasTipCap.Size()
+			i -= size
+			if _, err := m.GasTipCap.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0x1a
 	}
 	if m.Nonce != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.Nonce))
@@ -847,13 +872,16 @@ func (m *DynamicFeeTx) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		dAtA[i] = 0x10
 	}
 	if m.ChainID != nil {
-		if len(m.ChainID) > 0 {
-			i -= len(m.ChainID)
-			copy(dAtA[i:], m.ChainID)
-			i = encodeVarintTx(dAtA, i, uint64(len(m.ChainID)))
-			i--
-			dAtA[i] = 0xa
+		{
+			size := m.ChainID.Size()
+			i -= size
+			if _, err := m.ChainID.MarshalTo(dAtA[i:]); err != nil {
+				return 0, err
+			}
+			i = encodeVarintTx(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -989,10 +1017,8 @@ func (m *LegacyTx) Size() (n int) {
 		n += 1 + sovTx(uint64(m.Nonce))
 	}
 	if m.GasPrice != nil {
-		l = len(m.GasPrice)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.GasPrice.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.GasLimit != 0 {
 		n += 1 + sovTx(uint64(m.GasLimit))
@@ -1002,10 +1028,8 @@ func (m *LegacyTx) Size() (n int) {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.Amount != nil {
-		l = len(m.Amount)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.Amount.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	l = len(m.Data)
 	if l > 0 {
@@ -1033,19 +1057,15 @@ func (m *AccessListTx) Size() (n int) {
 	var l int
 	_ = l
 	if m.ChainID != nil {
-		l = len(m.ChainID)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.ChainID.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.Nonce != 0 {
 		n += 1 + sovTx(uint64(m.Nonce))
 	}
 	if m.GasPrice != nil {
-		l = len(m.GasPrice)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.GasPrice.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.GasLimit != 0 {
 		n += 1 + sovTx(uint64(m.GasLimit))
@@ -1055,10 +1075,8 @@ func (m *AccessListTx) Size() (n int) {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.Amount != nil {
-		l = len(m.Amount)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.Amount.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	l = len(m.Data)
 	if l > 0 {
@@ -1092,25 +1110,19 @@ func (m *DynamicFeeTx) Size() (n int) {
 	var l int
 	_ = l
 	if m.ChainID != nil {
-		l = len(m.ChainID)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.ChainID.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.Nonce != 0 {
 		n += 1 + sovTx(uint64(m.Nonce))
 	}
 	if m.GasTipCap != nil {
-		l = len(m.GasTipCap)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.GasTipCap.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.GasFeeCap != nil {
-		l = len(m.GasFeeCap)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.GasFeeCap.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.GasLimit != 0 {
 		n += 1 + sovTx(uint64(m.GasLimit))
@@ -1120,10 +1132,8 @@ func (m *DynamicFeeTx) Size() (n int) {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	if m.Amount != nil {
-		l = len(m.Amount)
-		if l > 0 {
-			n += 1 + l + sovTx(uint64(l))
-		}
+		l = m.Amount.Size()
+		n += 1 + l + sovTx(uint64(l))
 	}
 	l = len(m.Data)
 	if l > 0 {
@@ -1434,7 +1444,11 @@ func (m *LegacyTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.GasPrice = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.GasPrice = &v
+			if err := m.GasPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 0 {
@@ -1517,7 +1531,11 @@ func (m *LegacyTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.Amount = &v
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
@@ -1735,7 +1753,11 @@ func (m *AccessListTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChainID = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.ChainID = &v
+			if err := m.ChainID.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -1786,7 +1808,11 @@ func (m *AccessListTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.GasPrice = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.GasPrice = &v
+			if err := m.GasPrice.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 0 {
@@ -1869,7 +1895,11 @@ func (m *AccessListTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.Amount = &v
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
@@ -2121,7 +2151,11 @@ func (m *DynamicFeeTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ChainID = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.ChainID = &v
+			if err := m.ChainID.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 0 {
@@ -2172,7 +2206,11 @@ func (m *DynamicFeeTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.GasTipCap = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.GasTipCap = &v
+			if err := m.GasTipCap.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -2204,7 +2242,11 @@ func (m *DynamicFeeTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.GasFeeCap = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.GasFeeCap = &v
+			if err := m.GasFeeCap.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 5:
 			if wireType != 0 {
@@ -2287,7 +2329,11 @@ func (m *DynamicFeeTx) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = github_com_cosmos_cosmos_sdk_types.Int(dAtA[iNdEx:postIndex])
+			var v github_com_cosmos_cosmos_sdk_types.Int
+			m.Amount = &v
+			if err := m.Amount.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {
