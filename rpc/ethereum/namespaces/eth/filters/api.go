@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/stratosnet/stratos-chain/rpc/ethereum/types"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -56,6 +57,7 @@ type filter struct {
 // information related to the Ethereum protocol such as blocks, transactions and logs.
 type PublicFilterAPI struct {
 	logger    log.Logger
+	clientCtx client.Context
 	backend   Backend
 	events    *EventSystem
 	filtersMu sync.Mutex
@@ -63,13 +65,14 @@ type PublicFilterAPI struct {
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, tmWSClient *rpcclient.WSClient, backend Backend) *PublicFilterAPI {
+func NewPublicAPI(logger log.Logger, clientCtx client.Context, tmWSClient *rpcclient.WSClient, backend Backend) *PublicFilterAPI {
 	logger = logger.With("api", "filter")
 	api := &PublicFilterAPI{
-		logger:  logger,
-		backend: backend,
-		filters: make(map[rpc.ID]*filter),
-		events:  NewEventSystem(logger, tmWSClient),
+		logger:    logger,
+		clientCtx: clientCtx,
+		backend:   backend,
+		filters:   make(map[rpc.ID]*filter),
+		events:    NewEventSystem(logger, tmWSClient),
 	}
 
 	go api.timeoutLoop()

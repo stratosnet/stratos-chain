@@ -214,7 +214,7 @@ func (c JSONRPCConfig) Validate() error {
 		return errors.New("JSON-RPC block range cap cannot be negative")
 	}
 
-	// TODO: validate APIs
+	// check for duplicates
 	seenAPIs := make(map[string]bool)
 	for _, api := range c.API {
 		if seenAPIs[api] {

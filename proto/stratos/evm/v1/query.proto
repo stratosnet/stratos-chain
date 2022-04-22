@@ -240,19 +240,17 @@ message EstimateGasResponse {
 message QueryTraceTxRequest {
   // msgEthereumTx for the requested transaction
   MsgEthereumTx msg = 1;
-  // transaction index
-  uint64 tx_index = 2;
   // TraceConfig holds extra parameters to trace functions.
-  TraceConfig trace_config = 3;
+  TraceConfig trace_config = 2;
   // the predecessor transactions included in the same block
   // need to be replayed first to get correct context for tracing.
-  repeated MsgEthereumTx predecessors = 4;
+  repeated MsgEthereumTx predecessors = 3;
   // block number of requested transaction
-  int64 block_number = 5;
+  int64 block_number = 4;
   // block hex hash of requested transaction
-  string block_hash = 6;
+  string block_hash = 5;
   // block time of requested transaction
-  google.protobuf.Timestamp block_time = 7 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
+  google.protobuf.Timestamp block_time = 6 [(gogoproto.nullable) = false, (gogoproto.stdtime) = true];
 }
 
 // QueryTraceTxResponse defines TraceTx response
