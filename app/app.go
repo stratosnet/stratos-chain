@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 
+	sdkparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
@@ -90,7 +91,6 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
-	stratosparams "github.com/stratosnet/stratos-chain/app/params"
 	"github.com/stratosnet/stratos-chain/helpers"
 	//"github.com/stratosnet/stratos-chain/x/pot"
 	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
@@ -105,9 +105,9 @@ const (
 )
 
 var (
-	DefaultCLIHome  = os.ExpandEnv("$HOME/.stchaincli")
 	DefaultNodeHome = os.ExpandEnv("$HOME/.stchaind")
-	ModuleBasics    = module.NewBasicManager(
+
+	ModuleBasics = module.NewBasicManager(
 		auth.AppModuleBasic{},
 		genutil.AppModuleBasic{},
 		bank.AppModuleBasic{},
@@ -216,7 +216,7 @@ func NewInitApp(
 	skipUpgradeHeights map[int64]bool,
 	homePath string,
 	invCheckPeriod uint,
-	encodingConfig stratosparams.EncodingConfig,
+	encodingConfig sdkparams.EncodingConfig,
 	appOpts servertypes.AppOptions,
 	baseAppOptions ...func(*baseapp.BaseApp),
 ) *NewApp {
