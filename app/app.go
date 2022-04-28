@@ -1,11 +1,11 @@
 package app
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"os"
 
-	sdkparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
@@ -25,11 +25,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/config"
 	servertypes "github.com/cosmos/cosmos-sdk/server/types"
 	"github.com/cosmos/cosmos-sdk/simapp"
+	sdkparams "github.com/cosmos/cosmos-sdk/simapp/params"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authsims "github.com/cosmos/cosmos-sdk/x/auth/simulation"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -91,7 +91,12 @@ import (
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
 
-	"github.com/stratosnet/stratos-chain/helpers"
+	"github.com/stratosnet/stratos-chain/app/ante"
+	srvflags "github.com/stratosnet/stratos-chain/server/flags"
+	"github.com/stratosnet/stratos-chain/x/evm"
+	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
+	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
+	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	//"github.com/stratosnet/stratos-chain/x/pot"
 	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	//"github.com/stratosnet/stratos-chain/x/register"
@@ -135,7 +140,7 @@ var (
 		//register.AppModuleBasic{},
 		//pot.AppModuleBasic{},
 		//sds.AppModuleBasic{},
-		//evm.AppModuleBasic{},
+		evm.AppModuleBasic{},
 	)
 
 	maccPerms = map[string][]string{
@@ -147,7 +152,7 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		//pot.FoundationAccount:          nil,
-		//evmtypes.ModuleName:            {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -198,7 +203,7 @@ type NewApp struct {
 	//registerKeeper register.Keeper
 	//potKeeper      pot.Keeper
 	//sdsKeeper      sds.Keeper
-	//evmKeeper      *evmkeeper.Keeper
+	evmKeeper *evmkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -242,9 +247,11 @@ func NewInitApp(
 		ibchost.StoreKey, ibctransfertypes.StoreKey,
 		// stratos keys
 		//register.StoreKey, pot.StoreKey, sds.StoreKey,
-		//evmtypes.StoreKey,
+		evmtypes.StoreKey,
 	)
-	tKeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
+
+	// Add the EVM transient store key
+	tKeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey, evmtypes.TransientKey)
 	memKeys := sdk.NewMemoryStoreKeys(capabilitytypes.MemStoreKey)
 
 	app := &NewApp{
@@ -308,6 +315,13 @@ func NewInitApp(
 	)
 	app.authzKeeper = authzkeeper.NewKeeper(
 		keys[authzkeeper.StoreKey], appCodec, app.BaseApp.MsgServiceRouter(),
+	)
+
+	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
+	app.evmKeeper = evmkeeper.NewKeeper(
+		appCodec, keys[evmtypes.StoreKey], tKeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
+		app.accountKeeper, app.bankKeeper, app.stakingKeeper,
+		tracer,
 	)
 
 	// Create IBC Keeper
@@ -412,6 +426,7 @@ func NewInitApp(
 		transferModule,
 
 		// Stratos app modules
+		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		//register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		//pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
 		//sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
@@ -426,7 +441,7 @@ func NewInitApp(
 	app.mm.SetOrderBeginBlockers(
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
-		//evmtypes.ModuleName,
+		evmtypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -452,7 +467,7 @@ func NewInitApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		//register.ModuleName,
-		//evmtypes.ModuleName,
+		evmtypes.ModuleName,
 		// no-op modules
 		ibchost.ModuleName,
 		ibctransfertypes.ModuleName,
@@ -496,7 +511,7 @@ func NewInitApp(
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
 		// Stratos modules
-		//evmtypes.ModuleName,
+		evmtypes.ModuleName,
 
 		// NOTE: crisis module must go at the end to check for invariants on each module
 		crisistypes.ModuleName,
@@ -517,22 +532,27 @@ func NewInitApp(
 	app.SetBeginBlocker(app.BeginBlocker)
 
 	// custom AnteHandler
+	maxGasWanted := cast.ToUint64(appOpts.Get(srvflags.EVMMaxTxGasWanted))
 	options := ante.HandlerOptions{
 		AccountKeeper:   app.accountKeeper,
 		BankKeeper:      app.bankKeeper,
+		EvmKeeper:       app.evmKeeper,
 		FeegrantKeeper:  app.feeGrantKeeper,
+		IBCKeeper:       app.ibcKeeper,
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
-		SigGasConsumer:  helpers.StSigVerificationGasConsumer,
+		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
+		MaxTxGasWanted:  maxGasWanted,
 	}
-	antHandler, err := ante.NewAnteHandler(options)
-	if err != nil {
+
+	if err := options.Validate(); err != nil {
 		panic(err)
 	}
-	app.SetAnteHandler(antHandler)
+
+	app.SetAnteHandler(ante.NewAnteHandler(options))
 	app.SetEndBlocker(app.EndBlocker)
 
 	if loadLatest {
-		if err = app.LoadLatestVersion(); err != nil {
+		if err := app.LoadLatestVersion(); err != nil {
 			tmos.Exit(err.Error())
 		}
 	}
@@ -545,8 +565,10 @@ func NewInitApp(
 
 func (app *NewApp) InitChainer(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 	var genesisState simapp.GenesisState
-
-	app.cdc.MustUnmarshalJSON(req.AppStateBytes, &genesisState)
+	if err := json.Unmarshal(req.AppStateBytes, &genesisState); err != nil {
+		panic(err)
+	}
+	app.upgradeKeeper.SetModuleVersionMap(ctx, app.mm.GetVersionMap())
 	return app.mm.InitGenesis(ctx, app.appCodec, genesisState)
 }
 
@@ -625,7 +647,7 @@ func (app *NewApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	clientCtx := apiSvr.ClientCtx
 	rpc.RegisterRoutes(clientCtx, apiSvr.Router)
 
-	//evmrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
+	evmrest.RegisterTxRoutes(clientCtx, apiSvr.Router)
 
 	// Register new tx routes from grpc-gateway.
 	authtx.RegisterGRPCGatewayRoutes(clientCtx, apiSvr.GRPCGatewayRouter)
@@ -674,7 +696,7 @@ func initParamsKeeper(
 	//paramsKeeper.Subspace(registertypes.ModuleName)
 	//paramsKeeper.Subspace(pottypes.ModuleName)
 	//paramsKeeper.Subspace(sdstypes.ModuleName)
-	//paramsKeeper.Subspace(evmtypes.ModuleName)
+	paramsKeeper.Subspace(evmtypes.ModuleName)
 
 	return paramsKeeper
 }
