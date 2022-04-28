@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
+	"net/http"
+	"strconv"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -29,6 +32,14 @@ import (
 const flagInvCheckPeriod = "inv-check-period"
 
 var invCheckPeriod uint
+
+func init() {
+	go func() {
+		pprofPort := 1234
+		fmt.Println("pprof registers handlers and listen port:", pprofPort)
+		http.ListenAndServe(":" + strconv.Itoa(pprofPort), nil)
+	}()
+}
 
 func main() {
 	cdc := app.MakeCodec()
