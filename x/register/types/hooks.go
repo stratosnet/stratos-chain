@@ -5,7 +5,7 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-// combine multiple register hooks, all hook functions are run in array sequence
+// MultiRegisterHooks combines multiple register hooks, all hook functions are run in array sequence
 type MultiRegisterHooks []RegisterHooks
 
 func NewMultiRegisterHooks(hooks ...RegisterHooks) MultiRegisterHooks {

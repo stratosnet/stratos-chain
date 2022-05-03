@@ -4,49 +4,98 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	codeErrInvalid = uint32(iota) + 2 // NOTE: code 1 is reserved for internal errors
+	codeErrInvalidNetworkAddr
+	codeErrEmptyOwnerAddr
+	codeErrValueNegative
+	codeErrEmptyDescription
+	codeErrEmptyMoniker
+	codeErrEmptyResourceNodeAddr
+	codeErrEmptyIndexingNodeAddr
+	codeErrBadDenom
+	codeErrResourceNodePubKeyExists
+	codeErrIndexingNodePubKeyExists
+	codeErrNoResourceNodeFound
+	codeErrNoIndexingNodeFound
+	codeErrNoOwnerAccountFound
+	codeErrInsufficientBalance
+	codeErrNodeType
+	codeErrEmptyCandidateNetworkAddr
+	codeErrEmptyCandidateOwnerAddr
+	codeErrEmptyVoterNetworkAddr
+	codeErrEmptyVoterOwnerAddr
+	codeErrSameAddr
+	codeErrInvalidOwnerAddr
+	codeErrInvalidVoterAddr
+	codeErrInvalidVoterStatus
+	codeEcoderrNoRegistrationVotePoolFound
+	codeErrDuplicateVoting
+	codeErrVoteExpired
+	codeErrInsufficientBalanceOfBondedPool
+	codeErrInsufficientBalanceOfNotBondedPool
+	codeErrSubAllTokens
+	codeErrED25519InvalidPubKey
+	codeErrEmptyNodeNetworkAddress
+	codeErrEmptyPubKey
+	codeErrInvalidGenesisToken
+	codeErrNoUnbondingNode
+	codeErrMaxUnbondingNodeEntries
+	codeErrNoNodeForAddress
+	codeErrUnbondingNode
+	codeErrInvalidNodeStatBonded
+	codeErrInitialUOzonePrice
+	codeErrInvalidStakeChange
+	codeErrTotalUnissuedPrepay
+	codeErrInvalidNodeType
+	codeErrUnknownAccountAddress
+	codeErrUnknownPubKey
+)
+
 var (
-	ErrInvalid                            = sdkerrors.Register(ModuleName, 1, "error invalid")
-	ErrInvalidNetworkAddr                 = sdkerrors.Register(ModuleName, 2, "invalid network address")
-	ErrEmptyOwnerAddr                     = sdkerrors.Register(ModuleName, 3, "missing owner address")
-	ErrValueNegative                      = sdkerrors.Register(ModuleName, 4, "value must be positive")
-	ErrEmptyDescription                   = sdkerrors.Register(ModuleName, 5, "description must be not empty")
-	ErrEmptyMoniker                       = sdkerrors.Register(ModuleName, 6, "moniker must be not empty")
-	ErrEmptyResourceNodeAddr              = sdkerrors.Register(ModuleName, 7, "missing resource node address")
-	ErrEmptyIndexingNodeAddr              = sdkerrors.Register(ModuleName, 8, "missing indexing node address")
-	ErrBadDenom                           = sdkerrors.Register(ModuleName, 9, "invalid coin denomination")
-	ErrResourceNodePubKeyExists           = sdkerrors.Register(ModuleName, 10, "resource node already exist for this pubkey; must use new resource node pubkey")
-	ErrIndexingNodePubKeyExists           = sdkerrors.Register(ModuleName, 11, "indexing node already exist for this pubkey; must use new indexing node pubkey")
-	ErrNoResourceNodeFound                = sdkerrors.Register(ModuleName, 12, "resource node does not exist")
-	ErrNoIndexingNodeFound                = sdkerrors.Register(ModuleName, 13, "indexing node does not exist")
-	ErrNoOwnerAccountFound                = sdkerrors.Register(ModuleName, 14, "account of owner does not exist")
-	ErrInsufficientBalance                = sdkerrors.Register(ModuleName, 15, "insufficient balance")
-	ErrNodeType                           = sdkerrors.Register(ModuleName, 16, "node type(s) not supported")
-	ErrEmptyCandidateNetworkAddr          = sdkerrors.Register(ModuleName, 17, "missing candidate network address")
-	ErrEmptyCandidateOwnerAddr            = sdkerrors.Register(ModuleName, 18, "missing candidate owner address")
-	ErrEmptyVoterNetworkAddr              = sdkerrors.Register(ModuleName, 19, "missing voter network address")
-	ErrEmptyVoterOwnerAddr                = sdkerrors.Register(ModuleName, 20, "missing voter owner address")
-	ErrSameAddr                           = sdkerrors.Register(ModuleName, 21, "node address should not same as the voter address")
-	ErrInvalidOwnerAddr                   = sdkerrors.Register(ModuleName, 22, "invalid owner address")
-	ErrInvalidVoterAddr                   = sdkerrors.Register(ModuleName, 23, "invalid voter address")
-	ErrInvalidVoterStatus                 = sdkerrors.Register(ModuleName, 24, "invalid voter status")
-	ErrNoRegistrationVotePoolFound        = sdkerrors.Register(ModuleName, 25, "registration pool does not exist")
-	ErrDuplicateVoting                    = sdkerrors.Register(ModuleName, 26, "duplicate voting")
-	ErrVoteExpired                        = sdkerrors.Register(ModuleName, 27, "vote expired")
-	ErrInsufficientBalanceOfBondedPool    = sdkerrors.Register(ModuleName, 28, "insufficient balance of bonded pool")
-	ErrInsufficientBalanceOfNotBondedPool = sdkerrors.Register(ModuleName, 29, "insufficient balance of not bonded pool")
-	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, 30, "can not sub all tokens since the node is still bonded")
-	ErrED25519InvalidPubKey               = sdkerrors.Register(ModuleName, 31, "ED25519 public keys are unsupported")
-	ErrEmptyNodeId                        = sdkerrors.Register(ModuleName, 32, "missing node id")
-	ErrEmptyPubKey                        = sdkerrors.Register(ModuleName, 33, "missing public key")
-	ErrInvalidGenesisToken                = sdkerrors.Register(ModuleName, 34, "invalid genesis token")
-	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, 35, "no unbonding node found")
-	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, 36, "too many unbonding node entries for networkAddr tuple")
-	ErrNoNodeForAddress                   = sdkerrors.Register(ModuleName, 37, "registered node does not contain address")
-	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, 38, "changes cannot be made to an unbonding node")
-	ErrInvalidNodeStatBonded              = sdkerrors.Register(ModuleName, 39, "invalid node status: bonded")
-	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, 40, "initial uOzone price must be positive")
-	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, 41, "invalid change for stake")
-	ErrTotalUnissuedPrepay                = sdkerrors.Register(ModuleName, 42, "total unissued prepay must be non-negative")
-	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, 43, "invalid node type")
-	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, 44, "account address does not exist")
+	ErrInvalid                            = sdkerrors.Register(ModuleName, codeErrInvalid, "error invalid")
+	ErrInvalidNetworkAddr                 = sdkerrors.Register(ModuleName, codeErrInvalidNetworkAddr, "invalid network address")
+	ErrEmptyOwnerAddr                     = sdkerrors.Register(ModuleName, codeErrEmptyOwnerAddr, "missing owner address")
+	ErrValueNegative                      = sdkerrors.Register(ModuleName, codeErrValueNegative, "value must be positive")
+	ErrEmptyDescription                   = sdkerrors.Register(ModuleName, codeErrEmptyDescription, "description must be not empty")
+	ErrEmptyMoniker                       = sdkerrors.Register(ModuleName, codeErrEmptyMoniker, "moniker must be not empty")
+	ErrEmptyResourceNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyResourceNodeAddr, "missing resource node address")
+	ErrEmptyIndexingNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyIndexingNodeAddr, "missing indexing node address")
+	ErrBadDenom                           = sdkerrors.Register(ModuleName, codeErrBadDenom, "invalid coin denomination")
+	ErrResourceNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrResourceNodePubKeyExists, "resource node already exist for this pubkey; must use new resource node pubkey")
+	ErrIndexingNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrIndexingNodePubKeyExists, "indexing node already exist for this pubkey; must use new indexing node pubkey")
+	ErrNoResourceNodeFound                = sdkerrors.Register(ModuleName, codeErrNoResourceNodeFound, "resource node does not exist")
+	ErrNoIndexingNodeFound                = sdkerrors.Register(ModuleName, codeErrNoIndexingNodeFound, "indexing node does not exist")
+	ErrNoOwnerAccountFound                = sdkerrors.Register(ModuleName, codeErrNoOwnerAccountFound, "account of owner does not exist")
+	ErrInsufficientBalance                = sdkerrors.Register(ModuleName, codeErrInsufficientBalance, "insufficient balance")
+	ErrNodeType                           = sdkerrors.Register(ModuleName, codeErrNodeType, "node type(s) not supported")
+	ErrEmptyCandidateNetworkAddr          = sdkerrors.Register(ModuleName, codeErrEmptyCandidateNetworkAddr, "missing candidate network address")
+	ErrEmptyCandidateOwnerAddr            = sdkerrors.Register(ModuleName, codeErrEmptyCandidateOwnerAddr, "missing candidate owner address")
+	ErrEmptyVoterNetworkAddr              = sdkerrors.Register(ModuleName, codeErrEmptyVoterNetworkAddr, "missing voter network address")
+	ErrEmptyVoterOwnerAddr                = sdkerrors.Register(ModuleName, codeErrEmptyVoterOwnerAddr, "missing voter owner address")
+	ErrSameAddr                           = sdkerrors.Register(ModuleName, codeErrSameAddr, "node address should not same as the voter address")
+	ErrInvalidOwnerAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
+	ErrInvalidVoterAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidVoterAddr, "invalid voter address")
+	ErrInvalidVoterStatus                 = sdkerrors.Register(ModuleName, codeErrInvalidVoterStatus, "invalid voter status")
+	ErrNoRegistrationVotePoolFound        = sdkerrors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
+	ErrDuplicateVoting                    = sdkerrors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")
+	ErrVoteExpired                        = sdkerrors.Register(ModuleName, codeErrVoteExpired, "vote expired")
+	ErrInsufficientBalanceOfBondedPool    = sdkerrors.Register(ModuleName, codeErrInsufficientBalanceOfBondedPool, "insufficient balance of bonded pool")
+	ErrInsufficientBalanceOfNotBondedPool = sdkerrors.Register(ModuleName, codeErrInsufficientBalanceOfNotBondedPool, "insufficient balance of not bonded pool")
+	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, codeErrSubAllTokens, "can not sub all tokens since the node is still bonded")
+	ErrED25519InvalidPubKey               = sdkerrors.Register(ModuleName, codeErrED25519InvalidPubKey, "ED25519 public keys are unsupported")
+	ErrEmptyNodeNetworkAddress            = sdkerrors.Register(ModuleName, codeErrEmptyNodeNetworkAddress, "missing node network address")
+	ErrEmptyPubKey                        = sdkerrors.Register(ModuleName, codeErrEmptyPubKey, "missing public key")
+	ErrInvalidGenesisToken                = sdkerrors.Register(ModuleName, codeErrInvalidGenesisToken, "invalid genesis token")
+	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, codeErrNoUnbondingNode, "no unbonding node found")
+	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, codeErrMaxUnbondingNodeEntries, "too many unbonding node entries for networkAddr tuple")
+	ErrNoNodeForAddress                   = sdkerrors.Register(ModuleName, codeErrNoNodeForAddress, "registered node does not contain address")
+	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, codeErrUnbondingNode, "changes cannot be made to an unbonding node")
+	ErrInvalidNodeStatBonded              = sdkerrors.Register(ModuleName, codeErrInvalidNodeStatBonded, "invalid node status: bonded")
+	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, codeErrInitialUOzonePrice, "initial uOzone price must be positive")
+	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, codeErrInvalidStakeChange, "invalid change for stake")
+	ErrTotalUnissuedPrepay                = sdkerrors.Register(ModuleName, codeErrTotalUnissuedPrepay, "total unissued prepay must be non-negative")
+	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeType, "invalid node type")
+	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
+	ErrUnknownPubKey                      = sdkerrors.Register(ModuleName, codeErrUnknownPubKey, "unknown pubKey ")
 )

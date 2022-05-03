@@ -7,17 +7,18 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	"github.com/stratosnet/stratos-chain/types"
 )
+
+var _ paramtypes.ParamSet = &Params{}
 
 // Default parameter namespace
 const (
-	DefaultParamSpace                            = ModuleName
-	DefaultBondDenom                             = "ustos"
-	DefaultUnbondingThreasholdTime time.Duration = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
-	DefaultUnbondingCompletionTime time.Duration = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
-	DefaultMaxEntries                            = uint16(16)
+	DefaultParamSpace = ModuleName
+	DefaultBondDenom  = types.USTOS
+	DefaultMaxEntries = uint32(16)
 )
 
 // Parameter store keys
@@ -27,27 +28,19 @@ var (
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("KeyMaxEntries")
 
-	DefaultUozPrice            = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
-	DefaultTotalUnissuedPrepay = sdk.NewInt(0)
+	DefaultUnbondingThreasholdTime = (180 * 24 * time.Hour).String() // threashold for unbonding - by default 180 days
+	DefaultUnbondingCompletionTime = (14 * 24 * time.Hour).String()  // lead time to complete unbonding - by default 14 days
+	DefaultUozPrice                = sdk.NewDecWithPrec(1000000, 9)  // 0.001 ustos -> 1 uoz
+	DefaultTotalUnissuedPrepay     = sdk.NewInt(0)
 )
 
-var _ subspace.ParamSet = &Params{}
-
-// ParamKeyTable for register module
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
-}
-
-// Params - used for initializing default parameter for register at genesis
-type Params struct {
-	BondDenom               string        `json:"bond_denom" yaml:"bond_denom"`                               // bondable coin denomination
-	UnbondingThreasholdTime time.Duration `json:"unbonding_threashold_time" yaml:"unbonding_threashold_time"` // threashold for unbonding - by default 180 days
-	UnbondingCompletionTime time.Duration `json:"unbonding_completion_time" yaml:"unbonding_completion_time"` // lead time to complete unbonding - by default 14 days
-	MaxEntries              uint16        `json:"max_entries" yaml:"max_entries"`                             // max entries for either unbonding delegation or redelegation (per pair/trio)
+// ParamKeyTable returns the parameter key table.
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint16) Params {
+func NewParams(bondDenom string, threashold, completion string, maxEntries uint32) Params {
 	return Params{
 		BondDenom:               bondDenom,
 		UnbondingThreasholdTime: threashold,
@@ -56,25 +49,13 @@ func NewParams(bondDenom string, threashold, completion time.Duration, maxEntrie
 	}
 }
 
-// String implements the stringer interface for Params
-func (p Params) String() string {
-	return fmt.Sprintf(`Register Params:
-	  BondDenom:             		%s
-	  Unbonding Threashold Time:  	%s
-	  Unbonding Completion Time:  	%s
-	  Max Entries:        			%d
-`,
-		p.BondDenom, p.UnbondingThreasholdTime, p.UnbondingCompletionTime, p.MaxEntries,
-	)
-}
-
 // ParamSetPairs - Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		params.NewParamSetPair(KeyUnbondingThreasholdTime, &p.UnbondingThreasholdTime, validateUnbondingThreasholdTime),
-		params.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
-		params.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+		paramtypes.NewParamSetPair(KeyUnbondingThreasholdTime, &p.UnbondingThreasholdTime, validateUnbondingThreasholdTime),
+		paramtypes.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
+		paramtypes.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
 	}
 }
 
@@ -95,8 +76,9 @@ func (p Params) Validate() error {
 }
 
 // DefaultParams defines the parameters for this module
-func DefaultParams() Params {
-	return NewParams(DefaultBondDenom, DefaultUnbondingThreasholdTime, DefaultUnbondingCompletionTime, DefaultMaxEntries)
+func DefaultParams() *Params {
+	p := NewParams(DefaultBondDenom, DefaultUnbondingThreasholdTime, DefaultUnbondingCompletionTime, DefaultMaxEntries)
+	return &p
 }
 
 func validateBondDenom(i interface{}) error {

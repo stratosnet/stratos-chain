@@ -1,0 +1,82 @@
+syntax = "proto3";
+package stratos.register.v1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/staking/v1beta1/staking.proto";
+
+
+option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
+
+// Params defines the Register module parameters
+message Params {
+  string  bond_denom                = 1 [ (gogoproto.moretags) = "yaml:\"bond_denom\",omitempty" ];
+  string  unbonding_threashold_time = 2 [(gogoproto.moretags) = "yaml:\"unbonding_threashold_time\"" ];
+  string  unbonding_completion_time = 3 [ (gogoproto.moretags) = "yaml:\"unbonding_completion_time\"" ];
+  uint32  max_entries               = 4 [ (gogoproto.moretags) = "yaml:\"max_entries\",omitempty" ];
+}
+
+message ResourceNode {
+  string                              networkAddr   = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ];
+  google.protobuf.Any                 pubKey        = 2 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",(gogoproto.moretags) = "yaml:\"pubkey\"" ];
+  bool                                suspend       = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];
+  cosmos.staking.v1beta1.BondStatus   status        = 4 [ (gogoproto.moretags) = "yaml:\"status\"" ];
+  string                              tokens        = 5 [
+    (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"tokens\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                              ownerAddress  = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ];
+  Description                         description   = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];
+  string                              nodeType      = 8 [ (gogoproto.moretags) = "yaml:\"node_type\"" ];
+  google.protobuf.Timestamp           creation_time = 9 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.moretags) = "yaml:\"creation_time\""
+  ];
+}
+
+message IndexingNode {
+  string                      networkAddr   = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ];
+  google.protobuf.Any         pubKey        = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.moretags) = "yaml:\"pubkey\""
+  ];
+  bool                        suspend       = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];
+  cosmos.staking.v1beta1.BondStatus status  = 4 [ (gogoproto.moretags) = "yaml:\"status\"" ];
+  string                      tokens        = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.moretags) = "yaml:\"tokens\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                      ownerAddress  = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ];
+  Description                 description   = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];
+  google.protobuf.Timestamp   creation_time = 9 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.moretags) = "yaml:\"creation_time\""
+  ];
+}
+
+message Description {
+  string  moniker         = 1 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"moniker\",omitempty" ];
+  string  identity        = 2 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"identity\",omitempty" ];
+  string  Website         = 3 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"website\",omitempty" ];
+  string  SecurityContact = 4 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"security_contact\",omitempty" ];
+  string  Details         = 5 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"details\",omitempty" ];
+}
+
+message Slashing {
+  string  WalletAddress = 1;
+  int64   Value         = 2;
+}
+
+message ResourceNodes {
+  repeated ResourceNode   resourceNodes = 1;
+}
+
+message IndexingNodes {
+  repeated IndexingNode   indexingNodes = 1;
+}

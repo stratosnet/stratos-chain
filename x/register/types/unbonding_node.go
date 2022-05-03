@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
+	"github.com/tendermint/go-amino"
 )
 
 // =======================
@@ -72,12 +72,12 @@ func (un *UnbondingNode) RemoveEntry(i int64) {
 }
 
 // return the unbonding Node
-func MustMarshalUnbondingNode(cdc *codec.Codec, uin UnbondingNode) []byte {
+func MustMarshalUnbondingNode(cdc *amino.Codec, uin UnbondingNode) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(uin)
 }
 
 // unmarshal a unbonding Node from a store value
-func MustUnmarshalUnbondingNode(cdc *codec.Codec, value []byte) UnbondingNode {
+func MustUnmarshalUnbondingNode(cdc *amino.Codec, value []byte) UnbondingNode {
 	un, err := UnmarshalUnbondingNode(cdc, value)
 	if err != nil {
 		panic(err)
@@ -86,7 +86,7 @@ func MustUnmarshalUnbondingNode(cdc *codec.Codec, value []byte) UnbondingNode {
 }
 
 // unmarshal a unbonding Node from a store value
-func UnmarshalUnbondingNode(cdc *codec.Codec, value []byte) (uin UnbondingNode, err error) {
+func UnmarshalUnbondingNode(cdc *amino.Codec, value []byte) (uin UnbondingNode, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &uin)
 	return uin, err
 }
