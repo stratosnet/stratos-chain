@@ -5,23 +5,22 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/codec"
+	//"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of the register store
 type Keeper struct {
 	storeKey              sdk.StoreKey
-	cdc                   *codec.Codec
-	paramSpace            params.Subspace
-	accountKeeper         auth.AccountKeeper
-	bankKeeper            bank.Keeper
+	cdc                   *amino.Codec
+	paramSpace            types.ParamSubspace
+	accountKeeper         types.AccountKeeper
+	bankKeeper            types.BankKeeper
 	hooks                 types.RegisterHooks
 	resourceNodeCache     map[string]cachedResourceNode
 	resourceNodeCacheList *list.List
@@ -30,8 +29,8 @@ type Keeper struct {
 }
 
 // NewKeeper creates a register keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace,
-	accountKeeper auth.AccountKeeper, bankKeeper bank.Keeper) Keeper {
+func NewKeeper(cdc *amino.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace,
+	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) Keeper {
 
 	keeper := Keeper{
 		storeKey:              key,
@@ -64,7 +63,7 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 
 func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(price)
+	b := amino.MustMarshalBinaryLengthPrefixed(price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
@@ -74,13 +73,13 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	if b == nil {
 		panic("Stored initial uOzone price should not have been nil")
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &price)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &price)
 	return
 }
 
 func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
+	b := amino.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
 	store.Set(types.TotalUnissuedPrepayKey, b)
 }
 
@@ -90,13 +89,13 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 	if b == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
 	return
 }
 
 func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(stake)
+	b := amino.MustMarshalBinaryLengthPrefixed(stake)
 	store.Set(types.InitialGenesisStakeTotalKey, b)
 }
 
@@ -106,13 +105,13 @@ func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &stake)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &stake)
 	return
 }
 
 func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalBinaryLengthPrefixed(value)
+	b := amino.MustMarshalBinaryLengthPrefixed(value)
 	store.Set(types.UpperBoundOfTotalOzoneKey, b)
 }
 
@@ -122,7 +121,7 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(b, &value)
+	amino.MustUnmarshalBinaryLengthPrefixed(b, &value)
 	return
 }
 
@@ -307,14 +306,14 @@ func (k Keeper) GetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.T
 	if bz == nil {
 		return []stratos.SdsAddress{}
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &networkAddrs)
+	amino.MustUnmarshalBinaryLengthPrefixed(bz, &networkAddrs)
 	return networkAddrs
 }
 
 // Sets a specific unbonding queue timeslice.
 func (k Keeper) SetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []stratos.SdsAddress) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(keys)
+	bz := amino.MustMarshalBinaryLengthPrefixed(keys)
 	store.Set(types.GetUBDTimeKey(timestamp), bz)
 }
 
@@ -352,7 +351,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
 		timeslice := []stratos.SdsAddress{}
 		value := unbondingTimesliceIterator.Value()
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		amino.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
 		matureUnbonds = append(matureUnbonds, timeslice...)
 		store.Delete(unbondingTimesliceIterator.Key())
 	}
@@ -448,7 +447,7 @@ func (k Keeper) UnbondResourceNode(
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
-	if resourceNode.GetStatus() == sdk.Bonded {
+	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 		// adjust ozone limit
@@ -457,7 +456,7 @@ func (k Keeper) UnbondResourceNode(
 
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(resourceNode.Tokens) {
-		resourceNode.Status = sdk.Unbonding
+		resourceNode.Status = stakingtypes.Unbonding
 		k.SetResourceNode(ctx, resourceNode)
 	}
 
@@ -491,7 +490,7 @@ func (k Keeper) UnbondIndexingNode(
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
-	if indexingNode.GetStatus() == sdk.Bonded {
+	if indexingNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, indexingNode, true, coin)
 		// adjust ozone limit
@@ -499,7 +498,7 @@ func (k Keeper) UnbondIndexingNode(
 	}
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(indexingNode.Tokens) {
-		indexingNode.Status = sdk.Unbonding
+		indexingNode.Status = stakingtypes.Unbonding
 		k.SetIndexingNode(ctx, indexingNode)
 	}
 
