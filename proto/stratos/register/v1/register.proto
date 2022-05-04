@@ -6,6 +6,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 
 
@@ -24,10 +25,9 @@ message ResourceNode {
   google.protobuf.Any                 pubKey        = 2 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",(gogoproto.moretags) = "yaml:\"pubkey\"" ];
   bool                                suspend       = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];
   cosmos.staking.v1beta1.BondStatus   status        = 4 [ (gogoproto.moretags) = "yaml:\"status\"" ];
-  string                              tokens        = 5 [
-    (gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"tokens\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
+  repeated cosmos.base.v1beta1.Coin   tokens        = 5 [
+    (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.moretags) = "yaml:\"tokens\""
+    ];
   string                              ownerAddress  = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ];
   Description                         description   = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];
   string                              nodeType      = 8 [ (gogoproto.moretags) = "yaml:\"node_type\"" ];
@@ -46,11 +46,9 @@ message IndexingNode {
   ];
   bool                        suspend       = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];
   cosmos.staking.v1beta1.BondStatus status  = 4 [ (gogoproto.moretags) = "yaml:\"status\"" ];
-  string                      tokens        = 5 [
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"tokens\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
+  repeated cosmos.base.v1beta1.Coin   tokens        = 5 [
+    (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins", (gogoproto.moretags) = "yaml:\"tokens\""
+    ];
   string                      ownerAddress  = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ];
   Description                 description   = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];
   google.protobuf.Timestamp   creation_time = 9 [
