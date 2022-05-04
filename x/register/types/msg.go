@@ -552,19 +552,39 @@ func (mmsg MsgIndexingNodeRegistrationVote) Route() string { return RouterKey }
 func (msg MsgIndexingNodeRegistrationVote) Type() string { return TypeIndexingNodeRegistrationVoteTx }
 
 func (msg MsgIndexingNodeRegistrationVote) ValidateBasic() error {
-	if msg.CandidateNetworkAddress.Empty() {
-		return ErrEmptyCandidateNetworkAddr
+	candidateNetworkAddress, err := stratos.SdsAddressFromBech32(msg.CandidateNetworkAddress)
+	if err != nil {
+		return err
 	}
-	if msg.CandidateOwnerAddress.Empty() {
-		return ErrEmptyCandidateOwnerAddr
+	if candidateNetworkAddress.Empty() {
+		return ErrEmptyNodeNetworkAddress
 	}
-	if msg.VoterNetworkAddress.Empty() {
+
+	voterNetworkAddr, err := stratos.SdsAddressFromBech32(msg.VoterNetworkAddress)
+	if err != nil {
+		return err
+	}
+	if voterNetworkAddr.Empty() {
 		return ErrEmptyVoterNetworkAddr
 	}
-	if msg.VoterOwnerAddress.Empty() {
+
+	candidateOwnerAddr, err := sdk.AccAddressFromBech32(msg.CandidateOwnerAddress)
+	if err != nil {
+		return err
+	}
+	if candidateOwnerAddr.Empty() {
+		return ErrEmptyCandidateOwnerAddr
+	}
+
+	voterOwnerAddr, err := sdk.AccAddressFromBech32(msg.VoterOwnerAddress)
+	if err != nil {
+		return err
+	}
+	if voterOwnerAddr.Empty() {
 		return ErrEmptyVoterOwnerAddr
 	}
-	if msg.CandidateNetworkAddress.Equals(msg.VoterNetworkAddress) {
+
+	if candidateNetworkAddress.Equals(voterNetworkAddr) {
 		return ErrSameAddr
 	}
 	return nil

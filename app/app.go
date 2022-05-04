@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
+	"github.com/stratosnet/stratos-chain/x/register"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -137,7 +138,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		// stratos modules
-		//register.AppModuleBasic{},
+		register.AppModuleBasic{},
 		//pot.AppModuleBasic{},
 		//sds.AppModuleBasic{},
 		evm.AppModuleBasic{},
@@ -200,7 +201,7 @@ type NewApp struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// stratos keepers
-	//registerKeeper register.Keeper
+	registerKeeper register.Keeper
 	//potKeeper      pot.Keeper
 	//sdsKeeper      sds.Keeper
 	evmKeeper *evmkeeper.Keeper
@@ -246,7 +247,8 @@ func NewInitApp(
 		// ibc keys
 		ibchost.StoreKey, ibctransfertypes.StoreKey,
 		// stratos keys
-		//register.StoreKey, pot.StoreKey, sds.StoreKey,
+		register.StoreKey,
+		//pot.StoreKey, sds.StoreKey,
 		evmtypes.StoreKey,
 	)
 
@@ -369,14 +371,14 @@ func NewInitApp(
 	app.evidenceKeeper = *evidenceKeeper
 
 	// Create Stratos keepers
-	//app.registerKeeper = register.NewKeeper(
-	//	app.cdc,
-	//	keys[register.StoreKey],
-	//	app.subspaces[register.ModuleName],
-	//	app.accountKeeper,
-	//	app.bankKeeper,
-	//)
-	//
+	app.registerKeeper = register.NewKeeper(
+		app.cdc,
+		keys[register.StoreKey],
+		app.subspaces[register.ModuleName],
+		app.accountKeeper,
+		app.bankKeeper,
+	)
+
 	//app.potKeeper = pot.NewKeeper(
 	//	app.cdc,
 	//	keys[pot.StoreKey],
@@ -427,7 +429,7 @@ func NewInitApp(
 
 		// Stratos app modules
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
-		//register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
+		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		//pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
 		//sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
 	)
@@ -466,7 +468,7 @@ func NewInitApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		//register.ModuleName,
+		register.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
 		ibchost.ModuleName,
@@ -693,7 +695,7 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	// stratos subspaces
-	//paramsKeeper.Subspace(registertypes.ModuleName)
+	paramsKeeper.Subspace(registertypes.ModuleName)
 	//paramsKeeper.Subspace(pottypes.ModuleName)
 	//paramsKeeper.Subspace(sdstypes.ModuleName)
 	paramsKeeper.Subspace(evmtypes.ModuleName)

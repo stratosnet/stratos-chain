@@ -14,15 +14,6 @@ const (
 	MaxDetailsLength         = 280
 )
 
-// Description - description fields for a resource/indexing node
-//type Description struct {
-//	Moniker         string `json:"moniker" yaml:"moniker"`                   // name
-//	Identity        string `json:"identity" yaml:"identity"`                 // optional identity signature (ex. UPort or Keybase)
-//	Website         string `json:"website" yaml:"website"`                   // optional website link
-//	SecurityContact string `json:"security_contact" yaml:"security_contact"` // optional security contact info
-//	Details         string `json:"details" yaml:"details"`                   // optional details
-//}
-
 // NewDescription returns a new Description with the provided values.
 func NewDescription(moniker, identity, website, securityContact, details string) Description {
 	return Description{
@@ -54,13 +45,3 @@ func (d Description) EnsureLength() (Description, error) {
 
 	return d, nil
 }
-
-//func (d Description) String() string {
-//	return fmt.Sprintf(`Description:{
-//		Moniker:			%s
-//  		Identity:			%s
-//  		Website:			%s
-//  		SecurityContact:	%s
-//  		Details:			%s
-//	}`, d.Moniker, d.Identity, d.Website, d.SecurityContact, d.Details)
-//}

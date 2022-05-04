@@ -149,7 +149,7 @@ f_ensure_tools
 f_ensure_dirs
 f_install_protoc
 f_install_buf
-f_install_protoc_gen_gocosmos
+#f_install_protoc_gen_gocosmos
 f_install_protoc_gen_grpc_gateway
-f_install_protoc_gen_swagger
+#f_install_protoc_gen_swagger
 f_install_clang_format

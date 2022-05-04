@@ -6,9 +6,8 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -18,7 +17,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for register module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group register queries under a subcommand
 	registerQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -29,18 +28,16 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	registerQueryCmd.AddCommand(
-		flags.GetCommands(
-			// this line is used by starport scaffolding # 1
-			GetCmdQueryResourceNode(queryRoute, cdc),
-			GetCmdQueryIndexingNodeList(queryRoute, cdc),
-		)...,
+		GetCmdQueryResourceNode(),
+		GetCmdQueryindexingNode(),
+		//GetCmdQueryIndexingNodeList(),
 	)
 
 	return registerQueryCmd
 }
 
 // GetCmdQueryResourceNode implements the query resource nodes by network address command.
-func GetCmdQueryResourceNode(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryResourceNode() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "get-resource-nodes [flags]", // []byte
 		Short: "Query resource node by network address",
@@ -48,19 +45,26 @@ func GetCmdQueryResourceNode(queryRoute string, cdc *codec.Codec) *cobra.Command
 			fmt.Sprintf(`Query resource node by network address`),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
 
 			// query resource node by network address
 			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
 			if queryFlagNetworkAddr == "" {
 				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
-			resp, err := GetResNodesByNetworkAddr(cliCtx, queryRoute)
+
+			result, err := queryClient.ResourceNode(cmd.Context(), &types.QueryResourceNodeRequest{
+				// Leaving status empty on purpose to query all validators.
+			})
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintOutput(resp)
+
+			return clientCtx.PrintProto(result)
 		},
 	}
 	cmd.Flags().String(FlagNetworkAddress, "", "(optional) The network address of the node")
@@ -155,4 +159,19 @@ func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddr strin
 		return []byte{}, 0, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 	}
 	return cliCtx.QueryWithData(route, bz)
+}
+
+// Route returns the message routing key for the staking module.
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+}
+
+// QuerierRoute returns the staking module's querier route name.
+func (AppModule) QuerierRoute() string {
+	return types.QuerierRoute
+}
+
+// LegacyQuerierHandler returns the staking module sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }

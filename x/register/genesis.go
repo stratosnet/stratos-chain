@@ -2,39 +2,41 @@ package register
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
-	keeper.SetParams(ctx, data.Params)
+func InitGenesis(ctx sdk.Context, keeper Keeper, data *types.GenesisState) (res []abci.ValidatorUpdate) {
+	keeper.SetParams(ctx, *data.Params)
 
 	initialStakeTotal := sdk.ZeroInt()
 	resNodeBondedToken := sdk.ZeroInt()
 	resNodeNotBondedToken := sdk.ZeroInt()
-	for _, resourceNode := range data.ResourceNodes {
-		if resourceNode.GetStatus() == sdk.Bonded {
-			initialStakeTotal = initialStakeTotal.Add(resourceNode.GetTokens())
-			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.GetTokens())
-		} else if resourceNode.GetStatus() == sdk.Unbonded {
-			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.GetTokens())
+	for _, resourceNode := range data.ResourceNodes.GetResourceNodes() {
+		if resourceNode.GetStatus().String() == stakingtypes.BondStatusBonded {
+			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.Tokens)
+		} else if resourceNode.GetStatus().String() == stakingtypes.BondStatusUnbonded {
+			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.Tokens)
 		}
-		keeper.SetResourceNode(ctx, resourceNode)
+		keeper.SetResourceNode(ctx, *resourceNode)
 	}
 	keeper.SetResourceNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeBondedToken))
 	keeper.SetResourceNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeNotBondedToken))
 
 	idxNodeBondedToken := sdk.ZeroInt()
 	idxNodeNotBondedToken := sdk.ZeroInt()
-	for _, indexingNode := range data.IndexingNodes {
-		if indexingNode.GetStatus() == sdk.Bonded {
-			initialStakeTotal = initialStakeTotal.Add(indexingNode.GetTokens())
-			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.GetTokens())
-		} else if indexingNode.GetStatus() == sdk.Unbonded {
-			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.GetTokens())
+	for _, indexingNode := range data.IndexingNodes.GetIndexingNodes() {
+		if indexingNode.GetStatus().String() == stakingtypes.BondStatusBonded {
+			initialStakeTotal = initialStakeTotal.Add(indexingNode.Tokens)
+			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.Tokens)
+		} else if indexingNode.GetStatus().String() == stakingtypes.BondStatusUnbonded {
+			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.Tokens)
 		}
-		keeper.SetIndexingNode(ctx, indexingNode)
+		keeper.SetIndexingNode(ctx, *indexingNode)
 	}
 	keeper.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
 	keeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
@@ -51,15 +53,20 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
 		Amount: totalUnissuedPrepay,
 	})
 
-	for _, slashing := range data.SlashingInfo {
-		keeper.SetSlashing(ctx, slashing.WalletAddress, slashing.Value)
+	for _, slashing := range data.Slashing {
+		walletAddress, err := sdk.AccAddressFromBech32(slashing.GetWalletAddress())
+		if err != nil {
+			panic(err)
+		}
+
+		keeper.SetSlashing(ctx, walletAddress, sdk.NewInt(slashing.Value))
 	}
 }
 
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, keeper Keeper) (data *types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
@@ -76,12 +83,12 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 		return false
 	})
 
-	return types.GenesisState{
-		Params:              params,
+	return &types.GenesisState{
+		Params:              &params,
 		ResourceNodes:       resourceNodes,
 		IndexingNodes:       indexingNodes,
 		InitialUozPrice:     initialUOzonePrice,
 		TotalUnissuedPrepay: totalUnissuedPrepay,
-		SlashingInfo:        slashingInfo,
+		Slashing:            slashingInfo,
 	}
 }

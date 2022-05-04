@@ -3,18 +3,8 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	supplyexported "github.com/cosmos/cosmos-sdk/x/supply/exported"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
-
-// ParamSubspace defines the expected Subspace interface
-type ParamSubspace interface {
-	WithKeyTable(table params.KeyTable) params.Subspace
-	Get(ctx sdk.Context, key []byte, ptr interface{})
-	GetParamSet(ctx sdk.Context, ps params.ParamSet)
-	SetParamSet(ctx sdk.Context, ps params.ParamSet)
-}
 
 /*
 When a module wishes to interact with another module, it is good practice to define what it will use
@@ -27,12 +17,6 @@ type BankKeeper interface {
 */
 
 // AccountKeeper defines the expected account keeper (noalias)
-//type AccountKeeper interface {
-//	IterateAccounts(ctx sdk.Context, process func(authexported.Account) (stop bool))
-//	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authexported.Account // only used for simulation
-//}
-
-// AccountKeeper defines the expected account keeper (noalias)
 type AccountKeeper interface {
 	IterateAccounts(ctx sdk.Context, process func(authtypes.AccountI) (stop bool))
 	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI // only used for simulation
@@ -40,7 +24,7 @@ type AccountKeeper interface {
 	GetModuleAddress(name string) sdk.AccAddress
 	GetModuleAccount(ctx sdk.Context, moduleName string) authtypes.ModuleAccountI
 
-	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
+	// SetModuleAccount TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
 	SetModuleAccount(sdk.Context, authtypes.ModuleAccountI)
 }
 
@@ -52,23 +36,6 @@ type BankKeeper interface {
 	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
-
-	SendCoinsFromModuleToModule(ctx sdk.Context, senderPool, recipientPool string, amt sdk.Coins) error
-	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	DelegateCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-
-	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
-}
-
-// SupplyKeeper defines the expected supply Keeper (noalias)
-type SupplyKeeper interface {
-	GetSupply(ctx sdk.Context) supplyexported.SupplyI
-
-	GetModuleAddress(name string) sdk.AccAddress
-	GetModuleAccount(ctx sdk.Context, moduleName string) supplyexported.ModuleAccountI
-
-	// TODO remove with genesis 2-phases refactor https://github.com/cosmos/cosmos-sdk/issues/2862
-	SetModuleAccount(sdk.Context, supplyexported.ModuleAccountI)
 
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderPool, recipientPool string, amt sdk.Coins) error
 	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error

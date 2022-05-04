@@ -4,8 +4,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/crypto"
+	cryptotypes "github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -75,18 +77,18 @@ func NewQueryNodesStakingInfo(
 }
 
 type StakingInfo struct {
-	NetworkAddr    stratos.SdsAddress `json:"network_address"`
-	PubKey         crypto.PubKey      `json:"pub_key"`
-	Suspend        bool               `json:"suspend"`
-	Status         sdk.BondStatus     `json:"status"`
-	Tokens         sdk.Int            `json:"tokens"`
-	OwnerAddress   sdk.AccAddress     `json:"owner_address"`
-	Description    Description        `json:"description"`
-	NodeType       string             `json:"node_type"`
-	CreationTime   time.Time          `json:"creation_time"`
-	BondedStake    sdk.Coin           `json:"bonded_stake"`
-	UnBondingStake sdk.Coin           `json:"un_bonding_stake"`
-	UnBondedStake  sdk.Coin           `json:"un_bonded_stake"`
+	NetworkAddr    stratos.SdsAddress      `json:"network_address"`
+	PubKey         crypto.PubKey           `json:"pub_key"`
+	Suspend        bool                    `json:"suspend"`
+	Status         stakingtypes.BondStatus `json:"status"`
+	Tokens         sdk.Int                 `json:"tokens"`
+	OwnerAddress   sdk.AccAddress          `json:"owner_address"`
+	Description    *Description            `json:"description"`
+	NodeType       string                  `json:"node_type"`
+	CreationTime   time.Time               `json:"creation_time"`
+	BondedStake    sdk.Coin                `json:"bonded_stake"`
+	UnBondingStake sdk.Coin                `json:"un_bonding_stake"`
+	UnBondedStake  sdk.Coin                `json:"un_bonded_stake"`
 }
 
 // NewStakingInfoByResourceNodeAddr creates a new instance of StakingInfoByNodeAddr
@@ -97,15 +99,19 @@ func NewStakingInfoByResourceNodeAddr(
 	bondedStake sdk.Int,
 
 ) StakingInfo {
+	pk, ok := resourceNode.PubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return StakingInfo{}
+	}
 	return StakingInfo{
-		NetworkAddr:    resourceNode.NetworkAddr,
-		PubKey:         resourceNode.PubKey,
+		NetworkAddr:    stratos.SdsAddress(resourceNode.NetworkAddr),
+		PubKey:         pk,
 		Suspend:        resourceNode.Suspend,
 		Status:         resourceNode.Status,
 		Tokens:         resourceNode.Tokens,
-		OwnerAddress:   resourceNode.OwnerAddress,
+		OwnerAddress:   sdk.AccAddress(resourceNode.OwnerAddress),
 		Description:    resourceNode.Description,
-		NodeType:       resourceNode.NodeType.String(),
+		NodeType:       resourceNode.NodeType,
 		CreationTime:   resourceNode.CreationTime,
 		UnBondingStake: sdk.NewCoin(defaultDenom, unBondingStake),
 		UnBondedStake:  sdk.NewCoin(defaultDenom, unBondedStake),
@@ -120,13 +126,17 @@ func NewStakingInfoByIndexingNodeAddr(
 	unBondedStake sdk.Int,
 	bondedStake sdk.Int,
 ) StakingInfo {
+	pk, ok := indexingNode.PubKey.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return StakingInfo{}
+	}
 	return StakingInfo{
-		NetworkAddr:    indexingNode.NetworkAddr,
-		PubKey:         indexingNode.PubKey,
+		NetworkAddr:    stratos.SdsAddress(indexingNode.NetworkAddr),
+		PubKey:         pk,
 		Suspend:        indexingNode.Suspend,
 		Status:         indexingNode.Status,
 		Tokens:         indexingNode.Tokens,
-		OwnerAddress:   indexingNode.OwnerAddress,
+		OwnerAddress:   sdk.AccAddress(indexingNode.OwnerAddress),
 		Description:    indexingNode.Description,
 		NodeType:       "metanode",
 		CreationTime:   indexingNode.CreationTime,
