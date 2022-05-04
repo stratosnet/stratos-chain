@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"container/list"
+	"errors"
 	"fmt"
 	"time"
 
@@ -184,12 +185,20 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 	iterator := keeper.GetResourceNetworksIterator(ctx)
 	for ; iterator.Valid(); iterator.Next() {
 		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		networkList = append(networkList, resourceNode.NetworkAddr)
+		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+		if err != nil {
+			continue
+		}
+		networkList = append(networkList, networkAddr)
 	}
 	iter := keeper.GetIndexingNetworksIterator(ctx)
 	for ; iter.Valid(); iter.Next() {
 		indexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
-		networkList = append(networkList, indexingNode.NetworkAddr)
+		networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+		if err != nil {
+			continue
+		}
+		networkList = append(networkList, networkAddr)
 	}
 	r := removeDuplicateValues(networkList)
 	return r
@@ -434,12 +443,19 @@ func (k Keeper) UnbondResourceNode(
 	ctx.Logger().Info("Params of register module: " + params.String())
 
 	// transfer the node tokens to the not bonded pool
-	ownerAcc := k.accountKeeper.GetAccount(ctx, resourceNode.OwnerAddress)
+	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+	if err != nil {
+		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+	}
+	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
+	if err != nil {
+		return sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+	}
+	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
-	networkAddr := resourceNode.GetNetworkAddr()
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -464,7 +480,7 @@ func (k Keeper) UnbondResourceNode(
 	ctx.Logger().Info(fmt.Sprintf("Calculating mature time: creationTime[%s], threasholdTime[%s], completionTime[%s], matureTime[%s]",
 		resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx), unbondingMatureTime,
 	))
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, resourceNode.GetNetworkAddr(), false, ctx.BlockHeight(), unbondingMatureTime, amt)
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, false, ctx.BlockHeight(), unbondingMatureTime, amt)
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
@@ -476,12 +492,20 @@ func (k Keeper) UnbondIndexingNode(
 	ctx sdk.Context, indexingNode types.IndexingNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
-	ownerAcc := k.accountKeeper.GetAccount(ctx, indexingNode.OwnerAddress)
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	if err != nil {
+		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+	}
+	ownerAddr, err := sdk.AccAddressFromBech32(indexingNode.GetOwnerAddress())
+	if err != nil {
+		return sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+	}
+
+	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
-	networkAddr := indexingNode.GetNetworkAddr()
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -503,7 +527,7 @@ func (k Keeper) UnbondIndexingNode(
 	}
 
 	// Set the unbonding mature time and completion height appropriately
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, indexingNode.GetNetworkAddr(), true, ctx.BlockHeight(), unbondingMatureTime, amt)
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, amt)
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding indexing node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())

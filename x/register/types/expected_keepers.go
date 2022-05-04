@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	"github.com/cosmos/cosmos-sdk/x/params"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -15,6 +16,14 @@ type BankKeeper interface {
 	SendCoins(ctx sdk.Context, fromAddr sdk.AccAddress, toAddr sdk.AccAddress, amt sdk.Coins) error
 }
 */
+
+// ParamSubspace defines the expected Subspace interface
+type ParamSubspace interface {
+	WithKeyTable(table params.KeyTable) params.Subspace
+	Get(ctx sdk.Context, key []byte, ptr interface{})
+	GetParamSet(ctx sdk.Context, ps params.ParamSet)
+	SetParamSet(ctx sdk.Context, ps params.ParamSet)
+}
 
 // AccountKeeper defines the expected account keeper (noalias)
 type AccountKeeper interface {
