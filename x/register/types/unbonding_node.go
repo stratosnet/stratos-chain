@@ -8,13 +8,13 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/tendermint/go-amino"
+	goamino "github.com/tendermint/go-amino"
 )
 
 // =======================
 
 // UnbondingNode stores all of a single delegator's unbonding bonds
-// for a single unbonding node in an time-ordered list
+// for a single unbonding node in a time-ordered list
 type UnbondingNode struct {
 	NetworkAddr    stratos.SdsAddress   `json:"network_addr" yaml:"network_addr"`
 	IsIndexingNode bool                 `json:"is_indexing_node yaml:"is_indexing_node`
@@ -72,12 +72,12 @@ func (un *UnbondingNode) RemoveEntry(i int64) {
 }
 
 // return the unbonding Node
-func MustMarshalUnbondingNode(cdc *amino.Codec, uin UnbondingNode) []byte {
+func MustMarshalUnbondingNode(cdc *goamino.Codec, uin UnbondingNode) []byte {
 	return cdc.MustMarshalBinaryLengthPrefixed(uin)
 }
 
 // unmarshal a unbonding Node from a store value
-func MustUnmarshalUnbondingNode(cdc *amino.Codec, value []byte) UnbondingNode {
+func MustUnmarshalUnbondingNode(cdc *goamino.Codec, value []byte) UnbondingNode {
 	un, err := UnmarshalUnbondingNode(cdc, value)
 	if err != nil {
 		panic(err)
@@ -86,7 +86,7 @@ func MustUnmarshalUnbondingNode(cdc *amino.Codec, value []byte) UnbondingNode {
 }
 
 // unmarshal a unbonding Node from a store value
-func UnmarshalUnbondingNode(cdc *amino.Codec, value []byte) (uin UnbondingNode, err error) {
+func UnmarshalUnbondingNode(cdc *goamino.Codec, value []byte) (uin UnbondingNode, err error) {
 	err = cdc.UnmarshalBinaryLengthPrefixed(value, &uin)
 	return uin, err
 }
@@ -94,8 +94,8 @@ func UnmarshalUnbondingNode(cdc *amino.Codec, value []byte) (uin UnbondingNode, 
 // nolint
 // inefficient but only used in testing
 func (un UnbondingNode) Equal(un2 UnbondingNode) bool {
-	bz1 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&un)
-	bz2 := ModuleCdc.MustMarshalBinaryLengthPrefixed(&un2)
+	bz1 := goamino.MustMarshalBinaryLengthPrefixed(&un)
+	bz2 := goamino.MustMarshalBinaryLengthPrefixed(&un2)
 	return bytes.Equal(bz1, bz2)
 }
 

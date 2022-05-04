@@ -27,10 +27,14 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgCreateResourceNode{},
-		//&MsgEditValidator{},
-		//&MsgDelegate{},
-		//&MsgUndelegate{},
-		//&MsgBeginRedelegate{},
+		&MsgRemoveResourceNode{},
+		&MsgUpdateResourceNode{},
+		&MsgUpdateResourceNodeStake{},
+		&MsgCreateIndexingNode{},
+		&MsgRemoveResourceNode{},
+		&MsgUpdateIndexingNode{},
+		&MsgUpdateIndexingNodeStake{},
+		&MsgIndexingNodeRegistrationVote{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),
