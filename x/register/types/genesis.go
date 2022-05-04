@@ -90,7 +90,7 @@ func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
 		PubKey:       v.GetPubKey(),
 		Suspend:      v.GetSuspend(),
 		Status:       v.GetStatus(),
-		Tokens:       v.Token,
+		Tokens:       sdk.NewCoins(sdk.NewCoin(DefaultBondDenom, v.Token)),
 		OwnerAddress: ownerAddress.String(),
 		Description:  v.GetDescription(),
 	}
