@@ -100,11 +100,15 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	}
 
 	// sub coins from owner's wallet
-	hasCoin := k.bankKeeper.HasCoins(ctx, ownerAddr, coins)
+	hasCoin := k.bankKeeper.HasBalance(ctx, ownerAddr, tokenToAdd)
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
-	_, err = k.bankKeeper.SubtractCoins(ctx, ownerAddr, coins)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, ownerAddr, types.ModuleName, coins)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
@@ -198,7 +202,11 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	// deduct slashing amount first
 	coins = k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
-	_, err := k.bankKeeper.AddCoins(ctx, resourceNode.OwnerAddress, coins)
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, ownerAddr, coins)
 	if err != nil {
 		return err
 	}
@@ -303,7 +311,7 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 
 func (k Keeper) SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	bz := k.cdc.MustMarshalLengthPrefixed(&token)
 	store.Set(types.ResourceNodeBondedTokenKey, bz)
 }
 
@@ -313,13 +321,13 @@ func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	if bz == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
 	return token
 }
 
 func (k Keeper) SetResourceNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	bz := k.cdc.MustMarshalLengthPrefixed(&token)
 	store.Set(types.ResourceNodeNotBondedTokenKey, bz)
 }
 
@@ -329,6 +337,6 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	if bz == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
 	return token
 }

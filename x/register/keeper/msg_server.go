@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"strconv"
 	"time"
 
@@ -310,6 +311,10 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 		return &types.MsgUpdateResourceNodeStakeResponse{}, err
 	}
 
+	if msg.StakeDelta.Amount.LT(sdk.NewInt(0)) {
+		return &types.MsgUpdateResourceNodeStakeResponse{}, errors.New("invalid stake delta")
+	}
+
 	ozoneLimitChange, completionTime, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, err
@@ -377,6 +382,10 @@ func (k msgServer) HandleMsgUpdateIndexingNodeStake(goCtx context.Context, msg *
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
 		return &types.MsgUpdateIndexingNodeStakeResponse{}, err
+	}
+
+	if msg.StakeDelta.Amount.LT(sdk.NewInt(0)) {
+		return &types.MsgUpdateIndexingNodeStakeResponse{}, errors.New("invalid stake delta")
 	}
 
 	ozoneLimitChange, completionTime, err := k.UpdateIndexingNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)

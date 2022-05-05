@@ -101,7 +101,7 @@ import (
 	//"github.com/stratosnet/stratos-chain/x/pot"
 	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	//"github.com/stratosnet/stratos-chain/x/register"
-	//registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	//"github.com/stratosnet/stratos-chain/x/sds"
 	//sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
@@ -153,7 +153,8 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		//pot.FoundationAccount:          nil,
-		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		registertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:      {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -468,7 +469,7 @@ func NewInitApp(
 		crisistypes.ModuleName,
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
-		register.ModuleName,
+		registertypes.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
 		ibchost.ModuleName,

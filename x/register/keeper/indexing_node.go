@@ -133,11 +133,15 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 		return sdk.ZeroInt(), types.ErrInvalidOwnerAddr
 	}
 	// sub coins from owner's wallet
-	hasCoin := k.bankKeeper.HasCoins(ctx, ownerAddr, coins)
+	hasCoin := k.bankKeeper.HasBalance(ctx, ownerAddr, tokenToAdd)
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
-	_, err = k.bankKeeper.SubtractCoins(ctx, ownerAddr, coins)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, ownerAddr, types.ModuleName, coins)
+	if err != nil {
+		return sdk.ZeroInt(), err
+	}
+	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
@@ -181,7 +185,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, i
 
 // SubtractIndexingNodeStake Update the tokens of an existing indexing node
 func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.AddToken().GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
 	if err != nil {
 		return types.ErrInvalidNetworkAddr
 	}
@@ -211,7 +215,11 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	// deduct slashing amount first
 	coins = k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
-	_, err := k.bankKeeper.AddCoins(ctx, indexingNode.OwnerAddress, coins)
+	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
+	if err != nil {
+		return err
+	}
+	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, ownerAddr, coins)
 	if err != nil {
 		return err
 	}
