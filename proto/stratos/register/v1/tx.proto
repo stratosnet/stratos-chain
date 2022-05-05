@@ -13,32 +13,32 @@ option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 // Msg defines the evm Msg service.
 service Msg {
   // CreateResourceNode defines a method for creating a new resource node.
-  rpc CreateResourceNode(MsgCreateResourceNode) returns (MsgCreateResourceNodeResponse) {
+  rpc HandleMsgCreateResourceNode(MsgCreateResourceNode) returns (MsgCreateResourceNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/create_resource_node";
   };
-  rpc RemoveResourceNode(MsgRemoveResourceNode) returns (MsgRemoveResourceNodeResponse) {
+  rpc HandleMsgRemoveResourceNode(MsgRemoveResourceNode) returns (MsgRemoveResourceNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/remove_resource_node";
   };
-  rpc UpdateResourceNode(MsgUpdateResourceNode) returns (MsgUpdateResourceNodeResponse) {
+  rpc HandleMsgUpdateResourceNode(MsgUpdateResourceNode) returns (MsgUpdateResourceNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/update_resource_node";
   };
-  rpc UpdateResourceNodeStake(MsgUpdateResourceNodeStake) returns (MsgUpdateResourceNodeStakeResponse) {
+  rpc HandleMsgUpdateResourceNodeStake(MsgUpdateResourceNodeStake) returns (MsgUpdateResourceNodeStakeResponse) {
     option (google.api.http).post = "/stratos/register/v1/update_resource_node_stake";
   };
 
-  rpc CreateIndexingNode(MsgCreateIndexingNode) returns (MsgCreateIndexingNodeResponse) {
+  rpc HandleMsgCreateIndexingNode(MsgCreateIndexingNode) returns (MsgCreateIndexingNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/create_indexing_node";
   };
-  rpc RemoveIndexingNode(MsgRemoveResourceNode) returns (MsgRemoveIndexingNodeResponse) {
+  rpc HandleMsgRemoveIndexingNode(MsgRemoveIndexingNode) returns (MsgRemoveIndexingNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/remove_indexing_node";
   };
-  rpc UpdateIndexingNode(MsgUpdateIndexingNode) returns (MsgUpdateIndexingNodeResponse) {
+  rpc HandleMsgUpdateIndexingNode(MsgUpdateIndexingNode) returns (MsgUpdateIndexingNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/update_indexing_node";
   };
-  rpc UpdateIndexingNodeStake(MsgUpdateIndexingNodeStake) returns (MsgUpdateIndexingNodeStakeResponse) {
+  rpc HandleMsgUpdateIndexingNodeStake(MsgUpdateIndexingNodeStake) returns (MsgUpdateIndexingNodeStakeResponse) {
     option (google.api.http).post = "/stratos/register/v1/update_indexing_node_stake";
   };
-  rpc IndexingNodeRegistrationVote(MsgIndexingNodeRegistrationVote) returns (MsgIndexingNodeRegistrationVoteResponse) {
+  rpc HandleMsgIndexingNodeRegistrationVote(MsgIndexingNodeRegistrationVote) returns (MsgIndexingNodeRegistrationVoteResponse) {
     option (google.api.http).post = "/stratos/register/v1/indexing_node_registration_vote";
   };
 

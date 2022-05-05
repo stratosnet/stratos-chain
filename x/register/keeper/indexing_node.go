@@ -72,7 +72,7 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 }
 
 // GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
-func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes []types.IndexingNode) {
+func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes types.IndexingNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 	defer iterator.Close()
@@ -181,7 +181,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, i
 
 // SubtractIndexingNodeStake Update the tokens of an existing indexing node
 func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.AddToken().GetNetworkAddr())
 	if err != nil {
 		return types.ErrInvalidNetworkAddr
 	}

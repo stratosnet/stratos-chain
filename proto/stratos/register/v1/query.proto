@@ -1,7 +1,6 @@
 syntax = "proto3";
 package stratos.register.v1;
 
-import "cosmos/base/query/v1beta1/pagination.proto";
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "stratos/register/v1/register.proto";
@@ -12,24 +11,24 @@ option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 service Query {
   // ResourceNode queries ResourceNode info for given ResourceNode address.
   rpc ResourceNode(QueryResourceNodeRequest) returns (QueryResourceNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/resource-nodes/{node_addr}";
+    option (google.api.http).get = "/stratos/register/v1/resource-nodes/{network_addr}";
   }
 
   // IndexingNode queries IndexingNode info for given IndexingNode address.
   rpc IndexingNode(QueryIndexingNodeRequest) returns (QueryIndexingNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/indexing-nodes/{node_addr}";
+    option (google.api.http).get = "/stratos/register/v1/indexing-nodes/{network_addr}";
   }
 
-  // Owner queries all staking info for given Owner address.
-  rpc Owner(QueryOwnerRequest) returns (QueryOwnerResponse) {
-    option (google.api.http).get = "/stratos/register/v1/owner/{owner_addr}";
-  }
+//  // Owner queries all staking info for given Owner address.
+//  rpc Owner(QueryOwnerRequest) returns (QueryOwnerResponse) {
+//    option (google.api.http).get = "/stratos/register/v1/owner/{owner_addr}";
+//  }
 }
 
 // QueryResourceNodeRequest is request type for the Query/ResourceNode RPC method
 message QueryResourceNodeRequest {
-  // node_addr defines the node address to query for.
-  string node_addr = 1;
+  // network_addr defines the node address to query for.
+  string network_addr = 1;
 }
 
 // QueryResourceNodeResponse is response type for the Query/ResourceNode RPC method
@@ -40,8 +39,8 @@ message QueryResourceNodeResponse {
 
 // QueryIndexingNodeRequest is request type for the Query/IndexingNode RPC method
 message QueryIndexingNodeRequest {
-  // node_addr defines the node address to query for.
-  string node_addr = 1;
+  // network_addr defines the node address to query for.
+  string network_addr = 1;
 }
 
 // QueryIndexingNodeResponse is response type for the Query/IndexingNode RPC method
@@ -50,28 +49,28 @@ message QueryIndexingNodeResponse {
   IndexingNode node = 1 [(gogoproto.nullable) = false];
 }
 
-// QueryOwnerRequest is request type for the Query/Owner RPC method
-message QueryOwnerRequest {
-  // owner_addr defines the owner address to query for.
-  string owner_addr = 1;
-}
-
-// QueryOwnerResponse is response type for the Query/Owner RPC method
-message QueryOwnerResponse {
-  // owner defines the the owner info.
-   string owner = 1 [(gogoproto.nullable) = true];
-  // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
-}
-
-// QueryParamsRequest is request type for the Query/Params RPC method.
-message QueryParamsRequest {}
-
-// QueryParamsResponse is response type for the Query/Params RPC method.
-message QueryParamsResponse {
-  // params holds all the parameters of this module.
-  Params params = 1 [(gogoproto.nullable) = false];
-}
+//// QueryOwnerRequest is request type for the Query/Owner RPC method
+//message QueryOwnerRequest {
+//  // owner_addr defines the owner address to query for.
+//  string owner_addr = 1;
+//}
+//
+//// QueryOwnerResponse is response type for the Query/Owner RPC method
+//message QueryOwnerResponse {
+//  // owner defines the the owner info.
+//   string owner = 1 [(gogoproto.nullable) = true];
+//  // pagination defines an optional pagination for the request.
+//  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+//}
+//
+//// QueryParamsRequest is request type for the Query/Params RPC method.
+//message QueryParamsRequest {}
+//
+//// QueryParamsResponse is response type for the Query/Params RPC method.
+//message QueryParamsResponse {
+//  // params holds all the parameters of this module.
+//  Params params = 1 [(gogoproto.nullable) = false];
+//}
 
 
 

@@ -96,8 +96,8 @@ func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
 	}
 }
 
-func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) Slashing {
-	return Slashing{
+func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) *Slashing {
+	return &Slashing{
 		WalletAddress: walletAddress.String(),
 		Value:         value.Int64(),
 	}

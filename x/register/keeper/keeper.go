@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	//"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -17,9 +17,9 @@ import (
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey              sdk.StoreKey
-	cdc                   *amino.Codec
-	paramSpace            types.ParamSubspace
+	storeKey sdk.StoreKey
+	cdc      codec.BinaryCodec
+	//paramSpace            types.ParamSubspace
 	accountKeeper         types.AccountKeeper
 	bankKeeper            types.BankKeeper
 	hooks                 types.RegisterHooks
@@ -30,13 +30,13 @@ type Keeper struct {
 }
 
 // NewKeeper creates a register keeper
-func NewKeeper(cdc *amino.Codec, key sdk.StoreKey, paramSpace types.ParamSubspace,
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey,
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) Keeper {
 
 	keeper := Keeper{
-		storeKey:              key,
-		cdc:                   cdc,
-		paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
+		storeKey: key,
+		cdc:      cdc,
+		//paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
 		accountKeeper:         accountKeeper,
 		bankKeeper:            bankKeeper,
 		hooks:                 nil,

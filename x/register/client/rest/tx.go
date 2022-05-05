@@ -4,16 +4,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(
 		"/register/createResourceNode",
 		postCreateResourceNodeHandlerFn(cliCtx),
@@ -117,11 +118,11 @@ type (
 	}
 )
 
-func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CreateResourceNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -151,22 +152,23 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description,
-			types.NodeType(nodeTypeRef))
+		nodeType := types.NodeType(nodeTypeRef)
+		msg, _ := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
+			&nodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postCreateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CreateIndexingNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -191,21 +193,26 @@ func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgCreateIndexingNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
+		msg, err := types.NewMsgCreateIndexingNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postRemoveResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postRemoveResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RemoveResourceNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -232,15 +239,15 @@ func postRemoveResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postRemoveIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RemoveIndexingNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -267,15 +274,15 @@ func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateResourceNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -308,15 +315,15 @@ func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateResourceNodeStakeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateResourceNodeStakeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -342,21 +349,21 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx context.CLIContext) http.Handle
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateIndexingNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -383,15 +390,15 @@ func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateIndexingNodeStakeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateIndexingNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateIndexingNodeStakeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -417,21 +424,21 @@ func postUpdateIndexingNodeStakeHandlerFn(cliCtx context.CLIContext) http.Handle
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postIndexingNodeRegVoteFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req IndexingNodeRegVoteRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -451,7 +458,7 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		}
 
-		voteOpinion := types.VoteOpinionFromBool(req.Opinion)
+		voteOpinion := req.Opinion
 
 		voterNetworkAddr, err := stratos.SdsAddressFromBech32(req.VoterNetworkAddress)
 		if err != nil {
@@ -470,6 +477,6 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

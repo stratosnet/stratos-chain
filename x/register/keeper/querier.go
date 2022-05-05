@@ -17,17 +17,18 @@ import (
 )
 
 const (
-	QueryResourceNodeByNetworkAddr = "resource_node_by_network"
+	QueryResourceNodeByNetworkAddr = "resource-nodes"
 	QueryIndexingNodeByNetworkAddr = "indexing_nodes"
 	QueryNodesTotalStakes          = "nodes_total_stakes"
 	QueryNodeStakeByNodeAddr       = "node_stakes"
 	QueryNodeStakeByOwner          = "node_stakes_by_owner"
 	QueryRegisterParams            = "register_params"
-	QueryDefaultLimit              = 100
+
+	QueryDefaultLimit = 100
 )
 
 // NewQuerier creates a new querier for register clients.
-func NewQuerier(k Keeper) sdk.Querier {
+func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryResourceNodeByNetworkAddr:
