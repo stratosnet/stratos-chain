@@ -92,7 +92,7 @@ func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 		PubKey:       pkAny,
 		Suspend:      true,
 		Status:       stakingtypes.Unbonded,
-		Tokens:       sdk.NewCoins(sdk.NewCoin(DefaultBondDenom, sdk.ZeroInt())),
+		Tokens:       sdk.ZeroInt(),
 		OwnerAddress: ownerAddr.String(),
 		Description:  description,
 		NodeType:     nodeType.Type(),
@@ -126,7 +126,7 @@ func (v ResourceNode) ConvertToString() string {
 
 // AddToken adds tokens to a resource node
 func (v ResourceNode) AddToken(amount sdk.Int) ResourceNode {
-	v.Tokens = v.Tokens.Add(sdk.NewCoin(DefaultBondDenom, amount))
+	v.Tokens = v.Tokens.Add(amount)
 	return v
 }
 
@@ -135,10 +135,10 @@ func (v ResourceNode) SubToken(amount sdk.Int) ResourceNode {
 	if amount.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", amount))
 	}
-	if v.Tokens.AmountOf(DefaultBondDenom).LT(amount) {
+	if v.Tokens.LT(amount) {
 		panic(fmt.Sprintf("should not happen: only have %v tokens, trying to remove %v", v.Tokens, amount))
 	}
-	v.Tokens = v.Tokens.Sub(sdk.NewCoins(sdk.NewCoin(DefaultBondDenom, amount)))
+	v.Tokens = v.Tokens.Sub(amount)
 	return v
 }
 
@@ -175,7 +175,7 @@ func (v ResourceNode) Validate() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if v.Tokens.AmountOf(DefaultBondDenom).LT(sdk.ZeroInt()) {
+	if v.Tokens.LT(sdk.ZeroInt()) {
 		return ErrValueNegative
 	}
 	if v.GetDescription().Moniker == "" {

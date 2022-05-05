@@ -81,7 +81,7 @@ type StakingInfo struct {
 	PubKey         crypto.PubKey           `json:"pub_key"`
 	Suspend        bool                    `json:"suspend"`
 	Status         stakingtypes.BondStatus `json:"status"`
-	Tokens         sdk.Coins               `json:"tokens"`
+	Tokens         sdk.Int                 `json:"tokens"`
 	OwnerAddress   sdk.AccAddress          `json:"owner_address"`
 	Description    *Description            `json:"description"`
 	NodeType       string                  `json:"node_type"`
