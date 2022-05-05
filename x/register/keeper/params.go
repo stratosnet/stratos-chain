@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"time"
 )
 
 // GetParams returns the total set of register parameters.

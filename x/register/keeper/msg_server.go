@@ -38,6 +38,11 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 		return &types.MsgCreateResourceNodeResponse{}, err
 	}
 
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return &types.MsgCreateResourceNodeResponse{}, err
+	}
+
 	if _, found := k.GetResourceNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Resource node already exist")
 		return nil, types.ErrResourceNodePubKeyExists
@@ -45,13 +50,11 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, types.ErrBadDenom
 	}
-
-	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	nodeType, err := strconv.ParseUint(msg.NodeType, 10, 8)
 	if err != nil {
 		return &types.MsgCreateResourceNodeResponse{}, err
 	}
-
-	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, msg.NodeType, msg.Value)
+	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, types.NodeType(nodeType), msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -77,11 +80,17 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 func (k msgServer) HandleMsgCreateIndexingNode(goCtx context.Context, msg *types.MsgCreateIndexingNode) (*types.MsgCreateIndexingNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	// check to see if the pubkey or sender has been registered before
-	pk, err := stratos.SdsAddressFromBech32(msg.PubKey.String())
+	pk, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, msg.PubKey.String())
+	if err != nil {
+		return nil, err
+	}
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddr)
 	if err != nil {
 		return &types.MsgCreateIndexingNodeResponse{}, err
 	}
-	if _, found := k.GetIndexingNode(ctx, pk); found {
+
+	if _, found := k.GetIndexingNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Indexing node already exist")
 		return nil, types.ErrIndexingNodePubKeyExists
 	}
@@ -89,7 +98,12 @@ func (k msgServer) HandleMsgCreateIndexingNode(goCtx context.Context, msg *types
 		return nil, types.ErrBadDenom
 	}
 
-	ozoneLimitChange, err := k.RegisterIndexingNode(ctx, msg.NetworkAddr, msg.PubKey, msg.OwnerAddress, msg.Description, msg.Value)
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return &types.MsgCreateIndexingNodeResponse{}, err
+	}
+
+	ozoneLimitChange, err := k.RegisterIndexingNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +264,21 @@ func (k msgServer) HandleMsgIndexingNodeRegistrationVote(goCtx context.Context, 
 
 func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types.MsgUpdateResourceNode) (*types.MsgUpdateResourceNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	_, err := k.UpdateResourceNode(ctx, msg.Description, msg.NodeType, msg.NetworkAddress, msg.OwnerAddress)
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return &types.MsgUpdateResourceNodeResponse{}, err
+	}
+
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return &types.MsgUpdateResourceNodeResponse{}, err
+	}
+	nodeType, err := strconv.ParseUint(msg.NodeType, 10, 8)
+	if err != nil {
+		return &types.MsgUpdateResourceNodeResponse{}, err
+	}
+	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(nodeType), networkAddr, ownerAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -271,7 +299,18 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 
 func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *types.MsgUpdateResourceNodeStake) (*types.MsgUpdateResourceNodeStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	ozoneLimitChange, completionTime, err := k.UpdateResourceNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return &types.MsgUpdateResourceNodeStakeResponse{}, err
+	}
+
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return &types.MsgUpdateResourceNodeStakeResponse{}, err
+	}
+
+	ozoneLimitChange, completionTime, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, err
 	}
@@ -297,7 +336,18 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 
 func (k msgServer) HandleMsgUpdateIndexingNode(goCtx context.Context, msg *types.MsgUpdateIndexingNode) (*types.MsgUpdateIndexingNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	err := k.UpdateIndexingNode(ctx, msg.Description, msg.NetworkAddress, msg.OwnerAddress)
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return &types.MsgUpdateIndexingNodeResponse{}, err
+	}
+
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return &types.MsgUpdateIndexingNodeResponse{}, err
+	}
+
+	err = k.UpdateIndexingNode(ctx, msg.Description, networkAddr, ownerAddress)
 	if err != nil {
 		return nil, err
 	}
@@ -318,7 +368,18 @@ func (k msgServer) HandleMsgUpdateIndexingNode(goCtx context.Context, msg *types
 
 func (k msgServer) HandleMsgUpdateIndexingNodeStake(goCtx context.Context, msg *types.MsgUpdateIndexingNodeStake) (*types.MsgUpdateIndexingNodeStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	ozoneLimitChange, completionTime, err := k.UpdateIndexingNodeStake(ctx, msg.NetworkAddress, msg.OwnerAddress, msg.StakeDelta, msg.IncrStake)
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return &types.MsgUpdateIndexingNodeStakeResponse{}, err
+	}
+
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return &types.MsgUpdateIndexingNodeStakeResponse{}, err
+	}
+
+	ozoneLimitChange, completionTime, err := k.UpdateIndexingNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, err
 	}

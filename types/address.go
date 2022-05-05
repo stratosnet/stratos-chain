@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/crypto/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -64,7 +64,7 @@ const (
 
 // GetPubKeyFromBech32 returns a PublicKey from a bech32-encoded PublicKey with
 // a given key type.
-func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (types.PubKey, error) {
+func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (cryptotypes.PubKey, error) {
 	var bech32Prefix string
 
 	switch pkt {

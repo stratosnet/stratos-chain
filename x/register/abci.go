@@ -1,7 +1,6 @@
 package register
 
 import (
-	"github.com/cosmos/cosmos-sdk/telemetry"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -16,19 +15,4 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, k keeper.Keeper) []abci.ValidatorUpdate {
 	return k.BlockRegisteredNodesUpdates(ctx)
-}
-
-// BeginBlocker will persist the current header and validator set as a historical entry
-// and prune the oldest entry based on the HistoricalEntries parameter
-func BeginBlocker(ctx sdk.Context, k keeper.Keeper) {
-	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyBeginBlocker)
-
-	k.TrackHistoricalInfo(ctx)
-}
-
-// Called every block, update validator set
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) []abci.ValidatorUpdate {
-	defer telemetry.ModuleMeasureSince(types.ModuleName, time.Now(), telemetry.MetricKeyEndBlocker)
-
-	return k.BlockValidatorUpdates(ctx)
 }

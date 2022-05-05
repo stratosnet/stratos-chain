@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/tendermint/tendermint/crypto"
 	cryptotypes "github.com/tendermint/tendermint/crypto"
 )
 
@@ -78,7 +77,7 @@ func NewQueryNodesStakingInfo(
 
 type StakingInfo struct {
 	NetworkAddr    stratos.SdsAddress      `json:"network_address"`
-	PubKey         crypto.PubKey           `json:"pub_key"`
+	PubKey         cryptotypes.PubKey      `json:"pub_key"`
 	Suspend        bool                    `json:"suspend"`
 	Status         stakingtypes.BondStatus `json:"status"`
 	Tokens         sdk.Int                 `json:"tokens"`
