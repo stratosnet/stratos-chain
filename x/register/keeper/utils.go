@@ -34,3 +34,12 @@ func hasValue(items []stratos.SdsAddress, item stratos.SdsAddress) bool {
 	}
 	return false
 }
+
+func hasStringValue(items []string, item string) bool {
+	for _, eachItem := range items {
+		if len(item) > 0 && eachItem == item {
+			return true
+		}
+	}
+	return false
+}

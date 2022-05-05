@@ -291,7 +291,7 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	if votePool.ExpireTime.Before(ctx.BlockHeader().Time) {
 		return stakingtypes.Unbonded, types.ErrVoteExpired
 	}
-	if hasValue(votePool.ApproveList, voterAddr) || hasValue(votePool.RejectList, voterAddr) {
+	if hasStringValue(votePool.ApproveList, voterAddr.String()) || hasStringValue(votePool.RejectList, voterAddr.String()) {
 		return stakingtypes.Unbonded, types.ErrDuplicateVoting
 	}
 
@@ -308,9 +308,9 @@ func (k Keeper) HandleVoteForIndexingNodeRegistration(ctx sdk.Context, nodeAddr 
 	}
 
 	if opinion.Equal(types.Approve) {
-		votePool.ApproveList = append(votePool.ApproveList, voterAddr)
+		votePool.ApproveList = append(votePool.ApproveList, voterAddr.String())
 	} else {
-		votePool.RejectList = append(votePool.RejectList, voterAddr)
+		votePool.RejectList = append(votePool.RejectList, voterAddr.String())
 	}
 	k.SetIndexingNodeRegistrationVotePool(ctx, votePool)
 
@@ -349,15 +349,16 @@ func (k Keeper) GetIndexingNodeRegistrationVotePool(ctx sdk.Context, nodeAddr st
 	if bz == nil {
 		return votePool, false
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &votePool)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &votePool)
 	return votePool, true
 }
 
 func (k Keeper) SetIndexingNodeRegistrationVotePool(ctx sdk.Context, votePool types.IndexingNodeRegistrationVotePool) {
 	nodeAddr := votePool.NodeAddress
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(votePool)
-	store.Set(types.GetIndexingNodeRegistrationVotesKey(nodeAddr), bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&votePool)
+	node, _ := stratos.SdsAddressFromBech32(nodeAddr)
+	store.Set(types.GetIndexingNodeRegistrationVotesKey(node), bz)
 }
 
 func (k Keeper) UpdateIndexingNode(ctx sdk.Context, description types.Description,
@@ -415,7 +416,7 @@ func (k Keeper) UpdateIndexingNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 
 func (k Keeper) SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	bz := k.cdc.MustMarshalLengthPrefixed(&token)
 	store.Set(types.IndexingNodeBondedTokenKey, bz)
 }
 
@@ -425,13 +426,13 @@ func (k Keeper) GetIndexingNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	if bz == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
 	return token
 }
 
 func (k Keeper) SetIndexingNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	bz := k.cdc.MustMarshalLengthPrefixed(&token)
 	store.Set(types.IndexingNodeNotBondedTokenKey, bz)
 }
 
@@ -441,6 +442,6 @@ func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	if bz == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
 	return token
 }

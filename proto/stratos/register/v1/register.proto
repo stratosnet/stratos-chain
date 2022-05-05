@@ -59,6 +59,17 @@ message IndexingNode {
   ];
 }
 
+message IndexingNodeRegistrationVotePool {
+  string                      nodeAddress   = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ];
+  repeated string             approveList   = 2 [ (gogoproto.moretags) = "yaml:\"approve_list\"" ];
+  repeated string             rejectList   = 3 [ (gogoproto.moretags) = "yaml:\"reject_list\"" ];
+  google.protobuf.Timestamp   expireTime = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.moretags) = "yaml:\"expire_time\""
+  ];
+}
+
 message Description {
   string  moniker         = 1 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"moniker\",omitempty" ];
   string  identity        = 2 [ (gogoproto.nullable) = true, (gogoproto.moretags) = "yaml:\"identity\",omitempty" ];

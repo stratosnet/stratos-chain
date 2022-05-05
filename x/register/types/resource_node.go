@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -207,12 +208,12 @@ func (v ResourceNode) IsUnBonding() bool {
 }
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
-func MustMarshalResourceNode(cdc *goamino.Codec, v ResourceNode) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(v)
+func MustMarshalResourceNode(cdc codec.BinaryCodec, resourceNode ResourceNode) []byte {
+	return cdc.MustMarshalLengthPrefixed(&resourceNode)
 }
 
 // MustUnmarshalResourceNode unmarshal a resourceNode from a store value. Panics if fails
-func MustUnmarshalResourceNode(cdc *goamino.Codec, value []byte) ResourceNode {
+func MustUnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) ResourceNode {
 	resourceNode, err := UnmarshalResourceNode(cdc, value)
 	if err != nil {
 		panic(err)
@@ -221,8 +222,8 @@ func MustUnmarshalResourceNode(cdc *goamino.Codec, value []byte) ResourceNode {
 }
 
 // UnmarshalResourceNode unmarshal a resourceNode from a store value
-func UnmarshalResourceNode(cdc *goamino.Codec, value []byte) (v ResourceNode, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &v)
+func UnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) (v ResourceNode, err error) {
+	err = cdc.Unmarshal(value, &v)
 	return v, err
 }
 
