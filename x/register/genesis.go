@@ -87,8 +87,8 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 
 	return &types.GenesisState{
 		Params:              &params,
-		ResourceNodes:       &resourceNodes,
-		IndexingNodes:       &indexingNodes,
+		ResourceNodes:       resourceNodes,
+		IndexingNodes:       indexingNodes,
 		InitialUozPrice:     initialUOzonePrice,
 		TotalUnissuedPrepay: totalUnissuedPrepay,
 		Slashing:            slashingInfo,

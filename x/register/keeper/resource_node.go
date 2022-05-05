@@ -9,6 +9,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/go-amino"
 )
 
 const resourceNodeCacheSize = 500
@@ -70,16 +71,16 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 }
 
 // GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
-func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes) {
+func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes *types.ResourceNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		resourceNodes = append(resourceNodes, node)
+		resourceNodes.ResourceNodes = append(resourceNodes.ResourceNodes, &node)
 	}
-	return resourceNodes
+	return
 }
 
 func (k Keeper) getResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
@@ -238,7 +239,7 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
+	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, &description, &nodeType, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -259,8 +260,8 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.Description = description
-	node.NodeType = nodeType
+	node.Description = &description
+	node.NodeType = nodeType.String()
 
 	k.SetResourceNode(ctx, node)
 
@@ -303,7 +304,7 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 
 func (k Keeper) SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	bz := amino.MustMarshalBinaryLengthPrefixed(token)
 	store.Set(types.ResourceNodeBondedTokenKey, bz)
 }
 
@@ -313,13 +314,13 @@ func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	if bz == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	amino.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
 }
 
 func (k Keeper) SetResourceNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalBinaryLengthPrefixed(token)
+	bz := amino.MustMarshalBinaryLengthPrefixed(token)
 	store.Set(types.ResourceNodeNotBondedTokenKey, bz)
 }
 
@@ -329,6 +330,6 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	if bz == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	k.cdc.MustUnmarshalBinaryLengthPrefixed(bz, &token)
+	amino.MustUnmarshalBinaryLengthPrefixed(bz, &token)
 	return token
 }

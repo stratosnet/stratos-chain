@@ -10,7 +10,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -73,14 +72,14 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 }
 
 // GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
-func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes types.IndexingNodes) {
+func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes *types.IndexingNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		indexingNodes = append(indexingNodes, node)
+		indexingNodes.IndexingNodes = append(indexingNodes.IndexingNodes, &node)
 	}
 	return indexingNodes
 }
@@ -182,7 +181,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, i
 
 // SubtractIndexingNodeStake Update the tokens of an existing indexing node
 func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.AddToken().GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
 	if err != nil {
 		return types.ErrInvalidNetworkAddr
 	}
@@ -375,7 +374,7 @@ func (k Keeper) UpdateIndexingNode(ctx sdk.Context, description types.Descriptio
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.Description = description
+	node.Description = &description
 
 	k.SetIndexingNode(ctx, node)
 
