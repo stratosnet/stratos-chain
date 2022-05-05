@@ -3,23 +3,24 @@ package register
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper Keeper, data *types.GenesisState) (res []abci.ValidatorUpdate) {
+func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) (res []abci.ValidatorUpdate) {
 	keeper.SetParams(ctx, *data.Params)
 
 	initialStakeTotal := sdk.ZeroInt()
 	resNodeBondedToken := sdk.ZeroInt()
 	resNodeNotBondedToken := sdk.ZeroInt()
 	for _, resourceNode := range data.ResourceNodes.GetResourceNodes() {
-		if resourceNode.GetStatus().String() == stakingtypes.BondStatusBonded {
+		if resourceNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
 			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.Tokens)
-		} else if resourceNode.GetStatus().String() == stakingtypes.BondStatusUnbonded {
+		} else if resourceNode.GetStatus() == stakingtypes.Unbonded {
 			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.Tokens)
 		}
 		keeper.SetResourceNode(ctx, *resourceNode)
@@ -30,10 +31,10 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data *types.GenesisState) (res 
 	idxNodeBondedToken := sdk.ZeroInt()
 	idxNodeNotBondedToken := sdk.ZeroInt()
 	for _, indexingNode := range data.IndexingNodes.GetIndexingNodes() {
-		if indexingNode.GetStatus().String() == stakingtypes.BondStatusBonded {
+		if indexingNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(indexingNode.Tokens)
 			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.Tokens)
-		} else if indexingNode.GetStatus().String() == stakingtypes.BondStatusUnbonded {
+		} else if indexingNode.GetStatus() == stakingtypes.Unbonded {
 			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.Tokens)
 		}
 		keeper.SetIndexingNode(ctx, *indexingNode)
@@ -67,7 +68,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data *types.GenesisState) (res 
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) (data *types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)

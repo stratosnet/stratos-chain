@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -99,10 +100,10 @@ func (k Keeper) GetAllValidIndexingNodes(ctx sdk.Context) (indexingNodes []types
 	return indexingNodes
 }
 
-func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	indexingNode, err := types.NewIndexingNode(networkAddr, pubKey, ownerAddr, description, ctx.BlockHeader().Time)
+	indexingNode, err := types.NewIndexingNode(networkAddr, pubKey, ownerAddr, &description, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -133,7 +134,7 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 		return sdk.ZeroInt(), types.ErrInvalidOwnerAddr
 	}
 	// sub coins from owner's wallet
-	hasCoin := k.bankKeeper.HasCoins(ctx, ownerAddr, coins)
+	hasCoin := k.bankKeeper..HasCoins(ctx, ownerAddr, coins)
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
