@@ -92,7 +92,7 @@ func (k Keeper) GetAllValidIndexingNodes(ctx sdk.Context) (indexingNodes []types
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		if !node.IsSuspended() && node.GetStatus().Equal(stakingtypes.Bonded) {
+		if !node.GetSuspend() && node.GetStatus() == stakingtypes.Bonded {
 			indexingNodes = append(indexingNodes, node)
 		}
 	}
