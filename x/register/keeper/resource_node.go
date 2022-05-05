@@ -70,16 +70,16 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 }
 
 // GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
-func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes) {
+func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes *types.ResourceNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		resourceNodes = append(resourceNodes, node)
+		resourceNodes.ResourceNodes = append(resourceNodes.ResourceNodes, &node)
 	}
-	return resourceNodes
+	return
 }
 
 func (k Keeper) getResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
@@ -246,7 +246,7 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
+	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, &description, &nodeType, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -267,8 +267,8 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.Description = description
-	node.NodeType = nodeType
+	node.Description = &description
+	node.NodeType = nodeType.String()
 
 	k.SetResourceNode(ctx, node)
 

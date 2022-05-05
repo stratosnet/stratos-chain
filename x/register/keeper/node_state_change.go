@@ -5,8 +5,10 @@ import (
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/tendermint/go-amino"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -49,16 +51,16 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingN
 	switch isIndexingNode {
 	case true:
 		temp := node.(types.IndexingNode)
-		if temp.GetStatus() != sdk.Bonded {
+		if temp.GetStatus() != stakingtypes.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, indexingNode: %v\n", temp))
 		}
-		return k.beginUnbondingIndexingNode(ctx, temp, coin)
+		return k.beginUnbondingIndexingNode(ctx, &temp, &coin)
 	default:
 		temp := node.(types.ResourceNode)
-		if temp.GetStatus() != sdk.Bonded {
+		if temp.GetStatus() != stakingtypes.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, resourceNode: %v\n", temp))
 		}
-		return k.beginUnbondingResourceNode(ctx, temp, coin)
+		return k.beginUnbondingResourceNode(ctx, &temp, &coin)
 	}
 }
 
@@ -67,13 +69,13 @@ func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexin
 	switch isIndexingNode {
 	case true:
 		temp := node.(types.IndexingNode)
-		if temp.GetStatus() != sdk.Unbonding {
+		if temp.GetStatus() != stakingtypes.Unbonding {
 			panic(fmt.Sprintf("bad state transition unbondingToBonded, indexingNode: %v\n", temp))
 		}
 		return k.completeUnbondingNode(ctx, temp, isIndexingNode)
 	default:
 		temp := node.(types.ResourceNode)
-		if temp.GetStatus() != sdk.Unbonding {
+		if temp.GetStatus() != stakingtypes.Unbonding {
 			panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", temp))
 		}
 		return k.completeUnbondingNode(ctx, temp, isIndexingNode)
@@ -81,24 +83,42 @@ func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexin
 }
 
 // perform all the store operations for when a Node begins unbonding
-func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, coin sdk.Coin) types.ResourceNode {
+func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode *types.ResourceNode, coin *sdk.Coin) *types.ResourceNode {
 	// set node stat to unbonding, remove token from bonded pool, add token into NotBondedPool
-	k.RemoveTokenFromPoolWhileUnbondingResourceNode(ctx, resourceNode, coin)
+	err := k.RemoveTokenFromPoolWhileUnbondingResourceNode(ctx, *resourceNode, *coin)
+	if err != nil {
+		return &types.ResourceNode{}
+	}
+
+	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+	if err != nil {
+		return &types.ResourceNode{}
+	}
 	// trigger hook if registered
-	k.AfterNodeBeginUnbonding(ctx, resourceNode.GetNetworkAddr(), false)
+	k.AfterNodeBeginUnbonding(ctx, networkAddr, false)
 	return resourceNode
 }
-func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode, coin sdk.Coin) types.IndexingNode {
+func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode *types.IndexingNode, coin *sdk.Coin) *types.IndexingNode {
 	// change node stat, remove token from bonded pool, add token into NotBondedPool
-	k.RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx, indexingNode, coin)
+	err := k.RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx, *indexingNode, *coin)
+	if err != nil {
+		return nil
+	}
+	if err != nil {
+		return &types.IndexingNode{}
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	if err != nil {
+		return &types.IndexingNode{}
+	}
 	// trigger hook if registered
-	k.AfterNodeBeginUnbonding(ctx, indexingNode.GetNetworkAddr(), true)
+	k.AfterNodeBeginUnbonding(ctx, networkAddr, true)
 	return indexingNode
 }
 
-func calcUnbondingMatureTime(ctx sdk.Context, currStatus sdk.BondStatus, creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
+func calcUnbondingMatureTime(ctx sdk.Context, currStatus stakingtypes.BondStatus, creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
 	switch currStatus {
-	case sdk.Unbonded:
+	case stakingtypes.Unbonded:
 		return creationTime.Add(completionTime)
 	default:
 		now := ctx.BlockHeader().Time
@@ -114,12 +134,12 @@ func calcUnbondingMatureTime(ctx sdk.Context, currStatus sdk.BondStatus, creatio
 func (k Keeper) completeUnbondingNode(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
 	if isIndexingNode {
 		temp := node.(types.IndexingNode)
-		temp.Status = sdk.Unbonded
+		temp.Status = stakingtypes.Unbonded
 		k.SetIndexingNode(ctx, temp)
 		return temp
 	} else {
 		temp := node.(types.ResourceNode)
-		temp.Status = sdk.Unbonded
+		temp.Status = stakingtypes.Unbonded
 		k.SetResourceNode(ctx, temp)
 		return temp
 	}
@@ -139,7 +159,7 @@ func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (m
 
 	for ; ubdTimesliceIterator.Valid(); ubdTimesliceIterator.Next() {
 		timeslice := []sdk.AccAddress{}
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
+		amino.MustUnmarshalBinaryLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
 		matureNetworkAddrs = append(matureNetworkAddrs, timeslice...)
 	}
 
@@ -154,7 +174,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 
 	for ; nodeTimesliceIterator.Valid(); nodeTimesliceIterator.Next() {
 		timeslice := []stratos.SdsAddress{}
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(nodeTimesliceIterator.Value(), &timeslice)
+		amino.MustUnmarshalBinaryLengthPrefixed(nodeTimesliceIterator.Value(), &timeslice)
 
 		for _, networkAddr := range timeslice {
 			ubd, found := k.GetUnbondingNode(ctx, networkAddr)
@@ -167,7 +187,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 				if !found {
 					panic("cannot find indexing node " + ubd.NetworkAddr.String())
 				}
-				if node.GetStatus() != sdk.Unbonding {
+				if node.GetStatus() != stakingtypes.Unbonding {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
@@ -181,7 +201,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 				if !found {
 					panic("cannot find resource node " + ubd.NetworkAddr.String())
 				}
-				if node.GetStatus() != sdk.Unbonding {
+				if node.GetStatus() != stakingtypes.Unbonding {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)

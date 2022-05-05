@@ -135,7 +135,7 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 	if !found {
 		return nil, types.ErrNoResourceNodeFound
 	}
-	if resourceNode.GetStatus().String() == stakingtypes.BondStatusUnbonding {
+	if resourceNode.GetStatus() == stakingtypes.Unbonding {
 		return nil, types.ErrUnbondingNode
 	}
 
@@ -175,7 +175,7 @@ func (k msgServer) HandleMsgRemoveIndexingNode(goCtx context.Context, msg *types
 		return nil, types.ErrNoIndexingNodeFound
 	}
 
-	if indexingNode.GetStatus().String() == stakingtypes.BondStatusUnbonding {
+	if indexingNode.GetStatus() == stakingtypes.Unbonding {
 		return nil, types.ErrUnbondingNode
 	}
 
@@ -236,7 +236,7 @@ func (k msgServer) HandleMsgIndexingNodeRegistrationVote(goCtx context.Context, 
 		return &types.MsgIndexingNodeRegistrationVoteResponse{}, err
 	}
 
-	if !(voter.Status.String() == stakingtypes.BondStatusBonded) || voter.Suspend {
+	if !(voter.Status == stakingtypes.Bonded) || voter.Suspend {
 		return nil, types.ErrInvalidVoterStatus
 	}
 

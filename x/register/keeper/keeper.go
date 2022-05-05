@@ -8,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -19,7 +20,8 @@ import (
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.BinaryCodec
-	//paramSpace            types.ParamSubspace
+	// module specific parameter space that can be configured through governance
+	paramSpace            paramtypes.Subspace
 	accountKeeper         types.AccountKeeper
 	bankKeeper            types.BankKeeper
 	hooks                 types.RegisterHooks
@@ -30,13 +32,13 @@ type Keeper struct {
 }
 
 // NewKeeper creates a register keeper
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey,
+func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) Keeper {
 
 	keeper := Keeper{
-		storeKey: key,
-		cdc:      cdc,
-		//paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
+		storeKey:              key,
+		cdc:                   cdc,
+		paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
 		accountKeeper:         accountKeeper,
 		bankKeeper:            bankKeeper,
 		hooks:                 nil,
@@ -53,7 +55,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// Set the register hooks
+// SetHooks Set the register hooks
 func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set register hooks twice")

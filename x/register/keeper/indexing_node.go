@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -72,14 +72,14 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 }
 
 // GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
-func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes types.IndexingNodes) {
+func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes *types.IndexingNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		indexingNodes = append(indexingNodes, node)
+		indexingNodes.IndexingNodes = append(indexingNodes.IndexingNodes, &node)
 	}
 	return indexingNodes
 }
@@ -99,10 +99,10 @@ func (k Keeper) GetAllValidIndexingNodes(ctx sdk.Context) (indexingNodes []types
 	return indexingNodes
 }
 
-func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey crypto.PubKey, ownerAddr sdk.AccAddress,
+func (k Keeper) RegisterIndexingNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	indexingNode, err := types.NewIndexingNode(networkAddr, pubKey, ownerAddr, description, ctx.BlockHeader().Time)
+	indexingNode, err := types.NewIndexingNode(networkAddr, pubKey, ownerAddr, &description, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -382,7 +382,7 @@ func (k Keeper) UpdateIndexingNode(ctx sdk.Context, description types.Descriptio
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.Description = description
+	node.Description = &description
 
 	k.SetIndexingNode(ctx, node)
 
