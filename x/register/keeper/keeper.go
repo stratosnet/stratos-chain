@@ -66,7 +66,7 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 
 func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&price)
+	b := amino.MustMarshalBinaryLengthPrefixed(&price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
@@ -211,7 +211,7 @@ func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res
 	for _, entry := range stringSlice {
 		if _, value := keys[entry.String()]; !value {
 			keys[entry.String()] = true
-			res = append(res, keeper.cdc.MustMarshalJSON(entry)...)
+			res = append(res, codec.NewLegacyAmino().MustMarshalJSON(entry)...)
 			res = append(res, ';')
 		}
 	}
