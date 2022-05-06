@@ -285,14 +285,16 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalUnbondingNode(k.cdc, ubd)
-	key := types.GetUBDNodeKey(ubd.GetNetworkAddr())
+	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	key := types.GetUBDNodeKey(networkAddr)
 	store.Set(key, bz)
 }
 
 // remove the unbonding IndexingNode object
 func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDNodeKey(ubd.GetNetworkAddr())
+	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	key := types.GetUBDNodeKey(networkAddr)
 	store.Delete(key)
 }
 
@@ -337,7 +339,7 @@ func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNod
 	completionTime time.Time) {
 
 	timeSlice := k.GetUnbondingNodeQueueTimeSlice(ctx, completionTime)
-	networkAddr := ubd.NetworkAddr
+	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
 	if len(timeSlice) == 0 {
 		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, []stratos.SdsAddress{networkAddr})
 	} else {
@@ -426,16 +428,17 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddres
 }
 
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
+	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
 	// case of indexing node
 	if ubd.IsIndexingNode {
-		indexingNode, found := k.GetIndexingNode(ctx, ubd.NetworkAddr)
+		indexingNode, found := k.GetIndexingNode(ctx, networkAddr)
 		if !found {
 			return types.ErrNoIndexingNodeFound
 		}
 		return k.SubtractIndexingNodeStake(ctx, indexingNode, tokenToSub)
 	}
 	// case of resource node
-	resourceNode, found := k.GetResourceNode(ctx, ubd.NetworkAddr)
+	resourceNode, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
 		return types.ErrNoIndexingNodeFound
 	}
