@@ -66,7 +66,7 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 
 func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&price)
+	b := amino.MustMarshalBinaryLengthPrefixed(&price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
@@ -285,7 +285,10 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalUnbondingNode(k.cdc, ubd)
-	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	if err != nil {
+		return
+	}
 	key := types.GetUBDNodeKey(networkAddr)
 	store.Set(key, bz)
 }
@@ -293,7 +296,10 @@ func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 // remove the unbonding IndexingNode object
 func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
-	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	if err != nil {
+		return
+	}
 	key := types.GetUBDNodeKey(networkAddr)
 	store.Delete(key)
 }
@@ -339,7 +345,10 @@ func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNod
 	completionTime time.Time) {
 
 	timeSlice := k.GetUnbondingNodeQueueTimeSlice(ctx, completionTime)
-	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	if err != nil {
+		return
+	}
 	if len(timeSlice) == 0 {
 		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, []stratos.SdsAddress{networkAddr})
 	} else {
@@ -399,7 +408,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 
 			// track undelegation only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
-				amt := sdk.NewCoin(bondDenom, entry.Balance)
+				amt := sdk.NewCoin(bondDenom, *entry.Balance)
 				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
 					return nil, false, err
@@ -428,8 +437,11 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddres
 }
 
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
-	networkAddr, _ := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
 	// case of indexing node
+	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
+	if err != nil {
+		return err
+	}
 	if ubd.IsIndexingNode {
 		indexingNode, found := k.GetIndexingNode(ctx, networkAddr)
 		if !found {
@@ -565,7 +577,7 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
 		for _, entry := range node.Entries {
-			ubdTotal = ubdTotal.Add(entry.Balance)
+			ubdTotal = ubdTotal.Add(*entry.Balance)
 		}
 	}
 	return ubdTotal
@@ -586,7 +598,7 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 
 	ubd := types.MustUnmarshalUnbondingNode(k.cdc, value)
 	for _, entry := range ubd.Entries {
-		balance = balance.Add(entry.Balance)
+		balance = balance.Add(*entry.Balance)
 	}
 	return balance
 }
