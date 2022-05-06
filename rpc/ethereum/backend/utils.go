@@ -18,6 +18,7 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -252,4 +253,27 @@ func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
 		logs = append(logs, &log)
 	}
 	return evmtypes.LogsToEthereum(logs), nil
+}
+
+func (e *EVMBackend) parseGasUnit(args evmtypes.TransactionArgs) (evmtypes.TransactionArgs, error) {
+	var err error
+
+	args.GasPrice, err = stratos.WeiToUstosBigInt(args.GasPrice)
+	if err != nil {
+		return args, err
+	}
+	args.MaxFeePerGas, err = stratos.WeiToUstosBigInt(args.MaxFeePerGas)
+	if err != nil {
+		return args, err
+	}
+	args.MaxPriorityFeePerGas, err = stratos.WeiToUstosBigInt(args.MaxPriorityFeePerGas)
+	if err != nil {
+		return args, err
+	}
+	args.Value, err = stratos.WeiToUstosBigInt(args.Value)
+	if err != nil {
+		return args, err
+	}
+
+	return args, nil
 }

@@ -10,13 +10,13 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
-	"github.com/stratosnet/stratos-chain/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 var _ paramtypes.ParamSet = &Params{}
 
 const (
-	DefaultEVMDenom = types.USTOS
+	DefaultEVMDenom = stratos.USTOS
 )
 
 // Parameter keys
@@ -163,24 +163,29 @@ func IsLondon(ethConfig *params.ChainConfig, height int64) bool {
 
 // creates a new FeeMarketParams instance
 func NewFeeMarketParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64, enableHeight int64) FeeMarketParams {
+	ustosBaseFee, err := stratos.WeiToUstos(sdk.NewIntFromUint64(baseFee))
+	if err != nil {
+		panic(err)
+	}
+
 	return FeeMarketParams{
 		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: baseFeeChangeDenom,
 		ElasticityMultiplier:     elasticityMultiplier,
-		BaseFee:                  sdk.NewIntFromUint64(baseFee),
+		BaseFee:                  ustosBaseFee,
 		EnableHeight:             enableHeight,
 	}
 }
 
 // DefaultParams returns default evm parameters
 func DefaultFeeMarketParams() FeeMarketParams {
-	return FeeMarketParams{
-		NoBaseFee:                false,
-		BaseFeeChangeDenominator: params.BaseFeeChangeDenominator,
-		ElasticityMultiplier:     params.ElasticityMultiplier,
-		BaseFee:                  sdk.NewIntFromUint64(params.InitialBaseFee),
-		EnableHeight:             0,
-	}
+	return NewFeeMarketParams(
+		false,
+		params.BaseFeeChangeDenominator,
+		params.ElasticityMultiplier,
+		params.InitialBaseFee,
+		0,
+	)
 }
 
 // Validate performs basic validation on fee market parameters.

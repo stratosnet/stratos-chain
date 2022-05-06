@@ -782,6 +782,11 @@ func (e *EVMBackend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash
 		return common.Hash{}, err
 	}
 
+	args, err = e.parseGasUnit(args)
+	if err != nil {
+		return common.Hash{}, err
+	}
+
 	msg := args.ToTransaction()
 	if err := msg.ValidateBasic(); err != nil {
 		e.logger.Debug("tx failed basic validation", "error", err.Error())
