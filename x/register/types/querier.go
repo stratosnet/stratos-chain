@@ -1,12 +1,8 @@
 package types
 
 import (
-	"time"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	cryptotypes "github.com/tendermint/tendermint/crypto"
 )
 
 const (
@@ -41,53 +37,21 @@ type QueryNodeStakingParams struct {
 	QueryType int64 //0:All(Default) 1: indexingNode; 2: ResourceNode
 }
 
-// NewQueryNodeStakingParams creates a new instance of QueryNodesParams
-func NewQueryNodeStakingParams(nodeAddr stratos.SdsAddress, queryType int64) QueryNodeStakingParams {
-	return QueryNodeStakingParams{
-		AccAddr:   nodeAddr,
-		QueryType: queryType,
+// NewQueryNodesStakingInfo creates a new instance of TotalStakesResponse
+func NewQueryNodesStakingInfo(ResourceNodeTotalStake, IndexingNodeTotalStake, totalBondedStake, totalUnbondedStake, totalUnbondingStake sdk.Int) *TotalStakesResponse {
+	resValue := sdk.NewCoin(defaultDenom, ResourceNodeTotalStake)
+	indValue := sdk.NewCoin(defaultDenom, IndexingNodeTotalStake)
+	bonedValue := sdk.NewCoin(defaultDenom, totalBondedStake)
+	unBondedValue := sdk.NewCoin(defaultDenom, totalUnbondedStake)
+	unBondingValue := sdk.NewCoin(defaultDenom, totalUnbondingStake)
+
+	return &TotalStakesResponse{
+		ResourceNodesTotalStake: &resValue,
+		IndexingNodesTotalStake: &indValue,
+		TotalBondedStake:        &bonedValue,
+		TotalUnbondedStake:      &unBondedValue,
+		TotalUnbondingStake:     &unBondingValue,
 	}
-}
-
-// NodesStakingInfo Params for query 'custom/register/staking'
-type NodesStakingInfo struct {
-	TotalStakeOfResourceNodes sdk.Coin
-	TotalStakeOfIndexingNodes sdk.Coin
-	TotalBondedStake          sdk.Coin
-	TotalUnbondedStake        sdk.Coin
-	TotalUnbondingStake       sdk.Coin
-}
-
-// NewQueryNodesStakingInfo creates a new instance of NodesStakingInfo
-func NewQueryNodesStakingInfo(
-	totalStakeOfResourceNodes,
-	totalStakeOfIndexingNodes,
-	totalBondedStake,
-	totalUnbondedStake,
-	totalUnbondingStake sdk.Int,
-) NodesStakingInfo {
-	return NodesStakingInfo{
-		TotalStakeOfResourceNodes: sdk.NewCoin(defaultDenom, totalStakeOfResourceNodes),
-		TotalStakeOfIndexingNodes: sdk.NewCoin(defaultDenom, totalStakeOfIndexingNodes),
-		TotalBondedStake:          sdk.NewCoin(defaultDenom, totalBondedStake),
-		TotalUnbondedStake:        sdk.NewCoin(defaultDenom, totalUnbondedStake),
-		TotalUnbondingStake:       sdk.NewCoin(defaultDenom, totalUnbondingStake),
-	}
-}
-
-type StakingInfo struct {
-	NetworkAddr    stratos.SdsAddress      `json:"network_address"`
-	PubKey         cryptotypes.PubKey      `json:"pub_key"`
-	Suspend        bool                    `json:"suspend"`
-	Status         stakingtypes.BondStatus `json:"status"`
-	Tokens         sdk.Int                 `json:"tokens"`
-	OwnerAddress   sdk.AccAddress          `json:"owner_address"`
-	Description    *Description            `json:"description"`
-	NodeType       string                  `json:"node_type"`
-	CreationTime   time.Time               `json:"creation_time"`
-	BondedStake    sdk.Coin                `json:"bonded_stake"`
-	UnBondingStake sdk.Coin                `json:"un_bonding_stake"`
-	UnBondedStake  sdk.Coin                `json:"un_bonded_stake"`
 }
 
 // NewStakingInfoByResourceNodeAddr creates a new instance of StakingInfoByNodeAddr
@@ -98,23 +62,23 @@ func NewStakingInfoByResourceNodeAddr(
 	bondedStake sdk.Int,
 
 ) StakingInfo {
-	pk, ok := resourceNode.PubKey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return StakingInfo{}
-	}
+	bonedValue := sdk.NewCoin(defaultDenom, bondedStake)
+	unBondedValue := sdk.NewCoin(defaultDenom, unBondedStake)
+	unBondingValue := sdk.NewCoin(defaultDenom, unBondingStake)
+
 	return StakingInfo{
-		NetworkAddr:    stratos.SdsAddress(resourceNode.NetworkAddr),
-		PubKey:         pk,
-		Suspend:        resourceNode.Suspend,
-		Status:         resourceNode.Status,
-		Tokens:         resourceNode.Tokens,
-		OwnerAddress:   sdk.AccAddress(resourceNode.OwnerAddress),
-		Description:    resourceNode.Description,
-		NodeType:       resourceNode.NodeType,
-		CreationTime:   resourceNode.CreationTime,
-		UnBondingStake: sdk.NewCoin(defaultDenom, unBondingStake),
-		UnBondedStake:  sdk.NewCoin(defaultDenom, unBondedStake),
-		BondedStake:    sdk.NewCoin(defaultDenom, bondedStake),
+		NetworkAddr:    resourceNode.GetNetworkAddr(),
+		PubKey:         resourceNode.GetPubKey(),
+		Suspend:        resourceNode.GetSuspend(),
+		Status:         resourceNode.GetStatus(),
+		Tokens:         &resourceNode.Tokens,
+		OwnerAddress:   resourceNode.GetOwnerAddress(),
+		Description:    resourceNode.GetDescription(),
+		NodeType:       resourceNode.GetNodeType(),
+		CreationTime:   resourceNode.GetCreationTime(),
+		UnBondingStake: &unBondingValue,
+		UnBondedStake:  &unBondedValue,
+		BondedStake:    &bonedValue,
 	}
 }
 
@@ -125,22 +89,21 @@ func NewStakingInfoByIndexingNodeAddr(
 	unBondedStake sdk.Int,
 	bondedStake sdk.Int,
 ) StakingInfo {
-	pk, ok := indexingNode.PubKey.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return StakingInfo{}
-	}
+	bonedValue := sdk.NewCoin(defaultDenom, bondedStake)
+	unBondedValue := sdk.NewCoin(defaultDenom, unBondedStake)
+	unBondingValue := sdk.NewCoin(defaultDenom, unBondingStake)
 	return StakingInfo{
-		NetworkAddr:    stratos.SdsAddress(indexingNode.NetworkAddr),
-		PubKey:         pk,
+		NetworkAddr:    indexingNode.GetNetworkAddr(),
+		PubKey:         indexingNode.GetPubKey(),
 		Suspend:        indexingNode.Suspend,
 		Status:         indexingNode.Status,
-		Tokens:         indexingNode.Tokens,
-		OwnerAddress:   sdk.AccAddress(indexingNode.OwnerAddress),
+		Tokens:         &indexingNode.Tokens,
+		OwnerAddress:   indexingNode.GetOwnerAddress(),
 		Description:    indexingNode.Description,
 		NodeType:       "metanode",
 		CreationTime:   indexingNode.CreationTime,
-		UnBondingStake: sdk.NewCoin(defaultDenom, unBondingStake),
-		UnBondedStake:  sdk.NewCoin(defaultDenom, unBondedStake),
-		BondedStake:    sdk.NewCoin(defaultDenom, bondedStake),
+		UnBondingStake: &unBondingValue,
+		UnBondedStake:  &unBondedValue,
+		BondedStake:    &bonedValue,
 	}
 }

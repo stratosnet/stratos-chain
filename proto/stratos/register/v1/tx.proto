@@ -3,10 +3,12 @@ package stratos.register.v1;
 
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+
 import "cosmos_proto/cosmos.proto";
 import "stratos/register/v1/register.proto";
 import "cosmos/base/v1beta1/coin.proto";
-import "google/api/annotations.proto";
+
 
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
@@ -46,14 +48,32 @@ service Msg {
 
 // MsgCreateResourceNodeTx encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
 message MsgCreateResourceNode {
-  string                         networkAddr = 1 [ (gogoproto.jsontag) = "network_address", (gogoproto.moretags) = "yaml:\"network_address\"" ];
-  google.protobuf.Any            pubKey = 2 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
-                                              (gogoproto.moretags) = "yaml:\"pubkey\"" ];
-  cosmos.base.v1beta1.Coin       value = 3 [ (gogoproto.nullable) = false,
-                                            (gogoproto.moretags) = "yaml:\"value\"" ];
-  string                        ownerAddress = 4 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ];
-  Description                   description = 5 [ (gogoproto.moretags) = "yaml:\"description\"" ];
-  string                        nodeType = 6 [ (gogoproto.moretags) = "yaml:\"node_type\"" ];
+  string                         networkAddr = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  google.protobuf.Any            pubKey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.jsontag) = "pubkey",
+    (gogoproto.moretags) = "yaml:\"pubkey\""
+  ];
+  cosmos.base.v1beta1.Coin       value = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
+  ];
+  string                        ownerAddress = 4 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  Description                   description = 5 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  string                        nodeType = 6 [
+    (gogoproto.jsontag) = "node_type",
+    (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
 }
 
 // MsgCreateResourceNodeTxResponse defines the CreateResourceNodeTx response type
@@ -61,22 +81,42 @@ message MsgCreateResourceNodeResponse {}
 
 // MsgCreateResourceNodeTx encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
 message MsgCreateIndexingNode {
-  string                         networkAddr = 1 [ (gogoproto.jsontag) = "network_address", (gogoproto.moretags) = "yaml:\"network_address\"" ];
-  google.protobuf.Any            pubKey = 2 [ (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
-    (gogoproto.moretags) = "yaml:\"pubkey\"" ];
-  cosmos.base.v1beta1.Coin       value = 3 [ (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"value\"" ];
-  string                        ownerAddress = 4 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ];
-  Description                   description = 5 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];
+  string                         networkAddr = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  google.protobuf.Any            pubKey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.jsontag) = "pubkey",
+    (gogoproto.moretags) = "yaml:\"pubkey\""
+  ];
+  cosmos.base.v1beta1.Coin       value = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
+  ];
+  string                        ownerAddress = 4 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  Description                   description = 5 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
 }
 
 // MsgRemoveResourceNode - encapsulates an RemoveResourceNode transaction as an SDK message
 message MsgRemoveResourceNode {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                   resource_node_address = 1 [(gogoproto.moretags) = "yaml:\"resource_node_address\""];
-  string                   owner_address = 2 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  string                   resource_node_address = 1 [
+    (gogoproto.jsontag) = "resource_node_address",
+    (gogoproto.moretags) = "yaml:\"resource_node_address\""
+  ];
+  string                   owner_address = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
 }
 
 // MsgRemoveResourceNodeResponse defines the Msg/RemoveResourceNode response type.
@@ -88,11 +128,16 @@ message MsgCreateIndexingNodeResponse {}
 
 // MsgRemoveIndexingNode - encapsulates an MsgRemoveIndexingNode transaction as an SDK message
 message MsgRemoveIndexingNode {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                   indexing_node_address = 1 [(gogoproto.moretags) = "yaml:\"indexing_node_address\""];
-  string                   owner_address = 2 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  string                   indexing_node_address = 1 [
+    (gogoproto.jsontag) = "indexing_node_address",
+    (gogoproto.moretags) = "yaml:\"indexing_node_address\""
+  ];
+  string                   owner_address = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
 }
 
 // MsgRemoveIndexingNodeResponse defines the Msg/RemoveIndexingNode response type.
@@ -101,13 +146,25 @@ message MsgRemoveIndexingNodeResponse {}
 
 // MsgUpdateResourceNode defines a SDK message for updating an existing resource node.
 message MsgUpdateResourceNode {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  Description description       = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"description\""];
-  string      network_address   = 2 [(gogoproto.moretags) = "yaml:\"network_address\""];
-  string      owner_address     = 3 [(gogoproto.moretags) = "yaml:\"owner_address\""];
-  string      nodeType          = 4 [ (gogoproto.moretags) = "yaml:\"node_type\"" ];
+  Description description       = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  string      network_address   = 2 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string      owner_address     = 3 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  string      nodeType          = 4 [
+    (gogoproto.jsontag) = "node_type",
+    (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
 }
 
 // MsgUpdateResourceNodeResponse defines the Msg/UpdateResourceNode response type.
@@ -116,12 +173,21 @@ message MsgUpdateResourceNodeResponse {}
 
 // MsgUpdateIndexingNode defines a SDK message for updating an existing indexing node.
 message MsgUpdateIndexingNode {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  Description description       = 1 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"description\""];
-  string      network_address   = 2 [(gogoproto.moretags) = "yaml:\"network_address\""];
-  string      owner_address     = 3 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  Description description       = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  string      network_address   = 2 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string      owner_address     = 3 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
 }
 
 // MsgUpdateIndexingNodeResponse defines the Msg/UpdateIndexingNode response type.
@@ -130,13 +196,24 @@ message MsgUpdateIndexingNodeResponse {}
 
 // MsgUpdateResourceNodeStake defines a SDK message for updating the stake of an existing resource node.
 message MsgUpdateResourceNodeStake {
-  option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    network_address   = 1 [(gogoproto.moretags) = "yaml:\"network_address\""];
-  string                    owner_address     = 2 [(gogoproto.moretags) = "yaml:\"owner_address\""];
-  bool                      incrStake         = 3 [ (gogoproto.moretags) = "yaml:\"incr_stake\"" ];
-  cosmos.base.v1beta1.Coin  StakeDelta        = 4 [ (gogoproto.moretags) = "yaml:\"stake_delta\"" ];
+  string                    network_address   = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string                    owner_address     = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  bool                      incrStake         = 3 [
+    (gogoproto.jsontag) = "incr_stake",
+    (gogoproto.moretags) = "yaml:\"incr_stake\""
+  ];
+  cosmos.base.v1beta1.Coin  StakeDelta        = 4 [
+    (gogoproto.jsontag) = "stake_delta",
+    (gogoproto.moretags) = "yaml:\"stake_delta\""
+  ];
 }
 
 // MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
@@ -148,10 +225,22 @@ message MsgUpdateIndexingNodeStake {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string                    network_address   = 1 [(gogoproto.moretags) = "yaml:\"network_address\""];
-  string                    owner_address     = 2 [(gogoproto.moretags) = "yaml:\"owner_address\""];
-  bool                      incrStake         = 3 [ (gogoproto.moretags) = "yaml:\"incr_stake\"" ];
-  cosmos.base.v1beta1.Coin  StakeDelta        = 4 [ (gogoproto.moretags) = "yaml:\"stake_delta\"" ];
+  string                    network_address   = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string                    owner_address     = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  bool                      incrStake         = 3 [
+    (gogoproto.jsontag) = "incr_stake",
+    (gogoproto.moretags) = "yaml:\"incr_stake\""
+  ];
+  cosmos.base.v1beta1.Coin  StakeDelta        = 4 [
+    (gogoproto.jsontag) = "stake_delta",
+    (gogoproto.moretags) = "yaml:\"stake_delta\""
+  ];
 }
 
 // MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
@@ -162,11 +251,26 @@ message MsgIndexingNodeRegistrationVote {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
-  string           candidate_network_address   = 1 [(gogoproto.moretags) = "yaml:\"candidate_network_address\""]; // node address of indexing node
-  string           candidate_owner_address     = 2 [(gogoproto.moretags) = "yaml:\"candidate_owner_address\""]; // owner address of indexing node
-  bool             opinion                     = 3 [ (gogoproto.moretags) = "yaml:\"opinion\"" ];
-  string           voter_network_address       = 4 [(gogoproto.moretags) = "yaml:\"voter_network_address\""]; // address of voter (other existed indexing node)
-  string           voter_owner_address         = 5 [(gogoproto.moretags) = "yaml:\"voter_owner_address\""];  // address of owner of the voter (other existed indexing node)
+  string           candidate_network_address   = 1 [
+    (gogoproto.jsontag) = "candidate_network_address",
+    (gogoproto.moretags) = "yaml:\"candidate_network_address\""
+  ]; // node address of indexing node
+  string           candidate_owner_address     = 2 [
+    (gogoproto.jsontag) = "candidate_owner_address",
+    (gogoproto.moretags) = "yaml:\"candidate_owner_address\""
+  ]; // owner address of indexing node
+  bool             opinion                     = 3 [
+    (gogoproto.jsontag) = "opinion",
+    (gogoproto.moretags) = "yaml:\"opinion\""
+  ];
+  string           voter_network_address       = 4 [
+    (gogoproto.jsontag) = "voter_network_address",
+    (gogoproto.moretags) = "yaml:\"voter_network_address\""
+  ]; // address of voter (other existed indexing node)
+  string           voter_owner_address         = 5 [
+    (gogoproto.jsontag) = "voter_owner_address",
+    (gogoproto.moretags) = "yaml:\"voter_owner_address\""
+  ];  // address of owner of the voter (other existed indexing node)
 }
 
 // MsgUpdateResourceNodeStakeResponse defines the Msg/IndexingNodeRegistrationVote response type.

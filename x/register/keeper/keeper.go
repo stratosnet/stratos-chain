@@ -66,7 +66,7 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 
 func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(price)
+	b := k.cdc.MustMarshalLengthPrefixed(&price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
@@ -202,16 +202,16 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 		}
 		networkList = append(networkList, networkAddr)
 	}
-	r := removeDuplicateValues(networkList)
+	r := removeDuplicateValues(k, networkList)
 	return r
 }
 
-func removeDuplicateValues(stringSlice []stratos.SdsAddress) (res []byte) {
+func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res []byte) {
 	keys := make(map[string]bool)
 	for _, entry := range stringSlice {
 		if _, value := keys[entry.String()]; !value {
 			keys[entry.String()] = true
-			res = append(res, types.ModuleCdc.MustMarshalJSON(entry)...)
+			res = append(res, keeper.cdc.MustMarshalJSON(entry)...)
 			res = append(res, ';')
 		}
 	}

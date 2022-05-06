@@ -2,32 +2,14 @@ package types
 
 import (
 	"bytes"
-	"fmt"
-	"strings"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	goamino "github.com/tendermint/go-amino"
 )
 
 // =======================
-
-// UnbondingNode stores all of a single delegator's unbonding bonds
-// for a single unbonding node in a time-ordered list
-type UnbondingNode struct {
-	NetworkAddr    stratos.SdsAddress   `json:"network_addr" yaml:"network_addr"`
-	IsIndexingNode bool                 `json:"is_indexing_node yaml:"is_indexing_node`
-	Entries        []UnbondingNodeEntry `json:"entries" yaml:"entries"` // unbonding node entries
-}
-
-// UnbondingNodeEntry - entry to an UnbondingNode
-type UnbondingNodeEntry struct {
-	CreationHeight int64     `json:"creation_height" yaml:"creation_height"` // height which the unbonding took place
-	CompletionTime time.Time `json:"completion_time" yaml:"completion_time"` // time at which the unbonding delegation will complete
-	InitialBalance sdk.Int   `json:"initial_balance" yaml:"initial_balance"` // ustos initially scheduled to receive at completion
-	Balance        sdk.Int   `json:"balance" yaml:"balance"`                 // ustos to receive at completion
-}
 
 // IsMature - is the current entry mature
 func (e UnbondingNodeEntry) IsMature(currentTime time.Time) bool {
@@ -40,9 +22,9 @@ func NewUnbondingNode(networkAddr stratos.SdsAddress, isIndexingNode bool, creat
 
 	entry := NewUnbondingNodeEntry(creationHeight, minTime, balance)
 	return UnbondingNode{
-		NetworkAddr:    networkAddr,
+		NetworkAddr:    networkAddr.String(),
 		IsIndexingNode: isIndexingNode,
-		Entries:        []UnbondingNodeEntry{entry},
+		Entries:        []*UnbondingNodeEntry{&entry},
 	}
 }
 
@@ -52,9 +34,9 @@ func NewUnbondingNodeEntry(creationHeight int64, completionTime time.Time,
 
 	return UnbondingNodeEntry{
 		CreationHeight: creationHeight,
-		CompletionTime: completionTime,
-		InitialBalance: balance,
-		Balance:        balance,
+		CompletionTime: &completionTime,
+		InitialBalance: &balance,
+		Balance:        &balance,
 	}
 }
 
@@ -63,7 +45,7 @@ func (un *UnbondingNode) AddEntry(creationHeight int64,
 	minTime time.Time, balance sdk.Int) {
 
 	entry := NewUnbondingNodeEntry(creationHeight, minTime, balance)
-	un.Entries = append(un.Entries, entry)
+	un.Entries = append(un.Entries, &entry)
 }
 
 // RemoveEntry - remove entry at index i to the unbonding Node
@@ -71,13 +53,13 @@ func (un *UnbondingNode) RemoveEntry(i int64) {
 	un.Entries = append(un.Entries[:i], un.Entries[i+1:]...)
 }
 
-// return the unbonding Node
-func MustMarshalUnbondingNode(cdc *goamino.Codec, uin UnbondingNode) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(uin)
+// MustMarshalUnbondingNode return the unbonding Node
+func MustMarshalUnbondingNode(cdc codec.BinaryCodec, uin UnbondingNode) []byte {
+	return cdc.MustMarshalLengthPrefixed(&uin)
 }
 
-// unmarshal a unbonding Node from a store value
-func MustUnmarshalUnbondingNode(cdc *goamino.Codec, value []byte) UnbondingNode {
+// MustUnmarshalUnbondingNode unmarshal a unbonding Node from a store value
+func MustUnmarshalUnbondingNode(cdc codec.BinaryCodec, value []byte) UnbondingNode {
 	un, err := UnmarshalUnbondingNode(cdc, value)
 	if err != nil {
 		panic(err)
@@ -85,46 +67,27 @@ func MustUnmarshalUnbondingNode(cdc *goamino.Codec, value []byte) UnbondingNode 
 	return un
 }
 
-// unmarshal a unbonding Node from a store value
-func UnmarshalUnbondingNode(cdc *goamino.Codec, value []byte) (uin UnbondingNode, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &uin)
+// UnmarshalUnbondingNode unmarshal a unbonding Node from a store value
+func UnmarshalUnbondingNode(cdc codec.BinaryCodec, value []byte) (uin UnbondingNode, err error) {
+	err = cdc.UnmarshalLengthPrefixed(value, &uin)
 	return uin, err
 }
 
-// nolint
+// Equal nolint
 // inefficient but only used in testing
 func (un UnbondingNode) Equal(un2 UnbondingNode) bool {
-	bz1 := goamino.MustMarshalBinaryLengthPrefixed(&un)
-	bz2 := goamino.MustMarshalBinaryLengthPrefixed(&un2)
+	var cdc codec.BinaryCodec
+	bz1 := cdc.MustMarshalLengthPrefixed(&un)
+	bz2 := cdc.MustMarshalLengthPrefixed(&un2)
 	return bytes.Equal(bz1, bz2)
 }
 
-func (un UnbondingNode) GetNetworkAddr() stratos.SdsAddress {
-	return un.NetworkAddr
-}
-
-// String returns a human readable string representation of an UnbondingNode.
-func (un UnbondingNode) String() string {
-	out := fmt.Sprintf(`Unbonding Nodes between:
-	NetworkAddr:    %s,
-	IsIndexingNode: %t,
-	Entries:`, un.NetworkAddr, un.IsIndexingNode)
-	for i, entry := range un.Entries {
-		out += fmt.Sprintf(`    Unbonding Node %d:
-      Creation Height:           %v
-      Min time to unbond (unix): %v
-      Expected balance:          %s`, i, entry.CreationHeight,
-			entry.CompletionTime, entry.Balance)
-	}
-	return out
-}
-
 // UnbondingNodes is a collection of UnbondingNode
-type UnbondingNodes []UnbondingNode
+//type UnbondingNodes []UnbondingNode
 
-func (uns UnbondingNodes) String() (out string) {
-	for _, u := range uns {
-		out += u.String() + "\n"
-	}
-	return strings.TrimSpace(out)
-}
+//func (uns UnbondingNodes) String() (out string) {
+//	for _, u := range uns {
+//		out += u.String() + "\n"
+//	}
+//	return strings.TrimSpace(out)
+//}

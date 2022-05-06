@@ -144,7 +144,6 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 		return nil, err
 	}
 
-	//completionTimeBz := amino.MustMarshalBinaryLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnbondingResourceNode,

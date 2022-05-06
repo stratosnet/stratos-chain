@@ -241,7 +241,7 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 		NodeAddress: nodeAddress.String(),
 		ApproveList: approveSlice,
 		RejectList:  rejectSlice,
-		ExpireTime:  expireTime,
+		ExpireTime:  &expireTime,
 	}
 }
 

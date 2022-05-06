@@ -6,6 +6,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 
@@ -32,31 +33,40 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryResourceNodeByNetworkAddr:
-			return getResourceNodeByNetworkAddr(ctx, req, k)
+			return getResourceNodeByNetworkAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryIndexingNodeByNetworkAddr:
-			return getIndexingNodeList(ctx, req, k)
+			return getIndexingNodesStakingInfo(ctx, req, k, legacyQuerierCdc)
 		case QueryNodesTotalStakes:
-			return getNodesStakingInfo(ctx, req, k)
+			return getNodesStakingInfo(ctx, req, k, legacyQuerierCdc)
 		case QueryNodeStakeByNodeAddr:
-			return getStakingInfoByNodeAddr(ctx, req, k)
+			return getStakingInfoByNodeAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryNodeStakeByOwner:
-			return getStakingInfoByOwnerAddr(ctx, req, k)
+			return getStakingInfoByOwnerAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryRegisterParams:
-			return getRegisterParams(ctx, req, k)
+			return getRegisterParams(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint "+req.String()+string(req.Data))
 		}
 	}
 }
 
-func getRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func getRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	params := k.GetParams(ctx)
-	return types.ModuleCdc.MustMarshalJSON(params), nil
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
 }
 
-func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params types.QueryNodesParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	var (
+		params types.QueryNodesParams
+		nodes  []*types.ResourceNode
+	)
+
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -64,16 +74,25 @@ func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, keeper
 	if params.NetworkAddr.Empty() {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrInvalidNetworkAddr.Error())
 	}
-	node, ok := keeper.GetResourceNode(ctx, params.NetworkAddr)
-	if !ok {
+	node, found := k.GetResourceNode(ctx, params.NetworkAddr)
+	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoResourceNodeFound.Error())
 	}
-	return types.ModuleCdc.MustMarshalJSON([]types.ResourceNode{node}), nil
+	nodes = append(nodes, &node)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.ResourceNodes{ResourceNodes: nodes})
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
 }
 
-func getIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
-	var params types.QueryNodesParams
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+func getIndexingNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+
+	var (
+		params types.QueryNodesParams
+		nodes  []*types.IndexingNode
+	)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -81,37 +100,41 @@ func getIndexingNodeList(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	if params.NetworkAddr.Empty() {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrInvalidNetworkAddr.Error())
 	}
-	node, ok := keeper.GetIndexingNode(ctx, params.NetworkAddr)
-	if !ok {
+	node, found := k.GetIndexingNode(ctx, params.NetworkAddr)
+	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoIndexingNodeFound.Error())
 	}
-
-	return types.ModuleCdc.MustMarshalJSON([]types.IndexingNode{node}), nil
+	nodes = append(nodes, &node)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.IndexingNodes{IndexingNodes: nodes})
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
 }
 
-func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 
-	totalBondedStakeOfResourceNodes := keeper.GetResourceNodeBondedToken(ctx).Amount
-	totalBondedStakeOfIndexingNodes := keeper.GetIndexingNodeBondedToken(ctx).Amount
+	totalBondedStakeOfResourceNodes := k.GetResourceNodeBondedToken(ctx).Amount
+	totalBondedStakeOfIndexingNodes := k.GetIndexingNodeBondedToken(ctx).Amount
 
-	totalUnbondedStakeOfResourceNodes := keeper.GetResourceNodeNotBondedToken(ctx).Amount
-	totalUnbondedStakeOfIndexingNodes := keeper.GetIndexingNodeNotBondedToken(ctx).Amount
+	totalUnbondedStakeOfResourceNodes := k.GetResourceNodeNotBondedToken(ctx).Amount
+	totalUnbondedStakeOfIndexingNodes := k.GetIndexingNodeNotBondedToken(ctx).Amount
 
-	resourceNodeList := keeper.GetAllResourceNodes(ctx)
+	resourceNodeList := k.GetAllResourceNodes(ctx)
 	totalStakeOfResourceNodes := sdk.ZeroInt()
-	for _, node := range resourceNodeList {
-		totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.GetTokens())
+	for _, node := range resourceNodeList.GetResourceNodes() {
+		totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
 	}
 
-	indexingNodeList := keeper.GetAllIndexingNodes(ctx)
+	indexingNodeList := k.GetAllIndexingNodes(ctx)
 	totalStakeOfIndexingNodes := sdk.ZeroInt()
-	for _, node := range indexingNodeList {
-		totalStakeOfIndexingNodes = totalStakeOfIndexingNodes.Add(node.GetTokens())
+	for _, node := range indexingNodeList.GetIndexingNodes() {
+		totalStakeOfIndexingNodes = totalStakeOfIndexingNodes.Add(node.Tokens)
 	}
 
 	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfIndexingNodes)
 	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfIndexingNodes)
-	totalUnbondingStake := keeper.GetAllUnbondingNodesTotalBalance(ctx)
+	totalUnbondingStake := k.GetAllUnbondingNodesTotalBalance(ctx)
 	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
 	res := types.NewQueryNodesStakingInfo(
 		totalStakeOfResourceNodes,
@@ -120,7 +143,7 @@ func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 		totalUnbondedStake,
 		totalUnbondingStake,
 	)
-	bz, err := codec.MarshalJSONIndent(keeper.cdc, res)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, res)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -128,34 +151,31 @@ func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) 
 	return bz, nil
 }
 
-func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) ([]byte, error) {
+//
+func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var (
 		bz          []byte
 		params      types.QueryNodeStakingParams
 		stakingInfo types.StakingInfo
 	)
 
-	err := keeper.cdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
-	}
-
-	NodeAddr, err := stratos.SdsAddressFromBech32(params.AccAddr.String())
-	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownAddress, err.Error())
 	}
 
 	queryType := params.QueryType
 
 	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
-		indexingNode, found := keeper.GetIndexingNode(ctx, NodeAddr)
+		indexingNode, found := k.GetIndexingNode(ctx, params.AccAddr)
 		if found {
 			// Adding indexing node staking info
-			unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
-				ctx, keeper,
+			networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+			unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
+				ctx,
 				indexingNode.GetStatus(),
-				indexingNode.GetNetworkAddr(),
-				indexingNode.GetTokens(),
+				networkAddr,
+				indexingNode.Tokens,
 			)
 			if err != nil {
 				return nil, err
@@ -167,7 +187,7 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 					unBondedStake,
 					bondedStake,
 				)
-				bzIndexing, err := codec.MarshalJSONIndent(keeper.cdc, stakingInfo)
+				bzIndexing, err := codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfo)
 				if err != nil {
 					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 				}
@@ -177,14 +197,15 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 	}
 
 	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
-		resourceNode, found := keeper.GetResourceNode(ctx, NodeAddr)
+		resourceNode, found := k.GetResourceNode(ctx, params.AccAddr)
 		if found {
 			// Adding resource node staking info
-			unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
-				ctx, keeper,
+			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+			unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
+				ctx,
 				resourceNode.GetStatus(),
-				resourceNode.GetNetworkAddr(),
-				resourceNode.GetTokens(),
+				networkAddr,
+				resourceNode.Tokens,
 			)
 			if err != nil {
 				return nil, err
@@ -196,7 +217,7 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 					unBondedStake,
 					bondedStake,
 				)
-				bzResource, err := codec.MarshalJSONIndent(keeper.cdc, stakingInfo)
+				bzResource, err := codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfo)
 				if err != nil {
 					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 				}
@@ -208,26 +229,27 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, keeper Kee
 	return bz, nil
 }
 
-func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Keeper) (result []byte, err error) {
+func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (result []byte, err error) {
 	var (
 		params       types.QueryNodesParams
 		stakingInfo  types.StakingInfo
 		stakingInfos []types.StakingInfo
 	)
 
-	err = keeper.cdc.UnmarshalJSON(req.Data, &params)
+	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	resNodes := keeper.GetResourceNodesFiltered(ctx, params)
-	indNodes := keeper.GetIndexingNodesFiltered(ctx, params)
+	resNodes := k.GetResourceNodesFiltered(ctx, params)
+	indNodes := k.GetIndexingNodesFiltered(ctx, params)
 
 	for _, n := range indNodes {
-		unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
-			ctx, keeper,
+		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
+			ctx,
 			n.GetStatus(),
-			n.GetNetworkAddr(),
-			n.GetTokens(),
+			networkAddr,
+			n.Tokens,
 		)
 		if err != nil {
 			return nil, err
@@ -244,11 +266,12 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 	}
 
 	for _, n := range resNodes {
-		unBondingStake, unBondedStake, bondedStake, err := getNodeStakes(
-			ctx, keeper,
+		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
+			ctx,
 			n.GetStatus(),
-			n.GetNetworkAddr(),
-			n.GetTokens(),
+			networkAddr,
+			n.Tokens,
 		)
 		if err != nil {
 			return nil, err
@@ -269,66 +292,12 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, keeper Ke
 		return nil, nil
 	} else {
 		stakingInfos = stakingInfos[start:end]
-		result, err = codec.MarshalJSONIndent(keeper.cdc, stakingInfos)
+		result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfos)
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
 		return result, nil
 	}
-}
-
-func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.IndexingNode {
-	nodes := k.GetAllIndexingNodes(ctx)
-	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
-
-	for _, n := range nodes {
-		// match NetworkAddr (if supplied)
-		if !params.NetworkAddr.Empty() {
-			if n.NetworkAddr.Equals(params.NetworkAddr) {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
-		// match OwnerAddr (if supplied)
-		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
-		}
-	}
-	return filteredNodes
-}
-
-func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
-	nodes := k.GetAllResourceNodes(ctx)
-	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
-
-	for _, n := range nodes {
-		// match NetworkAddr (if supplied)
-		if !params.NetworkAddr.Empty() {
-			if n.NetworkAddr.Equals(params.NetworkAddr) {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
-		// match OwnerAddr (if supplied)
-		if params.OwnerAddr.Empty() || n.OwnerAddress.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
-		}
-	}
-	return filteredNodes
 }
 
 func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params types.QueryNodesParams) []types.ResourceNode {
@@ -351,22 +320,92 @@ func (k Keeper) indexingNodesPagination(filteredNodes []types.IndexingNode, para
 	return filteredNodes
 }
 
-func getNodeStakes(ctx sdk.Context, keeper Keeper, bondStatus sdk.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
 	unbondingStake = sdk.NewInt(0)
 	unbondedStake = sdk.NewInt(0)
 	bondedStake = sdk.NewInt(0)
 
 	switch bondStatus {
-	case sdk.Unbonding:
-		unbondingStake = keeper.GetUnbondingNodeBalance(ctx, nodeAddress)
-	case sdk.Unbonded:
+	case stakingtypes.Unbonding:
+		unbondingStake = k.GetUnbondingNodeBalance(ctx, nodeAddress)
+	case stakingtypes.Unbonded:
 		unbondedStake = tokens
-	case sdk.Bonded:
+	case stakingtypes.Bonded:
 		bondedStake = tokens
 	default:
 		err := fmt.Sprintf("Invalid status of node %s, expected Bonded, Unbonded, or Unbonding, got %s",
-			nodeAddress.String(), bondStatus.String())
+			nodeAddress.String(), bondStatus)
 		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
 	}
 	return unbondingStake, unbondedStake, bondedStake, nil
+}
+
+func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.IndexingNode {
+	nodes := k.GetAllIndexingNodes(ctx)
+	filteredNodes := make([]types.IndexingNode, 0, len(nodes.GetIndexingNodes()))
+
+	for _, n := range nodes.GetIndexingNodes() {
+		// match NetworkAddr (if supplied)
+		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		if er != nil {
+			continue
+		}
+		if !params.NetworkAddr.Empty() {
+			if nodeNetworkAddr.Equals(params.NetworkAddr) {
+				continue
+			}
+		}
+
+		// match Moniker (if supplied)
+		if len(params.Moniker) > 0 {
+			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+				continue
+			}
+		}
+
+		// match OwnerAddr (if supplied)
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddr())
+		if er != nil {
+			continue
+		}
+		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, *n)
+		}
+	}
+	return filteredNodes
+}
+
+func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
+	nodes := k.GetAllResourceNodes(ctx)
+	filteredNodes := make([]types.ResourceNode, 0, len(nodes.GetResourceNodes()))
+
+	for _, n := range nodes.GetResourceNodes() {
+		// match NetworkAddr (if supplied)
+		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		if er != nil {
+			continue
+		}
+		if !params.NetworkAddr.Empty() {
+			if nodeNetworkAddr.Equals(params.NetworkAddr) {
+				continue
+			}
+		}
+
+		// match Moniker (if supplied)
+		if len(params.Moniker) > 0 {
+			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+				continue
+			}
+		}
+
+		// match OwnerAddr (if supplied)
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddr())
+		if er != nil {
+			continue
+		}
+		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, *n)
+		}
+	}
+	return filteredNodes
 }

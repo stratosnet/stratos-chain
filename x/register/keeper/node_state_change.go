@@ -178,37 +178,39 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 
 		for _, networkAddr := range timeslice {
 			ubd, found := k.GetUnbondingNode(ctx, networkAddr)
+			ubdNetworkAddr, _ := stratos.SdsAddressFromBech32(ubd.NetworkAddr)
 			if !found {
 				panic("node in the unbonding queue was not found")
 			}
 
 			if ubd.IsIndexingNode {
-				node, found := k.GetIndexingNode(ctx, ubd.NetworkAddr)
+
+				node, found := k.GetIndexingNode(ctx, ubdNetworkAddr)
 				if !found {
-					panic("cannot find indexing node " + ubd.NetworkAddr.String())
+					panic("cannot find indexing node " + ubd.NetworkAddr)
 				}
 				if node.GetStatus() != stakingtypes.Unbonding {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				k.removeIndexingNode(ctx, ubd.NetworkAddr)
-				_, found1 := k.GetIndexingNode(ctx, ubd.NetworkAddr)
+				k.removeIndexingNode(ctx, ubdNetworkAddr)
+				_, found1 := k.GetIndexingNode(ctx, ubdNetworkAddr)
 				if found1 {
-					ctx.Logger().Info("Removed indexing node with addr " + ubd.NetworkAddr.String())
+					ctx.Logger().Info("Removed indexing node with addr " + ubd.NetworkAddr)
 				}
 			} else {
-				node, found := k.GetResourceNode(ctx, ubd.NetworkAddr)
+				node, found := k.GetResourceNode(ctx, ubdNetworkAddr)
 				if !found {
-					panic("cannot find resource node " + ubd.NetworkAddr.String())
+					panic("cannot find resource node " + ubd.NetworkAddr)
 				}
 				if node.GetStatus() != stakingtypes.Unbonding {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
 				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				k.removeResourceNode(ctx, ubd.NetworkAddr)
-				_, found1 := k.GetResourceNode(ctx, ubd.NetworkAddr)
+				k.removeResourceNode(ctx, ubdNetworkAddr)
+				_, found1 := k.GetResourceNode(ctx, ubdNetworkAddr)
 				if found1 {
-					ctx.Logger().Info("Removed resource node with addr " + ubd.NetworkAddr.String())
+					ctx.Logger().Info("Removed resource node with addr " + ubd.NetworkAddr)
 				}
 
 			}
