@@ -81,7 +81,7 @@ func nodesWithParamsFn(clientCtx client.Context, queryPath string) http.HandlerF
 			}
 		}
 
-		params := types.NewQueryNodesParams(networkAddr, moniker, ownerAddr)
+		params := types.NewQueryNodesParams(page, limit, networkAddr, moniker, ownerAddr)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -190,7 +190,7 @@ func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerF
 			return
 		}
 
-		params := types.NewQueryNodesParams(nil, "", nodeWalletAddress)
+		params := types.NewQueryNodesParams(page, limit, nil, "", nodeWalletAddress)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if rest.CheckBadRequestError(w, err) {
 			return
