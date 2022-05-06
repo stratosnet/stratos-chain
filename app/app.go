@@ -98,6 +98,7 @@ import (
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	//"github.com/stratosnet/stratos-chain/x/pot"
 	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	//"github.com/stratosnet/stratos-chain/x/register"
@@ -202,7 +203,7 @@ type NewApp struct {
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
 	// stratos keepers
-	registerKeeper register.Keeper
+	registerKeeper registerkeeper.Keeper
 	//potKeeper      pot.Keeper
 	//sdsKeeper      sds.Keeper
 	evmKeeper *evmkeeper.Keeper
@@ -248,7 +249,7 @@ func NewInitApp(
 		// ibc keys
 		ibchost.StoreKey, ibctransfertypes.StoreKey,
 		// stratos keys
-		register.StoreKey,
+		registertypes.StoreKey,
 		//pot.StoreKey, sds.StoreKey,
 		evmtypes.StoreKey,
 	)
@@ -372,10 +373,10 @@ func NewInitApp(
 	app.evidenceKeeper = *evidenceKeeper
 
 	// Create Stratos keepers
-	app.registerKeeper = register.NewKeeper(
-		app.cdc,
-		keys[register.StoreKey],
-		app.subspaces[register.ModuleName],
+	app.registerKeeper = registerkeeper.NewKeeper(
+		appCodec,
+		keys[registertypes.StoreKey],
+		app.GetSubspace(registertypes.ModuleName),
 		app.accountKeeper,
 		app.bankKeeper,
 	)
@@ -445,6 +446,7 @@ func NewInitApp(
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		evmtypes.ModuleName,
+		registertypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
