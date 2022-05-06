@@ -37,6 +37,14 @@ type QueryNodeStakingParams struct {
 	QueryType int64 //0:All(Default) 1: indexingNode; 2: ResourceNode
 }
 
+// NewQueryNodeStakingParams creates a new instance of QueryNodesParams
+func NewQueryNodeStakingParams(nodeAddr stratos.SdsAddress, queryType int64) QueryNodeStakingParams {
+	return QueryNodeStakingParams{
+		AccAddr:   nodeAddr,
+		QueryType: queryType,
+	}
+}
+
 // NewQueryNodesStakingInfo creates a new instance of TotalStakesResponse
 func NewQueryNodesStakingInfo(ResourceNodeTotalStake, IndexingNodeTotalStake, totalBondedStake, totalUnbondedStake, totalUnbondingStake sdk.Int) *TotalStakesResponse {
 	resValue := sdk.NewCoin(defaultDenom, ResourceNodeTotalStake)
