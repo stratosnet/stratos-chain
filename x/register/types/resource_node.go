@@ -4,7 +4,10 @@ import (
 	"bytes"
 	"fmt"
 	"strconv"
+	"strings"
 	"time"
+
+	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -231,4 +234,43 @@ func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
 	bz1 := goamino.MustMarshalBinaryLengthPrefixed(&v1)
 	bz2 := goamino.MustMarshalBinaryLengthPrefixed(&v2)
 	return bytes.Equal(bz1, bz2)
+}
+
+func (s Staking) GetNetworkAddress() stratos.SdsAddress {
+	networkAddr, err := stratos.SdsAddressFromBech32(s.NetworkAddress)
+	if err != nil {
+		panic(err)
+	}
+	return networkAddr
+}
+func (s Staking) GetOwnerAddr() sdk.ValAddress {
+	addr, err := sdk.ValAddressFromBech32(s.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return addr
+}
+func (s Staking) GetShares() sdk.Dec { return s.Value }
+
+// String returns a human readable string representation of a node.
+func (s Staking) String() string {
+	out, _ := yaml.Marshal(s)
+	return string(out)
+}
+
+// Stakings is a collection of Staking
+type Stakings []Staking
+
+func (ss Stakings) String() (out string) {
+	for _, del := range ss {
+		out += del.String() + "\n"
+	}
+
+	return strings.TrimSpace(out)
+}
+
+// UnmarshalStaking returns the resource node staking
+func UnmarshalStaking(cdc codec.BinaryCodec, value []byte) (staking Staking, err error) {
+	err = cdc.Unmarshal(value, &staking)
+	return staking, err
 }
