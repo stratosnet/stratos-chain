@@ -243,8 +243,8 @@ func (s Staking) GetNetworkAddress() stratos.SdsAddress {
 	}
 	return networkAddr
 }
-func (s Staking) GetOwnerAddr() sdk.ValAddress {
-	addr, err := sdk.ValAddressFromBech32(s.OwnerAddress)
+func (s Staking) GetOwnerAddr() sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(s.OwnerAddress)
 	if err != nil {
 		panic(err)
 	}
