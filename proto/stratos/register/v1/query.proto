@@ -70,12 +70,16 @@ message QueryStakeByNodeRequest {
   // acc_addr defines the node network address to query for.
   string acc_addr     = 1;
   int64  query_type   = 2;
+  // pagination defines an optional pagination for the request.
+//  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryStakeByNodeResponse is response type for the Query/StakeByNode RPC method
 message QueryStakeByNodeResponse {
   // staking_info defines the the staking_info info of the node.
   StakingInfo staking_info = 1;
+  // pagination defines an optional pagination for the request.
+//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryStakeByOwnerRequest is request type for the Query/StakeByOwner RPC method
@@ -84,6 +88,8 @@ message QueryStakeByOwnerRequest {
   string              network_addr = 1;
   string              moniker = 2;
   string              owner_addr = 3;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
 }
 
 // QueryStakeByOwnerResponse is response type for the Query/StakeByOwner RPC method
@@ -91,7 +97,7 @@ message QueryStakeByOwnerResponse {
   // staking_infos defines the the node staking info of this owner.
   repeated StakingInfo staking_infos = 1;
   // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryTotalStakeRequest is request type for the Query/TotalStake RPC method

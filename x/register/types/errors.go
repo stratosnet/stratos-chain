@@ -50,6 +50,7 @@ const (
 	codeErrInvalidNodeType
 	codeErrUnknownAccountAddress
 	codeErrUnknownPubKey
+	codeErrNoNodeFound
 )
 
 var (
@@ -98,4 +99,5 @@ var (
 	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeType, "invalid node type")
 	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
 	ErrUnknownPubKey                      = sdkerrors.Register(ModuleName, codeErrUnknownPubKey, "unknown pubKey ")
+	ErrNoNodeFound                        = sdkerrors.Register(ModuleName, codeErrNoNodeFound, "node does not exist ")
 )
