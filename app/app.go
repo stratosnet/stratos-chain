@@ -520,6 +520,7 @@ func NewInitApp(
 
 		// NOTE: crisis module must go at the end to check for invariants on each module
 		crisistypes.ModuleName,
+		registertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
