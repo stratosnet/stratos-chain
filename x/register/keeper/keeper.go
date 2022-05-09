@@ -210,8 +210,12 @@ func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res
 	keys := make(map[string]bool)
 	for _, entry := range stringSlice {
 		if _, value := keys[entry.String()]; !value {
+			bytes, err := entry.MarshalJSON()
+			if err != nil {
+				continue
+			}
 			keys[entry.String()] = true
-			res = append(res, codec.NewLegacyAmino().MustMarshalJSON(entry)...)
+			res = append(res, bytes...)
 			res = append(res, ';')
 		}
 	}
