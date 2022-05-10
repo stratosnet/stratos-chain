@@ -35,12 +35,12 @@ func GetQueryCmd() *cobra.Command {
 // GetCmdQueryResourceNode implements the query resource nodes by network address command.
 func GetCmdQueryResourceNode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-resource-nodes [flag]",
+		Use:   "get-resource-node [flag]",
 		Short: "Query a resource node by its network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query details about an individual resource node by its network address.
 Example:
-$ %s query register get-resource-nodes --network-id=%sstsds1np4d8re98lpgrcdqcas8yt85gl3rvj268leg6v
+$ %s query register get-resource-node --network-address=%sstsds1np4d8re98lpgrcdqcas8yt85gl3rvj268leg6v
 `,
 				version.AppName,
 			),
@@ -54,12 +54,12 @@ $ %s query register get-resource-nodes --network-id=%sstsds1np4d8re98lpgrcdqcas8
 
 			// query resource node by network address
 			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
-			if queryFlagNetworkAddr == "" {
+			if len(queryFlagNetworkAddr) == 0 {
 				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
 
 			result, err := queryClient.ResourceNode(cmd.Context(), &types.QueryResourceNodeRequest{
-				// Leaving status empty on purpose to query all validators.
+				NetworkAddr: queryFlagNetworkAddr,
 			})
 			if err != nil {
 				return err
@@ -75,12 +75,12 @@ $ %s query register get-resource-nodes --network-id=%sstsds1np4d8re98lpgrcdqcas8
 // GetCmdQueryIndexingNode implements the query indexing nodes by network address command.
 func GetCmdQueryIndexingNode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-indexing-nodes [flag]",
+		Use:   "get-indexing-node [flag]",
 		Short: "Query an indexing node by its network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query details about an individual indexing node by its network address.
 Example:
-$ %s query register get-indexing-nodes --network-id=%sstsds1faej5w4q6hgnt0ft598dlm408g4p747y4krwca
+$ %s query register get-indexing-node --network-address=%sstsds1faej5w4q6hgnt0ft598dlm408g4p747y4krwca
 `,
 				version.AppName,
 			),
@@ -94,12 +94,13 @@ $ %s query register get-indexing-nodes --network-id=%sstsds1faej5w4q6hgnt0ft598d
 
 			// query resource node by network address
 			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
-			if queryFlagNetworkAddr == "" {
+			if len(queryFlagNetworkAddr) == 0 {
 				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
 
 			result, err := queryClient.IndexingNode(cmd.Context(), &types.QueryIndexingNodeRequest{
 				// Leaving status empty on purpose to query all validators.
+				NetworkAddr: queryFlagNetworkAddr,
 			})
 			if err != nil {
 				return err
