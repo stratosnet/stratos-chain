@@ -60,8 +60,8 @@ func New(ctx sdk.Context, keeper Keeper, txConfig TxConfig) *StateDB {
 		stateObjects: make(map[common.Address]*stateObject),
 		journal:      newJournal(),
 		accessList:   newAccessList(),
-
-		txConfig: txConfig,
+		logs:         make([]*ethtypes.Log, 0),
+		txConfig:     txConfig,
 	}
 }
 
