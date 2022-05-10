@@ -35,7 +35,7 @@ type PrivateAccountAPI struct {
 
 // NewAPI creates an instance of the public Personal Eth API.
 func NewAPI(logger log.Logger, clientCtx client.Context, backend backend.Backend) *PrivateAccountAPI {
-	cfg := sdk.GetConfig()
+	cfg := stratos.GetConfig()
 	basePath := cfg.GetFullBIP44Path()
 
 	iterator, err := stratos.NewHDPathIterator(basePath, true)

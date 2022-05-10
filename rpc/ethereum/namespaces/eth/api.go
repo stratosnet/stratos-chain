@@ -7,18 +7,12 @@ import (
 	"math"
 	"math/big"
 
-	"github.com/stratosnet/stratos-chain/ethereum/eip712"
-
-	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
+
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
@@ -33,9 +27,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/rpc"
+	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
 	"github.com/stratosnet/stratos-chain/crypto/hd"
+	"github.com/stratosnet/stratos-chain/ethereum/eip712"
 	"github.com/stratosnet/stratos-chain/rpc/ethereum/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -276,6 +274,12 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 	val, ok := sdk.NewIntFromString(res.Balance)
 	if !ok {
 		return nil, errors.New("invalid balance")
+	}
+
+	//return balance using unit "wei"
+	val, err = stratos.UstosToWei(val)
+	if err != nil {
+		return nil, err
 	}
 
 	return (*hexutil.Big)(val.BigInt()), nil
@@ -558,8 +562,8 @@ func checkTxFee(gasPrice *big.Int, gas uint64, cap float64) error {
 		return nil
 	}
 	totalfee := new(big.Float).SetInt(new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gas)))
-	// 1 photon in 10^18 aphoton
-	oneToken := new(big.Float).SetInt(big.NewInt(params.Ether))
+	// 1 stos in 10^9 ustos
+	oneToken := new(big.Float).SetFloat64(math.Pow10(stratos.BaseDenomUnit))
 	// quo = rounded(x/y)
 	feeEth := new(big.Float).Quo(totalfee, oneToken)
 	// no need to check error from parsing
