@@ -108,10 +108,6 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins)
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
 
 	switch resourceNode.GetStatus() {
 	case stakingtypes.Unbonded:
@@ -202,10 +198,6 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	// deduct slashing amount first
 	coins = k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
-	if err != nil {
-		return err
-	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, ownerAddr, coins)
 	if err != nil {
 		return err

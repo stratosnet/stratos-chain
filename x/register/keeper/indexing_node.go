@@ -141,10 +141,6 @@ func (k Keeper) AddIndexingNodeStake(ctx sdk.Context, indexingNode types.Indexin
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
-	err = k.bankKeeper.BurnCoins(ctx, types.ModuleName, coins)
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
 
 	indexingNode = indexingNode.AddToken(tokenToAdd.Amount)
 
@@ -215,10 +211,6 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	// deduct slashing amount first
 	coins = k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
-	err = k.bankKeeper.MintCoins(ctx, types.ModuleName, coins)
-	if err != nil {
-		return err
-	}
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, ownerAddr, coins)
 	if err != nil {
 		return err
