@@ -7,10 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/stratosnet/stratos-chain/x/pot"
-	"github.com/stratosnet/stratos-chain/x/register"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -23,29 +23,29 @@ var (
 // encoding/decoding library.
 type Keeper struct {
 	key            sdk.StoreKey
-	cdc            *codec.Codec
-	paramSpace     params.Subspace
-	BankKeeper     bank.Keeper
-	RegisterKeeper register.Keeper
-	PotKeeper      pot.Keeper
+	cdc            codec.Codec
+	paramSpace     paramtypes.Subspace
+	bankKeeper     bankKeeper.Keeper
+	RegisterKeeper registerKeeper.Keeper
+	PotKeeper      potKeeper.Keeper
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
 // (binary) encode and decode concrete sdk.MsgUploadFile.
 // nolint
 func NewKeeper(
-	cdc *codec.Codec,
+	cdc codec.Codec,
 	key sdk.StoreKey,
-	paramSpace params.Subspace,
-	bankKeeper bank.Keeper,
-	registerKeeper register.Keeper,
-	potKeeper pot.Keeper,
+	paramSpace paramtypes.Subspace,
+	bankKeeper bankKeeper.Keeper,
+	registerKeeper registerKeeper.Keeper,
+	potKeeper potKeeper.Keeper,
 ) Keeper {
 	return Keeper{
 		key:            key,
 		cdc:            cdc,
 		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
-		BankKeeper:     bankKeeper,
+		bankKeeper:     bankKeeper,
 		RegisterKeeper: registerKeeper,
 		PotKeeper:      potKeeper,
 	}
@@ -118,7 +118,7 @@ func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 // Prepay transfers coins from bank to sds (volumn) pool
 func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
 	// src - hasCoins?
-	if !k.BankKeeper.HasCoins(ctx, sender, coins) {
+	if !k.bankKeeper.HasCoins(ctx, sender, coins) {
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 
@@ -127,7 +127,7 @@ func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) 
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
 
-	_, err = k.BankKeeper.SubtractCoins(ctx, sender, coins)
+	_, err = k.bankKeeper.SubtractCoins(ctx, sender, coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
@@ -225,7 +225,7 @@ func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.Fi
 	for ; iter.Valid(); iter.Next() {
 		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
 		var fileInfo types.FileInfo
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &fileInfo)
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &fileInfo)
 		if handler(fileHash, fileInfo) {
 			break
 		}
