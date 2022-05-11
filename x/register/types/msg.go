@@ -201,7 +201,7 @@ func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
 	// Owner pays the tx fees
 	addr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
-		panic(err)
+		return []sdk.AccAddress{}
 	}
 	return []sdk.AccAddress{addr.Bytes()}
 

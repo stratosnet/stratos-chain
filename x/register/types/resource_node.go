@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"gopkg.in/yaml.v2"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -15,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	goamino "github.com/tendermint/go-amino"
 )
 
 type NodeType uint8
@@ -231,8 +231,8 @@ func UnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) (v ResourceNode,
 }
 
 func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
-	bz1 := goamino.MustMarshalBinaryLengthPrefixed(&v1)
-	bz2 := goamino.MustMarshalBinaryLengthPrefixed(&v2)
+	bz1 := types.ModuleCdc.MustMarshalLengthPrefixed(&v1)
+	bz2 := types.ModuleCdc.MustMarshalLengthPrefixed(&v2)
 	return bytes.Equal(bz1, bz2)
 }
 

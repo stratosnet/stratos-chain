@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	goamino "github.com/tendermint/go-amino"
 )
 
 // IndexingNodes is a collection of indexing node
@@ -171,12 +170,12 @@ func (v IndexingNode) IsUnBonding() bool {
 }
 
 // MustMarshalIndexingNode returns the indexingNode bytes. Panics if fails
-func MustMarshalIndexingNode(cdc codec.BinaryCodec, indexingNode IndexingNode) []byte {
+func MustMarshalIndexingNode(cdc codec.Codec, indexingNode IndexingNode) []byte {
 	return cdc.MustMarshal(&indexingNode)
 }
 
 // MustUnmarshalIndexingNode unmarshal an indexing node from a store value. Panics if fails
-func MustUnmarshalIndexingNode(cdc codec.BinaryCodec, value []byte) IndexingNode {
+func MustUnmarshalIndexingNode(cdc codec.Codec, value []byte) IndexingNode {
 	indexingNode, err := UnmarshalIndexingNode(cdc, value)
 	if err != nil {
 		panic(err)
@@ -185,7 +184,7 @@ func MustUnmarshalIndexingNode(cdc codec.BinaryCodec, value []byte) IndexingNode
 }
 
 // UnmarshalIndexingNode unmarshal an indexing node from a store value
-func UnmarshalIndexingNode(cdc codec.BinaryCodec, value []byte) (indexingNode IndexingNode, err error) {
+func UnmarshalIndexingNode(cdc codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
 	err = cdc.Unmarshal(value, &indexingNode)
 	return indexingNode, err
 }
@@ -221,13 +220,6 @@ func (v VoteOpinion) String() string {
 	}
 }
 
-//type IndexingNodeRegistrationVotePool struct {
-//	NodeAddress stratos.SdsAddress   `json:"node_address" yaml:"node_address"`
-//	ApproveList []stratos.SdsAddress `json:"approve_list" yaml:"approve_list"`
-//	RejectList  []stratos.SdsAddress `json:"reject_list" yaml:"reject_list"`
-//	ExpireTime  time.Time            `json:"expire_time" yaml:"expire_time"`
-//}
-
 func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []stratos.SdsAddress, rejectList []stratos.SdsAddress, expireTime time.Time) IndexingNodeRegistrationVotePool {
 	approveSlice := make([]string, len(approveList))
 	rejectSlice := make([]string, len(rejectList))
@@ -246,12 +238,12 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 }
 
 // MustMarshalIndexingNodeRegistrationVotePool returns the indexingNode bytes. Panics if fails
-func MustMarshalIndexingNodeRegistrationVotePool(cdc codec.BinaryCodec, votePool IndexingNodeRegistrationVotePool) []byte {
+func MustMarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, votePool IndexingNodeRegistrationVotePool) []byte {
 	return cdc.MustMarshal(&votePool)
 }
 
 // MustUnmarshalIndexingNodeRegistrationVotePool unmarshal an indexing node from a store value. Panics if fails
-func MustUnmarshalIndexingNodeRegistrationVotePool(cdc codec.BinaryCodec, value []byte) IndexingNodeRegistrationVotePool {
+func MustUnmarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, value []byte) IndexingNodeRegistrationVotePool {
 	votePool, err := UnmarshalIndexingNodeRegistrationVotePool(cdc, value)
 	if err != nil {
 		panic(err)
@@ -260,13 +252,13 @@ func MustUnmarshalIndexingNodeRegistrationVotePool(cdc codec.BinaryCodec, value 
 }
 
 // UnmarshalIndexingNodeRegistrationVotePool unmarshal an indexing node from a store value
-func UnmarshalIndexingNodeRegistrationVotePool(cdc codec.BinaryCodec, value []byte) (votePool IndexingNodeRegistrationVotePool, err error) {
+func UnmarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, value []byte) (votePool IndexingNodeRegistrationVotePool, err error) {
 	err = cdc.Unmarshal(value, &votePool)
 	return votePool, err
 }
 
 func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
-	bz1 := goamino.MustMarshalBinaryLengthPrefixed(&v1)
-	bz2 := goamino.MustMarshalBinaryLengthPrefixed(&v2)
+	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
+	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
 	return bytes.Equal(bz1, bz2)
 }

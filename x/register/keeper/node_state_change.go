@@ -8,7 +8,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/go-amino"
 	abci "github.com/tendermint/tendermint/abci/types"
 )
 
@@ -159,7 +158,7 @@ func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (m
 
 	for ; ubdTimesliceIterator.Valid(); ubdTimesliceIterator.Next() {
 		timeslice := []sdk.AccAddress{}
-		amino.MustUnmarshalBinaryLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
 		matureNetworkAddrs = append(matureNetworkAddrs, timeslice...)
 	}
 
@@ -174,7 +173,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 
 	for ; nodeTimesliceIterator.Valid(); nodeTimesliceIterator.Next() {
 		timeslice := []stratos.SdsAddress{}
-		amino.MustUnmarshalBinaryLengthPrefixed(nodeTimesliceIterator.Value(), &timeslice)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(nodeTimesliceIterator.Value(), &timeslice)
 
 		for _, networkAddr := range timeslice {
 			ubd, found := k.GetUnbondingNode(ctx, networkAddr)

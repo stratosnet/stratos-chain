@@ -1,5 +1,5 @@
 syntax = "proto3";
-package stratos.evm.v1;
+package stratos.register.v1;
 
 
 

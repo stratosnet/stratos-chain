@@ -12,14 +12,13 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/go-amino"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of the register store
 type Keeper struct {
 	storeKey sdk.StoreKey
-	cdc      codec.BinaryCodec
+	cdc      codec.Codec
 	// module specific parameter space that can be configured through governance
 	paramSpace            paramtypes.Subspace
 	accountKeeper         types.AccountKeeper
@@ -32,7 +31,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a register keeper
-func NewKeeper(cdc codec.BinaryCodec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) Keeper {
 
 	keeper := Keeper{
@@ -66,7 +65,7 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 
 func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(&price)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(&price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
@@ -76,13 +75,13 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	if b == nil {
 		panic("Stored initial uOzone price should not have been nil")
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(b, &price)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &price)
 	return
 }
 
 func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(totalUnissuedPrepay)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(totalUnissuedPrepay)
 	store.Set(types.TotalUnissuedPrepayKey, b)
 }
 
@@ -92,13 +91,13 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 	if b == nil {
 		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(b, &totalUnissuedPrepay)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &totalUnissuedPrepay)
 	return
 }
 
 func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(stake)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
 	store.Set(types.InitialGenesisStakeTotalKey, b)
 }
 
@@ -108,13 +107,13 @@ func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(b, &stake)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
 	return
 }
 
 func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := amino.MustMarshalBinaryLengthPrefixed(value)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(value)
 	store.Set(types.UpperBoundOfTotalOzoneKey, b)
 }
 
@@ -124,7 +123,7 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(b, &value)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &value)
 	return
 }
 
@@ -222,7 +221,7 @@ func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res
 	return res[:len(res)-1]
 }
 
-// return a given amount of all the UnbondingIndexingNodes
+// GetUnbondingNodes return a given amount of all the UnbondingIndexingNodes
 func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
 	maxRetrieve uint16) (unbondingIndexingNodes []types.UnbondingNode) {
 
@@ -242,7 +241,7 @@ func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddres
 	return unbondingIndexingNodes[:i] // trim if the array length < maxRetrieve
 }
 
-// return a unbonding UnbondingIndexingNode
+// GetUnbondingNode return a unbonding UnbondingIndexingNode
 func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	networkAddr stratos.SdsAddress) (ubd types.UnbondingNode, found bool) {
 
@@ -257,7 +256,7 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	return ubd, true
 }
 
-// iterate through all of the unbonding indexingNodes
+// IterateUnbondingNodes iterates through all of the unbonding indexingNodes
 func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingNode) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
@@ -281,7 +280,7 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
 }
 
-// set the unbonding IndexingNode
+// SetUnbondingNode sets the unbonding IndexingNode
 func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalUnbondingNode(k.cdc, ubd)
@@ -293,7 +292,7 @@ func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store.Set(key, bz)
 }
 
-// remove the unbonding IndexingNode object
+// RemoveUnbondingNode removes the unbonding IndexingNode object
 func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
@@ -321,7 +320,7 @@ func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAd
 
 // unbonding delegation queue timeslice operations
 
-// gets a specific unbonding queue timeslice. A timeslice is a slice of DVPairs
+// GetUnbondingNodeQueueTimeSlice gets a specific unbonding queue timeslice. A timeslice is a slice of DVPairs
 // corresponding to unbonding delegations that expire at a certain time.
 func (k Keeper) GetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (networkAddrs []stratos.SdsAddress) {
 	store := ctx.KVStore(k.storeKey)
@@ -329,18 +328,18 @@ func (k Keeper) GetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.T
 	if bz == nil {
 		return []stratos.SdsAddress{}
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(bz, &networkAddrs)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(bz, &networkAddrs)
 	return networkAddrs
 }
 
-// Sets a specific unbonding queue timeslice.
+// SetUnbondingNodeQueueTimeSlice sets a specific unbonding queue timeslice.
 func (k Keeper) SetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []stratos.SdsAddress) {
 	store := ctx.KVStore(k.storeKey)
-	bz := amino.MustMarshalBinaryLengthPrefixed(keys)
+	bz := types.ModuleCdc.MustMarshalLengthPrefixed(keys)
 	store.Set(types.GetUBDTimeKey(timestamp), bz)
 }
 
-// Insert an unbonding delegation to the appropriate timeslice in the unbonding queue
+// InsertUnbondingNodeQueue inserts an unbonding delegation to the appropriate timeslice in the unbonding queue
 func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNode,
 	completionTime time.Time) {
 
@@ -357,14 +356,14 @@ func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNod
 	}
 }
 
-// Returns all the unbonding queue timeslices from time 0 until endTime
+// UnbondingNodeQueueIterator returns all the unbonding queue timeslices from time 0 until endTime
 func (k Keeper) UnbondingNodeQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	return store.Iterator(types.UBDNodeQueueKey,
 		sdk.InclusiveEndBytes(types.GetUBDTimeKey(endTime)))
 }
 
-// Returns a concatenated list of all the timeslices inclusively previous to
+// DequeueAllMatureUBDQueue returns a concatenated list of all the timeslices inclusively previous to
 // currTime, and deletes the timeslices from the queue
 func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 	currTime time.Time) (matureUnbonds []stratos.SdsAddress) {
@@ -377,7 +376,7 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
 		timeslice := []stratos.SdsAddress{}
 		value := unbondingTimesliceIterator.Value()
-		amino.MustUnmarshalBinaryLengthPrefixed(value, &timeslice)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &timeslice)
 		matureUnbonds = append(matureUnbonds, timeslice...)
 		store.Delete(unbondingTimesliceIterator.Key())
 	}
@@ -603,7 +602,7 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	return balance
 }
 
-// calc current uoz price
+// CurrUozPrice calcs current uoz price
 func (k Keeper) CurrUozPrice(ctx sdk.Context) sdk.Dec {
 	S := k.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount

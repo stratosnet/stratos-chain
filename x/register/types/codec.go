@@ -44,21 +44,23 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
-var (
-	amino = codec.NewLegacyAmino()
-
-	// ModuleCdc references the global x/register module codec. Note, the codec should
-	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
-	// still used for that purpose.
-	//
-	// The actual codec used for serialization should be provided to x/register and
-	// defined at the application level.
-	ModuleCdc = codec.NewAminoCodec(amino)
-)
+//var (
+//	amino = codec.NewLegacyAmino()
+//
+//	// ModuleCdc references the global x/register module codec. Note, the codec should
+//	// ONLY be used in certain instances of tests and for JSON encoding as Amino is
+//	// still used for that purpose.
+//	//
+//	// The actual codec used for serialization should be provided to x/register and
+//	// defined at the application level.
+//)
 
 // ModuleCdc defines the module codec
+var ModuleCdc *codec.LegacyAmino
+
 func init() {
-	RegisterLegacyAminoCodec(amino)
-	cryptocodec.RegisterCrypto(amino)
-	amino.Seal()
+	ModuleCdc = codec.NewLegacyAmino()
+	RegisterLegacyAminoCodec(ModuleCdc)
+	cryptocodec.RegisterCrypto(ModuleCdc)
+	ModuleCdc.Seal()
 }
