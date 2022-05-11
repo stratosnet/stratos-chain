@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/cosmos/go-bip39"
 	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -19,8 +18,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/crypto/keys/multisig"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/go-bip39"
 
 	stratoshd "github.com/stratosnet/stratos-chain/crypto/hd"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -76,7 +77,7 @@ Example:
 	f.Bool(flagNoBackup, false, "Don't print out seed phrase (if others are watching the terminal)")
 	f.Bool(flags.FlagDryRun, false, "Perform action, but don't add key to local keystore")
 	f.String(flagHDPath, "", "Manual HD Path derivation (overrides BIP44 config)")
-	f.Uint32(flagCoinType, sdk.GetConfig().GetCoinType(), "coin type number for HD derivation")
+	f.Uint32(flagCoinType, stratos.GetConfig().GetCoinType(), "coin type number for HD derivation")
 	f.Uint32(flagAccount, 0, "Account number for HD derivation")
 	f.Uint32(flagIndex, 0, "Address index number for HD derivation")
 	f.String(flags.FlagKeyAlgorithm, string(stratoshd.EthSecp256k1Type), "Key signing algorithm to generate keys for")

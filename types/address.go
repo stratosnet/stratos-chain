@@ -2,7 +2,9 @@ package types
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -18,49 +20,34 @@ import (
 // Bech32PubKeyType defines a string type alias for a Bech32 public key type.
 type Bech32PubKeyType string
 
-// Bech32 conversion constants
 const (
 	StratosBech32Prefix = "st"
+
+	// PrefixSds is the prefix for sds keys
+	PrefixSds = "sds"
 
 	Bech32PubKeyTypeAccPub    Bech32PubKeyType = "accpub"
 	Bech32PubKeyTypeValPub    Bech32PubKeyType = "valpub"
 	Bech32PubKeyTypeConsPub   Bech32PubKeyType = "conspub"
 	Bech32PubKeyTypeSdsP2PPub Bech32PubKeyType = "sdsp2p"
 
-	AccountPubKeyPrefix     = StratosBech32Prefix + "pub"
-	ValidatorAddressPrefix  = StratosBech32Prefix + "valoper"
-	ValidatorPubKeyPrefix   = StratosBech32Prefix + "valoperpub"
-	ConsNodeAddressPrefix   = StratosBech32Prefix + "valcons"
-	ConsNodePubKeyPrefix    = StratosBech32Prefix + "valconspub"
-	SdsNodeP2PPubkeyPrefix  = StratosBech32Prefix + "sdspub"
-	SdsNodeP2PAddressPrefix = StratosBech32Prefix + "sds"
-
-	CoinType = 606
-
-	HDPath = "m/44'/606'/0'/0/0"
+	// AccountAddressPrefix defines the Bech32 prefix of an account's address (st)
+	AccountAddressPrefix = StratosBech32Prefix
+	// AccountPubKeyPrefix defines the Bech32 prefix of an account's public key (stpub)
+	AccountPubKeyPrefix = StratosBech32Prefix + sdk.PrefixPublic
+	// ValidatorAddressPrefix defines the Bech32 prefix of a validator's operator address (stvaloper)
+	ValidatorAddressPrefix = StratosBech32Prefix + sdk.PrefixValidator + sdk.PrefixOperator
+	// ValidatorPubKeyPrefix defines the Bech32 prefix of a validator's operator public key (stvaloperpub)
+	ValidatorPubKeyPrefix = StratosBech32Prefix + sdk.PrefixValidator + sdk.PrefixOperator + sdk.PrefixPublic
+	// ConsNodeAddressPrefix defines the Bech32 prefix of a consensus node address (stvalcons)
+	ConsNodeAddressPrefix = StratosBech32Prefix + sdk.PrefixValidator + sdk.PrefixConsensus
+	// ConsNodePubKeyPrefix defines the Bech32 prefix of a consensus node public key (stvalconspub)
+	ConsNodePubKeyPrefix = StratosBech32Prefix + sdk.PrefixValidator + sdk.PrefixConsensus + sdk.PrefixPublic
+	// SdsNodeP2PPubkeyPrefix defines the Bech32 prefix of an sds account's public key (stsdspub)
+	SdsNodeP2PPubkeyPrefix = StratosBech32Prefix + PrefixSds + sdk.PrefixPublic
+	// SdsNodeP2PAddressPrefix defines the Bech32 prefix of an sds account's address (stsds)
+	SdsNodeP2PAddressPrefix = StratosBech32Prefix + PrefixSds
 )
-
-// Bech32ifyPubKey returns a Bech32 encoded string containing the appropriate
-// prefix based on the key type provided for a given PublicKey.
-//func Bech32ifyPubKey(pkt Bech32PubKeyType, pubkey crypto.PubKey) (string, error) {
-//	var bech32Prefix string
-//
-//	switch pkt {
-//	case Bech32PubKeyTypeAccPub:
-//		bech32Prefix = GetConfig().GetBech32AccountPubPrefix()
-//
-//	case Bech32PubKeyTypeValPub:
-//		bech32Prefix = GetConfig().GetBech32ValidatorPubPrefix()
-//
-//	case Bech32PubKeyTypeConsPub:
-//		bech32Prefix = GetConfig().GetBech32ConsensusPubPrefix()
-//
-//	case Bech32PubKeyTypeSdsP2PPub:
-//		bech32Prefix = GetConfig().GetBech32SdsNodeP2PPubPrefix()
-//	}
-//
-//	return bech32.ConvertAndEncode(bech32Prefix, pubkey.Bytes())
-//}
 
 // GetPubKeyFromBech32 returns a PublicKey from a bech32-encoded PublicKey with
 // a given key type.
@@ -94,10 +81,41 @@ func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (cryptotypes.Pu
 	return pk, nil
 }
 
+var _ sdk.Address = SdsAddress{}
+var _ yaml.Marshaler = SdsAddress{}
+
 type SdsAddress []byte
 
 var _ sdk.Address = SdsAddress{}
 
+// SdsAddressFromHex creates an SdsAddress from a hex string.
+func SdsAddressFromHex(address string) (addr SdsAddress, err error) {
+	bz, err := addressBytesFromHexString(address)
+	return bz, err
+}
+
+// SdsAddressFromBech32 creates an SdsAddress from a Bech32 string.
+func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
+	if len(strings.TrimSpace(address)) == 0 {
+		return SdsAddress{}, errors.New("empty address string is not allowed")
+	}
+
+	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
+
+	bz, err := sdk.GetFromBech32(address, bech32PrefixSdsAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	err = sdk.VerifyAddressFormat(bz)
+	if err != nil {
+		return nil, err
+	}
+
+	return SdsAddress(bz), nil
+}
+
+// Equals Returns boolean for whether two SdsAddress are Equal
 func (a SdsAddress) Equals(addr sdk.Address) bool {
 	if a.Empty() && addr.Empty() {
 		return true
@@ -107,7 +125,7 @@ func (a SdsAddress) Equals(addr sdk.Address) bool {
 }
 
 func (a SdsAddress) Empty() bool {
-	if a == nil {
+	if a == nil || len(a) == 0 {
 		return true
 	}
 
@@ -121,36 +139,6 @@ func (a SdsAddress) Marshal() ([]byte, error) {
 
 func (a SdsAddress) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a.String())
-}
-
-func (a SdsAddress) Bytes() []byte {
-	return a
-}
-
-func (a SdsAddress) String() string {
-	if a.Empty() {
-		return ""
-	}
-
-	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
-
-	bech32Addr, err := bech32.ConvertAndEncode(bech32PrefixSdsAddr, a.Bytes())
-	if err != nil {
-		panic(err)
-	}
-
-	return bech32Addr
-}
-
-func (a SdsAddress) Format(s fmt.State, verb rune) {
-	switch verb {
-	case 's':
-		s.Write([]byte(a.String()))
-	case 'p':
-		s.Write([]byte(fmt.Sprintf("%p", a)))
-	default:
-		s.Write([]byte(fmt.Sprintf("%X", []byte(a))))
-	}
 }
 
 // Unmarshal sets the address to the given data. It is needed for protobuf
@@ -208,23 +196,43 @@ func (a *SdsAddress) UnmarshalYAML(data []byte) error {
 	return nil
 }
 
-// AccAddressFromBech32 creates an AccAddress from a Bech32 string.
-func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
-	if len(strings.TrimSpace(address)) == 0 {
-		return SdsAddress{}, nil
+// Bytes returns the raw address bytes.
+func (aa SdsAddress) Bytes() []byte {
+	return aa
+}
+
+// String implements the Stringer interface.
+func (aa SdsAddress) String() string {
+	if aa.Empty() {
+		return ""
 	}
 
 	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
 
-	bz, err := sdk.GetFromBech32(address, bech32PrefixSdsAddr)
+	bech32Addr, err := bech32.ConvertAndEncode(bech32PrefixSdsAddr, aa.Bytes())
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
-	err = sdk.VerifyAddressFormat(bz)
-	if err != nil {
-		return nil, err
+	return bech32Addr
+}
+
+// Format implements the fmt.Formatter interface.
+func (aa SdsAddress) Format(s fmt.State, verb rune) {
+	switch verb {
+	case 's':
+		s.Write([]byte(aa.String()))
+	case 'p':
+		s.Write([]byte(fmt.Sprintf("%p", aa)))
+	default:
+		s.Write([]byte(fmt.Sprintf("%X", []byte(aa))))
+	}
+}
+
+func addressBytesFromHexString(address string) ([]byte, error) {
+	if len(address) == 0 {
+		return nil, errors.New("decoding Bech32 address failed: must provide an address")
 	}
 
-	return SdsAddress(bz), nil
+	return hex.DecodeString(address)
 }

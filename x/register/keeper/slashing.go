@@ -2,8 +2,6 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/tendermint/go-amino"
-
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -37,7 +35,7 @@ func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress
 	for ; iter.Valid(); iter.Next() {
 		walletAddress := sdk.AccAddress(iter.Key()[len(types.SlashingPrefix):])
 		var slashing sdk.Int
-		amino.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &slashing)
+		types.ModuleCdc.MustUnmarshalLengthPrefixed(iter.Value(), &slashing)
 		if handler(walletAddress, slashing) {
 			break
 		}
@@ -47,7 +45,7 @@ func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress
 func (k Keeper) SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetSlashingKey(walletAddress)
-	bz := amino.MustMarshalBinaryLengthPrefixed(slashing)
+	bz := types.ModuleCdc.MustMarshalLengthPrefixed(slashing)
 	store.Set(storeKey, bz)
 }
 
@@ -57,6 +55,6 @@ func (k Keeper) GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res 
 	if bz == nil {
 		return sdk.ZeroInt()
 	}
-	amino.MustUnmarshalBinaryLengthPrefixed(bz, &res)
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(bz, &res)
 	return
 }
