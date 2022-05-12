@@ -22,7 +22,7 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 		return
 	}
 
-	k.SetBaseFee(ctx, baseFee)
+	k.SetBaseFeeParam(ctx, baseFee)
 
 	// Store current base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{

@@ -6,7 +6,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 
-	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 

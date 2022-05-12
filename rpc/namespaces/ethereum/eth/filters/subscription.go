@@ -3,12 +3,12 @@ package filters
 import (
 	"time"
 
+	coretypes "github.com/tendermint/tendermint/rpc/core/types"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
-
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
 // Subscription defines a wrapper for the private subscription
@@ -32,7 +32,7 @@ func (s Subscription) ID() rpc.ID {
 }
 
 // Unsubscribe from the current subscription to Tendermint Websocket. It sends an error to the
-// subscription error channel if unsubscription fails.
+// subscription error channel if unsubscribe fails.
 func (s *Subscription) Unsubscribe(es *EventSystem) {
 	go func() {
 	uninstallLoop:

@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
-	"github.com/stratosnet/stratos-chain/x/evm/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	clientrest "github.com/cosmos/cosmos-sdk/client/rest"
@@ -19,8 +18,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 
-	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
-	//feemarkettypes "github.com/stratosnet/stratos-chain/x/feemarket/types"
+	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
+	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 // RegisterTxRoutes - Central function to define routes that get registered by the main application
@@ -84,7 +83,7 @@ func getEthTransactionByHash(clientCtx client.Context, hashHex string) ([]byte, 
 	}
 
 	client := types.NewQueryClient(clientCtx)
-	res, err := client.QueryBaseFee(context.Background(), &types.QueryBaseFeeRequest{})
+	res, err := client.BaseFee(context.Background(), &types.QueryBaseFeeRequest{})
 	if err != nil {
 		return nil, err
 	}

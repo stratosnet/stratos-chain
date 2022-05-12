@@ -14,21 +14,21 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	stderrors "github.com/pkg/errors"
 
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	stderrors "github.com/pkg/errors"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/rlp"
 
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/backend"
-	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
+	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -45,7 +45,7 @@ type HandlerT struct {
 type API struct {
 	ctx         *server.Context
 	logger      log.Logger
-	backend     backend.Backend
+	backend     backend.EVMBackend
 	clientCtx   client.Context
 	queryClient *rpctypes.QueryClient
 	handler     *HandlerT
@@ -54,7 +54,7 @@ type API struct {
 // NewAPI creates a new API definition for the tracing methods of the Ethereum service.
 func NewAPI(
 	ctx *server.Context,
-	backend backend.Backend,
+	backend backend.EVMBackend,
 	clientCtx client.Context,
 ) *API {
 	return &API{

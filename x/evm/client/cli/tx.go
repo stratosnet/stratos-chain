@@ -5,14 +5,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/client/input"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
-	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/input"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+
+	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 

@@ -20,7 +20,7 @@ import (
 
 	"github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 	"github.com/stratosnet/stratos-chain/crypto/hd"
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/backend"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -28,13 +28,17 @@ import (
 // PrivateAccountAPI is the personal_ prefixed set of APIs in the Web3 JSON-RPC spec.
 type PrivateAccountAPI struct {
 	clientCtx  client.Context
-	backend    backend.Backend
+	backend    backend.EVMBackend
 	logger     log.Logger
 	hdPathIter stratos.HDPathIterator
 }
 
 // NewAPI creates an instance of the public Personal Eth API.
-func NewAPI(logger log.Logger, clientCtx client.Context, backend backend.Backend) *PrivateAccountAPI {
+func NewAPI(
+	logger log.Logger,
+	clientCtx client.Context,
+	backend backend.EVMBackend,
+) *PrivateAccountAPI {
 	cfg := stratos.GetConfig()
 	basePath := cfg.GetFullBIP44Path()
 

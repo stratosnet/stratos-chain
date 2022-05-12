@@ -17,10 +17,9 @@ import (
 // HandlerOptions extend the SDK's AnteHandler options by requiring the IBC
 // channel keeper, EVM Keeper and Fee Market Keeper.
 type HandlerOptions struct {
-	AccountKeeper evmtypes.AccountKeeper
-	BankKeeper    evmtypes.BankKeeper
-	IBCKeeper     *ibckeeper.Keeper
-	//FeeMarketKeeper evmtypes.FeeMarketKeeper
+	AccountKeeper   evmtypes.AccountKeeper
+	BankKeeper      evmtypes.BankKeeper
+	IBCKeeper       *ibckeeper.Keeper
 	EvmKeeper       EVMKeeper
 	FeegrantKeeper  ante.FeegrantKeeper
 	SignModeHandler authsigning.SignModeHandler
@@ -38,9 +37,6 @@ func (options HandlerOptions) Validate() error {
 	if options.SignModeHandler == nil {
 		return sdkerrors.Wrap(sdkerrors.ErrLogic, "sign mode handler is required for ante builder")
 	}
-	//if options.FeeMarketKeeper == nil {
-	//	return sdkerrors.Wrap(sdkerrors.ErrLogic, "fee market keeper is required for AnteHandler")
-	//}
 	if options.EvmKeeper == nil {
 		return sdkerrors.Wrap(sdkerrors.ErrLogic, "evm keeper is required for AnteHandler")
 	}
@@ -53,7 +49,7 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewEthMempoolFeeDecorator(options.EvmKeeper),   // Check eth effective gas price against minimal-gas-prices
 		NewEthValidateBasicDecorator(options.EvmKeeper),
 		NewEthSigVerificationDecorator(options.EvmKeeper),
-		NewEthAccountVerificationDecorator(options.AccountKeeper, options.BankKeeper, options.EvmKeeper),
+		NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
 		NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
 		NewCanTransferDecorator(options.EvmKeeper),
 		NewEthIncrementSenderSequenceDecorator(options.AccountKeeper), // innermost AnteDecorator.

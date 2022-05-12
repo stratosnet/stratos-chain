@@ -5,10 +5,12 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
+
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -23,7 +25,7 @@ type EVMKeeper interface {
 	DeductTxCostsFromUserBalance(
 		ctx sdk.Context, msgEthTx evmtypes.MsgEthereumTx, txData evmtypes.TxData, denom string, homestead, istanbul, london bool,
 	) (sdk.Coins, error)
-	BaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
+	GetBaseFee(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int
 	GetBalance(ctx sdk.Context, addr common.Address) *big.Int
 	ResetTransientGasUsed(ctx sdk.Context)
 }

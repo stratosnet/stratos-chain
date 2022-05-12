@@ -7,7 +7,7 @@ import (
 )
 
 // GetHashrate returns the current hashrate for local CPU miner and remote miner.
-// Unsupported in Stratos
+// Unsupported in stratos
 func (api *API) GetHashrate() uint64 {
 	api.logger.Debug("miner_getHashrate")
 	api.logger.Debug("Unsupported rpc function: miner_getHashrate")
@@ -15,7 +15,7 @@ func (api *API) GetHashrate() uint64 {
 }
 
 // SetExtra sets the extra data string that is included when this miner mines a block.
-// Unsupported in Stratos
+// Unsupported in stratos
 func (api *API) SetExtra(extra string) (bool, error) {
 	api.logger.Debug("miner_setExtra")
 	api.logger.Debug("Unsupported rpc function: miner_setExtra")

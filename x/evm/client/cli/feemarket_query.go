@@ -122,7 +122,7 @@ If the height is not provided, it will use the latest height from context.`,
 
 			queryClient := types.NewQueryClient(clientCtx)
 
-			res, err := queryClient.QueryBaseFee(ctx, &types.QueryBaseFeeRequest{})
+			res, err := queryClient.BaseFeeParam(ctx, &types.QueryBaseFeeRequest{})
 			if err != nil {
 				return err
 			}
