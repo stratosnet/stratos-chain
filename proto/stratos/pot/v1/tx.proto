@@ -1,0 +1,128 @@
+syntax = "proto3";
+package stratos.pot.v1;
+
+import "gogoproto/gogo.proto";
+//import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+
+//import "cosmos_proto/cosmos.proto";
+import "stratos/pot/v1/pot.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+
+option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
+
+// Msg defines the evm Msg service.
+service Msg {
+  rpc HandleMsgVolumeReport(MsgVolumeReport) returns (MsgVolumeReportResponse) {
+    option (google.api.http).post = "/stratos/pot/v1/volume_report";
+  };
+  rpc HandleMsgWithdraw(MsgWithdraw) returns (MsgWithdrawResponse) {
+    option (google.api.http).post = "/stratos/pot/v1/withdraw";
+  };
+  rpc HandleMsgFoundationDeposit(MsgFoundationDeposit) returns (MsgFoundationDepositResponse) {
+    option (google.api.http).post = "/stratos/pot/v1/foundation_deposit";
+  };
+  rpc HandleMsgSlashingResourceNode(MsgSlashingResourceNode) returns (MsgSlashingResourceNodeResponse) {
+    option (google.api.http).post = "/stratos/pot/v1/slashing_resource_node";
+  };
+}
+
+// MsgVolumeReport encapsulates an VolumeReport transaction as an SDK message.
+message MsgVolumeReport {
+  repeated SingleWalletVolume walletVolumes = 1 [
+    (gogoproto.jsontag) = "wallet_volumes",
+    (gogoproto.moretags) = "yaml:\"wallet_volumes\""
+  ];
+  string            reporter = 2 [
+    (gogoproto.jsontag) = "reporter",
+    (gogoproto.moretags) = "yaml:\"reporter\""
+  ];
+  string                   epoch        = 3 [
+    (gogoproto.jsontag)  = "epoch",
+    (gogoproto.moretags) = "yaml:\"epoch\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                   reportReference = 4 [
+    (gogoproto.jsontag) = "report_reference",
+    (gogoproto.moretags) = "yaml:\"report_reference\""
+  ];
+  string                   reporterOwner = 5 [
+    (gogoproto.jsontag) = "reporter_owner",
+    (gogoproto.moretags) = "yaml:\"reporter_owner\""
+  ];
+  BLSSignatureInfo         bLSSignature = 6 [
+    (gogoproto.jsontag) = "bls_signature",
+    (gogoproto.moretags) = "yaml:\"bls_signature\""
+  ];
+}
+// MsgVolumeReportResponse defines the MsgVolumeReport response type
+message MsgVolumeReportResponse {}
+
+// MsgWithdraw encapsulates an withdraw transaction as an SDK message.
+message MsgWithdraw {
+  repeated cosmos.base.v1beta1.Coin Amount = 1 [
+      (gogoproto.nullable) = false,
+      (gogoproto.jsontag)  = "amount",
+      (gogoproto.moretags) = "yaml:\"amount\"",
+      (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  string                         walletAddress = 2 [
+    (gogoproto.jsontag) = "wallet_address",
+    (gogoproto.moretags) = "yaml:\"wallet_address\""
+  ];
+  string                         targetAddress = 3 [
+  (gogoproto.jsontag) = "target_address",
+  (gogoproto.moretags) = "yaml:\"target_address\""
+  ];
+}
+// MsgWithdrawResponse defines the Msg/MsgWithdraw response type.
+message MsgWithdrawResponse {}
+
+// MsgFoundationDeposit - encapsulates an FoundationDeposit transaction as an SDK message
+message MsgFoundationDeposit {
+  repeated cosmos.base.v1beta1.Coin Amount = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag)  = "amount",
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  string                        from = 2 [
+    (gogoproto.jsontag) = "from",
+    (gogoproto.moretags) = "yaml:\"from\""
+  ];
+}
+// MsgFoundationDepositResponse defines the MsgFoundationDeposit response type
+message MsgFoundationDepositResponse {}
+
+
+// MsgRemoveIndexingNode - encapsulates an MsgRemoveIndexingNode transaction as an SDK message
+message MsgSlashingResourceNode {
+  repeated string reporters = 1 [
+    (gogoproto.jsontag) = "reporters",
+    (gogoproto.moretags) = "yaml:\"reporters\""
+  ];
+  repeated string reporterOwner = 2 [
+    (gogoproto.jsontag) = "reporter_owner",
+    (gogoproto.moretags) = "yaml:\"reporter_owner\""
+  ];
+  string networkAddress = 3 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string walletAddress = 4 [
+    (gogoproto.jsontag) = "wallet_address",
+    (gogoproto.moretags) = "yaml:\"wallet_address\""
+  ];
+  string                   slashing        = 5 [
+    (gogoproto.jsontag)  = "slashing",
+    (gogoproto.moretags) = "yaml:\"slashing\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  bool suspend = 6 [
+    (gogoproto.jsontag) = "suspend",
+    (gogoproto.moretags) = "yaml:\"suspend\""
+  ];
+}
+// MsgSlashingResourceNodeResponse defines the Msg/MsgSlashingResourceNode response type.
+message MsgSlashingResourceNodeResponse {}

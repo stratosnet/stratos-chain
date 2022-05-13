@@ -28,19 +28,21 @@ var (
 
 var _ subspace.ParamSet = &Params{}
 
-// Params - used for initializing default parameter for pot at genesis
-type Params struct {
-	BondDenom          string              `json:"bond_denom" yaml:"bond_denom"` // bondable coin denomination
-	RewardDenom        string              `json:"reward_denom" yaml:"reward_denom"`
-	MatureEpoch        int64               `json:"mature_epoch" yaml:"mature_epoch"`
-	MiningRewardParams []MiningRewardParam `json:"mining_reward_params" yaml:"mining_reward_params"`
-}
-
-// ParamKeyTable for pot module
+//
+//// Params - used for initializing default parameter for pot at genesis
+//type Params struct {
+//	BondDenom          string              `json:"bond_denom" yaml:"bond_denom"` // bondable coin denomination
+//	RewardDenom        string              `json:"reward_denom" yaml:"reward_denom"`
+//	MatureEpoch        int64               `json:"mature_epoch" yaml:"mature_epoch"`
+//	MiningRewardParams []MiningRewardParam `json:"mining_reward_params" yaml:"mining_reward_params"`
+//}
+//
+//// ParamKeyTable for pot module
 func ParamKeyTable() params.KeyTable {
 	return params.NewKeyTable().RegisterParamSet(&Params{})
 }
 
+//
 // NewParams creates a new Params object
 func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam) Params {
 	return Params{
@@ -93,12 +95,12 @@ func DefaultParams() Params {
 }
 
 // String implements the stringer interface for Params
-func (p Params) String() string {
+func (p Params) HrpString() string {
 	return fmt.Sprintf(`Params:
 	BondDenom:			%s
-    RewardDenom:	%s
+   RewardDenom:	%s
 	MatureEpoch:        %d
-  	MiningRewardParams:	%s`,
+ 	MiningRewardParams:	%s`,
 		p.BondDenom, p.RewardDenom, p.MatureEpoch, p.MiningRewardParams)
 }
 

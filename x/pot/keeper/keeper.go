@@ -3,13 +3,9 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/staking"
-	"github.com/cosmos/cosmos-sdk/x/supply"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	//"github.com/cosmos/cosmos-sdk/x/supply"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -21,19 +17,19 @@ import (
 type Keeper struct {
 	storeKey         sdk.StoreKey
 	cdc              *codec.Codec
-	paramSpace       params.Subspace
+	paramSpace       paramstypes.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
-	BankKeeper       bank.Keeper
-	SupplyKeeper     supply.Keeper
-	AccountKeeper    auth.AccountKeeper
-	StakingKeeper    staking.Keeper
-	RegisterKeeper   register.Keeper
+	BankKeeper       types.BankKeeper
+	//SupplyKeeper     supply.Keeper
+	AccountKeeper  types.AccountKeeper
+	StakingKeeper  types.StakingKeeper
+	RegisterKeeper types.RegisterKeeper
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, feeCollectorName string,
-	bankKeeper bank.Keeper, supplyKeeper supply.Keeper, accountKeeper auth.AccountKeeper, stakingKeeper staking.Keeper,
-	registerKeeper register.Keeper,
+func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspace, feeCollectorName string,
+	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper,
+	registerKeeper types.RegisterKeeper,
 ) Keeper {
 	keeper := Keeper{
 		cdc:              cdc,
@@ -41,10 +37,10 @@ func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace params.Subspace, f
 		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
 		feeCollectorName: feeCollectorName,
 		BankKeeper:       bankKeeper,
-		SupplyKeeper:     supplyKeeper,
-		AccountKeeper:    accountKeeper,
-		StakingKeeper:    stakingKeeper,
-		RegisterKeeper:   registerKeeper,
+		//SupplyKeeper:     supplyKeeper,
+		AccountKeeper:  accountKeeper,
+		StakingKeeper:  stakingKeeper,
+		RegisterKeeper: registerKeeper,
 	}
 	return keeper
 }
@@ -54,7 +50,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter stratos.SdsAddress,
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
@@ -74,13 +70,14 @@ func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found boo
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
-	_, err = k.BankKeeper.SubtractCoins(ctx, from, amount)
+	err = k.BankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, amount)
 	if err != nil {
 		return err
 	}
 
+	//TODO
 	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
-	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amount)
+	err = k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, foundationAccountAddr, amount)
 	if err != nil {
 		return err
 	}

@@ -1,7 +1,8 @@
 package rest
 
 import (
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/rest"
 	"github.com/gorilla/mux"
 )
 
@@ -11,7 +12,8 @@ const (
 )
 
 // RegisterRoutes registers pot-related REST handlers to a router
-func RegisterRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	registerTxRoutes(cliCtx, r)
-	registerQueryRoutes(cliCtx, r)
+func RegisterRoutes(clientCtx client.Context, rtr *mux.Router) {
+	r := rest.WithHTTPDeprecationHeaders(rtr)
+	registerTxRoutes(clientCtx, r)
+	registerQueryRoutes(clientCtx, r)
 }
