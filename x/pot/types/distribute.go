@@ -171,15 +171,15 @@ func (d DistributeGoal) String() string {
 	)
 }
 
-type Reward struct {
-	WalletAddress         sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"` // account address of node
-	RewardFromMiningPool  sdk.Coins      `json:"reward_from_mining_pool" yaml:"reward_from_mining_pool"`
-	RewardFromTrafficPool sdk.Coins      `json:"reward_from_traffic_pool" yaml:"reward_from_traffic_pool"`
-}
+//type Reward struct {
+//	WalletAddress         sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"` // account address of node
+//	RewardFromMiningPool  sdk.Coins      `json:"reward_from_mining_pool" yaml:"reward_from_mining_pool"`
+//	RewardFromTrafficPool sdk.Coins      `json:"reward_from_traffic_pool" yaml:"reward_from_traffic_pool"`
+//}
 
 func NewReward(walletAddress sdk.AccAddress, rewardFromMiningPool sdk.Coins, rewardFromTrafficPool sdk.Coins) Reward {
 	return Reward{
-		WalletAddress:         walletAddress,
+		WalletAddress:         walletAddress.String(),
 		RewardFromMiningPool:  rewardFromMiningPool,
 		RewardFromTrafficPool: rewardFromTrafficPool,
 	}
@@ -200,7 +200,7 @@ func (r Reward) AddRewardFromTrafficPool(reward sdk.Coin) Reward {
 }
 
 // String returns a human readable string representation of a Reward.
-func (r Reward) String() string {
+func (r Reward) HrpString() string {
 	return fmt.Sprintf(`Reward:{
 		WalletAddress:			%s
   		RewardFromMiningPool:	%s

@@ -1,0 +1,421 @@
+syntax = "proto3";
+package stratos.pot.v1;
+
+import "gogoproto/gogo.proto";
+//import "google/protobuf/any.proto";
+//import "google/protobuf/timestamp.proto";
+
+//import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+//import "cosmos/staking/v1beta1/staking.proto";
+
+
+option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
+
+// Params defines the PoT module parameters
+message Params {
+  string  bond_denom                = 1 [
+    (gogoproto.jsontag)  = "bond_denom",
+    (gogoproto.moretags) = "yaml:\"bond_denom\""
+  ];
+  string  reward_denom = 2 [
+    (gogoproto.jsontag)  = "reward_denom",
+    (gogoproto.moretags) = "yaml:\"reward_denom\""
+  ];
+  int64  mature_epoch = 3 [
+    (gogoproto.jsontag)  = "mature_epoch",
+    (gogoproto.moretags) = "yaml:\"mature_epoch\""
+  ];
+  repeated MiningRewardParam  mining_reward_params               = 4 [
+    (gogoproto.jsontag)  = "mining_reward_params",
+    (gogoproto.moretags) = "yaml:\"mining_reward_params\""
+  ];
+}
+
+message MiningRewardParam {
+  cosmos.base.v1beta1.Coin totalMinedValveStart  = 1 [ (gogoproto.moretags) = "yaml:\"total_mined_valve_start\"" ];
+  cosmos.base.v1beta1.Coin totalMinedValveEnd    = 2 [ (gogoproto.moretags) = "yaml:\"total_mined_valve_end\"" ];
+  cosmos.base.v1beta1.Coin miningReward          = 3 [ (gogoproto.moretags) = "yaml:\"mining_reward\"" ];
+  string                   blockChainPercentageInTenThousand        = 4 [
+    (gogoproto.jsontag)  = "block_chain_percentage_in_ten_thousand",
+    (gogoproto.moretags) = "yaml:\"block_chain_percentage_in_ten_thousand\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                   resourceNodePercentageInTenThousand        = 5 [
+    (gogoproto.jsontag)  = "resource_node_percentage_in_ten_thousand",
+    (gogoproto.moretags) = "yaml:\"resource_node_percentage_in_ten_thousand\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                   metaNodePercentageInTenThousand        = 6 [
+    (gogoproto.jsontag)  = "meta_node_percentage_in_ten_thousand",
+    (gogoproto.moretags) = "yaml:\"meta_node_percentage_in_ten_thousand\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+message ImmatureTotal {
+    string                            walletAddress   = 1 [
+      (gogoproto.jsontag)  = "wallet_address",
+      (gogoproto.moretags) = "yaml:\"wallet_address\""
+    ];
+    repeated cosmos.base.v1beta1.Coin value = 2 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+message MatureTotal {
+    string                            walletAddress   = 1 [
+      (gogoproto.jsontag)  = "wallet_address",
+      (gogoproto.moretags) = "yaml:\"wallet_address\""
+    ];
+    repeated cosmos.base.v1beta1.Coin value = 2 [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+message Reward {
+    string                            walletAddress   = 1 [
+      (gogoproto.jsontag)  = "wallet_address",
+      (gogoproto.moretags) = "yaml:\"wallet_address\""
+    ];
+    repeated cosmos.base.v1beta1.Coin rewardFromMiningPool = 2 [
+      (gogoproto.nullable) = false,
+      (gogoproto.jsontag)  = "reward_from_mining_pool",
+      (gogoproto.moretags) = "yaml:\"reward_from_mining_pool\"",
+      (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    ];
+    repeated cosmos.base.v1beta1.Coin rewardFromTrafficPool = 3 [
+      (gogoproto.nullable) = false,
+      (gogoproto.jsontag)  = "reward_from_traffic_pool",
+      (gogoproto.moretags) = "yaml:\"reward_from_traffic_pool\"",
+      (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    ];
+}
+
+message SingleWalletVolume {
+    string                            walletAddress   = 1 [
+      (gogoproto.jsontag)  = "wallet_address",
+      (gogoproto.moretags) = "yaml:\"wallet_address\""
+    ];
+    string                   volume        = 2 [
+      (gogoproto.jsontag)  = "volume",
+      (gogoproto.moretags) = "yaml:\"volume\"",
+      (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    ];
+}
+
+message VolumeReportRecord {
+    string reporter   = 1 [
+      (gogoproto.jsontag)  = "reporter",
+      (gogoproto.moretags) = "yaml:\"reporter\""
+    ];
+    string reportReference   = 2 [
+      (gogoproto.jsontag)  = "report_reference",
+      (gogoproto.moretags) = "yaml:\"report_reference\""
+    ];
+    string txHash   = 3 [
+      (gogoproto.jsontag)  = "tx_hash",
+      (gogoproto.moretags) = "yaml:\"tx_hash\""
+    ];
+}
+
+message BLSSignatureInfo {
+    repeated bytes pubKeys = 1 [
+      (gogoproto.jsontag)  = "pub_keys",
+      (gogoproto.moretags) = "yaml:\"pub_keys\""
+    ];
+    bytes signature = 2 [
+      (gogoproto.jsontag)  = "signature",
+      (gogoproto.moretags) = "yaml:\"signature\""
+    ];
+    bytes txData = 3 [
+      (gogoproto.jsontag)  = "tx_data",
+      (gogoproto.moretags) = "yaml:\"tx_data\""
+    ];
+}
+
+
+
+//
+//message ResourceNode {
+//  string                              networkAddr   = 1 [
+//    (gogoproto.jsontag)  = "network_address",
+//    (gogoproto.moretags) = "yaml:\"network_address\""
+//  ];
+//  google.protobuf.Any                 pubKey        = 2 [
+//    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+//    (gogoproto.jsontag)  = "pubkey",
+//    (gogoproto.moretags) = "yaml:\"pubkey\""
+//  ];
+//  bool                                suspend       = 3 [
+//    (gogoproto.jsontag)  = "suspend",
+//    (gogoproto.moretags) = "yaml:\"suspend\""
+//  ];
+//  cosmos.staking.v1beta1.BondStatus   status        = 4 [
+//    (gogoproto.jsontag)  = "status",
+//    (gogoproto.moretags) = "yaml:\"status\"" ];
+//  string                              tokens        = 5 [
+//    (gogoproto.nullable) = false,
+//    (gogoproto.jsontag)  = "tokens",
+//    (gogoproto.moretags) = "yaml:\"tokens\"",
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+//  ];
+//  string                              ownerAddress  = 6 [
+//    (gogoproto.jsontag)  = "owner_address",
+//    (gogoproto.moretags) = "yaml:\"owner_address\""
+//  ];
+//  Description                         description   = 7 [
+//    (gogoproto.jsontag)  = "description",
+//    (gogoproto.moretags) = "yaml:\"description\""
+//  ];
+//  google.protobuf.Timestamp           creation_time = 8 [
+//    (gogoproto.nullable) = false,
+//    (gogoproto.stdtime) = true,
+//    (gogoproto.jsontag)  = "creation_time",
+//    (gogoproto.moretags) = "yaml:\"creation_time\""
+//  ];
+//  string                              nodeType      = 9 [
+//    (gogoproto.jsontag)  = "node_type",
+//    (gogoproto.moretags) = "yaml:\"node_type\""
+//  ];
+//
+//}
+//
+//message IndexingNode {
+//  string                              networkAddr   = 1 [
+//    (gogoproto.jsontag)  = "network_address",
+//    (gogoproto.moretags) = "yaml:\"network_address\""
+//  ];
+//  google.protobuf.Any                 pubKey        = 2 [
+//    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+//    (gogoproto.jsontag)  = "pubkey",
+//    (gogoproto.moretags) = "yaml:\"pubkey\""
+//  ];
+//  bool                                suspend       = 3 [
+//    (gogoproto.jsontag)  = "suspend",
+//    (gogoproto.moretags) = "yaml:\"suspend\""
+//  ];
+//  cosmos.staking.v1beta1.BondStatus   status        = 4 [
+//    (gogoproto.jsontag)  = "status",
+//    (gogoproto.moretags) = "yaml:\"status\"" ];
+//  string                              tokens        = 5 [
+//    (gogoproto.nullable) = false,
+//    (gogoproto.jsontag)  = "tokens",
+//    (gogoproto.moretags) = "yaml:\"tokens\"",
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+//  ];
+//  string                              ownerAddress  = 6 [
+//    (gogoproto.jsontag)  = "owner_address",
+//    (gogoproto.moretags) = "yaml:\"owner_address\""
+//  ];
+//  Description                         description   = 7 [
+//    (gogoproto.jsontag)  = "description",
+//    (gogoproto.moretags) = "yaml:\"description\""
+//  ];
+//  google.protobuf.Timestamp           creation_time = 8 [
+//    (gogoproto.nullable) = false,
+//    (gogoproto.stdtime) = true,
+//    (gogoproto.jsontag)  = "creation_time",
+//    (gogoproto.moretags) = "yaml:\"creation_time\""
+//  ];
+//}
+//
+//message IndexingNodeRegistrationVotePool {
+//  string                      nodeAddress   = 1 [
+//    (gogoproto.jsontag)  = "network_address",
+//    (gogoproto.moretags) = "yaml:\"network_address\""
+//  ];
+//  repeated string             approveList   = 2 [
+//    (gogoproto.jsontag)  = "approve_list",
+//    (gogoproto.moretags) = "yaml:\"approve_list\""
+//  ];
+//  repeated string             rejectList   = 3 [
+//    (gogoproto.jsontag)  = "reject_list",
+//    (gogoproto.moretags) = "yaml:\"reject_list\""
+//  ];
+//  google.protobuf.Timestamp   expireTime = 4 [
+//    (gogoproto.stdtime) = true,
+//    (gogoproto.jsontag)  = "expire_time",
+//    (gogoproto.moretags) = "yaml:\"expire_time\""
+//  ];
+//}
+//
+//message Description {
+//  string  moniker         = 1 [
+//    (gogoproto.jsontag)  = "moniker",
+//    (gogoproto.moretags) = "yaml:\"moniker\""
+//  ];
+//  string  identity        = 2 [
+//    (gogoproto.jsontag)  = "identity",
+//    (gogoproto.moretags) = "yaml:\"identity\",omitempty"
+//  ];
+//  string  Website         = 3 [
+//    (gogoproto.jsontag)  = "website",
+//    (gogoproto.moretags) = "yaml:\"website\",omitempty"
+//  ];
+//  string  SecurityContact = 4 [
+//    (gogoproto.jsontag)  = "security_contact",
+//    (gogoproto.moretags) = "yaml:\"security_contact\",omitempty" ];
+//  string  Details         = 5 [
+//    (gogoproto.jsontag)  = "details",
+//    (gogoproto.moretags) = "yaml:\"details\",omitempty" ];
+//}
+//
+//message Slashing {
+//  string  WalletAddress = 1 [
+//    (gogoproto.jsontag)  = "wallet_address",
+//    (gogoproto.moretags) = "yaml:\"wallet_address\""
+//  ];
+//  int64   Value         = 2 [
+//    (gogoproto.jsontag)  = "value",
+//    (gogoproto.moretags) = "yaml:\"value\""
+//  ];
+//}
+//
+//message ResourceNodes {
+//  repeated ResourceNode   resourceNodes = 1;
+//}
+//
+//message IndexingNodes {
+//  repeated IndexingNode   indexingNodes = 1;
+//}
+//
+//message TotalStakesResponse {
+//  cosmos.base.v1beta1.Coin resource_nodes_total_stake  = 1;
+//  cosmos.base.v1beta1.Coin indexing_nodes_total_stake  = 2;
+//  cosmos.base.v1beta1.Coin total_bonded_stake          = 3;
+//  cosmos.base.v1beta1.Coin total_unbonded_stake        = 4;
+//  cosmos.base.v1beta1.Coin total_unbonding_stake       = 5;
+//}
+//
+//message StakingInfo {
+//  string                              networkAddr   = 1 [
+//    (gogoproto.jsontag)  = "network_address",
+//    (gogoproto.moretags) = "yaml:\"network_address\""
+//  ];
+//  google.protobuf.Any                 pubKey        = 2 [
+//    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+//    (gogoproto.jsontag)  = "pubkey",
+//    (gogoproto.moretags) = "yaml:\"pubkey\""
+//  ];
+//  bool                                suspend       = 3 [
+//    (gogoproto.jsontag)  = "suspend",
+//    (gogoproto.moretags) = "yaml:\"suspend\""
+//  ];
+//  cosmos.staking.v1beta1.BondStatus   status        = 4 [
+//    (gogoproto.jsontag)  = "status",
+//    (gogoproto.moretags) = "yaml:\"status\"" ];
+//  string                              tokens        = 5 [
+//    (gogoproto.jsontag)  = "tokens",
+//    (gogoproto.moretags) = "yaml:\"tokens\"",
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+//  ];
+//  string                              ownerAddress  = 6 [
+//    (gogoproto.jsontag)  = "owner_address",
+//    (gogoproto.moretags) = "yaml:\"owner_address\""
+//  ];
+//  Description                         description   = 7 [
+//    (gogoproto.jsontag)  = "description",
+//    (gogoproto.moretags) = "yaml:\"description\""
+//  ];
+//  google.protobuf.Timestamp           creation_time = 8 [
+//    (gogoproto.nullable) = false,
+//    (gogoproto.stdtime) = true,
+//    (gogoproto.jsontag)  = "creation_time",
+//    (gogoproto.moretags) = "yaml:\"creation_time\""
+//  ];
+//  string                              nodeType      = 9 [
+//    (gogoproto.jsontag)  = "node_type",
+//    (gogoproto.moretags) = "yaml:\"node_type\""
+//  ];
+//  cosmos.base.v1beta1.Coin              bonded_stake = 10 [
+//    (gogoproto.nullable) = true,
+//    (gogoproto.jsontag)  = "bonded_stake",
+//    (gogoproto.moretags) = "yaml:\"bonded_stake\""
+//  ];
+//  cosmos.base.v1beta1.Coin          un_bonding_stake = 11 [
+//    (gogoproto.nullable) = true,
+//    (gogoproto.jsontag)  = "un_bonding_stake",
+//    (gogoproto.moretags) = "yaml:\"un_bonding_stake\""
+//  ];
+//  cosmos.base.v1beta1.Coin          un_bonded_stake = 12 [
+//    (gogoproto.nullable) = true,
+//    (gogoproto.jsontag)  = "un_bonded_stake",
+//    (gogoproto.moretags) = "yaml:\"un_bonded_stake\""
+//  ];
+//
+//}
+//
+//// UnbondingNode stores all of a single delegator's unbonding bonds
+//// for a single unbonding node in a time-ordered list
+//message UnbondingNode {
+//  string                              networkAddr     = 1 [
+//    (gogoproto.jsontag)  = "network_addr",
+//    (gogoproto.moretags) = "yaml:\"network_addr\""
+//  ];
+//  bool                                is_indexing_node = 2 [
+//    (gogoproto.jsontag)  = "is_indexing_node",
+//    (gogoproto.moretags) = "yaml:\"is_indexing_node\""
+//  ];
+//  repeated UnbondingNodeEntry          entries          = 3 [
+//    (gogoproto.jsontag)  = "entries",
+//    (gogoproto.moretags) = "yaml:\"entries\""
+//  ];
+//
+//}
+//
+//message UnbondingNodeEntry {
+//  int64                              creation_height  = 1 [
+//    (gogoproto.jsontag)  = "creation_height",
+//    (gogoproto.moretags) = "yaml:\"creation_height\""
+//  ];
+//  google.protobuf.Timestamp           completion_time = 2 [
+//    (gogoproto.stdtime) = true,
+//    (gogoproto.jsontag)  = "creation_time",
+//    (gogoproto.moretags) = "yaml:\"creation_time\""
+//  ];
+//  string                              initial_balance  = 3 [
+//    (gogoproto.jsontag)  = "initial_balance",
+//    (gogoproto.moretags) = "yaml:\"initial_balance\"",
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+//  ];
+//  string                              balance           = 4 [
+//    (gogoproto.jsontag)  = "balance",
+//    (gogoproto.moretags) = "yaml:\"balance\"",
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+//  ];
+//}
+//
+//message Staking {
+//  option (gogoproto.equal)            = false;
+//  option (gogoproto.goproto_getters)  = false;
+//  option (gogoproto.goproto_stringer) = false;
+//
+//  // network_address is the bech32-encoded address of the node.
+//  string network_address = 1 [
+//    (gogoproto.jsontag)  = "network_address",
+//    (gogoproto.moretags) = "yaml:\"network_address\""
+//  ];
+//  // owner_address is the bech32-encoded address of owner of the node.
+//  string owner_address = 2 [
+//    (gogoproto.jsontag)  = "owner_address",
+//    (gogoproto.moretags) = "yaml:\"owner_address\""
+//  ];
+//  // shares define the delegation shares received.
+//  string value = 3 [
+//    (gogoproto.jsontag)  = "value",
+//    (gogoproto.moretags) = "yaml:\"value\"",
+//    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+//    (gogoproto.nullable) = false
+//  ];
+//}
+
+//message QueryNodeStakingParams {
+//  string              acc_addr = 1;
+//  int64               query_type = 2;
+//}
+//
+//// QueryNodesParams Params for query 'custom/register/resource-nodes'
+//message QueryNodesParams {
+//  string              network_addr = 1;
+//  string              moniker = 2;
+//  string              owner_addr = 3;
+//}
+
+

@@ -1,19 +1,15 @@
 package cli
 
 import (
-	"bufio"
 	"fmt"
 	"strconv"
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -29,16 +25,14 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	potQueryCmd.AddCommand(
-		flags.GetCommands(
-			GetCmdQueryVolumeReport(queryRoute, cdc),
-		)...,
+		GetCmdQueryVolumeReport(),
 	)
 
 	return potQueryCmd
 }
 
 // GetCmdQueryVolumeReport implements the query volume report command.
-func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetCmdQueryVolumeReport() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "report [flags]", // reporter: []byte
 		Short: "Query volume report hash by epoch",
@@ -48,19 +42,26 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 		),
 
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
 			epochStr := viper.GetString(FlagEpoch)
 			epoch, err := checkFlagEpoch(epochStr)
 			if err != nil {
 				return err
 			}
-			resp, _, err := QueryVolumeReport(cliCtx, queryRoute, epoch)
+
+			result, err := queryClient.VolumeReport(cmd.Context(), &types.QueryVolumeReportRequest{
+				Epoch: &epoch,
+			})
 			if err != nil {
 				return err
 			}
-			return cliCtx.PrintOutput(resp)
 
+			return clientCtx.PrintProto(result)
 		},
 	}
 	cmd.Flags().AddFlagSet(FsEpoch)
@@ -69,15 +70,15 @@ func GetCmdQueryVolumeReport(queryRoute string, cdc *codec.Codec) *cobra.Command
 	return cmd
 }
 
-func QueryVolumeReport(cliCtx context.CLIContext, queryRoute string, epoch sdk.Int) (types.ReportInfo, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryVolumeReport)
-	resp, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
-	if err != nil {
-		return types.ReportInfo{}, height, err
-	}
-	reportRes := types.NewReportInfo(epoch, string(resp))
-	return reportRes, height, nil
-}
+//func QueryVolumeReport(cliCtx context.CLIContext, queryRoute string, epoch sdk.Int) (types.ReportInfo, int64, error) {
+//	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryVolumeReport)
+//	resp, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
+//	if err != nil {
+//		return types.ReportInfo{}, height, err
+//	}
+//	reportRes := types.NewReportInfo(epoch, string(resp))
+//	return reportRes, height, nil
+//}
 
 func checkFlagEpoch(epochStr string) (sdk.Int, error) {
 	epochInt64, err := strconv.ParseInt(epochStr, 10, 64)

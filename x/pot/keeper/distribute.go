@@ -5,7 +5,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: wallet address
 
@@ -158,7 +158,7 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, curren
 }
 
 func (k Keeper) CalcTrafficRewardInTotal(
-	ctx sdk.Context, trafficList []types.SingleWalletVolume, distributeGoal types.DistributeGoal,
+	ctx sdk.Context, trafficList []*types.SingleWalletVolume, distributeGoal types.DistributeGoal,
 ) (sdk.Dec, types.DistributeGoal, error) {
 
 	totalConsumedOzone, totalTrafficReward := k.GetTrafficReward(ctx, trafficList)
@@ -193,7 +193,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // The remaining total Ozone limit [lt] is the upper bound of total Ozone that users can purchase from Stratos blockchain.
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
-func (k Keeper) GetTrafficReward(ctx sdk.Context, trafficList []types.SingleWalletVolume) (totalConsumedOzone, result sdk.Dec) {
+func (k Keeper) GetTrafficReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume) (totalConsumedOzone, result sdk.Dec) {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	if S.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")

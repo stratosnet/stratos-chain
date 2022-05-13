@@ -62,10 +62,10 @@ func NewQueryPotRewardsByWalletAddrParams(page, limit int, walletAddr sdk.AccAdd
 	}
 }
 
-type ReportInfo struct {
-	Epoch     sdk.Int
-	Reference string
-}
+//type ReportInfo struct {
+//	Epoch     sdk.Int
+//	Reference string
+//}
 
 func NewReportInfo(epoch sdk.Int, reference string) ReportInfo {
 	return ReportInfo{
