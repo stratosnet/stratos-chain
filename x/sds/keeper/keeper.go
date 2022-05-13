@@ -118,19 +118,30 @@ func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 // Prepay transfers coins from bank to sds (volumn) pool
 func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
 	// src - hasCoins?
-	if !k.bankKeeper.HasCoins(ctx, sender, coins) {
-		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	//if !k.bankKeeper.HasCoins(ctx, sender, coins) {
+	//	return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	//}
+	for _, coin := range coins {
+		hasCoin := k.bankKeeper.HasBalance(ctx, sender, coin)
+		if !hasCoin {
+			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		}
 	}
 
 	err := k.doPrepay(ctx, sender, coins)
 	if err != nil {
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-
-	_, err = k.bankKeeper.SubtractCoins(ctx, sender, coins)
+	// sub coins from sender's wallet
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
+	//
+	//_, err = k.bankKeeper.SubtractCoins(ctx, sender, coins)
+	//if err != nil {
+	//	return sdk.ZeroInt(), err
+	//}
 
 	prepay := coins.AmountOf(k.BondDenom(ctx))
 	purchased := k.purchaseUoz(ctx, prepay)
@@ -159,7 +170,7 @@ func (k Keeper) GetPrepay(ctx sdk.Context, sender sdk.AccAddress) (sdk.Int, erro
 	return prepaidBalance, nil
 }
 
-// GetPrepay Returns bytearr of the existing prepay coins
+// GetPrepayBytes returns bytearr of the existing prepay coins
 func (k Keeper) GetPrepayBytes(ctx sdk.Context, sender sdk.AccAddress) ([]byte, error) {
 	store := ctx.KVStore(k.key)
 	storeValue := store.Get(types.PrepayBalanceKey(sender))

@@ -12,7 +12,6 @@ const (
 	QueryUozSupply      = "uoz_supply"
 )
 
-// QueryUploadedFileParams for query 'custom/distr/validator_outstanding_rewards'
 type QueryUploadedFileParams struct {
 	Sender types.AccAddress `json:"sender" yaml:"sender"`
 }

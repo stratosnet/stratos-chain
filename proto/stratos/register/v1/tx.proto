@@ -12,7 +12,7 @@ import "cosmos/base/v1beta1/coin.proto";
 
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
-// Msg defines the evm Msg service.
+// Msg defines the register module Msg service.
 service Msg {
   // CreateResourceNode defines a method for creating a new resource node.
   rpc HandleMsgCreateResourceNode(MsgCreateResourceNode) returns (MsgCreateResourceNodeResponse) {

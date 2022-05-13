@@ -153,7 +153,7 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 		nodeType := types.NodeType(nodeTypeRef)
-		msg, _ := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
+		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
 			&nodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

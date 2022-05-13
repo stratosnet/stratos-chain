@@ -5,18 +5,17 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) (res []abci.ValidatorUpdate) {
+func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
 	keeper.SetParams(ctx, *data.Params)
 
 	initialStakeTotal := sdk.ZeroInt()
 	resNodeBondedToken := sdk.ZeroInt()
 	resNodeNotBondedToken := sdk.ZeroInt()
-	for _, resourceNode := range data.ResourceNodes.GetResourceNodes() {
+	for _, resourceNode := range data.GetResourceNodes().GetResourceNodes() {
 		if resourceNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
 			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.Tokens)

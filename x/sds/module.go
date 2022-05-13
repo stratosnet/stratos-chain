@@ -1,21 +1,24 @@
 package sds
 
 import (
+	"context"
 	"encoding/json"
 
-	"github.com/stratosnet/stratos-chain/x/pot"
-	"github.com/stratosnet/stratos-chain/x/register"
-
+	"github.com/cosmos/cosmos-sdk/client"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/gorilla/mux"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
+	"github.com/stratosnet/stratos-chain/x/pot"
+	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
+	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/cosmos/cosmos-sdk/x/bank"
 	"github.com/stratosnet/stratos-chain/x/sds/client/cli"
 	"github.com/stratosnet/stratos-chain/x/sds/client/rest"
 	"github.com/stratosnet/stratos-chain/x/sds/keeper"
@@ -29,28 +32,48 @@ var (
 )
 
 // AppModuleBasic defines the basic application module used by the sds module.
-type AppModuleBasic struct{}
+type AppModuleBasic struct {
+	cdc codec.Codec
+}
+
+var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the sds module's name.
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterCodec registers the sds module's types for the given codec.
-func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-	types.RegisterCodec(cdc)
+//// RegisterCodec registers the sds module's types for the given codec.
+//func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
+//	types.RegisterCodec(cdc)
+//}
+
+// RegisterLegacyAminoCodec registers the staking module's types on the given LegacyAmino codec.
+func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	types.RegisterLegacyAminoCodec(cdc)
+}
+
+// RegisterInterfaces registers the module's interface types
+func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
+	types.RegisterInterfaces(registry)
 }
 
 // DefaultGenesis returns default genesis state as raw bytes for the sds
 // module.
-func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
+//func (AppModuleBasic) DefaultGenesis() json.RawMessage {
+//	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
+//}
+
+// DefaultGenesis returns default genesis state as raw bytes for the register
+// module.
+func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
+	return cdc.MustMarshalJSON(types.DefaultGenesisState())
 }
 
 // ValidateGenesis performs genesis state validation for the sds module.
-func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
-	err := types.ModuleCdc.UnmarshalJSON(bz, &data)
+	err := cdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
@@ -58,18 +81,23 @@ func (AppModuleBasic) ValidateGenesis(bz json.RawMessage) error {
 }
 
 // RegisterRESTRoutes registers the REST routes for the sds module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx context.CLIContext, rtr *mux.Router) {
-	rest.RegisterRoutes(ctx, rtr, StoreKey)
+func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
+	rest.RegisterHandlers(ctx, rtr)
+}
+
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
+func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
+	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the root tx command for the sds module.
-func (AppModuleBasic) GetTxCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetTxCmd(cdc)
+func (AppModuleBasic) GetTxCmd() *cobra.Command {
+	return cli.GetTxCmd()
 }
 
 // GetQueryCmd returns no root query command for the sds module.
-func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
-	return cli.GetQueryCmd(types.StoreKey, cdc)
+func (AppModuleBasic) GetQueryCmd() *cobra.Command {
+	return cli.GetQueryCmd()
 }
 
 //____________________________________________________________________________
@@ -78,13 +106,13 @@ func (AppModuleBasic) GetQueryCmd(cdc *codec.Codec) *cobra.Command {
 type AppModule struct {
 	AppModuleBasic
 	keeper         keeper.Keeper
-	coinKeeper     bank.Keeper
-	registerKeeper register.Keeper
-	potKeeper      pot.Keeper
+	coinKeeper     bankKeeper.Keeper
+	registerKeeper registerKeeper.Keeper
+	potKeeper      potKeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, registerKeeper register.Keeper, potKeeper pot.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bankKeeper.Keeper, registerKeeper registerKeeper.Keeper, potKeeper pot.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
@@ -95,16 +123,19 @@ func NewAppModule(k keeper.Keeper, bankKeeper bank.Keeper, registerKeeper regist
 }
 
 // Name returns the sds module's name.
-func (AppModule) Name() string {
-	return types.ModuleName
-}
+//func (AppModule) Name() string {
+//	return types.ModuleName
+//}
 
 // RegisterInvariants registers the sds module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // Route returns the message routing key for the sds module.
-func (AppModule) Route() string {
-	return types.RouterKey
+//func (AppModule) Route() string {
+//	return types.RouterKey
+//}
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }
 
 // NewHandler returns an sdk.Handler for the sds module.
@@ -118,24 +149,24 @@ func (AppModule) QuerierRoute() string {
 }
 
 // NewQuerierHandler returns the sds module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
+func (am AppModule) NewQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // InitGenesis performs genesis initialization for the sds module. It returns
 // no validator updates.
-func (am AppModule) InitGenesis(ctx sdk.Context, data json.RawMessage) []abci.ValidatorUpdate {
+func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
 // ExportGenesis returns the exported genesis state as raw bytes for the sds
 // module.
-func (am AppModule) ExportGenesis(ctx sdk.Context) json.RawMessage {
+func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return types.ModuleCdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(&gs)
 }
 
 // BeginBlock returns the begin blocker for the sds module.
@@ -147,4 +178,22 @@ func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 // updates.
 func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
 	return []abci.ValidatorUpdate{}
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 { return 2 }
+
+// LegacyQuerierHandler returns the staking module sdk.Querier.
+func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
+}
+
+// RegisterServices registers module services.
+func (am AppModule) RegisterServices(cfg module.Configurator) {
+	types.RegisterMsgServer(cfg.MsgServer(), keeper.NewMsgServerImpl(am.keeper))
+	querier := keeper.Querier{Keeper: am.keeper}
+	types.RegisterQueryServer(cfg.QueryServer(), querier)
+
+	m := keeper.NewMigrator(am.keeper)
+	_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }

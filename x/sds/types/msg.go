@@ -15,8 +15,8 @@ const (
 var _ sdk.Msg = &MsgFileUpload{}
 
 // NewMsgUpload creates a new Msg<Action> instance
-func NewMsgUpload(fileHash string, from, reporter, uploader string) MsgFileUpload {
-	return MsgFileUpload{
+func NewMsgUpload(fileHash string, from, reporter, uploader string) *MsgFileUpload {
+	return &MsgFileUpload{
 		FileHash: fileHash,
 		From:     from,
 		Reporter: reporter,
@@ -69,9 +69,9 @@ func (msg MsgFileUpload) ValidateBasic() error {
 var _ sdk.Msg = &MsgPrepay{}
 
 // NewMsgPrepay NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgPrepay(sender string, coins sdk.Coins) MsgPrepay {
+func NewMsgPrepay(sender string, coins sdk.Coins) *MsgPrepay {
 
-	return MsgPrepay{
+	return &MsgPrepay{
 		Sender: sender,
 		Coins:  coins,
 	}
