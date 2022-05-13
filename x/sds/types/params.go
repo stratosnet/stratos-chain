@@ -6,9 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
-
-	"github.com/cosmos/cosmos-sdk/x/params"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // Default parameter namespace
@@ -22,16 +20,9 @@ var (
 	KeyBondDenom = []byte("BondDenom")
 )
 
-var _ subspace.ParamSet = &Params{}
-
-// Params - used for initializing default parameter for sds at genesis
-type Params struct {
-	BondDenom string `json:"bond_denom" yaml:"bond_denom"` // bondable coin denomination
-}
-
 // ParamKeyTable for sds module
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 // NewParams creates a new Params object
@@ -42,21 +33,15 @@ func NewParams(bondDenom string) Params {
 }
 
 // DefaultParams defines the parameters for this module
-func DefaultParams() Params {
-	return NewParams(DefaultBondDenom)
-}
-
-// String implements the stringer interface for Params
-func (p Params) String() string {
-	return fmt.Sprintf(`Params:
-	BondDenom:			%s`,
-		p.BondDenom)
+func DefaultParams() *Params {
+	p := NewParams(DefaultBondDenom)
+	return &p
 }
 
 // ParamSetPairs - Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
 	}
 }
 

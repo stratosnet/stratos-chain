@@ -12,12 +12,11 @@ const (
 	QueryUozSupply      = "uoz_supply"
 )
 
-// params for query 'custom/distr/validator_outstanding_rewards'
 type QueryUploadedFileParams struct {
 	Sender types.AccAddress `json:"sender" yaml:"sender"`
 }
 
-// creates a new instance of QueryValidatorSlashesParams
+// NewQueryUploadedFileParams creates a new instance of QueryValidatorSlashesParams
 func NewQueryUploadedFileParams(sender types.AccAddress) QueryUploadedFileParams {
 	return QueryUploadedFileParams{
 		Sender: sender,

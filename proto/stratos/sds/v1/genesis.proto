@@ -1,0 +1,24 @@
+syntax = "proto3";
+package stratos.sds.v1;
+
+import "gogoproto/gogo.proto";
+
+import "stratos/sds/v1/sds.proto";
+
+option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
+
+// GenesisState defines the register module's genesis state.
+message GenesisState {
+  Params              params = 1 [
+    (gogoproto.jsontag)  = "params",
+    (gogoproto.moretags) = "yaml:\"params\""
+  ];
+  repeated FileUpload fileUploads = 2 [
+    (gogoproto.jsontag)  = "file_uploads",
+    (gogoproto.moretags) = "yaml:\"file_uploads\""
+  ];
+}
+
+
+
+
