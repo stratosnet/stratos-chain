@@ -26,9 +26,9 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
-	_, slash := k.GetTrafficReward(ctx, []types.SingleWalletVolume{{
-		WalletAddress: node.GetOwnerAddr(),
-		Volume:        ozAmt,
+	_, slash := k.GetTrafficReward(ctx, []*types.SingleWalletVolume{{
+		WalletAddress: node.OwnerAddress,
+		Volume:        &ozAmt,
 	}})
 
 	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
