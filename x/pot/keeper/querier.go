@@ -21,17 +21,17 @@ const (
 )
 
 // NewQuerier creates a new querier for pot clients.
-func NewQuerier(k Keeper) sdk.Querier {
+func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
 		case QueryVolumeReport:
-			return queryVolumeReport(ctx, req, k)
+			return queryVolumeReport(ctx, req, k, legacyQuerierCdc)
 		case QueryPotRewardsByReportEpoch:
-			return queryPotRewardsByReportEpoch(ctx, req, k)
+			return queryPotRewardsByReportEpoch(ctx, req, k, legacyQuerierCdc)
 		case QueryPotRewardsByWalletAddr:
-			return queryPotRewardsByWalletAddress(ctx, req, k)
+			return queryPotRewardsByWalletAddress(ctx, req, k, legacyQuerierCdc)
 		case QueryPotSlashingByWalletAddr:
-			return queryPotSlashingByWalletAddress(ctx, req, k)
+			return queryPotSlashingByWalletAddress(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -39,7 +39,7 @@ func NewQuerier(k Keeper) sdk.Querier {
 }
 
 // queryVolumeReport fetches a hash of report volume for the supplied epoch.
-func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	epoch, err := strconv.ParseInt(string(req.Data), 10, 64)
 	if err != nil {
 		return []byte{}, err
@@ -60,7 +60,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 }
 
 // queryPotRewardsByReportEpoch fetches total rewards and owner individual rewards from traffic and mining.
-func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryPotRewardsByReportEpochParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -105,7 +105,7 @@ func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPo
 	}
 }
 
-func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryPotRewardsByWalletAddrParams
 	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -122,7 +122,7 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	return bz, nil
 }
 
-func queryPotSlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
+func queryPotSlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	addr, err := sdk.AccAddressFromBech32(string(req.Data))
 	if err != nil {
 		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress

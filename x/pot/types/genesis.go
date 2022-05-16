@@ -5,15 +5,6 @@ import (
 	//stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-//type GenesisState struct {
-//	Params               Params          `json:"params" yaml:"params"`
-//	TotalMinedToken      sdk.Coin        `json:"total_mined_token" yaml:"total_mined_token"`
-//	LastReportedEpoch    int64           `json:"last_reported_epoch" yaml:"last_reported_epoch"`
-//	ImmatureTotalInfo    []ImmatureTotal `json:"immature_total_info" yaml:"immature_total_info"`
-//	MatureTotalInfo      []MatureTotal   `json:"mature_total_info" yaml:"mature_total_info"`
-//	IndividualRewardInfo []Reward        `json:"individual_reward_info" yaml:"individual_reward_info"`
-//}
-//
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch int64,
 	immatureTotalInfo []*ImmatureTotal, matureTotalInfo []*MatureTotal, individualRewardInfo []*Reward,
@@ -30,10 +21,10 @@ func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch 
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
-func DefaultGenesisState() GenesisState {
+func DefaultGenesisState() *GenesisState {
 	params := DefaultParams()
 	coin := sdk.NewCoin(DefaultRewardDenom, sdk.ZeroInt())
-	return GenesisState{
+	return &GenesisState{
 		Params:               &params,
 		TotalMinedToken:      &coin,
 		LastReportedEpoch:    0,

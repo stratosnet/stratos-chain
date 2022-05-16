@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -14,7 +13,7 @@ import (
 )
 
 // GetQueryCmd returns the cli query commands for pot module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group pot queries under a subcommand
 	potQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
