@@ -30,10 +30,10 @@ func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch 
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
-func DefaultGenesisState() GenesisState {
+func DefaultGenesisState() *GenesisState {
 	params := DefaultParams()
 	coin := sdk.NewCoin(DefaultRewardDenom, sdk.ZeroInt())
-	return GenesisState{
+	return &GenesisState{
 		Params:               &params,
 		TotalMinedToken:      &coin,
 		LastReportedEpoch:    0,
