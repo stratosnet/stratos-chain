@@ -98,13 +98,13 @@ import (
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
-	//"github.com/stratosnet/stratos-chain/x/pot"
+	//potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
-	//"github.com/stratosnet/stratos-chain/x/register"
+	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	//"github.com/stratosnet/stratos-chain/x/sds"
-	//sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
+	"github.com/stratosnet/stratos-chain/x/sds"
+	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 const (
@@ -141,7 +141,7 @@ var (
 		// stratos modules
 		register.AppModuleBasic{},
 		//pot.AppModuleBasic{},
-		//sds.AppModuleBasic{},
+		sds.AppModuleBasic{},
 		evm.AppModuleBasic{},
 	)
 
@@ -204,8 +204,8 @@ type NewApp struct {
 
 	// stratos keepers
 	registerKeeper registerkeeper.Keeper
-	//potKeeper      pot.Keeper
-	//sdsKeeper      sds.Keeper
+	//potKeeper      potkeeper.Keeper
+	sdsKeeper sdskeeper.Keeper
 	evmKeeper *evmkeeper.Keeper
 
 	// the module manager
@@ -250,7 +250,8 @@ func NewInitApp(
 		ibchost.StoreKey, ibctransfertypes.StoreKey,
 		// stratos keys
 		registertypes.StoreKey,
-		//pot.StoreKey, sds.StoreKey,
+		//pottypes.StoreKey,
+		sdstypes.StoreKey,
 		evmtypes.StoreKey,
 	)
 
@@ -381,26 +382,26 @@ func NewInitApp(
 		app.bankKeeper,
 	)
 
-	//app.potKeeper = pot.NewKeeper(
-	//	app.cdc,
+	//app.potKeeper = potkeeper.NewKeeper(
+	//	appCodec,
 	//	keys[pot.StoreKey],
-	//	app.subspaces[pot.ModuleName],
-	//	auth.FeeCollectorName,
+	//	app.GetSubspace(pot.ModuleName),
+	//	authtypes.FeeCollectorName,
 	//	app.bankKeeper,
 	//	app.supplyKeeper,
 	//	app.accountKeeper,
 	//	app.stakingKeeper,
 	//	app.registerKeeper,
 	//)
-	//
-	//app.sdsKeeper = sds.NewKeeper(
-	//	app.cdc,
-	//	keys[sds.StoreKey],
-	//	app.subspaces[sds.ModuleName],
-	//	app.bankKeeper,
-	//	app.registerKeeper,
-	//	app.potKeeper,
-	//)
+
+	app.sdsKeeper = sdskeeper.NewKeeper(
+		appCodec,
+		keys[sdstypes.StoreKey],
+		app.GetSubspace(sdstypes.ModuleName),
+		app.bankKeeper,
+		app.registerKeeper,
+		app.potKeeper,
+	)
 
 	/****  Module Options ****/
 
@@ -433,7 +434,7 @@ func NewInitApp(
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		//pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
-		//sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
+		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -446,7 +447,6 @@ func NewInitApp(
 		upgradetypes.ModuleName,
 		capabilitytypes.ModuleName,
 		evmtypes.ModuleName,
-		registertypes.ModuleName,
 		minttypes.ModuleName,
 		distrtypes.ModuleName,
 		slashingtypes.ModuleName,
@@ -464,6 +464,10 @@ func NewInitApp(
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
+		// stratos
+		registertypes.ModuleName,
+		sdstypes.ModuleName,
+		//
 	)
 
 	// NOTE: fee market module must go last in order to retrieve the block gas used.
@@ -472,6 +476,7 @@ func NewInitApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		registertypes.ModuleName,
+		sdstypes.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
 		ibchost.ModuleName,
@@ -517,10 +522,11 @@ func NewInitApp(
 		vestingtypes.ModuleName,
 		// Stratos modules
 		evmtypes.ModuleName,
+		registertypes.ModuleName,
+		sdstypes.ModuleName,
 
 		// NOTE: crisis module must go at the end to check for invariants on each module
 		crisistypes.ModuleName,
-		registertypes.ModuleName,
 	)
 
 	app.mm.RegisterInvariants(&app.crisisKeeper)
@@ -701,7 +707,7 @@ func initParamsKeeper(
 	// stratos subspaces
 	paramsKeeper.Subspace(registertypes.ModuleName)
 	//paramsKeeper.Subspace(pottypes.ModuleName)
-	//paramsKeeper.Subspace(sdstypes.ModuleName)
+	paramsKeeper.Subspace(sdstypes.ModuleName)
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 
 	return paramsKeeper

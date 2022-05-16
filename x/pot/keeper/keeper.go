@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	//"github.com/cosmos/cosmos-sdk/x/supply"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -50,7 +49,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume, reporter stratos.SdsAddress,
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
@@ -76,7 +75,7 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 	}
 
 	//TODO
-	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	foundationAccountAddr := k.AccountKeeper.GetModuleAddress(types.FoundationAccount)
 	err = k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, foundationAccountAddr, amount)
 	if err != nil {
 		return err
