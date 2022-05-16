@@ -6,7 +6,7 @@ import (
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k Keeper) DistributePotRewardForTestnet(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
+func (k Keeper) DistributePotRewardForTestnet(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: wallet address
 
@@ -113,18 +113,18 @@ func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
 	}
 
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	for _, indexingNode := range indexingNodeList {
+	for _, indexingNode := range indexingNodeList.IndexingNodes {
 		if indexingNode.IsBonded() && !indexingNode.IsSuspended() {
 			indexingNodeCnt = indexingNodeCnt.Add(sdk.OneDec())
-			indNodes = append(indNodes, indexingNode)
+			indNodes = append(indNodes, *indexingNode)
 		}
 	}
 
 	resourceNodeList := k.RegisterKeeper.GetAllResourceNodes(ctx)
-	for _, resourceNode := range resourceNodeList {
+	for _, resourceNode := range resourceNodeList.ResourceNodes {
 		if resourceNode.IsBonded() && !resourceNode.IsSuspended() {
 			resourceNodeCnt = resourceNodeCnt.Add(sdk.OneDec())
-			resNodes = append(resNodes, resourceNode)
+			resNodes = append(resNodes, *resourceNode)
 		}
 	}
 
@@ -136,7 +136,7 @@ func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
 	return
 }
 
-func (k Keeper) CalcRewardForResourceNodeForTestnet(ctx sdk.Context, trafficList []types.SingleWalletVolume,
+func (k Keeper) CalcRewardForResourceNodeForTestnet(ctx sdk.Context, trafficList []*types.SingleWalletVolume,
 	distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward, resourceNodes []regtypes.ResourceNode,
 ) (map[string]types.Reward, types.DistributeGoal) {
 
@@ -147,9 +147,15 @@ func (k Keeper) CalcRewardForResourceNodeForTestnet(ctx sdk.Context, trafficList
 	totalStakeOfResourceNodes := k.RegisterKeeper.GetResourceNodeBondedToken(ctx).Amount
 	resourceNodeCnt := sdk.NewDec(int64(len(resourceNodes)))
 	for _, node := range resourceNodes {
-		walletAddr := node.GetOwnerAddr()
-
-		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfResourceNodes.ToDec())
+		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
+		if err != nil {
+			continue
+		}
+		tokens, ok := sdk.NewIntFromString(node.Tokens.String())
+		if !ok {
+			continue
+		}
+		shareOfToken := tokens.ToDec().Quo(totalStakeOfResourceNodes.ToDec())
 		stakeRewardFromMiningPool := distributeGoal.BlockChainRewardToResourceNodeFromMiningPool.Amount.ToDec().Quo(resourceNodeCnt).TruncateInt()
 		stakeRewardFromTrafficPool := distributeGoal.BlockChainRewardToResourceNodeFromTrafficPool.Amount.ToDec().Mul(shareOfToken).TruncateInt()
 
@@ -180,7 +186,11 @@ func (k Keeper) CalcRewardForResourceNodeForTestnet(ctx sdk.Context, trafficList
 	totalConsumedOzone := k.GetTotalConsumedUoz(trafficList)
 	// 2, calc traffic reward
 	for _, walletTraffic := range trafficList {
-		walletAddr := walletTraffic.WalletAddress
+		walletAddr, err := sdk.AccAddressFromBech32(walletTraffic.WalletAddress)
+		if err != nil {
+			continue
+		}
+		//walletAddr := walletTraffic.WalletAddress
 		trafficVolume := walletTraffic.Volume
 
 		shareOfTraffic := trafficVolume.ToDec().Quo(totalConsumedOzone.ToDec())
@@ -223,6 +233,8 @@ func (k Keeper) CalcRewardForIndexingNodeForTestnet(ctx sdk.Context, distributeG
 	totalStakeOfIndexingNodes := k.RegisterKeeper.GetIndexingNodeBondedToken(ctx).Amount
 	indexingNodeCnt := sdk.NewDec(int64(len(indexNodes)))
 	for _, node := range indexNodes {
+		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
+
 		walletAddr := node.GetOwnerAddr()
 
 		// 1, calc stake reward

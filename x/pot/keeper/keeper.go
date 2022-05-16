@@ -74,14 +74,6 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 	if err != nil {
 		return err
 	}
-
-	//TODO
-	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
-	err = k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, foundationAccountAddr, amount)
-	if err != nil {
-		return err
-	}
-
 	return nil
 
 }

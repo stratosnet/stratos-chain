@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	//authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -80,4 +81,5 @@ type RegisterKeeper interface {
 
 type StakingKeeper interface {
 	TotalBondedTokens(ctx sdk.Context) sdk.Int
+	GetAllValidators(ctx sdk.Context) (validators []stakingtypes.Validator)
 }
