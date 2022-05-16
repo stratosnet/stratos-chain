@@ -52,7 +52,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 				epoch, k.GetLastReportedEpoch(ctx).String()))
 		return []byte{}, e
 	}
-	bz, err := codec.MarshalJSONIndent(k.cdc, reportRecord)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reportRecord)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -62,7 +62,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte
 // queryPotRewardsByReportEpoch fetches total rewards and owner individual rewards from traffic and mining.
 func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryPotRewardsByReportEpochParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -71,7 +71,7 @@ func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keep
 		e := sdkerrors.Wrapf(types.ErrCannotFindReward, fmt.Sprintf("no Pot rewards information at epoch %s", params.Epoch.String()))
 		return []byte{}, e
 	}
-	bz, err := codec.MarshalJSONIndent(k.cdc, potEpochRewards)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, potEpochRewards)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -107,7 +107,7 @@ func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPo
 
 func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper) ([]byte, error) {
 	var params types.QueryPotRewardsByWalletAddrParams
-	err := k.cdc.UnmarshalJSON(req.Data, &params)
+	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -115,7 +115,7 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	matureTotalReward := k.GetMatureTotalReward(ctx, params.WalletAddr)
 	reward := types.NewPotRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)
 
-	bz, err := codec.MarshalJSONIndent(k.cdc, reward)
+	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reward)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

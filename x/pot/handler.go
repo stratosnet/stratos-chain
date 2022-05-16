@@ -2,7 +2,6 @@ package pot
 
 import (
 	"fmt"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
@@ -81,66 +80,66 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 //
 //	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
 //}
-
-func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
-	err := k.Withdraw(ctx, msg.Amount, msg.WalletAddress, msg.TargetAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeWithdraw,
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.WalletAddress.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgFoundationDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgFoundationDeposit) (*sdk.Result, error) {
-	err := k.FoundationDeposit(ctx, msg.Amount, msg.From)
-	if err != nil {
-		return nil, err
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeFoundationDeposit,
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
-}
-
-func handleMsgSlashingResourceNode(ctx sdk.Context, k keeper.Keeper, msg types.MsgSlashingResourceNode) (*sdk.Result, error) {
-	for _, reporter := range msg.Reporters {
-		if !(k.IsSPNode(ctx, reporter)) {
-			errMsg := fmt.Sprint("Slashing msg is not sent by a meta node")
-			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
-		}
-	}
-
-	amt, nodeType, err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.WalletAddress, msg.Slashing, msg.Suspend)
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeSlashing,
-			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeP2PAddress, msg.NetworkAddress.String()),
-			sdk.NewAttribute(types.AttributeKeyAmount, amt.String()),
-			sdk.NewAttribute(types.AttributeKeySlashingNodeType, nodeType.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
-		),
-	})
-	return &sdk.Result{Events: ctx.EventManager().Events()}, err
-}
+//
+//func handleMsgWithdraw(ctx sdk.Context, k keeper.Keeper, msg types.MsgWithdraw) (*sdk.Result, error) {
+//	err := k.Withdraw(ctx, msg.Amount, msg.WalletAddress, msg.TargetAddress)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	ctx.EventManager().EmitEvents(sdk.Events{
+//		sdk.NewEvent(
+//			types.EventTypeWithdraw,
+//			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+//			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress.String()),
+//		),
+//		sdk.NewEvent(
+//			sdk.EventTypeMessage,
+//			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+//			sdk.NewAttribute(sdk.AttributeKeySender, msg.WalletAddress.String()),
+//		),
+//	})
+//	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+//}
+//
+//func handleMsgFoundationDeposit(ctx sdk.Context, k keeper.Keeper, msg types.MsgFoundationDeposit) (*sdk.Result, error) {
+//	err := k.FoundationDeposit(ctx, msg.Amount, msg.From)
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	ctx.EventManager().EmitEvents(sdk.Events{
+//		sdk.NewEvent(
+//			types.EventTypeFoundationDeposit,
+//			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+//		),
+//		sdk.NewEvent(
+//			sdk.EventTypeMessage,
+//			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+//			sdk.NewAttribute(sdk.AttributeKeySender, msg.From.String()),
+//		),
+//	})
+//	return &sdk.Result{Events: ctx.EventManager().Events()}, nil
+//}
+//
+//func handleMsgSlashingResourceNode(ctx sdk.Context, k keeper.Keeper, msg types.MsgSlashingResourceNode) (*sdk.Result, error) {
+//	for _, reporter := range msg.Reporters {
+//		if !(k.IsSPNode(ctx, reporter)) {
+//			errMsg := fmt.Sprint("Slashing msg is not sent by a meta node")
+//			return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, errMsg)
+//		}
+//	}
+//
+//	amt, nodeType, err := k.SlashingResourceNode(ctx, msg.NetworkAddress, msg.WalletAddress, msg.Slashing, msg.Suspend)
+//	ctx.EventManager().EmitEvents(sdk.Events{
+//		sdk.NewEvent(
+//			types.EventTypeSlashing,
+//			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress.String()),
+//			sdk.NewAttribute(types.AttributeKeyNodeP2PAddress, msg.NetworkAddress.String()),
+//			sdk.NewAttribute(types.AttributeKeyAmount, amt.String()),
+//			sdk.NewAttribute(types.AttributeKeySlashingNodeType, nodeType.String()),
+//			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
+//		),
+//	})
+//	return &sdk.Result{Events: ctx.EventManager().Events()}, err
+//}

@@ -52,7 +52,32 @@ type BankKeeper interface {
 
 type RegisterKeeper interface {
 	GetIndexingNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (indexingNode types.IndexingNode, found bool)
+	SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode)
+
+	GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (resourceNode types.ResourceNode, found bool)
+	SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode)
+
+	GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res sdk.Int)
+	SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdk.Int)
+	DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins) sdk.Coins
+
+	GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int)
+	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
+	GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin)
+	SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin)
+
+	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
+	SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin)
+	GetIndexingNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
+	SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin)
+
+	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
+	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
+
+	GetAllResourceNodes(ctx sdk.Context) (resourceNodes *types.ResourceNodes)
+	GetAllIndexingNodes(ctx sdk.Context) (indexingNodes *types.IndexingNodes)
 }
 
 type StakingKeeper interface {
+	TotalBondedTokens(ctx sdk.Context) sdk.Int
 }
