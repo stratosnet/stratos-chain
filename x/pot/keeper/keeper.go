@@ -70,7 +70,7 @@ func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found boo
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
-	err = k.BankKeeper.SendCoinsFromAccountToModule(ctx, from, types.ModuleName, amount)
+	err = k.BankKeeper.SendCoinsFromAccountToModule(ctx, from, types.FoundationAccount, amount)
 	if err != nil {
 		return err
 	}

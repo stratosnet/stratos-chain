@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
+	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	"github.com/stratosnet/stratos-chain/x/register"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -154,8 +155,12 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		//pot.FoundationAccount:          nil,
-		registertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
-		evmtypes.ModuleName:      {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		registertypes.ModuleName:   {authtypes.Minter, authtypes.Burner},
+		evmtypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		pottypes.ModuleName:        {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		pottypes.MiningRewardPool:  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
+		pottypes.TrafficRewardPool: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 	}
 
 	// module accounts that are allowed to receive tokens
