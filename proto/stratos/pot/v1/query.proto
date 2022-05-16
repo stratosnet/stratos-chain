@@ -15,31 +15,6 @@ service Query {
   rpc VolumeReport(QueryVolumeReportRequest) returns (QueryVolumeReportResponse) {
     option (google.api.http).get = "/stratos/pot/v1/volume-report/{epoch}";
   }
-//
-//  // IndexingNode queries IndexingNode info for given IndexingNode address.
-//  rpc IndexingNode(QueryIndexingNodeRequest) returns (QueryIndexingNodeResponse) {
-//    option (google.api.http).get = "/stratos/pot/v1/indexing-nodes/{network_addr}";
-//  }
-//
-//  // Params queries Register module Params info.
-//  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
-//    option (google.api.http).get = "/stratos/pot/v1/params";
-//  }
-//
-//  // StakeByNode queries all staking info for given node network address.
-//  rpc StakeByNode(QueryStakeByNodeRequest) returns (QueryStakeByNodeResponse) {
-//    option (google.api.http).get = "/stratos/pot/v1/stakes_node/{acc_addr}/{query_type}";
-//  }
-//
-//  // StakeByOwner queries all staking info for given owner address.
-//  rpc StakeByOwner(QueryStakeByOwnerRequest) returns (QueryStakeByOwnerResponse) {
-//    option (google.api.http).get = "/stratos/pot/v1/stakes_owner/{owner_addr}";
-//  }
-//
-//  // StakeTotal queries all staking info.
-//  rpc StakeTotal(QueryTotalStakeRequest) returns (QueryTotalStakeResponse) {
-//    option (google.api.http).get = "/stratos/pot/v1/total_stakes";
-//  }
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
