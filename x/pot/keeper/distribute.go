@@ -5,7 +5,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (totalConsumedOzone sdk.Dec, err error) {
 	distributeGoal := types.InitDistributeGoal()
 	rewardDetailMap := make(map[string]types.Reward) //key: wallet address
 
@@ -130,7 +130,7 @@ func (k Keeper) returnBalance(ctx sdk.Context, goal types.DistributeGoal, curren
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// return balance to foundation account
-	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	foundationAccountAddr := k.AccountKeeper.GetModuleAddress(types.FoundationAccount)
 	if foundationAccountAddr == nil {
 		ctx.Logger().Error("foundation account address of distribution module does not exist.")
 		return types.ErrUnknownAccountAddress
@@ -307,7 +307,7 @@ func (k Keeper) distributeValidatorRewardToFeePool(ctx sdk.Context, distributeGo
 	rewardFromTrafficPool := distributeGoal.BlockChainRewardToValidatorFromTrafficPool
 	totalRewardSendToFeePool := sdk.NewCoins(rewardFromMiningPool).Add(rewardFromTrafficPool)
 
-	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.feeCollectorName)
+	feePoolAccAddr := k.AccountKeeper.GetModuleAddress(k.feeCollectorName)
 
 	if feePoolAccAddr == nil {
 		ctx.Logger().Error("account address of distribution module does not exist.")

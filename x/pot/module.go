@@ -17,7 +17,6 @@ import (
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	//"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
@@ -39,12 +38,12 @@ type AppModuleBasic struct {
 
 var _ module.AppModuleBasic = AppModuleBasic{}
 
-// Name returns the staking module's name.
+// Name returns the pot module's name.
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
 
-// RegisterLegacyAminoCodec registers the staking module's types on the given LegacyAmino codec.
+// RegisterLegacyAminoCodec registers the pot module's types on the given LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
@@ -65,7 +64,7 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	rest.RegisterRoutes(ctx, rtr)
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the pot module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
@@ -95,9 +94,8 @@ func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncod
 // AppModule implements an application module for the pot module.
 type AppModule struct {
 	AppModuleBasic
-	keeper     keeper.Keeper
-	bankKeeper bankkeeper.Keeper
-	//supplyKeeper   supply.Keeper
+	keeper         keeper.Keeper
+	bankKeeper     bankkeeper.Keeper
 	accountKeeper  types.AccountKeeper
 	stakingKeeper  stakingkeeper.Keeper
 	registerKeeper registerkeeper.Keeper
@@ -110,7 +108,6 @@ func NewAppModule(k keeper.Keeper, bankKeeper bankkeeper.Keeper,
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
 		bankKeeper:     bankKeeper,
-		//supplyKeeper:   supplyKeeper,
 		accountKeeper:  accountKeeper,
 		stakingKeeper:  stakingKeeper,
 		registerKeeper: registerKeeper,
@@ -125,6 +122,12 @@ func (AppModule) Name() string {
 // RegisterInvariants registers the pot module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
+// Route returns the message routing key for the pot module.
+// Route returns the message routing key for the register module.
+func (am AppModule) Route() sdk.Route {
+	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+}
+
 // NewHandler returns an sdk.Handler for the pot module.
 func (am AppModule) NewHandler() sdk.Handler {
 	return NewHandler(am.keeper)
@@ -136,16 +139,16 @@ func (AppModule) QuerierRoute() string {
 }
 
 // NewQuerierHandler returns the pot module sdk.Querier.
-func (am AppModule) NewQuerierHandler() sdk.Querier {
-	return keeper.NewQuerier(am.keeper)
+func (am AppModule) NewQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
+	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }
 
 // InitGenesis performs genesis initialization for the pot module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	cdc.MustUnmarshalJSON(data, &genesisState)
-	InitGenesis(ctx, am.keeper, genesisState)
+	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
 
@@ -185,12 +188,7 @@ func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.We
 	return nil
 }
 
-// LegacyQuerierHandler returns the staking module sdk.Querier.
+// LegacyQuerierHandler returns the pot module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
-}
-
-// Route returns the message routing key for the register module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }

@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -99,8 +99,8 @@ import (
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	//potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
-	//pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds"
@@ -209,9 +209,9 @@ type NewApp struct {
 
 	// stratos keepers
 	registerKeeper registerkeeper.Keeper
-	//potKeeper      potkeeper.Keeper
-	sdsKeeper sdskeeper.Keeper
-	evmKeeper *evmkeeper.Keeper
+	potKeeper      potkeeper.Keeper
+	sdsKeeper      sdskeeper.Keeper
+	evmKeeper      *evmkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -255,7 +255,7 @@ func NewInitApp(
 		ibchost.StoreKey, ibctransfertypes.StoreKey,
 		// stratos keys
 		registertypes.StoreKey,
-		//pottypes.StoreKey,
+		pottypes.StoreKey,
 		sdstypes.StoreKey,
 		evmtypes.StoreKey,
 	)
@@ -387,17 +387,17 @@ func NewInitApp(
 		app.bankKeeper,
 	)
 
-	//app.potKeeper = potkeeper.NewKeeper(
-	//	appCodec,
-	//	keys[pot.StoreKey],
-	//	app.GetSubspace(pot.ModuleName),
-	//	authtypes.FeeCollectorName,
-	//	app.bankKeeper,
-	//	app.supplyKeeper,
-	//	app.accountKeeper,
-	//	app.stakingKeeper,
-	//	app.registerKeeper,
-	//)
+	app.potKeeper = potkeeper.NewKeeper(
+		appCodec,
+		keys[pot.StoreKey],
+		app.GetSubspace(pot.ModuleName),
+		authtypes.FeeCollectorName,
+		app.bankKeeper,
+		//app.supplyKeeper,
+		app.accountKeeper,
+		app.stakingKeeper,
+		app.registerKeeper,
+	)
 
 	app.sdsKeeper = sdskeeper.NewKeeper(
 		appCodec,
@@ -438,7 +438,7 @@ func NewInitApp(
 		// Stratos app modules
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
-		//pot.NewAppModule(app.potKeeper, app.bankKeeper, app.supplyKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
+		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
 		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
 	)
 
@@ -471,8 +471,8 @@ func NewInitApp(
 		vestingtypes.ModuleName,
 		// stratos
 		registertypes.ModuleName,
+		pottypes.ModuleName,
 		sdstypes.ModuleName,
-		//
 	)
 
 	// NOTE: fee market module must go last in order to retrieve the block gas used.
@@ -481,6 +481,7 @@ func NewInitApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		registertypes.ModuleName,
+		pottypes.ModuleName,
 		sdstypes.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
@@ -528,6 +529,7 @@ func NewInitApp(
 		// Stratos modules
 		evmtypes.ModuleName,
 		registertypes.ModuleName,
+		pottypes.ModuleName,
 		sdstypes.ModuleName,
 
 		// NOTE: crisis module must go at the end to check for invariants on each module
@@ -711,7 +713,7 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	// stratos subspaces
 	paramsKeeper.Subspace(registertypes.ModuleName)
-	//paramsKeeper.Subspace(pottypes.ModuleName)
+	paramsKeeper.Subspace(pottypes.ModuleName)
 	paramsKeeper.Subspace(sdstypes.ModuleName)
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 

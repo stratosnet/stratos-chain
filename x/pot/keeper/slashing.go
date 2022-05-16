@@ -1,10 +1,12 @@
 package keeper
 
 import (
+	"strconv"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 /*
@@ -16,11 +18,11 @@ import (
 	3, unstaking resource node.
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
-	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType regtypes.NodeType, err error) {
+	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType registertypes.NodeType, err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
-		return sdk.ZeroInt(), regtypes.NodeType(0), regtypes.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
 
 	node.Suspend = suspend
@@ -38,6 +40,10 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
+	resourceNodeType, err := strconv.Atoi(node.NodeType)
+	if err != nil {
+		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNodeType
+	}
 
-	return slash.TruncateInt(), node.NodeType, nil
+	return slash.TruncateInt(), registertypes.NodeType(resourceNodeType), nil
 }

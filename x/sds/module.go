@@ -48,7 +48,7 @@ func (AppModuleBasic) Name() string {
 //	types.RegisterCodec(cdc)
 //}
 
-// RegisterLegacyAminoCodec registers the staking module's types on the given LegacyAmino codec.
+// RegisterLegacyAminoCodec registers the sds module's types on the given LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	types.RegisterLegacyAminoCodec(cdc)
 }
@@ -85,7 +85,7 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 	rest.RegisterHandlers(ctx, rtr)
 }
 
-// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the staking module.
+// RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the sds module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
@@ -183,7 +183,7 @@ func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Validato
 // ConsensusVersion implements AppModule/ConsensusVersion.
 func (AppModule) ConsensusVersion() uint64 { return 2 }
 
-// LegacyQuerierHandler returns the staking module sdk.Querier.
+// LegacyQuerierHandler returns the sds module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
 }

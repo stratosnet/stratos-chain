@@ -15,7 +15,7 @@ import (
 // Keeper of the pot store
 type Keeper struct {
 	storeKey         sdk.StoreKey
-	cdc              *codec.Codec
+	cdc              codec.Codec
 	paramSpace       paramstypes.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
 	BankKeeper       types.BankKeeper
@@ -26,7 +26,7 @@ type Keeper struct {
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(cdc *codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspace, feeCollectorName string,
+func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspace, feeCollectorName string,
 	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper,
 	registerKeeper types.RegisterKeeper,
 ) Keeper {
@@ -49,7 +49,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []types.SingleWalletVolume, reporter stratos.SdsAddress,
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)

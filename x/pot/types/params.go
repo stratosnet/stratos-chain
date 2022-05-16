@@ -6,8 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/cosmos/cosmos-sdk/x/params/subspace"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
 // DefaultParamSpace Default parameter namespace
@@ -26,25 +25,16 @@ var (
 	KeyMiningRewardParams = []byte("MiningRewardParams")
 )
 
-var _ subspace.ParamSet = &Params{}
+//var _ subspace.ParamSet = &Params{}
 
-//
-//// Params - used for initializing default parameter for pot at genesis
-//type Params struct {
-//	BondDenom          string              `json:"bond_denom" yaml:"bond_denom"` // bondable coin denomination
-//	RewardDenom        string              `json:"reward_denom" yaml:"reward_denom"`
-//	MatureEpoch        int64               `json:"mature_epoch" yaml:"mature_epoch"`
-//	MiningRewardParams []MiningRewardParam `json:"mining_reward_params" yaml:"mining_reward_params"`
-//}
-//
-//// ParamKeyTable for pot module
-func ParamKeyTable() params.KeyTable {
-	return params.NewKeyTable().RegisterParamSet(&Params{})
+// ParamKeyTable for pot module
+func ParamKeyTable() paramtypes.KeyTable {
+	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
 //
 // NewParams creates a new Params object
-func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam) Params {
+func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []*MiningRewardParam) Params {
 	return Params{
 		BondDenom:          bondDenom,
 		RewardDenom:        rewardDenom,
@@ -55,7 +45,7 @@ func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRe
 
 // DefaultParams returns the default distribution parameters
 func DefaultParams() Params {
-	var miningRewardParams []MiningRewardParam
+	var miningRewardParams []*MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(0)),
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200000000000)),
@@ -94,7 +84,7 @@ func DefaultParams() Params {
 	return NewParams(DefaultBondDenom, DefaultRewardDenom, DefaultMatureEpoch, miningRewardParams)
 }
 
-// String implements the stringer interface for Params
+// HrpString implements the stringer interface for Params
 func (p Params) HrpString() string {
 	return fmt.Sprintf(`Params:
 	BondDenom:			%s
@@ -105,12 +95,12 @@ func (p Params) HrpString() string {
 }
 
 // ParamSetPairs - Implements params.ParamSet
-func (p *Params) ParamSetPairs() params.ParamSetPairs {
-	return params.ParamSetPairs{
-		params.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		params.NewParamSetPair(KeyRewardDenom, &p.RewardDenom, validateRewardDenom),
-		params.NewParamSetPair(KeyMatureEpoch, &p.MatureEpoch, validateMatureEpoch),
-		params.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
+func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
+	return paramtypes.ParamSetPairs{
+		paramtypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
+		paramtypes.NewParamSetPair(KeyRewardDenom, &p.RewardDenom, validateRewardDenom),
+		paramtypes.NewParamSetPair(KeyMatureEpoch, &p.MatureEpoch, validateMatureEpoch),
+		paramtypes.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
 	}
 }
 

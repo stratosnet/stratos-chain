@@ -9,7 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/authz"
 )
 
-// RegisterCodec registers concrete types on codec
+// RegisterLegacyAminoCodec RegisterCodec registers concrete types on codec
 func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	// this line is used by starport scaffolding # 1
 	cdc.RegisterConcrete(MsgVolumeReport{}, "pot/VolumeReportTx", nil)

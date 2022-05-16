@@ -62,7 +62,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQ
 // queryPotRewardsByReportEpoch fetches total rewards and owner individual rewards from traffic and mining.
 func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryPotRewardsByReportEpochParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -107,7 +107,7 @@ func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPo
 
 func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var params types.QueryPotRewardsByWalletAddrParams
-	err := types.ModuleCdc.UnmarshalJSON(req.Data, &params)
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
@@ -122,7 +122,7 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	return bz, nil
 }
 
-func queryPotSlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+func queryPotSlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
 	addr, err := sdk.AccAddressFromBech32(string(req.Data))
 	if err != nil {
 		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress

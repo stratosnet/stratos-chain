@@ -39,11 +39,6 @@ func ValidateGenesis(data GenesisState) error {
 	return nil
 }
 
-//type ImmatureTotal struct {
-//	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
-//	Value         sdk.Coins      `json:"value" yaml:"value"`
-//}
-//
 func NewImmatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) ImmatureTotal {
 	return ImmatureTotal{
 		WalletAddress: walletAddress.String(),
@@ -51,11 +46,6 @@ func NewImmatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) ImmatureTot
 	}
 }
 
-//type MatureTotal struct {
-//	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
-//	Value         sdk.Coins      `json:"value" yaml:"value"`
-//}
-//
 func NewMatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) MatureTotal {
 	return MatureTotal{
 		WalletAddress: walletAddress.String(),
