@@ -15,7 +15,7 @@ const (
 
 var (
 	NewKeeper               = keeper.NewKeeper
-	RegisterCodec           = types.RegisterCodec
+	RegisterCodec           = types.RegisterLegacyAminoCodec
 	ParamKeyTable           = types.ParamKeyTable
 	NewGenesisState         = types.NewGenesisState
 	NewMsgFoundationDeposit = types.NewMsgFoundationDeposit

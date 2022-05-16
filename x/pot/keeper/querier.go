@@ -52,7 +52,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQ
 				epoch, k.GetLastReportedEpoch(ctx).String()))
 		return []byte{}, e
 	}
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reportRecord)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, reportRecord)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -71,7 +71,7 @@ func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keep
 		e := sdkerrors.Wrapf(types.ErrCannotFindReward, fmt.Sprintf("no Pot rewards information at epoch %s", params.Epoch.String()))
 		return []byte{}, e
 	}
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, potEpochRewards)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, potEpochRewards)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -115,7 +115,7 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	matureTotalReward := k.GetMatureTotalReward(ctx, params.WalletAddr)
 	reward := types.NewPotRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)
 
-	bz, err := codec.MarshalJSONIndent(types.ModuleCdc, reward)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, reward)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
