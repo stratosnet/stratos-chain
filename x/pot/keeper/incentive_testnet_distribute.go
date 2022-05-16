@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -114,7 +115,7 @@ func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
 
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
 	for _, indexingNode := range indexingNodeList.IndexingNodes {
-		if indexingNode.IsBonded() && !indexingNode.IsSuspended() {
+		if indexingNode.IsBonded() && !indexingNode.Suspend {
 			indexingNodeCnt = indexingNodeCnt.Add(sdk.OneDec())
 			indNodes = append(indNodes, *indexingNode)
 		}
@@ -122,7 +123,7 @@ func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
 
 	resourceNodeList := k.RegisterKeeper.GetAllResourceNodes(ctx)
 	for _, resourceNode := range resourceNodeList.ResourceNodes {
-		if resourceNode.IsBonded() && !resourceNode.IsSuspended() {
+		if resourceNode.IsBonded() && !resourceNode.Suspend {
 			resourceNodeCnt = resourceNodeCnt.Add(sdk.OneDec())
 			resNodes = append(resNodes, *resourceNode)
 		}
@@ -234,11 +235,15 @@ func (k Keeper) CalcRewardForIndexingNodeForTestnet(ctx sdk.Context, distributeG
 	indexingNodeCnt := sdk.NewDec(int64(len(indexNodes)))
 	for _, node := range indexNodes {
 		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
-
-		walletAddr := node.GetOwnerAddr()
-
+		if err != nil {
+			continue
+		}
+		tokens, ok := sdk.NewIntFromString(node.Tokens.String())
+		if !ok {
+			continue
+		}
 		// 1, calc stake reward
-		shareOfToken := node.GetTokens().ToDec().Quo(totalStakeOfIndexingNodes.ToDec())
+		shareOfToken := tokens.ToDec().Quo(totalStakeOfIndexingNodes.ToDec())
 		stakeRewardFromMiningPool :=
 			sdk.NewCoin(k.RewardDenom(ctx), distributeGoal.BlockChainRewardToIndexingNodeFromMiningPool.Amount.ToDec().Quo(indexingNodeCnt).TruncateInt())
 		stakeRewardFromTrafficPool :=
@@ -293,9 +298,10 @@ func (k Keeper) distributeValidatorRewardForTestnet(ctx sdk.Context, distributeG
 			validatorWalletList = append(validatorWalletList, sdk.AccAddress(validator.GetOperator()))
 		}
 	}
+	//TODO doublecheck logic: replace pools with module accounts?
 	rewardPerValidator := sdk.NewCoin(k.RewardDenom(ctx), rewardFromMiningPool.Amount.ToDec().Quo(sdk.NewDec(int64(len(validatorWalletList)))).TruncateInt())
 	for _, validatorWallet := range validatorWalletList {
-		_, err := k.BankKeeper.AddCoins(ctx, validatorWallet, sdk.NewCoins(rewardPerValidator))
+		err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.MiningRewardPool, validatorWallet, sdk.NewCoins(rewardPerValidator))
 		if err != nil {
 			return distributeGoal, err
 		}
@@ -303,17 +309,23 @@ func (k Keeper) distributeValidatorRewardForTestnet(ctx sdk.Context, distributeG
 	}
 
 	// distribute rewards from traffic pool to fee_pool
-	feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.feeCollectorName)
-
-	if feePoolAccAddr == nil {
-		ctx.Logger().Error("account address of distribution module does not exist.")
-		return distributeGoal, types.ErrUnknownAccountAddress
-	}
-
-	_, err := k.BankKeeper.AddCoins(ctx, feePoolAccAddr, sdk.NewCoins(rewardFromTrafficPool))
+	//TODO doublecheck logic
+	err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TrafficRewardPool, authtypes.FeeCollectorName, sdk.NewCoins(rewardFromTrafficPool))
 	if err != nil {
 		return distributeGoal, err
 	}
+
+	//feePoolAccAddr := k.SupplyKeeper.GetModuleAddress(k.feeCollectorName)
+	//
+	//if feePoolAccAddr == nil {
+	//	ctx.Logger().Error("account address of distribution module does not exist.")
+	//	return distributeGoal, types.ErrUnknownAccountAddress
+	//}
+	//
+	//_, err := k.BankKeeper.AddCoins(ctx, feePoolAccAddr, sdk.NewCoins(rewardFromTrafficPool))
+	//if err != nil {
+	//	return distributeGoal, err
+	//}
 
 	distributeGoal.BlockChainRewardToValidatorFromMiningPool = rewardFromMiningPool.Sub(usedRewardFromMiningPool)
 	distributeGoal.BlockChainRewardToValidatorFromTrafficPool = sdk.Coin{}
@@ -333,16 +345,22 @@ func (k Keeper) returnBalanceForTestnet(ctx sdk.Context, goal types.DistributeGo
 		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
 
 	// return balance to foundation account
-	foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
-	if foundationAccountAddr == nil {
-		ctx.Logger().Error("foundation account address of distribution module does not exist.")
-		return types.ErrUnknownAccountAddress
-	}
 	amountToAdd := sdk.NewCoins(balanceOfMiningPool)
-	_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amountToAdd)
+	//TODO doublecheck logic
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.MiningRewardPool, types.FoundationAccount, amountToAdd)
 	if err != nil {
 		return err
 	}
+	//foundationAccountAddr := k.SupplyKeeper.GetModuleAddress(types.FoundationAccount)
+	//if foundationAccountAddr == nil {
+	//	ctx.Logger().Error("foundation account address of distribution module does not exist.")
+	//	return types.ErrUnknownAccountAddress
+	//}
+	//amountToAdd := sdk.NewCoins(balanceOfMiningPool)
+	//_, err = k.BankKeeper.AddCoins(ctx, foundationAccountAddr, amountToAdd)
+	//if err != nil {
+	//	return err
+	//}
 
 	//return balance to minedToken record
 	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)

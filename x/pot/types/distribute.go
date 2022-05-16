@@ -8,6 +8,8 @@ import (
 
 const (
 	FoundationAccount = "foundation_account"
+	MiningRewardPool  = "mining_reward_pool"
+	TrafficRewardPool = "traffic_reward_pool"
 )
 
 type DistributeGoal struct {

@@ -10,7 +10,8 @@ func (k Keeper) Withdraw(ctx sdk.Context, amount sdk.Coins, walletAddress sdk.Ac
 	if !matureReward.IsAllGTE(amount) {
 		return types.ErrInsufficientMatureTotal
 	}
-	err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, targetAddress, amount)
+	//TODO doublecheck logic
+	err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.FoundationAccount, targetAddress, amount)
 	if err != nil {
 		return err
 	}
