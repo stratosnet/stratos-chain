@@ -347,7 +347,7 @@ func (k Keeper) returnBalanceForTestnet(ctx sdk.Context, goal types.DistributeGo
 	// return balance to foundation account
 	amountToAdd := sdk.NewCoins(balanceOfMiningPool)
 	//TODO doublecheck logic
-	err = k.BankKeeper.MintCoins(ctx, types.FoundationAccount, amountToAdd)
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.MiningRewardPool, types.FoundationAccount, amountToAdd)
 	if err != nil {
 		return err
 	}
