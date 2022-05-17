@@ -486,7 +486,7 @@ func NewInitApp(
 		// stratos
 		registertypes.ModuleName,
 		pottypes.ModuleName,
-		//sdstypes.ModuleName,
+		sdstypes.ModuleName,
 	)
 
 	// NOTE: fee market module must go last in order to retrieve the block gas used.
