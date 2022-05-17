@@ -69,7 +69,7 @@ func NewQueryPotRewardsByWalletAddrParams(page, limit int, walletAddr sdk.AccAdd
 
 func NewReportInfo(epoch sdk.Int, reference string) ReportInfo {
 	return ReportInfo{
-		Epoch:     epoch,
+		Epoch:     epoch.String(),
 		Reference: reference,
 	}
 }

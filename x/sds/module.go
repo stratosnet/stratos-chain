@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
@@ -42,11 +43,6 @@ var _ module.AppModuleBasic = AppModuleBasic{}
 func (AppModuleBasic) Name() string {
 	return types.ModuleName
 }
-
-//// RegisterCodec registers the sds module's types for the given codec.
-//func (AppModuleBasic) RegisterCodec(cdc *codec.Codec) {
-//	types.RegisterCodec(cdc)
-//}
 
 // RegisterLegacyAminoCodec registers the sds module's types on the given LegacyAmino codec.
 func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
@@ -196,4 +192,9 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 
 	m := keeper.NewMigrator(am.keeper)
 	_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+}
+
+// ProposalContents doesn't return any content functions for governance proposals.
+func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
+	return nil
 }
