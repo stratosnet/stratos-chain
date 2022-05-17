@@ -3,26 +3,24 @@ package miner
 import (
 	"math/big"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/tendermint/tendermint/libs/log"
+	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/server"
 	sdkconfig "github.com/cosmos/cosmos-sdk/server/config"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
 	distributiontypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/backend"
-	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
+	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
 )
 
@@ -31,14 +29,14 @@ type API struct {
 	ctx       *server.Context
 	logger    log.Logger
 	clientCtx client.Context
-	backend   backend.Backend
+	backend   backend.EVMBackend
 }
 
 // NewPrivateAPI creates an instance of the Miner API.
 func NewPrivateAPI(
 	ctx *server.Context,
 	clientCtx client.Context,
-	backend backend.Backend,
+	backend backend.EVMBackend,
 ) *API {
 	return &API{
 		ctx:       ctx,

@@ -5,8 +5,6 @@ import (
 	"encoding/binary"
 	"math/big"
 
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/types"
-
 	"github.com/pkg/errors"
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -14,6 +12,8 @@ import (
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/eth/filters"
+
+	"github.com/stratosnet/stratos-chain/rpc/types"
 )
 
 // BloomIV represents the bit indexes and value inside the bloom filter that belong

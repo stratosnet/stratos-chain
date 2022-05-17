@@ -15,12 +15,12 @@ import (
 	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
-
-	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stratosnet/stratos-chain/rpc/ethereum/pubsub"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"

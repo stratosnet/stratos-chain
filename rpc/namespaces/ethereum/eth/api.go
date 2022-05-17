@@ -34,8 +34,8 @@ import (
 
 	"github.com/stratosnet/stratos-chain/crypto/hd"
 	"github.com/stratosnet/stratos-chain/ethereum/eip712"
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/backend"
-	rpctypes "github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
+	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -47,7 +47,7 @@ type PublicAPI struct {
 	queryClient  *rpctypes.QueryClient
 	chainIDEpoch *big.Int
 	logger       log.Logger
-	backend      backend.Backend
+	backend      backend.EVMBackend
 	nonceLock    *rpctypes.AddrLocker
 	signer       ethtypes.Signer
 }
@@ -56,7 +56,7 @@ type PublicAPI struct {
 func NewPublicAPI(
 	logger log.Logger,
 	clientCtx client.Context,
-	backend backend.Backend,
+	backend backend.EVMBackend,
 	nonceLock *rpctypes.AddrLocker,
 ) *PublicAPI {
 	eip155ChainID, err := stratos.ParseChainID(clientCtx.ChainID)
@@ -192,7 +192,7 @@ func (e *PublicAPI) Hashrate() hexutil.Uint64 {
 	return 0
 }
 
-// GasPrice returns the current gas price based on Stratos's gas price oracle.
+// GasPrice returns the current gas price based on stratos's gas price oracle.
 func (e *PublicAPI) GasPrice() (*hexutil.Big, error) {
 	e.logger.Debug("eth_gasPrice")
 	var (
@@ -608,7 +608,6 @@ func (e *PublicAPI) Resend(ctx context.Context, args evmtypes.TransactionArgs, g
 	}
 
 	for _, tx := range pending {
-		// FIXME does Resend api possible at all?  https://github.com/tharsis/ethermint/issues/905
 		p, err := evmtypes.UnwrapEthereumMsg(tx, common.Hash{})
 		if err != nil {
 			// not valid ethereum tx
@@ -1095,7 +1094,7 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 		Balance:      (*hexutil.Big)(balance.BigInt()),
 		CodeHash:     common.HexToHash(res.CodeHash),
 		Nonce:        hexutil.Uint64(res.Nonce),
-		StorageHash:  common.Hash{}, // NOTE: Stratos doesn't have a storage hash. TODO: implement?
+		StorageHash:  common.Hash{}, // NOTE: stratos doesn't have a storage hash. TODO: implement?
 		StorageProof: storageProofs,
 	}, nil
 }

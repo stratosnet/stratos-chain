@@ -11,10 +11,15 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/websocket"
 	"github.com/pkg/errors"
+
+	"github.com/tendermint/tendermint/libs/log"
+	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
+	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -22,13 +27,9 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	"github.com/tendermint/tendermint/libs/log"
-	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	rpcfilters "github.com/stratosnet/stratos-chain/rpc/ethereum/namespaces/eth/filters"
 	"github.com/stratosnet/stratos-chain/rpc/ethereum/pubsub"
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/types"
+	rpcfilters "github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/eth/filters"
+	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )

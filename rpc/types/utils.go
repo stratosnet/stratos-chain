@@ -14,13 +14,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
-	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	//feemarkettypes "github.com/stratosnet/stratos-chain/x/feemarket/types"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.

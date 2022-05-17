@@ -72,9 +72,15 @@ service Query {
     option (google.api.http).get = "/stratos/evm/v1/trace_block";
   }
 
-  // BaseFee queries the base fee of the parent block of the current block.
-  rpc QueryBaseFee(QueryBaseFeeRequest) returns (QueryBaseFeeResponse) {
+  // BaseFee queries the base fee of the parent block of the current block,
+  // it's similar to feemarket module's method, but also checks london hardfork status.
+  rpc BaseFee(QueryBaseFeeRequest) returns (QueryBaseFeeResponse) {
     option (google.api.http).get = "/stratos/evm/v1/base_fee";
+  }
+
+  // BaseFeeParam queries the base fee of the parent block of the current block.
+  rpc BaseFeeParam(QueryBaseFeeRequest) returns (QueryBaseFeeResponse) {
+    option (google.api.http).get = "/stratos/evm/v1/base_fee_param";
   }
 
   // BlockGas queries the gas used at a given block height

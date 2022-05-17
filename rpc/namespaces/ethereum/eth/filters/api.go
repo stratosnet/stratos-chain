@@ -6,20 +6,19 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/stratosnet/stratos-chain/rpc/ethereum/types"
-
 	"github.com/tendermint/tendermint/libs/log"
-
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
+
+	"github.com/cosmos/cosmos-sdk/client"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
 
+	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -144,11 +143,20 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 					continue
 				}
 
-				txHash := common.BytesToHash(tmtypes.Tx(data.Tx).Hash())
+				tx, err := api.clientCtx.TxConfig.TxDecoder()(data.Tx)
+				if err != nil {
+					api.logger.Debug("fail to decode tx", "error", err.Error())
+					continue
+				}
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[pendingTxSub.ID()]; found {
-					f.hashes = append(f.hashes, txHash)
+					for _, msg := range tx.GetMsgs() {
+						ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
+						if ok {
+							f.hashes = append(f.hashes, common.HexToHash(ethTx.Hash))
+						}
+					}
 				}
 				api.filtersMu.Unlock()
 			case <-errCh:
@@ -201,13 +209,17 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 					continue
 				}
 
-				txHash := common.BytesToHash(tmtypes.Tx(data.Tx).Hash())
-
-				// To keep the original behavior, send a single tx hash in one notification.
-				// TODO(rjl493456442) Send a batch of tx hashes in one notification
-				err = notifier.Notify(rpcSub.ID, txHash)
+				tx, err := api.clientCtx.TxConfig.TxDecoder()(data.Tx)
 				if err != nil {
-					return
+					api.logger.Debug("fail to decode tx", "error", err.Error())
+					continue
+				}
+
+				for _, msg := range tx.GetMsgs() {
+					ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
+					if ok {
+						_ = notifier.Notify(rpcSub.ID, common.HexToHash(ethTx.Hash))
+					}
 				}
 			case <-rpcSub.Err():
 				pendingTxSub.Unsubscribe(api.events)
@@ -317,11 +329,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 
 				// TODO: fetch bloom from events
 				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
-				err = notifier.Notify(rpcSub.ID, header)
-				if err != nil {
-					headersSub.err <- err
-					return
-				}
+				_ = notifier.Notify(rpcSub.ID, header)
 			case <-rpcSub.Err():
 				headersSub.Unsubscribe(api.events)
 				return
@@ -384,10 +392,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 				logs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
 
 				for _, log := range logs {
-					err = notifier.Notify(rpcSub.ID, log)
-					if err != nil {
-						return
-					}
+					_ = notifier.Notify(rpcSub.ID, log)
 				}
 			case <-rpcSub.Err(): // client send an unsubscribe request
 				logsSub.Unsubscribe(api.events)

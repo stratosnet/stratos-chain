@@ -20,16 +20,14 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Accounts: []GenesisAccount{},
 		Params:   DefaultParams(),
-		BlockGas: 0,
 	}
 }
 
 // NewGenesisState creates a new genesis state.
-func NewGenesisState(params Params, accounts []GenesisAccount, blockGas uint64) *GenesisState {
+func NewGenesisState(params Params, accounts []GenesisAccount) *GenesisState {
 	return &GenesisState{
 		Accounts: accounts,
 		Params:   params,
-		BlockGas: blockGas,
 	}
 }
 

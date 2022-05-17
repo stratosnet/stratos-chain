@@ -68,17 +68,15 @@ func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, s
 
 // EthAccountVerificationDecorator validates an account balance checks
 type EthAccountVerificationDecorator struct {
-	ak         evmtypes.AccountKeeper
-	bankKeeper evmtypes.BankKeeper
-	evmKeeper  EVMKeeper
+	ak        evmtypes.AccountKeeper
+	evmKeeper EVMKeeper
 }
 
 // NewEthAccountVerificationDecorator creates a new EthAccountVerificationDecorator
-func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, bankKeeper evmtypes.BankKeeper, ek EVMKeeper) EthAccountVerificationDecorator {
+func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper) EthAccountVerificationDecorator {
 	return EthAccountVerificationDecorator{
-		ak:         ak,
-		bankKeeper: bankKeeper,
-		evmKeeper:  ek,
+		ak:        ak,
+		evmKeeper: ek,
 	}
 }
 
@@ -263,7 +261,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
 
-		baseFee := ctd.evmKeeper.BaseFee(ctx, ethCfg)
+		baseFee := ctd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
 		coreMsg, err := msgEthTx.AsMessage(signer, baseFee)
 		if err != nil {
@@ -412,11 +410,17 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		txFee := sdk.Coins{}
 		txGasLimit := uint64(0)
 
+		params := vbd.evmKeeper.GetParams(ctx)
+		chainID := vbd.evmKeeper.ChainID()
+		ethCfg := params.ChainConfig.EthereumConfig(chainID)
+		baseFee := vbd.evmKeeper.GetBaseFee(ctx, ethCfg)
+
 		for _, msg := range protoTx.GetMsgs() {
 			msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
 			if !ok {
 				return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 			}
+
 			txGasLimit += msgEthTx.GetGas()
 
 			txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
@@ -424,10 +428,13 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 				return ctx, sdkerrors.Wrap(err, "failed to unpack MsgEthereumTx Data")
 			}
 
-			params := vbd.evmKeeper.GetParams(ctx)
-			chainID := vbd.evmKeeper.ChainID()
-			ethCfg := params.ChainConfig.EthereumConfig(chainID)
-			baseFee := vbd.evmKeeper.BaseFee(ctx, ethCfg)
+			// return error if contract creation or call are disabled through governance
+			if !params.EnableCreate && txData.GetTo() == nil {
+				return ctx, sdkerrors.Wrap(evmtypes.ErrCreateDisabled, "failed to create new contract")
+			} else if !params.EnableCall && txData.GetTo() != nil {
+				return ctx, sdkerrors.Wrap(evmtypes.ErrCallDisabled, "failed to call contract")
+			}
+
 			if baseFee == nil && txData.TxType() == ethtypes.DynamicFeeTxType {
 				return ctx, sdkerrors.Wrap(ethtypes.ErrTxTypeNotSupported, "dynamic fee tx not supported")
 			}
@@ -511,7 +518,7 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	if ctx.IsCheckTx() && !simulate {
 		params := mfd.evmKeeper.GetParams(ctx)
 		ethCfg := params.ChainConfig.EthereumConfig(mfd.evmKeeper.ChainID())
-		baseFee := mfd.evmKeeper.BaseFee(ctx, ethCfg)
+		baseFee := mfd.evmKeeper.GetBaseFee(ctx, ethCfg)
 		if baseFee == nil {
 			for _, msg := range tx.GetMsgs() {
 				ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
