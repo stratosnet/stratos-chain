@@ -10,9 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"github.com/spf13/cobra"
-	"github.com/stratosnet/stratos-chain/x/pot"
-	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
-	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
+	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -53,12 +52,6 @@ func (AppModuleBasic) RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 func (b AppModuleBasic) RegisterInterfaces(registry cdctypes.InterfaceRegistry) {
 	types.RegisterInterfaces(registry)
 }
-
-// DefaultGenesis returns default genesis state as raw bytes for the sds
-// module.
-//func (AppModuleBasic) DefaultGenesis() json.RawMessage {
-//	return types.ModuleCdc.MustMarshalJSON(types.DefaultGenesisState())
-//}
 
 // DefaultGenesis returns default genesis state as raw bytes for the register
 // module.
@@ -103,12 +96,12 @@ type AppModule struct {
 	AppModuleBasic
 	keeper         keeper.Keeper
 	coinKeeper     bankKeeper.Keeper
-	registerKeeper registerKeeper.Keeper
-	potKeeper      potKeeper.Keeper
+	registerKeeper registerkeeper.Keeper
+	potKeeper      potkeeper.Keeper
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, bankKeeper bankKeeper.Keeper, registerKeeper registerKeeper.Keeper, potKeeper pot.Keeper) AppModule {
+func NewAppModule(k keeper.Keeper, bankKeeper bankKeeper.Keeper, registerKeeper registerkeeper.Keeper, potKeeper potkeeper.Keeper) AppModule {
 	return AppModule{
 		AppModuleBasic: AppModuleBasic{},
 		keeper:         k,
@@ -118,18 +111,9 @@ func NewAppModule(k keeper.Keeper, bankKeeper bankKeeper.Keeper, registerKeeper 
 	}
 }
 
-// Name returns the sds module's name.
-//func (AppModule) Name() string {
-//	return types.ModuleName
-//}
-
 // RegisterInvariants registers the sds module invariants.
 func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
-// Route returns the message routing key for the sds module.
-//func (AppModule) Route() string {
-//	return types.RouterKey
-//}
 func (am AppModule) Route() sdk.Route {
 	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
 }

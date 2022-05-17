@@ -12,9 +12,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot"
 	"github.com/stratosnet/stratos-chain/x/register"
 	"github.com/stratosnet/stratos-chain/x/sds"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 
-	//"github.com/stratosnet/stratos-chain/x/sds"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -107,6 +105,8 @@ import (
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 const (
@@ -156,12 +156,17 @@ var (
 		govtypes.ModuleName:            {authtypes.Burner},
 		ibctransfertypes.ModuleName:    {authtypes.Minter, authtypes.Burner},
 		//pot.FoundationAccount:          nil,
-		registertypes.ModuleName:                    {authtypes.Minter, authtypes.Burner},
-		registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
-		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
-		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
-		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
-		registertypes.TotalUnissuedPrepayName:       nil,
+		registertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
+		//upgrading module accounts
+		//registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
+		//registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
+		//registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
+		//registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
+		//registertypes.TotalUnissuedPrepayName:       nil,
+
+		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
+		pottypes.MiningRewardPool:  nil,
+		pottypes.TrafficRewardPool: nil,
 
 		sdstypes.ModuleName: nil,
 		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
@@ -169,9 +174,7 @@ var (
 		//pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 		//pottypes.MiningRewardPool:  {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
 		//pottypes.TrafficRewardPool: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account
-		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
-		pottypes.MiningRewardPool:  nil,
-		pottypes.TrafficRewardPool: nil,
+
 	}
 
 	// module accounts that are allowed to receive tokens
@@ -221,8 +224,8 @@ type NewApp struct {
 	// stratos keepers
 	registerKeeper registerkeeper.Keeper
 	potKeeper      potkeeper.Keeper
-	//sdsKeeper      sdskeeper.Keeper
-	evmKeeper *evmkeeper.Keeper
+	sdsKeeper      sdskeeper.Keeper
+	evmKeeper      *evmkeeper.Keeper
 
 	// the module manager
 	mm *module.Manager
@@ -267,7 +270,7 @@ func NewInitApp(
 		// stratos keys
 		registertypes.StoreKey,
 		pottypes.StoreKey,
-		//sdstypes.StoreKey,
+		sdstypes.StoreKey,
 		evmtypes.StoreKey,
 	)
 
@@ -410,14 +413,14 @@ func NewInitApp(
 		app.registerKeeper,
 	)
 
-	//app.sdsKeeper = sdskeeper.NewKeeper(
-	//	appCodec,
-	//	keys[sdstypes.StoreKey],
-	//	app.GetSubspace(sdstypes.ModuleName),
-	//	app.bankKeeper,
-	//	app.registerKeeper,
-	//	app.potKeeper,
-	//)
+	app.sdsKeeper = sdskeeper.NewKeeper(
+		appCodec,
+		keys[sdstypes.StoreKey],
+		app.GetSubspace(sdstypes.ModuleName),
+		app.bankKeeper,
+		app.registerKeeper,
+		app.potKeeper,
+	)
 
 	/****  Module Options ****/
 
@@ -450,7 +453,7 @@ func NewInitApp(
 		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
 		register.NewAppModule(app.registerKeeper, app.accountKeeper, app.bankKeeper),
 		pot.NewAppModule(app.potKeeper, app.bankKeeper, app.accountKeeper, app.stakingKeeper, app.registerKeeper),
-		//sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
+		sds.NewAppModule(app.sdsKeeper, app.bankKeeper, app.registerKeeper, app.potKeeper),
 	)
 
 	// During begin block slashing happens after distr.BeginBlocker so that
@@ -493,7 +496,7 @@ func NewInitApp(
 		stakingtypes.ModuleName,
 		registertypes.ModuleName,
 		pottypes.ModuleName,
-		//sdstypes.ModuleName,
+		sdstypes.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
 		ibchost.ModuleName,
@@ -540,7 +543,7 @@ func NewInitApp(
 		// Stratos modules
 		registertypes.ModuleName,
 		pottypes.ModuleName,
-		//sdstypes.ModuleName,
+		sdstypes.ModuleName,
 		evmtypes.ModuleName,
 
 		// NOTE: crisis module must go at the end to check for invariants on each module
@@ -725,7 +728,7 @@ func initParamsKeeper(
 	// stratos subspaces
 	paramsKeeper.Subspace(registertypes.ModuleName)
 	paramsKeeper.Subspace(pottypes.ModuleName)
-	//paramsKeeper.Subspace(sdstypes.ModuleName)
+	paramsKeeper.Subspace(sdstypes.ModuleName)
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 
 	return paramsKeeper
