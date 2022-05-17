@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"context"
+	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -21,11 +22,16 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if req.Epoch.LTE(sdk.ZeroInt()) {
+	epochInt64, err := strconv.ParseInt(req.Epoch, 10, 64)
+	if err != nil {
+		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "invalid epoch")
+	}
+
+	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
 	}
 
-	epoch, ok := sdk.NewIntFromString(req.Epoch.String())
+	epoch, ok := sdk.NewIntFromString(req.Epoch)
 	if !ok {
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "invalid epoch")
 	}

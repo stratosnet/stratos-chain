@@ -5,7 +5,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sds "github.com/stratosnet/stratos-chain/x/sds/types"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // QueryUploadedFile queries the hash of an uploaded file by sender
@@ -34,18 +34,18 @@ func QuerySimulatePrepay(clientCtx client.Context, queryRoute string, amtToPrepa
 	if err != nil {
 		return nil, 0, fmt.Errorf("invalid amount, please specify a valid amount to simulate prepay %w", err)
 	}
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QuerySimulatePrepay)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, sdstypes.QuerySimulatePrepay)
 	return clientCtx.QueryWithData(route, amtByteArray)
 }
 
 // QueryCurrUozPrice queries the current price for uoz
 func QueryCurrUozPrice(clientCtx client.Context, queryRoute string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryCurrUozPrice)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, sdstypes.QueryCurrUozPrice)
 	return clientCtx.QueryWithData(route, nil)
 }
 
 // QueryUozSupply QueryCurrUozPrice queries the current price for uoz
 func QueryUozSupply(clientCtx client.Context, queryRoute string) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryUozSupply)
+	route := fmt.Sprintf("custom/%s/%s", queryRoute, sdstypes.QueryUozSupply)
 	return clientCtx.QueryWithData(route, nil)
 }

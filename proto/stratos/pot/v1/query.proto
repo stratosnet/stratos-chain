@@ -20,21 +20,13 @@ service Query {
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
 message QueryVolumeReportRequest {
   // epoch defines the epoch number to query for.
-   string epoch = 1 [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int" ];
+   string epoch = 1;
 }
 
 message ReportInfo {
-  string                   epoch        = 1;
-//  [
-//     (gogoproto.jsontag)  = "epoch",
-//     (gogoproto.moretags) = "yaml:\"epoch\"",
-//     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-//  ];
+  string epoch     = 1;
   string reference = 2;
-//  [
-//     (gogoproto.jsontag) = "reference",
-//     (gogoproto.moretags) = "yaml:\"reference\""
-//   ];
+
 }
 
 // QueryVolumeReportResponse is response type for the Query/ResourceNode RPC method
@@ -44,72 +36,6 @@ message QueryVolumeReportResponse {
   int64 height = 2;
 }
 
-
-
-//// QueryIndexingNodeRequest is request type for the Query/IndexingNode RPC method
-//message QueryIndexingNodeRequest {
-//  // network_addr defines the node network address to query for.
-//  string network_addr = 1;
-//}
-//
-//// QueryIndexingNodeResponse is response type for the Query/IndexingNode RPC method
-//message QueryIndexingNodeResponse {
-//  // node defines the the indexing info.
-//  IndexingNode node = 1;
-//}
-//
-//// QueryStakeByNodeRequest is request type for the Query/StakeByNode RPC method
-//message QueryStakeByNodeRequest {
-//  // acc_addr defines the node network address to query for.
-//  string acc_addr     = 1;
-//  int64  query_type   = 2;
-//  // pagination defines an optional pagination for the request.
-////  cosmos.base.query.v1beta1.PageRequest pagination = 3;
-//}
-//
-//// QueryStakeByNodeResponse is response type for the Query/StakeByNode RPC method
-//message QueryStakeByNodeResponse {
-//  // staking_info defines the the staking_info info of the node.
-//  StakingInfo staking_info = 1;
-//  // pagination defines an optional pagination for the request.
-////  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-//}
-//
-//// QueryStakeByOwnerRequest is request type for the Query/StakeByOwner RPC method
-//message QueryStakeByOwnerRequest {
-//  // owner_addr defines the owner address to query for.
-//  string              network_addr = 1;
-//  string              moniker = 2;
-//  string              owner_addr = 3;
-//  // pagination defines an optional pagination for the request.
-//  cosmos.base.query.v1beta1.PageRequest pagination = 4;
-//}
-//
-//// QueryStakeByOwnerResponse is response type for the Query/StakeByOwner RPC method
-//message QueryStakeByOwnerResponse {
-//  // staking_infos defines the the node staking info of this owner.
-//  repeated StakingInfo staking_infos = 1;
-//  // pagination defines an optional pagination for the request.
-//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
-//}
-//
-//// QueryTotalStakeRequest is request type for the Query/TotalStake RPC method
-//message QueryTotalStakeRequest {}
-//
-//// QueryTotalStakeResponse is response type for the Query/TotalStake RPC method
-//message QueryTotalStakeResponse {
-//  // total_stakes defines the total staking info.
-//  TotalStakesResponse total_stakes= 1;
-//}
-//
-//// QueryParamsRequest is request type for the Query/Params RPC method.
-//message QueryParamsRequest {}
-//
-//// QueryParamsResponse is response type for the Query/Params RPC method.
-//message QueryParamsResponse {
-//  // params holds all the parameters of this module.
-//  Params params = 1;
-//}
 
 
 
