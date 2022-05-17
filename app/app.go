@@ -93,6 +93,7 @@ import (
 
 	"github.com/stratosnet/stratos-chain/app/ante"
 	srvflags "github.com/stratosnet/stratos-chain/server/flags"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm"
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
@@ -280,7 +281,7 @@ func NewInitApp(
 	app.capabilityKeeper.Seal()
 
 	app.accountKeeper = authkeeper.NewAccountKeeper(
-		appCodec, keys[authtypes.StoreKey], app.GetSubspace(authtypes.ModuleName), authtypes.ProtoBaseAccount, maccPerms,
+		appCodec, keys[authtypes.StoreKey], app.GetSubspace(authtypes.ModuleName), stratos.ProtoAccount, maccPerms,
 	)
 	app.bankKeeper = bankkeeper.NewBaseKeeper(
 		appCodec, keys[banktypes.StoreKey], app.accountKeeper, app.GetSubspace(banktypes.ModuleName), app.BlockedAddrs(),

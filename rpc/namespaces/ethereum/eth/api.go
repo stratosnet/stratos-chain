@@ -608,7 +608,6 @@ func (e *PublicAPI) Resend(ctx context.Context, args evmtypes.TransactionArgs, g
 	}
 
 	for _, tx := range pending {
-		// FIXME does Resend api possible at all?  https://github.com/tharsis/ethermint/issues/905
 		p, err := evmtypes.UnwrapEthereumMsg(tx, common.Hash{})
 		if err != nil {
 			// not valid ethereum tx
