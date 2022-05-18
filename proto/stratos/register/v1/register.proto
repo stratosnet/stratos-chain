@@ -4,6 +4,7 @@ package stratos.register.v1;
 import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
 
 import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
@@ -18,11 +19,15 @@ message Params {
     (gogoproto.jsontag)  = "bond_denom",
     (gogoproto.moretags) = "yaml:\"bond_denom\""
   ];
-  string  unbonding_threashold_time = 2 [
+  google.protobuf.Duration  unbonding_threashold_time = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
     (gogoproto.jsontag)  = "unbonding_threashold_time",
     (gogoproto.moretags) = "yaml:\"unbonding_threashold_time\""
   ];
-  string  unbonding_completion_time = 3 [
+  google.protobuf.Duration  unbonding_completion_time = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
     (gogoproto.jsontag)  = "unbonding_completion_time",
     (gogoproto.moretags) = "yaml:\"unbonding_completion_time\""
   ];
@@ -129,6 +134,7 @@ message IndexingNodeRegistrationVotePool {
     (gogoproto.moretags) = "yaml:\"reject_list\""
   ];
   google.protobuf.Timestamp   expireTime = 4 [
+//    (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag)  = "expire_time",
     (gogoproto.moretags) = "yaml:\"expire_time\""
@@ -265,6 +271,7 @@ message UnbondingNodeEntry {
     (gogoproto.moretags) = "yaml:\"creation_height\""
   ];
   google.protobuf.Timestamp           completion_time = 2 [
+    (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag)  = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
@@ -304,17 +311,5 @@ message Staking {
     (gogoproto.nullable) = false
   ];
 }
-
-//message QueryNodeStakingParams {
-//  string              acc_addr = 1;
-//  int64               query_type = 2;
-//}
-//
-//// QueryNodesParams Params for query 'custom/register/resource-nodes'
-//message QueryNodesParams {
-//  string              network_addr = 1;
-//  string              moniker = 2;
-//  string              owner_addr = 3;
-//}
 
 
