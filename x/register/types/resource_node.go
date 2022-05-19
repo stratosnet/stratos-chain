@@ -236,24 +236,24 @@ func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
 	return bytes.Equal(bz1, bz2)
 }
 
-func (s Staking) GetNetworkAddress() stratos.SdsAddress {
+func (s *Staking) GetNetworkAddress() stratos.SdsAddress {
 	networkAddr, err := stratos.SdsAddressFromBech32(s.NetworkAddress)
 	if err != nil {
 		panic(err)
 	}
 	return networkAddr
 }
-func (s Staking) GetOwnerAddr() sdk.AccAddress {
+func (s *Staking) GetOwnerAddr() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(s.OwnerAddress)
 	if err != nil {
 		panic(err)
 	}
 	return addr
 }
-func (s Staking) GetShares() sdk.Dec { return s.Value }
+func (s *Staking) GetShares() sdk.Dec { return s.Value }
 
 // String returns a human readable string representation of a node.
-func (s Staking) String() string {
+func (s *Staking) String() string {
 	out, _ := yaml.Marshal(s)
 	return string(out)
 }

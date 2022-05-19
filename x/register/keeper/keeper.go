@@ -223,7 +223,7 @@ func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res
 
 // GetUnbondingNodes return a given amount of all the UnbondingIndexingNodes
 func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
-	maxRetrieve uint16) (unbondingIndexingNodes []types.UnbondingNode) {
+	maxRetrieve uint32) (unbondingIndexingNodes []types.UnbondingNode) {
 
 	unbondingIndexingNodes = make([]types.UnbondingNode, maxRetrieve)
 

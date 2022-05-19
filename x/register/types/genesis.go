@@ -52,11 +52,16 @@ func ValidateGenesis(data GenesisState) error {
 	if err := data.GetParams().Validate(); err != nil {
 		return err
 	}
-	if err := data.GetResourceNodes().Validate(); err != nil {
-		return err
+	if resNodes := data.GetResourceNodes(); resNodes != nil {
+		if err := resNodes.Validate(); err != nil {
+			return err
+		}
 	}
-	if err := data.GetIndexingNodes().Validate(); err != nil {
-		return err
+
+	if indNodes := data.GetIndexingNodes(); indNodes != nil {
+		if err := indNodes.Validate(); err != nil {
+			return err
+		}
 	}
 
 	if (data.InitialUozPrice).LTE(sdk.ZeroDec()) {

@@ -28,9 +28,9 @@ var (
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("KeyMaxEntries")
 
-	DefaultUnbondingThreasholdTime = (180 * 24 * time.Hour).String() // threashold for unbonding - by default 180 days
-	DefaultUnbondingCompletionTime = (14 * 24 * time.Hour).String()  // lead time to complete unbonding - by default 14 days
-	DefaultUozPrice                = sdk.NewDecWithPrec(1000000, 9)  // 0.001 ustos -> 1 uoz
+	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour           // threashold for unbonding - by default 180 days
+	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour            // lead time to complete unbonding - by default 14 days
+	DefaultUozPrice                = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
 	DefaultTotalUnissuedPrepay     = sdk.NewInt(0)
 )
 
@@ -40,7 +40,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string, threashold, completion string, maxEntries uint32) Params {
+func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint32) Params {
 	return Params{
 		BondDenom:               bondDenom,
 		UnbondingThreasholdTime: threashold,
@@ -124,7 +124,7 @@ func validateUnbondingCompletionTime(i interface{}) error {
 }
 
 func validateMaxEntries(i interface{}) error {
-	v, ok := i.(uint16)
+	v, ok := i.(uint32)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

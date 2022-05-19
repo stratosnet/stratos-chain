@@ -34,7 +34,7 @@ func NewUnbondingNodeEntry(creationHeight int64, completionTime time.Time,
 
 	return UnbondingNodeEntry{
 		CreationHeight: creationHeight,
-		CompletionTime: &completionTime,
+		CompletionTime: completionTime,
 		InitialBalance: &balance,
 		Balance:        &balance,
 	}
