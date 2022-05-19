@@ -158,15 +158,16 @@ var (
 		//pot.FoundationAccount:          nil,
 		registertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		//upgrading module accounts
-		//registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
-		//registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
-		//registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
-		//registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
-		//registertypes.TotalUnissuedPrepayName:       nil,
+		registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
+		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
+		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
+		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
+		registertypes.TotalUnissuedPrepayName:       nil,
 
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
 		pottypes.MiningRewardPool:  nil,
 		pottypes.TrafficRewardPool: nil,
+		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},
 
 		sdstypes.ModuleName: nil,
 		evmtypes.ModuleName: {authtypes.Minter, authtypes.Burner}, // used for secure addition and subtraction of balance using module account

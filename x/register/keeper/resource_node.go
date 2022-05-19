@@ -196,7 +196,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
 
 	// deduct slashing amount first
-	coins = k.DeductSlashing(ctx, ownerAddr, coins)
+	coins, _ = k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, ownerAddr, coins)
 	if err != nil {
