@@ -70,6 +70,12 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	//11, save reported epoch
 	k.SetLastReportedEpoch(ctx, epoch)
 
+	//12, [TLC] transfer balance of miningReward&trafficReward pools to totalReward pool, utilized for future Withdraw Tx
+	err = k.TransferMiningTrafficRewardsToTotalRewards(ctx)
+	if err != nil {
+		return totalConsumedOzone, err
+	}
+
 	return totalConsumedOzone, nil
 }
 
@@ -576,4 +582,30 @@ func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress 
 			break
 		}
 	}
+}
+
+func (k Keeper) TransferMiningTrafficRewardsToTotalRewards(ctx sdk.Context) error {
+	miningRewardAccountAddr := k.AccountKeeper.GetModuleAddress(types.MiningRewardPool)
+	if miningRewardAccountAddr == nil {
+		ctx.Logger().Error("mining reward account address of distribution module does not exist.")
+		return types.ErrUnknownAccountAddress
+	}
+	miningRewardPoolBalances := k.BankKeeper.GetAllBalances(ctx, miningRewardAccountAddr)
+
+	trafficRewardAccountAddr := k.AccountKeeper.GetModuleAddress(types.TrafficRewardPool)
+	if trafficRewardAccountAddr == nil {
+		ctx.Logger().Error("traffic reward account address of distribution module does not exist.")
+		return types.ErrUnknownAccountAddress
+	}
+	trafficRewardPoolBalances := k.BankKeeper.GetAllBalances(ctx, trafficRewardAccountAddr)
+
+	err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.MiningRewardPool, types.TotalRewardPool, miningRewardPoolBalances)
+	if err != nil {
+		return err
+	}
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TrafficRewardPool, types.TotalRewardPool, trafficRewardPoolBalances)
+	if err != nil {
+		return err
+	}
+	return nil
 }
