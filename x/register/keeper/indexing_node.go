@@ -209,7 +209,7 @@ func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.In
 	k.SetIndexingNodeNotBondedToken(ctx, notBondedTokenInPool)
 
 	// deduct slashing amount first
-	coins, _ = k.DeductSlashing(ctx, ownerAddr, coins)
+	coins = k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, ownerAddr, coins)
 	if err != nil {
