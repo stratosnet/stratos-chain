@@ -297,8 +297,6 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
 
-	totalDeducted := sdk.Coins{}
-
 	for i := matureStartEpoch; i <= matureEndEpoch; i++ {
 		k.IteratorIndividualReward(ctx, sdk.NewInt(i), func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
 			oldMatureTotal := k.GetMatureTotalReward(ctx, walletAddress)
@@ -306,11 +304,9 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
 
 			//deduct slashing amount from mature total pool
-			oldMatureTotalSubSlashing, deductedFromMature := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
+			oldMatureTotalSubSlashing := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
 			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-			immatureToMatureSubSlashing, deductedFromImmatureToMature := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
-			deductedSubtotal := deductedFromMature.Add(deductedFromImmatureToMature...)
-			totalDeducted = totalDeducted.Add(deductedSubtotal...)
+			immatureToMatureSubSlashing := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
 
 			matureTotal := oldMatureTotalSubSlashing.Add(immatureToMatureSubSlashing...)
 			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
@@ -320,8 +316,6 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 			return false
 		})
 	}
-
-	// TODO deduct totalDeducted from miningRewardPool/trafficRewardPool
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
