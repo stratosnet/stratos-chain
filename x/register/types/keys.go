@@ -31,6 +31,8 @@ const (
 	IndexingNodeNotBondedPoolName = "indexing_node_not_bonded_pool"
 	// TotalUnIssuedPrepay stores the balance of total unissued prepay
 	TotalUnissuedPrepayName = "total_unissued_prepay"
+	// TotalUnIssuedPrepay stores the balance of total unissued prepay
+	TotalSlashedPoolName = "total_slashed_pool"
 )
 
 var (

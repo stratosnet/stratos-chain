@@ -6,26 +6,29 @@ import (
 )
 
 // DeductSlashing deduct slashing amount from coins, return the coins that after deduction
-func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins) sdk.Coins {
+func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins) (remaining, deducted sdk.Coins) {
 	slashing := k.GetSlashing(ctx, walletAddress)
+	remaining = sdk.Coins{}
+	deducted = sdk.Coins{}
 	if slashing.LTE(sdk.ZeroInt()) || coins.Empty() || coins.IsZero() {
-		return coins
+		return coins, deducted
 	}
 
-	ret := sdk.Coins{}
 	for _, coin := range coins {
 		if coin.Amount.GTE(slashing) {
 			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
-			ret = ret.Add(coin)
+			remaining = remaining.Add(coin)
+			deducted = deducted.Add(sdk.NewCoin(coin.Denom, slashing))
 			slashing = sdk.ZeroInt()
 		} else {
 			slashing = slashing.Sub(coin.Amount)
+			deducted = deducted.Add(coin)
 			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
-			ret = ret.Add(coin)
+			remaining = remaining.Add(coin)
 		}
 	}
 	k.SetSlashing(ctx, walletAddress, slashing)
-	return ret
+	return remaining, deducted
 }
 
 func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, slashing sdk.Int) (stop bool)) {

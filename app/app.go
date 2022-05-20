@@ -163,6 +163,7 @@ var (
 		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
 		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
 		registertypes.TotalUnissuedPrepayName:       nil,
+		registertypes.TotalSlashedPoolName:          {authtypes.Minter, authtypes.Burner},
 
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
 		pottypes.MiningRewardPool:  nil,

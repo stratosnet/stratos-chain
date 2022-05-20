@@ -65,13 +65,13 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	}
 
 	//10, mature rewards for all nodes
-	k.rewardMatureAndSubSlashing(ctx, epoch)
+	totalSlashed := k.rewardMatureAndSubSlashing(ctx, epoch)
 
 	//11, save reported epoch
 	k.SetLastReportedEpoch(ctx, epoch)
 
-	//12, [TLC] transfer balance of miningReward&trafficReward pools to totalReward pool, utilized for future Withdraw Tx
-	err = k.TransferMiningTrafficRewardsToTotalRewards(ctx)
+	//12, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
+	err = k.TransferMiningTrafficRewardsToTotalRewards(ctx, totalSlashed)
 	if err != nil {
 		return totalConsumedOzone, err
 	}
@@ -292,10 +292,12 @@ func (k Keeper) addNewIndividualAndUpdateImmatureTotal(ctx sdk.Context, account 
 	k.SetImmatureTotalReward(ctx, account, newImmatureTotal)
 }
 
-func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int) {
+func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int) (totalSlashed sdk.Coins) {
 
 	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
 	matureEndEpoch := currentEpoch.Int64()
+
+	totalSlashed = sdk.Coins{}
 
 	for i := matureStartEpoch; i <= matureEndEpoch; i++ {
 		k.IteratorIndividualReward(ctx, sdk.NewInt(i), func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
@@ -304,9 +306,12 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
 
 			//deduct slashing amount from mature total pool
-			oldMatureTotalSubSlashing := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
+			oldMatureTotalSubSlashing, deductedFromMature := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, oldMatureTotal)
 			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-			immatureToMatureSubSlashing := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
+			immatureToMatureSubSlashing, deductedFromImmatureToMature := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
+
+			deductedSubtotal := deductedFromMature.Add(deductedFromImmatureToMature...)
+			totalSlashed = totalSlashed.Add(deductedSubtotal...)
 
 			matureTotal := oldMatureTotalSubSlashing.Add(immatureToMatureSubSlashing...)
 			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
@@ -316,6 +321,7 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 			return false
 		})
 	}
+	return totalSlashed
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
@@ -578,7 +584,7 @@ func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress 
 	}
 }
 
-func (k Keeper) TransferMiningTrafficRewardsToTotalRewards(ctx sdk.Context) error {
+func (k Keeper) TransferMiningTrafficRewardsToTotalRewards(ctx sdk.Context, totalSlashed sdk.Coins) error {
 	miningRewardAccountAddr := k.AccountKeeper.GetModuleAddress(types.MiningRewardPool)
 	if miningRewardAccountAddr == nil {
 		ctx.Logger().Error("mining reward account address of distribution module does not exist.")
@@ -601,5 +607,12 @@ func (k Keeper) TransferMiningTrafficRewardsToTotalRewards(ctx sdk.Context) erro
 	if err != nil {
 		return err
 	}
+
+	// transfer totalSlashed TODO whether to burn the slashed tokens in TotalSlashedPoolName
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TotalRewardPool, regtypes.TotalSlashedPoolName, totalSlashed)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
