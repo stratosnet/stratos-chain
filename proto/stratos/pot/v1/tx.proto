@@ -51,7 +51,7 @@ message MsgVolumeReport {
     (gogoproto.jsontag) = "reporter_owner",
     (gogoproto.moretags) = "yaml:\"reporter_owner\""
   ];
-  BLSSignatureInfo         bls_signature = 6 [
+  BLSSignatureInfo         BLS_signature = 6 [
     (gogoproto.jsontag) = "bls_signature",
     (gogoproto.moretags) = "yaml:\"bls_signature\""
   ];

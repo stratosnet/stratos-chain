@@ -43,7 +43,7 @@ func NewMsgVolumeReport(
 		Epoch:           &epoch,
 		ReportReference: reportReference,
 		ReporterOwner:   reporterOwner.String(),
-		BlsSignature:    &blsSignature,
+		BLSSignature:    &blsSignature,
 	}
 }
 
@@ -115,13 +115,13 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		}
 	}
 
-	if len(msg.BlsSignature.Signature) == 0 {
+	if len(msg.BLSSignature.Signature) == 0 {
 		return ErrBLSSignatureInvalid
 	}
-	if len(msg.BlsSignature.TxData) == 0 {
+	if len(msg.BLSSignature.TxData) == 0 {
 		return ErrBLSTxDataInvalid
 	}
-	for _, pubKey := range msg.BlsSignature.PubKeys {
+	for _, pubKey := range msg.BLSSignature.PubKeys {
 		if len(pubKey) == 0 {
 			return ErrBLSPubkeysInvalid
 		}
