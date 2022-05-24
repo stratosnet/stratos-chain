@@ -353,34 +353,79 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 	}
 }
 
-func (k Keeper) SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-	store.Set(types.ResourceNodeBondedTokenKey, bz)
+func (k Keeper) MintResourceNodeBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
+	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
+	if resourceNodeBondedPoolAcc == nil {
+		return types.ErrUnknownAccountAddress
+	}
+	hasCoin := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
+	// can only mint when balance is 0 TODO To be tested
+	if hasCoin.Amount.GT(sdk.ZeroInt()) {
+		return types.ErrInitialBalanceNotZero
+	}
+	return k.bankKeeper.MintCoins(ctx, types.ResourceNodeBondedPoolName, sdk.NewCoins(initialCoins))
 }
+
+//func (k Keeper) SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
+//	store.Set(types.ResourceNodeBondedTokenKey, bz)
+//}
 
 func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ResourceNodeBondedTokenKey)
-	if bz == nil {
-		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
+	if resourceNodeBondedAccAddr == nil {
+		ctx.Logger().Error("account address for resource node bonded pool does not exist.")
+		return sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		}
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
-	return token
+	return k.bankKeeper.GetBalance(ctx, resourceNodeBondedAccAddr, k.BondDenom(ctx))
+	//store := ctx.KVStore(k.storeKey)
+	//bz := store.Get(types.ResourceNodeBondedTokenKey)
+	//if bz == nil {
+	//	return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	//}
+	//k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
+	//return token
 }
 
-func (k Keeper) SetResourceNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-	store.Set(types.ResourceNodeNotBondedTokenKey, bz)
+func (k Keeper) MintResourceNodeNotBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
+	resourceNodeNotBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
+	if resourceNodeNotBondedPoolAcc == nil {
+		return types.ErrUnknownAccountAddress
+	}
+	hasCoin := k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedPoolAcc, k.BondDenom(ctx))
+	// can only mint when balance is 0 TODO To be tested
+	if hasCoin.Amount.GT(sdk.ZeroInt()) {
+		return types.ErrInitialBalanceNotZero
+	}
+	return k.bankKeeper.MintCoins(ctx, types.ResourceNodeNotBondedPoolName, sdk.NewCoins(initialCoins))
 }
+
+//func (k Keeper) SetResourceNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
+//	store.Set(types.ResourceNodeNotBondedTokenKey, bz)
+//}
 
 func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.ResourceNodeNotBondedTokenKey)
-	if bz == nil {
-		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	resourceNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
+	if resourceNodeNotBondedAccAddr == nil {
+		ctx.Logger().Error("account address for resource node Not bonded pool does not exist.")
+		return sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		}
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
-	return token
+	return k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedAccAddr, k.BondDenom(ctx))
+
+	//store := ctx.KVStore(k.storeKey)
+	//bz := store.Get(types.ResourceNodeNotBondedTokenKey)
+	//if bz == nil {
+	//	return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	//}
+	//k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
+	//return token
 }

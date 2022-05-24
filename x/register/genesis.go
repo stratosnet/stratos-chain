@@ -24,9 +24,14 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		}
 		keeper.SetResourceNode(ctx, *resourceNode)
 	}
-	keeper.SetResourceNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeBondedToken))
-	keeper.SetResourceNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeNotBondedToken))
-
+	err := keeper.MintResourceNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeBondedToken))
+	if err != nil {
+		panic(err)
+	}
+	err = keeper.MintResourceNodeNotBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeNotBondedToken))
+	if err != nil {
+		panic(err)
+	}
 	idxNodeBondedToken := sdk.ZeroInt()
 	idxNodeNotBondedToken := sdk.ZeroInt()
 	for _, indexingNode := range data.IndexingNodes.GetIndexingNodes() {
@@ -38,8 +43,14 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		}
 		keeper.SetIndexingNode(ctx, *indexingNode)
 	}
-	keeper.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
-	keeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
+	err = keeper.MintIndexingNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
+	if err != nil {
+		panic(err)
+	}
+	err = keeper.MintIndexingNodeNotBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
+	if err != nil {
+		panic(err)
+	}
 
 	totalUnissuedPrepay := data.TotalUnissuedPrepay
 	initialUOzonePrice := sdk.ZeroDec()
@@ -48,10 +59,13 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
 	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
-	keeper.MintTotalUnissuedPrepayPool(ctx, sdk.Coin{
+	err = keeper.MintTotalUnissuedPrepayPool(ctx, sdk.Coin{
 		Denom:  data.Params.BondDenom,
 		Amount: totalUnissuedPrepay,
 	})
+	if err != nil {
+		panic(err)
+	}
 
 	for _, slashing := range data.Slashing {
 		walletAddress, err := sdk.AccAddressFromBech32(slashing.GetWalletAddress())

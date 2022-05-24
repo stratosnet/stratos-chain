@@ -472,34 +472,64 @@ func (k Keeper) UpdateIndexingNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 	}
 }
 
-func (k Keeper) SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-	store.Set(types.IndexingNodeBondedTokenKey, bz)
+func (k Keeper) MintIndexingNodeBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
+	indexingNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.IndexingNodeBondedPoolName)
+	if indexingNodeBondedPoolAcc == nil {
+		return types.ErrUnknownAccountAddress
+	}
+	hasCoin := k.bankKeeper.GetBalance(ctx, indexingNodeBondedPoolAcc, k.BondDenom(ctx))
+	// can only mint when balance is 0 TODO To be tested
+	if hasCoin.Amount.GT(sdk.ZeroInt()) {
+		return types.ErrInitialBalanceNotZero
+	}
+	return k.bankKeeper.MintCoins(ctx, types.IndexingNodeBondedPoolName, sdk.NewCoins(initialCoins))
 }
+
+//func (k Keeper) SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
+//	store.Set(types.IndexingNodeBondedTokenKey, bz)
+//}
 
 func (k Keeper) GetIndexingNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.IndexingNodeBondedTokenKey)
-	if bz == nil {
-		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	indexingNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.IndexingNodeBondedPoolName)
+	if indexingNodeBondedAccAddr == nil {
+		ctx.Logger().Error("account address for indexing node bonded pool does not exist.")
+		return sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		}
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
-	return token
+	return k.bankKeeper.GetBalance(ctx, indexingNodeBondedAccAddr, k.BondDenom(ctx))
 }
 
-func (k Keeper) SetIndexingNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-	store.Set(types.IndexingNodeNotBondedTokenKey, bz)
+func (k Keeper) MintIndexingNodeNotBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
+	indexingNodeNotBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.IndexingNodeNotBondedPoolName)
+	if indexingNodeNotBondedPoolAcc == nil {
+		return types.ErrUnknownAccountAddress
+	}
+	hasCoin := k.bankKeeper.GetBalance(ctx, indexingNodeNotBondedPoolAcc, k.BondDenom(ctx))
+	// can only mint when balance is 0 TODO To be tested
+	if hasCoin.Amount.GT(sdk.ZeroInt()) {
+		return types.ErrInitialBalanceNotZero
+	}
+	return k.bankKeeper.MintCoins(ctx, types.IndexingNodeNotBondedPoolName, sdk.NewCoins(initialCoins))
 }
+
+//func (k Keeper) SetIndexingNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
+//	store := ctx.KVStore(k.storeKey)
+//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
+//	store.Set(types.IndexingNodeNotBondedTokenKey, bz)
+//}
 
 func (k Keeper) GetIndexingNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.IndexingNodeNotBondedTokenKey)
-	if bz == nil {
-		return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	indexingNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.IndexingNodeNotBondedPoolName)
+	if indexingNodeNotBondedAccAddr == nil {
+		ctx.Logger().Error("account address for indexing node Not bonded pool does not exist.")
+		return sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		}
 	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
-	return token
+	return k.bankKeeper.GetBalance(ctx, indexingNodeNotBondedAccAddr, k.BondDenom(ctx))
 }

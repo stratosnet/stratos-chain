@@ -158,10 +158,10 @@ var (
 		//pot.FoundationAccount:          nil,
 		registertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		//upgrading module accounts
-		registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
-		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
-		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
-		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
+		registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter},
+		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter},
+		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter},
+		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter},
 		registertypes.TotalUnissuedPrepayName:       {authtypes.Minter},
 		registertypes.TotalSlashedPoolName:          {authtypes.Minter, authtypes.Burner},
 

@@ -127,7 +127,7 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 			Amount: sdk.ZeroInt(),
 		}
 	}
-	return k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAccAddr, types.DefaultBondDenom)
+	return k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAccAddr, k.BondDenom(ctx))
 	//store := ctx.KVStore(k.storeKey)
 	//b := store.Get(types.TotalUnissuedPrepayKey)
 	//if b == nil {

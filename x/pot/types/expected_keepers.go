@@ -69,9 +69,9 @@ type RegisterKeeper interface {
 	//SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin)
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
-	SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin)
+	MintResourceNodeBondedTokenPool(ctx sdk.Context, token sdk.Coin) error
 	GetIndexingNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
-	SetIndexingNodeBondedToken(ctx sdk.Context, token sdk.Coin)
+	MintIndexingNodeBondedTokenPool(ctx sdk.Context, token sdk.Coin) error
 
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
 	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
