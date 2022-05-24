@@ -65,7 +65,8 @@ type RegisterKeeper interface {
 	GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int)
 	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
 	GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin)
-	SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin)
+	SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fromWallet sdk.AccAddress, coinToSend sdk.Coin) error
+	//SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin)
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 	SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin)

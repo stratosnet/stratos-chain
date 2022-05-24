@@ -48,7 +48,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
 	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
-	keeper.SetTotalUnissuedPrepay(ctx, sdk.Coin{
+	keeper.MintTotalUnissuedPrepayPool(ctx, sdk.Coin{
 		Denom:  data.Params.BondDenom,
 		Amount: totalUnissuedPrepay,
 	})

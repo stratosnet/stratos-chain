@@ -162,7 +162,7 @@ var (
 		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
 		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter, authtypes.Burner},
 		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter, authtypes.Burner},
-		registertypes.TotalUnissuedPrepayName:       nil,
+		registertypes.TotalUnissuedPrepayName:       {authtypes.Minter},
 		registertypes.TotalSlashedPoolName:          {authtypes.Minter, authtypes.Burner},
 
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},

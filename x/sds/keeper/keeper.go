@@ -79,7 +79,7 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
-func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
@@ -91,9 +91,13 @@ func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 			Add(amount)).ToDec()).
 		TruncateInt()
 
-	// update total unissued prepay
-	newTotalUnissuedPrepay := Pt.Add(amount)
-	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
+	// send coins to total unissued prepay pool
+	err := k.RegisterKeeper.SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx, from, sdk.NewCoin(k.BondDenom(ctx), amount))
+	if err != nil {
+		return sdk.ZeroInt()
+	}
+	//newTotalUnissuedPrepay := Pt.Add(amount)
+	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
 
 	// update remaining uoz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
@@ -128,23 +132,23 @@ func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) 
 		}
 	}
 
+	prepay := coins.AmountOf(k.BondDenom(ctx))
+	purchased := k.purchaseUozAndSubCoins(ctx, sender, prepay)
+
 	err := k.doPrepay(ctx, sender, coins)
 	if err != nil {
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-	// sub coins from sender's wallet
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, types.ModuleName, coins)
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
+	//// sub coins from sender's wallet
+	//err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, regtypes.TotalUnissuedPrepayName, coins)
+	//if err != nil {
+	//	return sdk.ZeroInt(), err
+	//}
 	//
 	//_, err = k.bankKeeper.SubtractCoins(ctx, sender, coins)
 	//if err != nil {
 	//	return sdk.ZeroInt(), err
 	//}
-
-	prepay := coins.AmountOf(k.BondDenom(ctx))
-	purchased := k.purchaseUoz(ctx, prepay)
 
 	return purchased, nil
 }

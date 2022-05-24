@@ -371,9 +371,14 @@ func (k Keeper) returnBalanceForTestnet(ctx sdk.Context, goal types.DistributeGo
 	k.setMinedTokens(ctx, epoch, newMinedToken)
 
 	// return balance to prepay pool
-	totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
-	newTotalUnIssuedPrePay := totalUnIssuedPrepay.Add(balanceOfTrafficPool)
-	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
+	// [TLC][TrafficRewardPool -> TotalUnIssuedPrepay]
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TrafficRewardPool, regtypes.TotalUnissuedPrepayName, sdk.NewCoins(balanceOfTrafficPool))
+	if err != nil {
+		return err
+	}
+	//totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
+	//newTotalUnIssuedPrePay := totalUnIssuedPrepay.Add(balanceOfTrafficPool)
+	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
 
 	return nil
 }

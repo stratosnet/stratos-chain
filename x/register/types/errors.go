@@ -51,6 +51,7 @@ const (
 	codeErrUnknownAccountAddress
 	codeErrUnknownPubKey
 	codeErrNoNodeFound
+	codeErrInitialBalanceNotZero
 )
 
 var (
@@ -100,4 +101,5 @@ var (
 	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
 	ErrUnknownPubKey                      = sdkerrors.Register(ModuleName, codeErrUnknownPubKey, "unknown pubKey ")
 	ErrNoNodeFound                        = sdkerrors.Register(ModuleName, codeErrNoNodeFound, "node does not exist ")
+	ErrInitialBalanceNotZero              = sdkerrors.Register(ModuleName, codeErrInitialBalanceNotZero, "initial balance isn't zero ")
 )
