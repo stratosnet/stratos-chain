@@ -11,7 +11,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -62,8 +61,12 @@ func WithdrawCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsTargetAddress)
+	//cmd.Flags().AddFlagSet(FsAmount)
+	//cmd.Flags().AddFlagSet(FsTargetAddress)
+	cmd.Flags().AddFlagSet(flagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetTargetAddress())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -73,7 +76,10 @@ func WithdrawCmd() *cobra.Command {
 
 // makes a new WithdrawMsg.
 func buildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgWithdraw, error) {
-	amountStr, _ := fs.GetString(FlagAmount)
+	amountStr, err := fs.GetString(FlagAmount)
+	if err != nil {
+		return txf, nil, err
+	}
 	amount, err := sdk.ParseCoinsNormalized(amountStr)
 	if err != nil {
 		return txf, nil, err
@@ -82,15 +88,26 @@ func buildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet
 	walletAddress := clientCtx.GetFromAddress()
 
 	var targetAddress sdk.AccAddress
-	if viper.IsSet(FlagTargetAddress) {
-		targetAddressStr := viper.GetString(FlagTargetAddress)
+	flagTargetAddress := fs.Lookup(FlagTargetAddress)
+	if flagTargetAddress == nil {
+		targetAddress = walletAddress
+	} else {
+		targetAddressStr, _ := fs.GetString(FlagTargetAddress)
 		targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
 		if err != nil {
 			return txf, nil, err
 		}
-	} else {
-		targetAddress = walletAddress
 	}
+
+	//if viper.IsSet(FlagTargetAddress) {
+	//	targetAddressStr := viper.GetString(FlagTargetAddress)
+	//	targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
+	//	if err != nil {
+	//		return txf, nil, err
+	//	}
+	//} else {
+	//	targetAddress = walletAddress
+	//}
 
 	msg := types.NewMsgWithdraw(amount, walletAddress, targetAddress)
 
@@ -128,10 +145,13 @@ func VolumeReportCmd() *cobra.Command {
 			//return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-	cmd.Flags().AddFlagSet(FsReporterAddr)
-	cmd.Flags().AddFlagSet(FsEpoch)
-	cmd.Flags().AddFlagSet(FsReportReference)
-	cmd.Flags().AddFlagSet(FsWalletVolumes)
+	//cmd.Flags().AddFlagSet(FsReporterAddr)
+	//cmd.Flags().AddFlagSet(FsEpoch)
+	//cmd.Flags().AddFlagSet(FsReportReference)
+	//cmd.Flags().AddFlagSet(FsWalletVolumes)
+	cmd.Flags().AddFlagSet(flagSetReportVolumes())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagReporterAddr)
 	_ = cmd.MarkFlagRequired(FlagEpoch)
@@ -143,20 +163,32 @@ func VolumeReportCmd() *cobra.Command {
 }
 
 func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgVolumeReport, error) {
-	reporterStr, _ := fs.GetString(FlagReporterAddr)
+	reporterStr, err := fs.GetString(FlagReporterAddr)
+	if err != nil {
+		return txf, nil, err
+	}
 	reporter, err := stratos.SdsAddressFromBech32(reporterStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	reportReference := viper.GetString(FlagReportReference)
-	value, err := strconv.ParseInt(viper.GetString(FlagEpoch), 10, 64)
+	reportReference, err := fs.GetString(FlagReportReference)
+	if err != nil {
+		return txf, nil, err
+	}
+	flagEpochStr, _ := fs.GetString(FlagEpoch)
+	value, err := strconv.ParseInt(flagEpochStr, 10, 64)
 	if err != nil {
 		return txf, nil, err
 	}
 	epoch := sdk.NewInt(value)
-	var walletVolumesStr = make([]singleWalletVolumeStr, 0)
-	err = json.Unmarshal([]byte(viper.GetString(FlagWalletVolumes)), &walletVolumesStr)
+
+	flagWalletVolumes, err := fs.GetString(FlagWalletVolumes)
+	if err != nil {
+		return txf, nil, err
+	}
+	walletVolumesStr := make([]singleWalletVolumeStr, 0)
+	err = json.Unmarshal([]byte(flagWalletVolumes), &walletVolumesStr)
 	if err != nil {
 		return txf, nil, err
 	}
@@ -209,7 +241,9 @@ func FoundationDepositCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsAmount)
+	cmd.Flags().AddFlagSet(flagSetAmount())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
@@ -218,7 +252,10 @@ func FoundationDepositCmd() *cobra.Command {
 }
 
 func buildFoundationDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgFoundationDeposit, error) {
-	amountStr, _ := fs.GetString(FlagAmount)
+	amountStr, err := fs.GetString(FlagAmount)
+	if err != nil {
+		return txf, nil, err
+	}
 	amount, err := sdk.ParseCoinsNormalized(amountStr)
 	if err != nil {
 		return txf, nil, err
@@ -249,12 +286,20 @@ func SlashingResourceNodeCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsReporters)
-	cmd.Flags().AddFlagSet(FsReportOwner)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsWalletAddress)
-	cmd.Flags().AddFlagSet(FsSlashing)
-	cmd.Flags().AddFlagSet(FsSuspend)
+	//cmd.Flags().AddFlagSet(FsReporters)
+	//cmd.Flags().AddFlagSet(FsReportOwner)
+	//cmd.Flags().AddFlagSet(FsNetworkAddress)
+	//cmd.Flags().AddFlagSet(FsWalletAddress)
+	//cmd.Flags().AddFlagSet(FsSlashing)
+	//cmd.Flags().AddFlagSet(FsSuspend)
+
+	cmd.Flags().AddFlagSet(flagSetReportersAndOwners())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetWalletAddress())
+	cmd.Flags().AddFlagSet(flagSetSlashing())
+	cmd.Flags().AddFlagSet(flagSetSuspend())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagReporters)
 	_ = cmd.MarkFlagRequired(FlagReporterOwner)
@@ -269,10 +314,15 @@ func SlashingResourceNodeCmd() *cobra.Command {
 
 func buildSlashingResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgSlashingResourceNode, error) {
 	var reportersStr = make([]string, 0)
-	err := json.Unmarshal([]byte(viper.GetString(FlagReporters)), &reportersStr)
+	flagReportersStr, err := fs.GetString(FlagReporters)
 	if err != nil {
 		return txf, nil, err
 	}
+	err = json.Unmarshal([]byte(flagReportersStr), &reportersStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	var reporters = make([]stratos.SdsAddress, 0)
 	for _, val := range reportersStr {
 		reporterAddr, err := stratos.SdsAddressFromBech32(val)
@@ -283,10 +333,15 @@ func buildSlashingResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *
 	}
 
 	var reporterOwnerStr = make([]string, 0)
-	err = json.Unmarshal([]byte(viper.GetString(FlagReporterOwner)), &reporterOwnerStr)
+	flagReporterOwnerStr, err := fs.GetString(FlagReporterOwner)
 	if err != nil {
 		return txf, nil, err
 	}
+	err = json.Unmarshal([]byte(flagReporterOwnerStr), &reporterOwnerStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	var reporterOwner = make([]sdk.AccAddress, 0)
 	for _, val := range reporterOwnerStr {
 		reporterOwnerAddr, err := sdk.AccAddressFromBech32(val)
@@ -296,26 +351,36 @@ func buildSlashingResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *
 		reporterOwner = append(reporterOwner, reporterOwnerAddr)
 	}
 
-	networkAddressStr := viper.GetString(FlagNetworkAddress)
-	networkAddress, err := stratos.SdsAddressFromBech32(networkAddressStr)
+	flagNetworkAddressStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddress, err := stratos.SdsAddressFromBech32(flagNetworkAddressStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	walletAddressStr := viper.GetString(FlagWalletAddress)
-	walletAddress, err := sdk.AccAddressFromBech32(walletAddressStr)
+	flagWalletAddressStr, err := fs.GetString(FlagWalletAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	walletAddress, err := sdk.AccAddressFromBech32(flagWalletAddressStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	slashingVal, err := strconv.ParseInt(viper.GetString(FlagSlashing), 10, 64)
+	flagSlashingStr, err := fs.GetString(FlagSlashing)
+	if err != nil {
+		return txf, nil, err
+	}
+	slashingVal, err := strconv.ParseInt(flagSlashingStr, 10, 64)
 	if err != nil {
 		return txf, nil, err
 	}
 	slashing := sdk.NewInt(slashingVal)
 
-	suspendVal := viper.GetString(FlagSuspend)
-	suspend, err := strconv.ParseBool(suspendVal)
+	suspend, err := fs.GetBool(FlagSuspend)
+	//suspend, err := strconv.ParseBool(flagSuspendVal)
 	if err != nil {
 		return txf, nil, err
 	}

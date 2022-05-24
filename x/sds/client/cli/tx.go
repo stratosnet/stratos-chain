@@ -6,7 +6,6 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	stratos "github.com/stratosnet/stratos-chain/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -38,7 +37,7 @@ func FileUploadTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "upload [flags]",
 		Short: "Create and sign a file upload tx",
-		Args:  cobra.RangeArgs(0, 3),
+		//Args:  cobra.RangeArgs(0, 3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -57,9 +56,14 @@ func FileUploadTxCmd() *cobra.Command {
 	}
 	//cmd = flags.PostCommands(cmd)[0]
 	//cmd.Flags().String(flags.FlagFrom, "", "from address")
-	cmd.Flags().String(FlagFileHash, "", "Hash of uploaded file")
-	cmd.Flags().String(FlagReporter, "", "Reporter of file")
-	cmd.Flags().String(FlagUploader, "", "Uploader of file")
+	//cmd.Flags().String(FlagFileHash, "", "Hash of uploaded file")
+	//cmd.Flags().String(FlagReporter, "", "Reporter of file")
+	//cmd.Flags().String(FlagUploader, "", "Uploader of file")
+	cmd.Flags().AddFlagSet(flagSetFileHash())
+	cmd.Flags().AddFlagSet(flagSetReporter())
+	cmd.Flags().AddFlagSet(flagSetUploader())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagFileHash)
@@ -76,10 +80,17 @@ func PrepayTxCmd() *cobra.Command {
 		Short: "Create and sign a prepay tx",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
+			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
+
+			fromAddr, fromName, _, err := client.GetFromFields(cliCtx.Keyring, args[0], cliCtx.GenerateOnly)
+			if err != nil {
+				return err
+			}
+
+			clientCtx := cliCtx.WithFrom(args[0]).WithFromAddress(fromAddr).WithFromName(fromName)
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
@@ -106,34 +117,47 @@ func PrepayTxCmd() *cobra.Command {
 			//return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-
+	flags.AddTxFlagsToCmd(cmd)
 	//cmd = flags.PostCommands(cmd)[0]
 
 	return cmd
 }
 
 // makes a new newBuildFileuploadMsg
-func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, _ *flag.FlagSet) (tx.Factory, *types.MsgFileUpload, error) {
-	fileHash := viper.GetString(FlagFileHash)
-	_, err := hex.DecodeString(fileHash)
+func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgFileUpload, error) {
+	fileHash, err := fs.GetString(FlagFileHash)
+	if err != nil {
+		return txf, nil, err
+	}
+	_, err = hex.DecodeString(fileHash)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	_, err = stratos.SdsAddressFromBech32(viper.GetString(FlagReporter))
+	flagReporterStr, err := fs.GetString(FlagReporter)
+	if err != nil {
+		return txf, nil, err
+	}
+	_, err = stratos.SdsAddressFromBech32(flagReporterStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	_, err = sdk.AccAddressFromBech32(viper.GetString(FlagUploader))
+	flagUploaderStr, err := fs.GetString(FlagUploader)
+	if err != nil {
+		return txf, nil, err
+	}
+	_, err = sdk.AccAddressFromBech32(flagUploaderStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	msg := types.NewMsgUpload(fileHash,
+	msg := types.NewMsgUpload(
+		fileHash,
 		clientCtx.GetFromAddress().String(),
-		viper.GetString(FlagReporter),
-		viper.GetString(FlagUploader))
+		flagReporterStr,
+		flagUploaderStr,
+	)
 
 	return txf, msg, nil
 }

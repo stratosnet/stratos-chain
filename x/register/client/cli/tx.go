@@ -6,10 +6,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -62,17 +62,20 @@ func CreateResourceNodeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsPk)
-	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsNodeType)
-	cmd.Flags().AddFlagSet(FsDescription)
+	cmd.Flags().AddFlagSet(flagSetPublicKey())
+	cmd.Flags().AddFlagSet(flagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetNodeType())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
+	_ = cmd.MarkFlagRequired(FlagMoniker)
 	return cmd
 }
 
@@ -97,10 +100,12 @@ func CreateIndexingNodeCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsPk)
-	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsDescription)
+	cmd.Flags().AddFlagSet(flagSetPublicKey())
+	cmd.Flags().AddFlagSet(flagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
@@ -124,7 +129,11 @@ func RemoveResourceNodeCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			ownerAddr := clientCtx.GetFromAddress()
+			//ownerAddr := clientCtx.GetFromAddress()
+			ownerAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
 
 			msg := types.NewMsgRemoveResourceNode(resourceNodeAddr, ownerAddr)
 
@@ -145,17 +154,24 @@ func RemoveIndexingNodeCmd() *cobra.Command {
 				return err
 			}
 
-			resourceNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
+			indexingNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
 			if err != nil {
 				return err
 			}
-			ownerAddr := clientCtx.GetFromAddress()
+			//ownerAddr := clientCtx.GetFromAddress()
+			ownerAddr, err := sdk.AccAddressFromBech32(args[1])
+			if err != nil {
+				return err
+			}
 
-			msg := types.NewMsgRemoveIndexingNode(resourceNodeAddr, ownerAddr)
+			msg := types.NewMsgRemoveIndexingNode(indexingNodeAddr, ownerAddr)
 
 			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
+
+	flags.AddTxFlagsToCmd(cmd)
+
 	return cmd
 }
 
@@ -180,15 +196,15 @@ func UpdateResourceNodeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsDescription)
-	cmd.Flags().AddFlagSet(FsNodeType)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetNodeType())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
-	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -215,9 +231,10 @@ func UpdateIndexingNodeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsDescription)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagMoniker)
@@ -249,9 +266,10 @@ func UpdateResourceNodeStakeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsIncrStake)
-	cmd.Flags().AddFlagSet(FsStakeDelta)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetStakeUpdate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagStakeDelta)
@@ -282,9 +300,10 @@ func UpdateIndexingNodeStakeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsIncrStake)
-	cmd.Flags().AddFlagSet(FsStakeDelta)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetStakeUpdate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagStakeDelta)
@@ -316,10 +335,9 @@ func IndexingNodeRegistrationVoteCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsCandidateNetworkAddress)
-	cmd.Flags().AddFlagSet(FsCandidateOwnerAddress)
-	cmd.Flags().AddFlagSet(FsOpinion)
-	cmd.Flags().AddFlagSet(FsVoterNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetVoting())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagCandidateNetworkAddress)
@@ -331,40 +349,74 @@ func IndexingNodeRegistrationVoteCmd() *cobra.Command {
 
 // makes a new CreateResourceNodeMsg.
 func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateResourceNode, error) {
-	fAmount, _ := fs.GetString(FlagAmount)
-	amount, err := sdk.ParseCoinNormalized(fAmount)
+	flagAmountStr, err := fs.GetString(FlagAmount)
+	if err != nil {
+		return txf, nil, err
+	}
+	amount, err := sdk.ParseCoinNormalized(flagAmountStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	networkAddrstr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
 		return txf, nil, err
 	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	ownerAddr := clientCtx.GetFromAddress()
-	pkStr := viper.GetString(FlagPubKey)
-	nodeTypeRef := viper.GetInt(FlagNodeType)
+
+	pkStr, err := fs.GetString(FlagPubKey)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	var pk cryptotypes.PubKey
+	if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+		return txf, nil, err
+	}
+	//pkStr := viper.GetString(FlagPubKey)
+
+	nodeTypeRef, err := fs.GetInt(FlagNodeType)
+	if err != nil {
+		return txf, nil, err
+	}
 
 	pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
 	if er != nil {
 		return txf, nil, err
 	}
 
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
 	)
+
+	//desc := types.NewDescription(
+	//	viper.GetString(FlagMoniker),
+	//	viper.GetString(FlagIdentity),
+	//	viper.GetString(FlagWebsite),
+	//	viper.GetString(FlagSecurityContact),
+	//	viper.GetString(FlagDetails),
+	//)
 
 	// validate nodeTypeRef
 	newNodeType := types.NodeType(nodeTypeRef)
 	if t := newNodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, &desc, &newNodeType)
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, &description, &newNodeType)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -373,33 +425,63 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 
 // makes a new MsgCreateIndexingNode.
 func newBuildCreateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateResourceNode, error) {
-	fAmount, _ := fs.GetString(FlagAmount)
-	amount, err := sdk.ParseCoinNormalized(fAmount)
+	flagAmountStr, err := fs.GetString(FlagAmount)
+	if err != nil {
+		return txf, nil, err
+	}
+	amount, err := sdk.ParseCoinNormalized(flagAmountStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	networkAddrstr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
 		return txf, nil, err
 	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	ownerAddr := clientCtx.GetFromAddress()
-	pkStr := viper.GetString(FlagPubKey)
 
+	pkStr, err := fs.GetString(FlagPubKey)
+	if err != nil {
+		return txf, nil, err
+	}
 	pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
 	if er != nil {
 		return txf, nil, err
 	}
 
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
 	)
-	msg, er := types.NewMsgCreateIndexingNode(networkAddr, pubKey, amount, ownerAddr, &desc)
+
+	//pkStr := viper.GetString(FlagPubKey)
+
+	//pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
+	//if er != nil {
+	//	return txf, nil, err
+	//}
+	//
+	//desc := types.NewDescription(
+	//	viper.GetString(FlagMoniker),
+	//	viper.GetString(FlagIdentity),
+	//	viper.GetString(FlagWebsite),
+	//	viper.GetString(FlagSecurityContact),
+	//	viper.GetString(FlagDetails),
+	//)
+	msg, er := types.NewMsgCreateIndexingNode(networkAddr, pubKey, amount, ownerAddr, &description)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -407,67 +489,126 @@ func newBuildCreateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 }
 
 // makes a new MsgUpdateResourceNode.
-func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, _ *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNode, error) {
-	networkAddrstr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
+func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNode, error) {
+	//networkAddrstr := viper.GetString(FlagNetworkAddress)
+	//networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
 		return txf, nil, err
 	}
-	ownerAddr := clientCtx.GetFromAddress()
-	nodeTypeRef := viper.GetInt(FlagNodeType)
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
+	ownerAddr := clientCtx.GetFromAddress()
+
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
 	)
+
+	nodeTypeRef, err := fs.GetInt(FlagNodeType)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	//nodeTypeRef := viper.GetInt(FlagNodeType)
+
+	//desc := types.NewDescription(
+	//	viper.GetString(FlagMoniker),
+	//	viper.GetString(FlagIdentity),
+	//	viper.GetString(FlagWebsite),
+	//	viper.GetString(FlagSecurityContact),
+	//	viper.GetString(FlagDetails),
+	//)
 
 	newNodeType := types.NodeType(nodeTypeRef)
 	if t := newNodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgUpdateResourceNode(desc, newNodeType, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateResourceNode(description, newNodeType, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
 // makes a new MsgUpdateIndexingNode.
-func newBuildUpdateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, _ *flag.FlagSet) (tx.Factory, *types.MsgUpdateIndexingNode, error) {
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
-	)
+func newBuildUpdateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateIndexingNode, error) {
+	//desc := types.NewDescription(
+	//	viper.GetString(FlagMoniker),
+	//	viper.GetString(FlagIdentity),
+	//	viper.GetString(FlagWebsite),
+	//	viper.GetString(FlagSecurityContact),
+	//	viper.GetString(FlagDetails),
+	//)
+	//
+	//networkAddrstr := viper.GetString(FlagNetworkAddress)
+	//networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+	//ownerAddr := clientCtx.GetFromAddress()
 
-	networkAddrstr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
 		return txf, nil, err
 	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateIndexingNode(desc, networkAddr, ownerAddr)
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
+	)
+
+	msg := types.NewMsgUpdateIndexingNode(description, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
 // newBuildUpdateResourceNodeStakeMsg makes a new UpdateResourceNodeStakeMsg.
-func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory, _ *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNodeStake, error) {
-	stakeDeltaStr := viper.GetString(FlagStakeDelta)
+func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNodeStake, error) {
+	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
+	if err != nil {
+		return txf, nil, err
+	}
 	stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	incrStakeStr := viper.GetString(FlagIncrStake)
+	incrStakeStr, err := fs.GetString(FlagIncrStake)
+	if err != nil {
+		return txf, nil, err
+	}
 	incrStake, err := strconv.ParseBool(incrStakeStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	networkAddrStr := viper.GetString(FlagNetworkAddress)
+	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
 		return txf, nil, err
@@ -480,20 +621,44 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 }
 
 // newBuildUpdateIndexingNodeStakeMsg makes a new UpdateIndexingNodeStakeMsg.
-func newBuildUpdateIndexingNodeStakeMsg(clientCtx client.Context, txf tx.Factory, _ *flag.FlagSet) (tx.Factory, *types.MsgUpdateIndexingNodeStake, error) {
-	stakeDeltaStr := viper.GetString(FlagStakeDelta)
+func newBuildUpdateIndexingNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateIndexingNodeStake, error) {
+	//stakeDeltaStr := viper.GetString(FlagStakeDelta)
+	//stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+	//
+	//incrStakeStr := viper.GetString(FlagIncrStake)
+	//incrStake, err := strconv.ParseBool(incrStakeStr)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+	//
+	//networkAddrStr := viper.GetString(FlagNetworkAddress)
+	//networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+
+	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
+	if err != nil {
+		return txf, nil, err
+	}
 	stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	incrStakeStr := viper.GetString(FlagIncrStake)
+	incrStakeStr, err := fs.GetString(FlagIncrStake)
+	if err != nil {
+		return txf, nil, err
+	}
 	incrStake, err := strconv.ParseBool(incrStakeStr)
 	if err != nil {
 		return txf, nil, err
 	}
 
-	networkAddrStr := viper.GetString(FlagNetworkAddress)
+	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
 		return txf, nil, err
@@ -505,24 +670,39 @@ func newBuildUpdateIndexingNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 	return txf, msg, nil
 }
 
-func newBuildIndexingNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Factory, _ *flag.FlagSet) (tx.Factory, *types.MsgIndexingNodeRegistrationVote, error) {
-	candidateNetworkAddrStr := viper.GetString(FlagCandidateNetworkAddress)
+func newBuildIndexingNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgIndexingNodeRegistrationVote, error) {
+	candidateNetworkAddrStr, err := fs.GetString(FlagCandidateNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
 	candidateNetworkAddr, err := stratos.SdsAddressFromBech32(candidateNetworkAddrStr)
 	if err != nil {
 		return txf, nil, err
 	}
-	candidateOwnerAddrStr := viper.GetString(FlagCandidateOwnerAddress)
+
+	candidateOwnerAddrStr, err := fs.GetString(FlagCandidateOwnerAddress)
+	if err != nil {
+		return txf, nil, err
+	}
 	candidateOwnerAddr, err := sdk.AccAddressFromBech32(candidateOwnerAddrStr)
 	if err != nil {
 		return txf, nil, err
 	}
-	opinionVal := viper.GetBool(FlagOpinion)
+
+	opinionVal, err := fs.GetBool(FlagOpinion)
+	if err != nil {
+		return txf, nil, err
+	}
 	//opinion := types.VoteOpinionFromBool(opinionVal)
-	voterNetworkAddrStr := viper.GetString(FlagVoterNetworkAddress)
+	voterNetworkAddrStr, err := fs.GetString(FlagVoterNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
 	voterNetworkAddr, err := stratos.SdsAddressFromBech32(voterNetworkAddrStr)
 	if err != nil {
 		return txf, nil, err
 	}
+
 	voterOwnerAddr := clientCtx.GetFromAddress()
 
 	msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinionVal, voterNetworkAddr, voterOwnerAddr)

@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
@@ -40,7 +41,7 @@ func GetCmdQueryResourceNode() *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query details about an individual resource node by its network address.
 Example:
-$ %s query register get-resource-node --network-address=%sstsds1np4d8re98lpgrcdqcas8yt85gl3rvj268leg6v
+$ %s query register get-resource-node --network-address=stsds1np4d8re98lpgrcdqcas8yt85gl3rvj268leg6v
 `,
 				version.AppName,
 			),
@@ -65,10 +66,15 @@ $ %s query register get-resource-node --network-address=%sstsds1np4d8re98lpgrcdq
 				return err
 			}
 
-			return clientCtx.PrintProto(result)
+			return clientCtx.PrintProto(result.GetNode())
 		},
 	}
-	cmd.Flags().String(FlagNetworkAddress, "", "(optional) The network address of the node")
+
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	//cmd.Flags().String(FlagNetworkAddress, "", "The network address of node")
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
 
@@ -80,7 +86,7 @@ func GetCmdQueryIndexingNode() *cobra.Command {
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query details about an individual indexing node by its network address.
 Example:
-$ %s query register get-indexing-node --network-address=%sstsds1faej5w4q6hgnt0ft598dlm408g4p747y4krwca
+$ %s query register get-indexing-node --network-address=stsds1faej5w4q6hgnt0ft598dlm408g4p747y4krwca
 `,
 				version.AppName,
 			),
@@ -109,7 +115,12 @@ $ %s query register get-indexing-node --network-address=%sstsds1faej5w4q6hgnt0ft
 			return clientCtx.PrintProto(result)
 		},
 	}
-	cmd.Flags().String(FlagNetworkAddress, "", "(optional) The network address of the node")
+
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+
+	flags.AddQueryFlagsToCmd(cmd)
+	//cmd.Flags().String(FlagNetworkAddress, "", "(optional) The network address of the node")
 	return cmd
 }
 

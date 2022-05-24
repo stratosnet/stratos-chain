@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -63,8 +64,10 @@ func GetCmdQueryVolumeReport() *cobra.Command {
 			return clientCtx.PrintProto(result)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsEpoch)
+	cmd.Flags().AddFlagSet(flagSetEpoch())
 	_ = cmd.MarkFlagRequired(FlagEpoch)
+
+	flags.AddQueryFlagsToCmd(cmd)
 
 	return cmd
 }

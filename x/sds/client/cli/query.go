@@ -5,10 +5,11 @@ import (
 	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -54,7 +55,7 @@ $ %s query sds upload c03661732294feb49caf6dc16c7cbb2534986d73
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			queryFileHash := viper.GetString(FlagFileHash)
+			queryFileHash := strings.TrimSpace(args[0][:])
 			if len(queryFileHash) == 0 {
 				return sdkerrors.Wrap(types.ErrEmptyFileHash, "Missing file hash")
 			}
@@ -77,7 +78,9 @@ $ %s query sds upload c03661732294feb49caf6dc16c7cbb2534986d73
 			return clientCtx.PrintProto(result)
 		},
 	}
-	cmd.Flags().String(FlagFileHash, "", "the file hash")
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "upload")
 	return cmd
 }
 
@@ -103,9 +106,13 @@ $ %s query sds prepay st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 			}
 			queryClient := types.NewQueryClient(clientCtx)
 
-			queryAccAddr := viper.GetString(args[0])
+			queryAccAddr := strings.TrimSpace(args[0][:])
 			if len(queryAccAddr) == 0 {
 				return sdkerrors.Wrap(types.ErrEmptySenderAddr, "Missing sender address")
+			}
+			_, err = stratos.SdsAddressFromBech32(queryAccAddr)
+			if err != nil {
+				return err
 			}
 
 			result, err := queryClient.Prepay(cmd.Context(), &types.QueryPrepayRequest{
@@ -118,6 +125,6 @@ $ %s query sds prepay st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 			return clientCtx.PrintProto(result)
 		},
 	}
-	cmd.Flags().String(FlagFileHash, "", "the file hash")
+	flags.AddQueryFlagsToCmd(cmd)
 	return cmd
 }
