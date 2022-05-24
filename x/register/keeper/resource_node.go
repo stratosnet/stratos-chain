@@ -234,7 +234,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 
 	hasCoin := k.bankKeeper.HasBalance(ctx, nBondedResourceAccountAddr, tokenToSub)
 	if !hasCoin {
-		return types.ErrInsufficientBalance
+		return types.ErrInsufficientBalanceOfNotBondedPool
 	}
 	//notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
 	//if notBondedTokenInPool.IsLT(tokenToSub) {
@@ -243,7 +243,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	//notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
 	//k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
 
-	// deduct slashing amount first
+	// deduct slashing amount first, slashed amt goes into TotalSlashedPool
 	coins, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
 	// add tokens to owner acc
 	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ResourceNodeNotBondedPoolName, ownerAddr, coins)
