@@ -7,15 +7,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stratosnet/stratos-chain/x/evm/types"
-	"gopkg.in/yaml.v2"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
+	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 type NodeType uint8
@@ -92,21 +90,21 @@ func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 		return ResourceNode{}, err
 	}
 	return ResourceNode{
-		NetworkAddr:  networkAddr.String(),
-		PubKey:       pkAny,
-		Suspend:      true,
-		Status:       stakingtypes.Unbonded,
-		Tokens:       sdk.ZeroInt(),
-		OwnerAddress: ownerAddr.String(),
-		Description:  description,
-		NodeType:     nodeType.Type(),
-		CreationTime: creationTime,
+		NetworkAddress: networkAddr.String(),
+		Pubkey:         pkAny,
+		Suspend:        true,
+		Status:         stakingtypes.Unbonded,
+		Tokens:         sdk.ZeroInt(),
+		OwnerAddress:   ownerAddr.String(),
+		Description:    description,
+		NodeType:       nodeType.Type(),
+		CreationTime:   creationTime,
 	}, nil
 }
 
 // ConvertToString returns a human-readable string representation of a resource node.
 func (v ResourceNode) ConvertToString() string {
-	pkAny, err := codectypes.NewAnyWithValue(v.GetPubKey())
+	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
@@ -124,7 +122,7 @@ func (v ResourceNode) ConvertToString() string {
 		NodeType:           %s
 		Description:		%s
 		CreationTime:		%s
-	}`, v.GetNetworkAddr(), pubKey, v.GetSuspend(), v.GetStatus(), v.Tokens,
+	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(), v.Tokens,
 		v.GetOwnerAddress(), v.NodeType, v.GetDescription(), v.GetCreationTime())
 }
 
@@ -147,7 +145,7 @@ func (v ResourceNode) SubToken(amount sdk.Int) ResourceNode {
 }
 
 func (v ResourceNode) Validate() error {
-	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddr())
+	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
 		return err
 	}
@@ -155,7 +153,7 @@ func (v ResourceNode) Validate() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	pkAny, err := codectypes.NewAnyWithValue(v.GetPubKey())
+	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
 	if err != nil {
 		return err
 	}
@@ -236,13 +234,15 @@ func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
 	return bytes.Equal(bz1, bz2)
 }
 
-func (s *Staking) GetNetworkAddress() stratos.SdsAddress {
-	networkAddr, err := stratos.SdsAddressFromBech32(s.NetworkAddress)
-	if err != nil {
-		panic(err)
-	}
-	return networkAddr
-}
+// GetOwnerAddr
+//func (s *Staking) GetNetworkAddress() stratos.SdsAddress {
+//	networkAddr, err := stratos.SdsAddressFromBech32(s.NetworkAddress)
+//	if err != nil {
+//		panic(err)
+//	}
+//	return networkAddr
+//}
+
 func (s *Staking) GetOwnerAddr() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(s.OwnerAddress)
 	if err != nil {
@@ -253,10 +253,10 @@ func (s *Staking) GetOwnerAddr() sdk.AccAddress {
 func (s *Staking) GetShares() sdk.Dec { return s.Value }
 
 // String returns a human readable string representation of a node.
-func (s *Staking) String() string {
-	out, _ := yaml.Marshal(s)
-	return string(out)
-}
+//func (s *Staking) String() string {
+//	out, _ := yaml.Marshal(s)
+//	return string(out)
+//}
 
 // Stakings is a collection of Staking
 type Stakings []Staking

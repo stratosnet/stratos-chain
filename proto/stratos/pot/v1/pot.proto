@@ -27,20 +27,20 @@ message Params {
 }
 
 message MiningRewardParam {
-  cosmos.base.v1beta1.Coin totalMinedValveStart  = 1 [ (gogoproto.moretags) = "yaml:\"total_mined_valve_start\"" ];
-  cosmos.base.v1beta1.Coin totalMinedValveEnd    = 2 [ (gogoproto.moretags) = "yaml:\"total_mined_valve_end\"" ];
-  cosmos.base.v1beta1.Coin miningReward          = 3 [ (gogoproto.moretags) = "yaml:\"mining_reward\"" ];
-  string                   blockChainPercentageInTenThousand        = 4 [
+  cosmos.base.v1beta1.Coin total_mined_valve_start  = 1 [ (gogoproto.moretags) = "yaml:\"total_mined_valve_start\"" ];
+  cosmos.base.v1beta1.Coin total_mined_valve_end    = 2 [ (gogoproto.moretags) = "yaml:\"total_mined_valve_end\"" ];
+  cosmos.base.v1beta1.Coin mining_reward          = 3 [ (gogoproto.moretags) = "yaml:\"mining_reward\"" ];
+  string                   block_chain_percentage_in_ten_thousand        = 4 [
     (gogoproto.jsontag)  = "block_chain_percentage_in_ten_thousand",
     (gogoproto.moretags) = "yaml:\"block_chain_percentage_in_ten_thousand\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                   resourceNodePercentageInTenThousand        = 5 [
+  string                   resource_node_percentage_in_ten_thousand        = 5 [
     (gogoproto.jsontag)  = "resource_node_percentage_in_ten_thousand",
     (gogoproto.moretags) = "yaml:\"resource_node_percentage_in_ten_thousand\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                   metaNodePercentageInTenThousand        = 6 [
+  string                   meta_node_percentage_in_ten_thousand        = 6 [
     (gogoproto.jsontag)  = "meta_node_percentage_in_ten_thousand",
     (gogoproto.moretags) = "yaml:\"meta_node_percentage_in_ten_thousand\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
@@ -48,7 +48,7 @@ message MiningRewardParam {
 }
 
 message ImmatureTotal {
-    string                            walletAddress   = 1 [
+    string                            wallet_address   = 1 [
       (gogoproto.jsontag)  = "wallet_address",
       (gogoproto.moretags) = "yaml:\"wallet_address\""
     ];
@@ -56,7 +56,7 @@ message ImmatureTotal {
 }
 
 message MatureTotal {
-    string                            walletAddress   = 1 [
+    string                            wallet_address   = 1 [
       (gogoproto.jsontag)  = "wallet_address",
       (gogoproto.moretags) = "yaml:\"wallet_address\""
     ];
@@ -64,17 +64,17 @@ message MatureTotal {
 }
 
 message Reward {
-    string                            walletAddress   = 1 [
+    string                            wallet_address   = 1 [
       (gogoproto.jsontag)  = "wallet_address",
       (gogoproto.moretags) = "yaml:\"wallet_address\""
     ];
-    repeated cosmos.base.v1beta1.Coin rewardFromMiningPool = 2 [
+    repeated cosmos.base.v1beta1.Coin reward_from_mining_pool = 2 [
       (gogoproto.nullable) = false,
       (gogoproto.jsontag)  = "reward_from_mining_pool",
       (gogoproto.moretags) = "yaml:\"reward_from_mining_pool\"",
       (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
     ];
-    repeated cosmos.base.v1beta1.Coin rewardFromTrafficPool = 3 [
+    repeated cosmos.base.v1beta1.Coin reward_from_traffic_pool = 3 [
       (gogoproto.nullable) = false,
       (gogoproto.jsontag)  = "reward_from_traffic_pool",
       (gogoproto.moretags) = "yaml:\"reward_from_traffic_pool\"",
@@ -83,7 +83,7 @@ message Reward {
 }
 
 message SingleWalletVolume {
-    string                            walletAddress   = 1 [
+    string                            wallet_address   = 1 [
       (gogoproto.jsontag)  = "wallet_address",
       (gogoproto.moretags) = "yaml:\"wallet_address\""
     ];
@@ -99,18 +99,18 @@ message VolumeReportRecord {
       (gogoproto.jsontag)  = "reporter",
       (gogoproto.moretags) = "yaml:\"reporter\""
     ];
-    string reportReference   = 2 [
+    string report_reference   = 2 [
       (gogoproto.jsontag)  = "report_reference",
       (gogoproto.moretags) = "yaml:\"report_reference\""
     ];
-    string txHash   = 3 [
+    string tx_hash   = 3 [
       (gogoproto.jsontag)  = "tx_hash",
       (gogoproto.moretags) = "yaml:\"tx_hash\""
     ];
 }
 
 message BLSSignatureInfo {
-    repeated bytes pubKeys = 1 [
+    repeated bytes pub_keys = 1 [
       (gogoproto.jsontag)  = "pub_keys",
       (gogoproto.moretags) = "yaml:\"pub_keys\""
     ];

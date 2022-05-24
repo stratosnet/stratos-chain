@@ -6,7 +6,7 @@ import (
 
 // nolint
 const (
-	// TODO: Why can't we just have one string description which can be JSON by convention
+	// TODO:  Why can't we just have one string description which can be JSON by convention
 	MaxMonikerLength         = 70
 	MaxIdentityLength        = 3000
 	MaxWebsiteLength         = 140

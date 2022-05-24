@@ -67,7 +67,7 @@ func (k Keeper) GetIndexingNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) 
 func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalIndexingNode(k.cdc, indexingNode)
-	networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 	store.Set(types.GetIndexingNodeKey(networkAddr), bz)
 }
 
@@ -207,7 +207,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx sdk.Context, i
 
 // SubtractIndexingNodeStake Update the tokens of an existing indexing node
 func (k Keeper) SubtractIndexingNodeStake(ctx sdk.Context, indexingNode types.IndexingNode, tokenToSub sdk.Coin) error {
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 	if err != nil {
 		return types.ErrInvalidNetworkAddr
 	}
@@ -296,7 +296,7 @@ func (k Keeper) GetIndexingNodeList(ctx sdk.Context, networkAddr stratos.SdsAddr
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		networkAddrNode, err := stratos.SdsAddressFromBech32(node.GetNetworkAddr())
+		networkAddrNode, err := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
 		if err != nil {
 			continue
 		}
@@ -412,7 +412,7 @@ func (k Keeper) GetIndexingNodeRegistrationVotePool(ctx sdk.Context, nodeAddr st
 }
 
 func (k Keeper) SetIndexingNodeRegistrationVotePool(ctx sdk.Context, votePool types.IndexingNodeRegistrationVotePool) {
-	nodeAddr := votePool.NodeAddress
+	nodeAddr := votePool.GetNetworkAddress()
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&votePool)
 	node, _ := stratos.SdsAddressFromBech32(nodeAddr)

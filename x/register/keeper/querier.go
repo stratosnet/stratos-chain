@@ -170,7 +170,7 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 		indexingNode, found := k.GetIndexingNode(ctx, params.AccAddr)
 		if found {
 			// Adding indexing node staking info
-			networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+			networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 			unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 				ctx,
 				indexingNode.GetStatus(),
@@ -200,7 +200,7 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 		resourceNode, found := k.GetResourceNode(ctx, params.AccAddr)
 		if found {
 			// Adding resource node staking info
-			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 			unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 				ctx,
 				resourceNode.GetStatus(),
@@ -244,7 +244,7 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	indNodes := k.GetIndexingNodesFiltered(ctx, params)
 
 	for _, n := range indNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 			ctx,
 			n.GetStatus(),
@@ -266,7 +266,7 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	}
 
 	for _, n := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 			ctx,
 			n.GetStatus(),
@@ -346,7 +346,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 
 	for _, n := range nodes.GetIndexingNodes() {
 		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		if er != nil {
 			continue
 		}
@@ -364,7 +364,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 		}
 
 		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddr())
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddress())
 		if er != nil {
 			continue
 		}
@@ -381,7 +381,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 
 	for _, n := range nodes.GetResourceNodes() {
 		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		if er != nil {
 			continue
 		}
@@ -399,7 +399,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 		}
 
 		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddr())
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddress())
 		if er != nil {
 			continue
 		}

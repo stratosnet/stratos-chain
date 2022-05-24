@@ -89,7 +89,7 @@ func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode *types.
 		return &types.ResourceNode{}
 	}
 
-	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
 		return &types.ResourceNode{}
 	}
@@ -106,7 +106,7 @@ func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode *types.
 	if err != nil {
 		return &types.IndexingNode{}
 	}
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 	if err != nil {
 		return &types.IndexingNode{}
 	}

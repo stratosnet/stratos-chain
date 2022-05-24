@@ -75,8 +75,8 @@ func NewStakingInfoByResourceNodeAddr(
 	unBondingValue := sdk.NewCoin(defaultDenom, unBondingStake)
 
 	return StakingInfo{
-		NetworkAddr:    resourceNode.GetNetworkAddr(),
-		PubKey:         resourceNode.GetPubKey(),
+		NetworkAddress: resourceNode.GetNetworkAddress(),
+		Pubkey:         resourceNode.GetPubkey(),
 		Suspend:        resourceNode.GetSuspend(),
 		Status:         resourceNode.GetStatus(),
 		Tokens:         &resourceNode.Tokens,
@@ -101,8 +101,8 @@ func NewStakingInfoByIndexingNodeAddr(
 	unBondedValue := sdk.NewCoin(defaultDenom, unBondedStake)
 	unBondingValue := sdk.NewCoin(defaultDenom, unBondingStake)
 	return StakingInfo{
-		NetworkAddr:    indexingNode.GetNetworkAddr(),
-		PubKey:         indexingNode.GetPubKey(),
+		NetworkAddress: indexingNode.GetNetworkAddress(),
+		Pubkey:         indexingNode.GetPubkey(),
 		Suspend:        indexingNode.Suspend,
 		Status:         indexingNode.Status,
 		Tokens:         &indexingNode.Tokens,

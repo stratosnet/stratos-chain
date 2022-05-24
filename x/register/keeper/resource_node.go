@@ -65,7 +65,7 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) 
 func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalResourceNode(k.cdc, resourceNode)
-	networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+	networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	store.Set(types.GetResourceNodeKey(networkAddr), bz)
 }
 
@@ -205,7 +205,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, r
 
 // SubtractResourceNodeStake Update the tokens of an existing resource node
 func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {
-	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
 		return types.ErrInvalidNetworkAddr
 	}

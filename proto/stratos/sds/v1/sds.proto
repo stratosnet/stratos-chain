@@ -14,11 +14,11 @@ message Params {
 }
 
 message FileUpload {
-  string           fileHash = 1 [
+  string           file_hash = 1 [
     (gogoproto.jsontag)  = "file_hash",
     (gogoproto.moretags) = "yaml:\"file_hash\""
   ];
-  FileInfo         fileInfo = 2 [
+  FileInfo         file_info = 2 [
     (gogoproto.jsontag)  = "file_info",
     (gogoproto.moretags) = "yaml:\"file_info\"" ];
 }

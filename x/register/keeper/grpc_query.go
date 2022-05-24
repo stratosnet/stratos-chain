@@ -93,7 +93,7 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 		indexingNode, found := q.GetIndexingNode(ctx, accAddr)
 		if found {
 			// Adding indexing node staking info
-			networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+			networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 			unBondingStake, unBondedStake, bondedStake, err := q.getNodeStakes(
 				ctx,
 				indexingNode.GetStatus(),
@@ -122,7 +122,7 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 		resourceNode, found := q.GetResourceNode(ctx, accAddr)
 		if found {
 			// Adding resource node staking info
-			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 			unBondingStake, unBondedStake, bondedStake, err := q.getNodeStakes(
 				ctx,
 				resourceNode.GetStatus(),
@@ -183,7 +183,7 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	indNodes := q.GetIndexingNodesFiltered(ctx, params)
 
 	for _, n := range indNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
 			ctx,
 			n.GetStatus(),
@@ -205,7 +205,7 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	}
 
 	for _, n := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddr())
+		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
 			ctx,
 			n.GetStatus(),

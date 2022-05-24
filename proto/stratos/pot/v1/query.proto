@@ -32,7 +32,7 @@ message ReportInfo {
 // QueryVolumeReportResponse is response type for the Query/ResourceNode RPC method
 message QueryVolumeReportResponse {
   // node defines the the volumeReport info.
-  ReportInfo reportInfo = 1;
+  ReportInfo report_info = 1;
   int64 height = 2;
 }
 

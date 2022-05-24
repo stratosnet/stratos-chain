@@ -16,14 +16,14 @@ option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 // GenesisState defines the register module's genesis state.
 message GenesisState {
   register.v1.Params                params = 1 [ (gogoproto.moretags) = "yaml:\"params\"" ];
-  register.v1.ResourceNodes         resourceNodes = 2 [ (gogoproto.moretags) = "yaml:\"resource_nodes\"" ];
-  register.v1.IndexingNodes         indexingNodes = 3 [ (gogoproto.moretags) = "yaml:\"indexing_nodes\"" ];
-  string                            initialUozPrice = 4 [
+  register.v1.ResourceNodes         resource_nodes = 2 [ (gogoproto.moretags) = "yaml:\"resource_nodes\"" ];
+  register.v1.IndexingNodes         indexing_nodes = 3 [ (gogoproto.moretags) = "yaml:\"indexing_nodes\"" ];
+  string                            initial_uoz_price = 4 [
     (gogoproto.moretags) = "yaml:\"initial_uoz_price\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ]; //initial price of uoz
-  string                            totalUnissuedPrepay = 5 [
+  string                            total_unissued_prepay = 5 [
     (gogoproto.moretags) = "yaml:\"total_unissued_prepay\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable)   = false
@@ -32,18 +32,18 @@ message GenesisState {
 }
 
 message GenesisIndexingNode {
-  string                               networkAddr = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ]; // network address of the indexing node
-  google.protobuf.Any                  pubKey = 2 [
+  string                               network_address = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ]; // network address of the indexing node
+  google.protobuf.Any                  pubkey = 2 [
     (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ]; // the consensus public key of the indexing node; bech encoded in JSON
   bool                                suspend = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];  // has the indexing node been suspended from bonded status?
   cosmos.staking.v1beta1.BondStatus   status = 4 [ (gogoproto.moretags) = "yaml:\"status\""];   // indexing node status (Unspecified/Bonded/Unbonding/Unbonded)
-  string                              token = 5 [
+  string                              tokens = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.moretags) = "yaml:\"token\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ]; // delegated tokens
-  string                              ownerAddress = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ]; // owner address of the indexing node
+  string                              owner_address = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ]; // owner address of the indexing node
   register.v1.Description             description = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];  // description terms for the indexing node
 }

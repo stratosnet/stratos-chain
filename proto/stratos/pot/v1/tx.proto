@@ -30,7 +30,7 @@ service Msg {
 
 // MsgVolumeReport encapsulates an VolumeReport transaction as an SDK message.
 message MsgVolumeReport {
-  repeated SingleWalletVolume walletVolumes = 1 [
+  repeated SingleWalletVolume wallet_volumes = 1 [
     (gogoproto.jsontag) = "wallet_volumes",
     (gogoproto.moretags) = "yaml:\"wallet_volumes\""
   ];
@@ -43,15 +43,15 @@ message MsgVolumeReport {
     (gogoproto.moretags) = "yaml:\"epoch\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                   reportReference = 4 [
+  string                   report_reference = 4 [
     (gogoproto.jsontag) = "report_reference",
     (gogoproto.moretags) = "yaml:\"report_reference\""
   ];
-  string                   reporterOwner = 5 [
+  string                   reporter_owner = 5 [
     (gogoproto.jsontag) = "reporter_owner",
     (gogoproto.moretags) = "yaml:\"reporter_owner\""
   ];
-  BLSSignatureInfo         bLSSignature = 6 [
+  BLSSignatureInfo         bls_signature = 6 [
     (gogoproto.jsontag) = "bls_signature",
     (gogoproto.moretags) = "yaml:\"bls_signature\""
   ];
@@ -61,17 +61,17 @@ message MsgVolumeReportResponse {}
 
 // MsgWithdraw encapsulates an withdraw transaction as an SDK message.
 message MsgWithdraw {
-  repeated cosmos.base.v1beta1.Coin Amount = 1 [
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
       (gogoproto.nullable) = false,
       (gogoproto.jsontag)  = "amount",
       (gogoproto.moretags) = "yaml:\"amount\"",
       (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
-  string                         walletAddress = 2 [
+  string                         wallet_address = 2 [
     (gogoproto.jsontag) = "wallet_address",
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
-  string                         targetAddress = 3 [
+  string                         target_address = 3 [
   (gogoproto.jsontag) = "target_address",
   (gogoproto.moretags) = "yaml:\"target_address\""
   ];
@@ -81,7 +81,7 @@ message MsgWithdrawResponse {}
 
 // MsgFoundationDeposit - encapsulates an FoundationDeposit transaction as an SDK message
 message MsgFoundationDeposit {
-  repeated cosmos.base.v1beta1.Coin Amount = 1 [
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag)  = "amount",
     (gogoproto.moretags) = "yaml:\"amount\"",
@@ -102,15 +102,15 @@ message MsgSlashingResourceNode {
     (gogoproto.jsontag) = "reporters",
     (gogoproto.moretags) = "yaml:\"reporters\""
   ];
-  repeated string reporterOwner = 2 [
+  repeated string reporter_owner = 2 [
     (gogoproto.jsontag) = "reporter_owner",
     (gogoproto.moretags) = "yaml:\"reporter_owner\""
   ];
-  string networkAddress = 3 [
+  string network_address = 3 [
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  string walletAddress = 4 [
+  string wallet_address = 4 [
     (gogoproto.jsontag) = "wallet_address",
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];

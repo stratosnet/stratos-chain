@@ -22,7 +22,7 @@ service Msg {
 
 
 message MsgFileUpload {
-  string           fileHash = 1 [
+  string           file_hash = 1 [
     (gogoproto.jsontag)  = "file_hash",
     (gogoproto.moretags) = "yaml:\"file_hash\""
   ];

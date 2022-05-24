@@ -48,12 +48,12 @@ func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 		}
 	}
 	return &MsgCreateResourceNode{
-		NetworkAddr:  networkAddr.String(),
-		PubKey:       pkAny,
-		Value:        value,
-		OwnerAddress: ownerAddr.String(),
-		Description:  description,
-		NodeType:     nodeType.Type(),
+		NetworkAddress: networkAddr.String(),
+		Pubkey:         pkAny,
+		Value:          value,
+		OwnerAddress:   ownerAddr.String(),
+		Description:    description,
+		NodeType:       nodeType.Type(),
 	}, nil
 }
 
@@ -63,7 +63,7 @@ func (msg MsgCreateResourceNode) Type() string { return TypeMsgCreateResourceNod
 
 // ValidateBasic validity check for the CreateResourceNode
 func (msg MsgCreateResourceNode) ValidateBasic() error {
-	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddr())
+	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 		return ErrEmptyNodeNetworkAddress
 	}
 
-	pkAny, err := codectypes.NewAnyWithValue(msg.GetPubKey())
+	pkAny, err := codectypes.NewAnyWithValue(msg.GetPubkey())
 	if err != nil {
 		return err
 	}
@@ -138,11 +138,11 @@ func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 		}
 	}
 	return &MsgCreateResourceNode{
-		NetworkAddr:  networkAddr.String(),
-		PubKey:       pkAny,
-		Value:        value,
-		OwnerAddress: ownerAddr.String(),
-		Description:  description,
+		NetworkAddress: networkAddr.String(),
+		Pubkey:         pkAny,
+		Value:          value,
+		OwnerAddress:   ownerAddr.String(),
+		Description:    description,
 	}, nil
 }
 
@@ -151,7 +151,7 @@ func (msg MsgCreateIndexingNode) Route() string { return RouterKey }
 func (msg MsgCreateIndexingNode) Type() string { return TypeCreateIndexingNodeTx }
 
 func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddr())
+	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
 	if err != nil {
 		return err
 	}
@@ -159,7 +159,7 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 		return ErrEmptyNodeNetworkAddress
 	}
 
-	pkAny, err := codectypes.NewAnyWithValue(msg.GetPubKey())
+	pkAny, err := codectypes.NewAnyWithValue(msg.GetPubkey())
 	if err != nil {
 		return err
 	}

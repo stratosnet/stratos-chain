@@ -61,20 +61,20 @@ func NewIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 		return IndexingNode{}, err
 	}
 	return IndexingNode{
-		NetworkAddr:  networkAddr.String(),
-		PubKey:       pkAny,
-		Suspend:      true,
-		Status:       stakingtypes.Unbonded,
-		Tokens:       sdk.ZeroInt(),
-		OwnerAddress: ownerAddr.String(),
-		Description:  description,
-		CreationTime: creationTime,
+		NetworkAddress: networkAddr.String(),
+		Pubkey:         pkAny,
+		Suspend:        true,
+		Status:         stakingtypes.Unbonded,
+		Tokens:         sdk.ZeroInt(),
+		OwnerAddress:   ownerAddr.String(),
+		Description:    description,
+		CreationTime:   creationTime,
 	}, nil
 }
 
 // ConvertToString returns a human-readable string representation of an indexing node.
 func (v IndexingNode) ConvertToString() string {
-	pkAny, err := codectypes.NewAnyWithValue(v.GetPubKey())
+	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
@@ -91,7 +91,7 @@ func (v IndexingNode) ConvertToString() string {
 		Owner Address: 		%s
  		Description:		%s
 		CreationTime:		%s
-	}`, v.GetNetworkAddr(), pubKey, v.GetSuspend(), v.GetStatus(),
+	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(),
 		v.Tokens, v.GetOwnerAddress(), v.GetDescription(), v.GetCreationTime())
 }
 
@@ -114,7 +114,7 @@ func (v IndexingNode) SubToken(amount sdk.Int) IndexingNode {
 }
 
 func (v IndexingNode) Validate() error {
-	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddr())
+	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
 		return err
 	}
@@ -122,7 +122,7 @@ func (v IndexingNode) Validate() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	pkAny, err := codectypes.NewAnyWithValue(v.GetPubKey())
+	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
 	if err != nil {
 		return err
 	}
@@ -230,10 +230,10 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 		rejectSlice = append(rejectSlice, reject.String())
 	}
 	return IndexingNodeRegistrationVotePool{
-		NodeAddress: nodeAddress.String(),
-		ApproveList: approveSlice,
-		RejectList:  rejectSlice,
-		ExpireTime:  &expireTime,
+		NetworkAddress: nodeAddress.String(),
+		ApproveList:    approveSlice,
+		RejectList:     rejectSlice,
+		ExpireTime:     expireTime,
 	}
 }
 

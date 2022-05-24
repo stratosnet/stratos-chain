@@ -228,7 +228,7 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 	iterator := keeper.GetResourceNetworksIterator(ctx)
 	for ; iterator.Valid(); iterator.Next() {
 		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 		if err != nil {
 			continue
 		}
@@ -237,7 +237,7 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 	iter := keeper.GetIndexingNetworksIterator(ctx)
 	for ; iter.Valid(); iter.Next() {
 		indexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
-		networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+		networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 		if err != nil {
 			continue
 		}
@@ -505,7 +505,7 @@ func (k Keeper) UnbondResourceNode(
 	ctx.Logger().Info("Params of register module: " + params.String())
 
 	// transfer the node tokens to the not bonded pool
-	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
 		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
 	}
@@ -554,7 +554,7 @@ func (k Keeper) UnbondIndexingNode(
 	ctx sdk.Context, indexingNode types.IndexingNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddr())
+	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 	if err != nil {
 		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
 	}
