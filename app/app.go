@@ -168,6 +168,7 @@ var (
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
 		pottypes.MiningRewardPool:  nil,
 		pottypes.TrafficRewardPool: nil,
+		pottypes.TotalRewardPool:   nil,
 		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},
 
 		sdstypes.ModuleName: nil,
