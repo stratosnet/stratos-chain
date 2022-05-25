@@ -144,24 +144,24 @@ message Description {
     (gogoproto.jsontag)  = "identity",
     (gogoproto.moretags) = "yaml:\"identity\",omitempty"
   ];
-  string  Website         = 3 [
+  string  website         = 3 [
     (gogoproto.jsontag)  = "website",
     (gogoproto.moretags) = "yaml:\"website\",omitempty"
   ];
-  string  SecurityContact = 4 [
+  string  securityContact = 4 [
     (gogoproto.jsontag)  = "security_contact",
     (gogoproto.moretags) = "yaml:\"security_contact\",omitempty" ];
-  string  Details         = 5 [
+  string  details         = 5 [
     (gogoproto.jsontag)  = "details",
     (gogoproto.moretags) = "yaml:\"details\",omitempty" ];
 }
 
 message Slashing {
-  string  WalletAddress = 1 [
+  string  walletAddress = 1 [
     (gogoproto.jsontag)  = "wallet_address",
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
-  int64   Value         = 2 [
+  int64   value         = 2 [
     (gogoproto.jsontag)  = "value",
     (gogoproto.moretags) = "yaml:\"value\""
   ];

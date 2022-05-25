@@ -70,7 +70,7 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
-	_, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, v.PubKey.String())
+	_, err := stratos.SdsPubKeyFromBech32(v.PubKey.String())
 	if err != nil {
 		panic(err)
 	}
@@ -90,7 +90,7 @@ func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
 		PubKey:       v.GetPubKey(),
 		Suspend:      v.GetSuspend(),
 		Status:       v.GetStatus(),
-		Tokens:       v.Token,
+		Tokens:       v.Tokens,
 		OwnerAddress: ownerAddress.String(),
 		Description:  v.GetDescription(),
 	}

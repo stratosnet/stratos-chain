@@ -29,7 +29,7 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// check to see if the pubkey or sender has been registered before
-	pk, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, msg.PubKey.String())
+	pk, err := stratos.SdsPubKeyFromBech32(msg.PubKey.String())
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 func (k msgServer) HandleMsgCreateIndexingNode(goCtx context.Context, msg *types.MsgCreateIndexingNode) (*types.MsgCreateIndexingNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	// check to see if the pubkey or sender has been registered before
-	pk, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, msg.PubKey.String())
+	pk, err := stratos.SdsPubKeyFromBech32(msg.PubKey.String())
 	if err != nil {
 		return nil, err
 	}

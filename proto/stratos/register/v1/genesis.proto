@@ -32,18 +32,35 @@ message GenesisState {
 }
 
 message GenesisIndexingNode {
-  string                               networkAddr = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ]; // network address of the indexing node
+  string                               networkAddr = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ]; // network address of the indexing node
   google.protobuf.Any                  pubKey = 2 [
     (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.jsontag) = "pubkey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ]; // the consensus public key of the indexing node; bech encoded in JSON
-  bool                                suspend = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];  // has the indexing node been suspended from bonded status?
-  cosmos.staking.v1beta1.BondStatus   status = 4 [ (gogoproto.moretags) = "yaml:\"status\""];   // indexing node status (Unspecified/Bonded/Unbonding/Unbonded)
-  string                              token = 5 [
+  bool                                suspend = 3 [
+    (gogoproto.jsontag) = "suspend",
+    (gogoproto.moretags) = "yaml:\"suspend\""
+  ];  // has the indexing node been suspended from bonded status?
+  cosmos.staking.v1beta1.BondStatus   status = 4 [
+    (gogoproto.jsontag) = "status",
+    (gogoproto.moretags) = "yaml:\"status\""
+  ];   // indexing node status (Unspecified/Bonded/Unbonding/Unbonded)
+  string                              tokens = 5 [
     (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"token\"",
+    (gogoproto.jsontag) = "tokens",
+    (gogoproto.moretags) = "yaml:\"tokens\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ]; // delegated tokens
-  string                              ownerAddress = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ]; // owner address of the indexing node
-  register.v1.Description             description = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];  // description terms for the indexing node
+  ];
+  string                              ownerAddress = 6 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ]; // owner address of the indexing node
+  register.v1.Description             description = 7 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\",omitempty"
+  ];  // description terms for the indexing node
 }

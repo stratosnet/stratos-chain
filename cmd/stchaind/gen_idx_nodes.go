@@ -109,19 +109,11 @@ func getIndexingNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc 
 
 	var appState map[string]json.RawMessage
 
-	if err := cdc.UnmarshalInterfaceJSON(genDoc.AppState, &appState); err != nil {
-		println("aaaaaaaaaaaaaaaaaaaaaaa")
+	if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
 		return appGenIdxNodes, err
 	}
 
 	balanceMap := make(map[string]exported.GenesisBalance)
-	//addrMap := make(map[string]authtypes.AccountI)
-	//genAccIterator.IterateGenesisAccounts(cdc, appState,
-	//	func(acc authtypes.AccountI) (stop bool) {
-	//		addrMap[acc.GetAddress().String()] = acc
-	//		return false
-	//	},
-	//)
 
 	genBalanceIterator.IterateGenesisBalances(cdc, appState,
 		func(balance exported.GenesisBalance) (stop bool) {
@@ -143,7 +135,7 @@ func getIndexingNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc 
 		}
 
 		var genIdxNode registertypes.GenesisIndexingNode
-		if err = cdc.UnmarshalJSON(jsonRawIdxNode, &genIdxNode); err != nil {
+		if err = json.Unmarshal(jsonRawIdxNode, &genIdxNode); err != nil {
 			return appGenIdxNodes, err
 		}
 
