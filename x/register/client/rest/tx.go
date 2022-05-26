@@ -131,7 +131,7 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, req.PubKey)
+		pubKey, err := stratos.SdsPubKeyFromBech32(req.PubKey)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -177,7 +177,7 @@ func postCreateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, req.PubKey)
+		pubKey, err := stratos.SdsPubKeyFromBech32(req.PubKey)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

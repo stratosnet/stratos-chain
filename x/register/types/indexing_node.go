@@ -78,7 +78,7 @@ func (v IndexingNode) ConvertToString() string {
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
-	pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeAccPub, pkAny.String())
+	pubKey, err := stratos.SdsPubKeyFromBech32(pkAny.String())
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}

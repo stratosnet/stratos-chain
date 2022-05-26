@@ -105,8 +105,8 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig params.EncodingConfig) {
 		genutilcli.GenTxCmd(app.ModuleBasics, encodingConfig.TxConfig, banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		genutilcli.ValidateGenesisCmd(app.ModuleBasics),
 		AddGenesisAccountCmd(app.DefaultNodeHome),
+		AddGenesisIndexingNodeCmd(banktypes.GenesisBalancesIterator{}, app.DefaultNodeHome),
 		//TODO: fix these cmds
-		//AddGenesisIndexingNodeCmd(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome, banktypes.GenesisBalancesIterator{}),
 		//LoadTestCommands(ctx, cdc, app.DefaultNodeHome, app.DefaultCLIHome),
 		tmcli.NewCompletionCmd(rootCmd, true),
 		//testnetCmd(simapp.ModuleBasics, banktypes.GenesisBalancesIterator{}),

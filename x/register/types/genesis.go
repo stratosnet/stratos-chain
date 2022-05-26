@@ -52,16 +52,11 @@ func ValidateGenesis(data GenesisState) error {
 	if err := data.GetParams().Validate(); err != nil {
 		return err
 	}
-	if resNodes := data.GetResourceNodes(); resNodes != nil {
-		if err := resNodes.Validate(); err != nil {
-			return err
-		}
+	if err := data.GetResourceNodes().Validate(); err != nil {
+		return err
 	}
-
-	if indNodes := data.GetIndexingNodes(); indNodes != nil {
-		if err := indNodes.Validate(); err != nil {
-			return err
-		}
+	if err := data.GetIndexingNodes().Validate(); err != nil {
+		return err
 	}
 
 	if (data.InitialUozPrice).LTE(sdk.ZeroDec()) {
@@ -75,17 +70,12 @@ func ValidateGenesis(data GenesisState) error {
 }
 
 func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
-	_, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, v.Pubkey.String())
-	if err != nil {
-		panic(err)
-	}
-
 	ownerAddress, err := sdk.AccAddressFromBech32(v.OwnerAddress)
 	if err != nil {
 		panic(err)
 	}
 
-	netAddr, err := stratos.SdsAddressFromBech32(v.NetworkAddress)
+	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
 		panic(err)
 	}
