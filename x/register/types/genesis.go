@@ -30,6 +30,8 @@ func NewGenesisState(params *Params,
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params:              DefaultParams(),
+		ResourceNodes:       &ResourceNodes{},
+		IndexingNodes:       &IndexingNodes{},
 		InitialUozPrice:     DefaultUozPrice,
 		TotalUnissuedPrepay: DefaultTotalUnissuedPrepay,
 		Slashing:            make([]*Slashing, 0),
