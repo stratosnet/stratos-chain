@@ -385,7 +385,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		return txf, nil, err
 	}
 
-	pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
+	pubKey, er := stratos.SdsPubKeyFromBech32(pkStr)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -449,7 +449,7 @@ func newBuildCreateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	if err != nil {
 		return txf, nil, err
 	}
-	pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
+	pubKey, er := stratos.SdsPubKeyFromBech32(pkStr)
 	if er != nil {
 		return txf, nil, err
 	}

@@ -8,28 +8,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/cosmos/cosmos-sdk/codec/legacy"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"gopkg.in/yaml.v2"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
-
-	"github.com/cosmos/cosmos-sdk/codec/legacy"
 )
 
-// Bech32PubKeyType defines a string type alias for a Bech32 public key type.
-type Bech32PubKeyType string
-
+// Bech32 conversion constants
 const (
 	StratosBech32Prefix = "st"
 
 	// PrefixSds is the prefix for sds keys
 	PrefixSds = "sds"
-
-	Bech32PubKeyTypeAccPub    Bech32PubKeyType = "accpub"
-	Bech32PubKeyTypeValPub    Bech32PubKeyType = "valpub"
-	Bech32PubKeyTypeConsPub   Bech32PubKeyType = "conspub"
-	Bech32PubKeyTypeSdsP2PPub Bech32PubKeyType = "sdsp2p"
 
 	// AccountAddressPrefix defines the Bech32 prefix of an account's address (st)
 	AccountAddressPrefix = StratosBech32Prefix
@@ -49,25 +41,14 @@ const (
 	SdsNodeP2PAddressPrefix = StratosBech32Prefix + PrefixSds
 )
 
-// GetPubKeyFromBech32 returns a PublicKey from a bech32-encoded PublicKey with
-// a given key type.
-func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (cryptotypes.PubKey, error) {
-	var bech32Prefix string
+var _ sdk.Address = SdsAddress{}
+var _ yaml.Marshaler = SdsAddress{}
 
-	switch pkt {
-	case Bech32PubKeyTypeAccPub:
-		bech32Prefix = GetConfig().GetBech32AccountPubPrefix()
+type SdsAddress []byte
 
-	case Bech32PubKeyTypeValPub:
-		bech32Prefix = GetConfig().GetBech32ValidatorPubPrefix()
-
-	case Bech32PubKeyTypeConsPub:
-		bech32Prefix = GetConfig().GetBech32ConsensusPubPrefix()
-
-	case Bech32PubKeyTypeSdsP2PPub:
-		bech32Prefix = GetConfig().GetBech32SdsNodeP2PPubPrefix()
-	}
-
+// SdsPubKeyFromBech32 returns a SdsPublicKey from a Bech32 string.
+func SdsPubKeyFromBech32(pubkeyStr string) (cryptotypes.PubKey, error) {
+	bech32Prefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
 	bz, err := sdk.GetFromBech32(pubkeyStr, bech32Prefix)
 	if err != nil {
 		return nil, err
@@ -81,20 +62,13 @@ func GetPubKeyFromBech32(pkt Bech32PubKeyType, pubkeyStr string) (cryptotypes.Pu
 	return pk, nil
 }
 
-var _ sdk.Address = SdsAddress{}
-var _ yaml.Marshaler = SdsAddress{}
-
-type SdsAddress []byte
-
-var _ sdk.Address = SdsAddress{}
-
 // SdsAddressFromHex creates an SdsAddress from a hex string.
 func SdsAddressFromHex(address string) (addr SdsAddress, err error) {
 	bz, err := addressBytesFromHexString(address)
-	return bz, err
+	return SdsAddress(bz), err
 }
 
-// SdsAddressFromBech32 creates an SdsAddress from a Bech32 string.
+// AccAddressFromBech32 creates an SdsAddress from a Bech32 string.
 func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
 	if len(strings.TrimSpace(address)) == 0 {
 		return SdsAddress{}, errors.New("empty address string is not allowed")
@@ -115,46 +89,45 @@ func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
 	return SdsAddress(bz), nil
 }
 
-// Equals Returns boolean for whether two SdsAddress are Equal
-func (a SdsAddress) Equals(addr sdk.Address) bool {
-	if a.Empty() && addr.Empty() {
+// Returns boolean for whether two SdsAddress are Equal
+func (aa SdsAddress) Equals(aa2 sdk.Address) bool {
+	if aa.Empty() && aa2.Empty() {
 		return true
 	}
 
-	return bytes.Equal(a.Bytes(), addr.Bytes())
+	return bytes.Equal(aa.Bytes(), aa2.Bytes())
 }
 
-func (a SdsAddress) Empty() bool {
-	if a == nil || len(a) == 0 {
-		return true
-	}
-
-	aa2 := SdsAddress{}
-	return bytes.Equal(a.Bytes(), aa2.Bytes())
+// Returns boolean for whether a SdsAddress is empty
+func (aa SdsAddress) Empty() bool {
+	return aa == nil || len(aa) == 0
 }
 
-func (a SdsAddress) Marshal() ([]byte, error) {
-	return a, nil
-}
-
-func (a SdsAddress) MarshalJSON() ([]byte, error) {
-	return json.Marshal(a.String())
+// Marshal returns the raw address bytes. It is needed for protobuf
+// compatibility.
+func (aa SdsAddress) Marshal() ([]byte, error) {
+	return aa, nil
 }
 
 // Unmarshal sets the address to the given data. It is needed for protobuf
 // compatibility.
-func (a *SdsAddress) Unmarshal(data []byte) error {
-	*a = data
+func (aa *SdsAddress) Unmarshal(data []byte) error {
+	*aa = data
 	return nil
 }
 
+// MarshalJSON marshals to JSON using Bech32.
+func (aa SdsAddress) MarshalJSON() ([]byte, error) {
+	return json.Marshal(aa.String())
+}
+
 // MarshalYAML marshals to YAML using Bech32.
-func (a SdsAddress) MarshalYAML() (interface{}, error) {
-	return a.String(), nil
+func (aa SdsAddress) MarshalYAML() (interface{}, error) {
+	return aa.String(), nil
 }
 
 // UnmarshalJSON unmarshals from JSON assuming Bech32 encoding.
-func (a *SdsAddress) UnmarshalJSON(data []byte) error {
+func (aa *SdsAddress) UnmarshalJSON(data []byte) error {
 	var s string
 	err := json.Unmarshal(data, &s)
 
@@ -162,7 +135,7 @@ func (a *SdsAddress) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if s == "" {
-		*a = SdsAddress{}
+		*aa = SdsAddress{}
 		return nil
 	}
 
@@ -171,19 +144,19 @@ func (a *SdsAddress) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	*a = aa2
+	*aa = aa2
 	return nil
 }
 
 // UnmarshalYAML unmarshals from JSON assuming Bech32 encoding.
-func (a *SdsAddress) UnmarshalYAML(data []byte) error {
+func (aa *SdsAddress) UnmarshalYAML(data []byte) error {
 	var s string
 	err := yaml.Unmarshal(data, &s)
 	if err != nil {
 		return err
 	}
 	if s == "" {
-		*a = SdsAddress{}
+		*aa = SdsAddress{}
 		return nil
 	}
 
@@ -192,7 +165,7 @@ func (a *SdsAddress) UnmarshalYAML(data []byte) error {
 		return err
 	}
 
-	*a = aa2
+	*aa = aa2
 	return nil
 }
 
