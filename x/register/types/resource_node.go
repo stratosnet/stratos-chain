@@ -274,3 +274,9 @@ func UnmarshalStaking(cdc codec.BinaryCodec, value []byte) (staking Staking, err
 	err = cdc.Unmarshal(value, &staking)
 	return staking, err
 }
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (v ResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(v.Pubkey, &pk)
+}

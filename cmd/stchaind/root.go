@@ -90,6 +90,8 @@ func NewRootCmd() (*cobra.Command, params.EncodingConfig) {
 	cfg := stratos.GetConfig()
 	cfg.Seal()
 
+	//ccfg:= simapp.MakeTestEncodingConfig()
+
 	initRootCmd(rootCmd, encodingConfig)
 
 	return rootCmd, encodingConfig

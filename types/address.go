@@ -49,7 +49,9 @@ type SdsAddress []byte
 // SdsPubKeyFromBech32 returns a SdsPublicKey from a Bech32 string.
 func SdsPubKeyFromBech32(pubkeyStr string) (cryptotypes.PubKey, error) {
 	bech32Prefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
+	fmt.Printf("ccccccccccc: %s\r\n", bech32Prefix)
 	bz, err := sdk.GetFromBech32(pubkeyStr, bech32Prefix)
+	fmt.Printf("ddddddddddd: %s\r\n", bz)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func SdsAddressFromHex(address string) (addr SdsAddress, err error) {
 	return SdsAddress(bz), err
 }
 
-// AccAddressFromBech32 creates an SdsAddress from a Bech32 string.
+// SdsAddressFromBech32 creates an SdsAddress from a Bech32 string.
 func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
 	if len(strings.TrimSpace(address)) == 0 {
 		return SdsAddress{}, errors.New("empty address string is not allowed")
@@ -208,4 +210,35 @@ func addressBytesFromHexString(address string) ([]byte, error) {
 	}
 
 	return hex.DecodeString(address)
+}
+
+// SdsAddressToBech32 creates an SdsAddress to a Bech32 string.
+func SdsAddressToBech32(address SdsAddress) (addr string, err error) {
+	//if len(strings.TrimSpace(address)) == 0 {
+	//	return SdsAddress{}, errors.New("empty address string is not allowed")
+	//}
+
+	err = sdk.VerifyAddressFormat(address.Bytes())
+	if err != nil {
+		return "", err
+	}
+
+	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
+
+	addr, err = sdk.Bech32ifyAddressBytes(bech32PrefixSdsAddr, address)
+	if err != nil {
+		return "", err
+	}
+
+	return
+}
+
+// SdsPubkeyToBech32 creates an SdsPubkey to a Bech32 string.
+func SdsPubkeyToBech32(pubkey cryptotypes.PubKey) (addr string, err error) {
+	bech32PrefixSdsPub := GetConfig().GetBech32SdsNodeP2PPubPrefix()
+	addr, err = bech32.ConvertAndEncode(bech32PrefixSdsPub, pubkey.Bytes())
+	if err != nil {
+		return "", err
+	}
+	return
 }

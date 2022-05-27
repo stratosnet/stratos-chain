@@ -122,14 +122,33 @@ func (v IndexingNode) Validate() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
-	if err != nil {
-		return err
+	//pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
+	//if err != nil {
+	//	return err
+	//}
+	pkAny := v.GetPubkey()
+	fmt.Printf("pkAny: %v, \r\n", pkAny)
+
+	//var pkI cryptotypes.PubKey
+	//err = codec.LegacyAmino.UnpackAny(pkAny, &pkI)
+	//fmt.Printf("pkI: %v, \r\n", pkI)
+	//fmt.Printf("err: %v, \r\n", err.Error())
+	pubkey, ok := pkAny.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		fmt.Printf("pubkey: %v, \r\n", pubkey)
 	}
-	sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
-	if err != nil {
-		return err
-	}
+
+	//pubkey.Address()
+	//var aa cryptotypes.PubKey
+	//if err := ptypes.UnmarshalAny(pkAny, &aa); err != nil {
+	//}
+	//sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
+	sdsAddr := stratos.SdsAddress(pubkey.Address())
+	//if err != nil {
+	//	return err
+	//}
+
+	fmt.Printf("v.GetPubkey(): %v\r\n pkAny: %v\r\n pubkey: %v\r\nnetAddr: %v\r\nsdsAddr: %v\r\n", v.GetPubkey(), pkAny, pubkey, netAddr, sdsAddr)
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
 	}
@@ -261,4 +280,10 @@ func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
 	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
 	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
 	return bytes.Equal(bz1, bz2)
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (v IndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(v.Pubkey, &pk)
 }
