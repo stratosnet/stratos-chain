@@ -49,9 +49,7 @@ type SdsAddress []byte
 // SdsPubKeyFromBech32 returns a SdsPublicKey from a Bech32 string.
 func SdsPubKeyFromBech32(pubkeyStr string) (cryptotypes.PubKey, error) {
 	bech32Prefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
-	fmt.Printf("ccccccccccc: %s\r\n", bech32Prefix)
 	bz, err := sdk.GetFromBech32(pubkeyStr, bech32Prefix)
-	fmt.Printf("ddddddddddd: %s\r\n", bz)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +89,7 @@ func SdsAddressFromBech32(address string) (addr SdsAddress, err error) {
 	return SdsAddress(bz), nil
 }
 
-// Returns boolean for whether two SdsAddress are Equal
+// Equals Returns boolean for whether two SdsAddress are Equal
 func (aa SdsAddress) Equals(aa2 sdk.Address) bool {
 	if aa.Empty() && aa2.Empty() {
 		return true
@@ -100,7 +98,7 @@ func (aa SdsAddress) Equals(aa2 sdk.Address) bool {
 	return bytes.Equal(aa.Bytes(), aa2.Bytes())
 }
 
-// Returns boolean for whether a SdsAddress is empty
+// Empty Returns boolean for whether a SdsAddress is empty
 func (aa SdsAddress) Empty() bool {
 	return aa == nil || len(aa) == 0
 }
@@ -210,35 +208,4 @@ func addressBytesFromHexString(address string) ([]byte, error) {
 	}
 
 	return hex.DecodeString(address)
-}
-
-// SdsAddressToBech32 creates an SdsAddress to a Bech32 string.
-func SdsAddressToBech32(address SdsAddress) (addr string, err error) {
-	//if len(strings.TrimSpace(address)) == 0 {
-	//	return SdsAddress{}, errors.New("empty address string is not allowed")
-	//}
-
-	err = sdk.VerifyAddressFormat(address.Bytes())
-	if err != nil {
-		return "", err
-	}
-
-	bech32PrefixSdsAddr := GetConfig().GetBech32SdsNodeP2PAddrPrefix()
-
-	addr, err = sdk.Bech32ifyAddressBytes(bech32PrefixSdsAddr, address)
-	if err != nil {
-		return "", err
-	}
-
-	return
-}
-
-// SdsPubkeyToBech32 creates an SdsPubkey to a Bech32 string.
-func SdsPubkeyToBech32(pubkey cryptotypes.PubKey) (addr string, err error) {
-	bech32PrefixSdsPub := GetConfig().GetBech32SdsNodeP2PPubPrefix()
-	addr, err = bech32.ConvertAndEncode(bech32PrefixSdsPub, pubkey.Bytes())
-	if err != nil {
-		return "", err
-	}
-	return
 }

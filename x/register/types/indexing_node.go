@@ -122,33 +122,15 @@ func (v IndexingNode) Validate() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	//pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
-	//if err != nil {
-	//	return err
-	//}
 	pkAny := v.GetPubkey()
-	fmt.Printf("pkAny: %v, \r\n", pkAny)
 
-	//var pkI cryptotypes.PubKey
-	//err = codec.LegacyAmino.UnpackAny(pkAny, &pkI)
-	//fmt.Printf("pkI: %v, \r\n", pkI)
-	//fmt.Printf("err: %v, \r\n", err.Error())
 	pubkey, ok := pkAny.GetCachedValue().(cryptotypes.PubKey)
 	if !ok {
-		fmt.Printf("pubkey: %v, \r\n", pubkey)
+		return ErrUnknownPubKey
 	}
 
-	//pubkey.Address()
-	//var aa cryptotypes.PubKey
-	//if err := ptypes.UnmarshalAny(pkAny, &aa); err != nil {
-	//}
-	//sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
 	sdsAddr := stratos.SdsAddress(pubkey.Address())
-	//if err != nil {
-	//	return err
-	//}
 
-	fmt.Printf("v.GetPubkey(): %v\r\n pkAny: %v\r\n pubkey: %v\r\nnetAddr: %v\r\nsdsAddr: %v\r\n", v.GetPubkey(), pkAny, pubkey, netAddr, sdsAddr)
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
 	}

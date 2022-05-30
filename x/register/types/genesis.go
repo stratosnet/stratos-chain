@@ -2,11 +2,9 @@ package types
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -74,53 +72,26 @@ func ValidateGenesis(data GenesisState) error {
 	return nil
 }
 
-func (v GenesisIndexingNode) ToIndexingNode() IndexingNode {
-
-	//fmt.Printf("v.GetPubkey().Value: %v, \r\n", v.GetPubkey().Value)
-	//pubkey, ok := v.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
-	//
-	//if !ok {
-	//	fmt.Printf("pubkey: %v, \r\n", pubkey)
-	//}
-
-	//stStr, err := stratos.SdsPubKeyFromBech32("stsdspub1zcjduepqzgqd566qdnj4kna050jz505vamjhglxcpdepqctkregdt6snxm6spxdk2l")
-	stPubkey, err := stratos.SdsPubKeyFromBech32("stsdspub1zcjduepqzgqd566qdnj4kna050jz505vamjhglxcpdepqctkregdt6snxm6spxdk2l")
-	//fmt.Printf("stPubkey: %v\r\n", stPubkey.Bytes())
-
-	//stStr, err := stratos.SdsPubkeyToBech32(pubkey)
-	any, err := codectypes.NewAnyWithValue(stPubkey)
-	fmt.Printf("any: %v, \r\n", any.Value)
-	if err != nil {
-		panic(err)
-	}
-
-	//fmt.Printf("stStr: %s\r\n", stStr)
-	//fmt.Printf("pubkey.String(): %v\r\n", pubkey.Bytes())
-	//if err != nil {
-	//	panic(err)
-	//}
-
+func (v GenesisIndexingNode) ToIndexingNode() (IndexingNode, error) {
 	ownerAddress, err := sdk.AccAddressFromBech32(v.OwnerAddress)
 	if err != nil {
-		panic(err)
+		return IndexingNode{}, ErrInvalidOwnerAddr
 	}
 
-	fmt.Printf("GetNetworkAddress: %s\r\n", v.GetNetworkAddress())
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
-	fmt.Printf("netAddr: %s\r\n", netAddr)
 	if err != nil {
-		panic(err)
+		return IndexingNode{}, ErrInvalidNetworkAddr
 	}
 
 	return IndexingNode{
 		NetworkAddress: netAddr.String(),
-		Pubkey:         any,
+		Pubkey:         v.GetPubkey(),
 		Suspend:        v.GetSuspend(),
 		Status:         v.GetStatus(),
 		Tokens:         v.Tokens,
 		OwnerAddress:   ownerAddress.String(),
 		Description:    v.GetDescription(),
-	}
+	}, nil
 }
 
 func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) *Slashing {
@@ -143,10 +114,4 @@ func (g GenesisState) UnpackInterfaces(c codectypes.AnyUnpacker) error {
 		}
 	}
 	return nil
-}
-
-// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (g GenesisIndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
-	var pk cryptotypes.PubKey
-	return unpacker.UnpackAny(g.Pubkey, &pk)
 }
