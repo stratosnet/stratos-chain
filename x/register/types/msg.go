@@ -38,7 +38,7 @@ const (
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType *NodeType,
+	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType string,
 ) (*MsgCreateResourceNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -53,7 +53,7 @@ func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 		Value:          value,
 		OwnerAddress:   ownerAddr.String(),
 		Description:    description,
-		NodeType:       nodeType.Type(),
+		NodeType:       nodeType,
 	}, nil
 }
 
@@ -71,14 +71,8 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 		return ErrEmptyNodeNetworkAddress
 	}
 
-	pkAny, err := codectypes.NewAnyWithValue(msg.GetPubkey())
-	if err != nil {
-		return err
-	}
-	sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
-	if err != nil {
-		return err
-	}
+	pkAny := msg.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
+	sdsAddr := sdk.AccAddress(pkAny.Address())
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
 	}

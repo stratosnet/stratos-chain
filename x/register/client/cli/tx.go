@@ -6,7 +6,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
@@ -374,10 +373,15 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		return txf, nil, err
 	}
 
-	var pk cryptotypes.PubKey
-	if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+	pubKey, err := stratos.SdsPubKeyFromBech32(pkStr)
+	if err != nil {
 		return txf, nil, err
 	}
+
+	//var pk cryptotypes.PubKey
+	//if err := clientCtx.Codec.UnmarshalInterfaceJSON([]byte(pkStr), &pk); err != nil {
+	//	return txf, nil, err
+	//}
 	//pkStr := viper.GetString(FlagPubKey)
 
 	nodeTypeRef, err := fs.GetInt(FlagNodeType)
@@ -385,10 +389,10 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		return txf, nil, err
 	}
 
-	pubKey, er := stratos.SdsPubKeyFromBech32(pkStr)
-	if er != nil {
-		return txf, nil, err
-	}
+	//pubKey, er := stratos.SdsPubKeyFromBech32(pkStr)
+	//if er != nil {
+	//	return txf, nil, err
+	//}
 
 	moniker, _ := fs.GetString(FlagMoniker)
 	identity, _ := fs.GetString(FlagIdentity)
@@ -416,7 +420,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	if t := newNodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, &description, &newNodeType)
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, &description, strconv.Itoa(nodeTypeRef))
 	if er != nil {
 		return txf, nil, err
 	}
