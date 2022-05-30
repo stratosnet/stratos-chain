@@ -20,7 +20,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
 	var fileUpload []*types.FileUpload
