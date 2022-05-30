@@ -9,9 +9,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-	"github.com/stratosnet/stratos-chain/x/pot"
-	"github.com/stratosnet/stratos-chain/x/register"
-	"github.com/stratosnet/stratos-chain/x/sds"
 
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
@@ -101,10 +98,13 @@ import (
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/pot"
 	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	"github.com/stratosnet/stratos-chain/x/register"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	"github.com/stratosnet/stratos-chain/x/sds"
 	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
 	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
@@ -406,7 +406,7 @@ func NewInitApp(
 
 	app.potKeeper = potkeeper.NewKeeper(
 		appCodec,
-		keys[pot.StoreKey],
+		keys[pottypes.StoreKey],
 		app.GetSubspace(pottypes.ModuleName),
 		authtypes.FeeCollectorName,
 		app.bankKeeper,

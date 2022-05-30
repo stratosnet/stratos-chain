@@ -2,12 +2,13 @@ package pot
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper Keeper, data *types.GenesisState) {
+func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
 	keeper.SetParams(ctx, *data.Params)
 	//keeper.SetTotalMinedTokens(ctx, *data.TotalMinedToken)
 	keeper.SetTotalMinedTokens(ctx, sdk.NewCoin(keeper.BondDenom(ctx), sdk.NewInt(0)))
@@ -42,7 +43,7 @@ func InitGenesis(ctx sdk.Context, keeper Keeper, data *types.GenesisState) {
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 	totalMinedToken := keeper.GetTotalMinedTokens(ctx)
 	lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
