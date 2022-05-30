@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -29,10 +30,9 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	// check to see if the pubkey or sender has been registered before
-	pk, err := stratos.SdsPubKeyFromBech32(msg.Pubkey.String())
-	if err != nil {
-		return nil, err
-	}
+	pkAny := msg.GetPubkey()
+	cachedPubkey := pkAny.GetCachedValue()
+	pk := cachedPubkey.(cryptotypes.PubKey)
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {

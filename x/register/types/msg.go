@@ -70,8 +70,9 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-
-	pkAny := msg.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
+	pk := msg.GetPubkey()
+	cachedPubkey := pk.GetCachedValue()
+	pkAny := cachedPubkey.(cryptotypes.PubKey)
 	sdsAddr := sdk.AccAddress(pkAny.Address())
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
@@ -118,6 +119,12 @@ func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{addr.Bytes()}
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
 // NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
@@ -199,6 +206,12 @@ func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{addr.Bytes()}
 
+}
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateIndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
 // NewMsgRemoveResourceNode creates a new MsgRemoveResourceNode instance.
