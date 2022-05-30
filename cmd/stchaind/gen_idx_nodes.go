@@ -75,8 +75,8 @@ the address will be looked up in the local Keybase.
 				registerGenState.IndexingNodes = &registertypes.IndexingNodes{}
 			}
 
-			for _, appIdxNode := range appIdxNodes {
-				registerGenState.IndexingNodes.IndexingNodes = append(registerGenState.IndexingNodes.IndexingNodes, &appIdxNode)
+			for i, _ := range appIdxNodes {
+				registerGenState.IndexingNodes.IndexingNodes = append(registerGenState.IndexingNodes.IndexingNodes, &appIdxNodes[i])
 			}
 
 			registerGenStateBz, err := clientCtx.Codec.MarshalJSON(&registerGenState)
