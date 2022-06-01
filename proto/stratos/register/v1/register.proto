@@ -38,6 +38,9 @@ message Params {
 }
 
 message ResourceNode {
+  option (gogoproto.equal)       = true;
+  option (gogoproto.goproto_stringer) = true;
+
   string                              network_address   = 1 [
     (gogoproto.jsontag)  = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
@@ -82,6 +85,9 @@ message ResourceNode {
 }
 
 message IndexingNode {
+  option (gogoproto.equal)       = true;
+  option (gogoproto.goproto_stringer) = true;
+
   string                              network_address   = 1 [
     (gogoproto.jsontag)  = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
@@ -142,6 +148,9 @@ message IndexingNodeRegistrationVotePool {
 }
 
 message Description {
+  option (gogoproto.equal)       = true;
+  option (gogoproto.goproto_stringer) = true;
+
   string  moniker         = 1 [
     (gogoproto.jsontag)  = "moniker",
     (gogoproto.moretags) = "yaml:\"moniker\""

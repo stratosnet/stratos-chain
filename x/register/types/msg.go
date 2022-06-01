@@ -46,7 +46,10 @@ func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
 			return nil, err
 		}
+	} else {
+		return nil, ErrEmptyPubKey
 	}
+
 	return &MsgCreateResourceNode{
 		NetworkAddress: networkAddr.String(),
 		Pubkey:         pkAny,
@@ -70,9 +73,7 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	pk := msg.GetPubkey()
-	cachedPubkey := pk.GetCachedValue()
-	pkAny := cachedPubkey.(cryptotypes.PubKey)
+	pkAny := msg.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
 	sdsAddr := sdk.AccAddress(pkAny.Address())
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
@@ -127,18 +128,21 @@ func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
-// NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
+// NewMsgCreateIndexingNode creates a new Msg<Action> instance
 func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
 	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description,
-) (*MsgCreateResourceNode, error) {
+) (*MsgCreateIndexingNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
 		var err error
 		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
 			return nil, err
 		}
+	} else {
+		return nil, ErrEmptyPubKey
 	}
-	return &MsgCreateResourceNode{
+
+	return &MsgCreateIndexingNode{
 		NetworkAddress: networkAddr.String(),
 		Pubkey:         pkAny,
 		Value:          value,
@@ -160,14 +164,8 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 		return ErrEmptyNodeNetworkAddress
 	}
 
-	pkAny, err := codectypes.NewAnyWithValue(msg.GetPubkey())
-	if err != nil {
-		return err
-	}
-	sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
-	if err != nil {
-		return err
-	}
+	pkAny := msg.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
+	sdsAddr := sdk.AccAddress(pkAny.Address())
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
 	}
@@ -190,6 +188,7 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 	if *msg.GetDescription() == (Description{}) {
 		return ErrEmptyDescription
 	}
+
 	return nil
 }
 
@@ -312,12 +311,12 @@ func (msg MsgRemoveIndexingNode) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateResourceNode(description Description, nodeType NodeType,
+func NewMsgUpdateResourceNode(description Description, nodeType string,
 	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgUpdateResourceNode {
 
 	return &MsgUpdateResourceNode{
 		Description:    description,
-		NodeType:       nodeType.Type(),
+		NodeType:       nodeType,
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
 	}
@@ -362,15 +361,15 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.Description.Moniker == "" {
-		return ErrEmptyMoniker
-	}
+	//if msg.Description.Moniker == "" {
+	//	return ErrEmptyMoniker
+	//}
 
 	nodeTypeNum, err := strconv.Atoi(msg.NodeType)
 	if err != nil {
 		return ErrInvalidNodeType
 	}
-	if nodeTypeNum > 7 || nodeTypeNum < 1 {
+	if nodeTypeNum > 7 || nodeTypeNum < 0 {
 		return ErrInvalidNodeType
 	}
 	return nil

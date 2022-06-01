@@ -309,7 +309,7 @@ func postUpdateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 		msg := types.NewMsgUpdateResourceNode(req.Description,
-			types.NodeType(nodeTypeRef), networkAddr, ownerAddr)
+			string(types.NodeType(nodeTypeRef)), networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

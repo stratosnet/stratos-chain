@@ -80,11 +80,11 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 
 func (k msgServer) HandleMsgCreateIndexingNode(goCtx context.Context, msg *types.MsgCreateIndexingNode) (*types.MsgCreateIndexingNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
 	// check to see if the pubkey or sender has been registered before
-	pk, err := stratos.SdsPubKeyFromBech32(msg.Pubkey.String())
-	if err != nil {
-		return nil, err
-	}
+	pkAny := msg.GetPubkey()
+	cachedPubkey := pkAny.GetCachedValue()
+	pk := cachedPubkey.(cryptotypes.PubKey)
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
@@ -274,7 +274,8 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 	if err != nil {
 		return &types.MsgUpdateResourceNodeResponse{}, err
 	}
-	nodeType, err := strconv.ParseUint(msg.NodeType, 10, 8)
+	//nodeType, err := strconv.ParseUint(msg.NodeType, 10, 64)
+	nodeType, err := strconv.Atoi(msg.NodeType)
 	if err != nil {
 		return &types.MsgUpdateResourceNodeResponse{}, err
 	}

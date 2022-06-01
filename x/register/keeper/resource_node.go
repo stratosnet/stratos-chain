@@ -312,7 +312,9 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	}
 
 	node.Description = &description
-	node.NodeType = nodeType.String()
+	if nodeType != 0 {
+		node.NodeType = nodeType.String()
+	}
 
 	k.SetResourceNode(ctx, node)
 

@@ -46,7 +46,7 @@ service Msg {
 
 }
 
-// MsgCreateResourceNodeTx encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
+// MsgCreateResourceNode encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
 message MsgCreateResourceNode {
   string                         network_address = 1 [
     (gogoproto.jsontag) = "network_address",
@@ -76,10 +76,10 @@ message MsgCreateResourceNode {
   ];
 }
 
-// MsgCreateResourceNodeTxResponse defines the CreateResourceNodeTx response type
+// MsgCreateResourceNodeResponse defines the CreateResourceNodeTx response type
 message MsgCreateResourceNodeResponse {}
 
-// MsgCreateResourceNodeTx encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
+// MsgCreateIndexingNode encapsulates an MsgCreateIndexingNodeTx transaction as an SDK message.
 message MsgCreateIndexingNode {
   string                         network_address = 1 [
     (gogoproto.jsontag) = "network_address",
@@ -105,6 +105,10 @@ message MsgCreateIndexingNode {
   ];
 }
 
+
+// MsgCreateIndexingNodeResponse defines the CreateIndexingNode response type
+message MsgCreateIndexingNodeResponse {}
+
 // MsgRemoveResourceNode - encapsulates an RemoveResourceNode transaction as an SDK message
 message MsgRemoveResourceNode {
   option (gogoproto.goproto_getters) = false;
@@ -121,10 +125,6 @@ message MsgRemoveResourceNode {
 
 // MsgRemoveResourceNodeResponse defines the Msg/RemoveResourceNode response type.
 message MsgRemoveResourceNodeResponse {}
-
-// MsgCreateIndexingNodeResponse defines the CreateIndexingNode response type
-message MsgCreateIndexingNodeResponse {}
-
 
 // MsgRemoveIndexingNode - encapsulates an MsgRemoveIndexingNode transaction as an SDK message
 message MsgRemoveIndexingNode {

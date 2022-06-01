@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"time"
 
@@ -12,38 +11,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
-
-// IndexingNodes is a collection of indexing node
-//type IndexingNodes []IndexingNode
-
-//func (v IndexingNodes) String() (out string) {
-//	for _, node := range v {
-//		out += node.String() + "\n"
-//	}
-//	return strings.TrimSpace(out)
-//}
-
-//Sort IndexingNodes sorts IndexingNode array in ascending owner address order
-//func (v IndexingNodes) Sort() {
-//	sort.Sort(v.GetIndexingNodes())
-//}
-
-//// Len Implements sort interface
-//func (v IndexingNodes) Len() int {
-//	return len(v.GetIndexingNodes())
-//}
-//
-//// Less Implements sort interface
-//func (v IndexingNodes) Less(i, j int) bool {
-//	return v.GetIndexingNodes()[i].Tokens < (v.GetIndexingNodes()[j].Tokens)
-//}
-//
-//// Swap Implements sort interface
-//func (v IndexingNodes) Swap(i, j int) {
-//	it := v.GetIndexingNodes()[i]
-//	v.GetIndexingNodes()[i] = v.GetIndexingNodes()[j]
-//	v.GetIndexingNodes()[j] = it
-//}
 
 func (v IndexingNodes) Validate() error {
 	for _, node := range v.GetIndexingNodes() {
@@ -122,14 +89,14 @@ func (v IndexingNode) Validate() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	pkAny := v.GetPubkey()
-
-	pubkey, ok := pkAny.GetCachedValue().(cryptotypes.PubKey)
-	if !ok {
-		return ErrUnknownPubKey
+	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
+	if err != nil {
+		return err
 	}
-
-	sdsAddr := stratos.SdsAddress(pubkey.Address())
+	sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
+	if err != nil {
+		return err
+	}
 
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
@@ -258,11 +225,11 @@ func UnmarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, value []byte) (v
 	return votePool, err
 }
 
-func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
-	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
-	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
-	return bytes.Equal(bz1, bz2)
-}
+//func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
+//	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
+//	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
+//	return bytes.Equal(bz1, bz2)
+//}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v IndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {

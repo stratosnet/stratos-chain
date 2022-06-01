@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 type NodeType uint8
@@ -47,31 +45,6 @@ func (n NodeType) Type() string {
 func (n NodeType) String() string {
 	return n.Type()
 }
-
-// ResourceNodes is a collection of resource node
-//type ResourceNodes []ResourceNode
-
-//func (v ResourceNodes) String() (out string) {
-//	for _, node := range v {
-//		out += node.String() + "\n"
-//	}
-//	return strings.TrimSpace(out)
-//}
-
-// Sort ResourceNodes sorts ResourceNode array in ascending owner address order
-//func (v ResourceNodes) Sort() {
-//	sort.Sort(v)
-//}
-//
-//// Len implements sort interface
-//func (v ResourceNodes) Len() int {
-//	return len(v.ResourceNodes)
-//}
-//
-//// Less implements sort interface
-//func (v ResourceNodes) Less(i, j int) bool {
-//	return v.GetResourceNodes()[i].Tokens < v.GetResourceNodes()[j].Tokens
-//}
 
 func (v ResourceNodes) Validate() error {
 	for _, node := range v.GetResourceNodes() {
@@ -228,21 +201,6 @@ func UnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) (v ResourceNode,
 	return v, err
 }
 
-func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
-	bz1 := types.ModuleCdc.MustMarshalLengthPrefixed(&v1)
-	bz2 := types.ModuleCdc.MustMarshalLengthPrefixed(&v2)
-	return bytes.Equal(bz1, bz2)
-}
-
-// GetOwnerAddr
-//func (s *Staking) GetNetworkAddress() stratos.SdsAddress {
-//	networkAddr, err := stratos.SdsAddressFromBech32(s.NetworkAddress)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return networkAddr
-//}
-
 func (s *Staking) GetOwnerAddr() sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(s.OwnerAddress)
 	if err != nil {
@@ -251,12 +209,6 @@ func (s *Staking) GetOwnerAddr() sdk.AccAddress {
 	return addr
 }
 func (s *Staking) GetShares() sdk.Dec { return s.Value }
-
-// String returns a human readable string representation of a node.
-//func (s *Staking) String() string {
-//	out, _ := yaml.Marshal(s)
-//	return string(out)
-//}
 
 // Stakings is a collection of Staking
 type Stakings []Staking

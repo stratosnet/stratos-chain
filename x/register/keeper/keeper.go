@@ -236,7 +236,7 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 	}
 	iter := keeper.GetIndexingNetworksIterator(ctx)
 	for ; iter.Valid(); iter.Next() {
-		indexingNode := types.MustUnmarshalResourceNode(k.cdc, iter.Value())
+		indexingNode := types.MustUnmarshalIndexingNode(k.cdc, iter.Value())
 		networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
 		if err != nil {
 			continue
