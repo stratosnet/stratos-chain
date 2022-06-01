@@ -11,8 +11,8 @@ import (
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params *Params,
-	resourceNodes *ResourceNodes,
-	indexingNodes *IndexingNodes,
+	resourceNodes ResourceNodes,
+	indexingNodes IndexingNodes,
 	initialUOzonePrice sdk.Dec,
 	totalUnissuedPrepay sdk.Int,
 	slashingInfo []*Slashing,
@@ -31,8 +31,8 @@ func NewGenesisState(params *Params,
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params:              DefaultParams(),
-		ResourceNodes:       &ResourceNodes{},
-		IndexingNodes:       &IndexingNodes{},
+		ResourceNodes:       ResourceNodes{},
+		IndexingNodes:       IndexingNodes{},
 		InitialUozPrice:     DefaultUozPrice,
 		TotalUnissuedPrepay: DefaultTotalUnissuedPrepay,
 		Slashing:            make([]*Slashing, 0),
@@ -103,13 +103,13 @@ func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) *Slashing {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (g GenesisState) UnpackInterfaces(c codectypes.AnyUnpacker) error {
-	for i := range g.IndexingNodes.IndexingNodes {
-		if err := g.IndexingNodes.IndexingNodes[i].UnpackInterfaces(c); err != nil {
+	for i := range g.IndexingNodes {
+		if err := g.IndexingNodes[i].UnpackInterfaces(c); err != nil {
 			return err
 		}
 	}
-	for i := range g.ResourceNodes.ResourceNodes {
-		if err := g.ResourceNodes.ResourceNodes[i].UnpackInterfaces(c); err != nil {
+	for i := range g.ResourceNodes {
+		if err := g.ResourceNodes[i].UnpackInterfaces(c); err != nil {
 			return err
 		}
 	}

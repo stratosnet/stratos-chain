@@ -247,13 +247,13 @@ func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) 
 
 	resourceNodeList := q.GetAllResourceNodes(ctx)
 	totalStakeOfResourceNodes := sdk.ZeroInt()
-	for _, node := range resourceNodeList.GetResourceNodes() {
+	for _, node := range resourceNodeList {
 		totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
 	}
 
 	indexingNodeList := q.GetAllIndexingNodes(ctx)
 	totalStakeOfIndexingNodes := sdk.ZeroInt()
-	for _, node := range indexingNodeList.GetIndexingNodes() {
+	for _, node := range indexingNodeList {
 		totalStakeOfIndexingNodes = totalStakeOfIndexingNodes.Add(node.Tokens)
 	}
 

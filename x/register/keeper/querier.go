@@ -63,7 +63,7 @@ func getRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQ
 func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var (
 		params types.QueryNodesParams
-		nodes  []*types.ResourceNode
+		nodes  []types.ResourceNode
 	)
 
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
@@ -78,8 +78,8 @@ func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keep
 	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoResourceNodeFound.Error())
 	}
-	nodes = append(nodes, &node)
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.ResourceNodes{ResourceNodes: nodes})
+	nodes = append(nodes, node)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.NewResourceNodes(nodes...))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -90,7 +90,7 @@ func getIndexingNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keepe
 
 	var (
 		params types.QueryNodesParams
-		nodes  []*types.IndexingNode
+		nodes  []types.IndexingNode
 	)
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -104,8 +104,8 @@ func getIndexingNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keepe
 	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoIndexingNodeFound.Error())
 	}
-	nodes = append(nodes, &node)
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.IndexingNodes{IndexingNodes: nodes})
+	nodes = append(nodes, node)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.NewIndexingNodes(nodes...))
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
@@ -122,13 +122,13 @@ func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, legac
 
 	resourceNodeList := k.GetAllResourceNodes(ctx)
 	totalStakeOfResourceNodes := sdk.ZeroInt()
-	for _, node := range resourceNodeList.GetResourceNodes() {
+	for _, node := range resourceNodeList {
 		totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
 	}
 
 	indexingNodeList := k.GetAllIndexingNodes(ctx)
 	totalStakeOfIndexingNodes := sdk.ZeroInt()
-	for _, node := range indexingNodeList.GetIndexingNodes() {
+	for _, node := range indexingNodeList {
 		totalStakeOfIndexingNodes = totalStakeOfIndexingNodes.Add(node.Tokens)
 	}
 
@@ -342,9 +342,9 @@ func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatu
 
 func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.IndexingNode {
 	nodes := k.GetAllIndexingNodes(ctx)
-	filteredNodes := make([]types.IndexingNode, 0, len(nodes.GetIndexingNodes()))
+	filteredNodes := make([]types.IndexingNode, 0, len(nodes))
 
-	for _, n := range nodes.GetIndexingNodes() {
+	for _, n := range nodes {
 		// match NetworkAddr (if supplied)
 		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		if er != nil {
@@ -369,7 +369,7 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 			continue
 		}
 		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, *n)
+			filteredNodes = append(filteredNodes, n)
 		}
 	}
 	return filteredNodes
@@ -377,9 +377,9 @@ func (k Keeper) GetIndexingNodesFiltered(ctx sdk.Context, params types.QueryNode
 
 func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
 	nodes := k.GetAllResourceNodes(ctx)
-	filteredNodes := make([]types.ResourceNode, 0, len(nodes.GetResourceNodes()))
+	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
-	for _, n := range nodes.GetResourceNodes() {
+	for _, n := range nodes {
 		// match NetworkAddr (if supplied)
 		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		if er != nil {
@@ -404,7 +404,7 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 			continue
 		}
 		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, *n)
+			filteredNodes = append(filteredNodes, n)
 		}
 	}
 	return filteredNodes

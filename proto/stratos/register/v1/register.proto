@@ -173,13 +173,13 @@ message Slashing {
   ];
 }
 
-message ResourceNodes {
-  repeated ResourceNode   resource_nodes = 1;
-}
-
-message IndexingNodes {
-  repeated IndexingNode   indexing_nodes = 1;
-}
+//message ResourceNodes {
+//  repeated ResourceNode   resource_nodes = 1;
+//}
+//
+//message IndexingNodes {
+//  repeated IndexingNode   indexing_nodes = 1;
+//}
 
 message TotalStakesResponse {
   cosmos.base.v1beta1.Coin resource_nodes_total_stake  = 1;

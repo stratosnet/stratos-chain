@@ -49,32 +49,24 @@ func (n NodeType) String() string {
 }
 
 // ResourceNodes is a collection of resource node
-//type ResourceNodes []ResourceNode
+type ResourceNodes []ResourceNode
 
-//func (v ResourceNodes) String() (out string) {
-//	for _, node := range v {
-//		out += node.String() + "\n"
-//	}
-//	return strings.TrimSpace(out)
-//}
+func NewResourceNodes(resourceNodes ...ResourceNode) ResourceNodes {
+	if len(resourceNodes) == 0 {
+		return ResourceNodes{}
+	}
+	return resourceNodes
+}
 
-// Sort ResourceNodes sorts ResourceNode array in ascending owner address order
-//func (v ResourceNodes) Sort() {
-//	sort.Sort(v)
-//}
-//
-//// Len implements sort interface
-//func (v ResourceNodes) Len() int {
-//	return len(v.ResourceNodes)
-//}
-//
-//// Less implements sort interface
-//func (v ResourceNodes) Less(i, j int) bool {
-//	return v.GetResourceNodes()[i].Tokens < v.GetResourceNodes()[j].Tokens
-//}
+func (v ResourceNodes) String() (out string) {
+	for _, node := range v {
+		out += node.String() + "\n"
+	}
+	return strings.TrimSpace(out)
+}
 
 func (v ResourceNodes) Validate() error {
-	for _, node := range v.GetResourceNodes() {
+	for _, node := range v {
 		if err := node.Validate(); err != nil {
 			return err
 		}

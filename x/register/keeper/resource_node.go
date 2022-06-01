@@ -70,14 +70,14 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 }
 
 // GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
-func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes *types.ResourceNodes) {
+func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		resourceNodes.ResourceNodes = append(resourceNodes.ResourceNodes, &node)
+		resourceNodes = append(resourceNodes, node)
 	}
 	return
 }

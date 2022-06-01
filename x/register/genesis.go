@@ -15,14 +15,14 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	initialStakeTotal := sdk.ZeroInt()
 	resNodeBondedToken := sdk.ZeroInt()
 	resNodeNotBondedToken := sdk.ZeroInt()
-	for _, resourceNode := range data.GetResourceNodes().GetResourceNodes() {
+	for _, resourceNode := range data.GetResourceNodes() {
 		if resourceNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
 			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.Tokens)
 		} else if resourceNode.GetStatus() == stakingtypes.Unbonded {
 			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.Tokens)
 		}
-		keeper.SetResourceNode(ctx, *resourceNode)
+		keeper.SetResourceNode(ctx, resourceNode)
 	}
 	err := keeper.MintResourceNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeBondedToken))
 	if err != nil {
@@ -34,14 +34,14 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	}
 	idxNodeBondedToken := sdk.ZeroInt()
 	idxNodeNotBondedToken := sdk.ZeroInt()
-	for _, indexingNode := range data.IndexingNodes.GetIndexingNodes() {
+	for _, indexingNode := range data.GetIndexingNodes() {
 		if indexingNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(indexingNode.Tokens)
 			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.Tokens)
 		} else if indexingNode.GetStatus() == stakingtypes.Unbonded {
 			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.Tokens)
 		}
-		keeper.SetIndexingNode(ctx, *indexingNode)
+		keeper.SetIndexingNode(ctx, indexingNode)
 	}
 	err = keeper.MintIndexingNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
 	if err != nil {

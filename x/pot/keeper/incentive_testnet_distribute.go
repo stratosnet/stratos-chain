@@ -114,18 +114,18 @@ func (k Keeper) splitRewardEvenly(ctx sdk.Context, totalReward sdk.Int,
 	}
 
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	for _, indexingNode := range indexingNodeList.IndexingNodes {
+	for _, indexingNode := range indexingNodeList {
 		if indexingNode.IsBonded() && !indexingNode.Suspend {
 			indexingNodeCnt = indexingNodeCnt.Add(sdk.OneDec())
-			indNodes = append(indNodes, *indexingNode)
+			indNodes = append(indNodes, indexingNode)
 		}
 	}
 
 	resourceNodeList := k.RegisterKeeper.GetAllResourceNodes(ctx)
-	for _, resourceNode := range resourceNodeList.ResourceNodes {
+	for _, resourceNode := range resourceNodeList {
 		if resourceNode.IsBonded() && !resourceNode.Suspend {
 			resourceNodeCnt = resourceNodeCnt.Add(sdk.OneDec())
-			resNodes = append(resNodes, *resourceNode)
+			resNodes = append(resNodes, resourceNode)
 		}
 	}
 

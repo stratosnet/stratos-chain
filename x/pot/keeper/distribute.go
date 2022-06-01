@@ -373,7 +373,7 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, trafficList []*types.
 	// 1, calc stake reward
 	totalStakeOfResourceNodes := k.RegisterKeeper.GetResourceNodeBondedToken(ctx).Amount
 	resourceNodeList := k.RegisterKeeper.GetAllResourceNodes(ctx)
-	for _, node := range resourceNodeList.ResourceNodes {
+	for _, node := range resourceNodeList {
 		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
 		if err != nil {
 			continue
@@ -460,8 +460,8 @@ func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoal types.
 
 	totalStakeOfIndexingNodes := k.RegisterKeeper.GetIndexingNodeBondedToken(ctx).Amount
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	indexingNodeCnt := sdk.NewInt(int64(len(indexingNodeList.IndexingNodes)))
-	for _, node := range indexingNodeList.IndexingNodes {
+	indexingNodeCnt := sdk.NewInt(int64(len(indexingNodeList)))
+	for _, node := range indexingNodeList {
 		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
 		if err != nil {
 			continue

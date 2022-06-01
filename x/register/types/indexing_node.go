@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -12,47 +13,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
-
-// IndexingNodes is a collection of indexing node
-//type IndexingNodes []IndexingNode
-
-//func (v IndexingNodes) String() (out string) {
-//	for _, node := range v {
-//		out += node.String() + "\n"
-//	}
-//	return strings.TrimSpace(out)
-//}
-
-//Sort IndexingNodes sorts IndexingNode array in ascending owner address order
-//func (v IndexingNodes) Sort() {
-//	sort.Sort(v.GetIndexingNodes())
-//}
-
-//// Len Implements sort interface
-//func (v IndexingNodes) Len() int {
-//	return len(v.GetIndexingNodes())
-//}
-//
-//// Less Implements sort interface
-//func (v IndexingNodes) Less(i, j int) bool {
-//	return v.GetIndexingNodes()[i].Tokens < (v.GetIndexingNodes()[j].Tokens)
-//}
-//
-//// Swap Implements sort interface
-//func (v IndexingNodes) Swap(i, j int) {
-//	it := v.GetIndexingNodes()[i]
-//	v.GetIndexingNodes()[i] = v.GetIndexingNodes()[j]
-//	v.GetIndexingNodes()[j] = it
-//}
-
-func (v IndexingNodes) Validate() error {
-	for _, node := range v.GetIndexingNodes() {
-		if err := node.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // NewIndexingNode - initialize a new indexing node
 func NewIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description *Description, creationTime time.Time) (IndexingNode, error) {
@@ -188,6 +148,32 @@ func MustUnmarshalIndexingNode(cdc codec.Codec, value []byte) IndexingNode {
 func UnmarshalIndexingNode(cdc codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
 	err = cdc.Unmarshal(value, &indexingNode)
 	return indexingNode, err
+}
+
+//IndexingNodes is a collection of indexing node
+type IndexingNodes []IndexingNode
+
+func NewIndexingNodes(indexingNodes ...IndexingNode) IndexingNodes {
+	if len(indexingNodes) == 0 {
+		return IndexingNodes{}
+	}
+	return indexingNodes
+}
+
+func (v IndexingNodes) String() (out string) {
+	for _, node := range v {
+		out += node.String() + "\n"
+	}
+	return strings.TrimSpace(out)
+}
+
+func (v IndexingNodes) Validate() error {
+	for _, node := range v {
+		if err := node.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type VoteOpinion bool
