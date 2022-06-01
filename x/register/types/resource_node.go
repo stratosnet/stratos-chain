@@ -210,9 +210,7 @@ func (v ResourceNode) IsUnBonding() bool {
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
 func MustMarshalResourceNode(cdc codec.BinaryCodec, resourceNode ResourceNode) []byte {
-	marshaled := cdc.MustMarshal(&resourceNode)
-	return marshaled
-	//return cdc.MustMarshal(&resourceNode)
+	return cdc.MustMarshal(&resourceNode)
 }
 
 // MustUnmarshalResourceNode unmarshal a resourceNode from a store value. Panics if fails
