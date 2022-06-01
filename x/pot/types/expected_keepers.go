@@ -5,6 +5,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	//authexported "github.com/cosmos/cosmos-sdk/x/auth/exported"
@@ -76,8 +77,9 @@ type RegisterKeeper interface {
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
 	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
 
-	GetAllResourceNodes(ctx sdk.Context) (resourceNodes *types.ResourceNodes)
 	GetAllIndexingNodes(ctx sdk.Context) (indexingNodes *types.IndexingNodes)
+
+	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 }
 
 type StakingKeeper interface {
