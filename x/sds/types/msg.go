@@ -97,7 +97,7 @@ func (msg MsgPrepay) GetSignBytes() []byte {
 
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgPrepay) ValidateBasic() error {
-	sender, err := stratos.SdsAddressFromBech32(msg.GetSender())
+	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
 		return err
 	}
