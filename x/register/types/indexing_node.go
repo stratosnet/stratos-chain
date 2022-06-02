@@ -1,7 +1,9 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -11,15 +13,6 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
-
-func (v IndexingNodes) Validate() error {
-	for _, node := range v.GetIndexingNodes() {
-		if err := node.Validate(); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // NewIndexingNode - initialize a new indexing node
 func NewIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description *Description, creationTime time.Time) (IndexingNode, error) {
@@ -89,14 +82,14 @@ func (v IndexingNode) Validate() error {
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
 	}
-	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
-	if err != nil {
-		return err
+	pkAny := v.GetPubkey()
+
+	pubkey, ok := pkAny.GetCachedValue().(cryptotypes.PubKey)
+	if !ok {
+		return ErrUnknownPubKey
 	}
-	sdsAddr, err := stratos.SdsAddressFromBech32(pkAny.String())
-	if err != nil {
-		return err
-	}
+
+	sdsAddr := stratos.SdsAddress(pubkey.Address())
 
 	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
@@ -155,6 +148,32 @@ func MustUnmarshalIndexingNode(cdc codec.Codec, value []byte) IndexingNode {
 func UnmarshalIndexingNode(cdc codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
 	err = cdc.Unmarshal(value, &indexingNode)
 	return indexingNode, err
+}
+
+//IndexingNodes is a collection of indexing node
+type IndexingNodes []IndexingNode
+
+func NewIndexingNodes(indexingNodes ...IndexingNode) IndexingNodes {
+	if len(indexingNodes) == 0 {
+		return IndexingNodes{}
+	}
+	return indexingNodes
+}
+
+func (v IndexingNodes) String() (out string) {
+	for _, node := range v {
+		out += node.String() + "\n"
+	}
+	return strings.TrimSpace(out)
+}
+
+func (v IndexingNodes) Validate() error {
+	for _, node := range v {
+		if err := node.Validate(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type VoteOpinion bool
@@ -225,11 +244,11 @@ func UnmarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, value []byte) (v
 	return votePool, err
 }
 
-//func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
-//	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
-//	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
-//	return bytes.Equal(bz1, bz2)
-//}
+func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
+	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
+	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
+	return bytes.Equal(bz1, bz2)
+}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v IndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {

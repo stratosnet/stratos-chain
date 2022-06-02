@@ -72,14 +72,14 @@ func (k Keeper) SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode
 }
 
 // GetAllIndexingNodes get the set of all indexing nodes with no limits, used during genesis dump
-func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes *types.IndexingNodes) {
+func (k Keeper) GetAllIndexingNodes(ctx sdk.Context) (indexingNodes types.IndexingNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
 	defer iterator.Close()
 
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.MustUnmarshalIndexingNode(k.cdc, iterator.Value())
-		indexingNodes.IndexingNodes = append(indexingNodes.IndexingNodes, &node)
+		indexingNodes = append(indexingNodes, node)
 	}
 	return indexingNodes
 }

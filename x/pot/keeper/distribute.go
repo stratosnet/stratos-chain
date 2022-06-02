@@ -463,8 +463,8 @@ func (k Keeper) CalcRewardForIndexingNode(ctx sdk.Context, distributeGoalBalance
 
 	totalStakeOfIndexingNodes := k.RegisterKeeper.GetIndexingNodeBondedToken(ctx).Amount
 	indexingNodeList := k.RegisterKeeper.GetAllIndexingNodes(ctx)
-	indexingNodeCnt := sdk.NewInt(int64(len(indexingNodeList.IndexingNodes)))
-	for _, node := range indexingNodeList.IndexingNodes {
+	indexingNodeCnt := sdk.NewInt(int64(len(indexingNodeList)))
+	for _, node := range indexingNodeList {
 		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
 		if err != nil {
 			continue

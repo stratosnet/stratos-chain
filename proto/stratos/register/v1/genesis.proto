@@ -16,8 +16,19 @@ option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 // GenesisState defines the register module's genesis state.
 message GenesisState {
   register.v1.Params                params = 1 [ (gogoproto.moretags) = "yaml:\"params\"" ];
-  register.v1.ResourceNodes         resource_nodes = 2 [ (gogoproto.moretags) = "yaml:\"resource_nodes\"" ];
-  register.v1.IndexingNodes         indexing_nodes = 3 [ (gogoproto.moretags) = "yaml:\"indexing_nodes\"" ];
+
+  repeated register.v1.ResourceNode resource_nodes = 2 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "ResourceNodes",
+//    (gogoproto.castrepeated) = "github.com/stratosnet/stratos-chain/x/register/types.ResourceNodes",
+    (gogoproto.moretags)     = "yaml:\"resource_nodes\""
+  ];
+  repeated register.v1.IndexingNode indexing_nodes = 3 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "IndexingNodes",
+//    (gogoproto.castrepeated) = "github.com/stratosnet/stratos-chain/x/register/types.IndexingNodes",
+    (gogoproto.moretags)     = "yaml:\"indexing_nodes\""
+   ];
   string                            initial_uoz_price = 4 [
     (gogoproto.moretags) = "yaml:\"initial_uoz_price\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
