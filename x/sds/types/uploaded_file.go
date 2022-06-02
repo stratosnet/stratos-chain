@@ -16,7 +16,7 @@ func NewFileInfo(height *sdk.Int, reporter, uploader string) FileInfo {
 
 // MustMarshalFileInfo returns the fileInfo's bytes. Panics if fails
 func MustMarshalFileInfo(cdc codec.Codec, file FileInfo) []byte {
-	return cdc.MustMarshalLengthPrefixed(&file)
+	return cdc.MustMarshal(&file)
 }
 
 // MustUnmarshalFileInfo unmarshal a file's info from a store value. Panics if fails
@@ -30,6 +30,6 @@ func MustUnmarshalFileInfo(cdc codec.Codec, value []byte) FileInfo {
 
 // UnmarshalFileInfo unmarshal a file's info from a store value
 func UnmarshalFileInfo(cdc codec.Codec, value []byte) (fi FileInfo, err error) {
-	err = cdc.UnmarshalLengthPrefixed(value, &fi)
+	err = cdc.Unmarshal(value, &fi)
 	return fi, err
 }

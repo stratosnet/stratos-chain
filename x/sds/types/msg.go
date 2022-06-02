@@ -1,6 +1,8 @@
 package types
 
 import (
+	"encoding/hex"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -43,16 +45,24 @@ func (msg MsgFileUpload) GetSignBytes() []byte {
 
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgFileUpload) ValidateBasic() error {
+	fileHashBytes, err := hex.DecodeString(msg.FileHash)
+	if err != nil {
+		return err
+	}
+
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
 		return err
 	}
 
-	uploader, err := stratos.SdsAddressFromBech32(msg.GetUploader())
+	uploader, err := sdk.AccAddressFromBech32(msg.GetUploader())
 	if err != nil {
 		return err
 	}
 
+	if len(fileHashBytes) == 0 {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing file hash")
+	}
 	if reporter.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx reporter")
 	}
