@@ -214,13 +214,10 @@ func (k msgServer) HandleMsgIndexingNodeRegistrationVote(goCtx context.Context, 
 	if !found {
 		return nil, types.ErrNoIndexingNodeFound
 	}
-	ownerAddress, err := stratos.SdsAddressFromBech32(nodeToApprove.OwnerAddress)
-	if err != nil {
-		return &types.MsgIndexingNodeRegistrationVoteResponse{}, err
-	}
-	if !ownerAddress.Equals(candidateNetworkAddress) {
+	if nodeToApprove.OwnerAddress != msg.CandidateOwnerAddress {
 		return nil, types.ErrInvalidOwnerAddr
 	}
+
 	voterNetworkAddress, err := stratos.SdsAddressFromBech32(msg.VoterNetworkAddress)
 	if err != nil {
 		return &types.MsgIndexingNodeRegistrationVoteResponse{}, err

@@ -345,7 +345,7 @@ func UpdateIndexingNodeStakeCmd() *cobra.Command {
 // IndexingNodeRegistrationVoteCmd Indexing node registration need to be approved by 2/3 of existing indexing nodes
 func IndexingNodeRegistrationVoteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "indexing_node_reg_vote",
+		Use:   "indexing_node_reg_vote [flags]",
 		Short: "vote for the registration of a new indexing node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
