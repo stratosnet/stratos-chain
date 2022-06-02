@@ -42,27 +42,27 @@ func (q Querier) ResourceNode(c context.Context, req *types.QueryResourceNodeReq
 	return &types.QueryResourceNodeResponse{Node: &node}, nil
 }
 
-func (q Querier) IndexingNode(c context.Context, req *types.QueryIndexingNodeRequest) (*types.QueryIndexingNodeResponse, error) {
+func (q Querier) MetaNode(c context.Context, req *types.QueryMetaNodeRequest) (*types.QueryMetaNodeResponse, error) {
 	if req == nil {
-		return &types.QueryIndexingNodeResponse{}, status.Error(codes.InvalidArgument, "empty request")
+		return &types.QueryMetaNodeResponse{}, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	if req.GetNetworkAddr() == "" {
-		return &types.QueryIndexingNodeResponse{}, status.Error(codes.InvalidArgument, " network address cannot be empty")
+		return &types.QueryMetaNodeResponse{}, status.Error(codes.InvalidArgument, " network address cannot be empty")
 	}
 
 	networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 	if err != nil {
-		return &types.QueryIndexingNodeResponse{}, err
+		return &types.QueryMetaNodeResponse{}, err
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
-	node, found := q.GetIndexingNode(ctx, networkAddr)
+	node, found := q.GetMetaNode(ctx, networkAddr)
 	if !found {
-		return &types.QueryIndexingNodeResponse{}, status.Errorf(codes.NotFound, "network address %s not found", req.NetworkAddr)
+		return &types.QueryMetaNodeResponse{}, status.Errorf(codes.NotFound, "network address %s not found", req.NetworkAddr)
 	}
 
-	return &types.QueryIndexingNodeResponse{Node: &node}, nil
+	return &types.QueryMetaNodeResponse{Node: &node}, nil
 }
 
 func (q Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
@@ -90,22 +90,22 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 	stakingInfo := types.StakingInfo{}
 
 	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
-		indexingNode, found := q.GetIndexingNode(ctx, accAddr)
+		metaNode, found := q.GetMetaNode(ctx, accAddr)
 		if found {
-			// Adding indexing node staking info
-			networkAddr, _ := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
+			// Adding meta node staking info
+			networkAddr, _ := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 			unBondingStake, unBondedStake, bondedStake, err := q.getNodeStakes(
 				ctx,
-				indexingNode.GetStatus(),
+				metaNode.GetStatus(),
 				networkAddr,
-				indexingNode.Tokens,
+				metaNode.Tokens,
 			)
 			if err != nil {
 				return &types.QueryStakeByNodeResponse{}, err
 			}
-			if !indexingNode.Equal(types.IndexingNode{}) {
-				stakingInfo = types.NewStakingInfoByIndexingNodeAddr(
-					indexingNode,
+			if !metaNode.Equal(types.MetaNode{}) {
+				stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+					metaNode,
 					unBondingStake,
 					unBondedStake,
 					bondedStake,
@@ -180,7 +180,7 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	params = types.NewQueryNodesParams(page, int(req.Pagination.Limit), networkAddr, req.GetMoniker(), ownerAddr)
 
 	resNodes := q.GetResourceNodesFiltered(ctx, params)
-	indNodes := q.GetIndexingNodesFiltered(ctx, params)
+	indNodes := q.GetMetaNodesFiltered(ctx, params)
 
 	for _, n := range indNodes {
 		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
@@ -193,8 +193,8 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 		if er != nil {
 			return nil, er
 		}
-		if !n.Equal(types.IndexingNode{}) {
-			stakingInfo = types.NewStakingInfoByIndexingNodeAddr(
+		if !n.Equal(types.MetaNode{}) {
+			stakingInfo = types.NewStakingInfoByMetaNodeAddr(
 				n,
 				unBondingStake,
 				unBondedStake,
@@ -240,10 +240,10 @@ func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) 
 	ctx := sdk.UnwrapSDKContext(c)
 
 	totalBondedStakeOfResourceNodes := q.GetResourceNodeBondedToken(ctx).Amount
-	totalBondedStakeOfIndexingNodes := q.GetIndexingNodeBondedToken(ctx).Amount
+	totalBondedStakeOfMetaNodes := q.GetMetaNodeBondedToken(ctx).Amount
 
 	totalUnbondedStakeOfResourceNodes := q.GetResourceNodeNotBondedToken(ctx).Amount
-	totalUnbondedStakeOfIndexingNodes := q.GetIndexingNodeNotBondedToken(ctx).Amount
+	totalUnbondedStakeOfMetaNodes := q.GetMetaNodeNotBondedToken(ctx).Amount
 
 	resourceNodeList := q.GetAllResourceNodes(ctx)
 	totalStakeOfResourceNodes := sdk.ZeroInt()
@@ -251,19 +251,19 @@ func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) 
 		totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
 	}
 
-	indexingNodeList := q.GetAllIndexingNodes(ctx)
-	totalStakeOfIndexingNodes := sdk.ZeroInt()
-	for _, node := range indexingNodeList {
-		totalStakeOfIndexingNodes = totalStakeOfIndexingNodes.Add(node.Tokens)
+	metaNodeList := q.GetAllMetaNodes(ctx)
+	totalStakeOfMetaNodes := sdk.ZeroInt()
+	for _, node := range metaNodeList {
+		totalStakeOfMetaNodes = totalStakeOfMetaNodes.Add(node.Tokens)
 	}
 
-	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfIndexingNodes)
-	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfIndexingNodes)
+	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfMetaNodes)
+	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfMetaNodes)
 	totalUnbondingStake := q.GetAllUnbondingNodesTotalBalance(ctx)
 	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
 	res := types.NewQueryNodesStakingInfo(
 		totalStakeOfResourceNodes,
-		totalStakeOfIndexingNodes,
+		totalStakeOfMetaNodes,
 		totalBondedStake,
 		totalUnbondedStake,
 		totalUnbondingStake,

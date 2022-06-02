@@ -30,7 +30,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, err
 	}
 
-	if _, found := k.RegisterKeeper.GetIndexingNode(ctx, reporter); found == false {
+	if _, found := k.RegisterKeeper.GetMetaNode(ctx, reporter); found == false {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.GetReporter())
 	}
 	height := sdk.NewInt(ctx.BlockHeight())

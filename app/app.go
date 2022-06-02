@@ -160,8 +160,8 @@ var (
 		//upgrading module accounts
 		registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter},
 		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter},
-		registertypes.IndexingNodeBondedPoolName:    {authtypes.Minter},
-		registertypes.IndexingNodeNotBondedPoolName: {authtypes.Minter},
+		registertypes.MetaNodeBondedPoolName:        {authtypes.Minter},
+		registertypes.MetaNodeNotBondedPoolName:     {authtypes.Minter},
 		registertypes.TotalUnissuedPrepayName:       {authtypes.Minter},
 		registertypes.TotalSlashedPoolName:          {authtypes.Minter, authtypes.Burner},
 

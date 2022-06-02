@@ -29,20 +29,20 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 			res, err := msgServer.HandleMsgUpdateResourceNodeStake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
-		case *types.MsgCreateIndexingNode:
-			res, err := msgServer.HandleMsgCreateIndexingNode(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgCreateMetaNode:
+			res, err := msgServer.HandleMsgCreateMetaNode(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgRemoveIndexingNode:
-			res, err := msgServer.HandleMsgRemoveIndexingNode(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgRemoveMetaNode:
+			res, err := msgServer.HandleMsgRemoveMetaNode(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgUpdateIndexingNode:
-			res, err := msgServer.HandleMsgUpdateIndexingNode(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgUpdateMetaNode:
+			res, err := msgServer.HandleMsgUpdateMetaNode(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgUpdateIndexingNodeStake:
-			res, err := msgServer.HandleMsgUpdateIndexingNodeStake(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgUpdateMetaNodeStake:
+			res, err := msgServer.HandleMsgUpdateMetaNodeStake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgIndexingNodeRegistrationVote:
-			res, err := msgServer.HandleMsgIndexingNodeRegistrationVote(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgMetaNodeRegistrationVote:
+			res, err := msgServer.HandleMsgMetaNodeRegistrationVote(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		// this line is used by starport scaffolding # 1

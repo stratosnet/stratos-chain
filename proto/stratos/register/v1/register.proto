@@ -84,7 +84,7 @@ message ResourceNode {
 
 }
 
-message IndexingNode {
+message MetaNode {
   option (gogoproto.equal)       = true;
   option (gogoproto.goproto_stringer) = true;
 
@@ -126,7 +126,7 @@ message IndexingNode {
   ];
 }
 
-message IndexingNodeRegistrationVotePool {
+message MetaNodeRegistrationVotePool {
   string                      network_address   = 1 [
     (gogoproto.jsontag)  = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
@@ -186,13 +186,13 @@ message Slashing {
 //  repeated ResourceNode   resource_nodes = 1;
 //}
 //
-//message IndexingNodes {
-//  repeated IndexingNode   indexing_nodes = 1;
+//message MetaNodes {
+//  repeated MetaNode   meta_nodes = 1;
 //}
 
 message TotalStakesResponse {
   cosmos.base.v1beta1.Coin resource_nodes_total_stake  = 1;
-  cosmos.base.v1beta1.Coin indexing_nodes_total_stake  = 2;
+  cosmos.base.v1beta1.Coin meta_nodes_total_stake  = 2;
   cosmos.base.v1beta1.Coin total_bonded_stake          = 3;
   cosmos.base.v1beta1.Coin total_unbonded_stake        = 4;
   cosmos.base.v1beta1.Coin total_unbonding_stake       = 5;
@@ -263,9 +263,9 @@ message UnbondingNode {
     (gogoproto.jsontag)  = "network_addr",
     (gogoproto.moretags) = "yaml:\"network_addr\""
   ];
-  bool                                is_indexing_node = 2 [
-    (gogoproto.jsontag)  = "is_indexing_node",
-    (gogoproto.moretags) = "yaml:\"is_indexing_node\""
+  bool                                is_meta_node = 2 [
+    (gogoproto.jsontag)  = "is_meta_node",
+    (gogoproto.moretags) = "yaml:\"is_meta_node\""
   ];
   repeated UnbondingNodeEntry          entries          = 3 [
     (gogoproto.jsontag)  = "entries",

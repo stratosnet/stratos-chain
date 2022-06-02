@@ -52,8 +52,8 @@ type BankKeeper interface {
 }
 
 type RegisterKeeper interface {
-	GetIndexingNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (indexingNode types.IndexingNode, found bool)
-	SetIndexingNode(ctx sdk.Context, indexingNode types.IndexingNode)
+	GetMetaNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (metaNode types.MetaNode, found bool)
+	SetMetaNode(ctx sdk.Context, metaNode types.MetaNode)
 
 	GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (resourceNode types.ResourceNode, found bool)
 	SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode)
@@ -70,13 +70,13 @@ type RegisterKeeper interface {
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 	MintResourceNodeBondedTokenPool(ctx sdk.Context, token sdk.Coin) error
-	GetIndexingNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
-	MintIndexingNodeBondedTokenPool(ctx sdk.Context, token sdk.Coin) error
+	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
+	MintMetaNodeBondedTokenPool(ctx sdk.Context, token sdk.Coin) error
 
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
 	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
 
-	GetAllIndexingNodes(ctx sdk.Context) (indexingNodes types.IndexingNodes)
+	GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes)
 	//GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes)
 	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 }

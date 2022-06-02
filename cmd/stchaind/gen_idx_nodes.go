@@ -28,16 +28,16 @@ const (
 	flagGenIdxNodeDir = "gen-idx-node-dir"
 )
 
-// AddGenesisIndexingNodeCmd returns add-genesis-indexing-node cobra Command.
-func AddGenesisIndexingNodeCmd(
+// AddGenesisMetaNodeCmd returns add-genesis-meta-node cobra Command.
+func AddGenesisMetaNodeCmd(
 	genBalancesIterator genutiltypes.GenesisBalancesIterator,
 	defaultNodeHome string,
 ) *cobra.Command {
 
 	cmd := &cobra.Command{
-		Use:   "add-genesis-indexing-node",
-		Short: "Add a genesis indexing node to genesis.json",
-		Long: `Add a genesis indexing node to genesis.json. If a node name is given,
+		Use:   "add-genesis-meta-node",
+		Short: "Add a genesis meta node to genesis.json",
+		Long: `Add a genesis meta node to genesis.json. If a node name is given,
 the address will be looked up in the local Keybase.
 `,
 		Args: cobra.ExactArgs(0),
@@ -59,9 +59,9 @@ the address will be looked up in the local Keybase.
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
-			appIdxNodes, err := getIndexingNodeInfoFromFile(clientCtx.Codec, genIdxNodesDir, *genDoc, genBalancesIterator)
+			appIdxNodes, err := getMetaNodeInfoFromFile(clientCtx.Codec, genIdxNodesDir, *genDoc, genBalancesIterator)
 			if err != nil {
-				return fmt.Errorf("failed to get indexing node from file: %w", err)
+				return fmt.Errorf("failed to get meta node from file: %w", err)
 			}
 
 			genFile := config.GenesisFile()
@@ -71,12 +71,12 @@ the address will be looked up in the local Keybase.
 			}
 
 			registerGenState := registertypes.GetGenesisStateFromAppState(clientCtx.Codec, appState)
-			if registerGenState.GetIndexingNodes() == nil {
-				registerGenState.IndexingNodes = registertypes.IndexingNodes{}
+			if registerGenState.GetMetaNodes() == nil {
+				registerGenState.MetaNodes = registertypes.MetaNodes{}
 			}
 
 			for i, _ := range appIdxNodes {
-				registerGenState.IndexingNodes = append(registerGenState.IndexingNodes, appIdxNodes[i])
+				registerGenState.MetaNodes = append(registerGenState.MetaNodes, appIdxNodes[i])
 			}
 
 			registerGenStateBz, err := clientCtx.Codec.MarshalJSON(&registerGenState)
@@ -98,12 +98,12 @@ the address will be looked up in the local Keybase.
 
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
-	cmd.Flags().String(flagGenIdxNodeDir, "", "directory of genesis indexing nodes info")
+	cmd.Flags().String(flagGenIdxNodeDir, "", "directory of genesis meta nodes info")
 	return cmd
 }
 
-func getIndexingNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc tmtypes.GenesisDoc, genBalanceIterator genutiltypes.GenesisBalancesIterator,
-) (appGenIdxNodes []registertypes.IndexingNode, err error) {
+func getMetaNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc tmtypes.GenesisDoc, genBalanceIterator genutiltypes.GenesisBalancesIterator,
+) (appGenIdxNodes []registertypes.MetaNode, err error) {
 	var fos []os.FileInfo
 	fos, err = ioutil.ReadDir(genIdxNodesDir)
 	if err != nil {
@@ -136,33 +136,33 @@ func getIndexingNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc 
 			return appGenIdxNodes, err
 		}
 
-		var genIdxNode registertypes.GenesisIndexingNode
+		var genIdxNode registertypes.GenesisMetaNode
 		if err = cdc.UnmarshalJSON(jsonRawIdxNode, &genIdxNode); err != nil {
 			return appGenIdxNodes, err
 		}
 
-		indexingNode, err := genIdxNode.ToIndexingNode()
+		metaNode, err := genIdxNode.ToMetaNode()
 		if err != nil {
 			return appGenIdxNodes, err
 		}
 
-		appGenIdxNodes = append(appGenIdxNodes, indexingNode)
+		appGenIdxNodes = append(appGenIdxNodes, metaNode)
 
-		ownerAddrStr := indexingNode.GetOwnerAddress()
+		ownerAddrStr := metaNode.GetOwnerAddress()
 		ownerBalance, ok := balanceMap[ownerAddrStr]
 		if !ok {
 			return appGenIdxNodes, fmt.Errorf(
 				"account %v not in genesis.json: %+v", ownerAddrStr, balanceMap)
 		}
 
-		if ownerBalance.GetCoins().AmountOf(defaultDemon).LT(indexingNode.Tokens) {
+		if ownerBalance.GetCoins().AmountOf(defaultDemon).LT(metaNode.Tokens) {
 			return appGenIdxNodes, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",
-				ownerBalance.GetAddress(), ownerBalance.GetCoins().AmountOf(defaultDemon), indexingNode.Tokens,
+				ownerBalance.GetAddress(), ownerBalance.GetCoins().AmountOf(defaultDemon), metaNode.Tokens,
 			)
 		}
 
-		fmt.Println("Add indexing node: " + indexingNode.GetNetworkAddress() + " success.")
+		fmt.Println("Add meta node: " + metaNode.GetNetworkAddress() + " success.")
 	}
 
 	return appGenIdxNodes, nil

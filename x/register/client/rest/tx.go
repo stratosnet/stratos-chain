@@ -33,24 +33,24 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	).Methods("POST")
 
 	r.HandleFunc(
-		"/register/createIndexingNode",
-		postCreateIndexingNodeHandlerFn(cliCtx),
+		"/register/createMetaNode",
+		postCreateMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/removeIndexingNode",
-		postRemoveIndexingNodeHandlerFn(cliCtx),
+		"/register/removeMetaNode",
+		postRemoveMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/updateIndexingNode",
-		postUpdateIndexingNodeHandlerFn(cliCtx),
+		"/register/updateMetaNode",
+		postUpdateMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/updateIndexingNodeStake",
-		postUpdateIndexingNodeStakeHandlerFn(cliCtx),
+		"/register/updateMetaNodeStake",
+		postUpdateMetaNodeStakeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/indexingNodeRegVote",
-		postIndexingNodeRegVoteFn(cliCtx),
+		"/register/metaNodeRegVote",
+		postMetaNodeRegVoteFn(cliCtx),
 	).Methods("POST")
 }
 
@@ -83,7 +83,7 @@ type (
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
-	CreateIndexingNodeRequest struct {
+	CreateMetaNodeRequest struct {
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		NetworkAddr string            `json:"network_address" yaml:"network_address"`
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
@@ -91,25 +91,25 @@ type (
 		Description types.Description `json:"description" yaml:"description"`
 	}
 
-	RemoveIndexingNodeRequest struct {
-		BaseReq             rest.BaseReq `json:"base_req" yaml:"base_req"`
-		IndexingNodeAddress string       `json:"indexing_node_address" yaml:"indexing_node_address"` // in bech32
+	RemoveMetaNodeRequest struct {
+		BaseReq         rest.BaseReq `json:"base_req" yaml:"base_req"`
+		MetaNodeAddress string       `json:"meta_node_address" yaml:"meta_node_address"` // in bech32
 	}
 
-	UpdateIndexingNodeRequest struct {
+	UpdateMetaNodeRequest struct {
 		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		Description    types.Description `json:"description" yaml:"description"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
-	UpdateIndexingNodeStakeRequest struct {
+	UpdateMetaNodeStakeRequest struct {
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
 		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
-	IndexingNodeRegVoteRequest struct {
+	MetaNodeRegVoteRequest struct {
 		BaseReq                 rest.BaseReq `json:"base_req" yaml:"base_req"`
 		CandidateNetworkAddress string       `json:"candidate_network_address" yaml:"candidate_network_address"`
 		CandidateOwnerAddress   string       `json:"candidate_owner_address" yaml:"candidate_owner_address"`
@@ -164,9 +164,9 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func postCreateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postCreateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req CreateIndexingNodeRequest
+		var req CreateMetaNodeRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -193,7 +193,7 @@ func postCreateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg, err := types.NewMsgCreateIndexingNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
+		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -243,9 +243,9 @@ func postRemoveResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func postRemoveIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postRemoveMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req RemoveIndexingNodeRequest
+		var req RemoveMetaNodeRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -256,7 +256,7 @@ func postRemoveIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		nodeAddr, err := stratos.SdsAddressFromBech32(req.IndexingNodeAddress)
+		nodeAddr, err := stratos.SdsAddressFromBech32(req.MetaNodeAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -268,7 +268,7 @@ func postRemoveIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgRemoveIndexingNode(nodeAddr, ownerAddr)
+		msg := types.NewMsgRemoveMetaNode(nodeAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -359,9 +359,9 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 	}
 }
 
-func postUpdateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postUpdateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req UpdateIndexingNodeRequest
+		var req UpdateMetaNodeRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -384,7 +384,7 @@ func postUpdateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUpdateIndexingNode(req.Description, networkAddr, ownerAddr)
+		msg := types.NewMsgUpdateMetaNode(req.Description, networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -394,9 +394,9 @@ func postUpdateIndexingNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func postUpdateIndexingNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postUpdateMetaNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req UpdateIndexingNodeStakeRequest
+		var req UpdateMetaNodeStakeRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -424,7 +424,7 @@ func postUpdateIndexingNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -434,9 +434,9 @@ func postUpdateIndexingNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 	}
 }
 
-func postIndexingNodeRegVoteFn(cliCtx client.Context) http.HandlerFunc {
+func postMetaNodeRegVoteFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req IndexingNodeRegVoteRequest
+		var req MetaNodeRegVoteRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -471,7 +471,7 @@ func postIndexingNodeRegVoteFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, voteOpinion, voterNetworkAddr, voterOwnerAddr)
+		msg := types.NewMsgMetaNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, voteOpinion, voterNetworkAddr, voterOwnerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -34,7 +34,7 @@ func NewQueryNodesParams(page, limit int, networkAddr stratos.SdsAddress, monike
 
 type QueryNodeStakingParams struct {
 	AccAddr   stratos.SdsAddress
-	QueryType int64 //0:All(Default) 1: indexingNode; 2: ResourceNode
+	QueryType int64 //0:All(Default) 1: metaNode; 2: ResourceNode
 }
 
 // NewQueryNodeStakingParams creates a new instance of QueryNodesParams
@@ -46,16 +46,16 @@ func NewQueryNodeStakingParams(nodeAddr stratos.SdsAddress, queryType int64) Que
 }
 
 // NewQueryNodesStakingInfo creates a new instance of TotalStakesResponse
-func NewQueryNodesStakingInfo(ResourceNodeTotalStake, IndexingNodeTotalStake, totalBondedStake, totalUnbondedStake, totalUnbondingStake sdk.Int) *TotalStakesResponse {
+func NewQueryNodesStakingInfo(ResourceNodeTotalStake, MetaNodeTotalStake, totalBondedStake, totalUnbondedStake, totalUnbondingStake sdk.Int) *TotalStakesResponse {
 	resValue := sdk.NewCoin(defaultDenom, ResourceNodeTotalStake)
-	indValue := sdk.NewCoin(defaultDenom, IndexingNodeTotalStake)
+	metaValue := sdk.NewCoin(defaultDenom, MetaNodeTotalStake)
 	bonedValue := sdk.NewCoin(defaultDenom, totalBondedStake)
 	unBondedValue := sdk.NewCoin(defaultDenom, totalUnbondedStake)
 	unBondingValue := sdk.NewCoin(defaultDenom, totalUnbondingStake)
 
 	return &TotalStakesResponse{
 		ResourceNodesTotalStake: &resValue,
-		IndexingNodesTotalStake: &indValue,
+		MetaNodesTotalStake:     &metaValue,
 		TotalBondedStake:        &bonedValue,
 		TotalUnbondedStake:      &unBondedValue,
 		TotalUnbondingStake:     &unBondingValue,
@@ -90,9 +90,9 @@ func NewStakingInfoByResourceNodeAddr(
 	}
 }
 
-// NewStakingInfoByIndexingNodeAddr creates a new instance of StakingInfoByNodeAddr
-func NewStakingInfoByIndexingNodeAddr(
-	indexingNode IndexingNode,
+// NewStakingInfoByMetaNodeAddr creates a new instance of StakingInfoByNodeAddr
+func NewStakingInfoByMetaNodeAddr(
+	metaNode MetaNode,
 	unBondingStake sdk.Int,
 	unBondedStake sdk.Int,
 	bondedStake sdk.Int,
@@ -101,15 +101,15 @@ func NewStakingInfoByIndexingNodeAddr(
 	unBondedValue := sdk.NewCoin(defaultDenom, unBondedStake)
 	unBondingValue := sdk.NewCoin(defaultDenom, unBondingStake)
 	return StakingInfo{
-		NetworkAddress: indexingNode.GetNetworkAddress(),
-		Pubkey:         indexingNode.GetPubkey(),
-		Suspend:        indexingNode.Suspend,
-		Status:         indexingNode.Status,
-		Tokens:         &indexingNode.Tokens,
-		OwnerAddress:   indexingNode.GetOwnerAddress(),
-		Description:    indexingNode.Description,
+		NetworkAddress: metaNode.GetNetworkAddress(),
+		Pubkey:         metaNode.GetPubkey(),
+		Suspend:        metaNode.Suspend,
+		Status:         metaNode.Status,
+		Tokens:         &metaNode.Tokens,
+		OwnerAddress:   metaNode.GetOwnerAddress(),
+		Description:    metaNode.Description,
 		NodeType:       "metanode",
-		CreationTime:   indexingNode.CreationTime,
+		CreationTime:   metaNode.CreationTime,
 		UnBondingStake: &unBondingValue,
 		UnBondedStake:  &unBondedValue,
 		BondedStake:    &bonedValue,

@@ -16,11 +16,11 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgUpdateResourceNode{}, "register/UpdateResourceNodeTx", nil)
 	cdc.RegisterConcrete(MsgUpdateResourceNodeStake{}, "register/UpdateResourceNodeStakeTx", nil)
 
-	cdc.RegisterConcrete(MsgCreateIndexingNode{}, "register/CreateIndexingNodeTx", nil)
-	cdc.RegisterConcrete(MsgRemoveIndexingNode{}, "register/RemoveIndexingNodeTx", nil)
-	cdc.RegisterConcrete(MsgUpdateIndexingNode{}, "register/UpdateIndexingNodeTx", nil)
-	cdc.RegisterConcrete(MsgUpdateIndexingNodeStake{}, "register/UpdateIndexingNodeStakeTx", nil)
-	cdc.RegisterConcrete(MsgIndexingNodeRegistrationVote{}, "register/MsgIndexingNodeRegistrationVote", nil)
+	cdc.RegisterConcrete(MsgCreateMetaNode{}, "register/CreateMetaNodeTx", nil)
+	cdc.RegisterConcrete(MsgRemoveMetaNode{}, "register/RemoveMetaNodeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateMetaNode{}, "register/UpdateMetaNodeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateMetaNodeStake{}, "register/UpdateMetaNodeStakeTx", nil)
+	cdc.RegisterConcrete(MsgMetaNodeRegistrationVote{}, "register/MsgMetaNodeRegistrationVote", nil)
 }
 
 // RegisterInterfaces registers the x/register interfaces types with the interface registry
@@ -30,11 +30,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgRemoveResourceNode{},
 		&MsgUpdateResourceNode{},
 		&MsgUpdateResourceNodeStake{},
-		&MsgCreateIndexingNode{},
+		&MsgCreateMetaNode{},
 		&MsgRemoveResourceNode{},
-		&MsgUpdateIndexingNode{},
-		&MsgUpdateIndexingNodeStake{},
-		&MsgIndexingNodeRegistrationVote{},
+		&MsgUpdateMetaNode{},
+		&MsgUpdateMetaNodeStake{},
+		&MsgMetaNodeRegistrationVote{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

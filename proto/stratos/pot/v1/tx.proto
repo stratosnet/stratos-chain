@@ -96,7 +96,7 @@ message MsgFoundationDeposit {
 message MsgFoundationDepositResponse {}
 
 
-// MsgRemoveIndexingNode - encapsulates an MsgRemoveIndexingNode transaction as an SDK message
+// MsgRemoveMetaNode - encapsulates an MsgRemoveMetaNode transaction as an SDK message
 message MsgSlashingResourceNode {
   repeated string reporters = 1 [
     (gogoproto.jsontag) = "reporters",

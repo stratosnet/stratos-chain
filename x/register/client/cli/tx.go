@@ -29,11 +29,11 @@ func NewTxCmd() *cobra.Command {
 		UpdateResourceNodeCmd(),
 		UpdateResourceNodeStakeCmd(),
 
-		CreateIndexingNodeCmd(),
-		RemoveIndexingNodeCmd(),
-		UpdateIndexingNodeCmd(),
-		UpdateIndexingNodeStakeCmd(),
-		IndexingNodeRegistrationVoteCmd(),
+		CreateMetaNodeCmd(),
+		RemoveMetaNodeCmd(),
+		UpdateMetaNodeCmd(),
+		UpdateMetaNodeStakeCmd(),
+		MetaNodeRegistrationVoteCmd(),
 	)
 
 	return registerTxCmd
@@ -78,11 +78,11 @@ func CreateResourceNodeCmd() *cobra.Command {
 	return cmd
 }
 
-// CreateIndexingNodeCmd will create a file upload tx and sign it with the given key.
-func CreateIndexingNodeCmd() *cobra.Command {
+// CreateMetaNodeCmd will create a file upload tx and sign it with the given key.
+func CreateMetaNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "create-indexing-node [flags]",
-		Short: "create a new indexing node",
+		Use:   "create-meta-node [flags]",
+		Short: "create a new meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -91,7 +91,7 @@ func CreateIndexingNodeCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildCreateIndexingNodeMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildCreateMetaNodeMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -145,18 +145,18 @@ func RemoveResourceNodeCmd() *cobra.Command {
 	return cmd
 }
 
-func RemoveIndexingNodeCmd() *cobra.Command {
+func RemoveMetaNodeCmd() *cobra.Command {
 	//cmd := &cobra.Command{
-	//	Use:   "remove-indexing-node [indexing_node_address]",
+	//	Use:   "remove-meta-node [meta_node_address]",
 	//	Args:  cobra.ExactArgs(2),
-	//	Short: "remove indexing node",
+	//	Short: "remove meta node",
 	//	RunE: func(cmd *cobra.Command, args []string) error {
 	//		clientCtx, err := client.GetClientTxContext(cmd)
 	//		if err != nil {
 	//			return err
 	//		}
 	//
-	//		indexingNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
+	//		metaNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
 	//		if err != nil {
 	//			return err
 	//		}
@@ -166,7 +166,7 @@ func RemoveIndexingNodeCmd() *cobra.Command {
 	//		//	return err
 	//		//}
 	//
-	//		msg := types.NewMsgRemoveIndexingNode(indexingNodeAddr, ownerAddr)
+	//		msg := types.NewMsgRemoveMetaNode(metaNodeAddr, ownerAddr)
 	//
 	//		return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 	//	},
@@ -177,9 +177,9 @@ func RemoveIndexingNodeCmd() *cobra.Command {
 	//
 	//return cmd
 	cmd := &cobra.Command{
-		Use: "remove-indexing-node [flag]",
+		Use: "remove-meta-node [flag]",
 		//Args:  cobra.ExactArgs(1),
-		Short: "remove indeixng node",
+		Short: "remove meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -188,7 +188,7 @@ func RemoveIndexingNodeCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildRemoveIndexingNodeMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildRemoveMetaNodeMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -240,10 +240,10 @@ func UpdateResourceNodeCmd() *cobra.Command {
 	return cmd
 }
 
-func UpdateIndexingNodeCmd() *cobra.Command {
+func UpdateMetaNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-indexing-node [flags]",
-		Short: "update indexing node info",
+		Use:   "update-meta-node [flags]",
+		Short: "update meta node info",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -252,7 +252,7 @@ func UpdateIndexingNodeCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateIndexingNodeMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildUpdateMetaNodeMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -308,11 +308,11 @@ func UpdateResourceNodeStakeCmd() *cobra.Command {
 	return cmd
 }
 
-// UpdateIndexingNodeStakeCmd will add/subtract indexing node's stake.
-func UpdateIndexingNodeStakeCmd() *cobra.Command {
+// UpdateMetaNodeStakeCmd will add/subtract meta node's stake.
+func UpdateMetaNodeStakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-indexing-node-stake [flags]",
-		Short: "update indexing node's stake",
+		Use:   "update-meta-node-stake [flags]",
+		Short: "update meta node's stake",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -321,7 +321,7 @@ func UpdateIndexingNodeStakeCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateIndexingNodeStakeMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildUpdateMetaNodeStakeMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -342,11 +342,11 @@ func UpdateIndexingNodeStakeCmd() *cobra.Command {
 	return cmd
 }
 
-// IndexingNodeRegistrationVoteCmd Indexing node registration need to be approved by 2/3 of existing indexing nodes
-func IndexingNodeRegistrationVoteCmd() *cobra.Command {
+// MetaNodeRegistrationVoteCmd Meta node registration need to be approved by 2/3 of existing meta nodes
+func MetaNodeRegistrationVoteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "indexing_node_reg_vote [flags]",
-		Short: "vote for the registration of a new indexing node",
+		Use:   "meta_node_reg_vote [flags]",
+		Short: "vote for the registration of a new meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -355,7 +355,7 @@ func IndexingNodeRegistrationVoteCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildIndexingNodeRegistrationVoteMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildMetaNodeRegistrationVoteMsg(clientCtx, txf, cmd.Flags())
 
 			if err != nil {
 				return err
@@ -439,8 +439,8 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	return txf, msg, nil
 }
 
-// makes a new MsgCreateIndexingNode.
-func newBuildCreateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateIndexingNode, error) {
+// makes a new MsgCreateMetaNode.
+func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateMetaNode, error) {
 	flagAmountStr, err := fs.GetString(FlagAmount)
 	if err != nil {
 		return txf, nil, err
@@ -482,7 +482,7 @@ func newBuildCreateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		security,
 		details,
 	)
-	msg, er := types.NewMsgCreateIndexingNode(networkAddr, pubKey, amount, ownerAddr, &description)
+	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, &description)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -528,8 +528,8 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	return txf, msg, nil
 }
 
-// makes a new MsgUpdateIndexingNode.
-func newBuildUpdateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateIndexingNode, error) {
+// makes a new MsgUpdateMetaNode.
+func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNode, error) {
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
 		return txf, nil, err
@@ -554,7 +554,7 @@ func newBuildUpdateIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		details,
 	)
 
-	msg := types.NewMsgUpdateIndexingNode(description, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
@@ -590,8 +590,8 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 	return txf, msg, nil
 }
 
-// newBuildUpdateIndexingNodeStakeMsg makes a new UpdateIndexingNodeStakeMsg.
-func newBuildUpdateIndexingNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateIndexingNodeStake, error) {
+// newBuildUpdateMetaNodeStakeMsg makes a new UpdateMetaNodeStakeMsg.
+func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNodeStake, error) {
 	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
 	if err != nil {
 		return txf, nil, err
@@ -618,11 +618,11 @@ func newBuildUpdateIndexingNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, &stakeDelta, incrStake)
+	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &stakeDelta, incrStake)
 	return txf, msg, nil
 }
 
-func newBuildIndexingNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgIndexingNodeRegistrationVote, error) {
+func newBuildMetaNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgMetaNodeRegistrationVote, error) {
 	candidateNetworkAddrStr, err := fs.GetString(FlagCandidateNetworkAddress)
 	if err != nil {
 		return txf, nil, err
@@ -657,7 +657,7 @@ func newBuildIndexingNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Fa
 
 	voterOwnerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinionVal, voterNetworkAddr, voterOwnerAddr)
+	msg := types.NewMsgMetaNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinionVal, voterNetworkAddr, voterOwnerAddr)
 	return txf, msg, nil
 }
 
@@ -678,7 +678,7 @@ func newBuildRemoveResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	return txf, msg, nil
 }
 
-func newBuildRemoveIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgRemoveIndexingNode, error) {
+func newBuildRemoveMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgRemoveMetaNode, error) {
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
 		return txf, nil, err
@@ -690,7 +690,7 @@ func newBuildRemoveIndexingNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgRemoveIndexingNode(networkAddr, ownerAddr)
+	msg := types.NewMsgRemoveMetaNode(networkAddr, ownerAddr)
 
 	return txf, msg, nil
 }

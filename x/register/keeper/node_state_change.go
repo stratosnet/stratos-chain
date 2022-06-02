@@ -17,14 +17,14 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
 	matureUBDs := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
 	for _, networkAddr := range matureUBDs {
-		balances, isIndexingNode, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+		balances, isMetaNode, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
 		if err != nil {
 			continue
 		}
-		if isIndexingNode {
+		if isMetaNode {
 			ctx.EventManager().EmitEvent(
 				sdk.NewEvent(
-					types.EventTypeCompleteUnbondingIndexingNode,
+					types.EventTypeCompleteUnbondingMetaNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
 					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
 				),
@@ -46,14 +46,14 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 }
 
 // Node state transitions
-func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingNode bool, coin sdk.Coin) interface{} {
-	switch isIndexingNode {
+func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isMetaNode bool, coin sdk.Coin) interface{} {
+	switch isMetaNode {
 	case true:
-		temp := node.(types.IndexingNode)
+		temp := node.(types.MetaNode)
 		if temp.GetStatus() != stakingtypes.Bonded {
-			panic(fmt.Sprintf("bad state transition bondedToUnbonding, indexingNode: %v\n", temp))
+			panic(fmt.Sprintf("bad state transition bondedToUnbonding, metaNode: %v\n", temp))
 		}
-		return k.beginUnbondingIndexingNode(ctx, &temp, &coin)
+		return k.beginUnbondingMetaNode(ctx, &temp, &coin)
 	default:
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != stakingtypes.Bonded {
@@ -64,20 +64,20 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isIndexingN
 }
 
 // switches a Node from unbonding state to unbonded state
-func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
-	switch isIndexingNode {
+func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isMetaNode bool) interface{} {
+	switch isMetaNode {
 	case true:
-		temp := node.(types.IndexingNode)
+		temp := node.(types.MetaNode)
 		if temp.GetStatus() != stakingtypes.Unbonding {
-			panic(fmt.Sprintf("bad state transition unbondingToBonded, indexingNode: %v\n", temp))
+			panic(fmt.Sprintf("bad state transition unbondingToBonded, metaNode: %v\n", temp))
 		}
-		return k.completeUnbondingNode(ctx, temp, isIndexingNode)
+		return k.completeUnbondingNode(ctx, temp, isMetaNode)
 	default:
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != stakingtypes.Unbonding {
 			panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", temp))
 		}
-		return k.completeUnbondingNode(ctx, temp, isIndexingNode)
+		return k.completeUnbondingNode(ctx, temp, isMetaNode)
 	}
 }
 
@@ -97,22 +97,22 @@ func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode *types.
 	k.AfterNodeBeginUnbonding(ctx, networkAddr, false)
 	return resourceNode
 }
-func (k Keeper) beginUnbondingIndexingNode(ctx sdk.Context, indexingNode *types.IndexingNode, coin *sdk.Coin) *types.IndexingNode {
+func (k Keeper) beginUnbondingMetaNode(ctx sdk.Context, metaNode *types.MetaNode, coin *sdk.Coin) *types.MetaNode {
 	// change node stat, remove token from bonded pool, add token into NotBondedPool
-	err := k.RemoveTokenFromPoolWhileUnbondingIndexingNode(ctx, *indexingNode, *coin)
+	err := k.RemoveTokenFromPoolWhileUnbondingMetaNode(ctx, *metaNode, *coin)
 	if err != nil {
 		return nil
 	}
 	if err != nil {
-		return &types.IndexingNode{}
+		return &types.MetaNode{}
 	}
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
+	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
-		return &types.IndexingNode{}
+		return &types.MetaNode{}
 	}
 	// trigger hook if registered
 	k.AfterNodeBeginUnbonding(ctx, networkAddr, true)
-	return indexingNode
+	return metaNode
 }
 
 func calcUnbondingMatureTime(ctx sdk.Context, currStatus stakingtypes.BondStatus, creationTime time.Time, threasholdTime time.Duration, completionTime time.Duration) time.Time {
@@ -130,11 +130,11 @@ func calcUnbondingMatureTime(ctx sdk.Context, currStatus stakingtypes.BondStatus
 }
 
 // perform all the store operations for when a validator status becomes unbonded
-func (k Keeper) completeUnbondingNode(ctx sdk.Context, node interface{}, isIndexingNode bool) interface{} {
-	if isIndexingNode {
-		temp := node.(types.IndexingNode)
+func (k Keeper) completeUnbondingNode(ctx sdk.Context, node interface{}, isMetaNode bool) interface{} {
+	if isMetaNode {
+		temp := node.(types.MetaNode)
 		temp.Status = stakingtypes.Unbonded
-		k.SetIndexingNode(ctx, temp)
+		k.SetMetaNode(ctx, temp)
 		return temp
 	} else {
 		temp := node.(types.ResourceNode)
@@ -182,20 +182,20 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 				panic("node in the unbonding queue was not found")
 			}
 
-			if ubd.IsIndexingNode {
+			if ubd.IsMetaNode {
 
-				node, found := k.GetIndexingNode(ctx, ubdNetworkAddr)
+				node, found := k.GetMetaNode(ctx, ubdNetworkAddr)
 				if !found {
-					panic("cannot find indexing node " + ubd.NetworkAddr)
+					panic("cannot find meta node " + ubd.NetworkAddr)
 				}
 				if node.GetStatus() != stakingtypes.Unbonding {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
-				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
-				k.removeIndexingNode(ctx, ubdNetworkAddr)
-				_, found1 := k.GetIndexingNode(ctx, ubdNetworkAddr)
+				k.unbondingToUnbonded(ctx, node, ubd.IsMetaNode)
+				k.removeMetaNode(ctx, ubdNetworkAddr)
+				_, found1 := k.GetMetaNode(ctx, ubdNetworkAddr)
 				if found1 {
-					ctx.Logger().Info("Removed indexing node with addr " + ubd.NetworkAddr)
+					ctx.Logger().Info("Removed meta node with addr " + ubd.NetworkAddr)
 				}
 			} else {
 				node, found := k.GetResourceNode(ctx, ubdNetworkAddr)
@@ -205,7 +205,7 @@ func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
 				if node.GetStatus() != stakingtypes.Unbonding {
 					panic("unexpected node in unbonding queue; status was not unbonding")
 				}
-				k.unbondingToUnbonded(ctx, node, ubd.IsIndexingNode)
+				k.unbondingToUnbonded(ctx, node, ubd.IsMetaNode)
 				k.removeResourceNode(ctx, ubdNetworkAddr)
 				_, found1 := k.GetResourceNode(ctx, ubdNetworkAddr)
 				if found1 {

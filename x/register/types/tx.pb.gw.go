@@ -176,181 +176,181 @@ func local_request_Msg_HandleMsgUpdateResourceNodeStake_0(ctx context.Context, m
 }
 
 var (
-	filter_Msg_HandleMsgCreateIndexingNode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgCreateMetaNode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgCreateIndexingNode_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgCreateIndexingNode
+func request_Msg_HandleMsgCreateMetaNode_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgCreateMetaNode
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgCreateIndexingNode_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgCreateMetaNode_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgCreateIndexingNode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgCreateMetaNode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgCreateIndexingNode_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgCreateIndexingNode
+func local_request_Msg_HandleMsgCreateMetaNode_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgCreateMetaNode
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgCreateIndexingNode_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgCreateMetaNode_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgCreateIndexingNode(ctx, &protoReq)
+	msg, err := server.HandleMsgCreateMetaNode(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_Msg_HandleMsgRemoveIndexingNode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgRemoveMetaNode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgRemoveIndexingNode_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgRemoveIndexingNode
+func request_Msg_HandleMsgRemoveMetaNode_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgRemoveMetaNode
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgRemoveIndexingNode_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgRemoveMetaNode_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgRemoveIndexingNode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgRemoveMetaNode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgRemoveIndexingNode_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgRemoveIndexingNode
+func local_request_Msg_HandleMsgRemoveMetaNode_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgRemoveMetaNode
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgRemoveIndexingNode_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgRemoveMetaNode_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgRemoveIndexingNode(ctx, &protoReq)
+	msg, err := server.HandleMsgRemoveMetaNode(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_Msg_HandleMsgUpdateIndexingNode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgUpdateMetaNode_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgUpdateIndexingNode_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateIndexingNode
+func request_Msg_HandleMsgUpdateMetaNode_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateMetaNode
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateIndexingNode_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNode_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgUpdateIndexingNode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgUpdateMetaNode(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgUpdateIndexingNode_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateIndexingNode
+func local_request_Msg_HandleMsgUpdateMetaNode_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateMetaNode
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateIndexingNode_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNode_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgUpdateIndexingNode(ctx, &protoReq)
+	msg, err := server.HandleMsgUpdateMetaNode(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_Msg_HandleMsgUpdateIndexingNodeStake_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgUpdateMetaNodeStake_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgUpdateIndexingNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateIndexingNodeStake
+func request_Msg_HandleMsgUpdateMetaNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateMetaNodeStake
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateIndexingNodeStake_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNodeStake_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgUpdateIndexingNodeStake(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgUpdateMetaNodeStake(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgUpdateIndexingNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateIndexingNodeStake
+func local_request_Msg_HandleMsgUpdateMetaNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateMetaNodeStake
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateIndexingNodeStake_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNodeStake_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgUpdateIndexingNodeStake(ctx, &protoReq)
+	msg, err := server.HandleMsgUpdateMetaNodeStake(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
 var (
-	filter_Msg_HandleMsgIndexingNodeRegistrationVote_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgMetaNodeRegistrationVote_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgIndexingNodeRegistrationVote_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgIndexingNodeRegistrationVote
+func request_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgMetaNodeRegistrationVote
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgIndexingNodeRegistrationVote_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgMetaNodeRegistrationVote_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgIndexingNodeRegistrationVote(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgMetaNodeRegistrationVote(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgIndexingNodeRegistrationVote_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgIndexingNodeRegistrationVote
+func local_request_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgMetaNodeRegistrationVote
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgIndexingNodeRegistrationVote_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgMetaNodeRegistrationVote_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgIndexingNodeRegistrationVote(ctx, &protoReq)
+	msg, err := server.HandleMsgMetaNodeRegistrationVote(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -441,7 +441,7 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgCreateIndexingNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgCreateMetaNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -450,18 +450,18 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgCreateIndexingNode_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgCreateMetaNode_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgCreateIndexingNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgCreateMetaNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgRemoveIndexingNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgRemoveMetaNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -470,18 +470,18 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgRemoveIndexingNode_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgRemoveMetaNode_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgRemoveIndexingNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgRemoveMetaNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateIndexingNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -490,18 +490,18 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgUpdateIndexingNode_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgUpdateMetaNode_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateIndexingNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateMetaNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateIndexingNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -510,18 +510,18 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgUpdateIndexingNodeStake_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgUpdateMetaNodeStake_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateIndexingNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateMetaNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgIndexingNodeRegistrationVote_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgMetaNodeRegistrationVote_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -530,14 +530,14 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgIndexingNodeRegistrationVote_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgMetaNodeRegistrationVote_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgIndexingNodeRegistrationVote_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -662,7 +662,7 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgCreateIndexingNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgCreateMetaNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -671,18 +671,18 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgCreateIndexingNode_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgCreateMetaNode_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgCreateIndexingNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgCreateMetaNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgRemoveIndexingNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgRemoveMetaNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -691,18 +691,18 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgRemoveIndexingNode_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgRemoveMetaNode_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgRemoveIndexingNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgRemoveMetaNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateIndexingNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNode_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -711,18 +711,18 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgUpdateIndexingNode_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgUpdateMetaNode_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateIndexingNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateMetaNode_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateIndexingNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -731,18 +731,18 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgUpdateIndexingNodeStake_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgUpdateMetaNodeStake_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateIndexingNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateMetaNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgIndexingNodeRegistrationVote_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgMetaNodeRegistrationVote_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -751,14 +751,14 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgIndexingNodeRegistrationVote_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgMetaNodeRegistrationVote_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgIndexingNodeRegistrationVote_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -774,15 +774,15 @@ var (
 
 	pattern_Msg_HandleMsgUpdateResourceNodeStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_resource_node_stake"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgCreateIndexingNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "create_indexing_node"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgCreateMetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "create_meta_node"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgRemoveIndexingNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "remove_indexing_node"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgRemoveMetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "remove_meta_node"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgUpdateIndexingNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_indexing_node"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgUpdateMetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_meta_node"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgUpdateIndexingNodeStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_indexing_node_stake"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgUpdateMetaNodeStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_meta_node_stake"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgIndexingNodeRegistrationVote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "indexing_node_registration_vote"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgMetaNodeRegistrationVote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "meta_node_registration_vote"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -794,13 +794,13 @@ var (
 
 	forward_Msg_HandleMsgUpdateResourceNodeStake_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgCreateIndexingNode_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgCreateMetaNode_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgRemoveIndexingNode_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgRemoveMetaNode_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgUpdateIndexingNode_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgUpdateMetaNode_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgUpdateIndexingNodeStake_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgUpdateMetaNodeStake_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgIndexingNodeRegistrationVote_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgMetaNodeRegistrationVote_0 = runtime.ForwardResponseMessage
 )

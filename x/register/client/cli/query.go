@@ -26,8 +26,8 @@ func GetQueryCmd() *cobra.Command {
 
 	registerQueryCmd.AddCommand(
 		GetCmdQueryResourceNode(),
-		GetCmdQueryIndexingNode(),
-		//GetCmdQueryIndexingNodeList(),
+		GetCmdQueryMetaNode(),
+		//GetCmdQueryMetaNodeList(),
 	)
 
 	return registerQueryCmd
@@ -78,15 +78,15 @@ $ %s query register get-resource-node --network-address=stsds1np4d8re98lpgrcdqca
 	return cmd
 }
 
-// GetCmdQueryIndexingNode implements the query indexing nodes by network address command.
-func GetCmdQueryIndexingNode() *cobra.Command {
+// GetCmdQueryMetaNode implements the query meta nodes by network address command.
+func GetCmdQueryMetaNode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-indexing-node [flag]",
-		Short: "Query an indexing node by its network address",
+		Use:   "get-meta-node [flag]",
+		Short: "Query an meta node by its network address",
 		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query details about an individual indexing node by its network address.
+			fmt.Sprintf(`Query details about an individual meta node by its network address.
 Example:
-$ %s query register get-indexing-node --network-address=stsds1faej5w4q6hgnt0ft598dlm408g4p747y4krwca
+$ %s query register get-meta-node --network-address=stsds1faej5w4q6hgnt0ft598dlm408g4p747y4krwca
 `,
 				version.AppName,
 			),
@@ -104,7 +104,7 @@ $ %s query register get-indexing-node --network-address=stsds1faej5w4q6hgnt0ft59
 				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
 
-			result, err := queryClient.IndexingNode(cmd.Context(), &types.QueryIndexingNodeRequest{
+			result, err := queryClient.MetaNode(cmd.Context(), &types.QueryMetaNodeRequest{
 				// Leaving status empty on purpose to query all validators.
 				NetworkAddr: queryFlagNetworkAddr,
 			})
@@ -155,19 +155,19 @@ $ %s query register get-indexing-node --network-address=stsds1faej5w4q6hgnt0ft59
 //	return cliCtx.QueryWithData(route, bz)
 //}
 //
-//// GetCmdQueryIndexingNodeList implements the query all indexing nodes by network id command.
-//func GetCmdQueryIndexingNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
+//// GetCmdQueryMetaNodeList implements the query all meta nodes by network id command.
+//func GetCmdQueryMetaNodeList(queryRoute string, cdc *codec.Codec) *cobra.Command {
 //	cmd := &cobra.Command{
-//		Use:   "get-indexing-nodes [flags]", // []byte
-//		Short: "Query all indexing nodes",
+//		Use:   "get-meta-nodes [flags]", // []byte
+//		Short: "Query all meta nodes",
 //		Long: strings.TrimSpace(
-//			fmt.Sprintf(`Query all indexing nodes`),
+//			fmt.Sprintf(`Query all meta nodes`),
 //		),
 //		RunE: func(cmd *cobra.Command, args []string) error {
 //			inBuf := bufio.NewReader(cmd.InOrStdin())
 //			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
 //
-//			// query all indexing nodes by network address
+//			// query all meta nodes by network address
 //			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
 //			if queryFlagNetworkAddr == "" {
 //				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
@@ -185,12 +185,12 @@ $ %s query register get-indexing-node --network-address=stsds1faej5w4q6hgnt0ft59
 //	return cmd
 //}
 //
-//// GetIndNodesByNetworkAddr queries all indexing nodes by multiple network addrs (sep: ";")
+//// GetIndNodesByNetworkAddr queries all meta nodes by multiple network addrs (sep: ";")
 //func GetIndNodesByNetworkAddr(cliCtx context.CLIContext, queryRoute string) (res string, err error) {
 //	queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
 //	queryByFlagNetworkAddrList := strings.Split(queryFlagNetworkAddr, ";")
 //	for _, v := range queryByFlagNetworkAddrList {
-//		resp, _, err := QueryIndexingNodes(cliCtx, queryRoute, v)
+//		resp, _, err := QueryMetaNodes(cliCtx, queryRoute, v)
 //		if err != nil {
 //			return "null", err
 //		}
@@ -199,9 +199,9 @@ $ %s query register get-indexing-node --network-address=stsds1faej5w4q6hgnt0ft59
 //	return res[:len(res)-1], nil
 //}
 //
-//// QueryIndexingNodes queries all indexing nodes
-//func QueryIndexingNodes(cliCtx context.CLIContext, queryRoute, networkAddr string) ([]byte, int64, error) {
-//	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryIndexingNodeByNetworkAddr)
+//// QueryMetaNodes queries all meta nodes
+//func QueryMetaNodes(cliCtx context.CLIContext, queryRoute, networkAddr string) ([]byte, int64, error) {
+//	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryMetaNodeByNetworkAddr)
 //	sdsAddress, err := stratos.SdsAddressFromBech32(networkAddr)
 //	if err != nil {
 //		return []byte{}, 0, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")

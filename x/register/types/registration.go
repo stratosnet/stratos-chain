@@ -25,7 +25,7 @@ func NewDescription(moniker, identity, website, securityContact, details string)
 	}
 }
 
-// EnsureLength ensures the length of a resource/indexing node's description.
+// EnsureLength ensures the length of a resource/meta node's description.
 func (d Description) EnsureLength() (Description, error) {
 	if len(d.Moniker) > MaxMonikerLength {
 		return d, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)

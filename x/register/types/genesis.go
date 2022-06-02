@@ -12,7 +12,7 @@ import (
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params *Params,
 	resourceNodes ResourceNodes,
-	indexingNodes IndexingNodes,
+	metaNodes MetaNodes,
 	initialUOzonePrice sdk.Dec,
 	totalUnissuedPrepay sdk.Int,
 	slashingInfo []*Slashing,
@@ -20,7 +20,7 @@ func NewGenesisState(params *Params,
 	return GenesisState{
 		Params:              params,
 		ResourceNodes:       resourceNodes,
-		IndexingNodes:       indexingNodes,
+		MetaNodes:           metaNodes,
 		InitialUozPrice:     initialUOzonePrice,
 		TotalUnissuedPrepay: totalUnissuedPrepay,
 		Slashing:            slashingInfo,
@@ -32,7 +32,7 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params:              DefaultParams(),
 		ResourceNodes:       ResourceNodes{},
-		IndexingNodes:       IndexingNodes{},
+		MetaNodes:           MetaNodes{},
 		InitialUozPrice:     DefaultUozPrice,
 		TotalUnissuedPrepay: DefaultTotalUnissuedPrepay,
 		Slashing:            make([]*Slashing, 0),
@@ -58,7 +58,7 @@ func ValidateGenesis(data GenesisState) error {
 	if err := data.GetResourceNodes().Validate(); err != nil {
 		return err
 	}
-	if err := data.GetIndexingNodes().Validate(); err != nil {
+	if err := data.GetMetaNodes().Validate(); err != nil {
 		return err
 	}
 
@@ -72,18 +72,18 @@ func ValidateGenesis(data GenesisState) error {
 	return nil
 }
 
-func (v GenesisIndexingNode) ToIndexingNode() (IndexingNode, error) {
+func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	ownerAddress, err := sdk.AccAddressFromBech32(v.OwnerAddress)
 	if err != nil {
-		return IndexingNode{}, ErrInvalidOwnerAddr
+		return MetaNode{}, ErrInvalidOwnerAddr
 	}
 
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
-		return IndexingNode{}, ErrInvalidNetworkAddr
+		return MetaNode{}, ErrInvalidNetworkAddr
 	}
 
-	return IndexingNode{
+	return MetaNode{
 		NetworkAddress: netAddr.String(),
 		Pubkey:         v.GetPubkey(),
 		Suspend:        v.GetSuspend(),
@@ -103,8 +103,8 @@ func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) *Slashing {
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (g GenesisState) UnpackInterfaces(c codectypes.AnyUnpacker) error {
-	for i := range g.IndexingNodes {
-		if err := g.IndexingNodes[i].UnpackInterfaces(c); err != nil {
+	for i := range g.MetaNodes {
+		if err := g.MetaNodes[i].UnpackInterfaces(c); err != nil {
 			return err
 		}
 	}

@@ -15,9 +15,9 @@ service Query {
     option (google.api.http).get = "/stratos/register/v1/resource-nodes/{network_addr}";
   }
 
-  // IndexingNode queries IndexingNode info for given IndexingNode address.
-  rpc IndexingNode(QueryIndexingNodeRequest) returns (QueryIndexingNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/indexing-nodes/{network_addr}";
+  // MetaNode queries MetaNode info for given MetaNode address.
+  rpc MetaNode(QueryMetaNodeRequest) returns (QueryMetaNodeResponse) {
+    option (google.api.http).get = "/stratos/register/v1/meta-nodes/{network_addr}";
   }
 
   // Params queries Register module Params info.
@@ -53,16 +53,16 @@ message QueryResourceNodeResponse {
   ResourceNode node = 1;
 }
 
-// QueryIndexingNodeRequest is request type for the Query/IndexingNode RPC method
-message QueryIndexingNodeRequest {
+// QueryMetaNodeRequest is request type for the Query/MetaNode RPC method
+message QueryMetaNodeRequest {
   // network_addr defines the node network address to query for.
   string network_addr = 1;
 }
 
-// QueryIndexingNodeResponse is response type for the Query/IndexingNode RPC method
-message QueryIndexingNodeResponse {
-  // node defines the the indexing info.
-  IndexingNode node = 1;
+// QueryMetaNodeResponse is response type for the Query/MetaNode RPC method
+message QueryMetaNodeResponse {
+  // node defines the the meta info.
+  MetaNode node = 1;
 }
 
 // QueryStakeByNodeRequest is request type for the Query/StakeByNode RPC method

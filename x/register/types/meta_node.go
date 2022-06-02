@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"strings"
 	"time"
@@ -14,13 +13,13 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-// NewIndexingNode - initialize a new indexing node
-func NewIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description *Description, creationTime time.Time) (IndexingNode, error) {
+// NewMetaNode - initialize a new meta node
+func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description *Description, creationTime time.Time) (MetaNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
-		return IndexingNode{}, err
+		return MetaNode{}, err
 	}
-	return IndexingNode{
+	return MetaNode{
 		NetworkAddress: networkAddr.String(),
 		Pubkey:         pkAny,
 		Suspend:        true,
@@ -32,8 +31,8 @@ func NewIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 	}, nil
 }
 
-// ConvertToString returns a human-readable string representation of an indexing node.
-func (v IndexingNode) ConvertToString() string {
+// ConvertToString returns a human-readable string representation of an meta node.
+func (v MetaNode) ConvertToString() string {
 	pkAny, err := codectypes.NewAnyWithValue(v.GetPubkey())
 	if err != nil {
 		return ErrUnknownPubKey.Error()
@@ -42,7 +41,7 @@ func (v IndexingNode) ConvertToString() string {
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
-	return fmt.Sprintf(`IndexingNode:{
+	return fmt.Sprintf(`MetaNode:{
 		Network Id:			%s
  		Pubkey:				%s
  		Suspend:			%v
@@ -55,14 +54,14 @@ func (v IndexingNode) ConvertToString() string {
 		v.Tokens, v.GetOwnerAddress(), v.GetDescription(), v.GetCreationTime())
 }
 
-// AddToken adds tokens to a indexing node
-func (v IndexingNode) AddToken(amount sdk.Int) IndexingNode {
+// AddToken adds tokens to a meta node
+func (v MetaNode) AddToken(amount sdk.Int) MetaNode {
 	v.Tokens = v.Tokens.Add(amount)
 	return v
 }
 
-// SubToken removes tokens from a indexing node
-func (v IndexingNode) SubToken(amount sdk.Int) IndexingNode {
+// SubToken removes tokens from a meta node
+func (v MetaNode) SubToken(amount sdk.Int) MetaNode {
 	if amount.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", amount))
 	}
@@ -73,7 +72,7 @@ func (v IndexingNode) SubToken(amount sdk.Int) IndexingNode {
 	return v
 }
 
-func (v IndexingNode) Validate() error {
+func (v MetaNode) Validate() error {
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
 		return err
@@ -116,58 +115,58 @@ func (v IndexingNode) Validate() error {
 }
 
 // IsBonded checks if the node status equals Bonded
-func (v IndexingNode) IsBonded() bool {
+func (v MetaNode) IsBonded() bool {
 	return v.GetStatus() == stakingtypes.Bonded
 }
 
 // IsUnBonded checks if the node status equals Unbonded
-func (v IndexingNode) IsUnBonded() bool {
+func (v MetaNode) IsUnBonded() bool {
 	return v.GetStatus() == stakingtypes.Unbonded
 }
 
 // IsUnBonding checks if the node status equals Unbonding
-func (v IndexingNode) IsUnBonding() bool {
+func (v MetaNode) IsUnBonding() bool {
 	return v.GetStatus() == stakingtypes.Unbonding
 }
 
-// MustMarshalIndexingNode returns the indexingNode bytes. Panics if fails
-func MustMarshalIndexingNode(cdc codec.Codec, indexingNode IndexingNode) []byte {
-	return cdc.MustMarshal(&indexingNode)
+// MustMarshalMetaNode returns the metaNode bytes. Panics if fails
+func MustMarshalMetaNode(cdc codec.Codec, metaNode MetaNode) []byte {
+	return cdc.MustMarshal(&metaNode)
 }
 
-// MustUnmarshalIndexingNode unmarshal an indexing node from a store value. Panics if fails
-func MustUnmarshalIndexingNode(cdc codec.Codec, value []byte) IndexingNode {
-	indexingNode, err := UnmarshalIndexingNode(cdc, value)
+// MustUnmarshalMetaNode unmarshal an meta node from a store value. Panics if fails
+func MustUnmarshalMetaNode(cdc codec.Codec, value []byte) MetaNode {
+	metaNode, err := UnmarshalMetaNode(cdc, value)
 	if err != nil {
 		panic(err)
 	}
-	return indexingNode
+	return metaNode
 }
 
-// UnmarshalIndexingNode unmarshal an indexing node from a store value
-func UnmarshalIndexingNode(cdc codec.Codec, value []byte) (indexingNode IndexingNode, err error) {
-	err = cdc.Unmarshal(value, &indexingNode)
-	return indexingNode, err
+// UnmarshalMetaNode unmarshal an meta node from a store value
+func UnmarshalMetaNode(cdc codec.Codec, value []byte) (metaNode MetaNode, err error) {
+	err = cdc.Unmarshal(value, &metaNode)
+	return metaNode, err
 }
 
-//IndexingNodes is a collection of indexing node
-type IndexingNodes []IndexingNode
+//MetaNodes is a collection of meta node
+type MetaNodes []MetaNode
 
-func NewIndexingNodes(indexingNodes ...IndexingNode) IndexingNodes {
-	if len(indexingNodes) == 0 {
-		return IndexingNodes{}
+func NewMetaNodes(metaNodes ...MetaNode) MetaNodes {
+	if len(metaNodes) == 0 {
+		return MetaNodes{}
 	}
-	return indexingNodes
+	return metaNodes
 }
 
-func (v IndexingNodes) String() (out string) {
+func (v MetaNodes) String() (out string) {
 	for _, node := range v {
 		out += node.String() + "\n"
 	}
 	return strings.TrimSpace(out)
 }
 
-func (v IndexingNodes) Validate() error {
+func (v MetaNodes) Validate() error {
 	for _, node := range v {
 		if err := node.Validate(); err != nil {
 			return err
@@ -207,7 +206,7 @@ func (v VoteOpinion) String() string {
 	}
 }
 
-func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []stratos.SdsAddress, rejectList []stratos.SdsAddress, expireTime time.Time) IndexingNodeRegistrationVotePool {
+func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []stratos.SdsAddress, rejectList []stratos.SdsAddress, expireTime time.Time) MetaNodeRegistrationVotePool {
 	approveSlice := make([]string, len(approveList))
 	rejectSlice := make([]string, len(rejectList))
 	for _, approval := range approveList {
@@ -216,7 +215,7 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 	for _, reject := range rejectList {
 		rejectSlice = append(rejectSlice, reject.String())
 	}
-	return IndexingNodeRegistrationVotePool{
+	return MetaNodeRegistrationVotePool{
 		NetworkAddress: nodeAddress.String(),
 		ApproveList:    approveSlice,
 		RejectList:     rejectSlice,
@@ -224,34 +223,34 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 	}
 }
 
-// MustMarshalIndexingNodeRegistrationVotePool returns the indexingNode bytes. Panics if fails
-func MustMarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, votePool IndexingNodeRegistrationVotePool) []byte {
+// MustMarshalMetaNodeRegistrationVotePool returns the MetaNode bytes. Panics if fails
+func MustMarshalMetaNodeRegistrationVotePool(cdc codec.Codec, votePool MetaNodeRegistrationVotePool) []byte {
 	return cdc.MustMarshal(&votePool)
 }
 
-// MustUnmarshalIndexingNodeRegistrationVotePool unmarshal an indexing node from a store value. Panics if fails
-func MustUnmarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, value []byte) IndexingNodeRegistrationVotePool {
-	votePool, err := UnmarshalIndexingNodeRegistrationVotePool(cdc, value)
+// MustUnmarshalMetaNodeRegistrationVotePool unmarshal an meta node from a store value. Panics if fails
+func MustUnmarshalMetaNodeRegistrationVotePool(cdc codec.Codec, value []byte) MetaNodeRegistrationVotePool {
+	votePool, err := UnmarshalMetaNodeRegistrationVotePool(cdc, value)
 	if err != nil {
 		panic(err)
 	}
 	return votePool
 }
 
-// UnmarshalIndexingNodeRegistrationVotePool unmarshal an indexing node from a store value
-func UnmarshalIndexingNodeRegistrationVotePool(cdc codec.Codec, value []byte) (votePool IndexingNodeRegistrationVotePool, err error) {
+// UnmarshalMetaNodeRegistrationVotePool unmarshal an Meta node from a store value
+func UnmarshalMetaNodeRegistrationVotePool(cdc codec.Codec, value []byte) (votePool MetaNodeRegistrationVotePool, err error) {
 	err = cdc.Unmarshal(value, &votePool)
 	return votePool, err
 }
 
-func (v1 IndexingNode) Equal(v2 IndexingNode) bool {
-	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
-	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
-	return bytes.Equal(bz1, bz2)
-}
+//func (v1 MetaNode) Equal(v2 MetaNode) bool {
+//	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
+//	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
+//	return bytes.Equal(bz1, bz2)
+//}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (v IndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (v MetaNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pk cryptotypes.PubKey
 	return unpacker.UnpackAny(v.Pubkey, &pk)
 }

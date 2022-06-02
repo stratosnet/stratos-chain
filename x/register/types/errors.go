@@ -12,12 +12,12 @@ const (
 	codeErrEmptyDescription
 	codeErrEmptyMoniker
 	codeErrEmptyResourceNodeAddr
-	codeErrEmptyIndexingNodeAddr
+	codeErrEmptyMetaNodeAddr
 	codeErrBadDenom
 	codeErrResourceNodePubKeyExists
-	codeErrIndexingNodePubKeyExists
+	codeErrMetaNodePubKeyExists
 	codeErrNoResourceNodeFound
-	codeErrNoIndexingNodeFound
+	codeErrNoMetaNodeFound
 	codeErrNoOwnerAccountFound
 	codeErrInsufficientBalance
 	codeErrNodeType
@@ -62,12 +62,12 @@ var (
 	ErrEmptyDescription                   = sdkerrors.Register(ModuleName, codeErrEmptyDescription, "description must be not empty")
 	ErrEmptyMoniker                       = sdkerrors.Register(ModuleName, codeErrEmptyMoniker, "moniker must be not empty")
 	ErrEmptyResourceNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyResourceNodeAddr, "missing resource node address")
-	ErrEmptyIndexingNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyIndexingNodeAddr, "missing indexing node address")
+	ErrEmptyMetaNodeAddr                  = sdkerrors.Register(ModuleName, codeErrEmptyMetaNodeAddr, "missing Meta node address")
 	ErrBadDenom                           = sdkerrors.Register(ModuleName, codeErrBadDenom, "invalid coin denomination")
 	ErrResourceNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrResourceNodePubKeyExists, "resource node already exist for this pubkey; must use new resource node pubkey")
-	ErrIndexingNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrIndexingNodePubKeyExists, "indexing node already exist for this pubkey; must use new indexing node pubkey")
+	ErrMetaNodePubKeyExists               = sdkerrors.Register(ModuleName, codeErrMetaNodePubKeyExists, "meta node already exist for this pubkey; must use new meta node pubkey")
 	ErrNoResourceNodeFound                = sdkerrors.Register(ModuleName, codeErrNoResourceNodeFound, "resource node does not exist")
-	ErrNoIndexingNodeFound                = sdkerrors.Register(ModuleName, codeErrNoIndexingNodeFound, "indexing node does not exist")
+	ErrNoMetaNodeFound                    = sdkerrors.Register(ModuleName, codeErrNoMetaNodeFound, "meta node does not exist")
 	ErrNoOwnerAccountFound                = sdkerrors.Register(ModuleName, codeErrNoOwnerAccountFound, "account of owner does not exist")
 	ErrInsufficientBalance                = sdkerrors.Register(ModuleName, codeErrInsufficientBalance, "insufficient balance")
 	ErrNodeType                           = sdkerrors.Register(ModuleName, codeErrNodeType, "node type(s) not supported")

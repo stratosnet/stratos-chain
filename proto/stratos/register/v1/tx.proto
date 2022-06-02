@@ -28,20 +28,20 @@ service Msg {
     option (google.api.http).post = "/stratos/register/v1/update_resource_node_stake";
   };
 
-  rpc HandleMsgCreateIndexingNode(MsgCreateIndexingNode) returns (MsgCreateIndexingNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/create_indexing_node";
+  rpc HandleMsgCreateMetaNode(MsgCreateMetaNode) returns (MsgCreateMetaNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/create_meta_node";
   };
-  rpc HandleMsgRemoveIndexingNode(MsgRemoveIndexingNode) returns (MsgRemoveIndexingNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/remove_indexing_node";
+  rpc HandleMsgRemoveMetaNode(MsgRemoveMetaNode) returns (MsgRemoveMetaNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/remove_meta_node";
   };
-  rpc HandleMsgUpdateIndexingNode(MsgUpdateIndexingNode) returns (MsgUpdateIndexingNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_indexing_node";
+  rpc HandleMsgUpdateMetaNode(MsgUpdateMetaNode) returns (MsgUpdateMetaNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_meta_node";
   };
-  rpc HandleMsgUpdateIndexingNodeStake(MsgUpdateIndexingNodeStake) returns (MsgUpdateIndexingNodeStakeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_indexing_node_stake";
+  rpc HandleMsgUpdateMetaNodeStake(MsgUpdateMetaNodeStake) returns (MsgUpdateMetaNodeStakeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_meta_node_stake";
   };
-  rpc HandleMsgIndexingNodeRegistrationVote(MsgIndexingNodeRegistrationVote) returns (MsgIndexingNodeRegistrationVoteResponse) {
-    option (google.api.http).post = "/stratos/register/v1/indexing_node_registration_vote";
+  rpc HandleMsgMetaNodeRegistrationVote(MsgMetaNodeRegistrationVote) returns (MsgMetaNodeRegistrationVoteResponse) {
+    option (google.api.http).post = "/stratos/register/v1/meta_node_registration_vote";
   };
 
 }
@@ -79,8 +79,8 @@ message MsgCreateResourceNode {
 // MsgCreateResourceNodeResponse defines the CreateResourceNodeTx response type
 message MsgCreateResourceNodeResponse {}
 
-// MsgCreateIndexingNode encapsulates an MsgCreateIndexingNodeTx transaction as an SDK message.
-message MsgCreateIndexingNode {
+// MsgCreateMetaNode encapsulates an MsgCreateMetaNodeTx transaction as an SDK message.
+message MsgCreateMetaNode {
   string                         network_address = 1 [
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
@@ -106,8 +106,8 @@ message MsgCreateIndexingNode {
 }
 
 
-// MsgCreateIndexingNodeResponse defines the CreateIndexingNode response type
-message MsgCreateIndexingNodeResponse {}
+// MsgCreateMetaNodeResponse defines the CreateMetaNode response type
+message MsgCreateMetaNodeResponse {}
 
 // MsgRemoveResourceNode - encapsulates an RemoveResourceNode transaction as an SDK message
 message MsgRemoveResourceNode {
@@ -126,13 +126,13 @@ message MsgRemoveResourceNode {
 // MsgRemoveResourceNodeResponse defines the Msg/RemoveResourceNode response type.
 message MsgRemoveResourceNodeResponse {}
 
-// MsgRemoveIndexingNode - encapsulates an MsgRemoveIndexingNode transaction as an SDK message
-message MsgRemoveIndexingNode {
+// MsgRemoveMetaNode - encapsulates an MsgRemoveMetaNode transaction as an SDK message
+message MsgRemoveMetaNode {
   option (gogoproto.goproto_getters) = false;
 
-  string                   indexing_node_address = 1 [
-    (gogoproto.jsontag) = "indexing_node_address",
-    (gogoproto.moretags) = "yaml:\"indexing_node_address\""
+  string                   meta_node_address = 1 [
+    (gogoproto.jsontag) = "meta_node_address",
+    (gogoproto.moretags) = "yaml:\"meta_node_address\""
   ];
   string                   owner_address = 2 [
     (gogoproto.jsontag) = "owner_address",
@@ -140,8 +140,8 @@ message MsgRemoveIndexingNode {
   ];
 }
 
-// MsgRemoveIndexingNodeResponse defines the Msg/RemoveIndexingNode response type.
-message MsgRemoveIndexingNodeResponse {}
+// MsgRemoveMetaNodeResponse defines the Msg/RemoveMetaNode response type.
+message MsgRemoveMetaNodeResponse {}
 
 
 // MsgUpdateResourceNode defines a SDK message for updating an existing resource node.
@@ -171,8 +171,8 @@ message MsgUpdateResourceNode {
 message MsgUpdateResourceNodeResponse {}
 
 
-// MsgUpdateIndexingNode defines a SDK message for updating an existing indexing node.
-message MsgUpdateIndexingNode {
+// MsgUpdateMetaNode defines a SDK message for updating an existing meta node.
+message MsgUpdateMetaNode {
   option (gogoproto.goproto_getters) = false;
 
   Description description       = 1 [
@@ -190,8 +190,8 @@ message MsgUpdateIndexingNode {
   ];
 }
 
-// MsgUpdateIndexingNodeResponse defines the Msg/UpdateIndexingNode response type.
-message MsgUpdateIndexingNodeResponse {}
+// MsgUpdateMetaNodeResponse defines the Msg/UpdateMetaNode response type.
+message MsgUpdateMetaNodeResponse {}
 
 
 // MsgUpdateResourceNodeStake defines a SDK message for updating the stake of an existing resource node.
@@ -220,8 +220,8 @@ message MsgUpdateResourceNodeStake {
 message MsgUpdateResourceNodeStakeResponse {}
 
 
-// MsgUpdateIndexingNodeStake defines a SDK message for updating the stake of an existing indexing node.
-message MsgUpdateIndexingNodeStake {
+// MsgUpdateMetaNodeStake defines a SDK message for updating the stake of an existing meta node.
+message MsgUpdateMetaNodeStake {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
@@ -244,21 +244,21 @@ message MsgUpdateIndexingNodeStake {
 }
 
 // MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
-message MsgUpdateIndexingNodeStakeResponse {}
+message MsgUpdateMetaNodeStakeResponse {}
 
-// MsgIndexingNodeRegistrationVote defines a SDK message for registration vote of an existing indexing node.
-message MsgIndexingNodeRegistrationVote {
+// MsgMetaNodeRegistrationVote defines a SDK message for registration vote of an existing meta node.
+message MsgMetaNodeRegistrationVote {
   option (gogoproto.equal)           = false;
   option (gogoproto.goproto_getters) = false;
 
   string           candidate_network_address   = 1 [
     (gogoproto.jsontag) = "candidate_network_address",
     (gogoproto.moretags) = "yaml:\"candidate_network_address\""
-  ]; // node address of indexing node
+  ]; // node address of meta node
   string           candidate_owner_address     = 2 [
     (gogoproto.jsontag) = "candidate_owner_address",
     (gogoproto.moretags) = "yaml:\"candidate_owner_address\""
-  ]; // owner address of indexing node
+  ]; // owner address of meta node
   bool             opinion                     = 3 [
     (gogoproto.jsontag) = "opinion",
     (gogoproto.moretags) = "yaml:\"opinion\""
@@ -266,12 +266,12 @@ message MsgIndexingNodeRegistrationVote {
   string           voter_network_address       = 4 [
     (gogoproto.jsontag) = "voter_network_address",
     (gogoproto.moretags) = "yaml:\"voter_network_address\""
-  ]; // address of voter (other existed indexing node)
+  ]; // address of voter (other existed meta node)
   string           voter_owner_address         = 5 [
     (gogoproto.jsontag) = "voter_owner_address",
     (gogoproto.moretags) = "yaml:\"voter_owner_address\""
-  ];  // address of owner of the voter (other existed indexing node)
+  ];  // address of owner of the voter (other existed meta node)
 }
 
-// MsgUpdateResourceNodeStakeResponse defines the Msg/IndexingNodeRegistrationVote response type.
-message MsgIndexingNodeRegistrationVoteResponse {}
+// MsgUpdateResourceNodeStakeResponse defines the Msg/MetaNodeRegistrationVote response type.
+message MsgMetaNodeRegistrationVoteResponse {}

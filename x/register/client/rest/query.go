@@ -16,7 +16,7 @@ import (
 
 func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/register/resource-nodes", nodesWithParamsFn(clientCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
-	r.HandleFunc("/register/indexing-nodes", nodesWithParamsFn(clientCtx, keeper.QueryIndexingNodeByNetworkAddr)).Methods("GET")
+	r.HandleFunc("/register/meta-nodes", nodesWithParamsFn(clientCtx, keeper.QueryMetaNodeByNetworkAddr)).Methods("GET")
 	r.HandleFunc("/register/staking", nodeStakingHandlerFn(clientCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
 	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(clientCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
 	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(clientCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
@@ -43,7 +43,7 @@ func registerParamsHandlerFn(clientCtx client.Context, queryPath string) http.Ha
 	}
 }
 
-// GET request handler to query all resource/indexing nodes
+// GET request handler to query all resource/meta nodes
 func nodesWithParamsFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)

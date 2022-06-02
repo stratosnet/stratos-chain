@@ -57,7 +57,7 @@ const (
 //FsNetworkAddress.String(FlagNetworkAddress, "The address of the PP node", "")
 //FsCandidateNetworkAddress.String(FlagCandidateNetworkAddress, "The network address of the candidate PP node", "")
 //FsCandidateOwnerAddress.String(FlagCandidateOwnerAddress, "The owner address of the candidate PP node", "")
-//FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Indexing node.")
+//FsOpinion.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Meta node.")
 //FsVoterNetworkAddress.String(FlagVoterNetworkAddress, "The address of the PP node that made the vote.", "")
 //}
 
@@ -115,7 +115,7 @@ func flagSetVoting() *flag.FlagSet {
 
 	fs.String(FlagCandidateNetworkAddress, "The network address of the candidate PP node", "")
 	fs.String(FlagCandidateOwnerAddress, "The owner address of the candidate PP node", "")
-	fs.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Indexing node.")
+	fs.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Meta node.")
 	fs.String(FlagVoterNetworkAddress, "The address of the PP node that made the vote.", "")
 	return fs
 }

@@ -19,8 +19,8 @@ type ResourceNodeI interface {
 	GetNodeType() string                // node type
 }
 
-// IndexingNodeI expected indexing node functions
-type IndexingNodeI interface {
+// MetaNodeI expected indexing node functions
+type MetaNodeI interface {
 	IsSuspended() bool                  // whether the node is jailed
 	GetMoniker() string                 // moniker of the node
 	GetStatus() stakingtypes.BondStatus // status of the node

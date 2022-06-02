@@ -19,15 +19,6 @@ var (
 	_ sdk.Msg = &MsgSlashingResourceNode{}
 )
 
-//type MsgVolumeReport struct {
-//	WalletVolumes   []SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`     // volume report
-//	Reporter        stratos.SdsAddress   `json:"reporter" yaml:"reporter"`                 // node p2p address of the reporter
-//	Epoch           sdk.Int              `json:"epoch" yaml:"epoch"`                       // volume report epoch
-//	ReportReference string               `json:"report_reference" yaml:"report_reference"` // volume report reference
-//	ReporterOwner   sdk.AccAddress       `json:"reporter_owner" yaml:"reporter_owner"`     // owner address of the reporter
-//	BLSSignature    BLSSignatureInfo     `json:"bls_signature" yaml:"bls_signature"`       // information about the BLS signature
-//}
-
 // NewMsgVolumeReport creates a new MsgVolumeReport instance
 func NewMsgVolumeReport(
 	walletVolumes []*SingleWalletVolume,
@@ -130,12 +121,6 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 	return nil
 }
 
-//type MsgWithdraw struct {
-//	Amount        sdk.Coins      `json:"amount" yaml:"amount"`
-//	WalletAddress sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"`
-//	TargetAddress sdk.AccAddress `json:"target_address" yaml:"target_address"`
-//}
-
 func NewMsgWithdraw(amount sdk.Coins, walletAddress sdk.AccAddress, targetAddress sdk.AccAddress) *MsgWithdraw {
 	return &MsgWithdraw{
 		Amount:        amount,
@@ -181,11 +166,6 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	return nil
 }
 
-//type MsgFoundationDeposit struct {
-//	Amount sdk.Coins      `json:"amount" yaml:"amount"`
-//	From   sdk.AccAddress `json:"from" yaml:"from"`
-//}
-
 func NewMsgFoundationDeposit(amount sdk.Coins, from sdk.AccAddress) *MsgFoundationDeposit {
 	return &MsgFoundationDeposit{
 		Amount: amount,
@@ -226,15 +206,6 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 	}
 	return nil
 }
-
-//type MsgSlashingResourceNode struct {
-//	Reporters      []stratos.SdsAddress `json:"reporters" yaml:"reporters"`             // reporter p2p address
-//	ReporterOwner  []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"`   // reporter wallet address
-//	NetworkAddress stratos.SdsAddress   `json:"network_address" yaml:"network_address"` // p2p address of the pp node
-//	WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
-//	Slashing       sdk.Int              `json:"slashing" yaml:"slashing"`               // uoz amount
-//	Suspend        bool                 `json:"suspend" yaml:"suspend"`
-//}
 
 func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
 	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) *MsgSlashingResourceNode {

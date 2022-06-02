@@ -1,7 +1,6 @@
 package types
 
 import (
-	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -13,7 +12,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 type NodeType uint8
@@ -220,11 +218,11 @@ func UnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) (v ResourceNode,
 	return v, err
 }
 
-func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
-	bz1 := types.ModuleCdc.MustMarshalLengthPrefixed(&v1)
-	bz2 := types.ModuleCdc.MustMarshalLengthPrefixed(&v2)
-	return bytes.Equal(bz1, bz2)
-}
+//func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
+//	bz1 := types.ModuleCdc.MustMarshalLengthPrefixed(&v1)
+//	bz2 := types.ModuleCdc.MustMarshalLengthPrefixed(&v2)
+//	return bytes.Equal(bz1, bz2)
+//}
 
 // GetOwnerAddr
 //func (s *Staking) GetNetworkAddress() stratos.SdsAddress {

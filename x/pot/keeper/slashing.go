@@ -14,7 +14,7 @@ import (
 
 	Deduct slashing amount when:
 	1, calculate upcoming mature reward, deduct from mature_total & upcoming mature reward.
-	2, unstaking indexing node.
+	2, unstaking meta node.
 	3, unstaking resource node.
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,

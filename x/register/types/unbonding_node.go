@@ -17,14 +17,14 @@ func (e UnbondingNodeEntry) IsMature(currentTime time.Time) bool {
 }
 
 // NewUnbondingNode - create a new unbonding Node object
-func NewUnbondingNode(networkAddr stratos.SdsAddress, isIndexingNode bool, creationHeight int64, minTime time.Time,
+func NewUnbondingNode(networkAddr stratos.SdsAddress, isMetaNode bool, creationHeight int64, minTime time.Time,
 	balance sdk.Int) UnbondingNode {
 
 	entry := NewUnbondingNodeEntry(creationHeight, minTime, balance)
 	return UnbondingNode{
-		NetworkAddr:    networkAddr.String(),
-		IsIndexingNode: isIndexingNode,
-		Entries:        []*UnbondingNodeEntry{&entry},
+		NetworkAddr: networkAddr.String(),
+		IsMetaNode:  isMetaNode,
+		Entries:     []*UnbondingNodeEntry{&entry},
 	}
 }
 

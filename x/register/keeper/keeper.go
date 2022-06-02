@@ -27,8 +27,8 @@ type Keeper struct {
 	hooks                 types.RegisterHooks
 	resourceNodeCache     map[string]cachedResourceNode
 	resourceNodeCacheList *list.List
-	indexingNodeCache     map[string]cachedIndexingNode
-	indexingNodeCacheList *list.List
+	metaNodeCache         map[string]cachedMetaNode
+	metaNodeCacheList     *list.List
 }
 
 // NewKeeper creates a register keeper
@@ -44,8 +44,8 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 		hooks:                 nil,
 		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
 		resourceNodeCacheList: list.New(),
-		indexingNodeCache:     make(map[string]cachedIndexingNode, indexingNodeCacheSize),
-		indexingNodeCacheList: list.New(),
+		metaNodeCache:         make(map[string]cachedMetaNode, metaNodeCacheSize),
+		metaNodeCacheList:     list.New(),
 	}
 	return keeper
 }
@@ -217,10 +217,10 @@ func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 }
 
-// GetIndexingNetworksIterator gets an iterator over all network addresses
-func (k Keeper) GetIndexingNetworksIterator(ctx sdk.Context) sdk.Iterator {
+// GetMetaNetworksIterator gets an iterator over all network addresses
+func (k Keeper) GetMetaNetworksIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, types.IndexingNodeKey)
+	return sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
 }
 
 func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
@@ -234,10 +234,10 @@ func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 		}
 		networkList = append(networkList, networkAddr)
 	}
-	iter := keeper.GetIndexingNetworksIterator(ctx)
+	iter := keeper.GetMetaNetworksIterator(ctx)
 	for ; iter.Valid(); iter.Next() {
-		indexingNode := types.MustUnmarshalIndexingNode(k.cdc, iter.Value())
-		networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
+		metaNode := types.MustUnmarshalMetaNode(k.cdc, iter.Value())
+		networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 		if err != nil {
 			continue
 		}
@@ -263,27 +263,27 @@ func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res
 	return res[:len(res)-1]
 }
 
-// GetUnbondingNodes return a given amount of all the UnbondingIndexingNodes
+// GetUnbondingNodes return a given amount of all the UnbondingMetaNodes
 func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
-	maxRetrieve uint32) (unbondingIndexingNodes []types.UnbondingNode) {
+	maxRetrieve uint32) (unbondingMetaNodes []types.UnbondingNode) {
 
-	unbondingIndexingNodes = make([]types.UnbondingNode, maxRetrieve)
+	unbondingMetaNodes = make([]types.UnbondingNode, maxRetrieve)
 
 	store := ctx.KVStore(k.storeKey)
-	indexingNodePrefixKey := types.GetUBDNodeKey(networkAddr)
-	iterator := sdk.KVStorePrefixIterator(store, indexingNodePrefixKey)
+	metaNodePrefixKey := types.GetUBDNodeKey(networkAddr)
+	iterator := sdk.KVStorePrefixIterator(store, metaNodePrefixKey)
 	defer iterator.Close()
 
 	i := 0
 	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
-		unbondingIndexingNode := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-		unbondingIndexingNodes[i] = unbondingIndexingNode
+		unbondingMetaNode := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+		unbondingMetaNodes[i] = unbondingMetaNode
 		i++
 	}
-	return unbondingIndexingNodes[:i] // trim if the array length < maxRetrieve
+	return unbondingMetaNodes[:i] // trim if the array length < maxRetrieve
 }
 
-// GetUnbondingNode return a unbonding UnbondingIndexingNode
+// GetUnbondingNode return a unbonding UnbondingMetaNode
 func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	networkAddr stratos.SdsAddress) (ubd types.UnbondingNode, found bool) {
 
@@ -298,7 +298,7 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	return ubd, true
 }
 
-// IterateUnbondingNodes iterates through all of the unbonding indexingNodes
+// IterateUnbondingNodes iterates through all of the unbonding metaNodes
 func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingNode) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
@@ -313,7 +313,7 @@ func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd 
 	}
 }
 
-// HasMaxUnbondingIndexingNodeEntries - check if unbonding IndexingNode has maximum number of entries
+// HasMaxUnbondingMetaNodeEntries - check if unbonding MetaNode has maximum number of entries
 func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress) bool {
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
 	if !found {
@@ -322,7 +322,7 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
 }
 
-// SetUnbondingNode sets the unbonding IndexingNode
+// SetUnbondingNode sets the unbonding MetaNode
 func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalUnbondingNode(k.cdc, ubd)
@@ -334,7 +334,7 @@ func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store.Set(key, bz)
 }
 
-// RemoveUnbondingNode removes the unbonding IndexingNode object
+// RemoveUnbondingNode removes the unbonding MetaNode object
 func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
@@ -345,16 +345,16 @@ func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store.Delete(key)
 }
 
-// SetUnbondingIndexingNodeEntry adds an entry to the unbonding IndexingNode at
-// the given addresses. It creates the unbonding IndexingNode if it does not exist
-func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAddress, isIndexingNode bool,
+// SetUnbondingMetaNodeEntry adds an entry to the unbonding MetaNode at
+// the given addresses. It creates the unbonding MetaNode if it does not exist
+func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool,
 	creationHeight int64, minTime time.Time, balance sdk.Int) types.UnbondingNode {
 
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
 	if found {
 		ubd.AddEntry(creationHeight, minTime, balance)
 	} else {
-		ubd = types.NewUnbondingNode(networkAddr, isIndexingNode, creationHeight, minTime, balance)
+		ubd = types.NewUnbondingNode(networkAddr, isMetaNode, creationHeight, minTime, balance)
 	}
 	k.SetUnbondingNode(ctx, ubd)
 	return ubd
@@ -467,7 +467,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 		k.SetUnbondingNode(ctx, ubd)
 	}
 
-	return balances, ubd.IsIndexingNode, nil
+	return balances, ubd.IsMetaNode, nil
 }
 
 // CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
@@ -478,22 +478,22 @@ func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddres
 }
 
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
-	// case of indexing node
+	// case of meta node
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
 	if err != nil {
 		return err
 	}
-	if ubd.IsIndexingNode {
-		indexingNode, found := k.GetIndexingNode(ctx, networkAddr)
+	if ubd.IsMetaNode {
+		metaNode, found := k.GetMetaNode(ctx, networkAddr)
 		if !found {
-			return types.ErrNoIndexingNodeFound
+			return types.ErrNoMetaNodeFound
 		}
-		return k.SubtractIndexingNodeStake(ctx, indexingNode, tokenToSub)
+		return k.SubtractMetaNodeStake(ctx, metaNode, tokenToSub)
 	}
 	// case of resource node
 	resourceNode, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return types.ErrNoIndexingNodeFound
+		return types.ErrNoMetaNodeFound
 	}
 	return k.SubtractResourceNodeStake(ctx, resourceNode, tokenToSub)
 }
@@ -550,15 +550,15 @@ func (k Keeper) UnbondResourceNode(
 	return ozoneLimitChange, unbondingMatureTime, nil
 }
 
-func (k Keeper) UnbondIndexingNode(
-	ctx sdk.Context, indexingNode types.IndexingNode, amt sdk.Int,
+func (k Keeper) UnbondMetaNode(
+	ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
-	networkAddr, err := stratos.SdsAddressFromBech32(indexingNode.GetNetworkAddress())
+	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
 		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
 	}
-	ownerAddr, err := sdk.AccAddressFromBech32(indexingNode.GetOwnerAddress())
+	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
 	if err != nil {
 		return sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
 	}
@@ -572,27 +572,27 @@ func (k Keeper) UnbondIndexingNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
-	unbondingMatureTime = calcUnbondingMatureTime(ctx, indexingNode.Status, indexingNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, metaNode.Status, metaNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
-	if indexingNode.GetStatus() == stakingtypes.Bonded {
+	if metaNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
-		k.bondedToUnbonding(ctx, indexingNode, true, coin)
+		k.bondedToUnbonding(ctx, metaNode, true, coin)
 		// adjust ozone limit
 		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(indexingNode.Tokens) {
-		indexingNode.Status = stakingtypes.Unbonding
-		k.SetIndexingNode(ctx, indexingNode)
+	if amt.Equal(metaNode.Tokens) {
+		metaNode.Status = stakingtypes.Unbonding
+		k.SetMetaNode(ctx, metaNode)
 	}
 
 	// Set the unbonding mature time and completion height appropriately
 	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, amt)
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
-	ctx.Logger().Info("Unbonding indexing node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
+	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 	return ozoneLimitChange, unbondingMatureTime, nil
 }
 

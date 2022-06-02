@@ -34,20 +34,20 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	}
 	idxNodeBondedToken := sdk.ZeroInt()
 	idxNodeNotBondedToken := sdk.ZeroInt()
-	for _, indexingNode := range data.GetIndexingNodes() {
-		if indexingNode.GetStatus() == stakingtypes.Bonded {
-			initialStakeTotal = initialStakeTotal.Add(indexingNode.Tokens)
-			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.Tokens)
-		} else if indexingNode.GetStatus() == stakingtypes.Unbonded {
-			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.Tokens)
+	for _, metaNode := range data.GetMetaNodes() {
+		if metaNode.GetStatus() == stakingtypes.Bonded {
+			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			idxNodeBondedToken = idxNodeBondedToken.Add(metaNode.Tokens)
+		} else if metaNode.GetStatus() == stakingtypes.Unbonded {
+			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(metaNode.Tokens)
 		}
-		keeper.SetIndexingNode(ctx, indexingNode)
+		keeper.SetMetaNode(ctx, metaNode)
 	}
-	err = keeper.MintIndexingNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
+	err = keeper.MintMetaNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
 	if err != nil {
 		panic(err)
 	}
-	err = keeper.MintIndexingNodeNotBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
+	err = keeper.MintMetaNodeNotBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
 	if err != nil {
 		panic(err)
 	}
@@ -85,7 +85,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	params := keeper.GetParams(ctx)
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
-	indexingNodes := keeper.GetAllIndexingNodes(ctx)
+	metaNodes := keeper.GetAllMetaNodes(ctx)
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := keeper.CurrUozPrice(ctx)
 
@@ -101,7 +101,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	return &types.GenesisState{
 		Params:              &params,
 		ResourceNodes:       resourceNodes,
-		IndexingNodes:       indexingNodes,
+		MetaNodes:           metaNodes,
 		InitialUozPrice:     initialUOzonePrice,
 		TotalUnissuedPrepay: totalUnissuedPrepay,
 		Slashing:            slashingInfo,

@@ -15,25 +15,25 @@ var (
 	_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgUpdateResourceNode{}
 	_ sdk.Msg = &MsgUpdateResourceNodeStake{}
-	_ sdk.Msg = &MsgCreateIndexingNode{}
-	_ sdk.Msg = &MsgRemoveIndexingNode{}
-	_ sdk.Msg = &MsgUpdateIndexingNode{}
-	_ sdk.Msg = &MsgUpdateIndexingNodeStake{}
-	_ sdk.Msg = &MsgIndexingNodeRegistrationVote{}
+	_ sdk.Msg = &MsgCreateMetaNode{}
+	_ sdk.Msg = &MsgRemoveMetaNode{}
+	_ sdk.Msg = &MsgUpdateMetaNode{}
+	_ sdk.Msg = &MsgUpdateMetaNodeStake{}
+	_ sdk.Msg = &MsgMetaNodeRegistrationVote{}
 )
 
 // message type and route constants
 const (
 	// TypeMsgCreateResourceNodeTx defines the type string of an CreateResourceNodeTx transaction
-	TypeMsgCreateResourceNodeTx        = "create_resource_node"
-	TypeMsgRemoveResourceNodeTx        = "remove_resource_node"
-	TypeUpdateResourceNodeTx           = "update_resource_node"
-	TypeUpdateResourceNodeStakeTx      = "update_resource_node_stake"
-	TypeCreateIndexingNodeTx           = "create_indexing_node"
-	TypeRemoveIndexingNodeTx           = "remove_indexing_node"
-	TypeUpdateIndexingNodeTx           = "update_indexing_node"
-	TypeUpdateIndexingNodeStakeTx      = "update_indexing_node_stake"
-	TypeIndexingNodeRegistrationVoteTx = "indexing_node_registration_vote"
+	TypeMsgCreateResourceNodeTx    = "create_resource_node"
+	TypeMsgRemoveResourceNodeTx    = "remove_resource_node"
+	TypeUpdateResourceNodeTx       = "update_resource_node"
+	TypeUpdateResourceNodeStakeTx  = "update_resource_node_stake"
+	TypeCreateMetaNodeTx           = "create_meta_node"
+	TypeRemoveMetaNodeTx           = "remove_meta_node"
+	TypeUpdateMetaNodeTx           = "update_meta_node"
+	TypeUpdateMetaNodeStakeTx      = "update_meta_node_stake"
+	TypeMetaNodeRegistrationVoteTx = "meta_node_registration_vote"
 )
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
@@ -128,10 +128,10 @@ func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
-// NewMsgCreateIndexingNode creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
+// NewMsgCreateMetaNode creates a new Msg<Action> instance
+func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
 	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description,
-) (*MsgCreateIndexingNode, error) {
+) (*MsgCreateMetaNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
 		var err error
@@ -142,7 +142,7 @@ func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 		return nil, ErrEmptyPubKey
 	}
 
-	return &MsgCreateIndexingNode{
+	return &MsgCreateMetaNode{
 		NetworkAddress: networkAddr.String(),
 		Pubkey:         pkAny,
 		Value:          value,
@@ -151,11 +151,11 @@ func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 	}, nil
 }
 
-func (msg MsgCreateIndexingNode) Route() string { return RouterKey }
+func (msg MsgCreateMetaNode) Route() string { return RouterKey }
 
-func (msg MsgCreateIndexingNode) Type() string { return TypeCreateIndexingNodeTx }
+func (msg MsgCreateMetaNode) Type() string { return TypeCreateMetaNodeTx }
 
-func (msg MsgCreateIndexingNode) ValidateBasic() error {
+func (msg MsgCreateMetaNode) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
 	if err != nil {
 		return err
@@ -192,12 +192,12 @@ func (msg MsgCreateIndexingNode) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
+func (msg MsgCreateMetaNode) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateMetaNode) GetSigners() []sdk.AccAddress {
 	// Owner pays the tx fees
 	addr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
@@ -208,7 +208,7 @@ func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
-func (msg MsgCreateIndexingNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+func (msg MsgCreateMetaNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pk cryptotypes.PubKey
 	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
@@ -262,22 +262,22 @@ func (msg MsgRemoveResourceNode) ValidateBasic() error {
 	return nil
 }
 
-// NewMsgRemoveIndexingNode creates a new MsgRemoveIndexingNode instance.
-func NewMsgRemoveIndexingNode(indexingNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) *MsgRemoveIndexingNode {
-	return &MsgRemoveIndexingNode{
-		IndexingNodeAddress: indexingNodeAddr.String(),
-		OwnerAddress:        ownerAddr.String(),
+// NewMsgRemoveMetaNode creates a new MsgRemoveMetaNode instance.
+func NewMsgRemoveMetaNode(metaNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) *MsgRemoveMetaNode {
+	return &MsgRemoveMetaNode{
+		MetaNodeAddress: metaNodeAddr.String(),
+		OwnerAddress:    ownerAddr.String(),
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) Route() string { return RouterKey }
+func (msg MsgRemoveMetaNode) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) Type() string { return TypeRemoveIndexingNodeTx }
+func (msg MsgRemoveMetaNode) Type() string { return TypeRemoveMetaNodeTx }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) GetSigners() []sdk.AccAddress {
+func (msg MsgRemoveMetaNode) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
 		panic(err)
@@ -286,19 +286,19 @@ func (msg MsgRemoveIndexingNode) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) GetSignBytes() []byte {
+func (msg MsgRemoveMetaNode) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) ValidateBasic() error {
-	sdsAddress, err := stratos.SdsAddressFromBech32(msg.IndexingNodeAddress)
+func (msg MsgRemoveMetaNode) ValidateBasic() error {
+	sdsAddress, err := stratos.SdsAddressFromBech32(msg.MetaNodeAddress)
 	if err != nil {
 		return err
 	}
 	if sdsAddress.Empty() {
-		return ErrEmptyIndexingNodeAddr
+		return ErrEmptyMetaNodeAddr
 	}
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
@@ -430,10 +430,10 @@ func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateIndexingNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-) *MsgUpdateIndexingNode {
+func NewMsgUpdateMetaNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
+) *MsgUpdateMetaNode {
 
-	return &MsgUpdateIndexingNode{
+	return &MsgUpdateMetaNode{
 		Description:    description,
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
@@ -441,13 +441,13 @@ func NewMsgUpdateIndexingNode(description Description, networkAddress stratos.Sd
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) Route() string { return RouterKey }
+func (msg MsgUpdateMetaNode) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) Type() string { return TypeUpdateIndexingNodeTx }
+func (msg MsgUpdateMetaNode) Type() string { return TypeUpdateMetaNodeTx }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) GetSigners() []sdk.AccAddress {
+func (msg MsgUpdateMetaNode) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
 		panic(err)
@@ -456,13 +456,13 @@ func (msg MsgUpdateIndexingNode) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) GetSignBytes() []byte {
+func (msg MsgUpdateMetaNode) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) ValidateBasic() error {
+func (msg MsgUpdateMetaNode) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
 		return err
@@ -486,9 +486,9 @@ func (msg MsgUpdateIndexingNode) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateIndexingNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateIndexingNodeStake {
-	return &MsgUpdateIndexingNodeStake{
+func NewMsgUpdateMetaNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
+	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateMetaNodeStake {
+	return &MsgUpdateMetaNodeStake{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
 		StakeDelta:     stakeDelta,
@@ -497,13 +497,13 @@ func NewMsgUpdateIndexingNodeStake(networkAddress stratos.SdsAddress, ownerAddre
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) Route() string { return RouterKey }
+func (msg MsgUpdateMetaNodeStake) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) Type() string { return TypeUpdateIndexingNodeStakeTx }
+func (msg MsgUpdateMetaNodeStake) Type() string { return TypeUpdateMetaNodeStakeTx }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) GetSigners() []sdk.AccAddress {
+func (msg MsgUpdateMetaNodeStake) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
 		panic(err)
@@ -512,13 +512,13 @@ func (msg MsgUpdateIndexingNodeStake) GetSigners() []sdk.AccAddress {
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) GetSignBytes() []byte {
+func (msg MsgUpdateMetaNodeStake) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) ValidateBasic() error {
+func (msg MsgUpdateMetaNodeStake) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
 		return err
@@ -541,10 +541,10 @@ func (msg MsgUpdateIndexingNodeStake) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgIndexingNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, candidateOwnerAddress sdk.AccAddress, opinion bool,
-	voterNetworkAddress stratos.SdsAddress, voterOwnerAddress sdk.AccAddress) *MsgIndexingNodeRegistrationVote {
+func NewMsgMetaNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, candidateOwnerAddress sdk.AccAddress, opinion bool,
+	voterNetworkAddress stratos.SdsAddress, voterOwnerAddress sdk.AccAddress) *MsgMetaNodeRegistrationVote {
 
-	return &MsgIndexingNodeRegistrationVote{
+	return &MsgMetaNodeRegistrationVote{
 		CandidateNetworkAddress: candidateNetworkAddress.String(),
 		CandidateOwnerAddress:   candidateOwnerAddress.String(),
 		Opinion:                 opinion,
@@ -553,11 +553,11 @@ func NewMsgIndexingNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddre
 	}
 }
 
-func (mmsg MsgIndexingNodeRegistrationVote) Route() string { return RouterKey }
+func (mmsg MsgMetaNodeRegistrationVote) Route() string { return RouterKey }
 
-func (msg MsgIndexingNodeRegistrationVote) Type() string { return TypeIndexingNodeRegistrationVoteTx }
+func (msg MsgMetaNodeRegistrationVote) Type() string { return TypeMetaNodeRegistrationVoteTx }
 
-func (msg MsgIndexingNodeRegistrationVote) ValidateBasic() error {
+func (msg MsgMetaNodeRegistrationVote) ValidateBasic() error {
 	candidateNetworkAddress, err := stratos.SdsAddressFromBech32(msg.CandidateNetworkAddress)
 	if err != nil {
 		return err
@@ -596,12 +596,12 @@ func (msg MsgIndexingNodeRegistrationVote) ValidateBasic() error {
 	return nil
 }
 
-func (msg MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
+func (msg MsgMetaNodeRegistrationVote) GetSignBytes() []byte {
 	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
+func (msg MsgMetaNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 	addr, err := sdk.AccAddressFromBech32(msg.VoterOwnerAddress)
 	if err != nil {
 		panic(err)

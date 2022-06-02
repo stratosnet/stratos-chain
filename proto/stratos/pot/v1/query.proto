@@ -3,9 +3,6 @@ package stratos.pot.v1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-//import "cosmos/base/query/v1beta1/pagination.proto";
-
-//import "stratos/pot/v1/pot.proto";
 
 option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 

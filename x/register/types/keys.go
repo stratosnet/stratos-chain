@@ -22,10 +22,10 @@ const (
 	ResourceNodeBondedPoolName = "resource_node_bonded_pool"
 	// ResourceNodeNotBondedPoolName stores the total balance of not bonded resource nodes
 	ResourceNodeNotBondedPoolName = "resource_node_not_bonded_pool"
-	// IndexingNodeBondedPoolName stores the total balance of bonded indexing nodes
-	IndexingNodeBondedPoolName = "indexing_node_bonded_pool"
-	// IndexingNodeNotBondedPoolName stores the total balance of not bonded indexing nodes
-	IndexingNodeNotBondedPoolName = "indexing_node_not_bonded_pool"
+	// MetaNodeBondedPoolName stores the total balance of bonded Meta nodes
+	MetaNodeBondedPoolName = "meta_node_bonded_pool"
+	// MetaNodeNotBondedPoolName stores the total balance of not bonded meta nodes
+	MetaNodeNotBondedPoolName = "meta_node_not_bonded_pool"
 	// TotalUnissuedPrepayName stores the balance of total unissued prepay
 	TotalUnissuedPrepayName = "total_unissued_prepay"
 	// TotalSlashedPoolName stores the balance of total unissued prepay
@@ -33,13 +33,13 @@ const (
 )
 
 var (
-	ResourceNodeKey                  = []byte{0x01} // prefix for each key to a resource node
-	IndexingNodeKey                  = []byte{0x02} // prefix for each key to a indexing node
-	IndexingNodeRegistrationVotesKey = []byte{0x03} // prefix for each key to the vote for Indexing node registration
-	UpperBoundOfTotalOzoneKey        = []byte{0x04}
-	SlashingPrefix                   = []byte{0x05}
-	InitialGenesisStakeTotalKey      = []byte{0x06} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
-	InitialUOzonePriceKey            = []byte{0x07} // key of initial uoz price at t=0
+	ResourceNodeKey              = []byte{0x01} // prefix for each key to a resource node
+	MetaNodeKey                  = []byte{0x02} // prefix for each key to a meta node
+	MetaNodeRegistrationVotesKey = []byte{0x03} // prefix for each key to the vote for meta node registration
+	UpperBoundOfTotalOzoneKey    = []byte{0x04}
+	SlashingPrefix               = []byte{0x05}
+	InitialGenesisStakeTotalKey  = []byte{0x06} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
+	InitialUOzonePriceKey        = []byte{0x07} // key of initial uoz price at t=0
 
 	UBDNodeKey      = []byte{0x11} // prefix for each key to an unbonding node
 	UBDNodeQueueKey = []byte{0x12} // prefix for the timestamps in unbonding node queue
@@ -51,15 +51,15 @@ func GetResourceNodeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(ResourceNodeKey, nodeAddr.Bytes()...)
 }
 
-// GetIndexingNodeKey gets the key for the indexingNode with address
+// GetMetaNodeKey gets the key for the metaNode with address
 // VALUE: ResourceNode
-func GetIndexingNodeKey(nodeAddr stratos.SdsAddress) []byte {
-	return append(IndexingNodeKey, nodeAddr.Bytes()...)
+func GetMetaNodeKey(nodeAddr stratos.SdsAddress) []byte {
+	return append(MetaNodeKey, nodeAddr.Bytes()...)
 }
 
-// GetIndexingNodeRegistrationVotesKey get the key for the vote for Indexing node registration
-func GetIndexingNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
-	return append(IndexingNodeRegistrationVotesKey, nodeAddr.Bytes()...)
+// GetMetaNodeRegistrationVotesKey get the key for the vote for Meta node registration
+func GetMetaNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
+	return append(MetaNodeRegistrationVotesKey, nodeAddr.Bytes()...)
 }
 
 // GetURNKey gets the key for the unbonding Node with address

@@ -154,8 +154,8 @@ func (m *MsgCreateResourceNodeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgCreateResourceNodeResponse proto.InternalMessageInfo
 
-// MsgCreateIndexingNode encapsulates an MsgCreateIndexingNodeTx transaction as an SDK message.
-type MsgCreateIndexingNode struct {
+// MsgCreateMetaNode encapsulates an MsgCreateMetaNodeTx transaction as an SDK message.
+type MsgCreateMetaNode struct {
 	NetworkAddress string       `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
 	Pubkey         *types.Any   `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
 	Value          types1.Coin  `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
@@ -163,18 +163,18 @@ type MsgCreateIndexingNode struct {
 	Description    *Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
 }
 
-func (m *MsgCreateIndexingNode) Reset()         { *m = MsgCreateIndexingNode{} }
-func (m *MsgCreateIndexingNode) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateIndexingNode) ProtoMessage()    {}
-func (*MsgCreateIndexingNode) Descriptor() ([]byte, []int) {
+func (m *MsgCreateMetaNode) Reset()         { *m = MsgCreateMetaNode{} }
+func (m *MsgCreateMetaNode) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateMetaNode) ProtoMessage()    {}
+func (*MsgCreateMetaNode) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{2}
 }
-func (m *MsgCreateIndexingNode) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateMetaNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateIndexingNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateMetaNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCreateIndexingNode.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateMetaNode.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -184,69 +184,69 @@ func (m *MsgCreateIndexingNode) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *MsgCreateIndexingNode) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateIndexingNode.Merge(m, src)
+func (m *MsgCreateMetaNode) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateMetaNode.Merge(m, src)
 }
-func (m *MsgCreateIndexingNode) XXX_Size() int {
+func (m *MsgCreateMetaNode) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateIndexingNode) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateIndexingNode.DiscardUnknown(m)
+func (m *MsgCreateMetaNode) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateMetaNode.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateIndexingNode proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateMetaNode proto.InternalMessageInfo
 
-func (m *MsgCreateIndexingNode) GetNetworkAddress() string {
+func (m *MsgCreateMetaNode) GetNetworkAddress() string {
 	if m != nil {
 		return m.NetworkAddress
 	}
 	return ""
 }
 
-func (m *MsgCreateIndexingNode) GetPubkey() *types.Any {
+func (m *MsgCreateMetaNode) GetPubkey() *types.Any {
 	if m != nil {
 		return m.Pubkey
 	}
 	return nil
 }
 
-func (m *MsgCreateIndexingNode) GetValue() types1.Coin {
+func (m *MsgCreateMetaNode) GetValue() types1.Coin {
 	if m != nil {
 		return m.Value
 	}
 	return types1.Coin{}
 }
 
-func (m *MsgCreateIndexingNode) GetOwnerAddress() string {
+func (m *MsgCreateMetaNode) GetOwnerAddress() string {
 	if m != nil {
 		return m.OwnerAddress
 	}
 	return ""
 }
 
-func (m *MsgCreateIndexingNode) GetDescription() *Description {
+func (m *MsgCreateMetaNode) GetDescription() *Description {
 	if m != nil {
 		return m.Description
 	}
 	return nil
 }
 
-// MsgCreateIndexingNodeResponse defines the CreateIndexingNode response type
-type MsgCreateIndexingNodeResponse struct {
+// MsgCreateMetaNodeResponse defines the CreateMetaNode response type
+type MsgCreateMetaNodeResponse struct {
 }
 
-func (m *MsgCreateIndexingNodeResponse) Reset()         { *m = MsgCreateIndexingNodeResponse{} }
-func (m *MsgCreateIndexingNodeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgCreateIndexingNodeResponse) ProtoMessage()    {}
-func (*MsgCreateIndexingNodeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgCreateMetaNodeResponse) Reset()         { *m = MsgCreateMetaNodeResponse{} }
+func (m *MsgCreateMetaNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgCreateMetaNodeResponse) ProtoMessage()    {}
+func (*MsgCreateMetaNodeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{3}
 }
-func (m *MsgCreateIndexingNodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgCreateMetaNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgCreateIndexingNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgCreateMetaNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgCreateIndexingNodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgCreateMetaNodeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -256,17 +256,17 @@ func (m *MsgCreateIndexingNodeResponse) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *MsgCreateIndexingNodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgCreateIndexingNodeResponse.Merge(m, src)
+func (m *MsgCreateMetaNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgCreateMetaNodeResponse.Merge(m, src)
 }
-func (m *MsgCreateIndexingNodeResponse) XXX_Size() int {
+func (m *MsgCreateMetaNodeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgCreateIndexingNodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgCreateIndexingNodeResponse.DiscardUnknown(m)
+func (m *MsgCreateMetaNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgCreateMetaNodeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgCreateIndexingNodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgCreateMetaNodeResponse proto.InternalMessageInfo
 
 // MsgRemoveResourceNode - encapsulates an RemoveResourceNode transaction as an SDK message
 type MsgRemoveResourceNode struct {
@@ -344,24 +344,24 @@ func (m *MsgRemoveResourceNodeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveResourceNodeResponse proto.InternalMessageInfo
 
-// MsgRemoveIndexingNode - encapsulates an MsgRemoveIndexingNode transaction as an SDK message
-type MsgRemoveIndexingNode struct {
-	IndexingNodeAddress string `protobuf:"bytes,1,opt,name=indexing_node_address,json=indexingNodeAddress,proto3" json:"indexing_node_address" yaml:"indexing_node_address"`
-	OwnerAddress        string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+// MsgRemoveMetaNode - encapsulates an MsgRemoveMetaNode transaction as an SDK message
+type MsgRemoveMetaNode struct {
+	MetaNodeAddress string `protobuf:"bytes,1,opt,name=meta_node_address,json=metaNodeAddress,proto3" json:"meta_node_address" yaml:"meta_node_address"`
+	OwnerAddress    string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
 }
 
-func (m *MsgRemoveIndexingNode) Reset()         { *m = MsgRemoveIndexingNode{} }
-func (m *MsgRemoveIndexingNode) String() string { return proto.CompactTextString(m) }
-func (*MsgRemoveIndexingNode) ProtoMessage()    {}
-func (*MsgRemoveIndexingNode) Descriptor() ([]byte, []int) {
+func (m *MsgRemoveMetaNode) Reset()         { *m = MsgRemoveMetaNode{} }
+func (m *MsgRemoveMetaNode) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveMetaNode) ProtoMessage()    {}
+func (*MsgRemoveMetaNode) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{6}
 }
-func (m *MsgRemoveIndexingNode) XXX_Unmarshal(b []byte) error {
+func (m *MsgRemoveMetaNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRemoveIndexingNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRemoveMetaNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRemoveIndexingNode.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRemoveMetaNode.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -371,34 +371,34 @@ func (m *MsgRemoveIndexingNode) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *MsgRemoveIndexingNode) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRemoveIndexingNode.Merge(m, src)
+func (m *MsgRemoveMetaNode) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveMetaNode.Merge(m, src)
 }
-func (m *MsgRemoveIndexingNode) XXX_Size() int {
+func (m *MsgRemoveMetaNode) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRemoveIndexingNode) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRemoveIndexingNode.DiscardUnknown(m)
+func (m *MsgRemoveMetaNode) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveMetaNode.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRemoveIndexingNode proto.InternalMessageInfo
+var xxx_messageInfo_MsgRemoveMetaNode proto.InternalMessageInfo
 
-// MsgRemoveIndexingNodeResponse defines the Msg/RemoveIndexingNode response type.
-type MsgRemoveIndexingNodeResponse struct {
+// MsgRemoveMetaNodeResponse defines the Msg/RemoveMetaNode response type.
+type MsgRemoveMetaNodeResponse struct {
 }
 
-func (m *MsgRemoveIndexingNodeResponse) Reset()         { *m = MsgRemoveIndexingNodeResponse{} }
-func (m *MsgRemoveIndexingNodeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgRemoveIndexingNodeResponse) ProtoMessage()    {}
-func (*MsgRemoveIndexingNodeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgRemoveMetaNodeResponse) Reset()         { *m = MsgRemoveMetaNodeResponse{} }
+func (m *MsgRemoveMetaNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgRemoveMetaNodeResponse) ProtoMessage()    {}
+func (*MsgRemoveMetaNodeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{7}
 }
-func (m *MsgRemoveIndexingNodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgRemoveMetaNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgRemoveIndexingNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgRemoveMetaNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgRemoveIndexingNodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgRemoveMetaNodeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -408,17 +408,17 @@ func (m *MsgRemoveIndexingNodeResponse) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *MsgRemoveIndexingNodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgRemoveIndexingNodeResponse.Merge(m, src)
+func (m *MsgRemoveMetaNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgRemoveMetaNodeResponse.Merge(m, src)
 }
-func (m *MsgRemoveIndexingNodeResponse) XXX_Size() int {
+func (m *MsgRemoveMetaNodeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgRemoveIndexingNodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgRemoveIndexingNodeResponse.DiscardUnknown(m)
+func (m *MsgRemoveMetaNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgRemoveMetaNodeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgRemoveIndexingNodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgRemoveMetaNodeResponse proto.InternalMessageInfo
 
 // MsgUpdateResourceNode defines a SDK message for updating an existing resource node.
 type MsgUpdateResourceNode struct {
@@ -498,25 +498,25 @@ func (m *MsgUpdateResourceNodeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateResourceNodeResponse proto.InternalMessageInfo
 
-// MsgUpdateIndexingNode defines a SDK message for updating an existing indexing node.
-type MsgUpdateIndexingNode struct {
+// MsgUpdateMetaNode defines a SDK message for updating an existing meta node.
+type MsgUpdateMetaNode struct {
 	Description    Description `protobuf:"bytes,1,opt,name=description,proto3" json:"description" yaml:"description"`
 	NetworkAddress string      `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
 	OwnerAddress   string      `protobuf:"bytes,3,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
 }
 
-func (m *MsgUpdateIndexingNode) Reset()         { *m = MsgUpdateIndexingNode{} }
-func (m *MsgUpdateIndexingNode) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateIndexingNode) ProtoMessage()    {}
-func (*MsgUpdateIndexingNode) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateMetaNode) Reset()         { *m = MsgUpdateMetaNode{} }
+func (m *MsgUpdateMetaNode) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMetaNode) ProtoMessage()    {}
+func (*MsgUpdateMetaNode) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{10}
 }
-func (m *MsgUpdateIndexingNode) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateMetaNode) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateIndexingNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateMetaNode) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateIndexingNode.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateMetaNode.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -526,34 +526,34 @@ func (m *MsgUpdateIndexingNode) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateIndexingNode) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateIndexingNode.Merge(m, src)
+func (m *MsgUpdateMetaNode) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMetaNode.Merge(m, src)
 }
-func (m *MsgUpdateIndexingNode) XXX_Size() int {
+func (m *MsgUpdateMetaNode) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateIndexingNode) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateIndexingNode.DiscardUnknown(m)
+func (m *MsgUpdateMetaNode) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMetaNode.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateIndexingNode proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateMetaNode proto.InternalMessageInfo
 
-// MsgUpdateIndexingNodeResponse defines the Msg/UpdateIndexingNode response type.
-type MsgUpdateIndexingNodeResponse struct {
+// MsgUpdateMetaNodeResponse defines the Msg/UpdateMetaNode response type.
+type MsgUpdateMetaNodeResponse struct {
 }
 
-func (m *MsgUpdateIndexingNodeResponse) Reset()         { *m = MsgUpdateIndexingNodeResponse{} }
-func (m *MsgUpdateIndexingNodeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateIndexingNodeResponse) ProtoMessage()    {}
-func (*MsgUpdateIndexingNodeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateMetaNodeResponse) Reset()         { *m = MsgUpdateMetaNodeResponse{} }
+func (m *MsgUpdateMetaNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMetaNodeResponse) ProtoMessage()    {}
+func (*MsgUpdateMetaNodeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{11}
 }
-func (m *MsgUpdateIndexingNodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateMetaNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateIndexingNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateMetaNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateIndexingNodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateMetaNodeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -563,17 +563,17 @@ func (m *MsgUpdateIndexingNodeResponse) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateIndexingNodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateIndexingNodeResponse.Merge(m, src)
+func (m *MsgUpdateMetaNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMetaNodeResponse.Merge(m, src)
 }
-func (m *MsgUpdateIndexingNodeResponse) XXX_Size() int {
+func (m *MsgUpdateMetaNodeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateIndexingNodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateIndexingNodeResponse.DiscardUnknown(m)
+func (m *MsgUpdateMetaNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMetaNodeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateIndexingNodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateMetaNodeResponse proto.InternalMessageInfo
 
 // MsgUpdateResourceNodeStake defines a SDK message for updating the stake of an existing resource node.
 type MsgUpdateResourceNodeStake struct {
@@ -653,26 +653,26 @@ func (m *MsgUpdateResourceNodeStakeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateResourceNodeStakeResponse proto.InternalMessageInfo
 
-// MsgUpdateIndexingNodeStake defines a SDK message for updating the stake of an existing indexing node.
-type MsgUpdateIndexingNodeStake struct {
+// MsgUpdateMetaNodeStake defines a SDK message for updating the stake of an existing meta node.
+type MsgUpdateMetaNodeStake struct {
 	NetworkAddress string       `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
 	OwnerAddress   string       `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
 	IncrStake      bool         `protobuf:"varint,3,opt,name=incr_stake,json=incrStake,proto3" json:"incr_stake" yaml:"incr_stake"`
 	StakeDelta     *types1.Coin `protobuf:"bytes,4,opt,name=stake_delta,json=stakeDelta,proto3" json:"stake_delta" yaml:"stake_delta"`
 }
 
-func (m *MsgUpdateIndexingNodeStake) Reset()         { *m = MsgUpdateIndexingNodeStake{} }
-func (m *MsgUpdateIndexingNodeStake) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateIndexingNodeStake) ProtoMessage()    {}
-func (*MsgUpdateIndexingNodeStake) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateMetaNodeStake) Reset()         { *m = MsgUpdateMetaNodeStake{} }
+func (m *MsgUpdateMetaNodeStake) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMetaNodeStake) ProtoMessage()    {}
+func (*MsgUpdateMetaNodeStake) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{14}
 }
-func (m *MsgUpdateIndexingNodeStake) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateMetaNodeStake) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateIndexingNodeStake) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateMetaNodeStake) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateIndexingNodeStake.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateMetaNodeStake.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -682,34 +682,34 @@ func (m *MsgUpdateIndexingNodeStake) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateIndexingNodeStake) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateIndexingNodeStake.Merge(m, src)
+func (m *MsgUpdateMetaNodeStake) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMetaNodeStake.Merge(m, src)
 }
-func (m *MsgUpdateIndexingNodeStake) XXX_Size() int {
+func (m *MsgUpdateMetaNodeStake) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateIndexingNodeStake) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateIndexingNodeStake.DiscardUnknown(m)
+func (m *MsgUpdateMetaNodeStake) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMetaNodeStake.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateIndexingNodeStake proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateMetaNodeStake proto.InternalMessageInfo
 
 // MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
-type MsgUpdateIndexingNodeStakeResponse struct {
+type MsgUpdateMetaNodeStakeResponse struct {
 }
 
-func (m *MsgUpdateIndexingNodeStakeResponse) Reset()         { *m = MsgUpdateIndexingNodeStakeResponse{} }
-func (m *MsgUpdateIndexingNodeStakeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateIndexingNodeStakeResponse) ProtoMessage()    {}
-func (*MsgUpdateIndexingNodeStakeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateMetaNodeStakeResponse) Reset()         { *m = MsgUpdateMetaNodeStakeResponse{} }
+func (m *MsgUpdateMetaNodeStakeResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMetaNodeStakeResponse) ProtoMessage()    {}
+func (*MsgUpdateMetaNodeStakeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{15}
 }
-func (m *MsgUpdateIndexingNodeStakeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateMetaNodeStakeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateIndexingNodeStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateMetaNodeStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateIndexingNodeStakeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateMetaNodeStakeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -719,20 +719,20 @@ func (m *MsgUpdateIndexingNodeStakeResponse) XXX_Marshal(b []byte, deterministic
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateIndexingNodeStakeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateIndexingNodeStakeResponse.Merge(m, src)
+func (m *MsgUpdateMetaNodeStakeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMetaNodeStakeResponse.Merge(m, src)
 }
-func (m *MsgUpdateIndexingNodeStakeResponse) XXX_Size() int {
+func (m *MsgUpdateMetaNodeStakeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateIndexingNodeStakeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateIndexingNodeStakeResponse.DiscardUnknown(m)
+func (m *MsgUpdateMetaNodeStakeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMetaNodeStakeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateIndexingNodeStakeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateMetaNodeStakeResponse proto.InternalMessageInfo
 
-// MsgIndexingNodeRegistrationVote defines a SDK message for registration vote of an existing indexing node.
-type MsgIndexingNodeRegistrationVote struct {
+// MsgMetaNodeRegistrationVote defines a SDK message for registration vote of an existing meta node.
+type MsgMetaNodeRegistrationVote struct {
 	CandidateNetworkAddress string `protobuf:"bytes,1,opt,name=candidate_network_address,json=candidateNetworkAddress,proto3" json:"candidate_network_address" yaml:"candidate_network_address"`
 	CandidateOwnerAddress   string `protobuf:"bytes,2,opt,name=candidate_owner_address,json=candidateOwnerAddress,proto3" json:"candidate_owner_address" yaml:"candidate_owner_address"`
 	Opinion                 bool   `protobuf:"varint,3,opt,name=opinion,proto3" json:"opinion" yaml:"opinion"`
@@ -740,18 +740,18 @@ type MsgIndexingNodeRegistrationVote struct {
 	VoterOwnerAddress       string `protobuf:"bytes,5,opt,name=voter_owner_address,json=voterOwnerAddress,proto3" json:"voter_owner_address" yaml:"voter_owner_address"`
 }
 
-func (m *MsgIndexingNodeRegistrationVote) Reset()         { *m = MsgIndexingNodeRegistrationVote{} }
-func (m *MsgIndexingNodeRegistrationVote) String() string { return proto.CompactTextString(m) }
-func (*MsgIndexingNodeRegistrationVote) ProtoMessage()    {}
-func (*MsgIndexingNodeRegistrationVote) Descriptor() ([]byte, []int) {
+func (m *MsgMetaNodeRegistrationVote) Reset()         { *m = MsgMetaNodeRegistrationVote{} }
+func (m *MsgMetaNodeRegistrationVote) String() string { return proto.CompactTextString(m) }
+func (*MsgMetaNodeRegistrationVote) ProtoMessage()    {}
+func (*MsgMetaNodeRegistrationVote) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{16}
 }
-func (m *MsgIndexingNodeRegistrationVote) XXX_Unmarshal(b []byte) error {
+func (m *MsgMetaNodeRegistrationVote) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgIndexingNodeRegistrationVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgMetaNodeRegistrationVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgIndexingNodeRegistrationVote.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgMetaNodeRegistrationVote.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -761,36 +761,34 @@ func (m *MsgIndexingNodeRegistrationVote) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *MsgIndexingNodeRegistrationVote) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgIndexingNodeRegistrationVote.Merge(m, src)
+func (m *MsgMetaNodeRegistrationVote) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMetaNodeRegistrationVote.Merge(m, src)
 }
-func (m *MsgIndexingNodeRegistrationVote) XXX_Size() int {
+func (m *MsgMetaNodeRegistrationVote) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgIndexingNodeRegistrationVote) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgIndexingNodeRegistrationVote.DiscardUnknown(m)
+func (m *MsgMetaNodeRegistrationVote) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMetaNodeRegistrationVote.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgIndexingNodeRegistrationVote proto.InternalMessageInfo
+var xxx_messageInfo_MsgMetaNodeRegistrationVote proto.InternalMessageInfo
 
-// MsgUpdateResourceNodeStakeResponse defines the Msg/IndexingNodeRegistrationVote response type.
-type MsgIndexingNodeRegistrationVoteResponse struct {
+// MsgUpdateResourceNodeStakeResponse defines the Msg/MetaNodeRegistrationVote response type.
+type MsgMetaNodeRegistrationVoteResponse struct {
 }
 
-func (m *MsgIndexingNodeRegistrationVoteResponse) Reset() {
-	*m = MsgIndexingNodeRegistrationVoteResponse{}
-}
-func (m *MsgIndexingNodeRegistrationVoteResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgIndexingNodeRegistrationVoteResponse) ProtoMessage()    {}
-func (*MsgIndexingNodeRegistrationVoteResponse) Descriptor() ([]byte, []int) {
+func (m *MsgMetaNodeRegistrationVoteResponse) Reset()         { *m = MsgMetaNodeRegistrationVoteResponse{} }
+func (m *MsgMetaNodeRegistrationVoteResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgMetaNodeRegistrationVoteResponse) ProtoMessage()    {}
+func (*MsgMetaNodeRegistrationVoteResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{17}
 }
-func (m *MsgIndexingNodeRegistrationVoteResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgMetaNodeRegistrationVoteResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgIndexingNodeRegistrationVoteResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgMetaNodeRegistrationVoteResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgIndexingNodeRegistrationVoteResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgMetaNodeRegistrationVoteResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -800,121 +798,123 @@ func (m *MsgIndexingNodeRegistrationVoteResponse) XXX_Marshal(b []byte, determin
 		return b[:n], nil
 	}
 }
-func (m *MsgIndexingNodeRegistrationVoteResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgIndexingNodeRegistrationVoteResponse.Merge(m, src)
+func (m *MsgMetaNodeRegistrationVoteResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgMetaNodeRegistrationVoteResponse.Merge(m, src)
 }
-func (m *MsgIndexingNodeRegistrationVoteResponse) XXX_Size() int {
+func (m *MsgMetaNodeRegistrationVoteResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgIndexingNodeRegistrationVoteResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgIndexingNodeRegistrationVoteResponse.DiscardUnknown(m)
+func (m *MsgMetaNodeRegistrationVoteResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgMetaNodeRegistrationVoteResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgIndexingNodeRegistrationVoteResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgMetaNodeRegistrationVoteResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgCreateResourceNode)(nil), "stratos.register.v1.MsgCreateResourceNode")
 	proto.RegisterType((*MsgCreateResourceNodeResponse)(nil), "stratos.register.v1.MsgCreateResourceNodeResponse")
-	proto.RegisterType((*MsgCreateIndexingNode)(nil), "stratos.register.v1.MsgCreateIndexingNode")
-	proto.RegisterType((*MsgCreateIndexingNodeResponse)(nil), "stratos.register.v1.MsgCreateIndexingNodeResponse")
+	proto.RegisterType((*MsgCreateMetaNode)(nil), "stratos.register.v1.MsgCreateMetaNode")
+	proto.RegisterType((*MsgCreateMetaNodeResponse)(nil), "stratos.register.v1.MsgCreateMetaNodeResponse")
 	proto.RegisterType((*MsgRemoveResourceNode)(nil), "stratos.register.v1.MsgRemoveResourceNode")
 	proto.RegisterType((*MsgRemoveResourceNodeResponse)(nil), "stratos.register.v1.MsgRemoveResourceNodeResponse")
-	proto.RegisterType((*MsgRemoveIndexingNode)(nil), "stratos.register.v1.MsgRemoveIndexingNode")
-	proto.RegisterType((*MsgRemoveIndexingNodeResponse)(nil), "stratos.register.v1.MsgRemoveIndexingNodeResponse")
+	proto.RegisterType((*MsgRemoveMetaNode)(nil), "stratos.register.v1.MsgRemoveMetaNode")
+	proto.RegisterType((*MsgRemoveMetaNodeResponse)(nil), "stratos.register.v1.MsgRemoveMetaNodeResponse")
 	proto.RegisterType((*MsgUpdateResourceNode)(nil), "stratos.register.v1.MsgUpdateResourceNode")
 	proto.RegisterType((*MsgUpdateResourceNodeResponse)(nil), "stratos.register.v1.MsgUpdateResourceNodeResponse")
-	proto.RegisterType((*MsgUpdateIndexingNode)(nil), "stratos.register.v1.MsgUpdateIndexingNode")
-	proto.RegisterType((*MsgUpdateIndexingNodeResponse)(nil), "stratos.register.v1.MsgUpdateIndexingNodeResponse")
+	proto.RegisterType((*MsgUpdateMetaNode)(nil), "stratos.register.v1.MsgUpdateMetaNode")
+	proto.RegisterType((*MsgUpdateMetaNodeResponse)(nil), "stratos.register.v1.MsgUpdateMetaNodeResponse")
 	proto.RegisterType((*MsgUpdateResourceNodeStake)(nil), "stratos.register.v1.MsgUpdateResourceNodeStake")
 	proto.RegisterType((*MsgUpdateResourceNodeStakeResponse)(nil), "stratos.register.v1.MsgUpdateResourceNodeStakeResponse")
-	proto.RegisterType((*MsgUpdateIndexingNodeStake)(nil), "stratos.register.v1.MsgUpdateIndexingNodeStake")
-	proto.RegisterType((*MsgUpdateIndexingNodeStakeResponse)(nil), "stratos.register.v1.MsgUpdateIndexingNodeStakeResponse")
-	proto.RegisterType((*MsgIndexingNodeRegistrationVote)(nil), "stratos.register.v1.MsgIndexingNodeRegistrationVote")
-	proto.RegisterType((*MsgIndexingNodeRegistrationVoteResponse)(nil), "stratos.register.v1.MsgIndexingNodeRegistrationVoteResponse")
+	proto.RegisterType((*MsgUpdateMetaNodeStake)(nil), "stratos.register.v1.MsgUpdateMetaNodeStake")
+	proto.RegisterType((*MsgUpdateMetaNodeStakeResponse)(nil), "stratos.register.v1.MsgUpdateMetaNodeStakeResponse")
+	proto.RegisterType((*MsgMetaNodeRegistrationVote)(nil), "stratos.register.v1.MsgMetaNodeRegistrationVote")
+	proto.RegisterType((*MsgMetaNodeRegistrationVoteResponse)(nil), "stratos.register.v1.MsgMetaNodeRegistrationVoteResponse")
 }
 
 func init() { proto.RegisterFile("stratos/register/v1/tx.proto", fileDescriptor_75d4b90d7a185a31) }
 
 var fileDescriptor_75d4b90d7a185a31 = []byte{
-	// 1233 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0xcd, 0x6f, 0xe3, 0xc4,
-	0x1b, 0xae, 0xd3, 0xb4, 0xbf, 0x76, 0xba, 0xdd, 0x1f, 0x9b, 0xb6, 0xd0, 0x86, 0x36, 0x53, 0x06,
-	0x56, 0x6c, 0x41, 0xb5, 0x95, 0x6e, 0xa1, 0x62, 0xb5, 0x20, 0x35, 0xbb, 0x07, 0x10, 0x6a, 0x41,
-	0x06, 0xf6, 0xc0, 0x25, 0x72, 0x92, 0x21, 0x6b, 0xb5, 0xf1, 0x44, 0xb6, 0x93, 0x6d, 0x0e, 0x5c,
-	0x38, 0x71, 0x44, 0xe2, 0x8c, 0x84, 0xc4, 0x3f, 0xb0, 0x87, 0xfd, 0x17, 0x90, 0x56, 0x9c, 0x56,
-	0xe2, 0x02, 0x12, 0x8c, 0x50, 0xcb, 0x01, 0xf9, 0x86, 0x05, 0x77, 0xe4, 0x19, 0xdb, 0xf1, 0xc7,
-	0xd8, 0x71, 0xf7, 0x83, 0x03, 0xea, 0x2d, 0xf3, 0x7e, 0x78, 0x9e, 0xf7, 0x7d, 0x1e, 0xcf, 0xbc,
-	0x0e, 0x58, 0xb7, 0x6c, 0x53, 0xb3, 0x89, 0xa5, 0x98, 0xb8, 0xab, 0x5b, 0x36, 0x36, 0x95, 0x61,
-	0x5d, 0xb1, 0x4f, 0xe4, 0xbe, 0x49, 0x6c, 0x52, 0x59, 0xf2, 0xbd, 0x72, 0xe0, 0x95, 0x87, 0xf5,
-	0xea, 0x72, 0x97, 0x74, 0x09, 0xf3, 0x2b, 0xde, 0x2f, 0x1e, 0x5a, 0x5d, 0xeb, 0x12, 0xd2, 0x3d,
-	0xc6, 0x0a, 0x5b, 0xb5, 0x06, 0x9f, 0x29, 0x9a, 0x31, 0xf2, 0x5d, 0xeb, 0xbe, 0x4b, 0xeb, 0xeb,
-	0x8a, 0x66, 0x18, 0xc4, 0xd6, 0x6c, 0x9d, 0x18, 0x56, 0x90, 0xd8, 0x26, 0x56, 0x8f, 0x58, 0x4d,
-	0xfe, 0x44, 0xbe, 0xf0, 0x5d, 0x48, 0x04, 0x2e, 0x84, 0xc2, 0x63, 0x6a, 0x3c, 0x43, 0x69, 0x69,
-	0x16, 0x56, 0x86, 0xf5, 0x16, 0xb6, 0xb5, 0xba, 0xd2, 0x26, 0xba, 0xc1, 0xfd, 0xe8, 0x9b, 0x32,
-	0x58, 0x39, 0xb0, 0xba, 0xb7, 0x4c, 0xac, 0xd9, 0x58, 0xc5, 0x16, 0x19, 0x98, 0x6d, 0x7c, 0x48,
-	0x3a, 0xb8, 0x72, 0x07, 0xfc, 0xdf, 0xc0, 0xf6, 0x3d, 0x62, 0x1e, 0x35, 0xb5, 0x4e, 0xc7, 0xc4,
-	0x96, 0xb5, 0x2a, 0x6d, 0x4a, 0xd7, 0xe6, 0x1b, 0xdb, 0x0e, 0x85, 0x49, 0x97, 0x4b, 0xe1, 0xf3,
-	0x23, 0xad, 0x77, 0x7c, 0x03, 0x25, 0x1c, 0x48, 0xbd, 0xec, 0x5b, 0xf6, 0xb9, 0xa1, 0xa2, 0x81,
-	0xd9, 0xfe, 0xa0, 0x75, 0x84, 0x47, 0xab, 0xa5, 0x4d, 0xe9, 0xda, 0xc2, 0xce, 0xb2, 0xcc, 0xeb,
-	0x97, 0x83, 0xd6, 0xc8, 0xfb, 0xc6, 0xa8, 0x71, 0xdd, 0xa1, 0xd0, 0x8f, 0x73, 0x29, 0x5c, 0xe4,
-	0xcf, 0xe6, 0x6b, 0xf4, 0xc3, 0x83, 0xed, 0x65, 0xbf, 0x11, 0x6d, 0x73, 0xd4, 0xb7, 0x89, 0xfc,
-	0xe1, 0xa0, 0xf5, 0x3e, 0x1e, 0xa9, 0x7e, 0x42, 0xe5, 0x10, 0xcc, 0x0c, 0xb5, 0xe3, 0x01, 0x5e,
-	0x9d, 0x66, 0x3b, 0xac, 0xc9, 0x7e, 0xb4, 0xd7, 0x04, 0xd9, 0x6f, 0x82, 0x7c, 0x8b, 0xe8, 0x46,
-	0x63, 0xe3, 0x21, 0x85, 0x53, 0x0e, 0x85, 0x3c, 0xde, 0xa5, 0xf0, 0x12, 0xdf, 0x89, 0x2d, 0x91,
-	0xca, 0xcd, 0x95, 0x43, 0xb0, 0x48, 0xee, 0x19, 0xd8, 0x0c, 0x1b, 0x51, 0x66, 0x8d, 0xd8, 0x72,
-	0x28, 0x8c, 0x3b, 0x5c, 0x0a, 0x97, 0xf9, 0x03, 0x62, 0x66, 0xa4, 0x5e, 0x62, 0xeb, 0xa0, 0x05,
-	0x3a, 0x58, 0xe8, 0x60, 0xab, 0x6d, 0xea, 0x7d, 0x8f, 0xe9, 0xd5, 0x19, 0x86, 0x72, 0x53, 0x16,
-	0xa8, 0x49, 0xbe, 0x3d, 0x8e, 0x6b, 0x5c, 0x75, 0x28, 0x8c, 0x26, 0xba, 0x14, 0x56, 0xf8, 0x6e,
-	0x11, 0x23, 0x52, 0xa3, 0x21, 0x95, 0x77, 0xc0, 0xbc, 0x41, 0x3a, 0xb8, 0x69, 0x8f, 0xfa, 0x78,
-	0x75, 0x96, 0xc1, 0x7e, 0xc9, 0xa1, 0x70, 0x6c, 0x74, 0x29, 0x7c, 0xce, 0x67, 0x2e, 0x30, 0x21,
-	0x75, 0xce, 0xfb, 0xfd, 0xb1, 0xf7, 0x13, 0x82, 0x0d, 0xa1, 0x3c, 0x54, 0x6c, 0xf5, 0x89, 0x61,
-	0x61, 0xf4, 0xeb, 0x74, 0x44, 0x40, 0xef, 0x19, 0x1d, 0x7c, 0xa2, 0x1b, 0xdd, 0x0b, 0x01, 0xfd,
-	0x57, 0x04, 0x14, 0x13, 0x40, 0x94, 0xde, 0x50, 0x00, 0xbf, 0x48, 0x4c, 0x00, 0x2a, 0xee, 0x91,
-	0x61, 0xfc, 0x04, 0xe9, 0x81, 0x15, 0xd3, 0x5f, 0x37, 0x99, 0xb8, 0xe2, 0x32, 0x78, 0xcb, 0xa1,
-	0x50, 0x1c, 0xe0, 0x52, 0xb8, 0xce, 0x71, 0x09, 0xdd, 0x48, 0x5d, 0x32, 0x23, 0xfb, 0x04, 0x4d,
-	0x49, 0x35, 0xb9, 0xf4, 0x44, 0x4d, 0xbe, 0x51, 0xfe, 0xf2, 0x5b, 0x38, 0xe5, 0xd7, 0x9f, 0xae,
-	0x4e, 0x5c, 0x7f, 0xec, 0x05, 0xe8, 0x81, 0x15, 0xdd, 0x5f, 0x67, 0xd6, 0x2f, 0x0c, 0x18, 0xd7,
-	0x2f, 0x74, 0x23, 0x75, 0x49, 0x8f, 0xec, 0xf3, 0xef, 0xd5, 0x2f, 0xe4, 0xff, 0xaf, 0x12, 0xab,
-	0xff, 0x93, 0x7e, 0x27, 0x79, 0x83, 0xf4, 0xe2, 0x2a, 0x95, 0x0a, 0xaa, 0x74, 0xcb, 0x7f, 0xa5,
-	0xce, 0x7b, 0xd4, 0x09, 0xce, 0x9b, 0xd2, 0xd3, 0x38, 0x6f, 0x52, 0x7d, 0x9d, 0x7e, 0xb2, 0x97,
-	0x37, 0x76, 0x24, 0x97, 0xcf, 0x7d, 0x24, 0xc7, 0x78, 0x49, 0x77, 0x3d, 0xe4, 0xe5, 0x41, 0x94,
-	0x97, 0x84, 0x2e, 0x2f, 0x78, 0x99, 0xa0, 0xf7, 0x74, 0xd7, 0xc2, 0xbe, 0xfe, 0x59, 0x02, 0x55,
-	0x61, 0xe7, 0x3f, 0xb2, 0xb5, 0xa3, 0x67, 0x77, 0xeb, 0x3d, 0xe5, 0xb7, 0xbb, 0xd2, 0x00, 0x40,
-	0x37, 0xda, 0x66, 0xd3, 0xf2, 0x50, 0xb3, 0xd6, 0xcd, 0x35, 0x5e, 0x76, 0x28, 0x8c, 0x58, 0x5d,
-	0x0a, 0xaf, 0x04, 0xc7, 0x50, 0x60, 0x43, 0xea, 0xbc, 0xb7, 0xe0, 0xb5, 0x6a, 0x60, 0x81, 0x19,
-	0x9b, 0x1d, 0x7c, 0x6c, 0x6b, 0x4c, 0xcb, 0xb9, 0x97, 0x25, 0xbb, 0x7f, 0x22, 0x19, 0x63, 0xf5,
-	0x44, 0x8c, 0x48, 0x05, 0x6c, 0x75, 0xdb, 0x5b, 0xf8, 0xa4, 0xbc, 0x02, 0x50, 0x76, 0xcb, 0x43,
-	0x66, 0xfe, 0x8e, 0x32, 0x13, 0xe5, 0xee, 0x82, 0x99, 0x67, 0xc0, 0xcc, 0x9c, 0xc7, 0xcc, 0x1f,
-	0x49, 0x76, 0x52, 0x6d, 0x0f, 0xd9, 0xb9, 0x5f, 0x06, 0xf0, 0xc0, 0xea, 0xc6, 0xdf, 0x29, 0xef,
-	0xa4, 0x31, 0xd9, 0xf7, 0xce, 0x1d, 0x62, 0xe3, 0xca, 0xe7, 0x60, 0xad, 0xad, 0x19, 0x1d, 0xdd,
-	0x7b, 0x52, 0x53, 0x4c, 0xd6, 0xbe, 0x43, 0x61, 0x76, 0x90, 0x4b, 0xe1, 0x26, 0xc7, 0x9d, 0x19,
-	0x82, 0xd4, 0x17, 0x42, 0xdf, 0x61, 0x9c, 0xc9, 0x01, 0x18, 0xbb, 0x9a, 0x22, 0x4e, 0xdf, 0x76,
-	0x28, 0xcc, 0x0a, 0x71, 0x29, 0xac, 0x25, 0xb7, 0x4e, 0xf0, 0xbc, 0x12, 0x7a, 0x3e, 0x88, 0x12,
-	0xbe, 0x07, 0xfe, 0x47, 0xfa, 0xba, 0xe1, 0x9d, 0xc5, 0x9c, 0xed, 0x0d, 0x87, 0xc2, 0xc0, 0xe4,
-	0x52, 0x78, 0xd9, 0x17, 0x0d, 0x37, 0x20, 0x35, 0x70, 0x79, 0x03, 0xc6, 0x90, 0xd8, 0xd8, 0x4c,
-	0xb5, 0xaa, 0x3c, 0x1e, 0x30, 0x84, 0x01, 0xe3, 0x01, 0x43, 0xe8, 0x46, 0xea, 0x12, 0xb3, 0x27,
-	0xda, 0x83, 0x01, 0x37, 0x27, 0x5a, 0x33, 0xc3, 0x36, 0x7b, 0xc3, 0xa1, 0x50, 0xe4, 0x76, 0x29,
-	0xac, 0x46, 0xb7, 0x4a, 0xb4, 0xe4, 0x0a, 0xb3, 0x46, 0xdb, 0x11, 0x11, 0xd6, 0x16, 0x78, 0x75,
-	0x82, 0x62, 0x02, 0x75, 0xed, 0x7c, 0xb7, 0x08, 0xa6, 0x0f, 0xac, 0x6e, 0xe5, 0xbe, 0x04, 0x5e,
-	0x7c, 0x57, 0x33, 0x3a, 0xc7, 0x58, 0xfc, 0x55, 0xfb, 0x9a, 0xf0, 0x9a, 0x13, 0xc6, 0x56, 0x77,
-	0x8a, 0xc7, 0x86, 0x2a, 0xaf, 0x7f, 0xf1, 0xe3, 0xef, 0x5f, 0x97, 0x5e, 0x47, 0x5b, 0x8a, 0xe8,
-	0xe3, 0xbc, 0xcd, 0x12, 0x9b, 0xb1, 0xa9, 0x36, 0x0e, 0x59, 0x30, 0x46, 0x67, 0x42, 0x4e, 0xc7,
-	0x66, 0x43, 0xce, 0x19, 0x60, 0xf3, 0x21, 0x9b, 0x2c, 0x31, 0x0f, 0xb2, 0x60, 0xf2, 0xcb, 0x84,
-	0x9c, 0x8e, 0xcd, 0x86, 0x9c, 0x33, 0xdb, 0xe4, 0x43, 0x1e, 0xb0, 0xc4, 0x04, 0xe4, 0xef, 0x25,
-	0xb0, 0x99, 0x03, 0x99, 0x1f, 0x9b, 0x4a, 0x71, 0x2c, 0x2c, 0xa1, 0xba, 0x77, 0xce, 0x84, 0xb0,
-	0x82, 0x3d, 0x56, 0x41, 0x1d, 0x29, 0x85, 0x2b, 0xe0, 0xa7, 0xbc, 0x48, 0xe0, 0xb1, 0xe1, 0x6e,
-	0x82, 0xc0, 0xa3, 0xb1, 0x93, 0x04, 0x2e, 0x1c, 0x7f, 0x0a, 0x09, 0x3c, 0xf6, 0xd9, 0x22, 0x12,
-	0x78, 0x31, 0xc8, 0xe9, 0xd8, 0x49, 0x02, 0x7f, 0x0c, 0xc8, 0xbe, 0xc0, 0x73, 0x20, 0x0b, 0x46,
-	0xe8, 0x09, 0x02, 0x2f, 0x06, 0x39, 0x67, 0xc8, 0x2c, 0x24, 0xf0, 0x38, 0x64, 0x81, 0xc0, 0xd3,
-	0x33, 0x90, 0x52, 0x1c, 0x4b, 0x21, 0x81, 0x67, 0x5f, 0xf7, 0x85, 0x04, 0x1e, 0xff, 0xbc, 0xe5,
-	0x02, 0xff, 0x59, 0x02, 0x57, 0xc3, 0x3a, 0x72, 0xa7, 0x85, 0xdd, 0x2c, 0x6c, 0x79, 0x59, 0xd5,
-	0x9b, 0x8f, 0x93, 0x15, 0x96, 0x75, 0x93, 0x95, 0xf5, 0x26, 0xda, 0x15, 0x96, 0x15, 0xaf, 0xc7,
-	0x8c, 0x3c, 0xa4, 0xe9, 0xdd, 0x73, 0x8d, 0xc3, 0x87, 0xa7, 0x35, 0xe9, 0xd1, 0x69, 0x4d, 0xfa,
-	0xed, 0xb4, 0x26, 0x7d, 0x75, 0x56, 0x9b, 0x7a, 0x74, 0x56, 0x9b, 0xfa, 0xe9, 0xac, 0x36, 0xf5,
-	0xe9, 0x6e, 0x57, 0xb7, 0xef, 0x0e, 0x5a, 0x72, 0x9b, 0xf4, 0x82, 0x27, 0x1b, 0xd8, 0x0e, 0x7e,
-	0x6e, 0xb7, 0xef, 0x6a, 0xba, 0xa1, 0x9c, 0x8c, 0x37, 0xf3, 0x3e, 0x0a, 0xad, 0xd6, 0x2c, 0xfb,
-	0xcb, 0xeb, 0xfa, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0xe4, 0x2f, 0x84, 0x5c, 0xa7, 0x16, 0x00,
-	0x00,
+	// 1272 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0x4d, 0x6f, 0x1b, 0x45,
+	0x18, 0xce, 0x3a, 0x4e, 0x48, 0x26, 0x69, 0x4b, 0x9c, 0xa4, 0x75, 0x9c, 0xc4, 0xe3, 0x4e, 0x49,
+	0x68, 0x88, 0xb2, 0x5b, 0x27, 0xa0, 0x94, 0x4a, 0x20, 0xc5, 0xed, 0x01, 0x09, 0x25, 0xa0, 0x05,
+	0x7a, 0x40, 0x42, 0xd6, 0xda, 0x1e, 0xdc, 0x55, 0xe2, 0x1d, 0x6b, 0x77, 0xed, 0xd6, 0x07, 0x2e,
+	0x9c, 0x38, 0x22, 0x71, 0x46, 0xea, 0x0f, 0xe0, 0xd0, 0x03, 0xfc, 0x04, 0xa4, 0xc0, 0xa9, 0x52,
+	0x2f, 0x20, 0xa1, 0x11, 0x4a, 0x38, 0xa0, 0xbd, 0xb1, 0xe2, 0x07, 0xa0, 0x9d, 0xd9, 0x5d, 0xef,
+	0x77, 0x1c, 0xb5, 0xb9, 0xa0, 0xdc, 0x3c, 0xef, 0xc7, 0xcc, 0xf3, 0xbe, 0xcf, 0xb3, 0xf3, 0x61,
+	0xb0, 0x62, 0x98, 0xba, 0x62, 0x12, 0x43, 0xd2, 0x71, 0x5b, 0x35, 0x4c, 0xac, 0x4b, 0xfd, 0xaa,
+	0x64, 0x3e, 0x11, 0xbb, 0x3a, 0x31, 0x49, 0x61, 0xde, 0xf5, 0x8a, 0x9e, 0x57, 0xec, 0x57, 0x4b,
+	0x0b, 0x6d, 0xd2, 0x26, 0xcc, 0x2f, 0x39, 0xbf, 0x78, 0x68, 0x69, 0xa9, 0x4d, 0x48, 0xfb, 0x08,
+	0x4b, 0x6c, 0xd4, 0xe8, 0x7d, 0x29, 0x29, 0xda, 0xc0, 0x75, 0xad, 0xb8, 0x2e, 0xa5, 0xab, 0x4a,
+	0x8a, 0xa6, 0x11, 0x53, 0x31, 0x55, 0xa2, 0x19, 0x5e, 0x62, 0x93, 0x18, 0x1d, 0x62, 0xd4, 0xf9,
+	0x8c, 0x7c, 0xe0, 0xba, 0x50, 0x12, 0x38, 0x1f, 0x0a, 0x8f, 0x29, 0xf3, 0x0c, 0xa9, 0xa1, 0x18,
+	0x58, 0xea, 0x57, 0x1b, 0xd8, 0x54, 0xaa, 0x52, 0x93, 0xa8, 0x1a, 0xf7, 0xa3, 0xef, 0xf3, 0x60,
+	0x71, 0xdf, 0x68, 0xdf, 0xd7, 0xb1, 0x62, 0x62, 0x19, 0x1b, 0xa4, 0xa7, 0x37, 0xf1, 0x01, 0x69,
+	0xe1, 0xc2, 0x43, 0x70, 0x4d, 0xc3, 0xe6, 0x63, 0xa2, 0x1f, 0xd6, 0x95, 0x56, 0x4b, 0xc7, 0x86,
+	0x51, 0x14, 0x2a, 0xc2, 0xed, 0xe9, 0xda, 0x96, 0x45, 0x61, 0xd4, 0x65, 0x53, 0x78, 0x7d, 0xa0,
+	0x74, 0x8e, 0xee, 0xa1, 0x88, 0x03, 0xc9, 0x57, 0x5d, 0xcb, 0x1e, 0x37, 0x14, 0x14, 0x30, 0xd9,
+	0xed, 0x35, 0x0e, 0xf1, 0xa0, 0x98, 0xab, 0x08, 0xb7, 0x67, 0xb6, 0x17, 0x44, 0x5e, 0xbf, 0xe8,
+	0xb5, 0x46, 0xdc, 0xd3, 0x06, 0xb5, 0x1d, 0x8b, 0x42, 0x37, 0xce, 0xa6, 0xf0, 0x0a, 0x9f, 0x9b,
+	0x8f, 0xd1, 0xaf, 0x3f, 0x6e, 0x2d, 0xb8, 0x8d, 0x68, 0xea, 0x83, 0xae, 0x49, 0xc4, 0x8f, 0x7b,
+	0x8d, 0x0f, 0xf1, 0x40, 0x76, 0x13, 0x0a, 0x07, 0x60, 0xa2, 0xaf, 0x1c, 0xf5, 0x70, 0x71, 0x9c,
+	0xad, 0xb0, 0x24, 0xba, 0xd1, 0x4e, 0x13, 0x44, 0xb7, 0x09, 0xe2, 0x7d, 0xa2, 0x6a, 0xb5, 0xd5,
+	0x63, 0x0a, 0xc7, 0x2c, 0x0a, 0x79, 0xbc, 0x4d, 0xe1, 0x2c, 0x5f, 0x89, 0x0d, 0x91, 0xcc, 0xcd,
+	0x85, 0x03, 0x70, 0x85, 0x3c, 0xd6, 0xb0, 0xee, 0x37, 0x22, 0xcf, 0x1a, 0xb1, 0x61, 0x51, 0x18,
+	0x76, 0xd8, 0x14, 0x2e, 0xf0, 0x09, 0x42, 0x66, 0x24, 0xcf, 0xb2, 0xb1, 0xd7, 0x02, 0x15, 0xcc,
+	0xb4, 0xb0, 0xd1, 0xd4, 0xd5, 0xae, 0xc3, 0x74, 0x71, 0x82, 0xa1, 0xac, 0x88, 0x09, 0x6a, 0x12,
+	0x1f, 0x0c, 0xe3, 0x6a, 0x6b, 0x16, 0x85, 0xc1, 0x44, 0x9b, 0xc2, 0x02, 0x5f, 0x2d, 0x60, 0x44,
+	0x72, 0x30, 0xa4, 0xf0, 0x3e, 0x98, 0xd6, 0x48, 0x0b, 0xd7, 0xcd, 0x41, 0x17, 0x17, 0x27, 0x19,
+	0xec, 0x9b, 0x16, 0x85, 0x43, 0xa3, 0x4d, 0xe1, 0xeb, 0x2e, 0x73, 0x9e, 0x09, 0xc9, 0x53, 0xce,
+	0xef, 0x4f, 0x9d, 0x9f, 0x10, 0xac, 0x26, 0xca, 0x43, 0xc6, 0x46, 0x97, 0x68, 0x06, 0x46, 0xbf,
+	0x8f, 0x83, 0x39, 0x3f, 0x62, 0x1f, 0x9b, 0xca, 0xa5, 0x78, 0xfe, 0x2f, 0xe2, 0x41, 0xcb, 0x60,
+	0x29, 0x46, 0xad, 0x4f, 0xfc, 0x1f, 0x02, 0xdb, 0x39, 0x64, 0xdc, 0x21, 0xfd, 0xf0, 0xce, 0xd1,
+	0x01, 0x8b, 0xba, 0x3b, 0xae, 0x33, 0x51, 0x85, 0x25, 0xf0, 0xae, 0x45, 0x61, 0x72, 0x80, 0x4d,
+	0xe1, 0x0a, 0xc7, 0x94, 0xe8, 0x46, 0xf2, 0xbc, 0x1e, 0x58, 0xc7, 0x6b, 0x48, 0xac, 0xc1, 0xb9,
+	0x97, 0x6a, 0xf0, 0xbd, 0xfc, 0x37, 0x4f, 0xe1, 0x98, 0x2b, 0xfc, 0x78, 0x75, 0x7e, 0xfd, 0xc7,
+	0x02, 0x13, 0x3e, 0x8f, 0xf0, 0x85, 0xff, 0x05, 0x98, 0xeb, 0x60, 0x53, 0x49, 0xaa, 0xbb, 0x6a,
+	0x51, 0x18, 0x77, 0xda, 0x14, 0x16, 0x39, 0xa8, 0x98, 0x0b, 0xc9, 0xd7, 0x3a, 0xee, 0xbc, 0x17,
+	0x5b, 0x2b, 0xe7, 0x39, 0x5c, 0x89, 0x5f, 0xe7, 0xbf, 0x39, 0xc6, 0xf3, 0x67, 0xdd, 0x56, 0xf4,
+	0x84, 0xe8, 0x84, 0x95, 0x28, 0x8c, 0xa8, 0xc4, 0x0d, 0xf7, 0xb3, 0x39, 0xef, 0x56, 0x96, 0xb0,
+	0xa7, 0xe4, 0x5e, 0xc5, 0x9e, 0x12, 0xeb, 0xe9, 0xf8, 0xcb, 0x7d, 0xa0, 0xa1, 0x2d, 0x37, 0x7f,
+	0xee, 0x2d, 0x37, 0xa4, 0xbf, 0x78, 0xd7, 0x7d, 0x5e, 0x9e, 0xe5, 0x98, 0xfe, 0x78, 0x84, 0xaf,
+	0xbf, 0x4b, 0x4e, 0xce, 0xd4, 0x79, 0xb8, 0x63, 0x7e, 0x3f, 0xff, 0xc9, 0x81, 0x52, 0x62, 0xc7,
+	0x3f, 0x31, 0x95, 0xc3, 0x8b, 0x3b, 0xd1, 0x5e, 0xf1, 0x17, 0x5d, 0xa8, 0x01, 0xa0, 0x6a, 0x4d,
+	0xbd, 0x6e, 0x38, 0xa8, 0x59, 0xdb, 0xa6, 0x6a, 0xb7, 0x2c, 0x0a, 0x03, 0x56, 0x9b, 0xc2, 0x39,
+	0x3e, 0xd3, 0xd0, 0x86, 0xe4, 0x69, 0x67, 0xc0, 0x6b, 0x55, 0xc0, 0x0c, 0x33, 0xd6, 0x5b, 0xf8,
+	0xc8, 0x54, 0x98, 0x86, 0x33, 0x0f, 0x42, 0x76, 0xb6, 0x04, 0x32, 0x86, 0xca, 0x09, 0x18, 0x91,
+	0x0c, 0xd8, 0xe8, 0x81, 0x33, 0x70, 0x09, 0x79, 0x03, 0xa0, 0xf4, 0x96, 0x07, 0x99, 0xb9, 0x1e,
+	0xe3, 0xed, 0x92, 0x95, 0x0b, 0x60, 0x65, 0xca, 0x61, 0xe5, 0x6f, 0x87, 0x99, 0x0a, 0x28, 0x27,
+	0xb7, 0xdc, 0x67, 0xe5, 0x87, 0x3c, 0x58, 0xde, 0x37, 0xda, 0xc3, 0xef, 0xc8, 0xd9, 0x59, 0x74,
+	0xf6, 0x76, 0x79, 0x48, 0x4c, 0x5c, 0xf8, 0x0a, 0x2c, 0x35, 0x15, 0xad, 0xa5, 0x3a, 0x33, 0xd4,
+	0x93, 0x49, 0xda, 0xb3, 0x28, 0x4c, 0x0f, 0xb2, 0x29, 0xac, 0x70, 0xbc, 0xa9, 0x21, 0x48, 0xbe,
+	0xe1, 0xfb, 0x0e, 0xc2, 0x0c, 0xf6, 0xc0, 0xd0, 0x55, 0x4f, 0xe2, 0xf2, 0x3d, 0x8b, 0xc2, 0xb4,
+	0x10, 0x9b, 0xc2, 0x72, 0x74, 0xe9, 0x08, 0xbf, 0x8b, 0xbe, 0xe7, 0xa3, 0x20, 0xd1, 0xbb, 0xe0,
+	0x35, 0xd2, 0x55, 0x35, 0x67, 0xef, 0xe5, 0x2c, 0xaf, 0x5a, 0x14, 0x7a, 0x26, 0x9b, 0xc2, 0xab,
+	0xae, 0x58, 0xb8, 0x01, 0xc9, 0x9e, 0xcb, 0xb9, 0x34, 0xf5, 0x89, 0x89, 0xf5, 0x58, 0xab, 0xf2,
+	0xc3, 0x4b, 0x53, 0x62, 0xc0, 0xf0, 0xd2, 0x94, 0xe8, 0x46, 0xf2, 0x3c, 0xb3, 0x47, 0xda, 0x83,
+	0x01, 0x37, 0x47, 0x5a, 0x33, 0xc1, 0x16, 0x7b, 0xc7, 0xa2, 0x30, 0xc9, 0x6d, 0x53, 0x58, 0x0a,
+	0x2e, 0x15, 0x69, 0xc9, 0x1c, 0xb3, 0x06, 0xdb, 0x11, 0x10, 0xd4, 0x1a, 0xb8, 0x95, 0xa1, 0x16,
+	0x4f, 0x55, 0xdb, 0x2f, 0x66, 0xc1, 0xf8, 0xbe, 0xd1, 0x2e, 0x3c, 0x13, 0xc0, 0xf2, 0x07, 0x8a,
+	0xd6, 0x3a, 0xc2, 0xc9, 0xaf, 0xd3, 0xb7, 0x12, 0x8f, 0xb4, 0xc4, 0xd8, 0xd2, 0xf6, 0xe8, 0xb1,
+	0xbe, 0xba, 0xab, 0x5f, 0xbf, 0xf8, 0xeb, 0xbb, 0xdc, 0x26, 0xda, 0x90, 0x92, 0x1e, 0xd9, 0x4d,
+	0x96, 0x58, 0x0f, 0xdd, 0x52, 0xc3, 0x90, 0x13, 0xae, 0xc5, 0xa9, 0x90, 0xe3, 0xb1, 0xe9, 0x90,
+	0x33, 0x2e, 0xa4, 0xd9, 0x90, 0x75, 0x96, 0x98, 0x05, 0x39, 0xe1, 0x86, 0x97, 0x0a, 0x39, 0x1e,
+	0x9b, 0x0e, 0x39, 0xe3, 0x0e, 0x93, 0x0d, 0xb9, 0xc7, 0x12, 0x23, 0x90, 0x7f, 0x16, 0x40, 0x25,
+	0x03, 0x32, 0xdf, 0x2a, 0xa5, 0xd1, 0xb1, 0xb0, 0x84, 0xd2, 0xee, 0x39, 0x13, 0xfc, 0x0a, 0x76,
+	0x59, 0x05, 0x55, 0x24, 0x8d, 0x5c, 0x01, 0xdf, 0xd9, 0x0b, 0x4f, 0x05, 0x70, 0x23, 0x22, 0x70,
+	0xff, 0x12, 0xb7, 0x9e, 0x2d, 0x58, 0x2f, 0xae, 0x24, 0x8e, 0x16, 0xe7, 0x83, 0xdd, 0x62, 0x60,
+	0xdf, 0x44, 0x6b, 0x59, 0xa2, 0xf6, 0x9f, 0x21, 0x61, 0x88, 0x91, 0x77, 0xce, 0x7a, 0xb6, 0x40,
+	0xcf, 0x86, 0x98, 0xf2, 0xda, 0xc8, 0x86, 0xe8, 0x8a, 0x38, 0x05, 0x62, 0xe4, 0x2a, 0xbc, 0x9e,
+	0xcd, 0xe9, 0xd9, 0x10, 0x53, 0x2e, 0x8a, 0xd9, 0x10, 0x5d, 0xca, 0x87, 0x10, 0x7f, 0x12, 0xc0,
+	0x4a, 0x0a, 0x44, 0x2e, 0xd6, 0xcd, 0xd1, 0xd6, 0xe7, 0x42, 0xdd, 0x39, 0x47, 0xb0, 0x8f, 0x78,
+	0x87, 0x21, 0xde, 0x42, 0x9b, 0x23, 0x21, 0x76, 0x05, 0xfa, 0x8b, 0x00, 0x6e, 0xfa, 0xb8, 0x53,
+	0x4f, 0xf9, 0x3b, 0x69, 0x78, 0xd2, 0x32, 0x4a, 0x77, 0xcf, 0x9b, 0xe1, 0x97, 0x71, 0x97, 0x95,
+	0xb1, 0x8d, 0xee, 0x24, 0x96, 0x31, 0xc4, 0xaf, 0x07, 0x26, 0xa8, 0x3b, 0x67, 0x52, 0xed, 0xe0,
+	0xf8, 0xa4, 0x2c, 0x3c, 0x3f, 0x29, 0x0b, 0x7f, 0x9e, 0x94, 0x85, 0x6f, 0x4f, 0xcb, 0x63, 0xcf,
+	0x4f, 0xcb, 0x63, 0xbf, 0x9d, 0x96, 0xc7, 0x3e, 0x7f, 0xbb, 0xad, 0x9a, 0x8f, 0x7a, 0x0d, 0xb1,
+	0x49, 0x3a, 0xde, 0xac, 0x1a, 0x36, 0xbd, 0x9f, 0x5b, 0xcd, 0x47, 0x8a, 0xaa, 0x49, 0x4f, 0x86,
+	0x0b, 0x39, 0x8f, 0x35, 0xa3, 0x31, 0xc9, 0xfe, 0x6e, 0xda, 0xf9, 0x2f, 0x00, 0x00, 0xff, 0xff,
+	0x6c, 0xa9, 0x47, 0x9b, 0x1f, 0x16, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -934,11 +934,11 @@ type MsgClient interface {
 	HandleMsgRemoveResourceNode(ctx context.Context, in *MsgRemoveResourceNode, opts ...grpc.CallOption) (*MsgRemoveResourceNodeResponse, error)
 	HandleMsgUpdateResourceNode(ctx context.Context, in *MsgUpdateResourceNode, opts ...grpc.CallOption) (*MsgUpdateResourceNodeResponse, error)
 	HandleMsgUpdateResourceNodeStake(ctx context.Context, in *MsgUpdateResourceNodeStake, opts ...grpc.CallOption) (*MsgUpdateResourceNodeStakeResponse, error)
-	HandleMsgCreateIndexingNode(ctx context.Context, in *MsgCreateIndexingNode, opts ...grpc.CallOption) (*MsgCreateIndexingNodeResponse, error)
-	HandleMsgRemoveIndexingNode(ctx context.Context, in *MsgRemoveIndexingNode, opts ...grpc.CallOption) (*MsgRemoveIndexingNodeResponse, error)
-	HandleMsgUpdateIndexingNode(ctx context.Context, in *MsgUpdateIndexingNode, opts ...grpc.CallOption) (*MsgUpdateIndexingNodeResponse, error)
-	HandleMsgUpdateIndexingNodeStake(ctx context.Context, in *MsgUpdateIndexingNodeStake, opts ...grpc.CallOption) (*MsgUpdateIndexingNodeStakeResponse, error)
-	HandleMsgIndexingNodeRegistrationVote(ctx context.Context, in *MsgIndexingNodeRegistrationVote, opts ...grpc.CallOption) (*MsgIndexingNodeRegistrationVoteResponse, error)
+	HandleMsgCreateMetaNode(ctx context.Context, in *MsgCreateMetaNode, opts ...grpc.CallOption) (*MsgCreateMetaNodeResponse, error)
+	HandleMsgRemoveMetaNode(ctx context.Context, in *MsgRemoveMetaNode, opts ...grpc.CallOption) (*MsgRemoveMetaNodeResponse, error)
+	HandleMsgUpdateMetaNode(ctx context.Context, in *MsgUpdateMetaNode, opts ...grpc.CallOption) (*MsgUpdateMetaNodeResponse, error)
+	HandleMsgUpdateMetaNodeStake(ctx context.Context, in *MsgUpdateMetaNodeStake, opts ...grpc.CallOption) (*MsgUpdateMetaNodeStakeResponse, error)
+	HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *MsgMetaNodeRegistrationVote, opts ...grpc.CallOption) (*MsgMetaNodeRegistrationVoteResponse, error)
 }
 
 type msgClient struct {
@@ -985,45 +985,45 @@ func (c *msgClient) HandleMsgUpdateResourceNodeStake(ctx context.Context, in *Ms
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgCreateIndexingNode(ctx context.Context, in *MsgCreateIndexingNode, opts ...grpc.CallOption) (*MsgCreateIndexingNodeResponse, error) {
-	out := new(MsgCreateIndexingNodeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgCreateIndexingNode", in, out, opts...)
+func (c *msgClient) HandleMsgCreateMetaNode(ctx context.Context, in *MsgCreateMetaNode, opts ...grpc.CallOption) (*MsgCreateMetaNodeResponse, error) {
+	out := new(MsgCreateMetaNodeResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgCreateMetaNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgRemoveIndexingNode(ctx context.Context, in *MsgRemoveIndexingNode, opts ...grpc.CallOption) (*MsgRemoveIndexingNodeResponse, error) {
-	out := new(MsgRemoveIndexingNodeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgRemoveIndexingNode", in, out, opts...)
+func (c *msgClient) HandleMsgRemoveMetaNode(ctx context.Context, in *MsgRemoveMetaNode, opts ...grpc.CallOption) (*MsgRemoveMetaNodeResponse, error) {
+	out := new(MsgRemoveMetaNodeResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgRemoveMetaNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgUpdateIndexingNode(ctx context.Context, in *MsgUpdateIndexingNode, opts ...grpc.CallOption) (*MsgUpdateIndexingNodeResponse, error) {
-	out := new(MsgUpdateIndexingNodeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateIndexingNode", in, out, opts...)
+func (c *msgClient) HandleMsgUpdateMetaNode(ctx context.Context, in *MsgUpdateMetaNode, opts ...grpc.CallOption) (*MsgUpdateMetaNodeResponse, error) {
+	out := new(MsgUpdateMetaNodeResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateMetaNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgUpdateIndexingNodeStake(ctx context.Context, in *MsgUpdateIndexingNodeStake, opts ...grpc.CallOption) (*MsgUpdateIndexingNodeStakeResponse, error) {
-	out := new(MsgUpdateIndexingNodeStakeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateIndexingNodeStake", in, out, opts...)
+func (c *msgClient) HandleMsgUpdateMetaNodeStake(ctx context.Context, in *MsgUpdateMetaNodeStake, opts ...grpc.CallOption) (*MsgUpdateMetaNodeStakeResponse, error) {
+	out := new(MsgUpdateMetaNodeStakeResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeStake", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgIndexingNodeRegistrationVote(ctx context.Context, in *MsgIndexingNodeRegistrationVote, opts ...grpc.CallOption) (*MsgIndexingNodeRegistrationVoteResponse, error) {
-	out := new(MsgIndexingNodeRegistrationVoteResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgIndexingNodeRegistrationVote", in, out, opts...)
+func (c *msgClient) HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *MsgMetaNodeRegistrationVote, opts ...grpc.CallOption) (*MsgMetaNodeRegistrationVoteResponse, error) {
+	out := new(MsgMetaNodeRegistrationVoteResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgMetaNodeRegistrationVote", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,11 +1037,11 @@ type MsgServer interface {
 	HandleMsgRemoveResourceNode(context.Context, *MsgRemoveResourceNode) (*MsgRemoveResourceNodeResponse, error)
 	HandleMsgUpdateResourceNode(context.Context, *MsgUpdateResourceNode) (*MsgUpdateResourceNodeResponse, error)
 	HandleMsgUpdateResourceNodeStake(context.Context, *MsgUpdateResourceNodeStake) (*MsgUpdateResourceNodeStakeResponse, error)
-	HandleMsgCreateIndexingNode(context.Context, *MsgCreateIndexingNode) (*MsgCreateIndexingNodeResponse, error)
-	HandleMsgRemoveIndexingNode(context.Context, *MsgRemoveIndexingNode) (*MsgRemoveIndexingNodeResponse, error)
-	HandleMsgUpdateIndexingNode(context.Context, *MsgUpdateIndexingNode) (*MsgUpdateIndexingNodeResponse, error)
-	HandleMsgUpdateIndexingNodeStake(context.Context, *MsgUpdateIndexingNodeStake) (*MsgUpdateIndexingNodeStakeResponse, error)
-	HandleMsgIndexingNodeRegistrationVote(context.Context, *MsgIndexingNodeRegistrationVote) (*MsgIndexingNodeRegistrationVoteResponse, error)
+	HandleMsgCreateMetaNode(context.Context, *MsgCreateMetaNode) (*MsgCreateMetaNodeResponse, error)
+	HandleMsgRemoveMetaNode(context.Context, *MsgRemoveMetaNode) (*MsgRemoveMetaNodeResponse, error)
+	HandleMsgUpdateMetaNode(context.Context, *MsgUpdateMetaNode) (*MsgUpdateMetaNodeResponse, error)
+	HandleMsgUpdateMetaNodeStake(context.Context, *MsgUpdateMetaNodeStake) (*MsgUpdateMetaNodeStakeResponse, error)
+	HandleMsgMetaNodeRegistrationVote(context.Context, *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1060,20 +1060,20 @@ func (*UnimplementedMsgServer) HandleMsgUpdateResourceNode(ctx context.Context, 
 func (*UnimplementedMsgServer) HandleMsgUpdateResourceNodeStake(ctx context.Context, req *MsgUpdateResourceNodeStake) (*MsgUpdateResourceNodeStakeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateResourceNodeStake not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgCreateIndexingNode(ctx context.Context, req *MsgCreateIndexingNode) (*MsgCreateIndexingNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgCreateIndexingNode not implemented")
+func (*UnimplementedMsgServer) HandleMsgCreateMetaNode(ctx context.Context, req *MsgCreateMetaNode) (*MsgCreateMetaNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgCreateMetaNode not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgRemoveIndexingNode(ctx context.Context, req *MsgRemoveIndexingNode) (*MsgRemoveIndexingNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgRemoveIndexingNode not implemented")
+func (*UnimplementedMsgServer) HandleMsgRemoveMetaNode(ctx context.Context, req *MsgRemoveMetaNode) (*MsgRemoveMetaNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgRemoveMetaNode not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgUpdateIndexingNode(ctx context.Context, req *MsgUpdateIndexingNode) (*MsgUpdateIndexingNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateIndexingNode not implemented")
+func (*UnimplementedMsgServer) HandleMsgUpdateMetaNode(ctx context.Context, req *MsgUpdateMetaNode) (*MsgUpdateMetaNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateMetaNode not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgUpdateIndexingNodeStake(ctx context.Context, req *MsgUpdateIndexingNodeStake) (*MsgUpdateIndexingNodeStakeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateIndexingNodeStake not implemented")
+func (*UnimplementedMsgServer) HandleMsgUpdateMetaNodeStake(ctx context.Context, req *MsgUpdateMetaNodeStake) (*MsgUpdateMetaNodeStakeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateMetaNodeStake not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgIndexingNodeRegistrationVote(ctx context.Context, req *MsgIndexingNodeRegistrationVote) (*MsgIndexingNodeRegistrationVoteResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgIndexingNodeRegistrationVote not implemented")
+func (*UnimplementedMsgServer) HandleMsgMetaNodeRegistrationVote(ctx context.Context, req *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgMetaNodeRegistrationVote not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1152,92 +1152,92 @@ func _Msg_HandleMsgUpdateResourceNodeStake_Handler(srv interface{}, ctx context.
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgCreateIndexingNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgCreateIndexingNode)
+func _Msg_HandleMsgCreateMetaNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgCreateMetaNode)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgCreateIndexingNode(ctx, in)
+		return srv.(MsgServer).HandleMsgCreateMetaNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgCreateIndexingNode",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgCreateMetaNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgCreateIndexingNode(ctx, req.(*MsgCreateIndexingNode))
+		return srv.(MsgServer).HandleMsgCreateMetaNode(ctx, req.(*MsgCreateMetaNode))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgRemoveIndexingNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgRemoveIndexingNode)
+func _Msg_HandleMsgRemoveMetaNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgRemoveMetaNode)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgRemoveIndexingNode(ctx, in)
+		return srv.(MsgServer).HandleMsgRemoveMetaNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgRemoveIndexingNode",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgRemoveMetaNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgRemoveIndexingNode(ctx, req.(*MsgRemoveIndexingNode))
+		return srv.(MsgServer).HandleMsgRemoveMetaNode(ctx, req.(*MsgRemoveMetaNode))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgUpdateIndexingNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateIndexingNode)
+func _Msg_HandleMsgUpdateMetaNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMetaNode)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgUpdateIndexingNode(ctx, in)
+		return srv.(MsgServer).HandleMsgUpdateMetaNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateIndexingNode",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateMetaNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgUpdateIndexingNode(ctx, req.(*MsgUpdateIndexingNode))
+		return srv.(MsgServer).HandleMsgUpdateMetaNode(ctx, req.(*MsgUpdateMetaNode))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgUpdateIndexingNodeStake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateIndexingNodeStake)
+func _Msg_HandleMsgUpdateMetaNodeStake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMetaNodeStake)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgUpdateIndexingNodeStake(ctx, in)
+		return srv.(MsgServer).HandleMsgUpdateMetaNodeStake(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateIndexingNodeStake",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeStake",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgUpdateIndexingNodeStake(ctx, req.(*MsgUpdateIndexingNodeStake))
+		return srv.(MsgServer).HandleMsgUpdateMetaNodeStake(ctx, req.(*MsgUpdateMetaNodeStake))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgIndexingNodeRegistrationVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgIndexingNodeRegistrationVote)
+func _Msg_HandleMsgMetaNodeRegistrationVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgMetaNodeRegistrationVote)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgIndexingNodeRegistrationVote(ctx, in)
+		return srv.(MsgServer).HandleMsgMetaNodeRegistrationVote(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgIndexingNodeRegistrationVote",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgMetaNodeRegistrationVote",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgIndexingNodeRegistrationVote(ctx, req.(*MsgIndexingNodeRegistrationVote))
+		return srv.(MsgServer).HandleMsgMetaNodeRegistrationVote(ctx, req.(*MsgMetaNodeRegistrationVote))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1263,24 +1263,24 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_HandleMsgUpdateResourceNodeStake_Handler,
 		},
 		{
-			MethodName: "HandleMsgCreateIndexingNode",
-			Handler:    _Msg_HandleMsgCreateIndexingNode_Handler,
+			MethodName: "HandleMsgCreateMetaNode",
+			Handler:    _Msg_HandleMsgCreateMetaNode_Handler,
 		},
 		{
-			MethodName: "HandleMsgRemoveIndexingNode",
-			Handler:    _Msg_HandleMsgRemoveIndexingNode_Handler,
+			MethodName: "HandleMsgRemoveMetaNode",
+			Handler:    _Msg_HandleMsgRemoveMetaNode_Handler,
 		},
 		{
-			MethodName: "HandleMsgUpdateIndexingNode",
-			Handler:    _Msg_HandleMsgUpdateIndexingNode_Handler,
+			MethodName: "HandleMsgUpdateMetaNode",
+			Handler:    _Msg_HandleMsgUpdateMetaNode_Handler,
 		},
 		{
-			MethodName: "HandleMsgUpdateIndexingNodeStake",
-			Handler:    _Msg_HandleMsgUpdateIndexingNodeStake_Handler,
+			MethodName: "HandleMsgUpdateMetaNodeStake",
+			Handler:    _Msg_HandleMsgUpdateMetaNodeStake_Handler,
 		},
 		{
-			MethodName: "HandleMsgIndexingNodeRegistrationVote",
-			Handler:    _Msg_HandleMsgIndexingNodeRegistrationVote_Handler,
+			MethodName: "HandleMsgMetaNodeRegistrationVote",
+			Handler:    _Msg_HandleMsgMetaNodeRegistrationVote_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1388,7 +1388,7 @@ func (m *MsgCreateResourceNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCreateIndexingNode) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateMetaNode) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1398,12 +1398,12 @@ func (m *MsgCreateIndexingNode) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateIndexingNode) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateMetaNode) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateIndexingNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1459,7 +1459,7 @@ func (m *MsgCreateIndexingNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgCreateIndexingNodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgCreateMetaNodeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1469,12 +1469,12 @@ func (m *MsgCreateIndexingNodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgCreateIndexingNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgCreateMetaNodeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgCreateIndexingNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgCreateMetaNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1542,7 +1542,7 @@ func (m *MsgRemoveResourceNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRemoveIndexingNode) Marshal() (dAtA []byte, err error) {
+func (m *MsgRemoveMetaNode) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1552,12 +1552,12 @@ func (m *MsgRemoveIndexingNode) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRemoveIndexingNode) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRemoveMetaNode) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRemoveIndexingNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRemoveMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1569,17 +1569,17 @@ func (m *MsgRemoveIndexingNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.IndexingNodeAddress) > 0 {
-		i -= len(m.IndexingNodeAddress)
-		copy(dAtA[i:], m.IndexingNodeAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.IndexingNodeAddress)))
+	if len(m.MetaNodeAddress) > 0 {
+		i -= len(m.MetaNodeAddress)
+		copy(dAtA[i:], m.MetaNodeAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.MetaNodeAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgRemoveIndexingNodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgRemoveMetaNodeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1589,12 +1589,12 @@ func (m *MsgRemoveIndexingNodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgRemoveIndexingNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgRemoveMetaNodeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgRemoveIndexingNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgRemoveMetaNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1679,7 +1679,7 @@ func (m *MsgUpdateResourceNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateIndexingNode) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateMetaNode) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1689,12 +1689,12 @@ func (m *MsgUpdateIndexingNode) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateIndexingNode) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNode) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateIndexingNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1726,7 +1726,7 @@ func (m *MsgUpdateIndexingNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateIndexingNodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateMetaNodeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1736,12 +1736,12 @@ func (m *MsgUpdateIndexingNodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateIndexingNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateIndexingNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1831,7 +1831,7 @@ func (m *MsgUpdateResourceNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateIndexingNodeStake) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateMetaNodeStake) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1841,12 +1841,12 @@ func (m *MsgUpdateIndexingNodeStake) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateIndexingNodeStake) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeStake) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateIndexingNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1890,7 +1890,7 @@ func (m *MsgUpdateIndexingNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateIndexingNodeStakeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateMetaNodeStakeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1900,12 +1900,12 @@ func (m *MsgUpdateIndexingNodeStakeResponse) Marshal() (dAtA []byte, err error) 
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateIndexingNodeStakeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeStakeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateIndexingNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1913,7 +1913,7 @@ func (m *MsgUpdateIndexingNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgIndexingNodeRegistrationVote) Marshal() (dAtA []byte, err error) {
+func (m *MsgMetaNodeRegistrationVote) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1923,12 +1923,12 @@ func (m *MsgIndexingNodeRegistrationVote) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgIndexingNodeRegistrationVote) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgMetaNodeRegistrationVote) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgIndexingNodeRegistrationVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgMetaNodeRegistrationVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1974,7 +1974,7 @@ func (m *MsgIndexingNodeRegistrationVote) MarshalToSizedBuffer(dAtA []byte) (int
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgIndexingNodeRegistrationVoteResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgMetaNodeRegistrationVoteResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1984,12 +1984,12 @@ func (m *MsgIndexingNodeRegistrationVoteResponse) Marshal() (dAtA []byte, err er
 	return dAtA[:n], nil
 }
 
-func (m *MsgIndexingNodeRegistrationVoteResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgMetaNodeRegistrationVoteResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgIndexingNodeRegistrationVoteResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgMetaNodeRegistrationVoteResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2048,7 +2048,7 @@ func (m *MsgCreateResourceNodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgCreateIndexingNode) Size() (n int) {
+func (m *MsgCreateMetaNode) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2075,7 +2075,7 @@ func (m *MsgCreateIndexingNode) Size() (n int) {
 	return n
 }
 
-func (m *MsgCreateIndexingNodeResponse) Size() (n int) {
+func (m *MsgCreateMetaNodeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2110,13 +2110,13 @@ func (m *MsgRemoveResourceNodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgRemoveIndexingNode) Size() (n int) {
+func (m *MsgRemoveMetaNode) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.IndexingNodeAddress)
+	l = len(m.MetaNodeAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2127,7 +2127,7 @@ func (m *MsgRemoveIndexingNode) Size() (n int) {
 	return n
 }
 
-func (m *MsgRemoveIndexingNodeResponse) Size() (n int) {
+func (m *MsgRemoveMetaNodeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2168,7 +2168,7 @@ func (m *MsgUpdateResourceNodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateIndexingNode) Size() (n int) {
+func (m *MsgUpdateMetaNode) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2187,7 +2187,7 @@ func (m *MsgUpdateIndexingNode) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateIndexingNodeResponse) Size() (n int) {
+func (m *MsgUpdateMetaNodeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2229,7 +2229,7 @@ func (m *MsgUpdateResourceNodeStakeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateIndexingNodeStake) Size() (n int) {
+func (m *MsgUpdateMetaNodeStake) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2253,7 +2253,7 @@ func (m *MsgUpdateIndexingNodeStake) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateIndexingNodeStakeResponse) Size() (n int) {
+func (m *MsgUpdateMetaNodeStakeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2262,7 +2262,7 @@ func (m *MsgUpdateIndexingNodeStakeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgIndexingNodeRegistrationVote) Size() (n int) {
+func (m *MsgMetaNodeRegistrationVote) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2290,7 +2290,7 @@ func (m *MsgIndexingNodeRegistrationVote) Size() (n int) {
 	return n
 }
 
-func (m *MsgIndexingNodeRegistrationVoteResponse) Size() (n int) {
+func (m *MsgMetaNodeRegistrationVoteResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2606,7 +2606,7 @@ func (m *MsgCreateResourceNodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCreateIndexingNode) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateMetaNode) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2629,10 +2629,10 @@ func (m *MsgCreateIndexingNode) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateIndexingNode: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateMetaNode: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateIndexingNode: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateMetaNode: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2825,7 +2825,7 @@ func (m *MsgCreateIndexingNode) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgCreateIndexingNodeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgCreateMetaNodeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2848,10 +2848,10 @@ func (m *MsgCreateIndexingNodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgCreateIndexingNodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgCreateMetaNodeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgCreateIndexingNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgCreateMetaNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3039,7 +3039,7 @@ func (m *MsgRemoveResourceNodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRemoveIndexingNode) Unmarshal(dAtA []byte) error {
+func (m *MsgRemoveMetaNode) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3062,15 +3062,15 @@ func (m *MsgRemoveIndexingNode) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRemoveIndexingNode: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRemoveMetaNode: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRemoveIndexingNode: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRemoveMetaNode: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IndexingNodeAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaNodeAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3098,7 +3098,7 @@ func (m *MsgRemoveIndexingNode) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.IndexingNodeAddress = string(dAtA[iNdEx:postIndex])
+			m.MetaNodeAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -3153,7 +3153,7 @@ func (m *MsgRemoveIndexingNode) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgRemoveIndexingNodeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgRemoveMetaNodeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3176,10 +3176,10 @@ func (m *MsgRemoveIndexingNodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgRemoveIndexingNodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgRemoveMetaNodeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgRemoveIndexingNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgRemoveMetaNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3432,7 +3432,7 @@ func (m *MsgUpdateResourceNodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateIndexingNode) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateMetaNode) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3455,10 +3455,10 @@ func (m *MsgUpdateIndexingNode) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNode: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateMetaNode: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNode: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateMetaNode: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3579,7 +3579,7 @@ func (m *MsgUpdateIndexingNode) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateIndexingNodeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateMetaNodeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3602,10 +3602,10 @@ func (m *MsgUpdateIndexingNodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateMetaNodeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateMetaNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3849,7 +3849,7 @@ func (m *MsgUpdateResourceNodeStakeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateIndexingNodeStake) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateMetaNodeStake) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3872,10 +3872,10 @@ func (m *MsgUpdateIndexingNodeStake) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNodeStake: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateMetaNodeStake: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNodeStake: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateMetaNodeStake: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4019,7 +4019,7 @@ func (m *MsgUpdateIndexingNodeStake) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateIndexingNodeStakeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateMetaNodeStakeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4042,10 +4042,10 @@ func (m *MsgUpdateIndexingNodeStakeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNodeStakeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateMetaNodeStakeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateIndexingNodeStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateMetaNodeStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4069,7 +4069,7 @@ func (m *MsgUpdateIndexingNodeStakeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgIndexingNodeRegistrationVote) Unmarshal(dAtA []byte) error {
+func (m *MsgMetaNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4092,10 +4092,10 @@ func (m *MsgIndexingNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgIndexingNodeRegistrationVote: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgMetaNodeRegistrationVote: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgIndexingNodeRegistrationVote: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgMetaNodeRegistrationVote: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -4267,7 +4267,7 @@ func (m *MsgIndexingNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgIndexingNodeRegistrationVoteResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgMetaNodeRegistrationVoteResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4290,10 +4290,10 @@ func (m *MsgIndexingNodeRegistrationVoteResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgIndexingNodeRegistrationVoteResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgMetaNodeRegistrationVoteResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgIndexingNodeRegistrationVoteResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgMetaNodeRegistrationVoteResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
