@@ -19,10 +19,9 @@ type Keeper struct {
 	paramSpace       paramstypes.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
 	BankKeeper       types.BankKeeper
-	//SupplyKeeper     supply.Keeper
-	AccountKeeper  types.AccountKeeper
-	StakingKeeper  types.StakingKeeper
-	RegisterKeeper types.RegisterKeeper
+	AccountKeeper    types.AccountKeeper
+	StakingKeeper    types.StakingKeeper
+	RegisterKeeper   types.RegisterKeeper
 }
 
 // NewKeeper creates a pot keeper
@@ -36,10 +35,9 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspac
 		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
 		feeCollectorName: feeCollectorName,
 		BankKeeper:       bankKeeper,
-		//SupplyKeeper:     supplyKeeper,
-		AccountKeeper:  accountKeeper,
-		StakingKeeper:  stakingKeeper,
-		RegisterKeeper: registerKeeper,
+		AccountKeeper:    accountKeeper,
+		StakingKeeper:    stakingKeeper,
+		RegisterKeeper:   registerKeeper,
 	}
 	return keeper
 }
@@ -55,10 +53,7 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalle
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 	//distribute POT reward
-	//TODO: recovery when shift to main net
-	totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch) // Main net
-	//TODO: remove when shift to main net
-	//totalConsumedOzone, err = k.DistributePotRewardForTestnet(ctx, walletVolumes, epoch) // Incentive test net
+	totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch)
 
 	return totalConsumedOzone, err
 }

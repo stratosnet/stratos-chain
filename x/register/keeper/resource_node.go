@@ -82,7 +82,7 @@ func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.Resour
 	return
 }
 
-func (k Keeper) getResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
+func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
 	return iterator

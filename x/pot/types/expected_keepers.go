@@ -76,8 +76,9 @@ type RegisterKeeper interface {
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
 	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
 
-	GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes)
 	GetAllIndexingNodes(ctx sdk.Context) (indexingNodes types.IndexingNodes)
+	//GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes)
+	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 }
 
 type StakingKeeper interface {
