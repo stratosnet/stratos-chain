@@ -180,9 +180,9 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	params = types.NewQueryNodesParams(page, int(req.Pagination.Limit), networkAddr, req.GetMoniker(), ownerAddr)
 
 	resNodes := q.GetResourceNodesFiltered(ctx, params)
-	indNodes := q.GetMetaNodesFiltered(ctx, params)
+	metaNodes := q.GetMetaNodesFiltered(ctx, params)
 
-	for _, n := range indNodes {
+	for _, n := range metaNodes {
 		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
 			ctx,

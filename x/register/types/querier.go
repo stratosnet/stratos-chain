@@ -1,6 +1,8 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -34,7 +36,7 @@ func NewQueryNodesParams(page, limit int, networkAddr stratos.SdsAddress, monike
 
 type QueryNodeStakingParams struct {
 	AccAddr   stratos.SdsAddress
-	QueryType int64 //0:All(Default) 1: metaNode; 2: ResourceNode
+	QueryType int64 //0:All(Default) 1: MetaNode; 2: ResourceNode
 }
 
 // NewQueryNodeStakingParams creates a new instance of QueryNodesParams
@@ -114,4 +116,21 @@ func NewStakingInfoByMetaNodeAddr(
 		UnBondedStake:  &unBondedValue,
 		BondedStake:    &bonedValue,
 	}
+}
+
+type StakingInfos []StakingInfo
+
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (v StakingInfo) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(v.Pubkey, &pk)
+}
+
+func (v StakingInfos) UnpackInterfaces(c codectypes.AnyUnpacker) error {
+	for i := range v {
+		if err := v[i].UnpackInterfaces(c); err != nil {
+			return err
+		}
+	}
+	return nil
 }

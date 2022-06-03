@@ -233,7 +233,7 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	var (
 		params       types.QueryNodesParams
 		stakingInfo  types.StakingInfo
-		stakingInfos []types.StakingInfo
+		stakingInfos types.StakingInfos
 	)
 
 	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
@@ -243,20 +243,20 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	resNodes := k.GetResourceNodesFiltered(ctx, params)
 	metaNodes := k.GetMetaNodesFiltered(ctx, params)
 
-	for _, n := range metaNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+	for i, _ := range metaNodes {
+		networkAddr, _ := stratos.SdsAddressFromBech32(metaNodes[i].GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 			ctx,
-			n.GetStatus(),
+			metaNodes[i].GetStatus(),
 			networkAddr,
-			n.Tokens,
+			metaNodes[i].Tokens,
 		)
 		if err != nil {
 			return nil, err
 		}
-		if !n.Equal(types.MetaNode{}) {
+		if !metaNodes[i].Equal(types.MetaNode{}) {
 			stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-				n,
+				metaNodes[i],
 				unBondingStake,
 				unBondedStake,
 				bondedStake,
@@ -265,20 +265,20 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 		}
 	}
 
-	for _, n := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+	for i, _ := range resNodes {
+		networkAddr, _ := stratos.SdsAddressFromBech32(resNodes[i].GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 			ctx,
-			n.GetStatus(),
+			resNodes[i].GetStatus(),
 			networkAddr,
-			n.Tokens,
+			resNodes[i].Tokens,
 		)
 		if err != nil {
 			return nil, err
 		}
-		if !n.Equal(types.ResourceNode{}) {
+		if !resNodes[i].Equal(types.ResourceNode{}) {
 			stakingInfo = types.NewStakingInfoByResourceNodeAddr(
-				n,
+				resNodes[i],
 				unBondingStake,
 				unBondedStake,
 				bondedStake,
@@ -344,9 +344,9 @@ func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesPar
 	nodes := k.GetAllMetaNodes(ctx)
 	filteredNodes := make([]types.MetaNode, 0, len(nodes))
 
-	for _, n := range nodes {
+	for i, _ := range nodes {
 		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(nodes[i].GetNetworkAddress())
 		if er != nil {
 			continue
 		}
@@ -358,18 +358,18 @@ func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesPar
 
 		// match Moniker (if supplied)
 		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+			if strings.Compare(nodes[i].Description.Moniker, params.Moniker) != 0 {
 				continue
 			}
 		}
 
 		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddress())
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
 			continue
 		}
 		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
+			filteredNodes = append(filteredNodes, nodes[i])
 		}
 	}
 	return filteredNodes
@@ -379,9 +379,9 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	nodes := k.GetAllResourceNodes(ctx)
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
-	for _, n := range nodes {
+	for i, _ := range nodes {
 		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(nodes[i].GetNetworkAddress())
 		if er != nil {
 			continue
 		}
@@ -393,18 +393,18 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 
 		// match Moniker (if supplied)
 		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+			if strings.Compare(nodes[i].Description.Moniker, params.Moniker) != 0 {
 				continue
 			}
 		}
 
 		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddress())
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
 			continue
 		}
 		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
+			filteredNodes = append(filteredNodes, nodes[i])
 		}
 	}
 	return filteredNodes
