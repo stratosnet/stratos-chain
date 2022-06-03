@@ -240,7 +240,7 @@ func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.Fi
 	for ; iter.Valid(); iter.Next() {
 		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
 		var fileInfo types.FileInfo
-		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &fileInfo)
+		k.cdc.MustUnmarshal(iter.Value(), &fileInfo)
 		if handler(fileHash, fileInfo) {
 			break
 		}

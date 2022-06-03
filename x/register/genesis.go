@@ -43,14 +43,6 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		}
 		keeper.SetMetaNode(ctx, metaNode)
 	}
-	err = keeper.MintMetaNodeBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
-	if err != nil {
-		panic(err)
-	}
-	err = keeper.MintMetaNodeNotBondedTokenPool(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
-	if err != nil {
-		panic(err)
-	}
 
 	totalUnissuedPrepay := data.TotalUnissuedPrepay
 	initialUOzonePrice := sdk.ZeroDec()
@@ -59,13 +51,6 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
 	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
-	err = keeper.MintTotalUnissuedPrepayPool(ctx, sdk.Coin{
-		Denom:  data.Params.BondDenom,
-		Amount: totalUnissuedPrepay,
-	})
-	if err != nil {
-		panic(err)
-	}
 
 	for _, slashing := range data.Slashing {
 		walletAddress, err := sdk.AccAddressFromBech32(slashing.GetWalletAddress())
