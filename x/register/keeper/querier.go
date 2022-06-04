@@ -2,13 +2,15 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	db "github.com/tendermint/tm-db"
 
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -26,6 +28,7 @@ const (
 	QueryRegisterParams            = "register_params"
 
 	QueryDefaultLimit = 100
+	QueryDefaultPage  = 1
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -345,30 +348,30 @@ func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesPar
 	filteredNodes := make([]types.MetaNode, 0, len(nodes))
 
 	for i, _ := range nodes {
-		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(nodes[i].GetNetworkAddress())
-		if er != nil {
-			continue
-		}
-		if !params.NetworkAddr.Empty() {
-			if nodeNetworkAddr.Equals(params.NetworkAddr) {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(nodes[i].Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
+		//// match NetworkAddr (if supplied)
+		//nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+		//if er != nil {
+		//	continue
+		//}
+		//if !params.NetworkAddr.Empty() {
+		//	if nodeNetworkAddr.Equals(params.NetworkAddr) {
+		//		continue
+		//	}
+		//}
+		//
+		//// match Moniker (if supplied)
+		//if len(params.Moniker) > 0 {
+		//	if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+		//		continue
+		//	}
+		//}
 
 		// match OwnerAddr (if supplied)
 		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
 			continue
 		}
-		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
+		if nodeOwnerAddr.Equals(params.OwnerAddr) {
 			filteredNodes = append(filteredNodes, nodes[i])
 		}
 	}
@@ -380,32 +383,294 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
 	for i, _ := range nodes {
-		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(nodes[i].GetNetworkAddress())
-		if er != nil {
-			continue
-		}
-		if !params.NetworkAddr.Empty() {
-			if nodeNetworkAddr.Equals(params.NetworkAddr) {
-				continue
-			}
-		}
+		//// match NetworkAddr (if supplied)
+		//nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+		//if er != nil {
+		//	continue
+		//}
+		//if !params.NetworkAddr.Empty() {
+		//	if nodeNetworkAddr.Equals(params.NetworkAddr) {
+		//		continue
+		//	}
+		//}
+		//
+		//// match Moniker (if supplied)
+		//if len(params.Moniker) > 0 {
+		//	if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
+		//		continue
+		//	}
+		//}
 
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(nodes[i].Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
-		// match OwnerAddr (if supplied)
+		// match OwnerAddr
 		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
 			continue
 		}
-		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
+		if nodeOwnerAddr.Equals(params.OwnerAddr) {
 			filteredNodes = append(filteredNodes, nodes[i])
 		}
 	}
 	return filteredNodes
+}
+
+func Paginate(
+	prefixStore storetypes.KVStore,
+	pageRequest *pagiquery.PageRequest,
+	onResult func(key []byte, value []byte) error,
+) (*pagiquery.PageResponse, error) {
+
+	// if the PageRequest is nil, use default PageRequest
+	if pageRequest == nil {
+		pageRequest = &pagiquery.PageRequest{}
+	}
+
+	offset := pageRequest.Offset
+	key := pageRequest.Key
+	limit := pageRequest.Limit
+	countTotal := pageRequest.CountTotal
+	reverse := pageRequest.Reverse
+
+	if offset > 0 && key != nil {
+		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
+	}
+
+	if limit == 0 {
+		limit = QueryDefaultLimit
+
+		// count total results when the limit is zero/not supplied
+		countTotal = true
+	}
+
+	if len(key) != 0 {
+		iterator := getIterator(prefixStore, key, reverse)
+		defer iterator.Close()
+
+		var count uint64
+		var nextKey []byte
+
+		for ; iterator.Valid(); iterator.Next() {
+
+			if count == limit {
+				nextKey = iterator.Key()
+				break
+			}
+			if iterator.Error() != nil {
+				return nil, iterator.Error()
+			}
+			err := onResult(iterator.Key(), iterator.Value())
+			if err != nil {
+				return nil, err
+			}
+
+			count++
+		}
+
+		return &pagiquery.PageResponse{
+			NextKey: nextKey,
+		}, nil
+	}
+
+	iterator := getIterator(prefixStore, nil, reverse)
+	defer iterator.Close()
+
+	end := offset + limit
+
+	var count uint64
+	var nextKey []byte
+
+	for ; iterator.Valid(); iterator.Next() {
+		count++
+
+		if count <= offset {
+			continue
+		}
+		if count <= end {
+			err := onResult(iterator.Key(), iterator.Value())
+			if err != nil {
+				return nil, err
+			}
+		} else if count == end+1 {
+			nextKey = iterator.Key()
+
+			if !countTotal {
+				break
+			}
+		}
+		if iterator.Error() != nil {
+			return nil, iterator.Error()
+		}
+	}
+
+	res := &pagiquery.PageResponse{NextKey: nextKey}
+	if countTotal {
+		res.Total = count
+	}
+
+	return res, nil
+}
+
+func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
+	if reverse {
+		var end []byte
+		if start != nil {
+			itr := prefixStore.Iterator(start, nil)
+			defer itr.Close()
+			if itr.Valid() {
+				itr.Next()
+				end = itr.Key()
+			}
+		}
+		return prefixStore.ReverseIterator(nil, end)
+	}
+	return prefixStore.Iterator(start, nil)
+}
+
+func FilteredPaginate(cdc codec.Codec,
+	prefixStore storetypes.KVStore,
+	queryOwnerAddr sdk.AccAddress,
+	pageRequest *pagiquery.PageRequest,
+	onResult func(key []byte, value []byte, accumulate bool) (bool, error),
+) (*pagiquery.PageResponse, error) {
+
+	// if the PageRequest is nil, use default PageRequest
+	if pageRequest == nil {
+		pageRequest = &pagiquery.PageRequest{}
+	}
+
+	offset := pageRequest.Offset
+	key := pageRequest.Key
+	limit := pageRequest.Limit
+	countTotal := pageRequest.CountTotal
+	reverse := pageRequest.Reverse
+
+	if offset > 0 && key != nil {
+		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
+	}
+
+	if limit == 0 {
+		limit = QueryDefaultLimit
+
+		// count total results when the limit is zero/not supplied
+		countTotal = true
+	}
+
+	if len(key) != 0 {
+		iterator := getIterator(prefixStore, key, reverse)
+		defer iterator.Close()
+
+		var numHits uint64
+		var nextKey []byte
+
+		for ; iterator.Valid(); iterator.Next() {
+			if numHits == limit {
+				nextKey = iterator.Key()
+				break
+			}
+
+			if iterator.Error() != nil {
+				return nil, iterator.Error()
+			}
+
+			hit, err := onResult(iterator.Key(), iterator.Value(), true)
+			if err != nil {
+				return nil, err
+			}
+
+			if hit {
+				numHits++
+			}
+		}
+
+		return &pagiquery.PageResponse{
+			NextKey: nextKey,
+		}, nil
+	}
+
+	iterator := getIterator(prefixStore, nil, reverse)
+	defer iterator.Close()
+
+	end := offset + limit
+
+	var numHits uint64
+	var nextKey []byte
+
+	for ; iterator.Valid(); iterator.Next() {
+		if iterator.Error() != nil {
+			return nil, iterator.Error()
+		}
+		metaNode := types.MustUnmarshalMetaNode(cdc, iterator.Value())
+		ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
+		if err != nil {
+			continue
+		}
+
+		if queryOwnerAddr.String() != ownerAddr.String() {
+			continue
+		}
+		accumulate := numHits >= offset && numHits < end
+		hit, err := onResult(iterator.Key(), iterator.Value(), accumulate)
+		if err != nil {
+			return nil, err
+		}
+
+		if hit {
+			numHits++
+		}
+
+		if numHits == end+1 {
+			nextKey = iterator.Key()
+
+			if !countTotal {
+				break
+			}
+		}
+	}
+
+	res := &pagiquery.PageResponse{NextKey: nextKey}
+	if countTotal {
+		res.Total = numHits
+	}
+
+	return res, nil
+}
+
+func StakingInfosToStakingInfoResponses(
+	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
+) ([]*types.StakingInfo, error) {
+	resp := make([]*types.StakingInfo, len(metaNodes))
+
+	for i, metaNode := range metaNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoResponse(ctx, k, metaNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+	}
+
+	return resp, nil
+}
+
+func StakingInfoToStakingInfoResponse(ctx sdk.Context, k Keeper, node types.MetaNode) (types.StakingInfo, error) {
+	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
+	stakingInfo := types.StakingInfo{}
+	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+		ctx,
+		node.GetStatus(),
+		networkAddr,
+		node.Tokens,
+	)
+	if er != nil {
+		return stakingInfo, er
+	}
+
+	if !node.Equal(types.MetaNode{}) {
+		stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+			node,
+			unBondingStake,
+			unBondedStake,
+			bondedStake,
+		)
+	}
+	return stakingInfo, nil
 }

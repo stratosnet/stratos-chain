@@ -2,9 +2,9 @@ package keeper
 
 import (
 	"context"
-	"strconv"
+	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -156,83 +156,107 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var (
-		params       types.QueryNodesParams
-		stakingInfo  types.StakingInfo
-		stakingInfos []*types.StakingInfo
-	)
-
-	networkAddr, er := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
-	if er != nil {
-		return &types.QueryStakeByOwnerResponse{}, er
-	}
+	var metaNodes types.MetaNodes
 
 	ownerAddr, er := sdk.AccAddressFromBech32(req.GetOwnerAddr())
 	if er != nil {
 		return &types.QueryStakeByOwnerResponse{}, er
 	}
 
-	page, er := strconv.Atoi(string(req.Pagination.Key))
-	if er != nil {
-		return &types.QueryStakeByOwnerResponse{}, er
+	store := ctx.KVStore(q.storeKey)
+	resourceNodeStore := prefix.NewStore(store, types.MetaNodeKey)
+
+	pageRes, err := FilteredPaginate(q.cdc, resourceNodeStore, ownerAddr, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		val, err := types.UnmarshalMetaNode(q.cdc, value)
+		if err != nil {
+			return false, err
+		}
+
+		if accumulate {
+			metaNodes = append(metaNodes, val)
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
+	}
+	fmt.Println("MetaNodes: ", metaNodes)
+
+	stakingInfoResponses, err := StakingInfosToStakingInfoResponses(ctx, q.Keeper, metaNodes)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	params = types.NewQueryNodesParams(page, int(req.Pagination.Limit), networkAddr, req.GetMoniker(), ownerAddr)
+	return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfoResponses, Pagination: pageRes}, nil
 
-	resNodes := q.GetResourceNodesFiltered(ctx, params)
-	metaNodes := q.GetMetaNodesFiltered(ctx, params)
-
-	for _, n := range metaNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
-			ctx,
-			n.GetStatus(),
-			networkAddr,
-			n.Tokens,
-		)
-		if er != nil {
-			return nil, er
-		}
-		if !n.Equal(types.MetaNode{}) {
-			stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-				n,
-				unBondingStake,
-				unBondedStake,
-				bondedStake,
-			)
-			stakingInfos = append(stakingInfos, &stakingInfo)
-		}
-	}
-
-	for _, n := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
-			ctx,
-			n.GetStatus(),
-			networkAddr,
-			n.Tokens,
-		)
-		if er != nil {
-			return nil, er
-		}
-		if !n.Equal(types.ResourceNode{}) {
-			stakingInfo = types.NewStakingInfoByResourceNodeAddr(
-				n,
-				unBondingStake,
-				unBondedStake,
-				bondedStake,
-			)
-			stakingInfos = append(stakingInfos, &stakingInfo)
-		}
-	}
-
-	start, end := client.Paginate(len(stakingInfos), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return &types.QueryStakeByOwnerResponse{}, nil
-	} else {
-		stakingInfos = stakingInfos[start:end]
-		return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfos}, nil
-	}
+	//page := req.GetPage()
+	//if page == 0 {
+	//	page = QueryDefaultPage
+	//}
+	//
+	//limit := req.GetLimit()
+	//if limit == 0 {
+	//	limit = QueryDefaultLimit
+	//}
+	//
+	//params = types.NewQueryNodesParams(int(page), int(limit), nil, "", ownerAddr)
+	//
+	//resNodes := q.GetResourceNodesFiltered(ctx, params)
+	//metaNodes := q.GetMetaNodesFiltered(ctx, params)
+	//
+	//for i, _ := range metaNodes {
+	//	networkAddr, _ := stratos.SdsAddressFromBech32(metaNodes[i].GetNetworkAddress())
+	//	unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
+	//		ctx,
+	//		metaNodes[i].GetStatus(),
+	//		networkAddr,
+	//		metaNodes[i].Tokens,
+	//	)
+	//	if er != nil {
+	//		return nil, er
+	//	}
+	//	if !metaNodes[i].Equal(types.MetaNode{}) {
+	//		stakingInfo := types.NewStakingInfoByMetaNodeAddr(
+	//			metaNodes[i],
+	//			unBondingStake,
+	//			unBondedStake,
+	//			bondedStake,
+	//		)
+	//		stakingInfos = append(stakingInfos, stakingInfo)
+	//	}
+	//}
+	//
+	//for i, _ := range resNodes {
+	//	networkAddr, _ := stratos.SdsAddressFromBech32(resNodes[i].GetNetworkAddress())
+	//	unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
+	//		ctx,
+	//		resNodes[i].GetStatus(),
+	//		networkAddr,
+	//		resNodes[i].Tokens,
+	//	)
+	//	if er != nil {
+	//		return nil, er
+	//	}
+	//	if !resNodes[i].Equal(types.ResourceNode{}) {
+	//		stakingInfo := types.NewStakingInfoByResourceNodeAddr(
+	//			resNodes[i],
+	//			unBondingStake,
+	//			unBondedStake,
+	//			bondedStake,
+	//		)
+	//		stakingInfos = append(stakingInfos, stakingInfo)
+	//	}
+	//}
+	//
+	//start, end := client.Paginate(len(stakingInfos), params.Page, params.Limit, QueryDefaultLimit)
+	//if start < 0 || end < 0 {
+	//	return &types.QueryStakeByOwnerResponse{}, nil
+	//} else {
+	//	stakingInfos = stakingInfos[start:end]
+	//	return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfos}, nil
+	//}
 
 }
 
