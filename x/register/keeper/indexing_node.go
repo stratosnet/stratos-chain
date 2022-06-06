@@ -245,15 +245,19 @@ func (k Keeper) SubtractMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, 
 	//k.SetMetaNodeNotBondedToken(ctx, notBondedTokenInPool)
 
 	// deduct slashing amount first, slashed amt goes into TotalSlashedPool
-	coins, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
-	// add tokens to owner acc
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.MetaNodeNotBondedPoolName, ownerAddr, coins)
-	if err != nil {
-		return err
+	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
+	if !remaining.IsZero() {
+		// add remaining tokens to owner acc
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.MetaNodeNotBondedPoolName, ownerAddr, remaining)
+		if err != nil {
+			return err
+		}
 	}
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPoolName, types.TotalSlashedPoolName, slashed)
-	if err != nil {
-		return err
+	if !slashed.IsZero() {
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPoolName, types.TotalSlashedPoolName, slashed)
+		if err != nil {
+			return err
+		}
 	}
 
 	metaNode = metaNode.SubToken(tokenToSub.Amount)
@@ -472,25 +476,6 @@ func (k Keeper) UpdateMetaNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddr
 	}
 }
 
-func (k Keeper) MintMetaNodeBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
-	metaNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPoolName)
-	if metaNodeBondedPoolAcc == nil {
-		return types.ErrUnknownAccountAddress
-	}
-	hasCoin := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
-	// can only mint when balance is 0 TODO To be tested
-	if hasCoin.Amount.GT(sdk.ZeroInt()) {
-		return types.ErrInitialBalanceNotZero
-	}
-	return k.bankKeeper.MintCoins(ctx, types.MetaNodeBondedPoolName, sdk.NewCoins(initialCoins))
-}
-
-//func (k Keeper) SetMetaNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-//	store.Set(types.MetaNodeBondedTokenKey, bz)
-//}
-
 func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	metaNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPoolName)
 	if metaNodeBondedAccAddr == nil {
@@ -502,25 +487,6 @@ func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	}
 	return k.bankKeeper.GetBalance(ctx, metaNodeBondedAccAddr, k.BondDenom(ctx))
 }
-
-func (k Keeper) MintMetaNodeNotBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
-	metaNodeNotBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPoolName)
-	if metaNodeNotBondedPoolAcc == nil {
-		return types.ErrUnknownAccountAddress
-	}
-	hasCoin := k.bankKeeper.GetBalance(ctx, metaNodeNotBondedPoolAcc, k.BondDenom(ctx))
-	// can only mint when balance is 0 TODO To be tested
-	if hasCoin.Amount.GT(sdk.ZeroInt()) {
-		return types.ErrInitialBalanceNotZero
-	}
-	return k.bankKeeper.MintCoins(ctx, types.MetaNodeNotBondedPoolName, sdk.NewCoins(initialCoins))
-}
-
-//func (k Keeper) SetMetaNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-//	store.Set(types.MetaNodeNotBondedTokenKey, bz)
-//}
 
 func (k Keeper) GetMetaNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	metaNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPoolName)

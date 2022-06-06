@@ -187,19 +187,6 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, r
 	if err != nil {
 		return types.ErrInsufficientBalance
 	}
-
-	//// get pools
-	//bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-	//notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
-	//if bondedTokenInPool.IsLT(tokenToSub) {
-	//	return types.ErrInsufficientBalanceOfBondedPool
-	//}
-	//// remove token from BondedPool
-	//bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-	//k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
-	//// add token into NotBondedPool
-	//notBondedTokenInPool = notBondedTokenInPool.Add(tokenToSub)
-	//k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
 	return nil
 }
 
@@ -236,23 +223,21 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	if !hasCoin {
 		return types.ErrInsufficientBalanceOfNotBondedPool
 	}
-	//notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
-	//if notBondedTokenInPool.IsLT(tokenToSub) {
-	//	return types.ErrInsufficientBalanceOfNotBondedPool
-	//}
-	//notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
-	//k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
 
 	// deduct slashing amount first, slashed amt goes into TotalSlashedPool
-	coins, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
-	// add tokens to owner acc
-	err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ResourceNodeNotBondedPoolName, ownerAddr, coins)
-	if err != nil {
-		return err
+	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
+	if !remaining.IsZero() {
+		// add remaining tokens to owner acc
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ResourceNodeNotBondedPoolName, ownerAddr, remaining)
+		if err != nil {
+			return err
+		}
 	}
-	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPoolName, types.TotalSlashedPoolName, slashed)
-	if err != nil {
-		return err
+	if !slashed.IsZero() {
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPoolName, types.TotalSlashedPoolName, slashed)
+		if err != nil {
+			return err
+		}
 	}
 
 	resourceNode = resourceNode.SubToken(tokenToSub.Amount)
@@ -355,25 +340,6 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 	}
 }
 
-func (k Keeper) MintResourceNodeBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
-	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
-	if resourceNodeBondedPoolAcc == nil {
-		return types.ErrUnknownAccountAddress
-	}
-	hasCoin := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
-	// can only mint when balance is 0 TODO To be tested
-	if hasCoin.Amount.GT(sdk.ZeroInt()) {
-		return types.ErrInitialBalanceNotZero
-	}
-	return k.bankKeeper.MintCoins(ctx, types.ResourceNodeBondedPoolName, sdk.NewCoins(initialCoins))
-}
-
-//func (k Keeper) SetResourceNodeBondedToken(ctx sdk.Context, token sdk.Coin) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-//	store.Set(types.ResourceNodeBondedTokenKey, bz)
-//}
-
 func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
 	if resourceNodeBondedAccAddr == nil {
@@ -384,33 +350,7 @@ func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, resourceNodeBondedAccAddr, k.BondDenom(ctx))
-	//store := ctx.KVStore(k.storeKey)
-	//bz := store.Get(types.ResourceNodeBondedTokenKey)
-	//if bz == nil {
-	//	return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-	//}
-	//k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
-	//return token
 }
-
-func (k Keeper) MintResourceNodeNotBondedTokenPool(ctx sdk.Context, initialCoins sdk.Coin) error {
-	resourceNodeNotBondedPoolAcc := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
-	if resourceNodeNotBondedPoolAcc == nil {
-		return types.ErrUnknownAccountAddress
-	}
-	hasCoin := k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedPoolAcc, k.BondDenom(ctx))
-	// can only mint when balance is 0 TODO To be tested
-	if hasCoin.Amount.GT(sdk.ZeroInt()) {
-		return types.ErrInitialBalanceNotZero
-	}
-	return k.bankKeeper.MintCoins(ctx, types.ResourceNodeNotBondedPoolName, sdk.NewCoins(initialCoins))
-}
-
-//func (k Keeper) SetResourceNodeNotBondedToken(ctx sdk.Context, token sdk.Coin) {
-//	store := ctx.KVStore(k.storeKey)
-//	bz := k.cdc.MustMarshalLengthPrefixed(&token)
-//	store.Set(types.ResourceNodeNotBondedTokenKey, bz)
-//}
 
 func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	resourceNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
@@ -422,12 +362,4 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedAccAddr, k.BondDenom(ctx))
-
-	//store := ctx.KVStore(k.storeKey)
-	//bz := store.Get(types.ResourceNodeNotBondedTokenKey)
-	//if bz == nil {
-	//	return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-	//}
-	//k.cdc.MustUnmarshalLengthPrefixed(bz, &token)
-	//return token
 }
