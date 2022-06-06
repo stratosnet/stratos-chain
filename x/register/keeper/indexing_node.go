@@ -137,11 +137,6 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 	if !hasCoin {
 		return sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
-	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, ownerAddr, types.ModuleName, coins)
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
-
 	targetModuleAccName := ""
 
 	switch metaNode.GetStatus() {
@@ -189,19 +184,6 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingMetaNode(ctx sdk.Context, metaN
 	if err != nil {
 		return types.ErrInsufficientBalance
 	}
-
-	//// get pools
-	//bondedTokenInPool := k.GetMetaNodeBondedToken(ctx)
-	//notBondedTokenInPool := k.GetMetaNodeNotBondedToken(ctx)
-	//if bondedTokenInPool.IsLT(tokenToSub) {
-	//	return types.ErrInsufficientBalanceOfBondedPool
-	//}
-	//// remove token from BondedPool
-	//bondedTokenInPool = bondedTokenInPool.Sub(tokenToSub)
-	//k.SetMetaNodeBondedToken(ctx, bondedTokenInPool)
-	//// add token into NotBondedPool
-	//notBondedTokenInPool = notBondedTokenInPool.Add(tokenToSub)
-	//k.SetMetaNodeNotBondedToken(ctx, notBondedTokenInPool)
 	return nil
 }
 
