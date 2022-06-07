@@ -80,28 +80,6 @@ func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	return
 }
 
-// SetTotalUnissuedPrepay is deprecated after starting to use TotalUnissuedPrepay module acc
-//func (k Keeper) SetTotalUnissuedPrepay(ctx sdk.Context, totalUnissuedPrepay sdk.Coin) {
-//	store := ctx.KVStore(k.storeKey)
-//	b := types.ModuleCdc.MustMarshalLengthPrefixed(totalUnissuedPrepay)
-//	store.Set(types.TotalUnissuedPrepayKey, b)
-//}
-func (k Keeper) MintTotalUnissuedPrepayPool(ctx sdk.Context, initialCoins sdk.Coin) error {
-	totalUnissuedPrepayAcc := k.accountKeeper.GetModuleAddress(types.TotalUnissuedPrepayName)
-	if totalUnissuedPrepayAcc == nil {
-		return types.ErrUnknownAccountAddress
-	}
-	hasCoin := k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAcc, k.BondDenom(ctx))
-	// can only mint when balance is 0 TODO To be tested
-	if hasCoin.Amount.GT(sdk.ZeroInt()) {
-		return types.ErrInitialBalanceNotZero
-	}
-	return k.bankKeeper.MintCoins(ctx, types.TotalUnissuedPrepayName, sdk.NewCoins(initialCoins))
-	//store := ctx.KVStore(k.storeKey)
-	//b := types.ModuleCdc.MustMarshalLengthPrefixed(totalUnissuedPrepay)
-	//store.Set(types.TotalUnissuedPrepayKey, b)
-}
-
 func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fromWallet sdk.AccAddress, coinToSend sdk.Coin) error {
 	fromAcc := k.accountKeeper.GetAccount(ctx, fromWallet)
 	if fromAcc == nil {
@@ -112,10 +90,6 @@ func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fr
 		return types.ErrInsufficientBalance
 	}
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromWallet, types.TotalUnissuedPrepayName, sdk.NewCoins(coinToSend))
-
-	//store := ctx.KVStore(k.storeKey)
-	//b := types.ModuleCdc.MustMarshalLengthPrefixed(totalUnissuedPrepay)
-	//store.Set(types.TotalUnissuedPrepayKey, b)
 }
 
 func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
@@ -128,13 +102,6 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAccAddr, k.BondDenom(ctx))
-	//store := ctx.KVStore(k.storeKey)
-	//b := store.Get(types.TotalUnissuedPrepayKey)
-	//if b == nil {
-	//	return sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-	//}
-	//types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &totalUnissuedPrepay)
-	//return
 }
 
 func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {

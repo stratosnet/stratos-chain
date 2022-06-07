@@ -28,11 +28,11 @@ func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	fileHashByteArr, err := hex.DecodeString(req.GetFileHash())
+	_, err := hex.DecodeString(req.GetFileHash())
 	if err != nil {
 		return &types.QueryFileUploadResponse{}, fmt.Errorf("invalid file hash, please specify a hash in hex format %w", err)
 	}
-	fileInfoBytes, err := q.GetFileInfoBytesByFileHash(ctx, fileHashByteArr)
+	fileInfoBytes, err := q.GetFileInfoBytesByFileHash(ctx, []byte(req.GetFileHash()))
 	if err != nil {
 		return &types.QueryFileUploadResponse{}, err
 	}

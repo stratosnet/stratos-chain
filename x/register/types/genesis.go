@@ -14,28 +14,25 @@ func NewGenesisState(params *Params,
 	resourceNodes ResourceNodes,
 	metaNodes MetaNodes,
 	initialUOzonePrice sdk.Dec,
-	totalUnissuedPrepay sdk.Int,
 	slashingInfo []*Slashing,
 ) GenesisState {
 	return GenesisState{
-		Params:              params,
-		ResourceNodes:       resourceNodes,
-		MetaNodes:           metaNodes,
-		InitialUozPrice:     initialUOzonePrice,
-		TotalUnissuedPrepay: totalUnissuedPrepay,
-		Slashing:            slashingInfo,
+		Params:          params,
+		ResourceNodes:   resourceNodes,
+		MetaNodes:       metaNodes,
+		InitialUozPrice: initialUOzonePrice,
+		Slashing:        slashingInfo,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:              DefaultParams(),
-		ResourceNodes:       ResourceNodes{},
-		MetaNodes:           MetaNodes{},
-		InitialUozPrice:     DefaultUozPrice,
-		TotalUnissuedPrepay: DefaultTotalUnissuedPrepay,
-		Slashing:            make([]*Slashing, 0),
+		Params:          DefaultParams(),
+		ResourceNodes:   ResourceNodes{},
+		MetaNodes:       MetaNodes{},
+		InitialUozPrice: DefaultUozPrice,
+		Slashing:        make([]*Slashing, 0),
 	}
 }
 
@@ -63,10 +60,6 @@ func ValidateGenesis(data GenesisState) error {
 	}
 
 	if (data.InitialUozPrice).LTE(sdk.ZeroDec()) {
-		return ErrInitialUOzonePrice
-	}
-
-	if data.TotalUnissuedPrepay.LT(sdk.ZeroInt()) {
 		return ErrInitialUOzonePrice
 	}
 	return nil

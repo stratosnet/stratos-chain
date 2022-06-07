@@ -34,12 +34,7 @@ message GenesisState {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
   ]; //initial price of uoz
-  string                            total_unissued_prepay = 5 [
-    (gogoproto.moretags) = "yaml:\"total_unissued_prepay\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable)   = false
-  ];
-  repeated register.v1.Slashing     slashing = 6 [ (gogoproto.moretags) = "yaml:\"slashing_info\"" ];
+  repeated register.v1.Slashing     slashing = 5 [ (gogoproto.moretags) = "yaml:\"slashing_info\"" ];
 }
 
 message GenesisMetaNode {
