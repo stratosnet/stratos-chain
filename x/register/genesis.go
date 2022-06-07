@@ -16,14 +16,12 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	for _, resourceNode := range data.GetResourceNodes() {
 		if resourceNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
-		} else if resourceNode.GetStatus() == stakingtypes.Unbonded {
 		}
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
 	for _, metaNode := range data.GetMetaNodes() {
 		if metaNode.GetStatus() == stakingtypes.Bonded {
 			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
-		} else if metaNode.GetStatus() == stakingtypes.Unbonded {
 		}
 		keeper.SetMetaNode(ctx, metaNode)
 	}
