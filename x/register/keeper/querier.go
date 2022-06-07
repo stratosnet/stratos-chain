@@ -413,101 +413,101 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	return filteredNodes
 }
 
-func Paginate(
-	prefixStore storetypes.KVStore,
-	pageRequest *pagiquery.PageRequest,
-	onResult func(key []byte, value []byte) error,
-) (*pagiquery.PageResponse, error) {
-
-	// if the PageRequest is nil, use default PageRequest
-	if pageRequest == nil {
-		pageRequest = &pagiquery.PageRequest{}
-	}
-
-	offset := pageRequest.Offset
-	key := pageRequest.Key
-	limit := pageRequest.Limit
-	countTotal := pageRequest.CountTotal
-	reverse := pageRequest.Reverse
-
-	if offset > 0 && key != nil {
-		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
-	}
-
-	if limit == 0 {
-		limit = QueryDefaultLimit
-
-		// count total results when the limit is zero/not supplied
-		countTotal = true
-	}
-
-	if len(key) != 0 {
-		iterator := getIterator(prefixStore, key, reverse)
-		defer iterator.Close()
-
-		var count uint64
-		var nextKey []byte
-
-		for ; iterator.Valid(); iterator.Next() {
-
-			if count == limit {
-				nextKey = iterator.Key()
-				break
-			}
-			if iterator.Error() != nil {
-				return nil, iterator.Error()
-			}
-			err := onResult(iterator.Key(), iterator.Value())
-			if err != nil {
-				return nil, err
-			}
-
-			count++
-		}
-
-		return &pagiquery.PageResponse{
-			NextKey: nextKey,
-		}, nil
-	}
-
-	iterator := getIterator(prefixStore, nil, reverse)
-	defer iterator.Close()
-
-	end := offset + limit
-
-	var count uint64
-	var nextKey []byte
-
-	for ; iterator.Valid(); iterator.Next() {
-		count++
-
-		if count <= offset {
-			continue
-		}
-		if count <= end {
-			err := onResult(iterator.Key(), iterator.Value())
-			if err != nil {
-				return nil, err
-			}
-		} else if count == end+1 {
-			nextKey = iterator.Key()
-
-			if !countTotal {
-				break
-			}
-		}
-		if iterator.Error() != nil {
-			return nil, iterator.Error()
-		}
-	}
-
-	res := &pagiquery.PageResponse{NextKey: nextKey}
-	if countTotal {
-		res.Total = count
-	}
-
-	return res, nil
-}
+//func Paginate(
+//	prefixStore storetypes.KVStore,
+//	pageRequest *pagiquery.PageRequest,
+//	onResult func(key []byte, value []byte) error,
+//) (*pagiquery.PageResponse, error) {
+//
+//	// if the PageRequest is nil, use default PageRequest
+//	if pageRequest == nil {
+//		pageRequest = &pagiquery.PageRequest{}
+//	}
+//
+//	offset := pageRequest.Offset
+//	key := pageRequest.Key
+//	limit := pageRequest.Limit
+//	countTotal := pageRequest.CountTotal
+//	reverse := pageRequest.Reverse
+//
+//	if offset > 0 && key != nil {
+//		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
+//	}
+//
+//	if limit == 0 {
+//		limit = QueryDefaultLimit
+//
+//		// count total results when the limit is zero/not supplied
+//		countTotal = true
+//	}
+//
+//	if len(key) != 0 {
+//		iterator := getIterator(prefixStore, key, reverse)
+//		defer iterator.Close()
+//
+//		var count uint64
+//		var nextKey []byte
+//
+//		for ; iterator.Valid(); iterator.Next() {
+//
+//			if count == limit {
+//				nextKey = iterator.Key()
+//				break
+//			}
+//			if iterator.Error() != nil {
+//				return nil, iterator.Error()
+//			}
+//			err := onResult(iterator.Key(), iterator.Value())
+//			if err != nil {
+//				return nil, err
+//			}
+//
+//			count++
+//		}
+//
+//		return &pagiquery.PageResponse{
+//			NextKey: nextKey,
+//		}, nil
+//	}
+//
+//	iterator := getIterator(prefixStore, nil, reverse)
+//	defer iterator.Close()
+//
+//	end := offset + limit
+//
+//	var count uint64
+//	var nextKey []byte
+//
+//	for ; iterator.Valid(); iterator.Next() {
+//		count++
+//
+//		if count <= offset {
+//			continue
+//		}
+//		if count <= end {
+//			err := onResult(iterator.Key(), iterator.Value())
+//			if err != nil {
+//				return nil, err
+//			}
+//		} else if count == end+1 {
+//			nextKey = iterator.Key()
+//
+//			if !countTotal {
+//				break
+//			}
+//		}
+//		if iterator.Error() != nil {
+//			return nil, iterator.Error()
+//		}
+//	}
+//
+//	res := &pagiquery.PageResponse{NextKey: nextKey}
+//	if countTotal {
+//		res.Total = count
+//	}
+//
+//	return res, nil
+//}
 
 func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
 	if reverse {
@@ -551,7 +551,7 @@ func FilteredPaginate(cdc codec.Codec,
 		limit = QueryDefaultLimit
 
 		// count total results when the limit is zero/not supplied
-		countTotal = true
+		countTotal = pageRequest.CountTotal
 	}
 
 	if len(key) != 0 {
@@ -560,6 +560,7 @@ func FilteredPaginate(cdc codec.Codec,
 
 		var numHits uint64
 		var nextKey []byte
+		var ownerAddr sdk.AccAddress
 
 		for ; iterator.Valid(); iterator.Next() {
 			if numHits == limit {
@@ -569,6 +570,32 @@ func FilteredPaginate(cdc codec.Codec,
 
 			if iterator.Error() != nil {
 				return nil, iterator.Error()
+			}
+
+			if prefixStore.Has(types.MetaNodeKey) {
+				metaNode, err := types.UnmarshalMetaNode(cdc, iterator.Value())
+				if err != nil {
+					continue
+				}
+
+				ownerAddr, err = sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
+				if err != nil {
+					continue
+				}
+			} else {
+				resourceNode, err := types.UnmarshalResourceNode(cdc, iterator.Value())
+				if err != nil {
+					continue
+				}
+
+				ownerAddr, err = sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
+				if err != nil {
+					continue
+				}
+			}
+
+			if queryOwnerAddr.String() != ownerAddr.String() {
+				continue
 			}
 
 			hit, err := onResult(iterator.Key(), iterator.Value(), true)
@@ -593,15 +620,33 @@ func FilteredPaginate(cdc codec.Codec,
 
 	var numHits uint64
 	var nextKey []byte
+	var ownerAddr sdk.AccAddress
 
 	for ; iterator.Valid(); iterator.Next() {
 		if iterator.Error() != nil {
 			return nil, iterator.Error()
 		}
-		metaNode := types.MustUnmarshalMetaNode(cdc, iterator.Value())
-		ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
-		if err != nil {
-			continue
+
+		if prefixStore.Has(types.MetaNodeKey) {
+			metaNode, err := types.UnmarshalMetaNode(cdc, iterator.Value())
+			if err != nil {
+				continue
+			}
+
+			ownerAddr, err = sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
+			if err != nil {
+				continue
+			}
+		} else {
+			resourceNode, err := types.UnmarshalResourceNode(cdc, iterator.Value())
+			if err != nil {
+				continue
+			}
+
+			ownerAddr, err = sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
+			if err != nil {
+				continue
+			}
 		}
 
 		if queryOwnerAddr.String() != ownerAddr.String() {
@@ -632,45 +677,4 @@ func FilteredPaginate(cdc codec.Codec,
 	}
 
 	return res, nil
-}
-
-func StakingInfosToStakingInfoResponses(
-	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
-) ([]*types.StakingInfo, error) {
-	resp := make([]*types.StakingInfo, len(metaNodes))
-
-	for i, metaNode := range metaNodes {
-		stakingInfoResp, err := StakingInfoToStakingInfoResponse(ctx, k, metaNode)
-		if err != nil {
-			return nil, err
-		}
-
-		resp[i] = &stakingInfoResp
-	}
-
-	return resp, nil
-}
-
-func StakingInfoToStakingInfoResponse(ctx sdk.Context, k Keeper, node types.MetaNode) (types.StakingInfo, error) {
-	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
-	stakingInfo := types.StakingInfo{}
-	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
-		ctx,
-		node.GetStatus(),
-		networkAddr,
-		node.Tokens,
-	)
-	if er != nil {
-		return stakingInfo, er
-	}
-
-	if !node.Equal(types.MetaNode{}) {
-		stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-			node,
-			unBondingStake,
-			unBondedStake,
-			bondedStake,
-		)
-	}
-	return stakingInfo, nil
 }
