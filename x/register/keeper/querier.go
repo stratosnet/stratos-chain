@@ -28,7 +28,6 @@ const (
 	QueryRegisterParams            = "register_params"
 
 	QueryDefaultLimit = 100
-	QueryDefaultPage  = 1
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -348,24 +347,6 @@ func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesPar
 	filteredNodes := make([]types.MetaNode, 0, len(nodes))
 
 	for i, _ := range nodes {
-		//// match NetworkAddr (if supplied)
-		//nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		//if er != nil {
-		//	continue
-		//}
-		//if !params.NetworkAddr.Empty() {
-		//	if nodeNetworkAddr.Equals(params.NetworkAddr) {
-		//		continue
-		//	}
-		//}
-		//
-		//// match Moniker (if supplied)
-		//if len(params.Moniker) > 0 {
-		//	if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-		//		continue
-		//	}
-		//}
-
 		// match OwnerAddr (if supplied)
 		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
@@ -383,24 +364,6 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
 	for i, _ := range nodes {
-		//// match NetworkAddr (if supplied)
-		//nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		//if er != nil {
-		//	continue
-		//}
-		//if !params.NetworkAddr.Empty() {
-		//	if nodeNetworkAddr.Equals(params.NetworkAddr) {
-		//		continue
-		//	}
-		//}
-		//
-		//// match Moniker (if supplied)
-		//if len(params.Moniker) > 0 {
-		//	if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-		//		continue
-		//	}
-		//}
-
 		// match OwnerAddr
 		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
@@ -412,102 +375,6 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	}
 	return filteredNodes
 }
-
-//func Paginate(
-//	prefixStore storetypes.KVStore,
-//	pageRequest *pagiquery.PageRequest,
-//	onResult func(key []byte, value []byte) error,
-//) (*pagiquery.PageResponse, error) {
-//
-//	// if the PageRequest is nil, use default PageRequest
-//	if pageRequest == nil {
-//		pageRequest = &pagiquery.PageRequest{}
-//	}
-//
-//	offset := pageRequest.Offset
-//	key := pageRequest.Key
-//	limit := pageRequest.Limit
-//	countTotal := pageRequest.CountTotal
-//	reverse := pageRequest.Reverse
-//
-//	if offset > 0 && key != nil {
-//		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
-//	}
-//
-//	if limit == 0 {
-//		limit = QueryDefaultLimit
-//
-//		// count total results when the limit is zero/not supplied
-//		countTotal = true
-//	}
-//
-//	if len(key) != 0 {
-//		iterator := getIterator(prefixStore, key, reverse)
-//		defer iterator.Close()
-//
-//		var count uint64
-//		var nextKey []byte
-//
-//		for ; iterator.Valid(); iterator.Next() {
-//
-//			if count == limit {
-//				nextKey = iterator.Key()
-//				break
-//			}
-//			if iterator.Error() != nil {
-//				return nil, iterator.Error()
-//			}
-//			err := onResult(iterator.Key(), iterator.Value())
-//			if err != nil {
-//				return nil, err
-//			}
-//
-//			count++
-//		}
-//
-//		return &pagiquery.PageResponse{
-//			NextKey: nextKey,
-//		}, nil
-//	}
-//
-//	iterator := getIterator(prefixStore, nil, reverse)
-//	defer iterator.Close()
-//
-//	end := offset + limit
-//
-//	var count uint64
-//	var nextKey []byte
-//
-//	for ; iterator.Valid(); iterator.Next() {
-//		count++
-//
-//		if count <= offset {
-//			continue
-//		}
-//		if count <= end {
-//			err := onResult(iterator.Key(), iterator.Value())
-//			if err != nil {
-//				return nil, err
-//			}
-//		} else if count == end+1 {
-//			nextKey = iterator.Key()
-//
-//			if !countTotal {
-//				break
-//			}
-//		}
-//		if iterator.Error() != nil {
-//			return nil, iterator.Error()
-//		}
-//	}
-//
-//	res := &pagiquery.PageResponse{NextKey: nextKey}
-//	if countTotal {
-//		res.Total = count
-//	}
-//
-//	return res, nil
-//}
 
 func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
 	if reverse {
@@ -677,4 +544,86 @@ func FilteredPaginate(cdc codec.Codec,
 	}
 
 	return res, nil
+}
+
+func StakingInfosToStakingResourceNodes(
+	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
+) ([]*types.StakingInfo, error) {
+	resp := make([]*types.StakingInfo, len(resourceNodes))
+
+	for i, resourceNode := range resourceNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoResourceNode(ctx, k, resourceNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+	}
+
+	return resp, nil
+}
+
+func StakingInfosToStakingMetaNodes(
+	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
+) ([]*types.StakingInfo, error) {
+	resp := make([]*types.StakingInfo, len(metaNodes))
+
+	for i, metaNode := range metaNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoMetaNode(ctx, k, metaNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+	}
+
+	return resp, nil
+}
+
+func StakingInfoToStakingInfoResourceNode(ctx sdk.Context, k Keeper, node types.ResourceNode) (types.StakingInfo, error) {
+	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
+	stakingInfo := types.StakingInfo{}
+	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+		ctx,
+		node.GetStatus(),
+		networkAddr,
+		node.Tokens,
+	)
+	if er != nil {
+		return stakingInfo, er
+	}
+
+	if !node.Equal(types.ResourceNode{}) {
+		stakingInfo = types.NewStakingInfoByResourceNodeAddr(
+			node,
+			unBondingStake,
+			unBondedStake,
+			bondedStake,
+		)
+	}
+	return stakingInfo, nil
+}
+
+func StakingInfoToStakingInfoMetaNode(ctx sdk.Context, k Keeper, node types.MetaNode) (types.StakingInfo, error) {
+	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
+	stakingInfo := types.StakingInfo{}
+	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+		ctx,
+		node.GetStatus(),
+		networkAddr,
+		node.Tokens,
+	)
+	if er != nil {
+		return stakingInfo, er
+	}
+
+	if !node.Equal(types.MetaNode{}) {
+		stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+			node,
+			unBondingStake,
+			unBondedStake,
+			bondedStake,
+		)
+	}
+	return stakingInfo, nil
 }

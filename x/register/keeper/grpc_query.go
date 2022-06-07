@@ -162,7 +162,6 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	}
 
 	store := ctx.KVStore(q.storeKey)
-	sum := uint64(0)
 	var stakingInfoResponses []*types.StakingInfo
 
 	// get resource nodes
@@ -185,24 +184,30 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	if err != nil {
 		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
-	//sum = resourceNodesPageRes.Total
-
 	stakingInfoResponses, err = StakingInfosToStakingResourceNodes(ctx, q.Keeper, resourceNodes)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// Continue to get meta nodes
-	metaNodesPageLimit := req.Pagination.Limit - resourceNodesPageRes.Total
-	if metaNodesPageLimit <= 0 {
+	if req.Pagination.Limit < resourceNodesPageRes.Total {
+		resourceNodesPageRes.Total = uint64(len(stakingInfoResponses))
 		return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfoResponses, Pagination: resourceNodesPageRes}, nil
+
 	}
-	metaNodesPageRequest := query.PageRequest{Limit: metaNodesPageLimit, CountTotal: true}
+
+	metaNodesPageLimit := req.Pagination.Limit - resourceNodesPageRes.Total
+
+	metaNodesPageOffset := uint64(0)
+	if req.Pagination.Offset > resourceNodesPageRes.Total {
+		metaNodesPageOffset = req.Pagination.Offset - resourceNodesPageRes.Total
+	}
+	metaNodesPageRequest := query.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: req.Pagination.CountTotal}
 
 	var metaNodes types.MetaNodes
 	metaNodeStore := prefix.NewStore(store, types.MetaNodeKey)
 
-	metaNodesPageRes, err := FilteredPaginate(q.cdc, metaNodeStore, ownerAddr, &metaNodesPageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
+	_, err = FilteredPaginate(q.cdc, metaNodeStore, ownerAddr, &metaNodesPageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		val, err := types.UnmarshalMetaNode(q.cdc, value)
 		if err != nil {
 			return true, err
@@ -218,7 +223,6 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	if err != nil {
 		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
-	sum = sum + metaNodesPageRes.Total
 
 	metaNodesStakingInfoResponses, err := StakingInfosToStakingMetaNodes(ctx, q.Keeper, metaNodes)
 	if err != nil {
