@@ -85,11 +85,13 @@ message QueryStakeByNodeResponse {
 // QueryStakeByOwnerRequest is request type for the Query/StakeByOwner RPC method
 message QueryStakeByOwnerRequest {
   // owner_addr defines the owner address to query for.
-  string              network_addr = 1;
-  string              moniker = 2;
-  string              owner_addr = 3;
+//  string              network_addr = 1;
+//  string              moniker = 2;
+  string              owner_addr = 1;
+//  int64               page = 2;
+//  int64               limit = 3;
   // pagination defines an optional pagination for the request.
-  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryStakeByOwnerResponse is response type for the Query/StakeByOwner RPC method

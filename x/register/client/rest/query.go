@@ -161,7 +161,6 @@ func nodeStakingByNodeAddressFn(cliCtx client.Context, queryPath string) http.Ha
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
 		cliCtx = cliCtx.WithHeight(height)
 		if rest.CheckInternalServerError(w, err) {
 			return
@@ -174,8 +173,8 @@ func nodeStakingByNodeAddressFn(cliCtx client.Context, queryPath string) http.Ha
 func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		nodeWalletAddressStr := mux.Vars(r)["ownerAddress"]
-		nodeWalletAddress, ok := keeper.CheckAccAddr(w, r, nodeWalletAddressStr)
+		ownerAddressStr := mux.Vars(r)["ownerAddress"]
+		ownerAddress, ok := keeper.CheckAccAddr(w, r, ownerAddressStr)
 		if !ok {
 			return
 		}
@@ -190,7 +189,7 @@ func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerF
 			return
 		}
 
-		params := types.NewQueryNodesParams(page, limit, nil, "", nodeWalletAddress)
+		params := types.NewQueryNodesParams(page, limit, nil, "", ownerAddress)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if rest.CheckBadRequestError(w, err) {
 			return
@@ -203,6 +202,9 @@ func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerF
 		}
 
 		cliCtx = cliCtx.WithHeight(height)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

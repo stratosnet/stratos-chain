@@ -2,13 +2,15 @@ package keeper
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
+	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+	db "github.com/tendermint/tm-db"
 
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -233,7 +235,7 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	var (
 		params       types.QueryNodesParams
 		stakingInfo  types.StakingInfo
-		stakingInfos []types.StakingInfo
+		stakingInfos types.StakingInfos
 	)
 
 	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
@@ -243,20 +245,20 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	resNodes := k.GetResourceNodesFiltered(ctx, params)
 	metaNodes := k.GetMetaNodesFiltered(ctx, params)
 
-	for _, n := range metaNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+	for i, _ := range metaNodes {
+		networkAddr, _ := stratos.SdsAddressFromBech32(metaNodes[i].GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 			ctx,
-			n.GetStatus(),
+			metaNodes[i].GetStatus(),
 			networkAddr,
-			n.Tokens,
+			metaNodes[i].Tokens,
 		)
 		if err != nil {
 			return nil, err
 		}
-		if !n.Equal(types.MetaNode{}) {
+		if !metaNodes[i].Equal(types.MetaNode{}) {
 			stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-				n,
+				metaNodes[i],
 				unBondingStake,
 				unBondedStake,
 				bondedStake,
@@ -265,20 +267,20 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 		}
 	}
 
-	for _, n := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+	for i, _ := range resNodes {
+		networkAddr, _ := stratos.SdsAddressFromBech32(resNodes[i].GetNetworkAddress())
 		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
 			ctx,
-			n.GetStatus(),
+			resNodes[i].GetStatus(),
 			networkAddr,
-			n.Tokens,
+			resNodes[i].Tokens,
 		)
 		if err != nil {
 			return nil, err
 		}
-		if !n.Equal(types.ResourceNode{}) {
+		if !resNodes[i].Equal(types.ResourceNode{}) {
 			stakingInfo = types.NewStakingInfoByResourceNodeAddr(
-				n,
+				resNodes[i],
 				unBondingStake,
 				unBondedStake,
 				bondedStake,
@@ -344,32 +346,14 @@ func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesPar
 	nodes := k.GetAllMetaNodes(ctx)
 	filteredNodes := make([]types.MetaNode, 0, len(nodes))
 
-	for _, n := range nodes {
-		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		if er != nil {
-			continue
-		}
-		if !params.NetworkAddr.Empty() {
-			if nodeNetworkAddr.Equals(params.NetworkAddr) {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
+	for i, _ := range nodes {
 		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddress())
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
 			continue
 		}
-		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
+		if nodeOwnerAddr.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, nodes[i])
 		}
 	}
 	return filteredNodes
@@ -379,33 +363,267 @@ func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNode
 	nodes := k.GetAllResourceNodes(ctx)
 	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
 
-	for _, n := range nodes {
-		// match NetworkAddr (if supplied)
-		nodeNetworkAddr, er := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
+	for i, _ := range nodes {
+		// match OwnerAddr
+		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
 		if er != nil {
 			continue
 		}
-		if !params.NetworkAddr.Empty() {
-			if nodeNetworkAddr.Equals(params.NetworkAddr) {
-				continue
-			}
-		}
-
-		// match Moniker (if supplied)
-		if len(params.Moniker) > 0 {
-			if strings.Compare(n.Description.Moniker, params.Moniker) != 0 {
-				continue
-			}
-		}
-
-		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(n.GetNetworkAddress())
-		if er != nil {
-			continue
-		}
-		if params.OwnerAddr.Empty() || nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, n)
+		if nodeOwnerAddr.Equals(params.OwnerAddr) {
+			filteredNodes = append(filteredNodes, nodes[i])
 		}
 	}
 	return filteredNodes
+}
+
+func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
+	if reverse {
+		var end []byte
+		if start != nil {
+			itr := prefixStore.Iterator(start, nil)
+			defer itr.Close()
+			if itr.Valid() {
+				itr.Next()
+				end = itr.Key()
+			}
+		}
+		return prefixStore.ReverseIterator(nil, end)
+	}
+	return prefixStore.Iterator(start, nil)
+}
+
+func FilteredPaginate(cdc codec.Codec,
+	prefixStore storetypes.KVStore,
+	queryOwnerAddr sdk.AccAddress,
+	pageRequest *pagiquery.PageRequest,
+	onResult func(key []byte, value []byte, accumulate bool) (bool, error),
+) (*pagiquery.PageResponse, error) {
+
+	// if the PageRequest is nil, use default PageRequest
+	if pageRequest == nil {
+		pageRequest = &pagiquery.PageRequest{}
+	}
+
+	offset := pageRequest.Offset
+	key := pageRequest.Key
+	limit := pageRequest.Limit
+	countTotal := pageRequest.CountTotal
+	reverse := pageRequest.Reverse
+
+	if offset > 0 && key != nil {
+		return nil, fmt.Errorf("invalid request, either offset or key is expected, got both")
+	}
+
+	if limit == 0 {
+		limit = QueryDefaultLimit
+
+		// count total results when the limit is zero/not supplied
+		countTotal = pageRequest.CountTotal
+	}
+
+	if len(key) != 0 {
+		iterator := getIterator(prefixStore, key, reverse)
+		defer iterator.Close()
+
+		var numHits uint64
+		var nextKey []byte
+		var ownerAddr sdk.AccAddress
+
+		for ; iterator.Valid(); iterator.Next() {
+			if numHits == limit {
+				nextKey = iterator.Key()
+				break
+			}
+
+			if iterator.Error() != nil {
+				return nil, iterator.Error()
+			}
+
+			if prefixStore.Has(types.MetaNodeKey) {
+				metaNode, err := types.UnmarshalMetaNode(cdc, iterator.Value())
+				if err != nil {
+					continue
+				}
+
+				ownerAddr, err = sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
+				if err != nil {
+					continue
+				}
+			} else {
+				resourceNode, err := types.UnmarshalResourceNode(cdc, iterator.Value())
+				if err != nil {
+					continue
+				}
+
+				ownerAddr, err = sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
+				if err != nil {
+					continue
+				}
+			}
+
+			if queryOwnerAddr.String() != ownerAddr.String() {
+				continue
+			}
+
+			hit, err := onResult(iterator.Key(), iterator.Value(), true)
+			if err != nil {
+				return nil, err
+			}
+
+			if hit {
+				numHits++
+			}
+		}
+
+		return &pagiquery.PageResponse{
+			NextKey: nextKey,
+		}, nil
+	}
+
+	iterator := getIterator(prefixStore, nil, reverse)
+	defer iterator.Close()
+
+	end := offset + limit
+
+	var numHits uint64
+	var nextKey []byte
+	var ownerAddr sdk.AccAddress
+
+	for ; iterator.Valid(); iterator.Next() {
+		if iterator.Error() != nil {
+			return nil, iterator.Error()
+		}
+
+		if prefixStore.Has(types.MetaNodeKey) {
+			metaNode, err := types.UnmarshalMetaNode(cdc, iterator.Value())
+			if err != nil {
+				continue
+			}
+
+			ownerAddr, err = sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
+			if err != nil {
+				continue
+			}
+		} else {
+			resourceNode, err := types.UnmarshalResourceNode(cdc, iterator.Value())
+			if err != nil {
+				continue
+			}
+
+			ownerAddr, err = sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
+			if err != nil {
+				continue
+			}
+		}
+
+		if queryOwnerAddr.String() != ownerAddr.String() {
+			continue
+		}
+		accumulate := numHits >= offset && numHits < end
+		hit, err := onResult(iterator.Key(), iterator.Value(), accumulate)
+		if err != nil {
+			return nil, err
+		}
+
+		if hit {
+			numHits++
+		}
+
+		if numHits == end+1 {
+			nextKey = iterator.Key()
+
+			if !countTotal {
+				break
+			}
+		}
+	}
+
+	res := &pagiquery.PageResponse{NextKey: nextKey}
+	if countTotal {
+		res.Total = numHits
+	}
+
+	return res, nil
+}
+
+func StakingInfosToStakingResourceNodes(
+	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
+) ([]*types.StakingInfo, error) {
+	resp := make([]*types.StakingInfo, len(resourceNodes))
+
+	for i, resourceNode := range resourceNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoResourceNode(ctx, k, resourceNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+	}
+
+	return resp, nil
+}
+
+func StakingInfosToStakingMetaNodes(
+	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
+) ([]*types.StakingInfo, error) {
+	resp := make([]*types.StakingInfo, len(metaNodes))
+
+	for i, metaNode := range metaNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoMetaNode(ctx, k, metaNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+	}
+
+	return resp, nil
+}
+
+func StakingInfoToStakingInfoResourceNode(ctx sdk.Context, k Keeper, node types.ResourceNode) (types.StakingInfo, error) {
+	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
+	stakingInfo := types.StakingInfo{}
+	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+		ctx,
+		node.GetStatus(),
+		networkAddr,
+		node.Tokens,
+	)
+	if er != nil {
+		return stakingInfo, er
+	}
+
+	if !node.Equal(types.ResourceNode{}) {
+		stakingInfo = types.NewStakingInfoByResourceNodeAddr(
+			node,
+			unBondingStake,
+			unBondedStake,
+			bondedStake,
+		)
+	}
+	return stakingInfo, nil
+}
+
+func StakingInfoToStakingInfoMetaNode(ctx sdk.Context, k Keeper, node types.MetaNode) (types.StakingInfo, error) {
+	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
+	stakingInfo := types.StakingInfo{}
+	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+		ctx,
+		node.GetStatus(),
+		networkAddr,
+		node.Tokens,
+	)
+	if er != nil {
+		return stakingInfo, er
+	}
+
+	if !node.Equal(types.MetaNode{}) {
+		stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+			node,
+			unBondingStake,
+			unBondedStake,
+			bondedStake,
+		)
+	}
+	return stakingInfo, nil
 }

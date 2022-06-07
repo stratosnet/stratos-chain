@@ -2,10 +2,10 @@ package keeper
 
 import (
 	"context"
-	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	"google.golang.org/grpc/codes"
@@ -156,84 +156,83 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	var (
-		params       types.QueryNodesParams
-		stakingInfo  types.StakingInfo
-		stakingInfos []*types.StakingInfo
-	)
-
-	networkAddr, er := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
-	if er != nil {
-		return &types.QueryStakeByOwnerResponse{}, er
-	}
-
 	ownerAddr, er := sdk.AccAddressFromBech32(req.GetOwnerAddr())
 	if er != nil {
 		return &types.QueryStakeByOwnerResponse{}, er
 	}
 
-	page, er := strconv.Atoi(string(req.Pagination.Key))
-	if er != nil {
-		return &types.QueryStakeByOwnerResponse{}, er
+	store := ctx.KVStore(q.storeKey)
+	var stakingInfoResponses []*types.StakingInfo
+
+	// get resource nodes
+	var resourceNodes types.ResourceNodes
+	resourceNodeStore := prefix.NewStore(store, types.ResourceNodeKey)
+
+	resourceNodesPageRes, err := FilteredPaginate(q.cdc, resourceNodeStore, ownerAddr, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		val, err := types.UnmarshalResourceNode(q.cdc, value)
+		if err != nil {
+			return true, err
+		}
+
+		if accumulate {
+			resourceNodes = append(resourceNodes, val)
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
+	}
+	stakingInfoResponses, err = StakingInfosToStakingResourceNodes(ctx, q.Keeper, resourceNodes)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	params = types.NewQueryNodesParams(page, int(req.Pagination.Limit), networkAddr, req.GetMoniker(), ownerAddr)
+	// Continue to get meta nodes
+	if req.Pagination.Limit < resourceNodesPageRes.Total {
+		resourceNodesPageRes.Total = uint64(len(stakingInfoResponses))
+		return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfoResponses, Pagination: resourceNodesPageRes}, nil
 
-	resNodes := q.GetResourceNodesFiltered(ctx, params)
-	indNodes := q.GetMetaNodesFiltered(ctx, params)
-
-	for _, n := range indNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
-			ctx,
-			n.GetStatus(),
-			networkAddr,
-			n.Tokens,
-		)
-		if er != nil {
-			return nil, er
-		}
-		if !n.Equal(types.MetaNode{}) {
-			stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-				n,
-				unBondingStake,
-				unBondedStake,
-				bondedStake,
-			)
-			stakingInfos = append(stakingInfos, &stakingInfo)
-		}
 	}
 
-	for _, n := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(n.GetNetworkAddress())
-		unBondingStake, unBondedStake, bondedStake, er := q.getNodeStakes(
-			ctx,
-			n.GetStatus(),
-			networkAddr,
-			n.Tokens,
-		)
-		if er != nil {
-			return nil, er
+	metaNodesPageLimit := req.Pagination.Limit - resourceNodesPageRes.Total
+
+	metaNodesPageOffset := uint64(0)
+	if req.Pagination.Offset > resourceNodesPageRes.Total {
+		metaNodesPageOffset = req.Pagination.Offset - resourceNodesPageRes.Total
+	}
+	metaNodesPageRequest := query.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: req.Pagination.CountTotal}
+
+	var metaNodes types.MetaNodes
+	metaNodeStore := prefix.NewStore(store, types.MetaNodeKey)
+
+	_, err = FilteredPaginate(q.cdc, metaNodeStore, ownerAddr, &metaNodesPageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		val, err := types.UnmarshalMetaNode(q.cdc, value)
+		if err != nil {
+			return true, err
 		}
-		if !n.Equal(types.ResourceNode{}) {
-			stakingInfo = types.NewStakingInfoByResourceNodeAddr(
-				n,
-				unBondingStake,
-				unBondedStake,
-				bondedStake,
-			)
-			stakingInfos = append(stakingInfos, &stakingInfo)
+
+		if accumulate {
+			metaNodes = append(metaNodes, val)
 		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	start, end := client.Paginate(len(stakingInfos), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return &types.QueryStakeByOwnerResponse{}, nil
-	} else {
-		stakingInfos = stakingInfos[start:end]
-		return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfos}, nil
+	metaNodesStakingInfoResponses, err := StakingInfosToStakingMetaNodes(ctx, q.Keeper, metaNodes)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
+	stakingInfoResponses = append(stakingInfoResponses, metaNodesStakingInfoResponses...)
+	PageRes := resourceNodesPageRes
+	PageRes.Total = uint64(len(stakingInfoResponses))
+	return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfoResponses, Pagination: PageRes}, nil
 }
 
 func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) (*types.QueryTotalStakeResponse, error) {
