@@ -4,30 +4,30 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
-	defaultDenom  = "ustos"
-	QueryType_All = 0
-	QueryType_SP  = 1
-	QueryType_PP  = 2
+	defaultDenom      = "ustos"
+	QueryType_All     = 0
+	QueryType_SP      = 1
+	QueryType_PP      = 2
+	QueryDefaultLimit = 100
 )
 
 // QueryNodesParams Params for query 'custom/register/resource-nodes'
 type QueryNodesParams struct {
-	Page        int
-	Limit       int
+	PageQuery   pagiquery.PageRequest
 	NetworkAddr stratos.SdsAddress
 	Moniker     string
 	OwnerAddr   sdk.AccAddress
 }
 
 // NewQueryNodesParams creates a new instance of QueryNodesParams
-func NewQueryNodesParams(page, limit int, networkAddr stratos.SdsAddress, moniker string, ownerAddr sdk.AccAddress) QueryNodesParams {
+func NewQueryNodesParams(networkAddr stratos.SdsAddress, moniker string, ownerAddr sdk.AccAddress, pageQuery pagiquery.PageRequest) QueryNodesParams {
 	return QueryNodesParams{
-		Page:        page,
-		Limit:       limit,
+		PageQuery:   pageQuery,
 		NetworkAddr: networkAddr,
 		Moniker:     moniker,
 		OwnerAddr:   ownerAddr,

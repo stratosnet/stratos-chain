@@ -202,7 +202,7 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	if req.Pagination.Offset > resourceNodesPageRes.Total {
 		metaNodesPageOffset = req.Pagination.Offset - resourceNodesPageRes.Total
 	}
-	metaNodesPageRequest := query.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: req.Pagination.CountTotal}
+	metaNodesPageRequest := query.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: req.Pagination.CountTotal, Reverse: req.Pagination.CountTotal}
 
 	var metaNodes types.MetaNodes
 	metaNodeStore := prefix.NewStore(store, types.MetaNodeKey)

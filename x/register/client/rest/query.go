@@ -7,6 +7,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -81,7 +82,20 @@ func nodesWithParamsFn(clientCtx client.Context, queryPath string) http.HandlerF
 			}
 		}
 
-		params := types.NewQueryNodesParams(page, limit, networkAddr, moniker, ownerAddr)
+		countTotal, err := strconv.ParseBool(r.FormValue("count_total"))
+		if err != nil {
+			countTotal = true
+		}
+
+		reverse, err := strconv.ParseBool(r.FormValue("reverse"))
+		if err != nil {
+			reverse = false
+		}
+		offset := page * limit
+
+		NodesPageRequest := query.PageRequest{Offset: uint64(offset), Limit: uint64(limit), CountTotal: countTotal, Reverse: reverse}
+
+		params := types.NewQueryNodesParams(networkAddr, moniker, ownerAddr, NodesPageRequest)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -189,7 +203,24 @@ func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerF
 			return
 		}
 
-		params := types.NewQueryNodesParams(page, limit, nil, "", ownerAddress)
+		countTotal, err := strconv.ParseBool(r.FormValue("count_total"))
+		if err != nil {
+			countTotal = true
+		}
+
+		reverse, err := strconv.ParseBool(r.FormValue("reverse"))
+		if err != nil {
+			reverse = false
+		}
+
+		offset := (page - 1) * limit
+
+		if limit <= 0 {
+			limit = types.QueryDefaultLimit
+		}
+
+		NodesPageRequest := query.PageRequest{Offset: uint64(offset), Limit: uint64(limit), CountTotal: countTotal, Reverse: reverse}
+		params := types.NewQueryNodesParams(nil, "", ownerAddress, NodesPageRequest)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if rest.CheckBadRequestError(w, err) {
 			return
