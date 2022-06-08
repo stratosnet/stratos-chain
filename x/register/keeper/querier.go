@@ -337,86 +337,7 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return result, nil
-
-	//resNodes := k.GetResourceNodesFiltered(ctx, params)
-	//metaNodes := k.GetMetaNodesFiltered(ctx, params)
-	//
-	//for i, _ := range metaNodes {
-	//	networkAddr, _ := stratos.SdsAddressFromBech32(metaNodes[i].GetNetworkAddress())
-	//	unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
-	//		ctx,
-	//		metaNodes[i].GetStatus(),
-	//		networkAddr,
-	//		metaNodes[i].Tokens,
-	//	)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	if !metaNodes[i].Equal(types.MetaNode{}) {
-	//		stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-	//			metaNodes[i],
-	//			unBondingStake,
-	//			unBondedStake,
-	//			bondedStake,
-	//		)
-	//		stakingInfos = append(stakingInfos, stakingInfo)
-	//	}
-	//}
-	//
-	//for i, _ := range resNodes {
-	//	networkAddr, _ := stratos.SdsAddressFromBech32(resNodes[i].GetNetworkAddress())
-	//	unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
-	//		ctx,
-	//		resNodes[i].GetStatus(),
-	//		networkAddr,
-	//		resNodes[i].Tokens,
-	//	)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	if !resNodes[i].Equal(types.ResourceNode{}) {
-	//		stakingInfo = types.NewStakingInfoByResourceNodeAddr(
-	//			resNodes[i],
-	//			unBondingStake,
-	//			unBondedStake,
-	//			bondedStake,
-	//		)
-	//		stakingInfos = append(stakingInfos, stakingInfo)
-	//	}
-	//}
-	//
-	//start, end := client.Paginate(len(stakingInfos), params.Page, params.Limit, QueryDefaultLimit)
-	//if start < 0 || end < 0 {
-	//	return nil, nil
-	//} else {
-	//	stakingInfos = stakingInfos[start:end]
-	//	result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfos)
-	//	if err != nil {
-	//		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	//	}
-	//	return result, nil
-	//}
 }
-
-//func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params types.QueryNodesParams) []types.ResourceNode {
-//	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-//	if start < 0 || end < 0 {
-//		filteredNodes = nil
-//	} else {
-//		filteredNodes = filteredNodes[start:end]
-//	}
-//	return filteredNodes
-//}
-//
-//func (k Keeper) metaNodesPagination(filteredNodes []types.MetaNode, params types.QueryNodesParams) []types.MetaNode {
-//	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-//	if start < 0 || end < 0 {
-//		filteredNodes = nil
-//	} else {
-//		filteredNodes = filteredNodes[start:end]
-//	}
-//	return filteredNodes
-//}
 
 func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
 	unbondingStake = sdk.NewInt(0)
@@ -437,40 +358,6 @@ func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatu
 	}
 	return unbondingStake, unbondedStake, bondedStake, nil
 }
-
-//func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.MetaNode {
-//	nodes := k.GetAllMetaNodes(ctx)
-//	filteredNodes := make([]types.MetaNode, 0, len(nodes))
-//
-//	for i, _ := range nodes {
-//		// match OwnerAddr (if supplied)
-//		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
-//		if er != nil {
-//			continue
-//		}
-//		if nodeOwnerAddr.Equals(params.OwnerAddr) {
-//			filteredNodes = append(filteredNodes, nodes[i])
-//		}
-//	}
-//	return filteredNodes
-//}
-
-//func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
-//	nodes := k.GetAllResourceNodes(ctx)
-//	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
-//
-//	for i, _ := range nodes {
-//		// match OwnerAddr
-//		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
-//		if er != nil {
-//			continue
-//		}
-//		if nodeOwnerAddr.Equals(params.OwnerAddr) {
-//			filteredNodes = append(filteredNodes, nodes[i])
-//		}
-//	}
-//	return filteredNodes
-//}
 
 func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
 	if reverse {
