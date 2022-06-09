@@ -3,14 +3,16 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	db "github.com/tendermint/tm-db"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -26,8 +28,6 @@ const (
 	QueryNodeStakeByNodeAddr       = "node_stakes"
 	QueryNodeStakeByOwner          = "node_stakes_by_owner"
 	QueryRegisterParams            = "register_params"
-
-	QueryDefaultLimit = 100
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -233,93 +233,110 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 
 func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (result []byte, err error) {
 	var (
-		params       types.QueryNodesParams
-		stakingInfo  types.StakingInfo
-		stakingInfos types.StakingInfos
+		params types.QueryNodesParams
+		//stakingInfo  types.StakingInfo
+		stakingInfoResponses types.StakingInfos
 	)
+
+	if req.Data == nil {
+		return nil, status.Errorf(codes.InvalidArgument, "empty request")
+	}
 
 	err = legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
-	resNodes := k.GetResourceNodesFiltered(ctx, params)
-	metaNodes := k.GetMetaNodesFiltered(ctx, params)
 
-	for i, _ := range metaNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(metaNodes[i].GetNetworkAddress())
-		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
-			ctx,
-			metaNodes[i].GetStatus(),
-			networkAddr,
-			metaNodes[i].Tokens,
-		)
-		if err != nil {
-			return nil, err
-		}
-		if !metaNodes[i].Equal(types.MetaNode{}) {
-			stakingInfo = types.NewStakingInfoByMetaNodeAddr(
-				metaNodes[i],
-				unBondingStake,
-				unBondedStake,
-				bondedStake,
-			)
-			stakingInfos = append(stakingInfos, stakingInfo)
-		}
+	if params.OwnerAddr.String() == "" {
+		return nil, status.Error(codes.InvalidArgument, "owner address cannot be empty")
 	}
 
-	for i, _ := range resNodes {
-		networkAddr, _ := stratos.SdsAddressFromBech32(resNodes[i].GetNetworkAddress())
-		unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
-			ctx,
-			resNodes[i].GetStatus(),
-			networkAddr,
-			resNodes[i].Tokens,
-		)
+	store := ctx.KVStore(k.storeKey)
+
+	// get resource nodes
+	var resourceNodes types.ResourceNodes
+	resourceNodeStore := prefix.NewStore(store, types.ResourceNodeKey)
+
+	limit := params.PageQuery.Limit
+	if limit == 0 {
+		limit = types.QueryDefaultLimit
+	}
+	offset := params.PageQuery.Offset
+	countTotal := params.PageQuery.CountTotal
+	reverse := params.PageQuery.Reverse
+	PageRequest := pagiquery.PageRequest{Offset: offset, Limit: limit, CountTotal: countTotal, Reverse: reverse}
+
+	resourceNodesPageRes, err := FilteredPaginate(k.cdc, resourceNodeStore, params.OwnerAddr, &PageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		val, err := types.UnmarshalResourceNode(k.cdc, value)
 		if err != nil {
-			return nil, err
+			return true, err
 		}
-		if !resNodes[i].Equal(types.ResourceNode{}) {
-			stakingInfo = types.NewStakingInfoByResourceNodeAddr(
-				resNodes[i],
-				unBondingStake,
-				unBondedStake,
-				bondedStake,
-			)
-			stakingInfos = append(stakingInfos, stakingInfo)
+
+		if accumulate {
+			resourceNodes = append(resourceNodes, val)
 		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+	stakingInfoResponses, err = StakingInfosResourceNodes(ctx, k, resourceNodes)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	start, end := client.Paginate(len(stakingInfos), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		return nil, nil
-	} else {
-		stakingInfos = stakingInfos[start:end]
-		result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfos)
+	// Continue to get meta nodes
+	if PageRequest.Limit < resourceNodesPageRes.Total {
+		resourceNodesPageRes.Total = uint64(len(stakingInfoResponses))
+		result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfoResponses)
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
 		return result, nil
 	}
-}
 
-func (k Keeper) resourceNodesPagination(filteredNodes []types.ResourceNode, params types.QueryNodesParams) []types.ResourceNode {
-	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		filteredNodes = nil
-	} else {
-		filteredNodes = filteredNodes[start:end]
-	}
-	return filteredNodes
-}
+	metaNodesPageLimit := limit - uint64(len(stakingInfoResponses))
 
-func (k Keeper) metaNodesPagination(filteredNodes []types.MetaNode, params types.QueryNodesParams) []types.MetaNode {
-	start, end := client.Paginate(len(filteredNodes), params.Page, params.Limit, QueryDefaultLimit)
-	if start < 0 || end < 0 {
-		filteredNodes = nil
-	} else {
-		filteredNodes = filteredNodes[start:end]
+	metaNodesPageOffset := uint64(0)
+	if offset > resourceNodesPageRes.Total {
+		metaNodesPageOffset = offset - resourceNodesPageRes.Total
 	}
-	return filteredNodes
+	metaNodesPageRequest := pagiquery.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: countTotal, Reverse: reverse}
+	var metaNodes types.MetaNodes
+	metaNodeStore := prefix.NewStore(store, types.MetaNodeKey)
+
+	_, err = FilteredPaginate(k.cdc, metaNodeStore, params.OwnerAddr, &metaNodesPageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		val, err := types.UnmarshalMetaNode(k.cdc, value)
+		if err != nil {
+			return true, err
+		}
+
+		if accumulate {
+			metaNodes = append(metaNodes, val)
+		}
+
+		return true, nil
+	})
+
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	metaNodesStakingInfoResponses, err := StakingInfosMetaNodes(ctx, k, metaNodes)
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
+	}
+
+	stakingInfoResponses = append(stakingInfoResponses, metaNodesStakingInfoResponses...)
+	PageRes := resourceNodesPageRes
+	PageRes.Total = uint64(len(stakingInfoResponses))
+	result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfoResponses)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return result, nil
 }
 
 func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
@@ -340,40 +357,6 @@ func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatu
 		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
 	}
 	return unbondingStake, unbondedStake, bondedStake, nil
-}
-
-func (k Keeper) GetMetaNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.MetaNode {
-	nodes := k.GetAllMetaNodes(ctx)
-	filteredNodes := make([]types.MetaNode, 0, len(nodes))
-
-	for i, _ := range nodes {
-		// match OwnerAddr (if supplied)
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
-		if er != nil {
-			continue
-		}
-		if nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, nodes[i])
-		}
-	}
-	return filteredNodes
-}
-
-func (k Keeper) GetResourceNodesFiltered(ctx sdk.Context, params types.QueryNodesParams) []types.ResourceNode {
-	nodes := k.GetAllResourceNodes(ctx)
-	filteredNodes := make([]types.ResourceNode, 0, len(nodes))
-
-	for i, _ := range nodes {
-		// match OwnerAddr
-		nodeOwnerAddr, er := sdk.AccAddressFromBech32(nodes[i].GetOwnerAddress())
-		if er != nil {
-			continue
-		}
-		if nodeOwnerAddr.Equals(params.OwnerAddr) {
-			filteredNodes = append(filteredNodes, nodes[i])
-		}
-	}
-	return filteredNodes
 }
 
 func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
@@ -415,7 +398,7 @@ func FilteredPaginate(cdc codec.Codec,
 	}
 
 	if limit == 0 {
-		limit = QueryDefaultLimit
+		limit = types.QueryDefaultLimit
 
 		// count total results when the limit is zero/not supplied
 		countTotal = pageRequest.CountTotal
@@ -546,6 +529,44 @@ func FilteredPaginate(cdc codec.Codec,
 	return res, nil
 }
 
+func StakingInfosResourceNodes(
+	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
+) (types.StakingInfos, error) {
+	res := types.StakingInfos{}
+	resp := make([]*types.StakingInfo, len(resourceNodes))
+
+	for i, resourceNode := range resourceNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoResourceNode(ctx, k, resourceNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+		res = append(res, *resp[i])
+	}
+
+	return res, nil
+}
+
+func StakingInfosMetaNodes(
+	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
+) (types.StakingInfos, error) {
+	res := types.StakingInfos{}
+	resp := make([]*types.StakingInfo, len(metaNodes))
+
+	for i, metaNode := range metaNodes {
+		stakingInfoResp, err := StakingInfoToStakingInfoMetaNode(ctx, k, metaNode)
+		if err != nil {
+			return nil, err
+		}
+
+		resp[i] = &stakingInfoResp
+		res = append(res, *resp[i])
+	}
+
+	return res, nil
+}
+
 func StakingInfosToStakingResourceNodes(
 	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
 ) ([]*types.StakingInfo, error) {
@@ -566,6 +587,7 @@ func StakingInfosToStakingResourceNodes(
 func StakingInfosToStakingMetaNodes(
 	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
 ) ([]*types.StakingInfo, error) {
+
 	resp := make([]*types.StakingInfo, len(metaNodes))
 
 	for i, metaNode := range metaNodes {
@@ -575,6 +597,7 @@ func StakingInfosToStakingMetaNodes(
 		}
 
 		resp[i] = &stakingInfoResp
+
 	}
 
 	return resp, nil
