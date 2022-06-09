@@ -432,7 +432,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	if t := newNodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, &description, strconv.Itoa(nodeTypeRef))
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, strconv.Itoa(nodeTypeRef))
 	if er != nil {
 		return txf, nil, err
 	}
@@ -482,7 +482,7 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 		security,
 		details,
 	)
-	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, &description)
+	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, description)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -524,7 +524,7 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		return txf, nil, types.ErrInvalidNodeType
 	}
 	nodeTypeStr := strconv.Itoa(nodeTypeRef)
-	msg := types.NewMsgUpdateResourceNode(description, nodeTypeStr, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateResourceNode(*description, nodeTypeStr, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
@@ -554,7 +554,7 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 		details,
 	)
 
-	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateMetaNode(*description, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 

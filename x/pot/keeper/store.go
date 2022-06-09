@@ -34,7 +34,6 @@ func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.C
 		return sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	}
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &minedToken)
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &minedToken)
 	return
 }
 

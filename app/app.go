@@ -87,6 +87,7 @@ import (
 	ibctransfertypes "github.com/cosmos/ibc-go/v3/modules/apps/transfer/types"
 	ibc "github.com/cosmos/ibc-go/v3/modules/core"
 	ibcclient "github.com/cosmos/ibc-go/v3/modules/core/02-client"
+	ibcclientclient "github.com/cosmos/ibc-go/v3/modules/core/02-client/client"
 	porttypes "github.com/cosmos/ibc-go/v3/modules/core/05-port/types"
 	ibchost "github.com/cosmos/ibc-go/v3/modules/core/24-host"
 	ibckeeper "github.com/cosmos/ibc-go/v3/modules/core/keeper"
@@ -129,6 +130,8 @@ var (
 			distrclient.ProposalHandler,
 			upgradeclient.ProposalHandler,
 			upgradeclient.CancelProposalHandler,
+			ibcclientclient.UpdateClientProposalHandler,
+			ibcclientclient.UpgradeProposalHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -182,7 +185,8 @@ var (
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
-		distrtypes.ModuleName: true,
+		distrtypes.ModuleName:      true,
+		authtypes.FeeCollectorName: true,
 		//pot.FoundationAccount: true,
 	}
 )
@@ -558,6 +562,31 @@ func NewInitApp(
 	app.configurator = module.NewConfigurator(app.appCodec, app.MsgServiceRouter(), app.GRPCQueryRouter())
 	app.mm.RegisterServices(app.configurator)
 
+	// create the simulation manager and define the order of the modules for deterministic simulations
+
+	// NOTE: this is not required apps that don't use the simulator for fuzz testing
+	// transactions
+	app.sm = module.NewSimulationManager(
+		// Use custom RandomGenesisAccounts so that auth module could create random EthAccounts in genesis state when genesis.json not specified
+		auth.NewAppModule(appCodec, app.accountKeeper, RandomGenesisAccounts),
+		bank.NewAppModule(appCodec, app.bankKeeper, app.accountKeeper),
+		capability.NewAppModule(appCodec, *app.capabilityKeeper),
+		gov.NewAppModule(appCodec, app.govKeeper, app.accountKeeper, app.bankKeeper),
+		mint.NewAppModule(appCodec, app.mintKeeper, app.accountKeeper),
+		staking.NewAppModule(appCodec, app.stakingKeeper, app.accountKeeper, app.bankKeeper),
+		distr.NewAppModule(appCodec, app.distrKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		slashing.NewAppModule(appCodec, app.slashingKeeper, app.accountKeeper, app.bankKeeper, app.stakingKeeper),
+		params.NewAppModule(app.paramsKeeper),
+		evidence.NewAppModule(app.evidenceKeeper),
+		feegrantmodule.NewAppModule(appCodec, app.accountKeeper, app.bankKeeper, app.feeGrantKeeper, app.interfaceRegistry),
+		authzmodule.NewAppModule(appCodec, app.authzKeeper, app.accountKeeper, app.bankKeeper, app.interfaceRegistry),
+		ibc.NewAppModule(app.ibcKeeper),
+		transferModule,
+		evm.NewAppModule(app.evmKeeper, app.accountKeeper),
+	)
+
+	app.sm.RegisterStoreDecoders()
+
 	// initialize stores
 	app.MountKVStores(keys)
 	app.MountTransientStores(tKeys)
@@ -641,7 +670,7 @@ func (app *NewApp) BlockedAddrs() map[string]bool {
 	return blockedAddrs
 }
 
-func (app *NewApp) Codec() codec.Codec {
+func (app *NewApp) AppCodec() codec.Codec {
 	return app.appCodec
 }
 
@@ -698,6 +727,26 @@ func (app *NewApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.APICon
 	if apiConfig.Swagger {
 		RegisterSwaggerAPI(clientCtx, apiSvr.Router)
 	}
+}
+
+func (app *NewApp) GetAccountKeeper() authkeeper.AccountKeeper {
+	return app.accountKeeper
+}
+
+func (app *NewApp) GetBankKeeper() bankkeeper.Keeper {
+	return app.bankKeeper
+}
+
+func (app *NewApp) GetStakingKeeper() stakingkeeper.Keeper {
+	return app.stakingKeeper
+}
+
+func (app *NewApp) GetRegisterKeeper() registerkeeper.Keeper {
+	return app.registerKeeper
+}
+
+func (app *NewApp) GetPotKeeper() potkeeper.Keeper {
+	return app.potKeeper
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

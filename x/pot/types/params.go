@@ -11,7 +11,6 @@ import (
 
 // DefaultParamSpace Default parameter namespace
 const (
-	DefaultParamSpace  = ModuleName
 	DefaultBondDenom   = "ustos"
 	DefaultRewardDenom = "utros"
 	DefaultMatureEpoch = 2016
@@ -81,6 +80,7 @@ func DefaultParams() Params {
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000000000000)),
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(2500000000)),
 		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
+
 	return NewParams(DefaultBondDenom, DefaultRewardDenom, DefaultMatureEpoch, miningRewardParams)
 }
 
