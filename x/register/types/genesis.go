@@ -15,8 +15,8 @@ func NewGenesisState(params *Params,
 	metaNodes MetaNodes,
 	initialUOzonePrice sdk.Dec,
 	slashingInfo []*Slashing,
-) GenesisState {
-	return GenesisState{
+) *GenesisState {
+	return &GenesisState{
 		Params:          params,
 		ResourceNodes:   resourceNodes,
 		MetaNodes:       metaNodes,

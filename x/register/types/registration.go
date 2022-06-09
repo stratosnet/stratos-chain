@@ -15,8 +15,8 @@ const (
 )
 
 // NewDescription returns a new Description with the provided values.
-func NewDescription(moniker, identity, website, securityContact, details string) Description {
-	return Description{
+func NewDescription(moniker, identity, website, securityContact, details string) *Description {
+	return &Description{
 		Moniker:         moniker,
 		Identity:        identity,
 		Website:         website,
@@ -26,7 +26,7 @@ func NewDescription(moniker, identity, website, securityContact, details string)
 }
 
 // EnsureLength ensures the length of a resource/meta node's description.
-func (d Description) EnsureLength() (Description, error) {
+func (d *Description) EnsureLength() (*Description, error) {
 	if len(d.Moniker) > MaxMonikerLength {
 		return d, sdkerrors.Wrapf(sdkerrors.ErrInvalidRequest, "invalid moniker length; got: %d, max: %d", len(d.Moniker), MaxMonikerLength)
 	}
