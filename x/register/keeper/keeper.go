@@ -190,65 +190,65 @@ func (k Keeper) GetMetaNetworksIterator(ctx sdk.Context) sdk.Iterator {
 	return sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
 }
 
-func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
-	var networkList []stratos.SdsAddress
-	iterator := keeper.GetResourceNetworksIterator(ctx)
-	for ; iterator.Valid(); iterator.Next() {
-		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
-		if err != nil {
-			continue
-		}
-		networkList = append(networkList, networkAddr)
-	}
-	iter := keeper.GetMetaNetworksIterator(ctx)
-	for ; iter.Valid(); iter.Next() {
-		metaNode := types.MustUnmarshalMetaNode(k.cdc, iter.Value())
-		networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
-		if err != nil {
-			continue
-		}
-		networkList = append(networkList, networkAddr)
-	}
-	r := removeDuplicateValues(k, networkList)
-	return r
-}
+//func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
+//	var networkList []stratos.SdsAddress
+//	iterator := keeper.GetResourceNetworksIterator(ctx)
+//	for ; iterator.Valid(); iterator.Next() {
+//		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
+//		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
+//		if err != nil {
+//			continue
+//		}
+//		networkList = append(networkList, networkAddr)
+//	}
+//	iter := keeper.GetMetaNetworksIterator(ctx)
+//	for ; iter.Valid(); iter.Next() {
+//		metaNode := types.MustUnmarshalMetaNode(k.cdc, iter.Value())
+//		networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
+//		if err != nil {
+//			continue
+//		}
+//		networkList = append(networkList, networkAddr)
+//	}
+//	r := removeDuplicateValues(k, networkList)
+//	return r
+//}
 
-func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res []byte) {
-	keys := make(map[string]bool)
-	for _, entry := range stringSlice {
-		if _, value := keys[entry.String()]; !value {
-			bytes, err := entry.MarshalJSON()
-			if err != nil {
-				continue
-			}
-			keys[entry.String()] = true
-			res = append(res, bytes...)
-			res = append(res, ';')
-		}
-	}
-	return res[:len(res)-1]
-}
+//func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res []byte) {
+//	keys := make(map[string]bool)
+//	for _, entry := range stringSlice {
+//		if _, value := keys[entry.String()]; !value {
+//			bytes, err := entry.MarshalJSON()
+//			if err != nil {
+//				continue
+//			}
+//			keys[entry.String()] = true
+//			res = append(res, bytes...)
+//			res = append(res, ';')
+//		}
+//	}
+//	return res[:len(res)-1]
+//}
 
-// GetUnbondingNodes return a given amount of all the UnbondingMetaNodes
-func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
-	maxRetrieve uint32) (unbondingMetaNodes []types.UnbondingNode) {
-
-	unbondingMetaNodes = make([]types.UnbondingNode, maxRetrieve)
-
-	store := ctx.KVStore(k.storeKey)
-	metaNodePrefixKey := types.GetUBDNodeKey(networkAddr)
-	iterator := sdk.KVStorePrefixIterator(store, metaNodePrefixKey)
-	defer iterator.Close()
-
-	i := 0
-	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
-		unbondingMetaNode := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-		unbondingMetaNodes[i] = unbondingMetaNode
-		i++
-	}
-	return unbondingMetaNodes[:i] // trim if the array length < maxRetrieve
-}
+//// GetUnbondingNodes return a given amount of all the UnbondingMetaNodes
+//func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
+//	maxRetrieve uint32) (unbondingMetaNodes []types.UnbondingNode) {
+//
+//	unbondingMetaNodes = make([]types.UnbondingNode, maxRetrieve)
+//
+//	store := ctx.KVStore(k.storeKey)
+//	metaNodePrefixKey := types.GetUBDNodeKey(networkAddr)
+//	iterator := sdk.KVStorePrefixIterator(store, metaNodePrefixKey)
+//	defer iterator.Close()
+//
+//	i := 0
+//	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
+//		unbondingMetaNode := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+//		unbondingMetaNodes[i] = unbondingMetaNode
+//		i++
+//	}
+//	return unbondingMetaNodes[:i] // trim if the array length < maxRetrieve
+//}
 
 // GetUnbondingNode return a unbonding UnbondingMetaNode
 func (k Keeper) GetUnbondingNode(ctx sdk.Context,
@@ -265,20 +265,20 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	return ubd, true
 }
 
-// IterateUnbondingNodes iterates through all of the unbonding metaNodes
-func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingNode) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
-	defer iterator.Close()
-
-	for i := int64(0); iterator.Valid(); iterator.Next() {
-		ubd := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-		if stop := fn(i, ubd); stop {
-			break
-		}
-		i++
-	}
-}
+//// IterateUnbondingNodes iterates through all of the unbonding metaNodes
+//func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingNode) (stop bool)) {
+//	store := ctx.KVStore(k.storeKey)
+//	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
+//	defer iterator.Close()
+//
+//	for i := int64(0); iterator.Valid(); iterator.Next() {
+//		ubd := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+//		if stop := fn(i, ubd); stop {
+//			break
+//		}
+//		i++
+//	}
+//}
 
 // HasMaxUnbondingMetaNodeEntries - check if unbonding MetaNode has maximum number of entries
 func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress) bool {
@@ -374,6 +374,7 @@ func (k Keeper) UnbondingNodeQueueIterator(ctx sdk.Context, endTime time.Time) s
 
 // DequeueAllMatureUBDQueue returns a concatenated list of all the timeslices inclusively previous to
 // currTime, and deletes the timeslices from the queue
+// Iteration for dequeuing  all mature unbonding queue
 func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 	currTime time.Time) (matureUnbonds []stratos.SdsAddress) {
 
@@ -437,12 +438,12 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 	return balances, ubd.IsMetaNode, nil
 }
 
-// CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
-// it does not return the total unbonding amount.
-func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddress) error {
-	_, _, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
-	return err
-}
+//// CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
+//// it does not return the total unbonding amount.
+//func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddress) error {
+//	_, _, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+//	return err
+//}
 
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of meta node
@@ -563,19 +564,20 @@ func (k Keeper) UnbondMetaNode(
 	return ozoneLimitChange, unbondingMatureTime, nil
 }
 
-// GetAllUnbondingNodes get the set of all ubd nodes with no limits, used during genesis dump
-func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.UnbondingNode) {
-	store := ctx.KVStore(k.storeKey)
-	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
-	defer iterator.Close()
+//// GetAllUnbondingNodes get the set of all ubd nodes with no limits, used during genesis dump
+//func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.UnbondingNode) {
+//	store := ctx.KVStore(k.storeKey)
+//	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
+//	defer iterator.Close()
+//
+//	for ; iterator.Valid(); iterator.Next() {
+//		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+//		unbondingNodes = append(unbondingNodes, node)
+//	}
+//	return unbondingNodes
+//}
 
-	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-		unbondingNodes = append(unbondingNodes, node)
-	}
-	return unbondingNodes
-}
-
+// GetAllUnbondingNodesTotalBalance Iteration for getting the total balance of all unbonding nodes
 func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
@@ -621,7 +623,7 @@ func (k Keeper) CurrUozPrice(ctx sdk.Context) sdk.Dec {
 	return currUozPrice
 }
 
-// calc remaining/total supply for uoz
+// UozSupply calc remaining/total supply for uoz
 func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
 	S := k.GetInitialGenesisStakeTotal(ctx)

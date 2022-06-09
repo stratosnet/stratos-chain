@@ -233,6 +233,7 @@ func (k Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins
 }
 
 // IterateFileUpload Iterate over all uploaded files.
+// Iteration for all uploaded files
 func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
 	store := ctx.KVStore(k.key)
 	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
@@ -248,6 +249,7 @@ func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.Fi
 }
 
 // IteratePrepay Iterate over all prepay KVs.
+// Iteration for all prepay KVs
 func (k Keeper) IteratePrepay(ctx sdk.Context, handler func(sdk.AccAddress, sdk.Int) (stop bool)) {
 	store := ctx.KVStore(k.key)
 	iter := sdk.KVStorePrefixIterator(store, types.PrepayBalancePrefix)

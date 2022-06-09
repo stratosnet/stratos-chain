@@ -271,6 +271,7 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 	return distributeGoal, nil
 }
 
+// Iteration for each rewarded SDS node
 func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []types.Reward, currentEpoch sdk.Int) (err error) {
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
 
@@ -293,6 +294,7 @@ func (k Keeper) addNewIndividualAndUpdateImmatureTotal(ctx sdk.Context, account 
 	k.SetImmatureTotalReward(ctx, account, newImmatureTotal)
 }
 
+// Iteration for mature rewards/slashing of all nodes
 func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int) (totalSlashed sdk.Coins) {
 
 	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
@@ -364,6 +366,7 @@ func (k Keeper) distributeValidatorRewardToFeePool(ctx sdk.Context, distributeGo
 	return distributeGoal, nil
 }
 
+// Iteration for calculating reward of resource nodes
 func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.Dec, trafficList []*types.SingleWalletVolume,
 	distributeGoalBalance types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) (map[string]types.Reward, types.DistributeGoal) {
@@ -453,6 +456,7 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 	return rewardDetailMap, distributeGoalBalance
 }
 
+// Iteration for calculating reward of meta nodes
 func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) (map[string]types.Reward, types.DistributeGoal) {
 
@@ -516,6 +520,7 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 	return rewardDetailMap, distributeGoalBalance
 }
 
+// Iteration for getting total consumed OZ from traffic
 func (k Keeper) GetTotalConsumedUoz(trafficList []*types.SingleWalletVolume) sdk.Int {
 	totalTraffic := sdk.ZeroInt()
 	for _, vol := range trafficList {
@@ -544,6 +549,7 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 	return
 }
 
+// Iteration for getting individule reward of each owner at a specific epoch
 func (k Keeper) IteratorIndividualReward(ctx sdk.Context, epoch sdk.Int, handler func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.GetIndividualRewardIteratorKey(epoch))
@@ -559,6 +565,7 @@ func (k Keeper) IteratorIndividualReward(ctx sdk.Context, epoch sdk.Int, handler
 	}
 }
 
+// Iteration for getting total immature reward
 func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, immatureTotal sdk.Coins) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.ImmatureTotalRewardKeyPrefix)
@@ -573,6 +580,7 @@ func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddres
 	}
 }
 
+// IteratorMatureTotal Iteration for getting total mature reward
 func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, matureTotal sdk.Coins) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.MatureTotalRewardKeyPrefix)
