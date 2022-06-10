@@ -41,8 +41,10 @@ var (
 	InitialGenesisStakeTotalKey  = []byte{0x06} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
 	InitialUOzonePriceKey        = []byte{0x07} // key of initial uoz price at t=0
 
-	UBDNodeKey      = []byte{0x11} // prefix for each key to an unbonding node
-	UBDNodeQueueKey = []byte{0x12} // prefix for the timestamps in unbonding node queue
+	UBDNodeKey         = []byte{0x11} // prefix for each key to an unbonding node
+	UBDNodeQueueKey    = []byte{0x12} // prefix for the timestamps in unbonding node queue
+	MetaNodeCntKey     = []byte{0x13} // the number of all meta nodes
+	ResourceNodeCntKey = []byte{0x14} // the number of all resource nodes
 )
 
 // GetResourceNodeKey gets the key for the resourceNode with address
