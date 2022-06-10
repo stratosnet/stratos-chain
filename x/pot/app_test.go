@@ -251,7 +251,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		/********************* record data before delivering tx  *********************/
 		lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
-		lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner2)
+		lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
 
 		/********************* deliver tx *********************/
 		idxOwnerAcc1 := accountKeeper.GetAccount(ctx, idxOwner1)
@@ -354,7 +354,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 
 	println("************************ slashing test***********************************")
-	println("slashing change					= " + slashingChange.String())
+	println("slashing change				= " + slashingChange.String())
 
 	upcomingMaturedIndividual := sdk.Coins{}
 	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
@@ -362,19 +362,14 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
 		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingChange)
 	}
-	println("upcomingMaturedIndividual			= " + upcomingMaturedIndividual.String())
+	println("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
 
 	// get mature total changes
 	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
 	matureTotalOfResNode1Change, _ := newMatureTotalOfResNode1.SafeSub(lastMatureTotalOfResNode1)
-
-	if upcomingMaturedIndividual == nil {
-		upcomingMaturedIndividual = sdk.Coins{}
-	}
 	if matureTotalOfResNode1Change == nil || matureTotalOfResNode1Change.IsAnyNegative() {
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
-
 	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change, upcomingMaturedIndividual)
 }
