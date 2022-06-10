@@ -62,6 +62,26 @@ func SdsPubKeyFromBech32(pubkeyStr string) (cryptotypes.PubKey, error) {
 	return pk, nil
 }
 
+// SdsPubKeyFromBytes returns a SdsPublicKey from a byte array.
+func SdsPubKeyFromByteArr(bytes []byte) (cryptotypes.PubKey, error) {
+	bech32PubPrefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
+	pubStr, err := sdk.Bech32ifyAddressBytes(bech32PubPrefix, bytes)
+	if err != nil {
+		return nil, err
+	}
+	return SdsPubKeyFromBech32(pubStr)
+}
+
+// SdsPubKeyFromBech32 convert a SdsPublicKey to a Bech32 string.
+func SdsPubKeyToBech32(pubkey cryptotypes.PubKey) (string, error) {
+	bech32PubPrefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
+	bech32Pub, err := bech32.ConvertAndEncode(bech32PubPrefix, pubkey.Bytes())
+	if err != nil {
+		panic(err)
+	}
+	return bech32Pub, nil
+}
+
 // SdsAddressFromHex creates an SdsAddress from a hex string.
 func SdsAddressFromHex(address string) (addr SdsAddress, err error) {
 	bz, err := addressBytesFromHexString(address)
