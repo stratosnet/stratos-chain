@@ -61,7 +61,6 @@ func setupSlashingMsg() *types.MsgSlashingResourceNode {
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-
 	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingUOZAmt1, true)
 	return slashingMsg
 }
@@ -102,6 +101,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := stApp.BaseApp.NewContext(true, header)
 
 	foundationDepositMsg := types.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
@@ -117,6 +117,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	/********************* create validator with 50% commission *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
 	commission := stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
@@ -132,8 +133,8 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-	ctx = stApp.BaseApp.NewContext(true, header)
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	ctx = stApp.BaseApp.NewContext(true, header)
 
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
@@ -203,7 +204,6 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		distributeGoal, err := potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedUoz)
 		require.NoError(t, err)
 
-		/********************************************************** Main net part Start *********************************************************************/
 		distributeGoal, err = potKeeper.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
 		require.NoError(t, err)
 		println(distributeGoal.String())
@@ -213,51 +213,47 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		distributeGoalBalance := distributeGoal
 		rewardDetailMap := make(map[string]types.Reward)
 		rewardDetailMap, distributeGoalBalance = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedUoz, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
-		/********************************************************** Main net part End *********************************************************************/
+		rewardDetailMap, distributeGoalBalance = potKeeper.CalcRewardForMetaNode(ctx, distributeGoalBalance, rewardDetailMap)
 
 		println("resource_wallet1:  address = " + resOwner1.String())
-		println("           miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
 
 		println("resource_wallet2:  address = " + resOwner2.String())
-		println("           miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
 
 		println("resource_wallet3:  address = " + resOwner3.String())
-		println("           miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
 
 		println("resource_wallet4:  address = " + resOwner4.String())
-		println("           miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
 
 		println("resource_wallet5:  address = " + resOwner5.String())
-		println("           miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
 		println("indexing_wallet1:  address = " + idxOwner1.String())
-		println("           miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
 
 		println("indexing_wallet2:  address = " + idxOwner2.String())
-		println("           miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
 
 		println("indexing_wallet3:  address = " + idxOwner3.String())
-		println("           miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
-		println("          trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
+		println("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
+		println("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
 		println("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
-		feePoolAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
-		require.NotNil(t, feePoolAccAddr)
 		lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
-		lastFeePool := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
 		lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
 		lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner2)
 
 		/********************* deliver tx *********************/
-
 		idxOwnerAcc1 := accountKeeper.GetAccount(ctx, idxOwner1)
 		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
 		ownerAccSeq := idxOwnerAcc1.GetSequence()
@@ -267,6 +263,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
 
 		epoch, ok = sdk.NewIntFromString(volumeReportMsg.Epoch.String())
@@ -279,10 +276,9 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			epoch,
 			lastFoundationAccBalance,
 			lastUnissuedPrepay,
-			lastFeePool,
 			lastMatureTotalOfResNode1,
 			slashingAmtSetup,
-		) // Main net
+		)
 
 		i++
 	}
@@ -314,12 +310,11 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	currentEpoch sdk.Int,
 	lastFoundationAccBalance sdk.Coins,
 	lastUnissuedPrepay sdk.Coin,
-	lastFeePool sdk.Coins,
 	lastMatureTotalOfResNode1 sdk.Coins,
 	slashingAmtSetup sdk.Int) {
 
 	currentSlashing := registerKeeper.GetSlashing(ctx, resNodeAddr2)
-	println("currentSlashing							=" + currentSlashing.String())
+	println("currentSlashing					= " + currentSlashing.String())
 
 	individualRewardTotal := sdk.Coins{}
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
@@ -337,28 +332,24 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	newUnissuedPrepay := sdk.NewCoins(registerKeeper.GetTotalUnissuedPrepay(ctx))
 
 	slashingChange := slashingAmtSetup.Sub(registerKeeper.GetSlashing(ctx, resOwner1))
-	println("resource node 1 slashing change	= " + slashingChange.String())
+	println("resource node 1 slashing change		= " + slashingChange.String())
 	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
 	println("resource node 1 matureTotal		= " + matureTotal.String())
-	println("resource node 1 immatureTotal	= " + immatureTotal.String())
+	println("resource node 1 immatureTotal		= " + immatureTotal.String())
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
-	println("rewardSrcChange					= " + rewardSrcChange.String())
+	println("rewardSrcChange				= " + rewardSrcChange.String())
 
-	// get fee pool changes
-	newFeePool := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
-	println("lastFeePool						= " + lastFeePool.String())
-	println("newFeePool						= " + newFeePool.String())
-
-	feePoolValChange := newFeePool.Sub(lastFeePool)
-	println("reward send to validator fee pool= " + feePoolValChange.String())
+	// distribution module will send all tokens from "fee_collector" to "distribution" account in the BeginBlocker() method
+	feePoolValChange := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
+	println("reward send to validator fee pool	= " + feePoolValChange.String())
 
 	rewardDestChange := feePoolValChange.Add(individualRewardTotal...)
-	println("rewardDestChange					= " + rewardDestChange.String())
+	println("rewardDestChange			= " + rewardDestChange.String())
 
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 
@@ -371,7 +362,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
 		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingChange)
 	}
-	println("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
+	println("upcomingMaturedIndividual			= " + upcomingMaturedIndividual.String())
 
 	// get mature total changes
 	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
@@ -384,7 +375,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
 
-	println("matureTotalOfResNode1Change				= " + matureTotalOfResNode1Change.String())
+	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change, upcomingMaturedIndividual)
 }
 
