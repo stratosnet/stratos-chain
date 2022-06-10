@@ -254,6 +254,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			require.NoError(t, err)
 			/********************* commit & check result *********************/
 			header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+			stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 			ctx = stApp.BaseApp.NewContext(true, header)
 
 			slashingAmtSetup = registerKeeper.GetSlashing(ctx, resOwner1)
@@ -464,7 +465,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
 	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
-	require.Equal(t, matureTotalOfResNode1Change, upcomingMaturedIndividual)
+	require.Equal(t, matureTotalOfResNode1Change.String(), upcomingMaturedIndividual.String())
 }
 
 func checkValidator(t *testing.T, app *app.NewApp, addr sdk.ValAddress, expFound bool) stakingtypes.Validator {
@@ -561,11 +562,11 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
-	resourceNode1, _ := registertypes.NewResourceNode(resNodeNetworkId1, resNodePubKey1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), &nodeType, time)
-	resourceNode2, _ := registertypes.NewResourceNode(resNodeNetworkId2, resNodePubKey2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), &nodeType, time)
-	resourceNode3, _ := registertypes.NewResourceNode(resNodeNetworkId3, resNodePubKey3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), &nodeType, time)
-	resourceNode4, _ := registertypes.NewResourceNode(resNodeNetworkId4, resNodePubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), &nodeType, time)
-	resourceNode5, _ := registertypes.NewResourceNode(resNodeNetworkId5, resNodePubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), &nodeType, time)
+	resourceNode1, _ := registertypes.NewResourceNode(resNodeNetworkId1, resNodePubKey1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType, time)
+	resourceNode2, _ := registertypes.NewResourceNode(resNodeNetworkId2, resNodePubKey2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType, time)
+	resourceNode3, _ := registertypes.NewResourceNode(resNodeNetworkId3, resNodePubKey3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType, time)
+	resourceNode4, _ := registertypes.NewResourceNode(resNodeNetworkId4, resNodePubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, time)
+	resourceNode5, _ := registertypes.NewResourceNode(resNodeNetworkId5, resNodePubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, time)
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)

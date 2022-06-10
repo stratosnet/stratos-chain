@@ -70,7 +70,7 @@ message MsgCreateResourceNode {
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  string                        node_type = 6 [
+  uint32                        node_type = 6 [
     (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];
@@ -161,7 +161,7 @@ message MsgUpdateResourceNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  string      node_type          = 4 [
+  uint32      node_type          = 4 [
     (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];

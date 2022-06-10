@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -42,10 +40,6 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
-	resourceNodeType, err := strconv.Atoi(node.NodeType)
-	if err != nil {
-		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNodeType
-	}
 
-	return slash.TruncateInt(), registertypes.NodeType(resourceNodeType), nil
+	return slash.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

@@ -1,8 +1,6 @@
 package types
 
 import (
-	"strconv"
-
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -38,7 +36,7 @@ const (
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType string,
+	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType uint32,
 ) (*MsgCreateResourceNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -98,13 +96,11 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 		return ErrEmptyDescription
 	}
 
-	nodeTypeNum, err := strconv.Atoi(msg.GetNodeType())
-	if err != nil {
+	nodeType := NodeType(msg.GetNodeType())
+	if nodeType.Type() == "UNKNOWN" {
 		return ErrInvalidNodeType
 	}
-	if nodeTypeNum > 7 || nodeTypeNum < 1 {
-		return ErrInvalidNodeType
-	}
+
 	return nil
 }
 
@@ -311,7 +307,7 @@ func (msg MsgRemoveMetaNode) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgUpdateResourceNode(description Description, nodeType string,
+func NewMsgUpdateResourceNode(description Description, nodeType uint32,
 	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgUpdateResourceNode {
 
 	return &MsgUpdateResourceNode{
@@ -365,11 +361,8 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 	//	return ErrEmptyMoniker
 	//}
 
-	nodeTypeNum, err := strconv.Atoi(msg.NodeType)
-	if err != nil {
-		return ErrInvalidNodeType
-	}
-	if nodeTypeNum > 7 || nodeTypeNum < 0 {
+	nodeType := NodeType(msg.NodeType)
+	if nodeType.Type() == "UNKNOWN" {
 		return ErrInvalidNodeType
 	}
 	return nil

@@ -110,7 +110,7 @@ func NewStakingInfoByMetaNodeAddr(
 		Tokens:         &metaNode.Tokens,
 		OwnerAddress:   metaNode.GetOwnerAddress(),
 		Description:    metaNode.Description,
-		NodeType:       "metanode",
+		NodeType:       uint32(0),
 		CreationTime:   metaNode.CreationTime,
 		UnBondingStake: &unBondingValue,
 		UnBondedStake:  &unBondedValue,

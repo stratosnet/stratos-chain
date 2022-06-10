@@ -61,7 +61,7 @@ type (
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
 		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
-		NodeType    int               `json:"node_type" yaml:"node_type"`
+		NodeType    uint32            `json:"node_type" yaml:"node_type"`
 	}
 
 	RemoveResourceNodeRequest struct {
@@ -72,7 +72,7 @@ type (
 	UpdateResourceNodeRequest struct {
 		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		Description    types.Description `json:"description" yaml:"description"`
-		NodeType       int               `json:"node_type" yaml:"node_type"`
+		NodeType       uint32            `json:"node_type" yaml:"node_type"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
@@ -137,13 +137,12 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		nodeTypeRef := req.NodeType
 		ownerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if er != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
-		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+		if t := types.NodeType(req.NodeType).Type(); t == "UNKNOWN" {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
@@ -152,9 +151,9 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		//nodeType := types.NodeType(nodeTypeRef)
+
 		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
-			string(nodeTypeRef))
+			req.NodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -291,8 +290,6 @@ func postUpdateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		nodeTypeRef := req.NodeType
-
 		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -304,12 +301,11 @@ func postUpdateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
-		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+		if t := types.NodeType(req.NodeType).Type(); t == "UNKNOWN" {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
-		msg := types.NewMsgUpdateResourceNode(req.Description,
-			string(types.NodeType(nodeTypeRef)), networkAddr, ownerAddr)
+		msg := types.NewMsgUpdateResourceNode(req.Description, req.NodeType, networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

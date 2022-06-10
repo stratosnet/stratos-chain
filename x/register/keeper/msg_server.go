@@ -51,11 +51,8 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 	if msg.Value.Denom != k.BondDenom(ctx) {
 		return nil, types.ErrBadDenom
 	}
-	nodeType, err := strconv.ParseUint(msg.NodeType, 10, 8)
-	if err != nil {
-		return &types.MsgCreateResourceNodeResponse{}, err
-	}
-	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, types.NodeType(nodeType), msg.Value)
+
+	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, types.NodeType(msg.NodeType), msg.Value)
 	if err != nil {
 		return nil, err
 	}
@@ -271,12 +268,7 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 	if err != nil {
 		return &types.MsgUpdateResourceNodeResponse{}, err
 	}
-	//nodeType, err := strconv.ParseUint(msg.NodeType, 10, 64)
-	nodeType, err := strconv.Atoi(msg.NodeType)
-	if err != nil {
-		return &types.MsgUpdateResourceNodeResponse{}, err
-	}
-	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(nodeType), networkAddr, ownerAddress)
+	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(msg.NodeType), networkAddr, ownerAddress)
 	if err != nil {
 		return nil, err
 	}

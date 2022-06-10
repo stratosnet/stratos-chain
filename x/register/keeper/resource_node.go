@@ -276,7 +276,7 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
-	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, &description, &nodeType, ctx.BlockHeader().Time)
+	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, &description, nodeType, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -299,7 +299,7 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 
 	node.Description = &description
 	if nodeType != 0 {
-		node.NodeType = nodeType.String()
+		node.NodeType = uint32(nodeType)
 	}
 
 	k.SetResourceNode(ctx, node)
