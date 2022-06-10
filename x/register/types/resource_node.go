@@ -252,8 +252,8 @@ func (s *Staking) GetShares() sdk.Dec { return s.Value }
 type Stakings []Staking
 
 func (ss Stakings) String() (out string) {
-	for _, del := range ss {
-		out += del.String() + "\n"
+	for _, staking := range ss {
+		out += staking.String() + "\n"
 	}
 
 	return strings.TrimSpace(out)

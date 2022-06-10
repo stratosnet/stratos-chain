@@ -63,7 +63,7 @@ func (k Keeper) GetMetaNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (met
 	return metaNode, true
 }
 
-// set the main record holding meta node details
+// SetMetaNode sets the main record holding meta node details
 func (k Keeper) SetMetaNode(ctx sdk.Context, metaNode types.MetaNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := types.MustMarshalMetaNode(k.cdc, metaNode)
@@ -72,6 +72,7 @@ func (k Keeper) SetMetaNode(ctx sdk.Context, metaNode types.MetaNode) {
 }
 
 // GetAllMetaNodes get the set of all meta nodes with no limits, used during genesis dump
+//Iteration for all meta nodes
 func (k Keeper) GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)

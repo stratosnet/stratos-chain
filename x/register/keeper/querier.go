@@ -114,7 +114,8 @@ func getMetaNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, l
 	return res, nil
 }
 
-func getNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+// Iteration for querying total stakes of resource/meta nodes
+func getNodesStakingInfo(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 
 	totalBondedStakeOfResourceNodes := k.GetResourceNodeBondedToken(ctx).Amount
 	totalBondedStakeOfMetaNodes := k.GetMetaNodeBondedToken(ctx).Amount
@@ -375,6 +376,7 @@ func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.
 	return prefixStore.Iterator(start, nil)
 }
 
+// Iteration for querying total stakes of resource/meta nodes
 func FilteredPaginate(cdc codec.Codec,
 	prefixStore storetypes.KVStore,
 	queryOwnerAddr sdk.AccAddress,
@@ -529,6 +531,7 @@ func FilteredPaginate(cdc codec.Codec,
 	return res, nil
 }
 
+// StakingInfosResourceNodes Iteration for querying StakingInfos of resource nodes by owner(cmd and rest)
 func StakingInfosResourceNodes(
 	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
 ) (types.StakingInfos, error) {
@@ -548,6 +551,7 @@ func StakingInfosResourceNodes(
 	return res, nil
 }
 
+// StakingInfosMetaNodes Iteration for querying StakingInfos of meta nodes by owner(cmd and rest)
 func StakingInfosMetaNodes(
 	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
 ) (types.StakingInfos, error) {
@@ -567,6 +571,7 @@ func StakingInfosMetaNodes(
 	return res, nil
 }
 
+// StakingInfosToStakingResourceNodes Iteration for querying StakingInfos of resource nodes by owner(grpc)
 func StakingInfosToStakingResourceNodes(
 	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
 ) ([]*types.StakingInfo, error) {
@@ -584,6 +589,7 @@ func StakingInfosToStakingResourceNodes(
 	return resp, nil
 }
 
+// StakingInfosToStakingMetaNodes Iteration for querying StakingInfos of meta nodes by owner(grpc)
 func StakingInfosToStakingMetaNodes(
 	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
 ) ([]*types.StakingInfo, error) {

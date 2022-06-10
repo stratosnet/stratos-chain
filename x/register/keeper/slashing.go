@@ -31,6 +31,7 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 	return remaining, deducted
 }
 
+// Iteration for each slashing
 func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, slashing sdk.Int) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.SlashingPrefix)

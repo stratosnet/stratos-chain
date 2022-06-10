@@ -70,6 +70,7 @@ func (k Keeper) SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode
 }
 
 // GetAllResourceNodes get the set of all resource nodes with no limits, used during genesis dump
+// Iteration for all resource nodes
 func (k Keeper) GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
