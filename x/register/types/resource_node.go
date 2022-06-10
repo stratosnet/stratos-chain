@@ -2,7 +2,6 @@ package types
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
@@ -14,7 +13,7 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-type NodeType uint8
+type NodeType uint32
 
 const (
 	STORAGE     NodeType = 4
@@ -74,7 +73,7 @@ func (v ResourceNodes) Validate() error {
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description *Description, nodeType *NodeType, creationTime time.Time) (ResourceNode, error) {
+	description *Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return ResourceNode{}, err
@@ -87,7 +86,7 @@ func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 		Tokens:         sdk.ZeroInt(),
 		OwnerAddress:   ownerAddr.String(),
 		Description:    description,
-		NodeType:       nodeType.Type(),
+		NodeType:       uint32(nodeType),
 		CreationTime:   creationTime,
 	}, nil
 }
@@ -173,11 +172,9 @@ func (v ResourceNode) Validate() error {
 	if v.GetDescription().Moniker == "" {
 		return ErrEmptyMoniker
 	}
-	nodeTypeNum, err := strconv.Atoi(v.GetNodeType())
-	if err != nil {
-		return ErrInvalidNodeType
-	}
-	if nodeTypeNum > 7 || nodeTypeNum < 1 {
+
+	nodeType := NodeType(v.GetNodeType())
+	if nodeType.Type() == "UNKNOWN" {
 		return ErrInvalidNodeType
 	}
 	return nil

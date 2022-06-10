@@ -77,7 +77,7 @@ message ResourceNode {
     (gogoproto.jsontag)  = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
   ];
-  string                              node_type      = 9 [
+  uint32                              node_type      = 9 [
     (gogoproto.jsontag)  = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];
@@ -234,7 +234,7 @@ message StakingInfo {
     (gogoproto.jsontag)  = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
   ];
-  string                              node_type      = 9 [
+  uint32                              node_type      = 9 [
     (gogoproto.jsontag)  = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];

@@ -210,12 +210,12 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
 	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) *MsgSlashingResourceNode {
 
-	reporterStrSlice := make([]string, len(reporters))
+	reporterStrSlice := make([]string, 0)
 	for _, reporter := range reporters {
 		reporterStrSlice = append(reporterStrSlice, reporter.String())
 	}
 
-	reporterOwnerStrSlice := make([]string, len(reporterOwner))
+	reporterOwnerStrSlice := make([]string, 0)
 	for _, reporterOwner := range reporterOwner {
 		reporterOwnerStrSlice = append(reporterOwnerStrSlice, reporterOwner.String())
 	}

@@ -380,7 +380,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		return txf, nil, err
 	}
 
-	nodeTypeRef, err := fs.GetInt(FlagNodeType)
+	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
 	if err != nil {
 		return txf, nil, err
 	}
@@ -398,12 +398,12 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		details,
 	)
 
-	// validate nodeTypeRef
-	newNodeType := types.NodeType(nodeTypeRef)
-	if t := newNodeType.Type(); t == "UNKNOWN" {
+	// validate nodeTypeVal
+	nodeType := types.NodeType(nodeTypeVal)
+	if t := nodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, strconv.Itoa(nodeTypeRef))
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, nodeTypeVal)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -486,16 +486,17 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 		details,
 	)
 
-	nodeTypeRef, err := fs.GetInt(FlagNodeType)
+	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
 	if err != nil {
 		return txf, nil, types.ErrInvalidNodeType
 	}
 
-	if nodeTypeRef > 7 || nodeTypeRef < 0 {
-		return txf, nil, types.ErrInvalidNodeType
+	// validate nodeTypeVal
+	nodeType := types.NodeType(nodeTypeVal)
+	if t := nodeType.Type(); t == "UNKNOWN" {
+		return txf, nil, types.ErrNodeType
 	}
-	nodeTypeStr := strconv.Itoa(nodeTypeRef)
-	msg := types.NewMsgUpdateResourceNode(*description, nodeTypeStr, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateResourceNode(*description, nodeTypeVal, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
