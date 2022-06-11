@@ -503,7 +503,11 @@ func (k Keeper) UnbondResourceNode(
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(resourceNode.Tokens) {
 		resourceNode.Status = stakingtypes.Unbonding
+
 		k.SetResourceNode(ctx, resourceNode)
+
+		// decrease resource node count
+		k.SetBondedResourceNodeCnt(ctx, sdk.NewInt(-1))
 	}
 
 	// set the unbonding mature time and completion height appropriately
@@ -553,6 +557,8 @@ func (k Keeper) UnbondMetaNode(
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(metaNode.Tokens) {
 		metaNode.Status = stakingtypes.Unbonding
+		// decrease meta node count
+		k.SetBondedMetaNodeCnt(ctx, sdk.NewInt(-1))
 		k.SetMetaNode(ctx, metaNode)
 	}
 

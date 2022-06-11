@@ -22,6 +22,8 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		}
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
+
+	// set initial genesis number of resource nodes
 	keeper.SetInitialGenesisBondedResourceNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedResourceNode))
 
 	lenOfGenesisBondedMetaNode := int64(0)
@@ -32,6 +34,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		}
 		keeper.SetMetaNode(ctx, metaNode)
 	}
+	// set initial genesis number of meta nodes
 	keeper.SetInitialGenesisBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount

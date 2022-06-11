@@ -352,7 +352,8 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 		node.Status = stakingtypes.Bonded
 		node.Suspend = false
 		k.SetMetaNode(ctx, node)
-
+		// increase mata node count
+		k.SetBondedMetaNodeCnt(ctx, sdk.NewInt(1))
 		// move stake from not bonded pool to bonded pool
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), node.Tokens)
 
@@ -481,4 +482,10 @@ func (k Keeper) GetMetaNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, metaNodeNotBondedAccAddr, k.BondDenom(ctx))
+}
+
+func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
+	return iterator
 }
