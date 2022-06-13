@@ -76,9 +76,14 @@ type RegisterKeeper interface {
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
 	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
 
-	GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes)
+	//GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes)
 	//GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes)
 	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
+	GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator
+	GetBondedMetaNodeCnt(ctx sdk.Context) sdk.Int
+	GetBondedResourceNodeCnt(ctx sdk.Context) sdk.Int
+	SetBondedResourceNodeCnt(ctx sdk.Context, delta sdk.Int)
+	SetBondedMetaNodeCnt(ctx sdk.Context, delta sdk.Int)
 }
 
 type StakingKeeper interface {

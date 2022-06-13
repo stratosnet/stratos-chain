@@ -178,17 +178,17 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	return limitToSub.TruncateInt()
 }
 
-// GetResourceNetworksIterator gets an iterator over all network addresses
-func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-}
-
-// GetMetaNetworksIterator gets an iterator over all network addresses
-func (k Keeper) GetMetaNetworksIterator(ctx sdk.Context) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
-}
+//// GetResourceNetworksIterator gets an iterator over all network addresses
+//func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
+//	store := ctx.KVStore(k.storeKey)
+//	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
+//}
+//
+//// GetMetaNetworksIterator gets an iterator over all network addresses
+//func (k Keeper) GetMetaNetworksIterator(ctx sdk.Context) sdk.Iterator {
+//	store := ctx.KVStore(k.storeKey)
+//	return sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
+//}
 
 //func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
 //	var networkList []stratos.SdsAddress
@@ -503,7 +503,11 @@ func (k Keeper) UnbondResourceNode(
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(resourceNode.Tokens) {
 		resourceNode.Status = stakingtypes.Unbonding
+
 		k.SetResourceNode(ctx, resourceNode)
+
+		// decrease resource node count
+		k.SetBondedResourceNodeCnt(ctx, sdk.NewInt(-1))
 	}
 
 	// set the unbonding mature time and completion height appropriately
@@ -553,6 +557,8 @@ func (k Keeper) UnbondMetaNode(
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(metaNode.Tokens) {
 		metaNode.Status = stakingtypes.Unbonding
+		// decrease meta node count
+		k.SetBondedMetaNodeCnt(ctx, sdk.NewInt(-1))
 		k.SetMetaNode(ctx, metaNode)
 	}
 
@@ -631,4 +637,56 @@ func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	// total supply = Lt * ( 1 + Pt / S )
 	total = (Pt.ToDec().Quo(S.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
 	return remaining, total
+}
+
+func (k Keeper) SetInitialGenesisBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
+	store.Set(types.ResourceNodeCntKey, b)
+}
+
+func (k Keeper) SetInitialGenesisBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
+	store.Set(types.MetaNodeCntKey, b)
+}
+
+func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, delta sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	oldValue := store.Get(types.ResourceNodeCntKey)
+	var balance sdk.Int
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(oldValue, &balance)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(balance.Add(delta))
+	store.Set(types.ResourceNodeCntKey, b)
+}
+
+func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, delta sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	oldValue := store.Get(types.MetaNodeKey)
+	var balance sdk.Int
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(oldValue, &balance)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(balance.Add(delta))
+	store.Set(types.MetaNodeCntKey, b)
+}
+
+func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	value := store.Get(types.ResourceNodeCntKey)
+	if value == nil {
+		return sdk.ZeroInt()
+	}
+	var balance sdk.Int
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
+	return balance
+}
+
+func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) sdk.Int {
+	store := ctx.KVStore(k.storeKey)
+	value := store.Get(types.MetaNodeCntKey)
+	if value == nil {
+		return sdk.ZeroInt()
+	}
+	var balance sdk.Int
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
+	return balance
 }

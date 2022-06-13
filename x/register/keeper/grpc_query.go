@@ -244,17 +244,19 @@ func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) 
 	totalUnbondedStakeOfResourceNodes := q.GetResourceNodeNotBondedToken(ctx).Amount
 	totalUnbondedStakeOfMetaNodes := q.GetMetaNodeNotBondedToken(ctx).Amount
 
-	resourceNodeList := q.GetAllResourceNodes(ctx)
-	totalStakeOfResourceNodes := sdk.ZeroInt()
-	for _, node := range resourceNodeList {
-		totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
-	}
+	//resourceNodeList := q.GetAllResourceNodes(ctx)
+	//totalStakeOfResourceNodes := sdk.ZeroInt()
+	//for _, node := range resourceNodeList {
+	//	totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
+	//}
+	totalStakeOfResourceNodes := totalBondedStakeOfResourceNodes.Add(totalUnbondedStakeOfResourceNodes)
 
-	metaNodeList := q.GetAllMetaNodes(ctx)
-	totalStakeOfMetaNodes := sdk.ZeroInt()
-	for _, node := range metaNodeList {
-		totalStakeOfMetaNodes = totalStakeOfMetaNodes.Add(node.Tokens)
-	}
+	//metaNodeList := q.GetAllMetaNodes(ctx)
+	//totalStakeOfMetaNodes := sdk.ZeroInt()
+	//for _, node := range metaNodeList {
+	//	totalStakeOfMetaNodes = totalStakeOfMetaNodes.Add(node.Tokens)
+	//}
+	totalStakeOfMetaNodes := totalBondedStakeOfMetaNodes.Add(totalUnbondedStakeOfMetaNodes)
 
 	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfMetaNodes)
 	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfMetaNodes)

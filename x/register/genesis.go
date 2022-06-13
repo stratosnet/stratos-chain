@@ -13,18 +13,29 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetParams(ctx, *data.Params)
 
 	initialStakeTotal := sdk.ZeroInt()
+	lenOfGenesisBondedResourceNode := int64(0)
 	for _, resourceNode := range data.GetResourceNodes() {
 		if resourceNode.GetStatus() == stakingtypes.Bonded {
+			lenOfGenesisBondedResourceNode++
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+
 		}
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
+
+	// set initial genesis number of resource nodes
+	keeper.SetInitialGenesisBondedResourceNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedResourceNode))
+
+	lenOfGenesisBondedMetaNode := int64(0)
 	for _, metaNode := range data.GetMetaNodes() {
 		if metaNode.GetStatus() == stakingtypes.Bonded {
+			lenOfGenesisBondedResourceNode++
 			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
 		}
 		keeper.SetMetaNode(ctx, metaNode)
 	}
+	// set initial genesis number of meta nodes
+	keeper.SetInitialGenesisBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := sdk.ZeroDec()

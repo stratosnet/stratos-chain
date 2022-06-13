@@ -146,36 +146,7 @@ func RemoveResourceNodeCmd() *cobra.Command {
 }
 
 func RemoveMetaNodeCmd() *cobra.Command {
-	//cmd := &cobra.Command{
-	//	Use:   "remove-meta-node [meta_node_address]",
-	//	Args:  cobra.ExactArgs(2),
-	//	Short: "remove meta node",
-	//	RunE: func(cmd *cobra.Command, args []string) error {
-	//		clientCtx, err := client.GetClientTxContext(cmd)
-	//		if err != nil {
-	//			return err
-	//		}
-	//
-	//		metaNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
-	//		if err != nil {
-	//			return err
-	//		}
-	//		ownerAddr := clientCtx.GetFromAddress()
-	//		//ownerAddr, err := sdk.AccAddressFromBech32(args[1])
-	//		//if err != nil {
-	//		//	return err
-	//		//}
-	//
-	//		msg := types.NewMsgRemoveMetaNode(metaNodeAddr, ownerAddr)
-	//
-	//		return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-	//	},
-	//}
-	//_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	//
-	//flags.AddTxFlagsToCmd(cmd)
-	//
-	//return cmd
+
 	cmd := &cobra.Command{
 		Use: "remove-meta-node [flag]",
 		//Args:  cobra.ExactArgs(1),

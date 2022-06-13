@@ -53,12 +53,14 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isMetaNode 
 		if temp.GetStatus() != stakingtypes.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, metaNode: %v\n", temp))
 		}
+		k.SetBondedMetaNodeCnt(ctx, sdk.NewInt(-1))
 		return k.beginUnbondingMetaNode(ctx, &temp, &coin)
 	default:
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != stakingtypes.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, resourceNode: %v\n", temp))
 		}
+		k.SetBondedResourceNodeCnt(ctx, sdk.NewInt(-1))
 		return k.beginUnbondingResourceNode(ctx, &temp, &coin)
 	}
 }

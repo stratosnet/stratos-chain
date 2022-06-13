@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -135,7 +136,9 @@ func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal type
 	//	return types.ErrInsufficientUnissuedPrePayBalance
 	//}
 	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
-
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -380,7 +383,11 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 	resourceNodeIterator := k.RegisterKeeper.GetResourceNodeIterator(ctx)
 	defer resourceNodeIterator.Close()
 	for ; resourceNodeIterator.Valid(); resourceNodeIterator.Next() {
+
 		node := regtypes.MustUnmarshalResourceNode(k.cdc, resourceNodeIterator.Value())
+		if node.Status != stakingtypes.Bonded {
+			continue
+		}
 
 		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
 		if err != nil {
@@ -466,9 +473,20 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 	totalUsedMetaRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 
 	totalStakeOfMetaNodes := k.RegisterKeeper.GetMetaNodeBondedToken(ctx).Amount
-	metaNodeList := k.RegisterKeeper.GetAllMetaNodes(ctx)
-	metaNodeCnt := sdk.NewInt(int64(len(metaNodeList)))
-	for _, node := range metaNodeList {
+	//metaNodeList := k.RegisterKeeper.GetAllMetaNodes(ctx)// bonded nodes
+	//metaNodeCnt := sdk.NewInt(int64(len(metaNodeList)))
+
+	metaNodeCnt := k.RegisterKeeper.GetBondedMetaNodeCnt(ctx)
+	// 1, calc stake reward
+	mataNodeIterator := k.RegisterKeeper.GetMetaNodeIterator(ctx)
+	defer mataNodeIterator.Close()
+
+	for ; mataNodeIterator.Valid(); mataNodeIterator.Next() {
+		node := regtypes.MustUnmarshalMetaNode(k.cdc, mataNodeIterator.Value())
+		if node.Status != stakingtypes.Bonded {
+			continue
+		}
+
 		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
 		if err != nil {
 			continue
@@ -478,7 +496,6 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 			continue
 		}
 
-		// 1, calc stake reward
 		shareOfToken := tokens.ToDec().Quo(totalStakeOfMetaNodes.ToDec())
 		stakeRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx),
 			distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool.Amount.ToDec().Mul(shareOfToken).TruncateInt())
@@ -507,6 +524,7 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 		newReward = newReward.AddRewardFromTrafficPool(stakeRewardFromTrafficPool.Add(metaRewardFromTrafficPool))
 		rewardDetailMap[walletAddr.String()] = newReward
 	}
+
 	// deduct used reward from distributeGoal
 	distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool =
 		distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool.Sub(totalUsedStakeRewardFromMiningPool)
