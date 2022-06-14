@@ -80,13 +80,6 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 	store := ctx.KVStore(q.storeKey)
 	RewardStore := prefix.NewStore(store, types.GetIndividualRewardIteratorKey(matureEpoch))
 
-	//if req.Pagination.Limit == 0 {
-	//	req.Pagination.Limit = registertypes.QueryDefaultLimit
-	//
-	//	// count total results when the limit is zero/not supplied
-	//	req.Pagination.CountTotal = true
-	//}
-
 	rewardsPageRes, err := FilteredPaginate(q.cdc, RewardStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		val, err := UnmarshalIndividualReward(q.cdc, value)
 		if err != nil {
@@ -102,32 +95,35 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 	if err != nil {
 		return &types.QueryPotRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
 	}
-
-	//	height := ctx.BlockHeight()
-	//	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height}, nil
-	//	q.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-	//		if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
-	//			(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
-	//			res = append(res, &individualReward)
-	//		}
-	//		return false
-	//	})
-	//
-	//	offset := req.Pagination.Offset
-	//	page := 1
-	//	if offset != 0 {
-	//		page =
-	//	}
-	//	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-	//	if start < 0 || end < 0 {
-	//		return &types.QueryPotRewardsByEpochResponse{}, nil
-	//	} else {
-	//		res = res[start:end]
-	//	}
 	height := ctx.BlockHeight()
 	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
-	//}
 }
+
+//	height := ctx.BlockHeight()
+//	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height}, nil
+//	q.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+//		if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
+//			(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
+//			res = append(res, &individualReward)
+//		}
+//		return false
+//	})
+//
+//	offset := req.Pagination.Offset
+//	page := 1
+//	if offset != 0 {
+//		page =
+//	}
+//	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+//	if start < 0 || end < 0 {
+//		return &types.QueryPotRewardsByEpochResponse{}, nil
+//	} else {
+//		res = res[start:end]
+//	}
+//	height := ctx.BlockHeight()
+//	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
+//	//}
+//}
 
 func UnmarshalIndividualReward(cdc codec.BinaryCodec, value []byte) (v types.Reward, err error) {
 	err = cdc.Unmarshal(value, &v)
