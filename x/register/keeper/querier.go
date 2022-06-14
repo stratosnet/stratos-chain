@@ -362,7 +362,7 @@ func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatu
 	return unbondingStake, unbondedStake, bondedStake, nil
 }
 
-func getIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
+func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
 	if reverse {
 		var end []byte
 		if start != nil {
@@ -409,7 +409,7 @@ func FilteredPaginate(cdc codec.Codec,
 	}
 
 	if len(key) != 0 {
-		iterator := getIterator(prefixStore, key, reverse)
+		iterator := GetIterator(prefixStore, key, reverse)
 		defer iterator.Close()
 
 		var numHits uint64
@@ -467,7 +467,7 @@ func FilteredPaginate(cdc codec.Codec,
 		}, nil
 	}
 
-	iterator := getIterator(prefixStore, nil, reverse)
+	iterator := GetIterator(prefixStore, nil, reverse)
 	defer iterator.Close()
 
 	end := offset + limit

@@ -10,20 +10,20 @@ const (
 	QueryVolumeReportHash = "volume_report"
 )
 
-type PotRewardInfo struct {
-	WalletAddress       sdk.AccAddress
-	MatureTotalReward   sdk.Coins
-	ImmatureTotalReward sdk.Coins
-}
+//type PotRewardInfo struct {
+//	WalletAddress       sdk.AccAddress
+//	MatureTotalReward   sdk.Coins
+//	ImmatureTotalReward sdk.Coins
+//}
 
 // NewPotRewardInfo creates a new instance of PotRewardInfo
 func NewPotRewardInfo(
 	walletAddress sdk.AccAddress,
 	matureTotal sdk.Coins,
 	immatureTotal sdk.Coins,
-) PotRewardInfo {
-	return PotRewardInfo{
-		WalletAddress:       walletAddress,
+) PotRewardByOwner {
+	return PotRewardByOwner{
+		WalletAddress:       walletAddress.String(),
 		MatureTotalReward:   matureTotal,
 		ImmatureTotalReward: immatureTotal,
 	}
