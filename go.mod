@@ -2,6 +2,9 @@ module github.com/stratosnet/stratos-chain
 
 go 1.17
 
+replace google.golang.org/grpc => google.golang.org/grpc v1.33.2
+
+
 require (
 	github.com/btcsuite/btcd v0.22.1
 	github.com/btcsuite/btcutil v1.0.3-0.20201208143702-a53e38424cce

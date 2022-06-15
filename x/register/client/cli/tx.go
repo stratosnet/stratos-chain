@@ -316,7 +316,7 @@ func UpdateMetaNodeStakeCmd() *cobra.Command {
 // MetaNodeRegistrationVoteCmd Meta node registration need to be approved by 2/3 of existing meta nodes
 func MetaNodeRegistrationVoteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "meta_node_reg_vote [flags]",
+		Use:   "meta-node-reg-vote [flags]",
 		Short: "vote for the registration of a new meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)

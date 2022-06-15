@@ -66,7 +66,7 @@ func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
 
 func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(&price)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(price)
 	store.Set(types.InitialUOzonePriceKey, b)
 }
 
@@ -507,7 +507,9 @@ func (k Keeper) UnbondResourceNode(
 		k.SetResourceNode(ctx, resourceNode)
 
 		// decrease resource node count
-		k.SetBondedResourceNodeCnt(ctx, sdk.NewInt(-1))
+		v := k.GetBondedResourceNodeCnt(ctx)
+		count := v.Sub(sdk.NewInt(1))
+		k.SetBondedResourceNodeCnt(ctx, count)
 	}
 
 	// set the unbonding mature time and completion height appropriately
@@ -558,7 +560,10 @@ func (k Keeper) UnbondMetaNode(
 	if amt.Equal(metaNode.Tokens) {
 		metaNode.Status = stakingtypes.Unbonding
 		// decrease meta node count
-		k.SetBondedMetaNodeCnt(ctx, sdk.NewInt(-1))
+		v := k.GetBondedMetaNodeCnt(ctx)
+		count := v.Sub(sdk.NewInt(1))
+		k.SetBondedMetaNodeCnt(ctx, count)
+		// set meta node
 		k.SetMetaNode(ctx, metaNode)
 	}
 
@@ -639,54 +644,50 @@ func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	return remaining, total
 }
 
-func (k Keeper) SetInitialGenesisBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
+//func (k Keeper) SetInitialGenesisBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
+//	store := ctx.KVStore(k.storeKey)
+//	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
+//	store.Set(types.ResourceNodeCntKey, b)
+//}
+
+//func (k Keeper) SetInitialGenesisBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
+//	store := ctx.KVStore(k.storeKey)
+//	b := types.ModuleCdc.MustMarshal(count)
+//	store.Set(types.MetaNodeCntKey, b)
+//}
+
+func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
+	//ctx.Logger().Info("count = " + count.String())
 	store.Set(types.ResourceNodeCntKey, b)
 }
 
-func (k Keeper) SetInitialGenesisBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
+func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
+	//ctx.Logger().Info("count = " + count.String())
 	store.Set(types.MetaNodeCntKey, b)
 }
 
-func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, delta sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	oldValue := store.Get(types.ResourceNodeCntKey)
-	var balance sdk.Int
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(oldValue, &balance)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(balance.Add(delta))
-	store.Set(types.ResourceNodeCntKey, b)
-}
-
-func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, delta sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	oldValue := store.Get(types.MetaNodeKey)
-	var balance sdk.Int
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(oldValue, &balance)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(balance.Add(delta))
-	store.Set(types.MetaNodeCntKey, b)
-}
-
-func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.ResourceNodeCntKey)
 	if value == nil {
 		return sdk.ZeroInt()
 	}
-	var balance sdk.Int
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
-	return balance
+	//ctx.Logger().Info("balance = " + balance.String())
+	return
 }
 
-func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.MetaNodeCntKey)
 	if value == nil {
 		return sdk.ZeroInt()
 	}
-	var balance sdk.Int
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
-	return balance
+	//ctx.Logger().Info("balance = " + balance.String())
+	return
 }

@@ -168,7 +168,10 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 
 	k.SetResourceNode(ctx, resourceNode)
 	// increase resource node count
-	k.SetBondedResourceNodeCnt(ctx, sdk.NewInt(1))
+	v := k.GetBondedResourceNodeCnt(ctx)
+	count := v.Add(sdk.NewInt(1))
+	k.SetBondedResourceNodeCnt(ctx, count)
+
 	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil

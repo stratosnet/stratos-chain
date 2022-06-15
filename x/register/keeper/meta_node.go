@@ -353,7 +353,9 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 		node.Suspend = false
 		k.SetMetaNode(ctx, node)
 		// increase mata node count
-		k.SetBondedMetaNodeCnt(ctx, sdk.NewInt(1))
+		v := k.GetBondedMetaNodeCnt(ctx)
+		count := v.Add(sdk.NewInt(1))
+		k.SetBondedMetaNodeCnt(ctx, count)
 		// move stake from not bonded pool to bonded pool
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), node.Tokens)
 
