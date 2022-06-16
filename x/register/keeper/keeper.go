@@ -657,16 +657,22 @@ func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 //}
 
 func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
+	if count.LT(sdk.ZeroInt()) {
+		ctx.Logger().Info("count < 0, count = " + count.String())
+	}
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
-	//ctx.Logger().Info("count = " + count.String())
+	ctx.Logger().Info("New ResourceNode count = " + count.String())
 	store.Set(types.ResourceNodeCntKey, b)
 }
 
 func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
+	if count.LT(sdk.ZeroInt()) {
+		ctx.Logger().Info("count < 0, count = " + count.String())
+	}
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
-	//ctx.Logger().Info("count = " + count.String())
+	ctx.Logger().Info("New MetaNode count = " + count.String())
 	store.Set(types.MetaNodeCntKey, b)
 }
 
@@ -677,7 +683,7 @@ func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 		return sdk.ZeroInt()
 	}
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
-	//ctx.Logger().Info("balance = " + balance.String())
+	ctx.Logger().Info("ResourceNode count = " + balance.String())
 	return
 }
 
@@ -688,6 +694,6 @@ func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 		return sdk.ZeroInt()
 	}
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
-	//ctx.Logger().Info("balance = " + balance.String())
+	ctx.Logger().Info("MetaNode count = " + balance.String())
 	return
 }

@@ -54,9 +54,9 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isMetaNode 
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, metaNode: %v\n", temp))
 		}
 		// decrease meta node count
-		v := k.GetBondedMetaNodeCnt(ctx)
-		count := v.Sub(sdk.NewInt(1))
-		k.SetBondedMetaNodeCnt(ctx, count)
+		//v := k.GetBondedMetaNodeCnt(ctx)
+		//count := v.Sub(sdk.NewInt(1))
+		//k.SetBondedMetaNodeCnt(ctx, count)
 
 		return k.beginUnbondingMetaNode(ctx, &temp, &coin)
 	default:
@@ -65,9 +65,10 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isMetaNode 
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, resourceNode: %v\n", temp))
 		}
 		// decrease resource node count
-		v := k.GetBondedResourceNodeCnt(ctx)
-		count := v.Sub(sdk.NewInt(1))
-		k.SetBondedResourceNodeCnt(ctx, count)
+		//v := k.GetBondedResourceNodeCnt(ctx)
+		//count := v.Sub(sdk.NewInt(1))
+		//k.SetBondedResourceNodeCnt(ctx, count)
+
 		return k.beginUnbondingResourceNode(ctx, &temp, &coin)
 	}
 }
