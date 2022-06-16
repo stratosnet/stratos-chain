@@ -5,8 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -14,20 +15,20 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func registerQueryRoutes(cliCtx context.CLIContext, r *mux.Router) {
-	r.HandleFunc("/register/resource-nodes", nodesWithParamsFn(cliCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
-	r.HandleFunc("/register/indexing-nodes", nodesWithParamsFn(cliCtx, keeper.QueryIndexingNodeByNetworkAddr)).Methods("GET")
-	r.HandleFunc("/register/staking", nodeStakingHandlerFn(cliCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
-	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(cliCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
-	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(cliCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
-	r.HandleFunc("/register/params", registerParamsHandlerFn(cliCtx, keeper.QueryRegisterParams)).Methods("GET")
+func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
+	r.HandleFunc("/register/resource-nodes", nodesWithParamsFn(clientCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
+	r.HandleFunc("/register/meta-nodes", nodesWithParamsFn(clientCtx, keeper.QueryMetaNodeByNetworkAddr)).Methods("GET")
+	r.HandleFunc("/register/staking", nodeStakingHandlerFn(clientCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
+	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(clientCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
+	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(clientCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
+	r.HandleFunc("/register/params", registerParamsHandlerFn(clientCtx, keeper.QueryRegisterParams)).Methods("GET")
 }
 
 // GET request handler to query params of Register module
-func registerParamsHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func registerParamsHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
@@ -43,8 +44,8 @@ func registerParamsHandlerFn(cliCtx context.CLIContext, queryPath string) http.H
 	}
 }
 
-// GET request handler to query all resource/indexing nodes
-func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+// GET request handler to query all resource/meta nodes
+func nodesWithParamsFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
 		if err != nil {
@@ -52,7 +53,7 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 			return
 		}
 
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
@@ -81,8 +82,21 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 			}
 		}
 
-		params := types.NewQueryNodesParams(page, limit, networkAddr, moniker, ownerAddr)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		countTotal, err := strconv.ParseBool(r.FormValue("count_total"))
+		if err != nil {
+			countTotal = true
+		}
+
+		reverse, err := strconv.ParseBool(r.FormValue("reverse"))
+		if err != nil {
+			reverse = false
+		}
+		offset := page * limit
+
+		NodesPageRequest := query.PageRequest{Offset: uint64(offset), Limit: uint64(limit), CountTotal: countTotal, Reverse: reverse}
+
+		params := types.NewQueryNodesParams(networkAddr, moniker, ownerAddr, NodesPageRequest)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -101,10 +115,10 @@ func nodesWithParamsFn(cliCtx context.CLIContext, queryPath string) http.Handler
 }
 
 // GET request handler to query nodes total staking info
-func nodeStakingHandlerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func nodeStakingHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
@@ -121,16 +135,16 @@ func nodeStakingHandlerFn(cliCtx context.CLIContext, queryPath string) http.Hand
 }
 
 // GET request handler to query node staking info
-func nodeStakingByNodeAddressFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func nodeStakingByNodeAddressFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		NodeAddrStr := mux.Vars(r)["nodeAddress"]
+		nodeAddress, ok := keeper.CheckSdsAddr(w, r, NodeAddrStr)
 		if !ok {
 			return
 		}
 
-		NodeAddrStr := mux.Vars(r)["nodeAddress"]
-		nodeAddress, ok := keeper.CheckSdsAddr(w, r, NodeAddrStr)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
 		if !ok {
 			return
 		}
@@ -150,9 +164,8 @@ func nodeStakingByNodeAddressFn(cliCtx context.CLIContext, queryPath string) htt
 		}
 
 		params := types.NewQueryNodeStakingParams(nodeAddress, queryType)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+		if rest.CheckBadRequestError(w, err) {
 			return
 		}
 
@@ -162,19 +175,26 @@ func nodeStakingByNodeAddressFn(cliCtx context.CLIContext, queryPath string) htt
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-
 		cliCtx = cliCtx.WithHeight(height)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }
 
 // GET request handler to query nodes staking info by Node wallet address
-func nodeStakingByOwnerFn(cliCtx context.CLIContext, queryPath string) http.HandlerFunc {
+func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		ownerAddressStr := mux.Vars(r)["ownerAddress"]
+		ownerAddress, ok := keeper.CheckAccAddr(w, r, ownerAddressStr)
+		if !ok {
+			return
+		}
+
 		_, page, limit, err := rest.ParseHTTPArgsWithLimit(r, 0)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+		if rest.CheckBadRequestError(w, err) {
 			return
 		}
 
@@ -183,27 +203,39 @@ func nodeStakingByOwnerFn(cliCtx context.CLIContext, queryPath string) http.Hand
 			return
 		}
 
-		nodeWalletAddressStr := mux.Vars(r)["ownerAddress"]
-		nodeWalletAddress, ok := keeper.CheckAccAddr(w, r, nodeWalletAddressStr)
-		if !ok {
-			return
+		countTotal, err := strconv.ParseBool(r.FormValue("count_total"))
+		if err != nil {
+			countTotal = true
 		}
 
-		params := types.NewQueryNodesParams(page, limit, nil, "", nodeWalletAddress)
-		bz, err := cliCtx.Codec.MarshalJSON(params)
+		reverse, err := strconv.ParseBool(r.FormValue("reverse"))
 		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			reverse = false
+		}
+
+		offset := (page - 1) * limit
+
+		if limit <= 0 {
+			limit = types.QueryDefaultLimit
+		}
+
+		NodesPageRequest := query.PageRequest{Offset: uint64(offset), Limit: uint64(limit), CountTotal: countTotal, Reverse: reverse}
+		params := types.NewQueryNodesParams(nil, "", ownerAddress, NodesPageRequest)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+		if rest.CheckBadRequestError(w, err) {
 			return
 		}
 
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.QueryWithData(route, bz)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+		if rest.CheckInternalServerError(w, err) {
 			return
 		}
 
 		cliCtx = cliCtx.WithHeight(height)
+		if rest.CheckInternalServerError(w, err) {
+			return
+		}
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

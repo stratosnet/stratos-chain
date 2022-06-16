@@ -1,21 +1,12 @@
 package types
 
 import (
-	"fmt"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-type FileInfo struct {
-	Height   sdk.Int
-	Reporter stratos.SdsAddress
-	Uploader sdk.AccAddress
-}
-
-// constructor
-func NewFileInfo(height sdk.Int, reporter stratos.SdsAddress, uploader sdk.AccAddress) FileInfo {
+// NewFileInfo constructor
+func NewFileInfo(height *sdk.Int, reporter, uploader string) FileInfo {
 	return FileInfo{
 		Height:   height,
 		Reporter: reporter,
@@ -24,12 +15,12 @@ func NewFileInfo(height sdk.Int, reporter stratos.SdsAddress, uploader sdk.AccAd
 }
 
 // MustMarshalFileInfo returns the fileInfo's bytes. Panics if fails
-func MustMarshalFileInfo(cdc *codec.Codec, file FileInfo) []byte {
-	return cdc.MustMarshalBinaryLengthPrefixed(file)
+func MustMarshalFileInfo(cdc codec.Codec, file FileInfo) []byte {
+	return cdc.MustMarshal(&file)
 }
 
 // MustUnmarshalFileInfo unmarshal a file's info from a store value. Panics if fails
-func MustUnmarshalFileInfo(cdc *codec.Codec, value []byte) FileInfo {
+func MustUnmarshalFileInfo(cdc codec.Codec, value []byte) FileInfo {
 	file, err := UnmarshalFileInfo(cdc, value)
 	if err != nil {
 		panic(err)
@@ -37,17 +28,8 @@ func MustUnmarshalFileInfo(cdc *codec.Codec, value []byte) FileInfo {
 	return file
 }
 
-// UnmarshalResourceNode unmarshal a file's info from a store value
-func UnmarshalFileInfo(cdc *codec.Codec, value []byte) (fi FileInfo, err error) {
-	err = cdc.UnmarshalBinaryLengthPrefixed(value, &fi)
+// UnmarshalFileInfo unmarshal a file's info from a store value
+func UnmarshalFileInfo(cdc codec.Codec, value []byte) (fi FileInfo, err error) {
+	err = cdc.Unmarshal(value, &fi)
 	return fi, err
-}
-
-// String returns a human readable string representation of a resource node.
-func (fi FileInfo) String() string {
-	return fmt.Sprintf(`FileInfo:{
-		Height:				%s
-  		Reporter:			%s
-  		Uploader:			%s
-	}`, fi.Height.String(), fi.Reporter.String(), fi.Uploader.String())
 }

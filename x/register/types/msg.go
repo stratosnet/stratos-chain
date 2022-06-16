@@ -1,9 +1,10 @@
 package types
 
 import (
+	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/tendermint/tendermint/crypto"
 )
 
 // ensure Msg interface compliance at compile time
@@ -12,155 +13,207 @@ var (
 	_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgUpdateResourceNode{}
 	_ sdk.Msg = &MsgUpdateResourceNodeStake{}
-	_ sdk.Msg = &MsgCreateIndexingNode{}
-	_ sdk.Msg = &MsgRemoveIndexingNode{}
-	_ sdk.Msg = &MsgUpdateIndexingNode{}
-	_ sdk.Msg = &MsgUpdateIndexingNodeStake{}
-	_ sdk.Msg = &MsgIndexingNodeRegistrationVote{}
+	_ sdk.Msg = &MsgCreateMetaNode{}
+	_ sdk.Msg = &MsgRemoveMetaNode{}
+	_ sdk.Msg = &MsgUpdateMetaNode{}
+	_ sdk.Msg = &MsgUpdateMetaNodeStake{}
+	_ sdk.Msg = &MsgMetaNodeRegistrationVote{}
 )
 
-type MsgCreateResourceNode struct {
-	NetworkAddr  stratos.SdsAddress `json:"network_address" yaml:"network_address"`
-	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`
-	Value        sdk.Coin           `json:"value" yaml:"value"`
-	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-	Description  Description        `json:"description" yaml:"description"`
-	NodeType     NodeType           `json:"node_type" yaml:"node_type"`
-}
+// message type and route constants
+const (
+	// TypeMsgCreateResourceNodeTx defines the type string of an CreateResourceNodeTx transaction
+	TypeMsgCreateResourceNodeTx    = "create_resource_node"
+	TypeMsgRemoveResourceNodeTx    = "remove_resource_node"
+	TypeUpdateResourceNodeTx       = "update_resource_node"
+	TypeUpdateResourceNodeStakeTx  = "update_resource_node_stake"
+	TypeCreateMetaNodeTx           = "create_meta_node"
+	TypeRemoveMetaNodeTx           = "remove_meta_node"
+	TypeUpdateMetaNodeTx           = "update_meta_node"
+	TypeUpdateMetaNodeStakeTx      = "update_meta_node_stake"
+	TypeMetaNodeRegistrationVoteTx = "meta_node_registration_vote"
+)
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin,
-	ownerAddr sdk.AccAddress, description Description, nodeType NodeType,
-) MsgCreateResourceNode {
-	return MsgCreateResourceNode{
-		NetworkAddr:  networkAddr,
-		PubKey:       pubKey,
-		Value:        value,
-		OwnerAddress: ownerAddr,
-		Description:  description,
-		NodeType:     nodeType,
+func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
+	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType uint32,
+) (*MsgCreateResourceNode, error) {
+	var pkAny *codectypes.Any
+	if pubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, ErrEmptyPubKey
 	}
+
+	return &MsgCreateResourceNode{
+		NetworkAddress: networkAddr.String(),
+		Pubkey:         pkAny,
+		Value:          value,
+		OwnerAddress:   ownerAddr.String(),
+		Description:    description,
+		NodeType:       nodeType,
+	}, nil
 }
 
-func (msg MsgCreateResourceNode) Route() string {
-	return RouterKey
-}
+func (msg MsgCreateResourceNode) Route() string { return RouterKey }
 
-func (msg MsgCreateResourceNode) Type() string {
-	return "create_resource_node"
-}
+func (msg MsgCreateResourceNode) Type() string { return TypeMsgCreateResourceNodeTx }
 
 // ValidateBasic validity check for the CreateResourceNode
 func (msg MsgCreateResourceNode) ValidateBasic() error {
-	if msg.NetworkAddr.Empty() {
-		return ErrEmptyNodeId
+	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
+	if err != nil {
+		return err
 	}
-	if !msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
+	if netAddr.Empty() {
+		return ErrEmptyNodeNetworkAddress
+	}
+	pkAny := msg.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
+	sdsAddr := sdk.AccAddress(pkAny.Address())
+	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
 	}
-	if msg.OwnerAddress.Empty() {
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
-	if !msg.Value.IsPositive() {
+	if !msg.GetValue().IsPositive() {
 		return ErrValueNegative
 	}
 
-	if msg.Description == (Description{}) {
-		return ErrEmptyDescription
-	}
-	if msg.Description.Moniker == "" {
+	if msg.GetDescription().Moniker == "" {
 		return ErrEmptyMoniker
 	}
-	if msg.NodeType > 7 || msg.NodeType < 1 {
+
+	if *msg.GetDescription() == (Description{}) {
+		return ErrEmptyDescription
+	}
+
+	nodeType := NodeType(msg.GetNodeType())
+	if nodeType.Type() == "UNKNOWN" {
 		return ErrInvalidNodeType
 	}
+
 	return nil
 }
 
 func (msg MsgCreateResourceNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 func (msg MsgCreateResourceNode) GetSigners() []sdk.AccAddress {
 	// Owner pays the tx fees
-	addrs := []sdk.AccAddress{msg.OwnerAddress}
-	return addrs
-}
-
-type MsgCreateIndexingNode struct {
-	NetworkAddr  stratos.SdsAddress `json:"network_addr" yaml:"network_addr"`
-	PubKey       crypto.PubKey      `json:"pubkey" yaml:"pubkey"`
-	Value        sdk.Coin           `json:"value" yaml:"value"`
-	OwnerAddress sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-	Description  Description        `json:"description" yaml:"description"`
-}
-
-// NewMsgCreateIndexingNode NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgCreateIndexingNode(networkAddr stratos.SdsAddress, pubKey crypto.PubKey, value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
-) MsgCreateIndexingNode {
-	return MsgCreateIndexingNode{
-		NetworkAddr:  networkAddr,
-		PubKey:       pubKey,
-		Value:        value,
-		OwnerAddress: ownerAddr,
-		Description:  description,
+	addr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		panic(err)
 	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
-func (msg MsgCreateIndexingNode) Route() string {
-	return RouterKey
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
-func (msg MsgCreateIndexingNode) Type() string {
-	return "create_indexing_node"
+// NewMsgCreateMetaNode creates a new Msg<Action> instance
+func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
+	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description,
+) (*MsgCreateMetaNode, error) {
+	var pkAny *codectypes.Any
+	if pubKey != nil {
+		var err error
+		if pkAny, err = codectypes.NewAnyWithValue(pubKey); err != nil {
+			return nil, err
+		}
+	} else {
+		return nil, ErrEmptyPubKey
+	}
+
+	return &MsgCreateMetaNode{
+		NetworkAddress: networkAddr.String(),
+		Pubkey:         pkAny,
+		Value:          value,
+		OwnerAddress:   ownerAddr.String(),
+		Description:    description,
+	}, nil
 }
 
-func (msg MsgCreateIndexingNode) ValidateBasic() error {
-	if msg.NetworkAddr.Empty() {
+func (msg MsgCreateMetaNode) Route() string { return RouterKey }
+
+func (msg MsgCreateMetaNode) Type() string { return TypeCreateMetaNodeTx }
+
+func (msg MsgCreateMetaNode) ValidateBasic() error {
+	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
+	if err != nil {
+		return err
+	}
+	if netAddr.Empty() {
+		return ErrEmptyNodeNetworkAddress
+	}
+
+	pkAny := msg.GetPubkey().GetCachedValue().(cryptotypes.PubKey)
+	sdsAddr := sdk.AccAddress(pkAny.Address())
+	if !netAddr.Equals(sdsAddr) {
 		return ErrInvalidNetworkAddr
 	}
-	if !msg.NetworkAddr.Equals(stratos.SdsAddress(msg.PubKey.Address())) {
-		return ErrInvalidNetworkAddr
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		return err
 	}
-	if msg.OwnerAddress.Empty() {
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
-	if !msg.Value.IsPositive() {
+	if !msg.GetValue().IsPositive() {
 		return ErrValueNegative
 	}
 
-	if msg.Description == (Description{}) {
-		return ErrEmptyDescription
-	}
-	if msg.Description.Moniker == "" {
+	if msg.GetDescription().Moniker == "" {
 		return ErrEmptyMoniker
 	}
+
+	if *msg.GetDescription() == (Description{}) {
+		return ErrEmptyDescription
+	}
+
 	return nil
 }
 
-func (msg MsgCreateIndexingNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+func (msg MsgCreateMetaNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (msg MsgCreateIndexingNode) GetSigners() []sdk.AccAddress {
+func (msg MsgCreateMetaNode) GetSigners() []sdk.AccAddress {
 	// Owner pays the tx fees
-	addrs := []sdk.AccAddress{msg.OwnerAddress}
-	return addrs
+	addr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		return []sdk.AccAddress{}
+	}
+	return []sdk.AccAddress{addr.Bytes()}
+
 }
 
-// MsgRemoveResourceNode - struct for removing resource node
-type MsgRemoveResourceNode struct {
-	ResourceNodeAddress stratos.SdsAddress `json:"resource_node_address" yaml:"resource_node_address"`
-	OwnerAddress        sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
+// UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
+func (msg MsgCreateMetaNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
+	var pk cryptotypes.PubKey
+	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
 // NewMsgRemoveResourceNode creates a new MsgRemoveResourceNode instance.
-func NewMsgRemoveResourceNode(resourceNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) MsgRemoveResourceNode {
-	return MsgRemoveResourceNode{
-		ResourceNodeAddress: resourceNodeAddr,
-		OwnerAddress:        ownerAddr,
+func NewMsgRemoveResourceNode(resourceNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) *MsgRemoveResourceNode {
+	return &MsgRemoveResourceNode{
+		ResourceNodeAddress: resourceNodeAddr.String(),
+		OwnerAddress:        ownerAddr.String(),
 	}
 }
 
@@ -168,88 +221,100 @@ func NewMsgRemoveResourceNode(resourceNodeAddr stratos.SdsAddress, ownerAddr sdk
 func (msg MsgRemoveResourceNode) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgRemoveResourceNode) Type() string { return "remove_resource_node" }
+func (msg MsgRemoveResourceNode) Type() string { return TypeMsgRemoveResourceNodeTx }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgRemoveResourceNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
 func (msg MsgRemoveResourceNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgRemoveResourceNode) ValidateBasic() error {
-	if msg.ResourceNodeAddress.Empty() {
+	sdsAddress, err := stratos.SdsAddressFromBech32(msg.ResourceNodeAddress)
+	if err != nil {
+		return err
+	}
+	if sdsAddress.Empty() {
 		return ErrEmptyResourceNodeAddr
 	}
-	if msg.OwnerAddress.Empty() {
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
 	return nil
 }
 
-// MsgRemoveIndexingNode - struct for removing indexing node
-type MsgRemoveIndexingNode struct {
-	IndexingNodeAddress stratos.SdsAddress `json:"indexing_node_address" yaml:"indexing_node_address"`
-	OwnerAddress        sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-}
-
-// NewMsgRemoveIndexingNode creates a new MsgRemoveIndexingNode instance.
-func NewMsgRemoveIndexingNode(indexingNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) MsgRemoveIndexingNode {
-	return MsgRemoveIndexingNode{
-		IndexingNodeAddress: indexingNodeAddr,
-		OwnerAddress:        ownerAddr,
+// NewMsgRemoveMetaNode creates a new MsgRemoveMetaNode instance.
+func NewMsgRemoveMetaNode(metaNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) *MsgRemoveMetaNode {
+	return &MsgRemoveMetaNode{
+		MetaNodeAddress: metaNodeAddr.String(),
+		OwnerAddress:    ownerAddr.String(),
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) Route() string { return RouterKey }
+func (msg MsgRemoveMetaNode) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) Type() string { return "remove_indexing_node" }
+func (msg MsgRemoveMetaNode) Type() string { return TypeRemoveMetaNodeTx }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+func (msg MsgRemoveMetaNode) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+func (msg MsgRemoveMetaNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgRemoveIndexingNode) ValidateBasic() error {
-	if msg.IndexingNodeAddress.Empty() {
-		return ErrEmptyIndexingNodeAddr
+func (msg MsgRemoveMetaNode) ValidateBasic() error {
+	sdsAddress, err := stratos.SdsAddressFromBech32(msg.MetaNodeAddress)
+	if err != nil {
+		return err
 	}
-	if msg.OwnerAddress.Empty() {
+	if sdsAddress.Empty() {
+		return ErrEmptyMetaNodeAddr
+	}
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
 	return nil
 }
 
-// MsgUpdateResourceNode struct for updating resource node
-type MsgUpdateResourceNode struct {
-	Description    Description        `json:"description" yaml:"description"`
-	NodeType       NodeType           `json:"node_type" yaml:"node_type"`
-	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-}
+func NewMsgUpdateResourceNode(description Description, nodeType uint32,
+	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgUpdateResourceNode {
 
-func NewMsgUpdateResourceNode(description Description, nodeType NodeType,
-	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) MsgUpdateResourceNode {
-
-	return MsgUpdateResourceNode{
+	return &MsgUpdateResourceNode{
 		Description:    description,
 		NodeType:       nodeType,
-		NetworkAddress: networkAddress,
-		OwnerAddress:   ownerAddress,
+		NetworkAddress: networkAddress.String(),
+		OwnerAddress:   ownerAddress.String(),
 	}
 }
 
@@ -257,50 +322,57 @@ func NewMsgUpdateResourceNode(description Description, nodeType NodeType,
 func (msg MsgUpdateResourceNode) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateResourceNode) Type() string { return "update_resource_node" }
+func (msg MsgUpdateResourceNode) Type() string { return TypeUpdateResourceNodeTx }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNode) ValidateBasic() error {
-	if msg.NetworkAddress.Empty() {
-		return ErrInvalidNetworkAddr
+	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return err
+	}
+	if netAddr.Empty() {
+		return ErrEmptyNodeNetworkAddress
 	}
 
-	if msg.OwnerAddress.Empty() {
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
-	if msg.Description.Moniker == "" {
-		return ErrEmptyMoniker
-	}
-	if msg.NodeType > 7 || msg.NodeType < 1 {
+
+	//if msg.Description.Moniker == "" {
+	//	return ErrEmptyMoniker
+	//}
+
+	nodeType := NodeType(msg.NodeType)
+	if nodeType.Type() == "UNKNOWN" {
 		return ErrInvalidNodeType
 	}
 	return nil
 }
 
-// MsgUpdateResourceNodeStake struct for only updating resource node's stake
-type MsgUpdateResourceNodeStake struct {
-	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-	StakeDelta     sdk.Coin           `json:"stake_delta" yaml:"stake_delta"`
-	IncrStake      bool               `json:"incr_stake" yaml:"incr_stake"`
-}
-
 func NewMsgUpdateResourceNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) MsgUpdateResourceNodeStake {
-	return MsgUpdateResourceNodeStake{
-		NetworkAddress: networkAddress,
-		OwnerAddress:   ownerAddress,
+	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateResourceNodeStake {
+	return &MsgUpdateResourceNodeStake{
+		NetworkAddress: networkAddress.String(),
+		OwnerAddress:   ownerAddress.String(),
 		StakeDelta:     stakeDelta,
 		IncrStake:      incrStake,
 	}
@@ -310,184 +382,222 @@ func NewMsgUpdateResourceNodeStake(networkAddress stratos.SdsAddress, ownerAddre
 func (msg MsgUpdateResourceNodeStake) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateResourceNodeStake) Type() string { return "update_resource_node_stake" }
+func (msg MsgUpdateResourceNodeStake) Type() string { return TypeUpdateResourceNodeStakeTx }
 
 // GetSigners implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNodeStake) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNodeStake) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
 func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
-	if msg.NetworkAddress.Empty() {
-		return ErrInvalidNetworkAddr
+	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return err
 	}
-	if msg.OwnerAddress.Empty() {
+	if netAddr.Empty() {
+		return ErrEmptyNodeNetworkAddress
+	}
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
+
 	if msg.StakeDelta.Amount.LTE(sdk.ZeroInt()) {
 		return ErrInvalidStakeChange
 	}
 	return nil
 }
 
-// MsgUpdateIndexingNode struct for updating indexing node
-type MsgUpdateIndexingNode struct {
-	Description    Description        `json:"description" yaml:"description"`
-	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-}
+func NewMsgUpdateMetaNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
+) *MsgUpdateMetaNode {
 
-func NewMsgUpdateIndexingNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-) MsgUpdateIndexingNode {
-
-	return MsgUpdateIndexingNode{
+	return &MsgUpdateMetaNode{
 		Description:    description,
-		NetworkAddress: networkAddress,
-		OwnerAddress:   ownerAddress,
+		NetworkAddress: networkAddress.String(),
+		OwnerAddress:   ownerAddress.String(),
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) Route() string { return RouterKey }
+func (msg MsgUpdateMetaNode) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) Type() string { return "update_indexing_node" }
+func (msg MsgUpdateMetaNode) Type() string { return TypeUpdateMetaNodeTx }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+func (msg MsgUpdateMetaNode) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+func (msg MsgUpdateMetaNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNode) ValidateBasic() error {
-	if msg.NetworkAddress.Empty() {
-		return ErrInvalidNetworkAddr
+func (msg MsgUpdateMetaNode) ValidateBasic() error {
+	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return err
 	}
-	if msg.OwnerAddress.Empty() {
+	if netAddr.Empty() {
+		return ErrEmptyNodeNetworkAddress
+	}
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
+
 	if msg.Description.Moniker == "" {
 		return ErrEmptyMoniker
 	}
+
 	return nil
 }
 
-// MsgUpdateIndexingNodeStake struct for updating indexing node's stake
-type MsgUpdateIndexingNodeStake struct {
-	NetworkAddress stratos.SdsAddress `json:"network_address" yaml:"network_address"`
-	OwnerAddress   sdk.AccAddress     `json:"owner_address" yaml:"owner_address"`
-	StakeDelta     sdk.Coin           `json:"stake_delta" yaml:"stake_delta"`
-	IncrStake      bool               `json:"incr_stake" yaml:"incr_stake"`
-}
-
-func NewMsgUpdateIndexingNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) MsgUpdateIndexingNodeStake {
-	return MsgUpdateIndexingNodeStake{
-		NetworkAddress: networkAddress,
-		OwnerAddress:   ownerAddress,
+func NewMsgUpdateMetaNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
+	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateMetaNodeStake {
+	return &MsgUpdateMetaNodeStake{
+		NetworkAddress: networkAddress.String(),
+		OwnerAddress:   ownerAddress.String(),
 		StakeDelta:     stakeDelta,
 		IncrStake:      incrStake,
 	}
 }
 
 // Route implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) Route() string { return RouterKey }
+func (msg MsgUpdateMetaNodeStake) Route() string { return RouterKey }
 
 // Type implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) Type() string { return "update_indexing_node" }
+func (msg MsgUpdateMetaNodeStake) Type() string { return TypeUpdateMetaNodeStakeTx }
 
 // GetSigners implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) GetSigners() []sdk.AccAddress {
-	return []sdk.AccAddress{msg.OwnerAddress}
+func (msg MsgUpdateMetaNodeStake) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // GetSignBytes implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
+func (msg MsgUpdateMetaNodeStake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
 // ValidateBasic implements the sdk.Msg interface.
-func (msg MsgUpdateIndexingNodeStake) ValidateBasic() error {
-	if msg.NetworkAddress.Empty() {
-		return ErrInvalidNetworkAddr
+func (msg MsgUpdateMetaNodeStake) ValidateBasic() error {
+	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return err
 	}
-	if msg.OwnerAddress.Empty() {
+	if netAddr.Empty() {
+		return ErrEmptyNodeNetworkAddress
+	}
+
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return err
+	}
+	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
+
 	if msg.StakeDelta.Amount.LTE(sdk.ZeroInt()) {
 		return ErrInvalidStakeChange
 	}
 	return nil
 }
 
-type MsgIndexingNodeRegistrationVote struct {
-	CandidateNetworkAddress stratos.SdsAddress `json:"candidate_network_address" yaml:"candidate_network_address"` // node address of indexing node
-	CandidateOwnerAddress   sdk.AccAddress     `json:"candidate_owner_address" yaml:"candidate_owner_address"`     // owner address of indexing node
-	Opinion                 VoteOpinion        `json:"opinion" yaml:"opinion"`
-	VoterNetworkAddress     stratos.SdsAddress `json:"voter_network_address" yaml:"voter_network_address"` // address of voter (other existed indexing node)
-	VoterOwnerAddress       sdk.AccAddress     `json:"voter_owner_address" yaml:"voter_owner_address"`     // address of owner of the voter (other existed indexing node)
-}
+func NewMsgMetaNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, candidateOwnerAddress sdk.AccAddress, opinion bool,
+	voterNetworkAddress stratos.SdsAddress, voterOwnerAddress sdk.AccAddress) *MsgMetaNodeRegistrationVote {
 
-func NewMsgIndexingNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, candidateOwnerAddress sdk.AccAddress, opinion VoteOpinion,
-	voterNetworkAddress stratos.SdsAddress, voterOwnerAddress sdk.AccAddress) MsgIndexingNodeRegistrationVote {
-
-	return MsgIndexingNodeRegistrationVote{
-		CandidateNetworkAddress: candidateNetworkAddress,
-		CandidateOwnerAddress:   candidateOwnerAddress,
+	return &MsgMetaNodeRegistrationVote{
+		CandidateNetworkAddress: candidateNetworkAddress.String(),
+		CandidateOwnerAddress:   candidateOwnerAddress.String(),
 		Opinion:                 opinion,
-		VoterNetworkAddress:     voterNetworkAddress,
-		VoterOwnerAddress:       voterOwnerAddress,
+		VoterNetworkAddress:     voterNetworkAddress.String(),
+		VoterOwnerAddress:       voterOwnerAddress.String(),
 	}
 }
 
-func (m MsgIndexingNodeRegistrationVote) Route() string {
-	return RouterKey
-}
+func (mmsg MsgMetaNodeRegistrationVote) Route() string { return RouterKey }
 
-func (m MsgIndexingNodeRegistrationVote) Type() string {
-	return "indexing_node_reg_vote"
-}
+func (msg MsgMetaNodeRegistrationVote) Type() string { return TypeMetaNodeRegistrationVoteTx }
 
-func (m MsgIndexingNodeRegistrationVote) ValidateBasic() error {
-	if m.CandidateNetworkAddress.Empty() {
-		return ErrEmptyCandidateNetworkAddr
+func (msg MsgMetaNodeRegistrationVote) ValidateBasic() error {
+	candidateNetworkAddress, err := stratos.SdsAddressFromBech32(msg.CandidateNetworkAddress)
+	if err != nil {
+		return err
 	}
-	if m.CandidateOwnerAddress.Empty() {
-		return ErrEmptyCandidateOwnerAddr
+	if candidateNetworkAddress.Empty() {
+		return ErrEmptyNodeNetworkAddress
 	}
-	if m.VoterNetworkAddress.Empty() {
+
+	voterNetworkAddr, err := stratos.SdsAddressFromBech32(msg.VoterNetworkAddress)
+	if err != nil {
+		return err
+	}
+	if voterNetworkAddr.Empty() {
 		return ErrEmptyVoterNetworkAddr
 	}
-	if m.VoterOwnerAddress.Empty() {
+
+	candidateOwnerAddr, err := sdk.AccAddressFromBech32(msg.CandidateOwnerAddress)
+	if err != nil {
+		return err
+	}
+	if candidateOwnerAddr.Empty() {
+		return ErrEmptyCandidateOwnerAddr
+	}
+
+	voterOwnerAddr, err := sdk.AccAddressFromBech32(msg.VoterOwnerAddress)
+	if err != nil {
+		return err
+	}
+	if voterOwnerAddr.Empty() {
 		return ErrEmptyVoterOwnerAddr
 	}
-	if m.CandidateNetworkAddress.Equals(m.VoterNetworkAddress) {
+
+	if candidateNetworkAddress.Equals(voterNetworkAddr) {
 		return ErrSameAddr
 	}
 	return nil
 }
 
-func (m MsgIndexingNodeRegistrationVote) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
+func (msg MsgMetaNodeRegistrationVote) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (m MsgIndexingNodeRegistrationVote) GetSigners() []sdk.AccAddress {
-	var addrs []sdk.AccAddress
-	addrs = append(addrs, m.VoterOwnerAddress)
-	return addrs
+func (msg MsgMetaNodeRegistrationVote) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.VoterOwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }

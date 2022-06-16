@@ -1,0 +1,277 @@
+syntax = "proto3";
+package stratos.register.v1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/api/annotations.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "stratos/register/v1/register.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+
+option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
+
+// Msg defines the register module Msg service.
+service Msg {
+  // CreateResourceNode defines a method for creating a new resource node.
+  rpc HandleMsgCreateResourceNode(MsgCreateResourceNode) returns (MsgCreateResourceNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/create_resource_node";
+  };
+  rpc HandleMsgRemoveResourceNode(MsgRemoveResourceNode) returns (MsgRemoveResourceNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/remove_resource_node";
+  };
+  rpc HandleMsgUpdateResourceNode(MsgUpdateResourceNode) returns (MsgUpdateResourceNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_resource_node";
+  };
+  rpc HandleMsgUpdateResourceNodeStake(MsgUpdateResourceNodeStake) returns (MsgUpdateResourceNodeStakeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_resource_node_stake";
+  };
+
+  rpc HandleMsgCreateMetaNode(MsgCreateMetaNode) returns (MsgCreateMetaNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/create_meta_node";
+  };
+  rpc HandleMsgRemoveMetaNode(MsgRemoveMetaNode) returns (MsgRemoveMetaNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/remove_meta_node";
+  };
+  rpc HandleMsgUpdateMetaNode(MsgUpdateMetaNode) returns (MsgUpdateMetaNodeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_meta_node";
+  };
+  rpc HandleMsgUpdateMetaNodeStake(MsgUpdateMetaNodeStake) returns (MsgUpdateMetaNodeStakeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_meta_node_stake";
+  };
+  rpc HandleMsgMetaNodeRegistrationVote(MsgMetaNodeRegistrationVote) returns (MsgMetaNodeRegistrationVoteResponse) {
+    option (google.api.http).post = "/stratos/register/v1/meta_node_registration_vote";
+  };
+
+}
+
+// MsgCreateResourceNode encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
+message MsgCreateResourceNode {
+  string                         network_address = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  google.protobuf.Any            pubkey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.jsontag) = "pubkey",
+    (gogoproto.moretags) = "yaml:\"pubkey\""
+  ];
+  cosmos.base.v1beta1.Coin       value = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
+  ];
+  string                        owner_address = 4 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  Description                   description = 5 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  uint32                        node_type = 6 [
+    (gogoproto.jsontag) = "node_type",
+    (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
+}
+
+// MsgCreateResourceNodeResponse defines the CreateResourceNodeTx response type
+message MsgCreateResourceNodeResponse {}
+
+// MsgCreateMetaNode encapsulates an MsgCreateMetaNodeTx transaction as an SDK message.
+message MsgCreateMetaNode {
+  string                         network_address = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  google.protobuf.Any            pubkey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.jsontag) = "pubkey",
+    (gogoproto.moretags) = "yaml:\"pubkey\""
+  ];
+  cosmos.base.v1beta1.Coin       value = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
+  ];
+  string                        owner_address = 4 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  Description                   description = 5 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+}
+
+
+// MsgCreateMetaNodeResponse defines the CreateMetaNode response type
+message MsgCreateMetaNodeResponse {}
+
+// MsgRemoveResourceNode - encapsulates an RemoveResourceNode transaction as an SDK message
+message MsgRemoveResourceNode {
+  option (gogoproto.goproto_getters) = false;
+
+  string                   resource_node_address = 1 [
+    (gogoproto.jsontag) = "resource_node_address",
+    (gogoproto.moretags) = "yaml:\"resource_node_address\""
+  ];
+  string                   owner_address = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+}
+
+// MsgRemoveResourceNodeResponse defines the Msg/RemoveResourceNode response type.
+message MsgRemoveResourceNodeResponse {}
+
+// MsgRemoveMetaNode - encapsulates an MsgRemoveMetaNode transaction as an SDK message
+message MsgRemoveMetaNode {
+  option (gogoproto.goproto_getters) = false;
+
+  string                   meta_node_address = 1 [
+    (gogoproto.jsontag) = "meta_node_address",
+    (gogoproto.moretags) = "yaml:\"meta_node_address\""
+  ];
+  string                   owner_address = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+}
+
+// MsgRemoveMetaNodeResponse defines the Msg/RemoveMetaNode response type.
+message MsgRemoveMetaNodeResponse {}
+
+
+// MsgUpdateResourceNode defines a SDK message for updating an existing resource node.
+message MsgUpdateResourceNode {
+  option (gogoproto.goproto_getters) = false;
+
+  Description description       = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  string      network_address   = 2 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string      owner_address     = 3 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  uint32      node_type          = 4 [
+    (gogoproto.jsontag) = "node_type",
+    (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
+}
+
+// MsgUpdateResourceNodeResponse defines the Msg/UpdateResourceNode response type.
+message MsgUpdateResourceNodeResponse {}
+
+
+// MsgUpdateMetaNode defines a SDK message for updating an existing meta node.
+message MsgUpdateMetaNode {
+  option (gogoproto.goproto_getters) = false;
+
+  Description description       = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  string      network_address   = 2 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string      owner_address     = 3 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+}
+
+// MsgUpdateMetaNodeResponse defines the Msg/UpdateMetaNode response type.
+message MsgUpdateMetaNodeResponse {}
+
+
+// MsgUpdateResourceNodeStake defines a SDK message for updating the stake of an existing resource node.
+message MsgUpdateResourceNodeStake {
+  option (gogoproto.goproto_getters) = false;
+
+  string                    network_address   = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string                    owner_address     = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  bool                      incr_stake         = 3 [
+    (gogoproto.jsontag) = "incr_stake",
+    (gogoproto.moretags) = "yaml:\"incr_stake\""
+  ];
+  cosmos.base.v1beta1.Coin  stake_delta        = 4 [
+    (gogoproto.jsontag) = "stake_delta",
+    (gogoproto.moretags) = "yaml:\"stake_delta\""
+  ];
+}
+
+// MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
+message MsgUpdateResourceNodeStakeResponse {}
+
+
+// MsgUpdateMetaNodeStake defines a SDK message for updating the stake of an existing meta node.
+message MsgUpdateMetaNodeStake {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string                    network_address   = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string                    owner_address     = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  bool                      incr_stake         = 3 [
+    (gogoproto.jsontag) = "incr_stake",
+    (gogoproto.moretags) = "yaml:\"incr_stake\""
+  ];
+  cosmos.base.v1beta1.Coin  stake_delta        = 4 [
+    (gogoproto.jsontag) = "stake_delta",
+    (gogoproto.moretags) = "yaml:\"stake_delta\""
+  ];
+}
+
+// MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
+message MsgUpdateMetaNodeStakeResponse {}
+
+// MsgMetaNodeRegistrationVote defines a SDK message for registration vote of an existing meta node.
+message MsgMetaNodeRegistrationVote {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string           candidate_network_address   = 1 [
+    (gogoproto.jsontag) = "candidate_network_address",
+    (gogoproto.moretags) = "yaml:\"candidate_network_address\""
+  ]; // node address of meta node
+  string           candidate_owner_address     = 2 [
+    (gogoproto.jsontag) = "candidate_owner_address",
+    (gogoproto.moretags) = "yaml:\"candidate_owner_address\""
+  ]; // owner address of meta node
+  bool             opinion                     = 3 [
+    (gogoproto.jsontag) = "opinion",
+    (gogoproto.moretags) = "yaml:\"opinion\""
+  ];
+  string           voter_network_address       = 4 [
+    (gogoproto.jsontag) = "voter_network_address",
+    (gogoproto.moretags) = "yaml:\"voter_network_address\""
+  ]; // address of voter (other existed meta node)
+  string           voter_owner_address         = 5 [
+    (gogoproto.jsontag) = "voter_owner_address",
+    (gogoproto.moretags) = "yaml:\"voter_owner_address\""
+  ];  // address of owner of the voter (other existed meta node)
+}
+
+// MsgUpdateResourceNodeStakeResponse defines the Msg/MetaNodeRegistrationVote response type.
+message MsgMetaNodeRegistrationVoteResponse {}

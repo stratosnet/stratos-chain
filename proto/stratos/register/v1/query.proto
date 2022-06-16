@@ -1,0 +1,125 @@
+syntax = "proto3";
+package stratos.register.v1;
+
+import "google/api/annotations.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+import "stratos/register/v1/register.proto";
+
+option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // ResourceNode queries ResourceNode info for given ResourceNode address.
+  rpc ResourceNode(QueryResourceNodeRequest) returns (QueryResourceNodeResponse) {
+    option (google.api.http).get = "/stratos/register/v1/resource-nodes/{network_addr}";
+  }
+
+  // MetaNode queries MetaNode info for given MetaNode address.
+  rpc MetaNode(QueryMetaNodeRequest) returns (QueryMetaNodeResponse) {
+    option (google.api.http).get = "/stratos/register/v1/meta-nodes/{network_addr}";
+  }
+
+  // Params queries Register module Params info.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/stratos/register/v1/params";
+  }
+
+  // StakeByNode queries all staking info for given node network address.
+  rpc StakeByNode(QueryStakeByNodeRequest) returns (QueryStakeByNodeResponse) {
+    option (google.api.http).get = "/stratos/register/v1/stakes_node/{acc_addr}/{query_type}";
+  }
+
+  // StakeByOwner queries all staking info for given owner address.
+  rpc StakeByOwner(QueryStakeByOwnerRequest) returns (QueryStakeByOwnerResponse) {
+    option (google.api.http).get = "/stratos/register/v1/stakes_owner/{owner_addr}";
+  }
+
+  // StakeTotal queries all staking info.
+  rpc StakeTotal(QueryTotalStakeRequest) returns (QueryTotalStakeResponse) {
+    option (google.api.http).get = "/stratos/register/v1/total_stakes";
+  }
+}
+
+// QueryResourceNodeRequest is request type for the Query/ResourceNode RPC method
+message QueryResourceNodeRequest {
+  // network_addr defines the node network address to query for.
+  string network_addr = 1;
+}
+
+// QueryResourceNodeResponse is response type for the Query/ResourceNode RPC method
+message QueryResourceNodeResponse {
+  // node defines the the resourceNode info.
+  ResourceNode node = 1;
+}
+
+// QueryMetaNodeRequest is request type for the Query/MetaNode RPC method
+message QueryMetaNodeRequest {
+  // network_addr defines the node network address to query for.
+  string network_addr = 1;
+}
+
+// QueryMetaNodeResponse is response type for the Query/MetaNode RPC method
+message QueryMetaNodeResponse {
+  // node defines the the meta info.
+  MetaNode node = 1;
+}
+
+// QueryStakeByNodeRequest is request type for the Query/StakeByNode RPC method
+message QueryStakeByNodeRequest {
+  // acc_addr defines the node network address to query for.
+  string acc_addr     = 1;
+  int64  query_type   = 2;
+  // pagination defines an optional pagination for the request.
+//  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryStakeByNodeResponse is response type for the Query/StakeByNode RPC method
+message QueryStakeByNodeResponse {
+  // staking_info defines the the staking_info info of the node.
+  StakingInfo staking_info = 1;
+  // pagination defines an optional pagination for the request.
+//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryStakeByOwnerRequest is request type for the Query/StakeByOwner RPC method
+message QueryStakeByOwnerRequest {
+  // owner_addr defines the owner address to query for.
+//  string              network_addr = 1;
+//  string              moniker = 2;
+  string              owner_addr = 1;
+//  int64               page = 2;
+//  int64               limit = 3;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryStakeByOwnerResponse is response type for the Query/StakeByOwner RPC method
+message QueryStakeByOwnerResponse {
+  // staking_infos defines the the node staking info of this owner.
+  repeated StakingInfo staking_infos = 1;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryTotalStakeRequest is request type for the Query/TotalStake RPC method
+message QueryTotalStakeRequest {}
+
+// QueryTotalStakeResponse is response type for the Query/TotalStake RPC method
+message QueryTotalStakeResponse {
+  // total_stakes defines the total staking info.
+  TotalStakesResponse total_stakes= 1;
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1;
+}
+
+
+
+

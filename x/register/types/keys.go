@@ -8,11 +8,8 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-// Bech32PubKeyType defines a string type alias for a Bech32 public key type.
-type Bech32PubKeyType string
-
 const (
-	Bech32PubKeyTypesdsPub Bech32PubKeyType = "sdspub"
+
 	// ModuleName is the name of the module
 	ModuleName = "register"
 	// StoreKey to be used when creating the KVStore
@@ -21,27 +18,34 @@ const (
 	RouterKey = ModuleName
 	// QuerierRoute to be used for querier msgs
 	QuerierRoute = ModuleName
+	// ResourceNodeBondedPoolName stores the total balance of bonded resource nodes
+	ResourceNodeBondedPoolName = "resource_node_bonded_pool"
+	// ResourceNodeNotBondedPoolName stores the total balance of not bonded resource nodes
+	ResourceNodeNotBondedPoolName = "resource_node_not_bonded_pool"
+	// MetaNodeBondedPoolName stores the total balance of bonded Meta nodes
+	MetaNodeBondedPoolName = "meta_node_bonded_pool"
+	// MetaNodeNotBondedPoolName stores the total balance of not bonded meta nodes
+	MetaNodeNotBondedPoolName = "meta_node_not_bonded_pool"
+	// TotalUnissuedPrepayName stores the balance of total unissued prepay
+	TotalUnissuedPrepayName = "total_unissued_prepay"
+	// TotalSlashedPoolName stores the balance of total unissued prepay
+	TotalSlashedPoolName = "total_slashed_pool"
 )
 
 var (
-	ResourceNodeNotBondedTokenKey = []byte{0x01}
-	ResourceNodeBondedTokenKey    = []byte{0x02}
-	IndexingNodeNotBondedTokenKey = []byte{0x03}
-	IndexingNodeBondedTokenKey    = []byte{0x04}
-	UpperBoundOfTotalOzoneKey     = []byte{0x05}
-	TotalUnissuedPrepayKey        = []byte{0x06}
-	SlashingPrefix                = []byte{0x07}
+	ResourceNodeKey              = []byte{0x01} // prefix for each key to a resource node
+	MetaNodeKey                  = []byte{0x02} // prefix for each key to a meta node
+	MetaNodeRegistrationVotesKey = []byte{0x03} // prefix for each key to the vote for meta node registration
+	UpperBoundOfTotalOzoneKey    = []byte{0x04}
+	SlashingPrefix               = []byte{0x05}
+	InitialGenesisStakeTotalKey  = []byte{0x06} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
+	InitialUOzonePriceKey        = []byte{0x07} // key of initial uoz price at t=0
+	MetaNodeCntKey               = []byte{0x08} // the number of all meta nodes
+	ResourceNodeCntKey           = []byte{0x09} // the number of all resource nodes
 
-	InitialGenesisStakeTotalKey = []byte{0x13} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
-	InitialUOzonePriceKey       = []byte{0x14} // key of initial uoz price at t=0
+	UBDNodeKey      = []byte{0x11} // prefix for each key to an unbonding node
+	UBDNodeQueueKey = []byte{0x12} // prefix for the timestamps in unbonding node queue
 
-	ResourceNodeKey                  = []byte{0x21} // prefix for each key to a resource node
-	IndexingNodeKey                  = []byte{0x22} // prefix for each key to a indexing node
-	IndexingNodeRegistrationVotesKey = []byte{0x23} // prefix for each key to the vote for Indexing node registration
-
-	UBDNodeKey = []byte{0x31} // prefix for each key to an unbonding node
-
-	UBDNodeQueueKey = []byte{0x41} // prefix for the timestamps in unbonding node queue
 )
 
 // GetResourceNodeKey gets the key for the resourceNode with address
@@ -50,15 +54,15 @@ func GetResourceNodeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(ResourceNodeKey, nodeAddr.Bytes()...)
 }
 
-// GetIndexingNodeKey gets the key for the indexingNode with address
+// GetMetaNodeKey gets the key for the metaNode with address
 // VALUE: ResourceNode
-func GetIndexingNodeKey(nodeAddr stratos.SdsAddress) []byte {
-	return append(IndexingNodeKey, nodeAddr.Bytes()...)
+func GetMetaNodeKey(nodeAddr stratos.SdsAddress) []byte {
+	return append(MetaNodeKey, nodeAddr.Bytes()...)
 }
 
-// GetIndexingNodeRegistrationVotesKey get the key for the vote for Indexing node registration
-func GetIndexingNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
-	return append(IndexingNodeRegistrationVotesKey, nodeAddr.Bytes()...)
+// GetMetaNodeRegistrationVotesKey get the key for the vote for Meta node registration
+func GetMetaNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
+	return append(MetaNodeRegistrationVotesKey, nodeAddr.Bytes()...)
 }
 
 // GetURNKey gets the key for the unbonding Node with address

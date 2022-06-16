@@ -4,35 +4,36 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/sds/client/common"
+	"github.com/stratosnet/stratos-chain/x/sds/keeper"
 
 	"github.com/gorilla/mux"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 )
 
-func registerSdsQueryRoutes(cliCtx context.CLIContext, r *mux.Router, queryRoute string) {
+func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc(
 		"/sds/simulatePrepay/{amtToPrepay}",
-		SimulatePrepayHandlerFn(cliCtx, queryRoute),
+		SimulatePrepayHandlerFn(clientCtx, keeper.QueryPrepay),
 	).Methods("GET")
 	r.HandleFunc(
 		"/sds/uozPrice",
-		UozPriceHandlerFn(cliCtx, queryRoute),
+		UozPriceHandlerFn(clientCtx, keeper.QueryCurrUozPrice),
 	).Methods("GET")
 	r.HandleFunc(
 		"/sds/uozSupply",
-		UozSupplyHandlerFn(cliCtx, queryRoute),
+		UozSupplyHandlerFn(clientCtx, keeper.QueryUozSupply),
 	).Methods("GET")
 }
 
-// HTTP request handler to query the simulated purchased amt of prepay
-func SimulatePrepayHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+// SimulatePrepayHandlerFn HTTP request handler to query the simulated purchased amt of prepay
+func SimulatePrepayHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
@@ -40,7 +41,7 @@ func SimulatePrepayHandlerFn(cliCtx context.CLIContext, queryRoute string) http.
 		if !ok {
 			return
 		}
-		resp, height, err := common.QuerySimulatePrepay(cliCtx, queryRoute, amtToPrepay)
+		resp, height, err := common.QuerySimulatePrepay(cliCtx, queryPath, amtToPrepay)
 
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -57,14 +58,14 @@ func SimulatePrepayHandlerFn(cliCtx context.CLIContext, queryRoute string) http.
 	}
 }
 
-// HTTP request handler to query ongoing uoz price
-func UozPriceHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+// UozPriceHandlerFn HTTP request handler to query ongoing uoz price
+func UozPriceHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
-		resp, height, err := common.QueryCurrUozPrice(cliCtx, queryRoute)
+		resp, height, err := common.QueryCurrUozPrice(cliCtx, queryPath)
 
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -81,14 +82,14 @@ func UozPriceHandlerFn(cliCtx context.CLIContext, queryRoute string) http.Handle
 	}
 }
 
-// HTTP request handler to query uoz supply details
-func UozSupplyHandlerFn(cliCtx context.CLIContext, queryRoute string) http.HandlerFunc {
+// UozSupplyHandlerFn HTTP request handler to query uoz supply details
+func UozSupplyHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, cliCtx, r)
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
-		resp, height, err := common.QueryUozSupply(cliCtx, queryRoute)
+		resp, height, err := common.QueryUozSupply(cliCtx, queryPath)
 
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
