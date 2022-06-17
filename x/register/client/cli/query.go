@@ -36,7 +36,7 @@ func GetQueryCmd() *cobra.Command {
 // GetCmdQueryResourceNode implements the query resource nodes by network address command.
 func GetCmdQueryResourceNode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-resource-node [flag]",
+		Use:   "get-resource-node",
 		Short: "Query a resource node by its network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query details about an individual resource node by its network address.
@@ -81,7 +81,7 @@ $ %s query register get-resource-node --network-address=stsds1np4d8re98lpgrcdqca
 // GetCmdQueryMetaNode implements the query meta nodes by network address command.
 func GetCmdQueryMetaNode() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "get-meta-node [flag]",
+		Use:   "get-meta-node",
 		Short: "Query an meta node by its network address",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query details about an individual meta node by its network address.
