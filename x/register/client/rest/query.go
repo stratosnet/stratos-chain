@@ -16,8 +16,8 @@ import (
 )
 
 func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc("/register/resource-nodes", nodesWithParamsFn(clientCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
-	r.HandleFunc("/register/meta-nodes", nodesWithParamsFn(clientCtx, keeper.QueryMetaNodeByNetworkAddr)).Methods("GET")
+	r.HandleFunc("/register/resource-node/{nodeAddress}", nodesWithParamsFn(clientCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
+	r.HandleFunc("/register/meta-node/{nodeAddress}", nodesWithParamsFn(clientCtx, keeper.QueryMetaNodeByNetworkAddr)).Methods("GET")
 	r.HandleFunc("/register/staking", nodeStakingHandlerFn(clientCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
 	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(clientCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
 	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(clientCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
@@ -64,22 +64,11 @@ func nodesWithParamsFn(clientCtx client.Context, queryPath string) http.HandlerF
 			ownerAddr   sdk.AccAddress
 		)
 
-		moniker = r.URL.Query().Get(RestMoniker)
-
-		if v := r.URL.Query().Get(RestOwner); len(v) != 0 {
-			ownerAddr, err = sdk.AccAddressFromBech32(v)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-		}
-
-		if v := r.URL.Query().Get(RestNetworkAddr); len(v) != 0 {
-			networkAddr, err = stratos.SdsAddressFromBech32(v)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
+		networkAddrStr := mux.Vars(r)["nodeAddress"]
+		networkAddr, ok = keeper.CheckSdsAddr(w, r, networkAddrStr)
+		if !ok {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
 		}
 
 		countTotal, err := strconv.ParseBool(r.FormValue("count_total"))
