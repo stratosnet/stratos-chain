@@ -168,15 +168,15 @@ func request_Query_StakeByNode_0(ctx context.Context, marshaler runtime.Marshale
 		_   = err
 	)
 
-	val, ok = pathParams["acc_addr"]
+	val, ok = pathParams["network_addr"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "acc_addr")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "network_addr")
 	}
 
-	protoReq.AccAddr, err = runtime.String(val)
+	protoReq.NetworkAddr, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "acc_addr", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "network_addr", err)
 	}
 
 	val, ok = pathParams["query_type"]
@@ -206,15 +206,15 @@ func local_request_Query_StakeByNode_0(ctx context.Context, marshaler runtime.Ma
 		_   = err
 	)
 
-	val, ok = pathParams["acc_addr"]
+	val, ok = pathParams["network_addr"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "acc_addr")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "network_addr")
 	}
 
-	protoReq.AccAddr, err = runtime.String(val)
+	protoReq.NetworkAddr, err = runtime.String(val)
 
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "acc_addr", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "network_addr", err)
 	}
 
 	val, ok = pathParams["query_type"]
@@ -620,7 +620,7 @@ var (
 
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "params"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Query_StakeByNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"stratos", "register", "v1", "stakes_node", "acc_addr", "query_type"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Query_StakeByNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4, 1, 0, 4, 1, 5, 5}, []string{"stratos", "register", "v1", "stakes_node", "network_addr", "query_type"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Query_StakeByOwner_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "register", "v1", "stakes_owner", "owner_addr"}, "", runtime.AssumeColonVerbOpt(true)))
 

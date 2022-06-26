@@ -27,7 +27,7 @@ service Query {
 
   // StakeByNode queries all staking info for given node network address.
   rpc StakeByNode(QueryStakeByNodeRequest) returns (QueryStakeByNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/stakes_node/{acc_addr}/{query_type}";
+    option (google.api.http).get = "/stratos/register/v1/stakes_node/{network_addr}/{query_type}";
   }
 
   // StakeByOwner queries all staking info for given owner address.
@@ -67,8 +67,8 @@ message QueryMetaNodeResponse {
 
 // QueryStakeByNodeRequest is request type for the Query/StakeByNode RPC method
 message QueryStakeByNodeRequest {
-  // acc_addr defines the node network address to query for.
-  string acc_addr     = 1;
+  // network_addr defines the node network address to query for.
+  string network_addr     = 1;
   int64  query_type   = 2;
   // pagination defines an optional pagination for the request.
 //  cosmos.base.query.v1beta1.PageRequest pagination = 3;

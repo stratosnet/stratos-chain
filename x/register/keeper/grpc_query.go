@@ -77,20 +77,20 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 		return &types.QueryStakeByNodeResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
-	if req.GetAccAddr() == "" {
+	if req.GetNetworkAddr() == "" {
 		return &types.QueryStakeByNodeResponse{}, status.Error(codes.InvalidArgument, "node network address cannot be empty")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
 	queryType := req.QueryType
-	accAddr, err := stratos.SdsAddressFromBech32(req.AccAddr)
+	networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 	if err != nil {
 		return &types.QueryStakeByNodeResponse{}, err
 	}
 	stakingInfo := types.StakingInfo{}
 
 	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
-		metaNode, found := q.GetMetaNode(ctx, accAddr)
+		metaNode, found := q.GetMetaNode(ctx, networkAddr)
 		if found {
 			// Adding meta node staking info
 			networkAddr, _ := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
@@ -115,11 +115,11 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 	}
 
 	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
-		accAddr, err := stratos.SdsAddressFromBech32(req.GetAccAddr())
+		networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 		if err != nil {
 			return &types.QueryStakeByNodeResponse{}, err
 		}
-		resourceNode, found := q.GetResourceNode(ctx, accAddr)
+		resourceNode, found := q.GetResourceNode(ctx, networkAddr)
 		if found {
 			// Adding resource node staking info
 			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
