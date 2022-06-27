@@ -24,8 +24,8 @@ import (
 )
 
 const (
-	defaultDemon      = "ustos"
-	flagGenIdxNodeDir = "gen-idx-node-dir"
+	defaultDemon       = "ustos"
+	flagGenMetaNodeDir = "gen-meta-node-dir"
 )
 
 // AddGenesisMetaNodeCmd returns add-genesis-meta-node cobra Command.
@@ -49,9 +49,9 @@ the address will be looked up in the local Keybase.
 
 			config.SetRoot(clientCtx.HomeDir)
 
-			genIdxNodesDir := viper.GetString(flagGenIdxNodeDir)
-			if genIdxNodesDir == "" {
-				genIdxNodesDir = filepath.Join(config.RootDir, "config", "genidxnodes")
+			genMetaNodesDir := viper.GetString(flagGenMetaNodeDir)
+			if genMetaNodesDir == "" {
+				genMetaNodesDir = filepath.Join(config.RootDir, "config", "genmetanodes")
 			}
 
 			genDoc, err := tmtypes.GenesisDocFromFile(config.GenesisFile())
@@ -59,7 +59,7 @@ the address will be looked up in the local Keybase.
 				return errors.Wrap(err, "failed to read genesis doc from file")
 			}
 
-			appIdxNodes, err := getMetaNodeInfoFromFile(clientCtx.Codec, genIdxNodesDir, *genDoc, genBalancesIterator)
+			appMetaNodes, err := getMetaNodeInfoFromFile(clientCtx.Codec, genMetaNodesDir, *genDoc, genBalancesIterator)
 			if err != nil {
 				return fmt.Errorf("failed to get meta node from file: %w", err)
 			}
@@ -75,8 +75,8 @@ the address will be looked up in the local Keybase.
 				registerGenState.MetaNodes = registertypes.MetaNodes{}
 			}
 
-			for i, _ := range appIdxNodes {
-				registerGenState.MetaNodes = append(registerGenState.MetaNodes, appIdxNodes[i])
+			for i, _ := range appMetaNodes {
+				registerGenState.MetaNodes = append(registerGenState.MetaNodes, appMetaNodes[i])
 			}
 
 			registerGenStateBz, err := clientCtx.Codec.MarshalJSON(&registerGenState)
@@ -98,22 +98,22 @@ the address will be looked up in the local Keybase.
 
 	cmd.Flags().String(cli.HomeFlag, defaultNodeHome, "node's home directory")
 	cmd.Flags().String(flags.FlagKeyringBackend, flags.DefaultKeyringBackend, "Select keyring's backend (os|file|test)")
-	cmd.Flags().String(flagGenIdxNodeDir, "", "directory of genesis meta nodes info")
+	cmd.Flags().String(flagGenMetaNodeDir, "", "directory of genesis meta nodes info")
 	return cmd
 }
 
-func getMetaNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc tmtypes.GenesisDoc, genBalanceIterator genutiltypes.GenesisBalancesIterator,
-) (appGenIdxNodes []registertypes.MetaNode, err error) {
+func getMetaNodeInfoFromFile(cdc codec.Codec, genMetaNodesDir string, genDoc tmtypes.GenesisDoc, genBalanceIterator genutiltypes.GenesisBalancesIterator,
+) (appGenMetaNodes []registertypes.MetaNode, err error) {
 	var fos []os.FileInfo
-	fos, err = ioutil.ReadDir(genIdxNodesDir)
+	fos, err = ioutil.ReadDir(genMetaNodesDir)
 	if err != nil {
-		return appGenIdxNodes, err
+		return appGenMetaNodes, err
 	}
 
 	var appState map[string]json.RawMessage
 
 	if err := json.Unmarshal(genDoc.AppState, &appState); err != nil {
-		return appGenIdxNodes, err
+		return appGenMetaNodes, err
 	}
 
 	balanceMap := make(map[string]exported.GenesisBalance)
@@ -126,37 +126,37 @@ func getMetaNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc tmty
 	)
 
 	for _, fo := range fos {
-		filename := filepath.Join(genIdxNodesDir, fo.Name())
+		filename := filepath.Join(genMetaNodesDir, fo.Name())
 		if !fo.IsDir() && (filepath.Ext(filename) != ".json") {
 			continue
 		}
 		// get the node info
-		var jsonRawIdxNode []byte
-		if jsonRawIdxNode, err = ioutil.ReadFile(filename); err != nil {
-			return appGenIdxNodes, err
+		var jsonRawMetaNode []byte
+		if jsonRawMetaNode, err = ioutil.ReadFile(filename); err != nil {
+			return appGenMetaNodes, err
 		}
 
-		var genIdxNode registertypes.GenesisMetaNode
-		if err = cdc.UnmarshalJSON(jsonRawIdxNode, &genIdxNode); err != nil {
-			return appGenIdxNodes, err
+		var genMetaNode registertypes.GenesisMetaNode
+		if err = cdc.UnmarshalJSON(jsonRawMetaNode, &genMetaNode); err != nil {
+			return appGenMetaNodes, err
 		}
 
-		metaNode, err := genIdxNode.ToMetaNode()
+		metaNode, err := genMetaNode.ToMetaNode()
 		if err != nil {
-			return appGenIdxNodes, err
+			return appGenMetaNodes, err
 		}
 
-		appGenIdxNodes = append(appGenIdxNodes, metaNode)
+		appGenMetaNodes = append(appGenMetaNodes, metaNode)
 
 		ownerAddrStr := metaNode.GetOwnerAddress()
 		ownerBalance, ok := balanceMap[ownerAddrStr]
 		if !ok {
-			return appGenIdxNodes, fmt.Errorf(
+			return appGenMetaNodes, fmt.Errorf(
 				"account %v not in genesis.json: %+v", ownerAddrStr, balanceMap)
 		}
 
 		if ownerBalance.GetCoins().AmountOf(defaultDemon).LT(metaNode.Tokens) {
-			return appGenIdxNodes, fmt.Errorf(
+			return appGenMetaNodes, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",
 				ownerBalance.GetAddress(), ownerBalance.GetCoins().AmountOf(defaultDemon), metaNode.Tokens,
 			)
@@ -165,5 +165,5 @@ func getMetaNodeInfoFromFile(cdc codec.Codec, genIdxNodesDir string, genDoc tmty
 		fmt.Println("Add meta node: " + metaNode.GetNetworkAddress() + " success.")
 	}
 
-	return appGenIdxNodes, nil
+	return appGenMetaNodes, nil
 }
