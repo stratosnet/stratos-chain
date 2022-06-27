@@ -72,6 +72,20 @@ func (q Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.
 	return &types.QueryParamsResponse{Params: &params}, nil
 }
 
+func (q Querier) BondedResourceNodeCount(c context.Context, _ *types.QueryBondedResourceNodeCountRequest) (*types.QueryBondedResourceNodeCountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	number := q.GetBondedResourceNodeCnt(ctx).Int64()
+
+	return &types.QueryBondedResourceNodeCountResponse{Number: uint64(number)}, nil
+}
+
+func (q Querier) BondedMetaNodeCount(c context.Context, _ *types.QueryBondedMetaNodeCountRequest) (*types.QueryBondedMetaNodeCountResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	number := q.GetBondedMetaNodeCnt(ctx).Int64()
+
+	return &types.QueryBondedMetaNodeCountResponse{Number: uint64(number)}, nil
+}
+
 func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeRequest) (*types.QueryStakeByNodeResponse, error) {
 	if req == nil {
 		return &types.QueryStakeByNodeResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
@@ -82,7 +96,7 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	queryType := req.QueryType
+	queryType := req.GetQueryType()
 	networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 	if err != nil {
 		return &types.QueryStakeByNodeResponse{}, err

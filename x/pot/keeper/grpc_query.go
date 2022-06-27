@@ -3,8 +3,6 @@ package keeper
 import (
 	"context"
 	"fmt"
-	"strconv"
-
 	//"github.com/cosmos/cosmos-sdk/client"
 	//"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -26,31 +24,33 @@ type Querier struct {
 
 var _ types.QueryServer = Querier{}
 
+func (q Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	params := q.GetParams(ctx)
+
+	return &types.QueryParamsResponse{Params: &params}, nil
+}
+
 func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportRequest) (*types.QueryVolumeReportResponse, error) {
 	if req == nil {
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	epochInt64, err := strconv.ParseInt(req.Epoch, 10, 64)
-	if err != nil {
-		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "invalid epoch")
-	}
+	epochInt64 := req.Epoch
 
 	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
 	}
 
-	epoch, ok := sdk.NewIntFromString(req.Epoch)
-	if !ok {
-		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "invalid epoch")
-	}
+	epoch := sdk.NewInt(epochInt64)
+
 	ctx := sdk.UnwrapSDKContext(c)
 	height := ctx.BlockHeight()
 	volumeReport := q.GetVolumeReport(ctx, epoch)
 
 	return &types.QueryVolumeReportResponse{
 		ReportInfo: &types.ReportInfo{
-			Epoch:     epoch.String(),
+			Epoch:     epochInt64,
 			Reference: volumeReport.ReportReference,
 		},
 		Height: height,
@@ -62,18 +62,13 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 		return &types.QueryPotRewardsByEpochResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
-	queryEpochStr := req.GetEpoch()
+	queryEpoch := sdk.NewInt(req.GetEpoch())
 
-	if queryEpochStr == "" {
-		return &types.QueryPotRewardsByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be empty")
+	if queryEpoch.LTE(sdk.ZeroInt()) {
+		return &types.QueryPotRewardsByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be equal to or lower than 0")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	queryEpochInt64, err := strconv.ParseInt(queryEpochStr, 10, 64)
-	if err != nil {
-		return nil, err
-	}
-	queryEpoch := sdk.NewInt(queryEpochInt64)
 	matureEpoch := queryEpoch.Add(sdk.NewInt(q.MatureEpoch(ctx)))
 	var res []*types.Reward
 
@@ -98,32 +93,6 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 	height := ctx.BlockHeight()
 	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
 }
-
-//	height := ctx.BlockHeight()
-//	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height}, nil
-//	q.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-//		if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
-//			(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
-//			res = append(res, &individualReward)
-//		}
-//		return false
-//	})
-//
-//	offset := req.Pagination.Offset
-//	page := 1
-//	if offset != 0 {
-//		page =
-//	}
-//	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
-//	if start < 0 || end < 0 {
-//		return &types.QueryPotRewardsByEpochResponse{}, nil
-//	} else {
-//		res = res[start:end]
-//	}
-//	height := ctx.BlockHeight()
-//	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
-//	//}
-//}
 
 func UnmarshalIndividualReward(cdc codec.BinaryCodec, value []byte) (v types.Reward, err error) {
 	err = cdc.Unmarshal(value, &v)
