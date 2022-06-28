@@ -17,6 +17,7 @@ const (
 	FlagNetworkAddress  = "network-address"
 	FlagSlashing        = "slashing"
 	FlagSuspend         = "suspend"
+	FlagBLSSignature    = "bls-signature"
 )
 
 var (
@@ -64,6 +65,7 @@ func flagSetReportVolumes() *flag.FlagSet {
 	fs.String(FlagReporterAddr, "", "the node address of reporter")
 	fs.String(FlagEpoch, "", "the epoch when this PoT message reported.")
 	fs.String(FlagReportReference, "", " the hash used as a reference to this PoT report")
+	fs.String(FlagBLSSignature, "", " BLS signature")
 
 	return fs
 }

@@ -49,6 +49,8 @@ message QueryVolumeReportRequest {
 message ReportInfo {
   int64 epoch     = 1;
   string reference = 2;
+  string tx_hash = 3;
+  string reporter = 4;
 
 }
 

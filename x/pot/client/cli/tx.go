@@ -176,7 +176,11 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 	if err != nil {
 		return txf, nil, err
 	}
-	flagEpochStr, _ := fs.GetString(FlagEpoch)
+	//flagEpochInt64, err := fs.GetInt64(FlagEpoch)
+	flagEpochStr, err := fs.GetString(FlagEpoch)
+	if err != nil {
+		return txf, nil, err
+	}
 	value, err := strconv.ParseInt(flagEpochStr, 10, 64)
 	if err != nil {
 		return txf, nil, err
@@ -209,13 +213,31 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 
 	reporterOwner := clientCtx.GetFromAddress()
 
+	//blsSigture, err := fs.GetString(FlagBLSSignature)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+	//var signature types.BLSSignatureInfo
+	//err = json.Unmarshal([]byte(blsSigture), &signature)
+	//if err != nil {
+	//	return txf, nil, err
+	//}
+
+	// TODO: change pubkey
+	pubKeys := make([][]byte, 1)
+	for i := range pubKeys {
+		pubKeys[i] = make([]byte, 1)
+	}
+
+	signature := types.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
+
 	msg := types.NewMsgVolumeReport(
 		walletVolumes,
 		reporter,
 		epoch,
 		reportReference,
 		reporterOwner,
-		types.BLSSignatureInfo{},
+		signature,
 	)
 	return txf, msg, nil
 }

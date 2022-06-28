@@ -36,7 +36,7 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	epochInt64 := req.Epoch
+	epochInt64 := req.GetEpoch()
 
 	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
@@ -52,6 +52,8 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 		ReportInfo: &types.ReportInfo{
 			Epoch:     epochInt64,
 			Reference: volumeReport.ReportReference,
+			Reporter:  volumeReport.Reporter,
+			TxHash:    volumeReport.TxHash,
 		},
 		Height: height,
 	}, nil
@@ -69,11 +71,12 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
-	matureEpoch := queryEpoch.Add(sdk.NewInt(q.MatureEpoch(ctx)))
+	//matureEpoch := queryEpoch.Add(sdk.NewInt(q.MatureEpoch(ctx)))
 	var res []*types.Reward
 
 	store := ctx.KVStore(q.storeKey)
-	RewardStore := prefix.NewStore(store, types.GetIndividualRewardIteratorKey(matureEpoch))
+	//RewardStore := prefix.NewStore(store, types.GetIndividualRewardIteratorKey(matureEpoch))
+	RewardStore := prefix.NewStore(store, types.GetIndividualRewardIteratorKey(queryEpoch))
 
 	rewardsPageRes, err := FilteredPaginate(q.cdc, RewardStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		val, err := UnmarshalIndividualReward(q.cdc, value)
