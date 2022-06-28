@@ -213,10 +213,17 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 
 	reporterOwner := clientCtx.GetFromAddress()
 
-	//blsSigture, err := fs.GetString(FlagBLSSignature)
-	//if err != nil {
-	//	return txf, nil, err
-	//}
+	blsSigture, err := fs.GetString(FlagBLSSignature)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	var sig types.BaseBLSSignatureInfo
+	err = json.Unmarshal([]byte(blsSigture), &sig)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	//var signature types.BLSSignatureInfo
 	//err = json.Unmarshal([]byte(blsSigture), &signature)
 	//if err != nil {
@@ -224,12 +231,12 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 	//}
 
 	// TODO: change pubkey
-	pubKeys := make([][]byte, 1)
-	for i := range pubKeys {
-		pubKeys[i] = make([]byte, 1)
+	pubKeys := make([][]byte, len(sig.PubKeys))
+	for i, v := range sig.PubKeys {
+		pubKeys[i] = []byte(v)
 	}
 
-	signature := types.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
+	signature := types.NewBLSSignatureInfo(pubKeys, []byte(sig.Signature), []byte(sig.TxData))
 
 	msg := types.NewMsgVolumeReport(
 		walletVolumes,
