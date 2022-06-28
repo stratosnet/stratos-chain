@@ -61,7 +61,7 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 		sdk.NewEvent(
 			types.EventTypeCreateResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, pk.String()),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(pk.Bytes())),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 			sdk.NewAttribute(types.AttributeKeyInitialStake, msg.Value.Amount.String()),

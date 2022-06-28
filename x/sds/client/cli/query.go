@@ -6,10 +6,10 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -110,7 +110,7 @@ $ %s query sds prepay st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 			if len(queryAccAddr) == 0 {
 				return sdkerrors.Wrap(types.ErrEmptySenderAddr, "Missing sender address")
 			}
-			_, err = stratos.SdsAddressFromBech32(queryAccAddr)
+			_, err = sdk.AccAddressFromBech32(queryAccAddr)
 			if err != nil {
 				return err
 			}

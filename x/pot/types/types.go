@@ -43,3 +43,9 @@ func NewBLSSignatureInfo(pubKeys [][]byte, signature []byte, txData []byte) BLSS
 		TxData:    txData,
 	}
 }
+
+type BaseBLSSignatureInfo struct {
+	PubKeys   []string `json:"pub_keys" yaml:"pub_keys"`
+	Signature string   `json:"signature" yaml:"signature"`
+	TxData    string   `json:"tx_data" yaml:"tx_data"`
+}

@@ -55,7 +55,7 @@ func GetCmdQueryVolumeReport() *cobra.Command {
 			}
 
 			result, err := queryClient.VolumeReport(cmd.Context(), &types.QueryVolumeReportRequest{
-				Epoch: epoch.String(),
+				Epoch: epoch.Int64(),
 			})
 			if err != nil {
 				return err

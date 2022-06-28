@@ -27,7 +27,7 @@ service Query {
 
   // StakeByNode queries all staking info for given node network address.
   rpc StakeByNode(QueryStakeByNodeRequest) returns (QueryStakeByNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/stakes_node/{acc_addr}/{query_type}";
+    option (google.api.http).get = "/stratos/register/v1/stakes_node/{network_addr}/{query_type}";
   }
 
   // StakeByOwner queries all staking info for given owner address.
@@ -38,6 +38,16 @@ service Query {
   // StakeTotal queries all staking info.
   rpc StakeTotal(QueryTotalStakeRequest) returns (QueryTotalStakeResponse) {
     option (google.api.http).get = "/stratos/register/v1/total_stakes";
+  }
+
+  // BondedResourceNodeCount queries total number of ResourceNodes.
+  rpc BondedResourceNodeCount(QueryBondedResourceNodeCountRequest) returns (QueryBondedResourceNodeCountResponse) {
+    option (google.api.http).get = "/stratos/register/v1/pp_number";
+  }
+
+  // BondedMetaNodeCount queries total number of MetaNodes.
+  rpc BondedMetaNodeCount(QueryBondedMetaNodeCountRequest) returns (QueryBondedMetaNodeCountResponse) {
+    option (google.api.http).get = "/stratos/register/v1/sp_number";
   }
 }
 
@@ -67,9 +77,9 @@ message QueryMetaNodeResponse {
 
 // QueryStakeByNodeRequest is request type for the Query/StakeByNode RPC method
 message QueryStakeByNodeRequest {
-  // acc_addr defines the node network address to query for.
-  string acc_addr     = 1;
-  int64  query_type   = 2;
+  // network_addr defines the node network address to query for.
+  string network_addr     = 1;
+  uint32  query_type   = 2;
   // pagination defines an optional pagination for the request.
 //  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
@@ -118,6 +128,24 @@ message QueryParamsRequest {}
 message QueryParamsResponse {
   // params holds all the parameters of this module.
   Params params = 1;
+}
+
+// QueryBondedResourceNodeCountRequest is request type for the Query/BondedResourceNodeCount RPC method.
+message QueryBondedResourceNodeCountRequest {}
+
+// QueryBondedResourceNodeCountResponse is response type for the Query/BondedResourceNodeCount RPC method.
+message QueryBondedResourceNodeCountResponse {
+  // number holds the total number of resource nodes.
+  uint64 number = 1;
+}
+
+// QueryBondedMetaNodeCountRequest is request type for the Query/MetaNodeNumber RPC method.
+message QueryBondedMetaNodeCountRequest {}
+
+// QueryBondedMetaNodeCountResponse is response type for the Query/MetaNodeNumber RPC method.
+message QueryBondedMetaNodeCountResponse {
+  // number holds the total number of meta nodes.
+  uint64 number = 1;
 }
 
 

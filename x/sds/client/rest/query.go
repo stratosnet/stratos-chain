@@ -7,7 +7,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/stratosnet/stratos-chain/x/sds/client/common"
-	"github.com/stratosnet/stratos-chain/x/sds/keeper"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 
 	"github.com/gorilla/mux"
 
@@ -18,15 +18,15 @@ import (
 func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc(
 		"/sds/simulatePrepay/{amtToPrepay}",
-		SimulatePrepayHandlerFn(clientCtx, keeper.QueryPrepay),
+		SimulatePrepayHandlerFn(clientCtx, types.ModuleName),
 	).Methods("GET")
 	r.HandleFunc(
 		"/sds/uozPrice",
-		UozPriceHandlerFn(clientCtx, keeper.QueryCurrUozPrice),
+		UozPriceHandlerFn(clientCtx, types.ModuleName),
 	).Methods("GET")
 	r.HandleFunc(
 		"/sds/uozSupply",
-		UozSupplyHandlerFn(clientCtx, keeper.QueryUozSupply),
+		UozSupplyHandlerFn(clientCtx, types.ModuleName),
 	).Methods("GET")
 }
 

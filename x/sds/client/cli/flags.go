@@ -18,12 +18,12 @@ func flagSetFileHash() *flag.FlagSet {
 
 func flagSetReporter() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	fs.String(FlagReporter, "", "The reporter address of file")
+	fs.String(FlagReporter, "", "The reporter address of meta node that reported the file")
 	return fs
 }
 
 func flagSetUploader() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	fs.String(FlagUploader, "", "The uploader address of file")
+	fs.String(FlagUploader, "", "The owner address of resource node that uploaded the file")
 	return fs
 }

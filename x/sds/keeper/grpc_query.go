@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/hex"
 	"fmt"
-	"strconv"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
@@ -59,17 +58,17 @@ func (q Querier) Prepay(c context.Context, req *types.QueryPrepayRequest) (*type
 	if err != nil {
 		return &types.QueryPrepayResponse{}, err
 	}
-	balanceBytes, err := q.GetPrepayBytes(ctx, accAddr)
+	balance, err := q.GetPrepay(ctx, accAddr)
 	if err != nil {
 		return &types.QueryPrepayResponse{}, fmt.Errorf("invalid sender address: %w", err)
 	}
 
-	balanceInt64, err := strconv.ParseInt(string(balanceBytes), 10, 64)
-	if err != nil {
-		return &types.QueryPrepayResponse{}, err
-	}
+	//balanceInt64, err := strconv.ParseInt(balance.S, 10, 64)
+	//if err != nil {
+	//	return &types.QueryPrepayResponse{}, err
+	//}
 
-	balance := sdk.NewInt(balanceInt64)
+	//balance := sdk.NewInt(balanceInt64)
 	return &types.QueryPrepayResponse{Balance: &balance}, nil
 }
 

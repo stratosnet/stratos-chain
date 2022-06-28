@@ -31,17 +31,26 @@ service Query {
   rpc PotSlashingByOwner(QueryPotSlashingByOwnerRequest) returns (QueryPotSlashingByOwnerResponse) {
     option (google.api.http).get = "/stratos/pot/v1/slashing/{wallet_address}";
   }
+
+  // Params queries POT module Params info.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/params";
+  }
+
+
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
 message QueryVolumeReportRequest {
   // epoch defines the epoch number to query for.
-   string epoch = 1;
+   int64 epoch = 1;
 }
 
 message ReportInfo {
-  string epoch     = 1;
+  int64 epoch     = 1;
   string reference = 2;
+  string tx_hash = 3;
+  string reporter = 4;
 
 }
 
@@ -54,12 +63,20 @@ message QueryVolumeReportResponse {
 
 
 
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
 
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1;
+}
 
 // QueryPotRewardsByEpochRequest is request type for the Query/PotRewardsByEpoch by a given epoch RPC method
 message QueryPotRewardsByEpochRequest {
-  string epoch = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  int64 epoch = 1;
+  string wallet_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryVolumeReportResponse is response type for the Query/PotRewardsByEpoch RPC method
@@ -93,9 +110,6 @@ message QueryPotRewardsByOwnerResponse {
 }
 
 
-
-
-
 // QueryPotSlashingByOwnerRequest is request type for the Query/Slashing by a given owner RPC method
 message QueryPotSlashingByOwnerRequest {
   string wallet_address = 1;
@@ -106,6 +120,7 @@ message QueryPotSlashingByOwnerResponse {
   string    slashing = 1;
   int64     height  = 2;
 }
+
 
 
 

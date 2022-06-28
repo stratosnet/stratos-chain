@@ -22,8 +22,8 @@ import (
 )
 
 const (
-	QueryResourceNodeByNetworkAddr = "resource-nodes"
-	QueryMetaNodeByNetworkAddr     = "meta_nodes"
+	QueryResourceNodeByNetworkAddr = "resource-node"
+	QueryMetaNodeByNetworkAddr     = "meta_node"
 	QueryNodesTotalStakes          = "nodes_total_stakes"
 	QueryNodeStakeByNodeAddr       = "node_stakes"
 	QueryNodeStakeByOwner          = "node_stakes_by_owner"
@@ -37,7 +37,7 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 		case QueryResourceNodeByNetworkAddr:
 			return getResourceNodeByNetworkAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryMetaNodeByNetworkAddr:
-			return getMetaNodesStakingInfo(ctx, req, k, legacyQuerierCdc)
+			return getMetaNodeNetworkAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryNodesTotalStakes:
 			return getNodesStakingInfo(ctx, req, k, legacyQuerierCdc)
 		case QueryNodeStakeByNodeAddr:
@@ -65,7 +65,7 @@ func getRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQ
 func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var (
 		params types.QueryNodesParams
-		nodes  []types.ResourceNode
+		node   types.ResourceNode
 	)
 
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
@@ -80,19 +80,20 @@ func getResourceNodeByNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keep
 	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoResourceNodeFound.Error())
 	}
-	nodes = append(nodes, node)
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.NewResourceNodes(nodes...))
+
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, node)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	return res, nil
+
+	return bz, nil
 }
 
-func getMetaNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+func getMetaNodeNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 
 	var (
 		params types.QueryNodesParams
-		nodes  []types.MetaNode
+		node   types.MetaNode
 	)
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
 	if err != nil {
@@ -106,12 +107,12 @@ func getMetaNodesStakingInfo(ctx sdk.Context, req abci.RequestQuery, k Keeper, l
 	if !found {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, types.ErrNoMetaNodeFound.Error())
 	}
-	nodes = append(nodes, node)
-	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, types.NewMetaNodes(nodes...))
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, node)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	return res, nil
+
+	return bz, nil
 }
 
 // Iteration for querying total stakes of resource/meta nodes
