@@ -75,7 +75,8 @@ message QueryParamsResponse {
 // QueryPotRewardsByEpochRequest is request type for the Query/PotRewardsByEpoch by a given epoch RPC method
 message QueryPotRewardsByEpochRequest {
   int64 epoch = 1;
-  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+  string wallet_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryVolumeReportResponse is response type for the Query/PotRewardsByEpoch RPC method
