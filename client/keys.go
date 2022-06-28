@@ -14,7 +14,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	clientkeys "github.com/stratosnet/stratos-chain/client/keys"
-	"github.com/stratosnet/stratos-chain/crypto/hd"
+	stratoshd "github.com/stratosnet/stratos-chain/crypto/hd"
 )
 
 // KeyCommands registers a sub-tree of commands to interact with
@@ -50,13 +50,13 @@ The pass backend requires GnuPG: https://gnupg.org/
 	// support adding Ethereum supported keys
 	addCmd := keys.AddKeyCommand()
 
-	// update the default signing algorithm value to "eth_secp256k1"
-	algoFlag := addCmd.Flag("algo")
-	algoFlag.DefValue = string(hd.EthSecp256k1Type)
-	err := algoFlag.Value.Set(string(hd.EthSecp256k1Type))
-	if err != nil {
-		panic(err)
-	}
+	//// update the default signing algorithm value to "eth_secp256k1"
+	//algoFlag := addCmd.Flag("algo")
+	//algoFlag.DefValue = string(hd.EthSecp256k1Type)
+	//err := algoFlag.Value.Set(string(hd.EthSecp256k1Type))
+	//if err != nil {
+	//	panic(err)
+	//}
 
 	addCmd.RunE = runAddCmd
 
@@ -94,7 +94,7 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 
 	dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
 	if dryRun {
-		kr, err = keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientCtx.KeyringDir, buf, hd.EthSecp256k1Option())
+		kr, err = keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientCtx.KeyringDir, buf, stratoshd.EthSecp256k1Option())
 		clientCtx = clientCtx.WithKeyring(kr)
 	}
 

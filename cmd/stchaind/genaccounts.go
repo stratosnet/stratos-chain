@@ -8,8 +8,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/ethereum/go-ethereum/common"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
@@ -22,8 +20,6 @@ import (
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
 
 	"github.com/stratosnet/stratos-chain/crypto/hd"
-	stratos "github.com/stratosnet/stratos-chain/types"
-	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 const (
@@ -130,10 +126,7 @@ contain valid denominations. Accounts may optionally be supplied with vesting pa
 					return errors.New("invalid vesting parameters; must supply start and end time or end time")
 				}
 			} else {
-				genAccount = &stratos.EthAccount{
-					BaseAccount: baseAccount,
-					CodeHash:    common.BytesToHash(evmtypes.EmptyCodeHash).Hex(),
-				}
+				genAccount = baseAccount
 			}
 
 			if err := genAccount.Validate(); err != nil {
