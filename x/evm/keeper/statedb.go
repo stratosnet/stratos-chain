@@ -109,6 +109,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
 	acct := k.accountKeeper.GetAccount(ctx, cosmosAddr)
 	if acct == nil {
+		//if acct not exits, create a new base account with cosmosAddr
 		acct = k.accountKeeper.NewAccountWithAddress(ctx, cosmosAddr)
 	}
 
@@ -118,22 +119,27 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 
 	codeHash := common.BytesToHash(account.CodeHash)
 
-	//if ethAcct, ok := acct.(stratos.EthAccountI); ok {
-	//	if err := ethAcct.SetCodeHash(codeHash); err != nil {
-	//		return err
-	//	}
-	//}
-
-	var baseAcc *authtypes.BaseAccount
-	baseAcc = acct.(*authtypes.BaseAccount)
-	if !bytes.Equal(codeHash.Bytes(), types.EmptyCodeHash) {
-		newAcct := &stratos.EthAccount{
-			BaseAccount: baseAcc,
-			CodeHash:    codeHash.Hex(),
+	if ethAcct, ok := acct.(stratos.EthAccountI); ok {
+		//if acct is ethAccount, save directly
+		if err := ethAcct.SetCodeHash(codeHash); err != nil {
+			return err
 		}
-		k.accountKeeper.SetAccount(ctx, newAcct)
-	} else {
 		k.accountKeeper.SetAccount(ctx, acct)
+	} else {
+		var baseAcc *authtypes.BaseAccount
+		baseAcc = acct.(*authtypes.BaseAccount)
+
+		if !bytes.Equal(codeHash.Bytes(), types.EmptyCodeHash) {
+			//if codeHash is not empty, and the acct is new created baseAccount, convert to ethAccount first
+			newEthAcct := &stratos.EthAccount{
+				BaseAccount: baseAcc,
+				CodeHash:    codeHash.Hex(),
+			}
+			k.accountKeeper.SetAccount(ctx, newEthAcct)
+		} else {
+			//if codeHash is empty, then save as baseAccount
+			k.accountKeeper.SetAccount(ctx, acct)
+		}
 	}
 
 	if err := k.SetBalance(ctx, addr, account.Balance); err != nil {
