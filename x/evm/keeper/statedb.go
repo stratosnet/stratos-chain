@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -117,13 +118,23 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 
 	codeHash := common.BytesToHash(account.CodeHash)
 
-	if ethAcct, ok := acct.(stratos.EthAccountI); ok {
-		if err := ethAcct.SetCodeHash(codeHash); err != nil {
-			return err
-		}
-	}
+	//if ethAcct, ok := acct.(stratos.EthAccountI); ok {
+	//	if err := ethAcct.SetCodeHash(codeHash); err != nil {
+	//		return err
+	//	}
+	//}
 
-	k.accountKeeper.SetAccount(ctx, acct)
+	var baseAcc *authtypes.BaseAccount
+	baseAcc = acct.(*authtypes.BaseAccount)
+	if !bytes.Equal(codeHash.Bytes(), types.EmptyCodeHash) {
+		newAcct := &stratos.EthAccount{
+			BaseAccount: baseAcc,
+			CodeHash:    codeHash.Hex(),
+		}
+		k.accountKeeper.SetAccount(ctx, newAcct)
+	} else {
+		k.accountKeeper.SetAccount(ctx, acct)
+	}
 
 	if err := k.SetBalance(ctx, addr, account.Balance); err != nil {
 		return err

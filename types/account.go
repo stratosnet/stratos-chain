@@ -45,10 +45,11 @@ type EthAccountI interface {
 // ProtoAccount defines the prototype function for BaseAccount used for an
 // AccountKeeper.
 func ProtoAccount() authtypes.AccountI {
-	return &EthAccount{
-		BaseAccount: &authtypes.BaseAccount{},
-		CodeHash:    common.BytesToHash(emptyCodeHash).String(),
-	}
+	return &authtypes.BaseAccount{}
+	//return &EthAccount{
+	//	BaseAccount: &authtypes.BaseAccount{},
+	//	CodeHash:    common.BytesToHash(emptyCodeHash).String(),
+	//}
 }
 
 // EthAddress returns the account address ethereum format.
