@@ -22,6 +22,48 @@ func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(clientCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
 	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(clientCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
 	r.HandleFunc("/register/params", registerParamsHandlerFn(clientCtx, keeper.QueryRegisterParams)).Methods("GET")
+	r.HandleFunc("/register/resource-count", resourceNodesCountFn(clientCtx, keeper.QueryResourceNodesCount)).Methods("GET")
+	r.HandleFunc("/register/meta-count", metaNodesCountFn(clientCtx, keeper.QueryMetaNodesCount)).Methods("GET")
+}
+
+// GET request handler to query total number of bonded resource nodes
+func resourceNodesCountFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+// GET request handler to query total number of bonded resource nodes
+func metaNodesCountFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
 }
 
 // GET request handler to query params of Register module

@@ -8,6 +8,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -26,9 +27,46 @@ func GetQueryCmd() *cobra.Command {
 
 	potQueryCmd.AddCommand(
 		GetCmdQueryVolumeReport(),
+		GetCmdQueryParams(),
 	)
 
 	return potQueryCmd
+}
+
+// GetCmdQueryParams implements the params query command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.NoArgs,
+		Short: "Query the current pot parameters information",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query values set as pot parameters.
+
+Example:
+$ %s query pot params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryVolumeReport implements the query volume report command.

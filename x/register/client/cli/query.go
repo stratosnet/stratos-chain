@@ -27,10 +27,114 @@ func GetQueryCmd() *cobra.Command {
 	registerQueryCmd.AddCommand(
 		GetCmdQueryResourceNode(),
 		GetCmdQueryMetaNode(),
-		//GetCmdQueryMetaNodeList(),
+		GetCmdQueryResourceNodesCnt(),
+		GetCmdQueryMetaNodesCnt(),
+		GetCmdQueryParams(),
 	)
 
 	return registerQueryCmd
+}
+
+// GetCmdQueryParams implements the params query command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.NoArgs,
+		Short: "Query the current register parameters information",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query values set as register parameters.
+
+Example:
+$ %s query register params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
+// GetCmdQueryResourceNodesCnt implements the query total number of bonded resource nodes.
+func GetCmdQueryResourceNodesCnt() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get-resource-count",
+		Short: "Query the total number of bonded resource nodes",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the total number of bonded resource nodes.
+Example:
+$ %s query register get-resource-count
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			result, err := queryClient.BondedResourceNodeCount(cmd.Context(), &types.QueryBondedResourceNodeCountRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(result)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+// GetCmdQueryMetaNodesCnt implements the query total number of bonded meta nodes.
+func GetCmdQueryMetaNodesCnt() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "get-meta-count",
+		Short: "Query the total number of bonded meta nodes",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the total number of bonded meta nodes.
+Example:
+$ %s query register get-meta-count
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			result, err := queryClient.BondedMetaNodeCount(cmd.Context(), &types.QueryBondedMetaNodeCountRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(result)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdQueryResourceNode implements the query resource nodes by network address command.

@@ -27,9 +27,46 @@ func GetQueryCmd() *cobra.Command {
 	sdsQueryCmd.AddCommand(
 		GetCmdQueryUploadedFile(),
 		GetCmdQueryPrepayBalance(),
+		GetCmdQueryParams(),
 	)
 
 	return sdsQueryCmd
+}
+
+// GetCmdQueryParams implements the params query command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.NoArgs,
+		Short: "Query the current sds parameters information",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query values set as sds parameters.
+
+Example:
+$ %s query sds params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }
 
 // GetCmdQueryUploadedFile implements the query uploaded file command.
