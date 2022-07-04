@@ -42,10 +42,14 @@ func getPotRewardsByEpochHandlerFn(clientCtx client.Context, queryPath string) h
 		if v := r.URL.Query().Get(RestWalletAddress); len(v) != 0 {
 			walletAddressStr = v
 		}
-		walletAddress, err := sdk.AccAddressFromBech32(walletAddressStr)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
+
+		walletAddress := sdk.AccAddress{}
+		if walletAddressStr != "" {
+			walletAddress, err = sdk.AccAddressFromBech32(walletAddressStr)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
 		}
 
 		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch, walletAddress)
