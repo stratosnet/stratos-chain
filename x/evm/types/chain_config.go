@@ -13,9 +13,9 @@ import (
 
 // EthereumConfig returns an Ethereum ChainConfig for EVM state transitions.
 // All the negative or nil values are converted to nil
-func (cc ChainConfig) EthereumConfig(chainID *big.Int) *params.ChainConfig {
+func (cc ChainConfig) EthereumConfig() *params.ChainConfig {
 	return &params.ChainConfig{
-		ChainID:                 chainID,
+		ChainID:                 getBlockValue(cc.ChainID),
 		HomesteadBlock:          getBlockValue(cc.HomesteadBlock),
 		DAOForkBlock:            getBlockValue(cc.DAOForkBlock),
 		DAOForkSupport:          cc.DAOForkSupport,
@@ -40,6 +40,7 @@ func (cc ChainConfig) EthereumConfig(chainID *big.Int) *params.ChainConfig {
 
 // DefaultChainConfig returns default evm parameters.
 func DefaultChainConfig() ChainConfig {
+	chainId := sdk.NewInt(1)
 	homesteadBlock := sdk.ZeroInt()
 	daoForkBlock := sdk.ZeroInt()
 	eip150Block := sdk.ZeroInt()
@@ -56,6 +57,7 @@ func DefaultChainConfig() ChainConfig {
 	mergeForkBlock := sdk.ZeroInt()
 
 	return ChainConfig{
+		ChainID:             &chainId,
 		HomesteadBlock:      &homesteadBlock,
 		DAOForkBlock:        &daoForkBlock,
 		DAOForkSupport:      true,
@@ -86,6 +88,9 @@ func getBlockValue(block *sdk.Int) *big.Int {
 // Validate performs a basic validation of the ChainConfig params. The function will return an error
 // if any of the block values is uninitialized (i.e nil) or if the EIP150Hash is an invalid hash.
 func (cc ChainConfig) Validate() error {
+	if err := validateChainId(cc.ChainID); err != nil {
+		return err
+	}
 	if err := validateBlock(cc.HomesteadBlock); err != nil {
 		return sdkerrors.Wrap(err, "homesteadBlock")
 	}
@@ -133,8 +138,15 @@ func (cc ChainConfig) Validate() error {
 	}
 
 	// NOTE: chain ID is not needed to check config order
-	if err := cc.EthereumConfig(nil).CheckConfigForkOrder(); err != nil {
+	if err := cc.EthereumConfig().CheckConfigForkOrder(); err != nil {
 		return sdkerrors.Wrap(err, "invalid config fork order")
+	}
+	return nil
+}
+
+func validateChainId(chainId *sdk.Int) error {
+	if chainId.LTE(sdk.ZeroInt()) {
+		return sdkerrors.Wrap(ErrInvalidChainConfig, "eip155 chain id should greater than 0")
 	}
 	return nil
 }

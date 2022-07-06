@@ -494,7 +494,7 @@ func (k *Keeper) traceTx(
 	}
 
 	if traceConfig != nil && traceConfig.Overrides != nil {
-		overrides = traceConfig.Overrides.EthereumConfig(cfg.ChainConfig.ChainID)
+		overrides = traceConfig.Overrides.EthereumConfig()
 	}
 
 	switch {
@@ -587,7 +587,7 @@ func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types
 	ctx := sdk.UnwrapSDKContext(c)
 
 	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
+	ethCfg := params.ChainConfig.EthereumConfig()
 	baseFee := k.GetBaseFee(ctx, ethCfg)
 
 	res := &types.QueryBaseFeeResponse{}

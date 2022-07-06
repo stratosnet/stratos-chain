@@ -35,11 +35,9 @@ func NewEthSigVerificationDecorator(ek EVMKeeper) EthSigVerificationDecorator {
 // Failure in RecheckTx will prevent tx to be included into block, especially when CheckTx succeed, in which case user
 // won't see the error message.
 func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	chainID := esvd.evmKeeper.ChainID()
-
 	params := esvd.evmKeeper.GetParams(ctx)
 
-	ethCfg := params.ChainConfig.EthereumConfig(chainID)
+	ethCfg := params.ChainConfig.EthereumConfig()
 	blockNum := big.NewInt(ctx.BlockHeight())
 	signer := ethtypes.MakeSigner(ethCfg, blockNum)
 
@@ -164,7 +162,7 @@ func NewEthGasConsumeDecorator(
 func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	params := egcd.evmKeeper.GetParams(ctx)
 
-	ethCfg := params.ChainConfig.EthereumConfig(egcd.evmKeeper.ChainID())
+	ethCfg := params.ChainConfig.EthereumConfig()
 
 	blockHeight := big.NewInt(ctx.BlockHeight())
 	homestead := ethCfg.IsHomestead(blockHeight)
@@ -252,7 +250,7 @@ func NewCanTransferDecorator(evmKeeper EVMKeeper) CanTransferDecorator {
 // see if the address can execute the transaction.
 func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	params := ctd.evmKeeper.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(ctd.evmKeeper.ChainID())
+	ethCfg := params.ChainConfig.EthereumConfig()
 	signer := ethtypes.MakeSigner(ethCfg, big.NewInt(ctx.BlockHeight()))
 
 	for _, msg := range tx.GetMsgs() {
@@ -411,8 +409,7 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		txGasLimit := uint64(0)
 
 		params := vbd.evmKeeper.GetParams(ctx)
-		chainID := vbd.evmKeeper.ChainID()
-		ethCfg := params.ChainConfig.EthereumConfig(chainID)
+		ethCfg := params.ChainConfig.EthereumConfig()
 		baseFee := vbd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
 		for _, msg := range protoTx.GetMsgs() {
@@ -517,7 +514,7 @@ func NewEthMempoolFeeDecorator(ek EVMKeeper) EthMempoolFeeDecorator {
 func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if ctx.IsCheckTx() && !simulate {
 		params := mfd.evmKeeper.GetParams(ctx)
-		ethCfg := params.ChainConfig.EthereumConfig(mfd.evmKeeper.ChainID())
+		ethCfg := params.ChainConfig.EthereumConfig()
 		baseFee := mfd.evmKeeper.GetBaseFee(ctx, ethCfg)
 		if baseFee == nil {
 			for _, msg := range tx.GetMsgs() {
