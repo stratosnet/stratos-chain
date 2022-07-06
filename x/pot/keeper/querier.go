@@ -94,19 +94,29 @@ func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keep
 func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPotRewardsByReportEpochParams) (res []types.Reward) {
 	matureEpoch := params.Epoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
 
-	if !params.WalletAddress.Empty() {
-		reward, found := k.GetIndividualReward(ctx, params.WalletAddress, matureEpoch)
-		if found {
-			res = append(res, reward)
+	k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+		if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
+			(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
+			res = append(res, individualReward)
 		}
+		return false
+	})
+
+	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		return nil
 	} else {
-		k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-			if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
-				(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
-				res = append(res, individualReward)
-			}
-			return false
-		})
+		res = res[start:end]
+		return res
+	}
+}
+
+func (k Keeper) getPotRewardsByWalletAddressAndEpoch(ctx sdk.Context, params types.QueryPotRewardsByWalletAddrParams) (res []types.Reward) {
+	matureEpoch := params.Epoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
+
+	reward, found := k.GetIndividualReward(ctx, params.WalletAddr, matureEpoch)
+	if found {
+		res = append(res, reward)
 	}
 
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
@@ -124,6 +134,20 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
+
+	if !params.Epoch.Equal(sdk.ZeroInt()) {
+		rewardsByByWalletAddressAndEpoch := k.getPotRewardsByWalletAddressAndEpoch(ctx, params)
+		if len(rewardsByByWalletAddressAndEpoch) < 1 {
+			e := sdkerrors.Wrapf(types.ErrCannotFindReward, fmt.Sprintf("no Pot rewards information at epoch %s", params.Epoch.String()))
+			return []byte{}, e
+		}
+		bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, rewardsByByWalletAddressAndEpoch)
+		if err != nil {
+			return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		return bz, nil
+	}
+
 	immatureTotalReward := k.GetImmatureTotalReward(ctx, params.WalletAddr)
 	matureTotalReward := k.GetMatureTotalReward(ctx, params.WalletAddr)
 	reward := types.NewPotRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)
