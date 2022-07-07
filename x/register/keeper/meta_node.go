@@ -521,9 +521,10 @@ func (k Keeper) MintMetaNodeNotBondedPoolWhenInitGenesis(ctx sdk.Context, amt sd
 	if tokens.IsZero() && !amt.IsZero() {
 		return k.bankKeeper.MintCoins(ctx, types.MetaNodeNotBondedPoolName, amt)
 	}
-	if !tokens.IsEqual(amt) {
-		return types.ErrInvalidGenesisToken
-	}
+	// TODO investigate whether to add this restriction (especially after partially unbonding a node)
+	//if !tokens.IsEqual(amt) {
+	//	return types.ErrInvalidGenesisToken
+	//}
 	return nil
 }
 
@@ -532,8 +533,8 @@ func (k Keeper) MintMetaNodeBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.C
 	if tokens.IsZero() && !amt.IsZero() {
 		return k.bankKeeper.MintCoins(ctx, types.MetaNodeBondedPoolName, amt)
 	}
-	if !tokens.IsEqual(amt) {
-		return types.ErrInvalidGenesisToken
-	}
+	//if !tokens.IsEqual(amt) {
+	//	return types.ErrInvalidGenesisToken
+	//}
 	return nil
 }
