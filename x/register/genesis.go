@@ -14,28 +14,77 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 
 	initialStakeTotal := sdk.ZeroInt()
 	lenOfGenesisBondedResourceNode := int64(0)
+	initResourceNodeNotBondedPoolBalances := sdk.NewCoins(sdk.Coin{
+		Denom:  keeper.BondDenom(ctx),
+		Amount: sdk.ZeroInt(),
+	})
+	initResourceNodeBondedPoolBalances := sdk.NewCoins(sdk.Coin{
+		Denom:  keeper.BondDenom(ctx),
+		Amount: sdk.ZeroInt(),
+	})
+
 	for _, resourceNode := range data.GetResourceNodes() {
 		if resourceNode.GetStatus() == stakingtypes.Bonded {
 			lenOfGenesisBondedResourceNode++
 			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
-
+			initResourceNodeBondedPoolBalances = initResourceNodeBondedPoolBalances.Add(sdk.Coin{
+				Denom:  keeper.BondDenom(ctx),
+				Amount: resourceNode.Tokens,
+			})
+		} else if resourceNode.GetStatus() == stakingtypes.Unbonded {
+			initResourceNodeNotBondedPoolBalances = initResourceNodeNotBondedPoolBalances.Add(sdk.Coin{
+				Denom:  keeper.BondDenom(ctx),
+				Amount: resourceNode.Tokens,
+			})
 		}
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
-
 	// set initial genesis number of resource nodes
 	keeper.SetBondedResourceNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedResourceNode))
+	err := keeper.MintResourceNodeNotBondedPoolWhenInitGenesis(ctx, initResourceNodeNotBondedPoolBalances)
+	if err != nil {
+		panic(err)
+	}
+	err = keeper.MintResourceNodeBondedPoolWhenInitGenesis(ctx, initResourceNodeBondedPoolBalances)
+	if err != nil {
+		panic(err)
+	}
 
 	lenOfGenesisBondedMetaNode := int64(0)
+	initMetaNodeNotBondedPoolBalances := sdk.NewCoins(sdk.Coin{
+		Denom:  keeper.BondDenom(ctx),
+		Amount: sdk.ZeroInt(),
+	})
+	initMetaNodeBondedPoolBalances := sdk.NewCoins(sdk.Coin{
+		Denom:  keeper.BondDenom(ctx),
+		Amount: sdk.ZeroInt(),
+	})
 	for _, metaNode := range data.GetMetaNodes() {
 		if metaNode.GetStatus() == stakingtypes.Bonded {
 			lenOfGenesisBondedMetaNode++
 			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			initMetaNodeBondedPoolBalances = initMetaNodeBondedPoolBalances.Add(sdk.Coin{
+				Denom:  keeper.BondDenom(ctx),
+				Amount: metaNode.Tokens,
+			})
+		} else if metaNode.GetStatus() == stakingtypes.Unbonded {
+			initMetaNodeNotBondedPoolBalances = initMetaNodeNotBondedPoolBalances.Add(sdk.Coin{
+				Denom:  keeper.BondDenom(ctx),
+				Amount: metaNode.Tokens,
+			})
 		}
 		keeper.SetMetaNode(ctx, metaNode)
 	}
 	// set initial genesis number of meta nodes
 	keeper.SetBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
+	err = keeper.MintMetaNodeNotBondedPoolWhenInitGenesis(ctx, initMetaNodeNotBondedPoolBalances)
+	if err != nil {
+		panic(err)
+	}
+	err = keeper.MintMetaNodeBondedPoolWhenInitGenesis(ctx, initMetaNodeBondedPoolBalances)
+	if err != nil {
+		panic(err)
+	}
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := sdk.ZeroDec()

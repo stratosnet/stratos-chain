@@ -491,3 +491,49 @@ func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
 	return iterator
 }
+
+func (k Keeper) GetAllMetaNodeNotBondedTokens(ctx sdk.Context) (tokens sdk.Coins) {
+	metaNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPoolName)
+	if metaNodeNotBondedAccAddr == nil {
+		ctx.Logger().Error("account address for meta node Not bonded pool does not exist.")
+		return sdk.NewCoins(sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		})
+	}
+	return k.bankKeeper.GetAllBalances(ctx, metaNodeNotBondedAccAddr)
+}
+
+func (k Keeper) GetAllMetaNodeBondedTokens(ctx sdk.Context) (tokens sdk.Coins) {
+	metaNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPoolName)
+	if metaNodeBondedAccAddr == nil {
+		ctx.Logger().Error("account address for meta node bonded pool does not exist.")
+		return sdk.NewCoins(sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		})
+	}
+	return k.bankKeeper.GetAllBalances(ctx, metaNodeBondedAccAddr)
+}
+
+func (k Keeper) MintMetaNodeNotBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.Coins) error {
+	tokens := k.GetAllMetaNodeNotBondedTokens(ctx)
+	if tokens.IsZero() && !amt.IsZero() {
+		return k.bankKeeper.MintCoins(ctx, types.MetaNodeNotBondedPoolName, amt)
+	}
+	if !tokens.IsEqual(amt) {
+		return types.ErrInvalidGenesisToken
+	}
+	return nil
+}
+
+func (k Keeper) MintMetaNodeBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.Coins) error {
+	tokens := k.GetAllMetaNodeBondedTokens(ctx)
+	if tokens.IsZero() && !amt.IsZero() {
+		return k.bankKeeper.MintCoins(ctx, types.MetaNodeBondedPoolName, amt)
+	}
+	if !tokens.IsEqual(amt) {
+		return types.ErrInvalidGenesisToken
+	}
+	return nil
+}

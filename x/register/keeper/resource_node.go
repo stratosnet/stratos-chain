@@ -369,3 +369,49 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	}
 	return k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedAccAddr, k.BondDenom(ctx))
 }
+
+func (k Keeper) GetAllResourceNodeNotBondedTokens(ctx sdk.Context) (tokens sdk.Coins) {
+	resourceNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
+	if resourceNodeNotBondedAccAddr == nil {
+		ctx.Logger().Error("account address for resource node Not bonded pool does not exist.")
+		return sdk.NewCoins(sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		})
+	}
+	return k.bankKeeper.GetAllBalances(ctx, resourceNodeNotBondedAccAddr)
+}
+
+func (k Keeper) GetAllResourceNodeBondedTokens(ctx sdk.Context) (tokens sdk.Coins) {
+	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
+	if resourceNodeBondedAccAddr == nil {
+		ctx.Logger().Error("account address for resource node bonded pool does not exist.")
+		return sdk.NewCoins(sdk.Coin{
+			Denom:  types.DefaultBondDenom,
+			Amount: sdk.ZeroInt(),
+		})
+	}
+	return k.bankKeeper.GetAllBalances(ctx, resourceNodeBondedAccAddr)
+}
+
+func (k Keeper) MintResourceNodeNotBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.Coins) error {
+	tokens := k.GetAllResourceNodeNotBondedTokens(ctx)
+	if tokens.IsZero() && !amt.IsZero() {
+		return k.bankKeeper.MintCoins(ctx, types.ResourceNodeNotBondedPoolName, amt)
+	}
+	if !tokens.IsEqual(amt) {
+		return types.ErrInvalidGenesisToken
+	}
+	return nil
+}
+
+func (k Keeper) MintResourceNodeBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.Coins) error {
+	tokens := k.GetAllResourceNodeBondedTokens(ctx)
+	if tokens.IsZero() && !amt.IsZero() {
+		return k.bankKeeper.MintCoins(ctx, types.ResourceNodeBondedPoolName, amt)
+	}
+	if !tokens.IsEqual(amt) {
+		return types.ErrInvalidGenesisToken
+	}
+	return nil
+}
