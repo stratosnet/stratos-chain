@@ -697,3 +697,7 @@ func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 	ctx.Logger().Info("MetaNode count = " + balance.String())
 	return
 }
+
+func (k Keeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}

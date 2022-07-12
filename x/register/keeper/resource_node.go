@@ -370,49 +370,16 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	return k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedAccAddr, k.BondDenom(ctx))
 }
 
-func (k Keeper) GetAllResourceNodeNotBondedTokens(ctx sdk.Context) (tokens sdk.Coins) {
-	resourceNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
-	if resourceNodeNotBondedAccAddr == nil {
-		ctx.Logger().Error("account address for resource node Not bonded pool does not exist.")
-		return sdk.NewCoins(sdk.Coin{
-			Denom:  types.DefaultBondDenom,
-			Amount: sdk.ZeroInt(),
-		})
+func (k Keeper) SendCoinsFromAccountToResNodeNotBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
+	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
+		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.GetAllBalances(ctx, resourceNodeNotBondedAccAddr)
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeNotBondedPoolName, sdk.NewCoins(amt))
 }
 
-func (k Keeper) GetAllResourceNodeBondedTokens(ctx sdk.Context) (tokens sdk.Coins) {
-	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
-	if resourceNodeBondedAccAddr == nil {
-		ctx.Logger().Error("account address for resource node bonded pool does not exist.")
-		return sdk.NewCoins(sdk.Coin{
-			Denom:  types.DefaultBondDenom,
-			Amount: sdk.ZeroInt(),
-		})
+func (k Keeper) SendCoinsFromAccountToResNodeBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
+	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
+		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.GetAllBalances(ctx, resourceNodeBondedAccAddr)
-}
-
-func (k Keeper) MintResourceNodeNotBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.Coins) error {
-	tokens := k.GetAllResourceNodeNotBondedTokens(ctx)
-	if tokens.IsZero() && !amt.IsZero() {
-		return k.bankKeeper.MintCoins(ctx, types.ResourceNodeNotBondedPoolName, amt)
-	}
-	// TODO investigate whether to add this restriction (especially after partially unbonding a node)
-	//if !tokens.IsEqual(amt) {
-	//	return types.ErrInvalidGenesisToken
-	//}
-	return nil
-}
-
-func (k Keeper) MintResourceNodeBondedPoolWhenInitGenesis(ctx sdk.Context, amt sdk.Coins) error {
-	tokens := k.GetAllResourceNodeBondedTokens(ctx)
-	if tokens.IsZero() && !amt.IsZero() {
-		return k.bankKeeper.MintCoins(ctx, types.ResourceNodeBondedPoolName, amt)
-	}
-	//if !tokens.IsEqual(amt) {
-	//	return types.ErrInvalidGenesisToken
-	//}
-	return nil
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeBondedPoolName, sdk.NewCoins(amt))
 }
