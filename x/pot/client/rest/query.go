@@ -18,6 +18,28 @@ func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(clientCtx, keeper.QueryPotRewardsByReportEpoch)).Methods("GET")
 	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getPotRewardsByWalletAddrHandlerFn(clientCtx, keeper.QueryPotRewardsByWalletAddr)).Methods("GET")
 	r.HandleFunc("/pot/slashing/{walletAddress}", getPotSlashingByWalletAddressHandlerFn(clientCtx, keeper.QueryPotSlashingByWalletAddr)).Methods("GET")
+	r.HandleFunc("/pot/params", potParamsHandlerFn(clientCtx, keeper.QueryPotParams)).Methods("GET")
+
+}
+
+// GET request handler to query params of POT module
+func potParamsHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
 }
 
 func getPotRewardsByEpochHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
@@ -38,21 +60,7 @@ func getPotRewardsByEpochHandlerFn(clientCtx client.Context, queryPath string) h
 			return
 		}
 
-		walletAddressStr := ""
-		if v := r.URL.Query().Get(RestWalletAddress); len(v) != 0 {
-			walletAddressStr = v
-		}
-
-		walletAddress := sdk.AccAddress{}
-		if walletAddressStr != "" {
-			walletAddress, err = sdk.AccAddressFromBech32(walletAddressStr)
-			if err != nil {
-				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-				return
-			}
-		}
-
-		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch, walletAddress)
+		params := types.NewQueryPotRewardsByEpochParams(page, limit, epoch)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
 			rest.PostProcessResponse(w, cliCtx, err.Error())
@@ -122,9 +130,17 @@ func getPotRewardsByWalletAddrHandlerFn(clientCtx client.Context, queryPath stri
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		var (
-			queryHeight int64
-		)
+
+		queryEpoch := sdk.ZeroInt()
+		queryHeight := cliCtx.Height
+
+		if v := r.URL.Query().Get(RestEpoch); len(v) != 0 {
+			queryEpoch, ok = sdk.NewIntFromString(v)
+			if !ok {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "Invalid epoch")
+				return
+			}
+		}
 
 		if v := r.URL.Query().Get(RestHeight); len(v) != 0 {
 			queryHeight, err = strconv.ParseInt(v, 10, 64)
@@ -134,7 +150,7 @@ func getPotRewardsByWalletAddrHandlerFn(clientCtx client.Context, queryPath stri
 			}
 		}
 
-		params := types.NewQueryPotRewardsByWalletAddrParams(page, limit, walletAddr, queryHeight)
+		params := types.NewQueryPotRewardsByWalletAddrParams(page, limit, walletAddr, queryHeight, queryEpoch)
 
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if err != nil {
@@ -144,12 +160,12 @@ func getPotRewardsByWalletAddrHandlerFn(clientCtx client.Context, queryPath stri
 
 		cliCtx = cliCtx.WithHeight(queryHeight)
 		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
-		res, currentHeight, err := cliCtx.QueryWithData(route, bz)
+		res, height, err := cliCtx.QueryWithData(route, bz)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		cliCtx = cliCtx.WithHeight(currentHeight)
+		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
 }

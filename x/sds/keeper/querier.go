@@ -18,6 +18,7 @@ const (
 	QuerySimulatePrepay = "simulate_prepay"
 	QueryCurrUozPrice   = "curr_uoz_price"
 	QueryUozSupply      = "uoz_supply"
+	QuerySdsParams      = "params"
 )
 
 // NewQuerier creates a new querier for sds clients.
@@ -34,10 +35,22 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryCurrUozPrice(ctx, req, k, legacyQuerierCdc)
 		case QueryUozSupply:
 			return queryUozSupply(ctx, req, k, legacyQuerierCdc)
+		case QuerySdsParams:
+			return getSdsParams(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown sds query endpoint "+req.String()+hex.EncodeToString(req.Data))
 		}
 	}
+}
+
+func getSdsParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	params := k.GetParams(ctx)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
 }
 
 // queryFileHash fetch a file's hash for the supplied height.

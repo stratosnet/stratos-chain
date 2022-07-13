@@ -28,6 +28,8 @@ const (
 	QueryNodeStakeByNodeAddr       = "node_stakes"
 	QueryNodeStakeByOwner          = "node_stakes_by_owner"
 	QueryRegisterParams            = "register_params"
+	QueryResourceNodesCount        = "resource_nodes_count"
+	QueryMetaNodesCount            = "meta_nodes_count"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -46,10 +48,32 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return getStakingInfoByOwnerAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryRegisterParams:
 			return getRegisterParams(ctx, req, k, legacyQuerierCdc)
+		case QueryResourceNodesCount:
+			return getResourceNodeCnt(ctx, req, k, legacyQuerierCdc)
+		case QueryMetaNodesCount:
+			return getMetaNodeCnt(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint "+req.String()+string(req.Data))
 		}
 	}
+}
+
+func getResourceNodeCnt(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	number := k.GetBondedResourceNodeCnt(ctx).Int64()
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, number)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
+}
+
+func getMetaNodeCnt(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	number := k.GetBondedMetaNodeCnt(ctx).Int64()
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, number)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return res, nil
 }
 
 func getRegisterParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
