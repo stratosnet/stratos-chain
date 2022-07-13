@@ -68,7 +68,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 			}
 		case stakingtypes.Unbonded:
 			if freshStart {
-				err = keeper.SendCoinsFromAccountToMetaNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
+				err = keeper.SendCoinsFromAccountToMetaNodeNotBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
 				if err != nil {
 					panic(err)
 				}
