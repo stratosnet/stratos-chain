@@ -17,6 +17,7 @@ const (
 	QueryPotRewardsByReportEpoch = "query_pot_rewards_by_report_epoch"
 	QueryPotRewardsByWalletAddr  = "query_pot_rewards_by_wallet_address"
 	QueryPotSlashingByWalletAddr = "query_pot_slashing_by_wallet_address"
+	QueryPotParams               = "query_pot_params"
 	QueryDefaultLimit            = 100
 )
 
@@ -32,10 +33,22 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryPotRewardsByWalletAddress(ctx, req, k, legacyQuerierCdc)
 		case QueryPotSlashingByWalletAddr:
 			return queryPotSlashingByWalletAddress(ctx, req, k, legacyQuerierCdc)
+		case QueryPotParams:
+			return getPotParams(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
 	}
+}
+
+func getPotParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	params := k.GetParams(ctx)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
 }
 
 // queryVolumeReport fetches a hash of report volume for the supplied epoch.

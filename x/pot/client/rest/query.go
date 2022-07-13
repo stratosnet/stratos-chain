@@ -18,6 +18,28 @@ func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/rewards/epoch/{epoch}", getPotRewardsByEpochHandlerFn(clientCtx, keeper.QueryPotRewardsByReportEpoch)).Methods("GET")
 	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getPotRewardsByWalletAddrHandlerFn(clientCtx, keeper.QueryPotRewardsByWalletAddr)).Methods("GET")
 	r.HandleFunc("/pot/slashing/{walletAddress}", getPotSlashingByWalletAddressHandlerFn(clientCtx, keeper.QueryPotSlashingByWalletAddr)).Methods("GET")
+	r.HandleFunc("/pot/params", potParamsHandlerFn(clientCtx, keeper.QueryPotParams)).Methods("GET")
+
+}
+
+// GET request handler to query params of POT module
+func potParamsHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
 }
 
 func getPotRewardsByEpochHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
