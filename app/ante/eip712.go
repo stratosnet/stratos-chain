@@ -2,6 +2,7 @@ package ante
 
 import (
 	"fmt"
+	"math/big"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -37,13 +38,15 @@ func init() {
 // CONTRACT: Tx must implement SigVerifiableTx interface
 type Eip712SigVerificationDecorator struct {
 	ak              evmtypes.AccountKeeper
+	evmKeeper       EVMKeeper
 	signModeHandler authsigning.SignModeHandler
 }
 
 // NewEip712SigVerificationDecorator creates a new Eip712SigVerificationDecorator
-func NewEip712SigVerificationDecorator(ak evmtypes.AccountKeeper, signModeHandler authsigning.SignModeHandler) Eip712SigVerificationDecorator {
+func NewEip712SigVerificationDecorator(ak evmtypes.AccountKeeper, evmKeeper EVMKeeper, signModeHandler authsigning.SignModeHandler) Eip712SigVerificationDecorator {
 	return Eip712SigVerificationDecorator{
 		ak:              ak,
+		evmKeeper:       evmKeeper,
 		signModeHandler: signModeHandler,
 	}
 }
@@ -110,7 +113,8 @@ func (svd Eip712SigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx,
 
 	// retrieve signer data
 	genesis := ctx.BlockHeight() == 0
-	chainID := ctx.ChainID()
+	evmParams := svd.evmKeeper.GetParams(ctx)
+	ethChainId := evmParams.GetChainConfig().EthereumConfig().ChainID.String()
 
 	var accNum uint64
 	if !genesis {
@@ -118,7 +122,7 @@ func (svd Eip712SigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx,
 	}
 
 	signerData := authsigning.SignerData{
-		ChainID:       chainID,
+		ChainID:       ethChainId,
 		AccountNumber: accNum,
 		Sequence:      acc.GetSequence(),
 	}
@@ -128,7 +132,7 @@ func (svd Eip712SigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx,
 	}
 
 	if err := VerifySignature(pubKey, signerData, sig.Data, svd.signModeHandler, authSignTx); err != nil {
-		errMsg := fmt.Errorf("signature verification failed; please verify account number (%d) and chain-id (%s): %w", accNum, chainID, err)
+		errMsg := fmt.Errorf("signature verification failed; please verify account number (%d) and chain-id (%s): %w", accNum, ethChainId, err)
 		return ctx, sdkerrors.Wrap(sdkerrors.ErrUnauthorized, errMsg.Error())
 	}
 
@@ -175,9 +179,9 @@ func VerifySignature(
 			msgs, tx.GetMemo(),
 		)
 
-		signerChainID, err := stratos.ParseChainID(signerData.ChainID)
-		if err != nil {
-			return sdkerrors.Wrapf(err, "failed to parse chainID: %s", signerData.ChainID)
+		signerChainID, ok := new(big.Int).SetString(signerData.ChainID, 10)
+		if !ok {
+			return sdkerrors.Wrapf(sdkerrors.ErrUnknownExtensionOptions, "failed to parse chainID: %s", signerData.ChainID)
 		}
 
 		txWithExtensions, ok := tx.(authante.HasExtensionOptionsTx)
