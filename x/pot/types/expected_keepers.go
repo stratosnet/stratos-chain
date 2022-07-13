@@ -84,6 +84,9 @@ type RegisterKeeper interface {
 	GetBondedResourceNodeCnt(ctx sdk.Context) sdk.Int
 	SetBondedResourceNodeCnt(ctx sdk.Context, delta sdk.Int)
 	SetBondedMetaNodeCnt(ctx sdk.Context, delta sdk.Int)
+
+	DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+	IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
 }
 
 type StakingKeeper interface {

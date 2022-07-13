@@ -23,6 +23,9 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
 
+	toBeSuspended := node.Suspend == false && suspend == true
+	toBeUnsuspended := node.Suspend == true && suspend == false
+
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
@@ -40,6 +43,13 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
+
+	if toBeSuspended {
+		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, node.Tokens)
+	}
+	if toBeUnsuspended {
+		k.RegisterKeeper.IncreaseOzoneLimitByAddStake(ctx, node.Tokens)
+	}
 
 	return slash.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

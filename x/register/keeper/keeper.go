@@ -136,7 +136,7 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
@@ -159,7 +159,7 @@ func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 	return limitToAdd.TruncateInt()
 }
 
-func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
 	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
@@ -497,7 +497,7 @@ func (k Keeper) UnbondResourceNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 		// adjust ozone limit
-		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// change node status to unbonding if unbonding all tokens
@@ -554,7 +554,7 @@ func (k Keeper) UnbondMetaNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
 		// adjust ozone limit
-		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(metaNode.Tokens) {
