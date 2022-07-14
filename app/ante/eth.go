@@ -4,6 +4,9 @@ import (
 	"errors"
 	"math/big"
 
+	"github.com/tendermint/tendermint/rpc/core"
+	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -328,6 +331,9 @@ func NewEthIncrementSenderSequenceDecorator(ak evmtypes.AccountKeeper) EthIncrem
 // contract creation, the nonce will be incremented during the transaction execution and not within
 // this AnteHandler decorator.
 func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+	if ctx.IsCheckTx() || simulate {
+		return next(ctx, tx, simulate)
+	}
 	for _, msg := range tx.GetMsgs() {
 		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
 		if !ok {
@@ -533,6 +539,73 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 				if sdk.NewDecFromBigInt(feeAmt).LT(requiredFee) {
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeAmt, requiredFee)
 				}
+			}
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}
+
+type EthTxOverrideDecorator struct {
+	ak        evmtypes.AccountKeeper
+	evmKeeper EVMKeeper
+	txDecoder sdk.TxDecoder
+}
+
+// NewEthTxOverrideDecorator creates a new EthTxOverrideDecorator
+func NewEthTxOverrideDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper, txDecoder sdk.TxDecoder) EthTxOverrideDecorator {
+	return EthTxOverrideDecorator{
+		ak:        ak,
+		evmKeeper: ek,
+		txDecoder: txDecoder,
+	}
+}
+
+func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if !ctx.IsCheckTx() && !simulate {
+		res, err := core.UnconfirmedTxs(&rpctypes.Context{}, nil)
+		if err != nil {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrPanic, "get pending txs from mem pool failed")
+		}
+
+		for _, msg := range tx.GetMsgs() {
+			msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+			if !ok {
+				return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+			}
+
+			txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
+			if err != nil {
+				return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
+			}
+
+			from := msgEthTx.GetFrom()
+			nonce := txData.GetNonce()
+			gas := txData.GetGas()
+
+			for _, txBz := range res.Txs {
+				pendingTx, err := tod.txDecoder(txBz)
+				if err != nil {
+					return ctx, err
+				}
+
+				for _, pendingMsg := range pendingTx.GetMsgs() {
+					pendingMsgEthTx, ok := pendingMsg.(*evmtypes.MsgEthereumTx)
+					if !ok {
+						return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", pendingMsg, (*evmtypes.MsgEthereumTx)(nil))
+					}
+
+					pendingTxData, err := evmtypes.UnpackTxData(pendingMsgEthTx.Data)
+					if err != nil {
+						return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
+					}
+
+					if pendingMsgEthTx.GetFrom().Equals(from) && pendingTxData.GetNonce() == nonce && pendingTxData.GetGas() > gas {
+						//find tx has same nonce & gas from same sender, let this tx fail in order to execute pendingMsgEthTx first
+						return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is about to be overridden %v", tx)
+					}
+				}
+
 			}
 		}
 	}
