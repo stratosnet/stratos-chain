@@ -13,8 +13,6 @@ import (
 
 // BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.
 func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	k.WithChainID(ctx)
-
 	baseFee := k.CalculateBaseFee(ctx)
 
 	// return immediately if base fee is nil

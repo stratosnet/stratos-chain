@@ -3,12 +3,11 @@ package net
 import (
 	"context"
 	"fmt"
-
-	"github.com/cosmos/cosmos-sdk/client"
+	"math/big"
 
 	rpcclient "github.com/tendermint/tendermint/rpc/client"
 
-	stratos "github.com/stratosnet/stratos-chain/types"
+	"github.com/cosmos/cosmos-sdk/client"
 )
 
 // PublicAPI is the eth_ prefixed set of APIs in the Web3 JSON-RPC spec.
@@ -19,14 +18,13 @@ type PublicAPI struct {
 
 // NewPublicAPI creates an instance of the public Net Web3 API.
 func NewPublicAPI(clientCtx client.Context) *PublicAPI {
-	// parse the chainID from a integer string
-	chainIDEpoch, err := stratos.ParseChainID(clientCtx.ChainID)
-	if err != nil {
-		panic(err)
+	eip155ChainId, ok := new(big.Int).SetString(clientCtx.ChainID, 10)
+	if !ok {
+		panic("failed to parse chainID")
 	}
 
 	return &PublicAPI{
-		networkVersion: chainIDEpoch.Uint64(),
+		networkVersion: eip155ChainId.Uint64(),
 		tmClient:       clientCtx.Client,
 	}
 }
