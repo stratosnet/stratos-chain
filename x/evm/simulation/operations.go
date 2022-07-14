@@ -210,8 +210,8 @@ func CreateRandomValidEthTx(ctx *simulateContext, from, to *common.Address, amou
 	}
 	// we suppose that gasLimit should be larger than estimateGas to ensure tx validity
 	gasLimit := estimateGas + uint64(ctx.rand.Intn(int(sdktx.MaxGasWanted-estimateGas)))
-	ethChainID := ctx.keeper.ChainID()
-	chainConfig := ctx.keeper.GetParams(ctx.context).ChainConfig.EthereumConfig(ethChainID)
+	chainConfig := ctx.keeper.GetParams(ctx.context).ChainConfig.EthereumConfig()
+	ethChainID := chainConfig.ChainID
 	gasPrice := ctx.keeper.GetBaseFee(ctx.context, chainConfig)
 	gasFeeCap := new(big.Int).Add(gasPrice, big.NewInt(int64(ctx.rand.Int())))
 	gasTipCap := big.NewInt(int64(ctx.rand.Int()))
@@ -279,7 +279,9 @@ func GetSignedTx(ctx *simulateContext, txBuilder client.TxBuilder, msg *types.Ms
 	}
 	builder.SetExtensionOptions(option)
 
-	if err := msg.Sign(ethtypes.LatestSignerForChainID(ctx.keeper.ChainID()), tests.NewSigner(prv)); err != nil {
+	params := ctx.keeper.GetParams(ctx.context)
+
+	if err := msg.Sign(ethtypes.LatestSignerForChainID(params.GetChainConfig().EthereumConfig().ChainID), tests.NewSigner(prv)); err != nil {
 		return nil, err
 	}
 
@@ -292,7 +294,7 @@ func GetSignedTx(ctx *simulateContext, txBuilder client.TxBuilder, msg *types.Ms
 		return nil, err
 	}
 
-	fees := sdk.NewCoins(sdk.NewCoin(ctx.keeper.GetParams(ctx.context).EvmDenom, sdk.NewIntFromBigInt(txData.Fee())))
+	fees := sdk.NewCoins(sdk.NewCoin(params.EvmDenom, sdk.NewIntFromBigInt(txData.Fee())))
 	builder.SetFeeAmount(fees)
 	builder.SetGasLimit(msg.GetGas())
 
