@@ -20,7 +20,6 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -93,17 +92,11 @@ type Backend struct {
 	clientCtx   client.Context
 	queryClient *types.QueryClient // gRPC query client
 	logger      log.Logger
-	chainID     *big.Int
 	cfg         config.Config
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
 func NewBackend(ctx *server.Context, logger log.Logger, clientCtx client.Context) *Backend {
-	chainID, err := stratos.ParseChainID(clientCtx.ChainID)
-	if err != nil {
-		panic(err)
-	}
-
 	appConf := config.GetConfig(ctx.Viper)
 
 	return &Backend{
@@ -111,7 +104,6 @@ func NewBackend(ctx *server.Context, logger log.Logger, clientCtx client.Context
 		clientCtx:   clientCtx,
 		queryClient: types.NewQueryClient(clientCtx),
 		logger:      logger.With("module", "backend"),
-		chainID:     chainID,
 		cfg:         appConf,
 	}
 }

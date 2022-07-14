@@ -38,7 +38,7 @@ func GasToRefund(availableRefund, gasConsumed, refundQuotient uint64) uint64 {
 // EVMConfig creates the EVMConfig based on current state
 func (k *Keeper) EVMConfig(ctx sdk.Context) (*types.EVMConfig, error) {
 	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig(k.eip155ChainID)
+	ethCfg := params.ChainConfig.EthereumConfig()
 
 	// get the coinbase address from the block proposer
 	coinbase, err := k.GetCoinbaseAddress(ctx)
