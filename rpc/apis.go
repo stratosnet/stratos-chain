@@ -54,7 +54,6 @@ func init() {
 		EthNamespace: func(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient) []rpc.API {
 			nonceLock := new(types.AddrLocker)
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
-			clientCtx = clientCtx.WithChainID(evmBackend.ChainConfig().ChainID.String())
 			return []rpc.API{
 				{
 					Namespace: EthNamespace,
@@ -80,9 +79,7 @@ func init() {
 				},
 			}
 		},
-		NetNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
-			clientCtx = clientCtx.WithChainID(evmBackend.ChainConfig().ChainID.String())
+		NetNamespace: func(_ *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: NetNamespace,
@@ -94,7 +91,6 @@ func init() {
 		},
 		PersonalNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
-			clientCtx = clientCtx.WithChainID(evmBackend.ChainConfig().ChainID.String())
 			return []rpc.API{
 				{
 					Namespace: PersonalNamespace,
@@ -116,7 +112,6 @@ func init() {
 		},
 		DebugNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
-			clientCtx = clientCtx.WithChainID(evmBackend.ChainConfig().ChainID.String())
 			return []rpc.API{
 				{
 					Namespace: DebugNamespace,
@@ -128,7 +123,6 @@ func init() {
 		},
 		MinerNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
-			clientCtx = clientCtx.WithChainID(evmBackend.ChainConfig().ChainID.String())
 			return []rpc.API{
 				{
 					Namespace: MinerNamespace,

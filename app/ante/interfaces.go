@@ -19,6 +19,7 @@ import (
 type EVMKeeper interface {
 	statedb.Keeper
 
+	ChainID() *big.Int
 	GetParams(ctx sdk.Context) evmtypes.Params
 	NewEVM(ctx sdk.Context, msg core.Message, cfg *evmtypes.EVMConfig, tracer vm.EVMLogger, stateDB vm.StateDB) *vm.EVM
 	DeductTxCostsFromUserBalance(

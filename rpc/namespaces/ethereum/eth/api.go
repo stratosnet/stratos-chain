@@ -59,6 +59,11 @@ func NewPublicAPI(
 	backend backend.EVMBackend,
 	nonceLock *rpctypes.AddrLocker,
 ) *PublicAPI {
+	eip155ChainID, err := stratos.ParseChainID(clientCtx.ChainID)
+	if err != nil {
+		panic(err)
+	}
+
 	algos, _ := clientCtx.Keyring.SupportedAlgorithms()
 
 	if !algos.Contains(hd.EthSecp256k1) {
@@ -80,7 +85,7 @@ func NewPublicAPI(
 	// signers to be backwards-compatible with old transactions.
 	cfg := backend.ChainConfig()
 	if cfg == nil {
-		cfg = evmtypes.DefaultChainConfig().EthereumConfig()
+		cfg = evmtypes.DefaultChainConfig().EthereumConfig(eip155ChainID)
 	}
 
 	signer := ethtypes.LatestSigner(cfg)
@@ -89,7 +94,7 @@ func NewPublicAPI(
 		ctx:          context.Background(),
 		clientCtx:    clientCtx,
 		queryClient:  rpctypes.NewQueryClient(clientCtx),
-		chainIDEpoch: cfg.ChainID,
+		chainIDEpoch: eip155ChainID,
 		logger:       logger.With("client", "json-rpc"),
 		backend:      backend,
 		nonceLock:    nonceLock,

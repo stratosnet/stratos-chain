@@ -4,9 +4,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/tendermint/tendermint/rpc/core"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -38,9 +35,11 @@ func NewEthSigVerificationDecorator(ek EVMKeeper) EthSigVerificationDecorator {
 // Failure in RecheckTx will prevent tx to be included into block, especially when CheckTx succeed, in which case user
 // won't see the error message.
 func (esvd EthSigVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	chainID := esvd.evmKeeper.ChainID()
+
 	params := esvd.evmKeeper.GetParams(ctx)
 
-	ethCfg := params.ChainConfig.EthereumConfig()
+	ethCfg := params.ChainConfig.EthereumConfig(chainID)
 	blockNum := big.NewInt(ctx.BlockHeight())
 	signer := ethtypes.MakeSigner(ethCfg, blockNum)
 
@@ -165,7 +164,7 @@ func NewEthGasConsumeDecorator(
 func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	params := egcd.evmKeeper.GetParams(ctx)
 
-	ethCfg := params.ChainConfig.EthereumConfig()
+	ethCfg := params.ChainConfig.EthereumConfig(egcd.evmKeeper.ChainID())
 
 	blockHeight := big.NewInt(ctx.BlockHeight())
 	homestead := ethCfg.IsHomestead(blockHeight)
@@ -253,7 +252,7 @@ func NewCanTransferDecorator(evmKeeper EVMKeeper) CanTransferDecorator {
 // see if the address can execute the transaction.
 func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
 	params := ctd.evmKeeper.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig()
+	ethCfg := params.ChainConfig.EthereumConfig(ctd.evmKeeper.ChainID())
 	signer := ethtypes.MakeSigner(ethCfg, big.NewInt(ctx.BlockHeight()))
 
 	for _, msg := range tx.GetMsgs() {
@@ -412,7 +411,8 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 		txGasLimit := uint64(0)
 
 		params := vbd.evmKeeper.GetParams(ctx)
-		ethCfg := params.ChainConfig.EthereumConfig()
+		chainID := vbd.evmKeeper.ChainID()
+		ethCfg := params.ChainConfig.EthereumConfig(chainID)
 		baseFee := vbd.evmKeeper.GetBaseFee(ctx, ethCfg)
 
 		for _, msg := range protoTx.GetMsgs() {
@@ -517,7 +517,7 @@ func NewEthMempoolFeeDecorator(ek EVMKeeper) EthMempoolFeeDecorator {
 func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
 	if ctx.IsCheckTx() && !simulate {
 		params := mfd.evmKeeper.GetParams(ctx)
-		ethCfg := params.ChainConfig.EthereumConfig()
+		ethCfg := params.ChainConfig.EthereumConfig(mfd.evmKeeper.ChainID())
 		baseFee := mfd.evmKeeper.GetBaseFee(ctx, ethCfg)
 		if baseFee == nil {
 			for _, msg := range tx.GetMsgs() {
@@ -533,73 +533,6 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 				if sdk.NewDecFromBigInt(feeAmt).LT(requiredFee) {
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeAmt, requiredFee)
 				}
-			}
-		}
-	}
-
-	return next(ctx, tx, simulate)
-}
-
-type EthTxOverrideDecorator struct {
-	ak        evmtypes.AccountKeeper
-	evmKeeper EVMKeeper
-	txDecoder sdk.TxDecoder
-}
-
-// NewEthTxOverrideDecorator creates a new EthTxOverrideDecorator
-func NewEthTxOverrideDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper, txDecoder sdk.TxDecoder) EthTxOverrideDecorator {
-	return EthTxOverrideDecorator{
-		ak:        ak,
-		evmKeeper: ek,
-		txDecoder: txDecoder,
-	}
-}
-
-func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	if ctx.IsCheckTx() && !simulate {
-		res, err := core.UnconfirmedTxs(&rpctypes.Context{}, nil)
-		if err != nil {
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrPanic, "get pending txs from mem pool failed")
-		}
-
-		for _, msg := range tx.GetMsgs() {
-			msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-			}
-
-			txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-			if err != nil {
-				return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
-			}
-
-			from := msgEthTx.GetFrom()
-			nonce := txData.GetNonce()
-			gas := txData.GetGas()
-
-			for _, txBz := range res.Txs {
-				pendingTx, err := tod.txDecoder(txBz)
-				if err != nil {
-					return ctx, err
-				}
-
-				for _, pendingMsg := range pendingTx.GetMsgs() {
-					pendingMsgEthTx, ok := pendingMsg.(*evmtypes.MsgEthereumTx)
-					if !ok {
-						return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", pendingMsg, (*evmtypes.MsgEthereumTx)(nil))
-					}
-
-					pendingTxData, err := evmtypes.UnpackTxData(pendingMsgEthTx.Data)
-					if err != nil {
-						return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
-					}
-
-					if pendingMsgEthTx.GetFrom().Equals(from) && pendingTxData.GetNonce() == nonce && pendingTxData.GetGas() > gas {
-						//find tx has same nonce & gas from same sender, let this tx fail in order to execute pendingMsgEthTx first
-						return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is about to be overridden %v", tx)
-					}
-				}
-
 			}
 		}
 	}
