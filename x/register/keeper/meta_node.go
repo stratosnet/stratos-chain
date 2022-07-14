@@ -164,7 +164,13 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 
 	metaNode = metaNode.AddToken(tokenToAdd.Amount)
 	k.SetMetaNode(ctx, metaNode)
-	ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+
+	// update effective total stake
+	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(tokenToAdd.Amount)
+	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
+
+	ozoneLimitChange = k.IncreaseOzoneLimitByAddedStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
 }

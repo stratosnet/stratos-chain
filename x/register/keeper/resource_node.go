@@ -172,7 +172,12 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	count := v.Add(sdk.NewInt(1))
 	k.SetBondedResourceNodeCnt(ctx, count)
 
-	ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+	// update effective total stake
+	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(tokenToAdd.Amount)
+	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
+
+	ozoneLimitChange = k.IncreaseOzoneLimitByAddedStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
 }

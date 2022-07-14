@@ -104,6 +104,22 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 	return k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAccAddr, k.BondDenom(ctx))
 }
 
+func (k Keeper) SetEffectiveGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
+	store.Set(types.EffectiveGenesisStakeTotalKey, b)
+}
+
+func (k Keeper) GetEffectiveGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.EffectiveGenesisStakeTotalKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
+	return
+}
+
 func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
@@ -136,22 +152,38 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
-	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
+//func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+//	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+//	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
+//		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
+//		return sdk.ZeroInt()
+//	}
+//	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
+//	if initialUozonePrice.Equal(sdk.ZeroDec()) {
+//		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
+//		return sdk.ZeroInt()
+//	}
+//	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
+//	//ctx.Logger().Debug("----- initialOzoneLimit is " + initialOzoneLimit.String() + " uoz", )
+//	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
+//	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " uoz")
+//	limitToAdd := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+//	//ctx.Logger().Info("----- limitToAdd is " + limitToAdd.String() + " uoz")
+//	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
+//	//ctx.Logger().Info("----- newLimit is " + newLimit.String() + " uoz")
+//	k.SetRemainingOzoneLimit(ctx, newLimit)
+//	return limitToAdd.TruncateInt()
+//}
+
+func (k Keeper) IncreaseOzoneLimitByAddedStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	effectiveGenesisDeposit := k.GetEffectiveGenesisStakeTotal(ctx).ToDec() //ustos
+	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
-	if initialUozonePrice.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
-	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
-	//ctx.Logger().Debug("----- initialOzoneLimit is " + initialOzoneLimit.String() + " uoz", )
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
 	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " uoz")
-	limitToAdd := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(effectiveGenesisDeposit)
 	//ctx.Logger().Info("----- limitToAdd is " + limitToAdd.String() + " uoz")
 	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
 	//ctx.Logger().Info("----- newLimit is " + newLimit.String() + " uoz")
@@ -159,20 +191,33 @@ func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 	return limitToAdd.TruncateInt()
 }
 
-func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
-	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
+//func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+//	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+//	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
+//		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
+//		return sdk.ZeroInt()
+//	}
+//	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
+//	if initialUozonePrice.Equal(sdk.ZeroDec()) {
+//		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
+//		return sdk.ZeroInt()
+//	}
+//	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
+//	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
+//	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+//	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
+//	k.SetRemainingOzoneLimit(ctx, newLimit)
+//	return limitToSub.TruncateInt()
+//}
+
+func (k Keeper) DecreaseOzoneLimitBySubtractedStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	effectiveGenesisDeposit := k.GetEffectiveGenesisStakeTotal(ctx).ToDec() //ustos
+	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
-	if initialUozonePrice.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
-	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
 	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
+	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(effectiveGenesisDeposit)
 	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
 	k.SetRemainingOzoneLimit(ctx, newLimit)
 	return limitToSub.TruncateInt()
@@ -496,8 +541,12 @@ func (k Keeper) UnbondResourceNode(
 	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
+		// update effective total stake
+		effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+		effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(amt)
+		k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
 		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractedStake(ctx, amt)
 	}
 
 	// change node status to unbonding if unbonding all tokens
@@ -553,8 +602,12 @@ func (k Keeper) UnbondMetaNode(
 	if metaNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
+		// update effective total stake
+		effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+		effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(amt)
+		k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
 		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractedStake(ctx, amt)
 	}
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(metaNode.Tokens) {
@@ -626,10 +679,11 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 
 // CurrUozPrice calcs current uoz price
 func (k Keeper) CurrUozPrice(ctx sdk.Context) sdk.Dec {
-	S := k.GetInitialGenesisStakeTotal(ctx)
+	St := k.GetEffectiveGenesisStakeTotal(ctx)
+	//S := k.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.GetRemainingOzoneLimit(ctx)
-	currUozPrice := (S.Add(Pt)).ToDec().
+	currUozPrice := (St.Add(Pt)).ToDec().
 		Quo(Lt.ToDec())
 	return currUozPrice
 }
@@ -637,10 +691,11 @@ func (k Keeper) CurrUozPrice(ctx sdk.Context) sdk.Dec {
 // UozSupply calc remaining/total supply for uoz
 func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
-	S := k.GetInitialGenesisStakeTotal(ctx)
+	St := k.GetEffectiveGenesisStakeTotal(ctx)
+	//S := k.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	// total supply = Lt * ( 1 + Pt / S )
-	total = (Pt.ToDec().Quo(S.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
+	total = (Pt.ToDec().Quo(St.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
 	return remaining, total
 }
 

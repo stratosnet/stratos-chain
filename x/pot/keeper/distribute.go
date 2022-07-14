@@ -223,9 +223,9 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
 func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedUoz sdk.Dec) (result sdk.Dec) {
-	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
-	if S.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
+	St := k.RegisterKeeper.GetEffectiveGenesisStakeTotal(ctx).ToDec()
+	if St.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effective genesis deposit by all resource nodes and meta nodes is 0")
 	}
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	if Pt.Equal(sdk.ZeroDec()) {
@@ -239,7 +239,7 @@ func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedUoz sdk.Dec) (res
 	if Lt.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("remaining total uoz limit is 0")
 	}
-	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
+	R := St.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 	if R.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("traffic reward to distribute is 0")
 	}

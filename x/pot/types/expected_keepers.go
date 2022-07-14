@@ -75,6 +75,8 @@ type RegisterKeeper interface {
 
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
 	SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
+	GetEffectiveGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
+	SetEffectiveGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
 
 	//GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes)
 	//GetAllResourceNodes(ctx sdk.Context) (resourceNodes types.ResourceNodes)
@@ -85,8 +87,8 @@ type RegisterKeeper interface {
 	SetBondedResourceNodeCnt(ctx sdk.Context, delta sdk.Int)
 	SetBondedMetaNodeCnt(ctx sdk.Context, delta sdk.Int)
 
-	DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
-	IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+	DecreaseOzoneLimitBySubtractedStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+	IncreaseOzoneLimitByAddedStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
 }
 
 type StakingKeeper interface {

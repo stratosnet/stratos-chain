@@ -87,6 +87,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	initialUOzonePrice := sdk.ZeroDec()
 	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+	keeper.SetEffectiveGenesisStakeTotal(ctx, initialStakeTotal)
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
 	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
