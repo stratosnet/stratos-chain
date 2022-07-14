@@ -8,6 +8,7 @@ import (
 
 const (
 	RestWalletAddress = "wallet_address"
+	RestEpoch         = "epoch"
 	RestHeight        = "height"
 )
 

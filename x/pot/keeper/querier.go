@@ -17,6 +17,7 @@ const (
 	QueryPotRewardsByReportEpoch = "query_pot_rewards_by_report_epoch"
 	QueryPotRewardsByWalletAddr  = "query_pot_rewards_by_wallet_address"
 	QueryPotSlashingByWalletAddr = "query_pot_slashing_by_wallet_address"
+	QueryPotParams               = "query_pot_params"
 	QueryDefaultLimit            = 100
 )
 
@@ -32,10 +33,22 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryPotRewardsByWalletAddress(ctx, req, k, legacyQuerierCdc)
 		case QueryPotSlashingByWalletAddr:
 			return queryPotSlashingByWalletAddress(ctx, req, k, legacyQuerierCdc)
+		case QueryPotParams:
+			return getPotParams(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
 	}
+}
+
+func getPotParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	params := k.GetParams(ctx)
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
 }
 
 // queryVolumeReport fetches a hash of report volume for the supplied epoch.
@@ -81,19 +94,29 @@ func queryPotRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery, k Keep
 func (k Keeper) getPotRewardsByReportEpoch(ctx sdk.Context, params types.QueryPotRewardsByReportEpochParams) (res []types.Reward) {
 	matureEpoch := params.Epoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
 
-	if !params.WalletAddress.Empty() {
-		reward, found := k.GetIndividualReward(ctx, params.WalletAddress, matureEpoch)
-		if found {
-			res = append(res, reward)
+	k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+		if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
+			(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
+			res = append(res, individualReward)
 		}
+		return false
+	})
+
+	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
+	if start < 0 || end < 0 {
+		return nil
 	} else {
-		k.IteratorIndividualReward(ctx, matureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-			if !((individualReward.RewardFromMiningPool.Empty() || individualReward.RewardFromMiningPool.IsZero()) &&
-				(individualReward.RewardFromTrafficPool.Empty() || individualReward.RewardFromTrafficPool.IsZero())) {
-				res = append(res, individualReward)
-			}
-			return false
-		})
+		res = res[start:end]
+		return res
+	}
+}
+
+func (k Keeper) getPotRewardsByWalletAddressAndEpoch(ctx sdk.Context, params types.QueryPotRewardsByWalletAddrParams) (res []types.Reward) {
+	matureEpoch := params.Epoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
+
+	reward, found := k.GetIndividualReward(ctx, params.WalletAddr, matureEpoch)
+	if found {
+		res = append(res, reward)
 	}
 
 	start, end := client.Paginate(len(res), params.Page, params.Limit, QueryDefaultLimit)
@@ -111,6 +134,20 @@ func queryPotRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Ke
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
+
+	if !params.Epoch.Equal(sdk.ZeroInt()) {
+		rewardsByByWalletAddressAndEpoch := k.getPotRewardsByWalletAddressAndEpoch(ctx, params)
+		if len(rewardsByByWalletAddressAndEpoch) < 1 {
+			e := sdkerrors.Wrapf(types.ErrCannotFindReward, fmt.Sprintf("no Pot rewards information at epoch %s", params.Epoch.String()))
+			return []byte{}, e
+		}
+		bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, rewardsByByWalletAddressAndEpoch)
+		if err != nil {
+			return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+		}
+		return bz, nil
+	}
+
 	immatureTotalReward := k.GetImmatureTotalReward(ctx, params.WalletAddr)
 	matureTotalReward := k.GetMatureTotalReward(ctx, params.WalletAddr)
 	reward := types.NewPotRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)

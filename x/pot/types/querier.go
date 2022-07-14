@@ -30,19 +30,19 @@ func NewPotRewardInfo(
 }
 
 type QueryPotRewardsByReportEpochParams struct {
-	Page          int
-	Limit         int
-	Epoch         sdk.Int
-	WalletAddress sdk.AccAddress
+	Page  int
+	Limit int
+	Epoch sdk.Int
+	//WalletAddress sdk.AccAddress
 }
 
 // NewQueryPotRewardsByEpochParams creates a new instance of QueryPotRewardsParams
-func NewQueryPotRewardsByEpochParams(page, limit int, epoch sdk.Int, walletAddress sdk.AccAddress) QueryPotRewardsByReportEpochParams {
+func NewQueryPotRewardsByEpochParams(page, limit int, epoch sdk.Int) QueryPotRewardsByReportEpochParams {
 	return QueryPotRewardsByReportEpochParams{
-		Page:          page,
-		Limit:         limit,
-		Epoch:         epoch,
-		WalletAddress: walletAddress,
+		Page:  page,
+		Limit: limit,
+		Epoch: epoch,
+		//WalletAddress: walletAddress,
 	}
 }
 
@@ -51,14 +51,16 @@ type QueryPotRewardsByWalletAddrParams struct {
 	Limit      int
 	WalletAddr sdk.AccAddress
 	Height     int64
+	Epoch      sdk.Int
 }
 
-func NewQueryPotRewardsByWalletAddrParams(page, limit int, walletAddr sdk.AccAddress, height int64) QueryPotRewardsByWalletAddrParams {
+func NewQueryPotRewardsByWalletAddrParams(page, limit int, walletAddr sdk.AccAddress, height int64, epoch sdk.Int) QueryPotRewardsByWalletAddrParams {
 	return QueryPotRewardsByWalletAddrParams{
 		Page:       page,
 		Limit:      limit,
 		WalletAddr: walletAddr,
 		Height:     height,
+		Epoch:      epoch,
 	}
 }
 

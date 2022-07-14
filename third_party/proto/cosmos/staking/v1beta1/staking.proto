@@ -131,6 +131,9 @@ enum BondStatus {
   BOND_STATUS_UNBONDING = 2 [(gogoproto.enumvalue_customname) = "Unbonding"];
   // BONDED defines a validator that is bonded.
   BOND_STATUS_BONDED = 3 [(gogoproto.enumvalue_customname) = "Bonded"];
+
+
+
 }
 
 // ValAddresses defines a repeated set of validator addresses.
