@@ -24,6 +24,7 @@ func InitGenesis(
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
 	k.SetBlockGasUsed(ctx, data.BlockGas)
+	k.WithChainID(ctx)
 
 	k.SetParams(ctx, data.Params)
 

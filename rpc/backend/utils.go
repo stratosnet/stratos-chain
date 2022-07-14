@@ -161,8 +161,7 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 	}
 
 	if args.ChainID == nil {
-		ethChainId := b.ChainConfig().ChainID
-		args.ChainID = (*hexutil.Big)(ethChainId)
+		args.ChainID = (*hexutil.Big)(b.chainID)
 	}
 
 	return args, nil
@@ -207,7 +206,7 @@ func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height i
 				break
 			}
 
-			sender, err := ethMsg.GetSender(b.ChainConfig().ChainID)
+			sender, err := ethMsg.GetSender(b.chainID)
 			if err != nil {
 				continue
 			}

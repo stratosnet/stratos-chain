@@ -585,7 +585,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransactio
 					common.Hash{},
 					uint64(0),
 					uint64(0),
-					b.ChainConfig().ChainID,
+					b.chainID,
 				)
 				if err != nil {
 					return nil, err
@@ -653,7 +653,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransactio
 		common.BytesToHash(block.BlockID.Hash.Bytes()),
 		uint64(res.Height),
 		txIndex,
-		b.ChainConfig().ChainID,
+		b.chainID,
 	)
 }
 
@@ -876,7 +876,7 @@ func (b *Backend) ChainConfig() *params.ChainConfig {
 		return nil
 	}
 
-	return params.Params.ChainConfig.EthereumConfig()
+	return params.Params.ChainConfig.EthereumConfig(b.chainID)
 }
 
 // SuggestGasTipCap returns the suggested tip cap
