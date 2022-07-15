@@ -53,6 +53,7 @@ const (
 	codeErrNoNodeFound
 	codeErrInitialBalanceNotZero
 	codeErrInvalidNodeStat
+	codeErrInvalidSuspensionStatForUnbondNode
 )
 
 var (
@@ -104,4 +105,5 @@ var (
 	ErrNoNodeFound                        = sdkerrors.Register(ModuleName, codeErrNoNodeFound, "node does not exist ")
 	ErrInitialBalanceNotZero              = sdkerrors.Register(ModuleName, codeErrInitialBalanceNotZero, "initial balance isn't zero ")
 	ErrInvalidNodeStat                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeStat, "invalid node status")
+	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")
 )

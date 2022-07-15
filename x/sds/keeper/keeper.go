@@ -80,13 +80,14 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
 func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) sdk.Int {
-	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
+	St := k.RegisterKeeper.GetEffectiveGenesisStakeTotal(ctx)
+	//S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 
 	purchased := Lt.ToDec().
 		Mul(amount.ToDec()).
-		Quo((S.
+		Quo((St.
 			Add(Pt).
 			Add(amount)).ToDec()).
 		TruncateInt()
@@ -107,12 +108,13 @@ func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 }
 
 func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
-	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
+	St := k.RegisterKeeper.GetEffectiveGenesisStakeTotal(ctx)
+	//S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 	purchased := Lt.ToDec().
 		Mul(amount.ToDec()).
-		Quo((S.
+		Quo((St.
 			Add(Pt).
 			Add(amount)).ToDec()).
 		TruncateInt()

@@ -28,7 +28,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		switch resourceNode.GetStatus() {
 		case stakingtypes.Bonded:
 			lenOfGenesisBondedResourceNode++
-			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+			if !resourceNode.Suspend {
+				initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+			}
 			if freshStart {
 				err = keeper.SendCoinsFromAccountToResNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens))
 				if err != nil {
@@ -85,6 +87,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	initialUOzonePrice := sdk.ZeroDec()
 	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+	keeper.SetEffectiveGenesisStakeTotal(ctx, initialStakeTotal)
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
 	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
