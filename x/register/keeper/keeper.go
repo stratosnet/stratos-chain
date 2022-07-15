@@ -541,6 +541,11 @@ func (k Keeper) UnbondResourceNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
+	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
+	if resourceNode.Suspend {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -595,6 +600,11 @@ func (k Keeper) UnbondMetaNode(
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
+	}
+
+	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
+	if metaNode.Suspend {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
