@@ -175,8 +175,13 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 //	return limitToAdd.TruncateInt()
 //}
 
-func (k Keeper) IncreaseOzoneLimitByAddedStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	effectiveGenesisDeposit := k.GetEffectiveGenesisStakeTotal(ctx).ToDec() //ustos
+func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// update effectiveTotalStake
+	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(stake)
+	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
+
+	effectiveGenesisDeposit := effectiveTotalStakeAfter.ToDec() //ustos
 	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
@@ -210,8 +215,13 @@ func (k Keeper) IncreaseOzoneLimitByAddedStake(ctx sdk.Context, stake sdk.Int) (
 //	return limitToSub.TruncateInt()
 //}
 
-func (k Keeper) DecreaseOzoneLimitBySubtractedStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	effectiveGenesisDeposit := k.GetEffectiveGenesisStakeTotal(ctx).ToDec() //ustos
+func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// update effectiveTotalStake
+	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(stake)
+	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
+
+	effectiveGenesisDeposit := effectiveTotalStakeAfter.ToDec() //ustos
 	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
@@ -541,12 +551,8 @@ func (k Keeper) UnbondResourceNode(
 	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
-		// update effective total stake
-		effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
-		effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(amt)
-		k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
 		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractedStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// change node status to unbonding if unbonding all tokens
@@ -602,12 +608,8 @@ func (k Keeper) UnbondMetaNode(
 	if metaNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
-		// update effective total stake
-		effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
-		effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(amt)
-		k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
 		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractedStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 	// change node status to unbonding if unbonding all tokens
 	if amt.Equal(metaNode.Tokens) {

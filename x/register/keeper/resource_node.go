@@ -111,14 +111,8 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	switch resourceNode.GetStatus() {
 	case stakingtypes.Unbonded:
 		targetModuleAccName = types.ResourceNodeNotBondedPoolName
-		//notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
-		//notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
-		//k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
 	case stakingtypes.Bonded:
 		targetModuleAccName = types.ResourceNodeBondedPoolName
-		//bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-		//bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
-		//k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
 	case stakingtypes.Unbonding:
 		return sdk.ZeroInt(), types.ErrUnbondingNode
 	}
@@ -154,16 +148,6 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		if err != nil {
 			return sdk.ZeroInt(), types.ErrInsufficientBalance
 		}
-		//notBondedToken := k.GetResourceNodeNotBondedToken(ctx)
-		//bondedToken := k.GetResourceNodeBondedToken(ctx)
-		//
-		//if notBondedToken.IsLT(tokenToBond) {
-		//	return sdk.ZeroInt(), types.ErrInsufficientBalanceOfNotBondedPool
-		//}
-		//notBondedToken = notBondedToken.Sub(tokenToBond)
-		//bondedToken = bondedToken.Add(tokenToBond)
-		//k.SetResourceNodeNotBondedToken(ctx, notBondedToken)
-		//k.SetResourceNodeBondedToken(ctx, bondedToken)
 	}
 
 	k.SetResourceNode(ctx, resourceNode)
@@ -172,12 +156,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	count := v.Add(sdk.NewInt(1))
 	k.SetBondedResourceNodeCnt(ctx, count)
 
-	// update effective total stake
-	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
-	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(tokenToAdd.Amount)
-	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
-
-	ozoneLimitChange = k.IncreaseOzoneLimitByAddedStake(ctx, tokenToAdd.Amount)
+	ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
 }

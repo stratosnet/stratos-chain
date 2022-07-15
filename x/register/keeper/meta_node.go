@@ -143,14 +143,8 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 	switch metaNode.GetStatus() {
 	case stakingtypes.Unbonded:
 		targetModuleAccName = types.MetaNodeNotBondedPoolName
-		//notBondedTokenInPool := k.GetMetaNodeNotBondedToken(ctx)
-		//notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
-		//k.SetMetaNodeNotBondedToken(ctx, notBondedTokenInPool)
 	case stakingtypes.Bonded:
 		targetModuleAccName = types.MetaNodeBondedPoolName
-		//bondedTokenInPool := k.GetMetaNodeBondedToken(ctx)
-		//bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
-		//k.SetMetaNodeBondedToken(ctx, bondedTokenInPool)
 	case stakingtypes.Unbonding:
 		return sdk.ZeroInt(), types.ErrUnbondingNode
 	}
@@ -165,12 +159,7 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 	metaNode = metaNode.AddToken(tokenToAdd.Amount)
 	k.SetMetaNode(ctx, metaNode)
 
-	// update effective total stake
-	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
-	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(tokenToAdd.Amount)
-	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
-
-	ozoneLimitChange = k.IncreaseOzoneLimitByAddedStake(ctx, tokenToAdd.Amount)
+	ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
 	return ozoneLimitChange, nil
 }
@@ -381,17 +370,6 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 		if err != nil {
 			return node.Status, err
 		}
-
-		//notBondedToken := k.GetMetaNodeNotBondedToken(ctx)
-		//bondedToken := k.GetMetaNodeBondedToken(ctx)
-		//
-		//if notBondedToken.IsLT(tokenToBond) {
-		//	return node.Status, types.ErrInsufficientBalance
-		//}
-		//notBondedToken = notBondedToken.Sub(tokenToBond)
-		//bondedToken = bondedToken.Add(tokenToBond)
-		//k.SetMetaNodeNotBondedToken(ctx, notBondedToken)
-		//k.SetMetaNodeBondedToken(ctx, bondedToken)
 	}
 
 	return node.Status, nil

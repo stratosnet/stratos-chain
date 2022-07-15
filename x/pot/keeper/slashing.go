@@ -49,13 +49,13 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 		// update effective total stake
 		effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(node.Tokens)
 		k.RegisterKeeper.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
-		k.RegisterKeeper.DecreaseOzoneLimitBySubtractedStake(ctx, node.Tokens)
+		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, node.Tokens)
 	}
 	if toBeUnsuspended {
 		// update effective total stake
 		effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(node.Tokens)
 		k.RegisterKeeper.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
-		k.RegisterKeeper.IncreaseOzoneLimitByAddedStake(ctx, node.Tokens)
+		k.RegisterKeeper.IncreaseOzoneLimitByAddStake(ctx, node.Tokens)
 	}
 
 	return slash.TruncateInt(), registertypes.NodeType(node.NodeType), nil
