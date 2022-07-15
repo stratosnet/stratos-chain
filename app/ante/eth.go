@@ -329,7 +329,7 @@ func NewEthIncrementSenderSequenceDecorator(ak evmtypes.AccountKeeper) EthIncrem
 // contract creation, the nonce will be incremented during the transaction execution and not within
 // this AnteHandler decorator.
 func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	if ctx.IsCheckTx() || simulate {
+	if ctx.IsCheckTx() {
 		return next(ctx, tx, simulate)
 	}
 	for _, msg := range tx.GetMsgs() {
@@ -559,50 +559,51 @@ func NewEthTxOverrideDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper, txDecode
 }
 
 func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
-	if !ctx.IsCheckTx() && !simulate {
-		res, err := core.UnconfirmedTxs(&rpctypes.Context{}, nil)
-		if err != nil {
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrPanic, "get pending txs from mem pool failed")
+	if ctx.IsCheckTx() {
+		return next(ctx, tx, simulate)
+	}
+
+	res, err := core.UnconfirmedTxs(&rpctypes.Context{}, nil)
+	if err != nil {
+		return ctx, sdkerrors.Wrapf(sdkerrors.ErrPanic, "get pending txs from mem pool failed")
+	}
+
+	for _, msg := range tx.GetMsgs() {
+		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+		if !ok {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
 
-		for _, msg := range tx.GetMsgs() {
-			msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-			}
+		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
+		if err != nil {
+			return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
+		}
 
-			txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
+		from := msgEthTx.GetFrom()
+		nonce := txData.GetNonce()
+		gas := txData.GetGas()
+
+		for _, txBz := range res.Txs {
+			pendingTx, err := tod.txDecoder(txBz)
 			if err != nil {
-				return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
+				return ctx, err
 			}
 
-			from := msgEthTx.GetFrom()
-			nonce := txData.GetNonce()
-			gas := txData.GetGas()
+			for _, pendingMsg := range pendingTx.GetMsgs() {
+				pendingMsgEthTx, ok := pendingMsg.(*evmtypes.MsgEthereumTx)
+				if !ok {
+					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", pendingMsg, (*evmtypes.MsgEthereumTx)(nil))
+				}
 
-			for _, txBz := range res.Txs {
-				pendingTx, err := tod.txDecoder(txBz)
+				pendingTxData, err := evmtypes.UnpackTxData(pendingMsgEthTx.Data)
 				if err != nil {
-					return ctx, err
+					return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
 				}
 
-				for _, pendingMsg := range pendingTx.GetMsgs() {
-					pendingMsgEthTx, ok := pendingMsg.(*evmtypes.MsgEthereumTx)
-					if !ok {
-						return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", pendingMsg, (*evmtypes.MsgEthereumTx)(nil))
-					}
-
-					pendingTxData, err := evmtypes.UnpackTxData(pendingMsgEthTx.Data)
-					if err != nil {
-						return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
-					}
-
-					if pendingMsgEthTx.GetFrom().Equals(from) && pendingTxData.GetNonce() == nonce && pendingTxData.GetGas() > gas {
-						//find tx has same nonce & gas from same sender, let this tx fail in order to execute pendingMsgEthTx first
-						return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is about to be overridden %v", tx)
-					}
+				if pendingMsgEthTx.GetFrom().Equals(from) && pendingTxData.GetNonce() == nonce && pendingTxData.GetGas() > gas {
+					//find tx has same nonce & gas from same sender, let this tx fail in order to execute pendingMsgEthTx first
+					return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is about to be overridden")
 				}
-
 			}
 		}
 	}
