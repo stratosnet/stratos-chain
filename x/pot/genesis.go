@@ -35,7 +35,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetIndividualReward(ctx, walletAddr, sdk.NewInt(data.LastReportedEpoch+1), *individual)
+		keeper.SetIndividualReward(ctx, walletAddr, sdk.NewInt(data.LastReportedEpoch+data.Params.MatureEpoch), *individual)
 	}
 
 }
@@ -46,7 +46,8 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 	totalMinedToken := keeper.GetTotalMinedTokens(ctx)
-	lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
+	lastReportedEpoch := sdk.ZeroInt() // set to 0 to avoid sending volume report tx failed after sp cleared up the data
+	//lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
 
 	var individualRewardInfo []*types.Reward
 	var immatureTotalInfo []*types.ImmatureTotal
