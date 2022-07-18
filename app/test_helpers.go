@@ -104,6 +104,7 @@ func Setup(isCheckTx bool, chainId string) *NewApp {
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisNodeSet(t *testing.T,
+	freshStart bool,
 	valSet *tmtypes.ValidatorSet,
 	metaNodes []registertypes.MetaNode,
 	resourceNodes []registertypes.ResourceNode,
@@ -157,36 +158,38 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		delegations)
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
-	// add bonded amount to bonded pool module account
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, bondedAmt)},
-	})
+	if !freshStart {
+		// add bonded amount to bonded pool module account
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, bondedAmt)},
+		})
 
-	// add bonded amount of resource nodes to module account
-	resNodeBondedAmt := sdk.ZeroInt()
-	for _, resNode := range resourceNodes {
-		resNodeBondedAmt = resNodeBondedAmt.Add(resNode.Tokens)
+		// add bonded amount of resource nodes to module account
+		resNodeBondedAmt := sdk.ZeroInt()
+		for _, resNode := range resourceNodes {
+			resNodeBondedAmt = resNodeBondedAmt.Add(resNode.Tokens)
+		}
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPoolName).String(),
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, resNodeBondedAmt)},
+		})
+
+		// add bonded amount of meta nodes to module account
+		metaNodeBondedAmt := sdk.ZeroInt()
+		for _, metaNode := range metaNodes {
+			metaNodeBondedAmt = metaNodeBondedAmt.Add(metaNode.Tokens)
+		}
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPoolName).String(),
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, metaNodeBondedAmt)},
+		})
+
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepayName).String(),
+			Coins:   sdk.Coins{totalUnissuedPrepay},
+		})
 	}
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, resNodeBondedAmt)},
-	})
-
-	// add bonded amount of meta nodes to module account
-	metaNodeBondedAmt := sdk.ZeroInt()
-	for _, metaNode := range metaNodes {
-		metaNodeBondedAmt = metaNodeBondedAmt.Add(metaNode.Tokens)
-	}
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, metaNodeBondedAmt)},
-	})
-
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepayName).String(),
-		Coins:   sdk.Coins{totalUnissuedPrepay},
-	})
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
