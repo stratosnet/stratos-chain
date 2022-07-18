@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -414,9 +415,20 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	)
 
 	if config.JSONRPC.Enable {
+		genDoc, err := genDocProvider()
+		if err != nil {
+			return err
+		}
+		var genAppState map[string]interface{}
+		json.Unmarshal([]byte(genDoc.AppState), &genAppState)
+		genEvm := genAppState["evm"].(map[string]interface{})
+		genEvmParams := genEvm["params"].(map[string]interface{})
+		genEvmParamsChainCfg := genEvmParams["chain_config"].(map[string]interface{})
+		genEvmParamsChainId := genEvmParamsChainCfg["chain_id"].(string)
+
 		tmEndpoint := "/websocket"
 		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config)
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config, genEvmParamsChainId)
 		if err != nil {
 			return err
 		}
