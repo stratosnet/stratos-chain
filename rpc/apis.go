@@ -53,8 +53,8 @@ func init() {
 	apiCreators = map[string]APICreator{
 		EthNamespace: func(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient, evmChainId string) []rpc.API {
 			nonceLock := new(types.AddrLocker)
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			clientCtx = clientCtx.WithChainID(evmChainId)
+			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: EthNamespace,
@@ -92,8 +92,8 @@ func init() {
 			}
 		},
 		PersonalNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			clientCtx = clientCtx.WithChainID(evmChainId)
+			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: PersonalNamespace,
@@ -114,8 +114,8 @@ func init() {
 			}
 		},
 		DebugNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			clientCtx = clientCtx.WithChainID(evmChainId)
+			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: DebugNamespace,
@@ -126,8 +126,8 @@ func init() {
 			}
 		},
 		MinerNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			clientCtx = clientCtx.WithChainID(evmChainId)
+			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: MinerNamespace,
