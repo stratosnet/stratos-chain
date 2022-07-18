@@ -35,7 +35,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetIndividualReward(ctx, walletAddr, sdk.NewInt(data.LastReportedEpoch+1), *individual)
+		keeper.SetIndividualReward(ctx, walletAddr, sdk.NewInt(data.LastReportedEpoch+data.Params.MatureEpoch), *individual)
 	}
 
 }

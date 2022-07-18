@@ -40,7 +40,7 @@ func (cc ChainConfig) EthereumConfig() *params.ChainConfig {
 
 // DefaultChainConfig returns default evm parameters.
 func DefaultChainConfig() ChainConfig {
-	chainId := sdk.NewInt(1)
+	chainId := sdk.NewInt(2048)
 	homesteadBlock := sdk.ZeroInt()
 	daoForkBlock := sdk.ZeroInt()
 	eip150Block := sdk.ZeroInt()
