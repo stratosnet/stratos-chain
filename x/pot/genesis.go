@@ -46,8 +46,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data types.GenesisState) {
 	params := keeper.GetParams(ctx)
 	totalMinedToken := keeper.GetTotalMinedTokens(ctx)
-	lastReportedEpoch := sdk.ZeroInt() // set to 0 to avoid sending volume report tx failed after sp cleared up the data
-	//lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
+	lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
 
 	var individualRewardInfo []*types.Reward
 	var immatureTotalInfo []*types.ImmatureTotal
