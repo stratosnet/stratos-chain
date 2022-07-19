@@ -1,6 +1,6 @@
 BUILDDIR ?= $(CURDIR)/build
 
-APP_VER := v0.7.0
+APP_VER := v0.8.0
 COMMIT := $(GIT_COMMIT_HASH)
 
 ifeq ($(COMMIT),)
