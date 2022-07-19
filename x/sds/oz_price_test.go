@@ -1,6 +1,8 @@
 package sds_test
 
 import (
+	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 	"time"
@@ -137,78 +139,43 @@ type UozPriceFactors struct {
 	OzoneLimit          sdk.Int
 }
 
-// initialize data of volume report
-func setupMsgVolumeReport(newEpoch int64) *pottypes.MsgVolumeReport {
-	volume1 := pottypes.NewSingleWalletVolume(resOwner1, resourceNodeVolume1)
-	volume2 := pottypes.NewSingleWalletVolume(resOwner2, resourceNodeVolume2)
-	volume3 := pottypes.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
+func TestPriceCurve(t *testing.T) {
 
-	nodesVolume := []*pottypes.SingleWalletVolume{volume1, volume2, volume3}
-	reporter := idxNodeNetworkId1
-	epoch := sdk.NewInt(newEpoch)
-	reportReference := "report for epoch " + epoch.String()
-	reporterOwner := idxOwner1
+	NUM_TESTS := 100
 
-	pubKeys := make([][]byte, 1)
-	for i := range pubKeys {
-		pubKeys[i] = make([]byte, 1)
+	initFactorsBefore := &UozPriceFactors{
+		UOzonePrice:        uozPrice,
+		InitialTotalStakes: initialTotalStakesStore,
+		//EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+		TotalUnissuedPrepay: totalUnissuedPrepayStore,
+		StakeAndPrepay:      initialTotalStakesStore.Add(totalUnissuedPrepayStore),
+		OzoneLimit:          initialTotalStakesStore.ToDec().Quo(uozPrice).TruncateInt(),
 	}
 
-	signature := pottypes.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
+	initFactorsBefore, _, _ = simulatePriceChange(&PriceChangeEvent{
+		stakeDelta:          sdk.ZeroInt(),
+		unissuedPrepayDelta: sdk.ZeroInt(),
+	}, initFactorsBefore)
 
-	volumeReportMsg := pottypes.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
+	stakeChangePerm := rand.Perm(NUM_TESTS)
+	prepayChangePerm := rand.Perm(NUM_TESTS)
 
-	return volumeReportMsg
-}
-
-func setupSlashingMsg() *pottypes.MsgSlashingResourceNode {
-	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
-	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingUOZAmt1, true)
-	return slashingMsg
-}
-
-func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
-	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
-	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdk.ZeroInt(), false)
-	return slashingMsg
-}
-
-func setupPrepayMsg() *sdstypes.MsgPrepay {
-	sender := resOwner1
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(1000000000))))
-	return prepayMsg
-}
-
-func setupMsgCreateResourceNode1() *registertypes.MsgCreateResourceNode {
-	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId1, resNodePubKey1, sdk.NewCoin(stratos.USTOS, resNodeInitialStake1), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
-	return createResourceNodeMsg
-}
-func setupMsgCreateResourceNode2() *registertypes.MsgCreateResourceNode {
-	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId2, resNodePubKey2, sdk.NewCoin(stratos.USTOS, resNodeInitialStake2), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
-	return createResourceNodeMsg
-}
-func setupMsgCreateResourceNode3() *registertypes.MsgCreateResourceNode {
-	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId3, resNodePubKey3, sdk.NewCoin(stratos.USTOS, resNodeInitialStake3), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
-	return createResourceNodeMsg
-}
-func setupMsgCreateResourceNode4() *registertypes.MsgCreateResourceNode {
-	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId4, resNodePubKey4, sdk.NewCoin(stratos.USTOS, resNodeInitialStake4), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
-	return createResourceNodeMsg
-}
-func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
-	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId5, resNodePubKey5, sdk.NewCoin(stratos.USTOS, resNodeInitialStake5), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
-	return createResourceNodeMsg
+	for i := 0; i < NUM_TESTS; i++ {
+		tempStakeSign := 1
+		if rand.Intn(5) >= 3 {
+			tempStakeSign = -1
+		}
+		tempPrepaySign := rand.Intn(5)
+		if rand.Intn(5) >= 3 {
+			tempPrepaySign = -1
+		}
+		change := &PriceChangeEvent{
+			stakeDelta:          sdk.NewInt(int64(stakeChangePerm[i]) * stos2ustos).Mul(sdk.NewInt(int64(tempStakeSign))),
+			unissuedPrepayDelta: sdk.NewInt(int64(prepayChangePerm[i]) * stos2ustos).Mul(sdk.NewInt(int64(tempPrepaySign))),
+		}
+		fmt.Printf("\nstakeDelta: %v, unissuedPrepayDelta: %v\n", change.stakeDelta.String(), change.unissuedPrepayDelta.String())
+		initFactorsBefore, _, _ = simulatePriceChange(change, initFactorsBefore)
+	}
 }
 
 func TestOzPriceChange(t *testing.T) {
@@ -565,6 +532,80 @@ func TestOzPriceChange(t *testing.T) {
 
 }
 
+// initialize data of volume report
+func setupMsgVolumeReport(newEpoch int64) *pottypes.MsgVolumeReport {
+	volume1 := pottypes.NewSingleWalletVolume(resOwner1, resourceNodeVolume1)
+	volume2 := pottypes.NewSingleWalletVolume(resOwner2, resourceNodeVolume2)
+	volume3 := pottypes.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
+
+	nodesVolume := []*pottypes.SingleWalletVolume{volume1, volume2, volume3}
+	reporter := idxNodeNetworkId1
+	epoch := sdk.NewInt(newEpoch)
+	reportReference := "report for epoch " + epoch.String()
+	reporterOwner := idxOwner1
+
+	pubKeys := make([][]byte, 1)
+	for i := range pubKeys {
+		pubKeys[i] = make([]byte, 1)
+	}
+
+	signature := pottypes.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
+
+	volumeReportMsg := pottypes.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
+
+	return volumeReportMsg
+}
+
+func setupSlashingMsg() *pottypes.MsgSlashingResourceNode {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, idxNodeNetworkId1)
+	reportOwner := make([]sdk.AccAddress, 0)
+	reportOwner = append(reportOwner, idxOwner1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingUOZAmt1, true)
+	return slashingMsg
+}
+
+func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, idxNodeNetworkId1)
+	reportOwner := make([]sdk.AccAddress, 0)
+	reportOwner = append(reportOwner, idxOwner1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdk.ZeroInt(), false)
+	return slashingMsg
+}
+func setupPrepayMsg() *sdstypes.MsgPrepay {
+	sender := resOwner1
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(1000000000))))
+	return prepayMsg
+}
+func setupMsgCreateResourceNode1() *registertypes.MsgCreateResourceNode {
+	nodeType := uint32(registertypes.STORAGE)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId1, resNodePubKey1, sdk.NewCoin(stratos.USTOS, resNodeInitialStake1), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
+	return createResourceNodeMsg
+}
+func setupMsgCreateResourceNode2() *registertypes.MsgCreateResourceNode {
+	nodeType := uint32(registertypes.STORAGE)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId2, resNodePubKey2, sdk.NewCoin(stratos.USTOS, resNodeInitialStake2), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
+	return createResourceNodeMsg
+}
+func setupMsgCreateResourceNode3() *registertypes.MsgCreateResourceNode {
+	nodeType := uint32(registertypes.STORAGE)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId3, resNodePubKey3, sdk.NewCoin(stratos.USTOS, resNodeInitialStake3), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
+	return createResourceNodeMsg
+}
+
+func setupMsgCreateResourceNode4() *registertypes.MsgCreateResourceNode {
+	nodeType := uint32(registertypes.STORAGE)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId4, resNodePubKey4, sdk.NewCoin(stratos.USTOS, resNodeInitialStake4), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
+	return createResourceNodeMsg
+}
+
+func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
+	nodeType := uint32(registertypes.STORAGE)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId5, resNodePubKey5, sdk.NewCoin(stratos.USTOS, resNodeInitialStake5), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
+	return createResourceNodeMsg
+}
+
 func printCurrUozPrice(ctx sdk.Context, registerKeeper registerKeeper.Keeper, uozPriceFactorsBefore UozPriceFactors) (UozPriceFactors, sdk.Dec, sdk.Dec) {
 	uozPriceFactorsAfter := UozPriceFactors{}
 	uozPriceFactorsAfter.InitialTotalStakes = registerKeeper.GetInitialGenesisStakeTotal(ctx)
@@ -835,5 +876,66 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 	indexingNodes = append(indexingNodes, indexingNode3)
 
 	return indexingNodes
+}
 
+var (
+	initialTotalStakesStore   = sdk.NewInt(1500000000000)
+	effectiveTotalStakesStore = sdk.NewInt(1500000000000)
+	remainOzoneLimitStore     = sdk.NewInt(1500000000000000)
+	totalUnissuedPrepayStore  = sdk.ZeroInt()
+	uozPrice                  = sdk.NewDecWithPrec(1000000, 9)
+	//priceChangeChan = make(chan PriceChangeEvent, 0)
+)
+
+type PriceChangeEvent struct {
+	stakeDelta          sdk.Int
+	unissuedPrepayDelta sdk.Int
+}
+
+func simulatePriceChange(priceChangeEvent *PriceChangeEvent, uozPriceFactorsBefore *UozPriceFactors) (*UozPriceFactors, sdk.Dec, sdk.Dec) {
+	uozPriceFactorsAfter := &UozPriceFactors{}
+	uozPriceFactorsAfter.InitialTotalStakes = uozPriceFactorsBefore.InitialTotalStakes
+	//uozPriceFactorsAfter.EffectiveTotalStakes = registerKeeper.GetEffectiveGenesisStakeTotal(ctx)
+	uozPriceFactorsAfter.TotalUnissuedPrepay = uozPriceFactorsBefore.TotalUnissuedPrepay.Add(priceChangeEvent.unissuedPrepayDelta)
+	uozPriceFactorsAfter.StakeAndPrepay = uozPriceFactorsAfter.InitialTotalStakes.Add(uozPriceFactorsAfter.TotalUnissuedPrepay)
+	deltaUozLimit := sdk.ZeroInt()
+	if !priceChangeEvent.stakeDelta.Equal(sdk.ZeroInt()) {
+		ozoneLimitChangeByStake := uozPriceFactorsBefore.OzoneLimit.ToDec().Quo(uozPriceFactorsBefore.InitialTotalStakes.ToDec()).Mul(priceChangeEvent.stakeDelta.ToDec()).TruncateInt()
+		deltaUozLimit = deltaUozLimit.Add(ozoneLimitChangeByStake)
+	}
+	if !priceChangeEvent.unissuedPrepayDelta.Equal(sdk.ZeroInt()) {
+		ozoneLimitChangeByPrepay := uozPriceFactorsBefore.OzoneLimit.ToDec().
+			Mul(uozPriceFactorsBefore.InitialTotalStakes.Add(uozPriceFactorsBefore.TotalUnissuedPrepay).ToDec()).
+			Quo(uozPriceFactorsBefore.InitialTotalStakes.Add(uozPriceFactorsBefore.TotalUnissuedPrepay).Add(priceChangeEvent.unissuedPrepayDelta).ToDec()).
+			TruncateInt().
+			Sub(uozPriceFactorsBefore.OzoneLimit)
+		deltaUozLimit = deltaUozLimit.Add(ozoneLimitChangeByPrepay)
+	}
+
+	uozPriceFactorsAfter.OzoneLimit = uozPriceFactorsBefore.OzoneLimit.Add(deltaUozLimit)
+	uozPriceFactorsAfter.UOzonePrice = uozPriceFactorsAfter.StakeAndPrepay.ToDec().Quo(uozPriceFactorsAfter.OzoneLimit.ToDec())
+
+	uozPriceDelta := uozPriceFactorsAfter.UOzonePrice.Sub(uozPriceFactorsBefore.UOzonePrice)
+	initialTotalStakesDelta := uozPriceFactorsAfter.InitialTotalStakes.Sub(uozPriceFactorsBefore.InitialTotalStakes)
+	//effectiveTotalStakesDelta := uozPriceFactorsAfter.EffectiveTotalStakes.Sub(uozPriceFactorsBefore.EffectiveTotalStakes)
+	totalUnissuedPrepayDelta := uozPriceFactorsAfter.TotalUnissuedPrepay.Sub(uozPriceFactorsBefore.TotalUnissuedPrepay)
+	stakeAndPrepayDelta := uozPriceFactorsAfter.StakeAndPrepay.Sub(uozPriceFactorsBefore.StakeAndPrepay)
+	ozoneLimitDelta := uozPriceFactorsAfter.OzoneLimit.Sub(uozPriceFactorsBefore.OzoneLimit)
+
+	uozPricePercentage := uozPriceDelta.Quo(uozPriceFactorsBefore.UOzonePrice).MulInt(sdk.NewInt(100))
+	//initialTotalStakesPercentage := initialTotalStakesDelta.Quo(uozPriceFactorsBefore.InitialTotalStakes)
+	//effectiveTotalStakesPercentage := effectiveTotalStakesDelta.Quo(uozPriceFactorsBefore.EffectiveTotalStakes)
+	//totalUnissuedPrepayPercentage := totalUnissuedPrepayDelta.Quo(uozPriceFactorsBefore.TotalUnissuedPrepay)
+	//stakeAndPrepayPercentage := stakeAndPrepayDelta.Quo(uozPriceFactorsBefore.StakeAndPrepay)
+	ozoneLimitPercentage := ozoneLimitDelta.ToDec().Quo(uozPriceFactorsBefore.OzoneLimit.ToDec()).MulInt(sdk.NewInt(100))
+
+	println("===>>>>>>>>>>>>>>     Current Uoz Price    ===>>>>>>>>>>>>>>")
+	println("UOzonePrice: 									" + uozPriceFactorsAfter.UOzonePrice.String() + "(delta: " + uozPriceDelta.String() + ", " + uozPricePercentage.String()[:5] + "%)")
+	println("InitialTotalStakes: 							" + uozPriceFactorsAfter.InitialTotalStakes.String() + "(delta: " + initialTotalStakesDelta.String() + ")")
+	//println("EffectiveTotalStakes: 							" + uozPriceFactorsAfter.EffectiveTotalStakes.String() + "(delta: " + effectiveTotalStakesDelta.String() + ")")
+	println("TotalUnissuedPrepay: 							" + uozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
+	println("InitialTotalStakes+TotalUnissuedPrepay:			" + uozPriceFactorsAfter.StakeAndPrepay.String() + "(delta: " + stakeAndPrepayDelta.String() + ")")
+	println("OzoneLimit: 									" + uozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
+
+	return uozPriceFactorsAfter, uozPricePercentage, ozoneLimitPercentage
 }
