@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,11 +15,11 @@ const DefaultKeyringServiceName = "stratos"
 // Config is the structure that holds the SDK configuration parameters.
 // This could be used to initialize certain configuration parameters for the SDK.
 type Config struct {
-	fullFundraiserPath  string
 	bech32AddressPrefix map[string]string
 	txEncoder           sdk.TxEncoder
 	addressVerifier     func([]byte) error
 	mtx                 sync.RWMutex
+	purpose             uint32
 	coinType            uint32
 	sealed              bool
 	sealedch            chan struct{}
@@ -32,11 +33,10 @@ var (
 
 // New returns a new Config with default values.
 func NewConfig() *Config {
-
 	return &Config{
 		sealedch: make(chan struct{}),
 		bech32AddressPrefix: map[string]string{
-			"account_addr":   StratosBech32Prefix,
+			"account_addr":   AccountAddressPrefix,
 			"validator_addr": ValidatorAddressPrefix,
 			"consensus_addr": ConsNodeAddressPrefix,
 			"account_pub":    AccountPubKeyPrefix,
@@ -45,9 +45,9 @@ func NewConfig() *Config {
 			"sdsp2p_pub":     SdsNodeP2PPubkeyPrefix,
 			"sdsp2p_addr":    SdsNodeP2PAddressPrefix,
 		},
-		coinType:           CoinType,
-		fullFundraiserPath: HDPath,
-		txEncoder:          nil,
+		purpose:   sdk.Purpose,
+		coinType:  CoinType,
+		txEncoder: nil,
 	}
 }
 
@@ -137,12 +137,6 @@ func (config *Config) SetCoinType(coinType uint32) {
 	config.coinType = coinType
 }
 
-// Set the FullFundraiserPath (BIP44Prefix) on the config
-func (config *Config) SetFullFundraiserPath(fullFundraiserPath string) {
-	config.assertNotSealed()
-	config.fullFundraiserPath = fullFundraiserPath
-}
-
 // Seal seals the config such that the config state could not be modified further
 func (config *Config) Seal() *Config {
 
@@ -151,7 +145,7 @@ func (config *Config) Seal() *Config {
 	sdkCfg.SetBech32PrefixForValidator(config.GetBech32ValidatorAddrPrefix(), config.GetBech32ValidatorPubPrefix())
 	sdkCfg.SetBech32PrefixForConsensusNode(config.GetBech32ConsensusAddrPrefix(), config.GetBech32ConsensusPubPrefix())
 	sdkCfg.SetCoinType(config.GetCoinType())
-	sdkCfg.SetFullFundraiserPath(config.GetFullFundraiserPath())
+	sdkCfg.SetPurpose(config.GetPurpose())
 	sdkCfg.SetAddressVerifier(config.addressVerifier)
 	sdkCfg.SetTxEncoder(config.txEncoder)
 	sdkCfg.Seal()
@@ -219,14 +213,19 @@ func (config *Config) GetAddressVerifier() func([]byte) error {
 	return config.addressVerifier
 }
 
+// GetPurpose returns the BIP-0044 Purpose code on the config.
+func (config *Config) GetPurpose() uint32 {
+	return config.purpose
+}
+
 // GetCoinType returns the BIP-0044 CoinType code on the config.
 func (config *Config) GetCoinType() uint32 {
 	return config.coinType
 }
 
-// GetFullFundraiserPath returns the BIP44Prefix.
-func (config *Config) GetFullFundraiserPath() string {
-	return config.fullFundraiserPath
+// GetFullBIP44Path returns the BIP44Prefix.
+func (config *Config) GetFullBIP44Path() string {
+	return fmt.Sprintf("m/%d'/%d'/0'/0/0", config.purpose, config.coinType)
 }
 
 func KeyringServiceName() string {

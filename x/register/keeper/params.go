@@ -1,9 +1,10 @@
 package keeper
 
 import (
+	"time"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"time"
 )
 
 // GetParams returns the total set of register parameters.
@@ -25,7 +26,7 @@ func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
 
 // MaxEntries - Maximum number of simultaneous unbonding
 // delegations or redelegations (per pair/trio)
-func (k Keeper) MaxEntries(ctx sdk.Context) (res uint16) {
+func (k Keeper) MaxEntries(ctx sdk.Context) (res uint32) {
 	k.paramSpace.Get(ctx, types.KeyMaxEntries, &res)
 	return
 }

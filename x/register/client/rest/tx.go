@@ -4,16 +4,17 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
+
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc(
 		"/register/createResourceNode",
 		postCreateResourceNodeHandlerFn(cliCtx),
@@ -32,24 +33,24 @@ func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
 	).Methods("POST")
 
 	r.HandleFunc(
-		"/register/createIndexingNode",
-		postCreateIndexingNodeHandlerFn(cliCtx),
+		"/register/createMetaNode",
+		postCreateMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/removeIndexingNode",
-		postRemoveIndexingNodeHandlerFn(cliCtx),
+		"/register/removeMetaNode",
+		postRemoveMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/updateIndexingNode",
-		postUpdateIndexingNodeHandlerFn(cliCtx),
+		"/register/updateMetaNode",
+		postUpdateMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/updateIndexingNodeStake",
-		postUpdateIndexingNodeStakeHandlerFn(cliCtx),
+		"/register/updateMetaNodeStake",
+		postUpdateMetaNodeStakeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/indexingNodeRegVote",
-		postIndexingNodeRegVoteFn(cliCtx),
+		"/register/metaNodeRegVote",
+		postMetaNodeRegVoteFn(cliCtx),
 	).Methods("POST")
 }
 
@@ -60,7 +61,7 @@ type (
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
 		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
-		NodeType    int               `json:"node_type" yaml:"node_type"`
+		NodeType    uint32            `json:"node_type" yaml:"node_type"`
 	}
 
 	RemoveResourceNodeRequest struct {
@@ -71,7 +72,7 @@ type (
 	UpdateResourceNodeRequest struct {
 		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		Description    types.Description `json:"description" yaml:"description"`
-		NodeType       int               `json:"node_type" yaml:"node_type"`
+		NodeType       uint32            `json:"node_type" yaml:"node_type"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
@@ -82,7 +83,7 @@ type (
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
-	CreateIndexingNodeRequest struct {
+	CreateMetaNodeRequest struct {
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		NetworkAddr string            `json:"network_address" yaml:"network_address"`
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
@@ -90,25 +91,25 @@ type (
 		Description types.Description `json:"description" yaml:"description"`
 	}
 
-	RemoveIndexingNodeRequest struct {
-		BaseReq             rest.BaseReq `json:"base_req" yaml:"base_req"`
-		IndexingNodeAddress string       `json:"indexing_node_address" yaml:"indexing_node_address"` // in bech32
+	RemoveMetaNodeRequest struct {
+		BaseReq         rest.BaseReq `json:"base_req" yaml:"base_req"`
+		MetaNodeAddress string       `json:"meta_node_address" yaml:"meta_node_address"` // in bech32
 	}
 
-	UpdateIndexingNodeRequest struct {
+	UpdateMetaNodeRequest struct {
 		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		Description    types.Description `json:"description" yaml:"description"`
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
-	UpdateIndexingNodeStakeRequest struct {
+	UpdateMetaNodeStakeRequest struct {
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
 		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
-	IndexingNodeRegVoteRequest struct {
+	MetaNodeRegVoteRequest struct {
 		BaseReq                 rest.BaseReq `json:"base_req" yaml:"base_req"`
 		CandidateNetworkAddress string       `json:"candidate_network_address" yaml:"candidate_network_address"`
 		CandidateOwnerAddress   string       `json:"candidate_owner_address" yaml:"candidate_owner_address"`
@@ -117,11 +118,11 @@ type (
 	}
 )
 
-func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req CreateResourceNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -130,19 +131,18 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, req.PubKey)
+		pubKey, err := stratos.SdsPubKeyFromBech32(req.PubKey)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		nodeTypeRef := req.NodeType
 		ownerAddr, er := sdk.AccAddressFromBech32(req.BaseReq.From)
 		if er != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
-		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+		if t := types.NodeType(req.NodeType).Type(); t == "UNKNOWN" {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
@@ -151,22 +151,23 @@ func postCreateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description,
-			types.NodeType(nodeTypeRef))
+
+		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
+			req.NodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postCreateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req CreateIndexingNodeRequest
+		var req CreateMetaNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -175,7 +176,7 @@ func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, req.PubKey)
+		pubKey, err := stratos.SdsPubKeyFromBech32(req.PubKey)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -191,21 +192,26 @@ func postCreateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgCreateIndexingNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
+		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postRemoveResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postRemoveResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req RemoveResourceNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -232,15 +238,15 @@ func postRemoveResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postRemoveMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req RemoveIndexingNodeRequest
+		var req RemoveMetaNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -249,7 +255,7 @@ func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		nodeAddr, err := stratos.SdsAddressFromBech32(req.IndexingNodeAddress)
+		nodeAddr, err := stratos.SdsAddressFromBech32(req.MetaNodeAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -261,21 +267,21 @@ func postRemoveIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		msg := types.NewMsgRemoveIndexingNode(nodeAddr, ownerAddr)
+		msg := types.NewMsgRemoveMetaNode(nodeAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateResourceNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -283,8 +289,6 @@ func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 		if !req.BaseReq.ValidateBasic(w) {
 			return
 		}
-
-		nodeTypeRef := req.NodeType
 
 		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
@@ -297,26 +301,25 @@ func postUpdateResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
 			return
 		}
-		if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
+		if t := types.NodeType(req.NodeType).Type(); t == "UNKNOWN" {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "node type(s) not supported")
 			return
 		}
-		msg := types.NewMsgUpdateResourceNode(req.Description,
-			types.NodeType(nodeTypeRef), networkAddr, ownerAddr)
+		msg := types.NewMsgUpdateResourceNode(req.Description, req.NodeType, networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateResourceNodeStakeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req UpdateResourceNodeStakeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -342,21 +345,21 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx context.CLIContext) http.Handle
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req UpdateIndexingNodeRequest
+		var req UpdateMetaNodeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -377,21 +380,21 @@ func postUpdateIndexingNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc
 			return
 		}
 
-		msg := types.NewMsgUpdateIndexingNode(req.Description, networkAddr, ownerAddr)
+		msg := types.NewMsgUpdateMetaNode(req.Description, networkAddr, ownerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postUpdateIndexingNodeStakeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postUpdateMetaNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req UpdateIndexingNodeStakeRequest
+		var req UpdateMetaNodeStakeRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -417,21 +420,21 @@ func postUpdateIndexingNodeStakeHandlerFn(cliCtx context.CLIContext) http.Handle
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }
 
-func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
+func postMetaNodeRegVoteFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req IndexingNodeRegVoteRequest
+		var req MetaNodeRegVoteRequest
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -451,7 +454,7 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 		}
 
-		voteOpinion := types.VoteOpinionFromBool(req.Opinion)
+		voteOpinion := req.Opinion
 
 		voterNetworkAddr, err := stratos.SdsAddressFromBech32(req.VoterNetworkAddress)
 		if err != nil {
@@ -464,12 +467,12 @@ func postIndexingNodeRegVoteFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, voteOpinion, voterNetworkAddr, voterOwnerAddr)
+		msg := types.NewMsgMetaNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, voteOpinion, voterNetworkAddr, voterOwnerAddr)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

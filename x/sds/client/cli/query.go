@@ -2,24 +2,19 @@ package cli
 
 import (
 	"fmt"
-	"github.com/cosmos/cosmos-sdk/client/context"
-	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/stratosnet/stratos-chain/x/sds/client/common"
 	"strings"
-
-	// "strings"
-
-	"github.com/spf13/cobra"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/spf13/cobra"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // GetQueryCmd returns the cli query commands for sds module
-func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
+func GetQueryCmd() *cobra.Command {
 	// Group sds queries under a subcommand
 	sdsQueryCmd := &cobra.Command{
 		Use:                        types.ModuleName,
@@ -30,18 +25,54 @@ func GetQueryCmd(queryRoute string, cdc *codec.Codec) *cobra.Command {
 	}
 
 	sdsQueryCmd.AddCommand(
-		flags.GetCommands(
-			GetCmdQueryUploadedFile(queryRoute, cdc),
-			GetCmdQueryPrepayBalance(queryRoute, cdc),
-		)...,
+		GetCmdQueryUploadedFile(),
+		GetCmdQueryPrepayBalance(),
+		GetCmdQueryParams(),
 	)
 
 	return sdsQueryCmd
 }
 
+// GetCmdQueryParams implements the params query command.
+func GetCmdQueryParams() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "params",
+		Args:  cobra.NoArgs,
+		Short: "Query the current sds parameters information",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query values set as sds parameters.
+
+Example:
+$ %s query sds params
+`,
+				version.AppName,
+			),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.Params(cmd.Context(), &types.QueryParamsRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res.Params)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
+}
+
 // GetCmdQueryUploadedFile implements the query uploaded file command.
-func GetCmdQueryUploadedFile(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func GetCmdQueryUploadedFile() *cobra.Command {
+	cmd := &cobra.Command{
+		//return &cobra.Command{
 		Use:   "upload [file_hash]",
 		Args:  cobra.ExactArgs(1),
 		Short: "Query uploaded file info by hash",
@@ -51,52 +82,86 @@ func GetCmdQueryUploadedFile(queryRoute string, cdc *codec.Codec) *cobra.Command
 Example:
 $ %s query sds upload c03661732294feb49caf6dc16c7cbb2534986d73
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// query file by fileHash
-			resp, _, err := common.QueryUploadedFile(cliCtx, queryRoute, args[0])
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			fi := types.MustUnmarshalFileInfo(cdc, resp)
-			return cliCtx.PrintOutput(fi.String())
+			queryClient := types.NewQueryClient(clientCtx)
+
+			queryFileHash := strings.TrimSpace(args[0][:])
+			if len(queryFileHash) == 0 {
+				return sdkerrors.Wrap(types.ErrEmptyFileHash, "Missing file hash")
+			}
+
+			// query file by fileHash
+			//resp, _, err := common.QueryUploadedFile(clientCtx, queryRoute, args[0])
+			//if err != nil {
+			//	return err
+			//}
+			//fi := types.MustUnmarshalFileInfo(cdc, resp)
+			//return cliCtx.PrintOutput(fi.String())
+
+			result, err := queryClient.Fileupload(cmd.Context(), &types.QueryFileUploadRequest{
+				FileHash: queryFileHash,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(result)
 		},
 	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	flags.AddPaginationFlagsToCmd(cmd, "upload")
+	return cmd
 }
 
 // GetCmdQueryPrepayBalance implements the query prepay balance command.
-func GetCmdQueryPrepayBalance(queryRoute string, cdc *codec.Codec) *cobra.Command {
-	return &cobra.Command{
+func GetCmdQueryPrepayBalance() *cobra.Command {
+	cmd := &cobra.Command{
 		Use:   "prepay [acct_addr]",
 		Args:  cobra.ExactArgs(1),
-		Short: "Query balance of prepayment in Volumn Pool",
+		Short: "Query balance of prepayment in Volume Pool",
 		Long: strings.TrimSpace(
 			fmt.Sprintf(`Query balance of prepayment in Volumn Pool.
 
 Example:
 $ %s query sds prepay st1yx3kkx9jnqeck59j744nc5qgtv4lt4dc45jcwz
 `,
-				version.ClientName,
+				version.AppName,
 			),
 		),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			cliCtx := context.NewCLIContext().WithCodec(cdc)
-
-			// query prepay balance
-			resp, _, err := common.QueryPrepayBalance(cliCtx, queryRoute, args[0])
+			clientCtx, err := client.GetClientQueryContext(cmd)
 			if err != nil {
 				return err
 			}
-			var prepaidBalance sdk.Int
-			error := prepaidBalance.UnmarshalJSON(resp)
-			if error != nil {
-				return error
+			queryClient := types.NewQueryClient(clientCtx)
+
+			queryAccAddr := strings.TrimSpace(args[0][:])
+			if len(queryAccAddr) == 0 {
+				return sdkerrors.Wrap(types.ErrEmptySenderAddr, "Missing sender address")
 			}
-			return cliCtx.PrintOutput(prepaidBalance.String())
+			_, err = sdk.AccAddressFromBech32(queryAccAddr)
+			if err != nil {
+				return err
+			}
+
+			result, err := queryClient.Prepay(cmd.Context(), &types.QueryPrepayRequest{
+				AcctAddr: queryAccAddr,
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(result)
 		},
 	}
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
