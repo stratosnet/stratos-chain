@@ -114,6 +114,10 @@ const (
 	appName = "stchain"
 )
 
+func init() {
+	version.AppName = appName + "d"
+}
+
 var (
 	DefaultNodeHome = os.ExpandEnv("$HOME/.stchaind")
 
