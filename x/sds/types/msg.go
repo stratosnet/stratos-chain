@@ -46,17 +46,17 @@ func (msg MsgFileUpload) GetSignBytes() []byte {
 func (msg MsgFileUpload) ValidateBasic() error {
 	_, err := cid.Decode(msg.FileHash)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to validate file hash")
+		return sdkerrors.Wrap(ErrInvalidFileHash, "failed to validate file hash")
 	}
 
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to parse reporter address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse reporter address")
 	}
 
 	uploader, err := sdk.AccAddressFromBech32(msg.GetUploader())
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to parse uploader address")
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse uploader address")
 	}
 
 	if reporter.Empty() {
@@ -105,7 +105,7 @@ func (msg MsgPrepay) GetSignBytes() []byte {
 func (msg MsgPrepay) ValidateBasic() error {
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return err
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
 	}
 
 	if sender.Empty() {

@@ -29,7 +29,7 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	reporter, err := stratos.SdsAddressFromBech32(msg.Reporter)
 	if err != nil {
-		return &types.MsgVolumeReportResponse{}, err
+		return &types.MsgVolumeReportResponse{}, types.ErrInvalidAddress
 	}
 	if !(k.IsSPNode(ctx, reporter)) {
 		errMsg := fmt.Sprint("Volume report is not sent by a superior peer")
@@ -79,15 +79,15 @@ func (k msgServer) HandleMsgWithdraw(goCtx context.Context, msg *types.MsgWithdr
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	walletAddress, err := sdk.AccAddressFromBech32(msg.WalletAddress)
 	if err != nil {
-		return &types.MsgWithdrawResponse{}, err
+		return &types.MsgWithdrawResponse{}, types.ErrInvalidAddress
 	}
 	targetAddress, err := sdk.AccAddressFromBech32(msg.TargetAddress)
 	if err != nil {
-		return &types.MsgWithdrawResponse{}, err
+		return &types.MsgWithdrawResponse{}, types.ErrInvalidAddress
 	}
 	err = k.Withdraw(ctx, msg.Amount, walletAddress, targetAddress)
 	if err != nil {
-		return &types.MsgWithdrawResponse{}, err
+		return &types.MsgWithdrawResponse{}, types.ErrWithdrawFailure
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -109,11 +109,11 @@ func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return &types.MsgFoundationDepositResponse{}, err
+		return &types.MsgFoundationDepositResponse{}, types.ErrInvalidAddress
 	}
 	err = k.FoundationDeposit(ctx, msg.Amount, from)
 	if err != nil {
-		return &types.MsgFoundationDepositResponse{}, err
+		return &types.MsgFoundationDepositResponse{}, sdkerrors.Wrap(types.ErrFoundationDepositFailure, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -136,7 +136,7 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 	for _, reporter := range msg.Reporters {
 		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
 		if err != nil {
-			return &types.MsgSlashingResourceNodeResponse{}, err
+			return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAddress
 		}
 		if !(k.IsSPNode(ctx, reporterSdsAddr)) {
 			errMsg := fmt.Sprint("Slashing msg is not sent by a meta node")
@@ -145,17 +145,20 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 	}
 	networkAddress, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgSlashingResourceNodeResponse{}, err
+		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAddress
 	}
 	walletAddress, err := sdk.AccAddressFromBech32(msg.WalletAddress)
 	if err != nil {
-		return &types.MsgSlashingResourceNodeResponse{}, err
+		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAddress
 	}
 	slashing, ok := sdk.NewIntFromString(msg.Slashing.String())
 	if !ok {
 		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAmount
 	}
 	amt, nodeType, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, slashing, msg.Suspend)
+	if err != nil {
+		return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrSlashingResourceNodeFailure, err.Error())
+	}
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeSlashing,
@@ -166,5 +169,5 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
 		),
 	})
-	return &types.MsgSlashingResourceNodeResponse{}, err
+	return &types.MsgSlashingResourceNodeResponse{}, nil
 }

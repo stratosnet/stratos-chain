@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 )
 
@@ -155,13 +156,13 @@ func validateMiningRewardParams(i interface{}) error {
 
 func (p Params) ValidateBasic() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
 	}
 	if err := validateRewardDenom(p.RewardDenom); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate reward denomination")
 	}
 	if err := validateMatureEpoch(p.MatureEpoch); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mature epoch")
 	}
 	return nil
 }

@@ -66,7 +66,7 @@ func (msg MsgCreateResourceNode) Type() string { return TypeMsgCreateResourceNod
 func (msg MsgCreateResourceNode) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
@@ -79,7 +79,7 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -154,7 +154,7 @@ func (msg MsgCreateMetaNode) Type() string { return TypeCreateMetaNodeTx }
 func (msg MsgCreateMetaNode) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
@@ -168,7 +168,7 @@ func (msg MsgCreateMetaNode) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -242,7 +242,7 @@ func (msg MsgRemoveResourceNode) GetSignBytes() []byte {
 func (msg MsgRemoveResourceNode) ValidateBasic() error {
 	sdsAddress, err := stratos.SdsAddressFromBech32(msg.ResourceNodeAddress)
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if sdsAddress.Empty() {
 		return ErrEmptyResourceNodeAddr
@@ -250,7 +250,7 @@ func (msg MsgRemoveResourceNode) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -291,7 +291,7 @@ func (msg MsgRemoveMetaNode) GetSignBytes() []byte {
 func (msg MsgRemoveMetaNode) ValidateBasic() error {
 	sdsAddress, err := stratos.SdsAddressFromBech32(msg.MetaNodeAddress)
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if sdsAddress.Empty() {
 		return ErrEmptyMetaNodeAddr
@@ -299,7 +299,7 @@ func (msg MsgRemoveMetaNode) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -343,7 +343,7 @@ func (msg MsgUpdateResourceNode) GetSignBytes() []byte {
 func (msg MsgUpdateResourceNode) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
@@ -351,7 +351,7 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -403,7 +403,7 @@ func (msg MsgUpdateResourceNodeStake) GetSignBytes() []byte {
 func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
@@ -411,7 +411,7 @@ func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -458,7 +458,7 @@ func (msg MsgUpdateMetaNode) GetSignBytes() []byte {
 func (msg MsgUpdateMetaNode) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
@@ -466,7 +466,7 @@ func (msg MsgUpdateMetaNode) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -514,7 +514,7 @@ func (msg MsgUpdateMetaNodeStake) GetSignBytes() []byte {
 func (msg MsgUpdateMetaNodeStake) ValidateBasic() error {
 	netAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return err
+		return ErrInvalidNetworkAddr
 	}
 	if netAddr.Empty() {
 		return ErrEmptyNodeNetworkAddress
@@ -522,7 +522,7 @@ func (msg MsgUpdateMetaNodeStake) ValidateBasic() error {
 
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidOwnerAddr
 	}
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
@@ -553,15 +553,15 @@ func (msg MsgMetaNodeRegistrationVote) Type() string { return TypeMetaNodeRegist
 func (msg MsgMetaNodeRegistrationVote) ValidateBasic() error {
 	candidateNetworkAddress, err := stratos.SdsAddressFromBech32(msg.CandidateNetworkAddress)
 	if err != nil {
-		return err
+		return ErrInvalidCandidateNetworkAddr
 	}
 	if candidateNetworkAddress.Empty() {
-		return ErrEmptyNodeNetworkAddress
+		return ErrEmptyCandidateNetworkAddr
 	}
 
 	voterNetworkAddr, err := stratos.SdsAddressFromBech32(msg.VoterNetworkAddress)
 	if err != nil {
-		return err
+		return ErrInvalidVoterNetworkAddr
 	}
 	if voterNetworkAddr.Empty() {
 		return ErrEmptyVoterNetworkAddr
@@ -569,7 +569,7 @@ func (msg MsgMetaNodeRegistrationVote) ValidateBasic() error {
 
 	candidateOwnerAddr, err := sdk.AccAddressFromBech32(msg.CandidateOwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidCandidateOwnerAddr
 	}
 	if candidateOwnerAddr.Empty() {
 		return ErrEmptyCandidateOwnerAddr
@@ -577,7 +577,7 @@ func (msg MsgMetaNodeRegistrationVote) ValidateBasic() error {
 
 	voterOwnerAddr, err := sdk.AccAddressFromBech32(msg.VoterOwnerAddress)
 	if err != nil {
-		return err
+		return ErrInvalidVoterOwnerAddr
 	}
 	if voterOwnerAddr.Empty() {
 		return ErrEmptyVoterOwnerAddr

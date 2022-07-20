@@ -25,6 +25,10 @@ const (
 	codeErrEmptyCandidateOwnerAddr
 	codeErrEmptyVoterNetworkAddr
 	codeErrEmptyVoterOwnerAddr
+	codeErrInvalidCandidateNetworkAddr
+	codeErrInvalidCandidateOwnerAddr
+	codeErrInvalidVoterNetworkAddr
+	codeErrInvalidVoterOwnerAddr
 	codeErrSameAddr
 	codeErrInvalidOwnerAddr
 	codeErrInvalidVoterAddr
@@ -53,6 +57,15 @@ const (
 	codeErrNoNodeFound
 	codeErrInitialBalanceNotZero
 	codeErrInvalidNodeStat
+	codeErrRegisterResourceNode
+	codeErrRegisterMetaNode
+	codeErrUnbondResourceNode
+	codeErrUnbondMetaNode
+	codeErrUpdateResourceNode
+	codeErrUpdateMetaNode
+	codeErrUpdateResourceNodeStake
+	codeErrUpdateMetaNodeStake
+	codeErrVoteMetaNode
 )
 
 var (
@@ -76,6 +89,10 @@ var (
 	ErrEmptyCandidateOwnerAddr            = sdkerrors.Register(ModuleName, codeErrEmptyCandidateOwnerAddr, "missing candidate owner address")
 	ErrEmptyVoterNetworkAddr              = sdkerrors.Register(ModuleName, codeErrEmptyVoterNetworkAddr, "missing voter network address")
 	ErrEmptyVoterOwnerAddr                = sdkerrors.Register(ModuleName, codeErrEmptyVoterOwnerAddr, "missing voter owner address")
+	ErrInvalidCandidateNetworkAddr        = sdkerrors.Register(ModuleName, codeErrInvalidCandidateNetworkAddr, "invalid candidate network address")
+	ErrInvalidCandidateOwnerAddr          = sdkerrors.Register(ModuleName, codeErrInvalidCandidateOwnerAddr, "invalid candidate owner address")
+	ErrInvalidVoterNetworkAddr            = sdkerrors.Register(ModuleName, codeErrInvalidVoterNetworkAddr, "invalid voter network address")
+	ErrInvalidVoterOwnerAddr              = sdkerrors.Register(ModuleName, codeErrInvalidVoterOwnerAddr, "invalid voter owner address")
 	ErrSameAddr                           = sdkerrors.Register(ModuleName, codeErrSameAddr, "node address should not same as the voter address")
 	ErrInvalidOwnerAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
 	ErrInvalidVoterAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidVoterAddr, "invalid voter address")
@@ -104,4 +121,13 @@ var (
 	ErrNoNodeFound                        = sdkerrors.Register(ModuleName, codeErrNoNodeFound, "node does not exist ")
 	ErrInitialBalanceNotZero              = sdkerrors.Register(ModuleName, codeErrInitialBalanceNotZero, "initial balance isn't zero ")
 	ErrInvalidNodeStat                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeStat, "invalid node status")
+	ErrRegisterResourceNode               = sdkerrors.Register(ModuleName, codeErrRegisterResourceNode, "failed to register resource node")
+	ErrRegisterMetaNode                   = sdkerrors.Register(ModuleName, codeErrRegisterMetaNode, "failed to register meta node")
+	ErrUnbondResourceNode                 = sdkerrors.Register(ModuleName, codeErrUnbondResourceNode, "failed to unbond resource node")
+	ErrUnbondMetaNode                     = sdkerrors.Register(ModuleName, codeErrUnbondMetaNode, "failed to unbond meta node")
+	ErrUpdateResourceNode                 = sdkerrors.Register(ModuleName, codeErrUpdateResourceNode, "failed to update resource node")
+	ErrUpdateMetaNode                     = sdkerrors.Register(ModuleName, codeErrUpdateMetaNode, "failed to update meta node")
+	ErrUpdateResourceNodeStake            = sdkerrors.Register(ModuleName, codeErrUpdateResourceNodeStake, "failed to update stake for resource node")
+	ErrUpdateMetaNodeStake                = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeStake, "failed to update stake for meta node")
+	ErrVoteMetaNode                       = sdkerrors.Register(ModuleName, codeErrVoteMetaNode, "failed to vote meta node")
 )
