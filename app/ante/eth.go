@@ -4,9 +4,6 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/tendermint/tendermint/rpc/core"
-	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
@@ -563,9 +560,9 @@ func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		return next(ctx, tx, simulate)
 	}
 
-	res, err := core.UnconfirmedTxs(&rpctypes.Context{}, nil)
-	if err != nil {
-		return ctx, sdkerrors.Wrapf(sdkerrors.ErrPanic, "get pending txs from mem pool failed")
+	overriddenTxs := tod.evmKeeper.GetOverriddenTxHashes(ctx)
+	if len(overriddenTxs) == 0 {
+		return next(ctx, tx, simulate)
 	}
 
 	for _, msg := range tx.GetMsgs() {
@@ -574,36 +571,9 @@ func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
-		}
-
-		from := msgEthTx.GetFrom()
-		nonce := txData.GetNonce()
-		gas := txData.GetGas()
-
-		for _, txBz := range res.Txs {
-			pendingTx, err := tod.txDecoder(txBz)
-			if err != nil {
-				return ctx, err
-			}
-
-			for _, pendingMsg := range pendingTx.GetMsgs() {
-				pendingMsgEthTx, ok := pendingMsg.(*evmtypes.MsgEthereumTx)
-				if !ok {
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", pendingMsg, (*evmtypes.MsgEthereumTx)(nil))
-				}
-
-				pendingTxData, err := evmtypes.UnpackTxData(pendingMsgEthTx.Data)
-				if err != nil {
-					return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
-				}
-
-				if pendingMsgEthTx.GetFrom().Equals(from) && pendingTxData.GetNonce() == nonce && pendingTxData.GetGas() > gas {
-					//find tx has same nonce & gas from same sender, let this tx fail in order to execute pendingMsgEthTx first
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is about to be overridden")
-				}
+		for _, overriddenTxHash := range overriddenTxs {
+			if msgEthTx.Hash == overriddenTxHash {
+				return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is overridden")
 			}
 		}
 	}
