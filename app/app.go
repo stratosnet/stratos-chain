@@ -610,7 +610,6 @@ func NewInitApp(
 		SignModeHandler: encodingConfig.TxConfig.SignModeHandler(),
 		SigGasConsumer:  ante.DefaultSigVerificationGasConsumer,
 		MaxTxGasWanted:  maxGasWanted,
-		TxDecoder:       encodingConfig.TxConfig.TxDecoder(),
 	}
 
 	if err := options.Validate(); err != nil {

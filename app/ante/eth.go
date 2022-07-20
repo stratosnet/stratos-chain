@@ -541,17 +541,13 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 }
 
 type EthTxOverrideDecorator struct {
-	ak        evmtypes.AccountKeeper
 	evmKeeper EVMKeeper
-	txDecoder sdk.TxDecoder
 }
 
 // NewEthTxOverrideDecorator creates a new EthTxOverrideDecorator
-func NewEthTxOverrideDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper, txDecoder sdk.TxDecoder) EthTxOverrideDecorator {
+func NewEthTxOverrideDecorator(ek EVMKeeper) EthTxOverrideDecorator {
 	return EthTxOverrideDecorator{
-		ak:        ak,
 		evmKeeper: ek,
-		txDecoder: txDecoder,
 	}
 }
 
