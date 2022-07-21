@@ -7,11 +7,7 @@ import (
 	"github.com/tendermint/tendermint/rpc/core"
 	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
 
-	sdkcodec "github.com/cosmos/cosmos-sdk/codec"
-	sdkcodectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
-
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/stratosnet/stratos-chain/x/evm/types"
@@ -33,7 +29,6 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	k.SetBaseFeeParam(ctx, baseFee)
 
 	if !ctx.IsCheckTx() {
-
 		overriddenTxHashes = make([]string, 0)
 		block, err := core.BlockByHash(&rpctypes.Context{}, ctx.HeaderHash().Bytes())
 		rawTxs := block.Block.Txs
@@ -41,13 +36,8 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 			panic(err)
 		}
 
-		interfaceRegistry := sdkcodectypes.NewInterfaceRegistry()
-		marshaler := sdkcodec.NewProtoCodec(interfaceRegistry)
-		txConfig := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
-		txDecoder := txConfig.TxDecoder()
-
 		for _, rawTx := range rawTxs {
-			tx, err := txDecoder(rawTx)
+			tx, err := k.txDecoder(rawTx)
 			if err != nil {
 				panic(err)
 			}
@@ -68,7 +58,7 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 				gasPrice := txData.GetGasPrice()
 
 				for _, rawTx2 := range rawTxs {
-					tx2, err := txDecoder(rawTx2)
+					tx2, err := k.txDecoder(rawTx2)
 					if err != nil {
 						continue
 					}
