@@ -44,16 +44,15 @@ const (
 )
 
 // APICreator creates the JSON-RPC API implementations.
-type APICreator = func(*server.Context, client.Context, *rpcclient.WSClient, string) []rpc.API
+type APICreator = func(*server.Context, client.Context, *rpcclient.WSClient) []rpc.API
 
 // apiCreators defines the JSON-RPC API namespaces.
 var apiCreators map[string]APICreator
 
 func init() {
 	apiCreators = map[string]APICreator{
-		EthNamespace: func(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient, evmChainId string) []rpc.API {
+		EthNamespace: func(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient) []rpc.API {
 			nonceLock := new(types.AddrLocker)
-			clientCtx = clientCtx.WithChainID(evmChainId)
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
@@ -70,7 +69,7 @@ func init() {
 				},
 			}
 		},
-		Web3Namespace: func(*server.Context, client.Context, *rpcclient.WSClient, string) []rpc.API {
+		Web3Namespace: func(*server.Context, client.Context, *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: Web3Namespace,
@@ -80,8 +79,7 @@ func init() {
 				},
 			}
 		},
-		NetNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			clientCtx = clientCtx.WithChainID(evmChainId)
+		NetNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: NetNamespace,
@@ -91,8 +89,7 @@ func init() {
 				},
 			}
 		},
-		PersonalNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			clientCtx = clientCtx.WithChainID(evmChainId)
+		PersonalNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
@@ -103,7 +100,7 @@ func init() {
 				},
 			}
 		},
-		TxPoolNamespace: func(ctx *server.Context, _ client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
+		TxPoolNamespace: func(ctx *server.Context, _ client.Context, _ *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: TxPoolNamespace,
@@ -113,8 +110,7 @@ func init() {
 				},
 			}
 		},
-		DebugNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			clientCtx = clientCtx.WithChainID(evmChainId)
+		DebugNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
@@ -125,8 +121,7 @@ func init() {
 				},
 			}
 		},
-		MinerNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient, evmChainId string) []rpc.API {
-			clientCtx = clientCtx.WithChainID(evmChainId)
+		MinerNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
@@ -141,12 +136,12 @@ func init() {
 }
 
 // GetRPCAPIs returns the list of all APIs
-func GetRPCAPIs(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient, selectedAPIs []string, evmChainId string) []rpc.API {
+func GetRPCAPIs(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient, selectedAPIs []string) []rpc.API {
 	var apis []rpc.API
 
 	for _, ns := range selectedAPIs {
 		if creator, ok := apiCreators[ns]; ok {
-			apis = append(apis, creator(ctx, clientCtx, tmWSClient, evmChainId)...)
+			apis = append(apis, creator(ctx, clientCtx, tmWSClient)...)
 		} else {
 			ctx.Logger.Error("invalid namespace value", "namespace", ns)
 		}

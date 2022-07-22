@@ -3,12 +3,18 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/stratosnet/stratos-chain/x/evm/types"
 	abci "github.com/tendermint/tendermint/abci/types"
+	"github.com/tendermint/tendermint/rpc/core"
+	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/stratosnet/stratos-chain/x/evm/types"
+)
+
+var (
+	overriddenTxHashes map[string]struct{}
 )
 
 // BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.
@@ -21,6 +27,66 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	}
 
 	k.SetBaseFeeParam(ctx, baseFee)
+
+	if !ctx.IsCheckTx() {
+		overriddenTxHashes = make(map[string]struct{}, 0)
+		block, err := core.BlockByHash(&rpctypes.Context{}, ctx.HeaderHash().Bytes())
+		rawTxs := block.Block.Txs
+		if err != nil {
+			panic(err)
+		}
+
+		for _, rawTx := range rawTxs {
+			tx, err := k.txDecoder(rawTx)
+			if err != nil {
+				panic(err)
+			}
+
+			for _, msg := range tx.GetMsgs() {
+				msgEthTx, ok := msg.(*types.MsgEthereumTx)
+				if !ok {
+					continue
+				}
+
+				txData, err := types.UnpackTxData(msgEthTx.Data)
+				if err != nil {
+					panic(err)
+				}
+
+				from := msgEthTx.GetFrom()
+				nonce := txData.GetNonce()
+				gasPrice := txData.GetGasPrice()
+
+				for _, rawTx2 := range rawTxs {
+					tx2, err := k.txDecoder(rawTx2)
+					if err != nil {
+						continue
+					}
+
+					for _, msg2 := range tx2.GetMsgs() {
+						msgEthTx2, ok := msg2.(*types.MsgEthereumTx)
+						if !ok {
+							continue
+						}
+
+						txData2, err := types.UnpackTxData(msgEthTx2.Data)
+						if err != nil {
+							panic(err)
+						}
+
+						if from.Equals(msgEthTx2.GetFrom()) && nonce == txData2.GetNonce() && gasPrice.Cmp(txData2.GetGasPrice()) < 0 {
+							// find tx has same nonce with higher gas price from same sender,
+							// record tx hash to overriddenTxHashes, let it fail in anteHandler
+							// overriddenTxHashes need to be cleared in the EndBlock function
+							overriddenTxHashes[msgEthTx.Hash] = struct{}{}
+							break
+						}
+					}
+				}
+
+			}
+		}
+	}
 
 	// Store current base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -39,7 +105,7 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 		k.Logger(ctx).Error("block gas meter is nil when setting block gas used")
 		panic("block gas meter is nil when setting block gas used")
 	}
-
+	overriddenTxHashes = nil
 	gasUsed := ctx.BlockGasMeter().GasConsumedToLimit()
 
 	k.SetBlockGasUsed(ctx, gasUsed)
@@ -57,4 +123,11 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 	k.EmitBlockBloomEvent(infCtx, bloom)
 
 	return []abci.ValidatorUpdate{}
+}
+
+func (k *Keeper) GetOverriddenTxHashMap(ctx sdk.Context) map[string]struct{} {
+	if ctx.IsCheckTx() {
+		return nil
+	}
+	return overriddenTxHashes
 }
