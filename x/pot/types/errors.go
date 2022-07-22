@@ -4,33 +4,64 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
+const (
+	codeErrInvalid = uint32(iota) + 2 // NOTE: code 1 is reserved for internal errors
+	codeErrUnknownAccountAddress
+	codeErrOutOfIssuance
+	codeErrWithdrawAmountInvalid
+	codeErrMissingWalletAddress
+	codeErrMissingTargetAddress
+	codeErrInsufficientMatureTotal
+	codeErrInsufficientFoundationAccBalance
+	codeErrInsufficientUnissuedPrePayBalance
+	codeErrNotTheOwner
+	codeErrMatureEpoch
+	codeErrEmptyFromAddr
+	codeErrEmptyReporterAddr
+	codeErrEmptyWalletVolumes
+	codeErrEpochNotPositive
+	codeErrEmptyReportReference
+	codeErrEmptyReporterOwnerAddr
+	codeErrNegativeVolume
+	codeErrFoundationDepositAmountInvalid
+	codeErrBLSSignatureInvalid
+	codeErrBLSTxDataInvalid
+	codeErrBLSPubkeysInvalid
+	codeErrReporterAddress
+	codeErrNodeStatusSuspend
+	codeErrInvalidAmount
+	codeErrCannotFindReport
+	codeErrCannotFindReward
+	codeErrInvalidAddress
+)
+
 var (
-	ErrInvalid                           = sdkerrors.Register(ModuleName, 1, "error invalid")
-	ErrUnknownAccountAddress             = sdkerrors.Register(ModuleName, 2, "account address does not exist")
-	ErrOutOfIssuance                     = sdkerrors.Register(ModuleName, 3, "mining reward reaches the issuance limit")
-	ErrWithdrawAmountInvalid             = sdkerrors.Register(ModuleName, 4, "withdraw amount is invalid")
-	ErrMissingWalletAddress              = sdkerrors.Register(ModuleName, 5, "missing wallet address")
-	ErrMissingTargetAddress              = sdkerrors.Register(ModuleName, 6, "missing target address")
-	ErrInsufficientMatureTotal           = sdkerrors.Register(ModuleName, 7, "insufficient mature total")
-	ErrInsufficientFoundationAccBalance  = sdkerrors.Register(ModuleName, 8, "insufficient foundation account balance")
-	ErrInsufficientUnissuedPrePayBalance = sdkerrors.Register(ModuleName, 9, "insufficient unissued prepay balance")
-	ErrNotTheOwner                       = sdkerrors.Register(ModuleName, 10, "not the owner of the node")
-	ErrMatureEpoch                       = sdkerrors.Register(ModuleName, 11, "the value of epoch must be positive and greater than its previous one")
-	ErrEmptyFromAddr                     = sdkerrors.Register(ModuleName, 12, "missing from address")
-	ErrEmptyReporterAddr                 = sdkerrors.Register(ModuleName, 13, "missing reporter address")
-	ErrEmptyWalletVolumes                = sdkerrors.Register(ModuleName, 14, "wallet volumes list empty")
-	ErrEpochNotPositive                  = sdkerrors.Register(ModuleName, 15, "report epoch is not positive")
-	ErrEmptyReportReference              = sdkerrors.Register(ModuleName, 16, "missing report reference")
-	ErrEmptyReporterOwnerAddr            = sdkerrors.Register(ModuleName, 17, "missing reporter owner address")
-	ErrNegativeVolume                    = sdkerrors.Register(ModuleName, 18, "report volume is negative")
-	ErrFoundationDepositAmountInvalid    = sdkerrors.Register(ModuleName, 19, "foundation deposit amount is invalid")
-	ErrBLSSignatureInvalid               = sdkerrors.Register(ModuleName, 20, "BLS signature is invalid")
-	ErrBLSTxDataInvalid                  = sdkerrors.Register(ModuleName, 21, "BLS signature txData is invalid")
-	ErrBLSPubkeysInvalid                 = sdkerrors.Register(ModuleName, 22, "BLS signature pubkeys are invalid")
-	ErrReporterAddress                   = sdkerrors.Register(ModuleName, 23, "invalid reporter address")
-	ErrNodeStatusSuspend                 = sdkerrors.Register(ModuleName, 24, "node already in status expected")
-	ErrInvalidAmount                     = sdkerrors.Register(ModuleName, 25, "invalid amount")
-	ErrCannotFindReport                  = sdkerrors.Register(ModuleName, 26, "Can not find report")
-	ErrCannotFindReward                  = sdkerrors.Register(ModuleName, 27, "Can not find Pot rewards")
-	ErrInvalidAddress                    = sdkerrors.Register(ModuleName, 28, "invalid address")
+	ErrInvalid                           = sdkerrors.Register(ModuleName, codeErrInvalid, "error invalid")
+	ErrUnknownAccountAddress             = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
+	ErrOutOfIssuance                     = sdkerrors.Register(ModuleName, codeErrOutOfIssuance, "mining reward reaches the issuance limit")
+	ErrWithdrawAmountInvalid             = sdkerrors.Register(ModuleName, codeErrWithdrawAmountInvalid, "withdraw amount is invalid")
+	ErrMissingWalletAddress              = sdkerrors.Register(ModuleName, codeErrMissingWalletAddress, "missing wallet address")
+	ErrMissingTargetAddress              = sdkerrors.Register(ModuleName, codeErrMissingTargetAddress, "missing target address")
+	ErrInsufficientMatureTotal           = sdkerrors.Register(ModuleName, codeErrInsufficientMatureTotal, "insufficient mature total")
+	ErrInsufficientFoundationAccBalance  = sdkerrors.Register(ModuleName, codeErrInsufficientFoundationAccBalance, "insufficient foundation account balance")
+	ErrInsufficientUnissuedPrePayBalance = sdkerrors.Register(ModuleName, codeErrInsufficientUnissuedPrePayBalance, "insufficient unissued prepay balance")
+	ErrNotTheOwner                       = sdkerrors.Register(ModuleName, codeErrNotTheOwner, "not the owner of the node")
+	ErrMatureEpoch                       = sdkerrors.Register(ModuleName, codeErrMatureEpoch, "the value of epoch must be positive and greater than its previous one")
+	ErrEmptyFromAddr                     = sdkerrors.Register(ModuleName, codeErrEmptyFromAddr, "missing from address")
+	ErrEmptyReporterAddr                 = sdkerrors.Register(ModuleName, codeErrEmptyReporterAddr, "missing reporter address")
+	ErrEmptyWalletVolumes                = sdkerrors.Register(ModuleName, codeErrEmptyWalletVolumes, "wallet volumes list empty")
+	ErrEpochNotPositive                  = sdkerrors.Register(ModuleName, codeErrEpochNotPositive, "report epoch is not positive")
+	ErrEmptyReportReference              = sdkerrors.Register(ModuleName, codeErrEmptyReportReference, "missing report reference")
+	ErrEmptyReporterOwnerAddr            = sdkerrors.Register(ModuleName, codeErrEmptyReporterOwnerAddr, "missing reporter owner address")
+	ErrNegativeVolume                    = sdkerrors.Register(ModuleName, codeErrNegativeVolume, "report volume is negative")
+	ErrFoundationDepositAmountInvalid    = sdkerrors.Register(ModuleName, codeErrFoundationDepositAmountInvalid, "foundation deposit amount is invalid")
+	ErrBLSSignatureInvalid               = sdkerrors.Register(ModuleName, codeErrBLSSignatureInvalid, "BLS signature is invalid")
+	ErrBLSTxDataInvalid                  = sdkerrors.Register(ModuleName, codeErrBLSTxDataInvalid, "BLS signature txData is invalid")
+	ErrBLSPubkeysInvalid                 = sdkerrors.Register(ModuleName, codeErrBLSPubkeysInvalid, "BLS signature pubkeys are invalid")
+	ErrReporterAddress                   = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
+	ErrNodeStatusSuspend                 = sdkerrors.Register(ModuleName, codeErrNodeStatusSuspend, "node already in status expected")
+	ErrInvalidAmount                     = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
+	ErrCannotFindReport                  = sdkerrors.Register(ModuleName, codeErrCannotFindReport, "Can not find report")
+	ErrCannotFindReward                  = sdkerrors.Register(ModuleName, codeErrCannotFindReward, "Can not find Pot rewards")
+	ErrInvalidAddress                    = sdkerrors.Register(ModuleName, codeErrInvalidAddress, "invalid address")
 )

@@ -4,17 +4,18 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/cosmos/cosmos-sdk/client/context"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
+	//"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 //registerTxRoutes registers pot-related REST Tx handlers to a router
-func registerTxRoutes(cliCtx context.CLIContext, r *mux.Router) {
+func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/volume_report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/withdraw", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/foundation_deposit", foundationDepositHandlerFn(cliCtx)).Methods("POST")
@@ -53,10 +54,10 @@ type (
 )
 
 // volumeReportRequestHandlerFn rest API handler to create a volume report tx.
-func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func volumeReportRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req volumeReportReq
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -76,9 +77,20 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 		reportReference := req.ReportReference
 		epoch := sdk.NewInt(req.Epoch)
 
-		var walletVolumes []types.SingleWalletVolume
+		var walletVolumes []*types.SingleWalletVolume
 		for _, v := range req.WalletVolumes {
-			singleWalletVolume := types.NewSingleWalletVolume(v.WalletAddress, v.Volume)
+			walletAddr, err := sdk.AccAddressFromBech32(v.WalletAddress)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+				return
+			}
+			volumeStr := v.Volume.String()
+			volume, ok := sdk.NewIntFromString(volumeStr)
+			if !ok {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid volume")
+				return
+			}
+			singleWalletVolume := types.NewSingleWalletVolume(walletAddr, volume)
 			walletVolumes = append(walletVolumes, singleWalletVolume)
 		}
 
@@ -94,16 +106,17 @@ func volumeReportRequestHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+		//utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }
 
 // rest API handler Withdraw pot rewards
-func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func withdrawPotRewardsHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req withdrawRewardsReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -140,16 +153,16 @@ func withdrawPotRewardsHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+		//utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }
 
-func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func foundationDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req foundationDepositReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -178,7 +191,8 @@ func foundationDepositHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			return
 		}
 
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+		//utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }
 
@@ -193,7 +207,7 @@ func checkAccountAddressVar(w http.ResponseWriter, r *http.Request, accountAddrS
 }
 
 func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (sdk.Coins, bool) {
-	amount, err := sdk.ParseCoins(amountStr)
+	amount, err := sdk.ParseCoinsNormalized(amountStr)
 	if err != nil {
 		rest.WriteErrorResponse(w, http.StatusBadRequest, "invalid withdraw amount")
 		return sdk.Coins{}, false
@@ -201,11 +215,11 @@ func checkAmountVar(w http.ResponseWriter, r *http.Request, amountStr string) (s
 	return amount, true
 }
 
-func slashingResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
+func slashingResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var req slashingResourceNodeReq
 
-		if !rest.ReadRESTReq(w, r, cliCtx.Codec, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, "failed to parse request")
 			return
 		}
@@ -222,7 +236,7 @@ func slashingResourceNodeHandlerFn(cliCtx context.CLIContext) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-
-		utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+		//utils.WriteGenerateStdTxResponse(w, cliCtx, req.BaseReq, []sdk.Msg{msg})
 	}
 }

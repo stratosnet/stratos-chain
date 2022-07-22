@@ -8,16 +8,19 @@ import (
 
 const (
 	FoundationAccount = "foundation_account"
+	MiningRewardPool  = "mining_reward_pool"
+	TrafficRewardPool = "traffic_reward_pool"
+	TotalRewardPool   = "total_reward_pool"
 )
 
 type DistributeGoal struct {
 	BlockChainRewardToValidatorFromMiningPool  sdk.Coin `json:"block_chain_reward_to_validator_from_mining_pool" yaml:"block_chain_reward_to_validator_from_mining_pool"`   // 20% mining reward * stakeOfAllValidators / totalStake
 	BlockChainRewardToValidatorFromTrafficPool sdk.Coin `json:"block_chain_reward_to_validator_from_traffic_pool" yaml:"block_chain_reward_to_validator_from_traffic_pool"` // 20% traffic reward * stakeOfAllValidators / totalStake
 
-	BlockChainRewardToIndexingNodeFromMiningPool  sdk.Coin `json:"block_chain_reward_to_indexing_node_from_mining_pool" yaml:"block_chain_reward_to_indexing_node_from_mining_pool"`   // 20% mining reward * stakeOfAllIndexingNodes / totalStake
-	BlockChainRewardToIndexingNodeFromTrafficPool sdk.Coin `json:"block_chain_reward_to_indexing_node_from_traffic_pool" yaml:"block_chain_reward_to_indexing_node_from_traffic_pool"` // 20% traffic reward * stakeOfAllValidators / totalStake
-	MetaNodeRewardToIndexingNodeFromMiningPool    sdk.Coin `json:"meta_node_reward_to_indexing_node_from_mining_pool" yaml:"meta_node_reward_to_indexing_node_from_mining_pool"`       // 20% of mining reward, distribute equally
-	MetaNodeRewardToIndexingNodeFromTrafficPool   sdk.Coin `json:"meta_node_reward_to_indexing_node_from_traffic_pool" yaml:"meta_node_reward_to_indexing_node_from_traffic_pool"`     // 20% of traffic reward, distribute equally
+	BlockChainRewardToMetaNodeFromMiningPool  sdk.Coin `json:"block_chain_reward_to_meta_node_from_mining_pool" yaml:"block_chain_reward_to_meta_node_from_mining_pool"`   // 20% mining reward * stakeOfAllMetaNodes / totalStake
+	BlockChainRewardToMetaNodeFromTrafficPool sdk.Coin `json:"block_chain_reward_to_meta_node_from_traffic_pool" yaml:"block_chain_reward_to_meta_node_from_traffic_pool"` // 20% traffic reward * stakeOfAllValidators / totalStake
+	MetaNodeRewardToMetaNodeFromMiningPool    sdk.Coin `json:"meta_node_reward_to_meta_node_from_mining_pool" yaml:"meta_node_reward_to_meta_node_from_mining_pool"`       // 20% of mining reward, distribute equally
+	MetaNodeRewardToMetaNodeFromTrafficPool   sdk.Coin `json:"meta_node_reward_to_meta_node_from_traffic_pool" yaml:"meta_node_reward_to_meta_node_from_traffic_pool"`     // 20% of traffic reward, distribute equally
 
 	BlockChainRewardToResourceNodeFromMiningPool  sdk.Coin `json:"block_chain_reward_to_resource_node_from_mining_pool" yaml:"block_chain_reward_to_resource_node_from_mining_pool"`   // 20% mining reward * stakeOfAllResourceNodes / totalStake
 	BlockChainRewardToResourceNodeFromTrafficPool sdk.Coin `json:"block_chain_reward_to_resource_node_from_traffic_pool" yaml:"block_chain_reward_to_resource_node_from_traffic_pool"` // 20% traffic reward * stakeOfAllValidators / totalStake
@@ -26,19 +29,19 @@ type DistributeGoal struct {
 }
 
 func NewDistributeGoal(
-	blockChainRewardToValidatorFromMiningPool sdk.Coin, blockChainRewardToResourceNodeFromMiningPool sdk.Coin, blockChainRewardToIndexingNodeFromMiningPool sdk.Coin,
-	blockChainRewardToValidatorFromTrafficPool sdk.Coin, blockChainRewardToResourceNodeFromTrafficPool sdk.Coin, blockChainRewardToIndexingNodeFromTrafficPool sdk.Coin,
-	metaNodeRewardToIndexingNodeFromMiningPool sdk.Coin, metaNodeRewardToIndexingNodeFromTrafficPool sdk.Coin, trafficRewardToResourceNodeFromMiningPool sdk.Coin,
+	blockChainRewardToValidatorFromMiningPool sdk.Coin, blockChainRewardToResourceNodeFromMiningPool sdk.Coin, blockChainRewardToMetaNodeFromMiningPool sdk.Coin,
+	blockChainRewardToValidatorFromTrafficPool sdk.Coin, blockChainRewardToResourceNodeFromTrafficPool sdk.Coin, blockChainRewardToMetaNodeFromTrafficPool sdk.Coin,
+	metaNodeRewardToMetaNodeFromMiningPool sdk.Coin, metaNodeRewardToMetaNodeFromTrafficPool sdk.Coin, trafficRewardToResourceNodeFromMiningPool sdk.Coin,
 	trafficRewardToResourceNodeFromTrafficPool sdk.Coin) DistributeGoal {
 	return DistributeGoal{
 		BlockChainRewardToValidatorFromMiningPool:     blockChainRewardToValidatorFromMiningPool,
 		BlockChainRewardToResourceNodeFromMiningPool:  blockChainRewardToResourceNodeFromMiningPool,
-		BlockChainRewardToIndexingNodeFromMiningPool:  blockChainRewardToIndexingNodeFromMiningPool,
+		BlockChainRewardToMetaNodeFromMiningPool:      blockChainRewardToMetaNodeFromMiningPool,
 		BlockChainRewardToValidatorFromTrafficPool:    blockChainRewardToValidatorFromTrafficPool,
 		BlockChainRewardToResourceNodeFromTrafficPool: blockChainRewardToResourceNodeFromTrafficPool,
-		BlockChainRewardToIndexingNodeFromTrafficPool: blockChainRewardToIndexingNodeFromTrafficPool,
-		MetaNodeRewardToIndexingNodeFromMiningPool:    metaNodeRewardToIndexingNodeFromMiningPool,
-		MetaNodeRewardToIndexingNodeFromTrafficPool:   metaNodeRewardToIndexingNodeFromTrafficPool,
+		BlockChainRewardToMetaNodeFromTrafficPool:     blockChainRewardToMetaNodeFromTrafficPool,
+		MetaNodeRewardToMetaNodeFromMiningPool:        metaNodeRewardToMetaNodeFromMiningPool,
+		MetaNodeRewardToMetaNodeFromTrafficPool:       metaNodeRewardToMetaNodeFromTrafficPool,
 		TrafficRewardToResourceNodeFromMiningPool:     trafficRewardToResourceNodeFromMiningPool,
 		TrafficRewardToResourceNodeFromTrafficPool:    trafficRewardToResourceNodeFromTrafficPool,
 	}
@@ -77,11 +80,11 @@ func (d DistributeGoal) AddBlockChainRewardToResourceNodeFromMiningPool(reward s
 	return d
 }
 
-func (d DistributeGoal) AddBlockChainRewardToIndexingNodeFromMiningPool(reward sdk.Coin) DistributeGoal {
-	if d.BlockChainRewardToIndexingNodeFromMiningPool.IsEqual(sdk.Coin{}) {
-		d.BlockChainRewardToIndexingNodeFromMiningPool = reward
+func (d DistributeGoal) AddBlockChainRewardToMetaNodeFromMiningPool(reward sdk.Coin) DistributeGoal {
+	if d.BlockChainRewardToMetaNodeFromMiningPool.IsEqual(sdk.Coin{}) {
+		d.BlockChainRewardToMetaNodeFromMiningPool = reward
 	} else {
-		d.BlockChainRewardToIndexingNodeFromMiningPool = d.BlockChainRewardToIndexingNodeFromMiningPool.Add(reward)
+		d.BlockChainRewardToMetaNodeFromMiningPool = d.BlockChainRewardToMetaNodeFromMiningPool.Add(reward)
 	}
 	return d
 }
@@ -103,27 +106,27 @@ func (d DistributeGoal) AddBlockChainRewardToResourceNodeFromTrafficPool(reward 
 	return d
 }
 
-func (d DistributeGoal) AddBlockChainRewardToIndexingNodeFromTrafficPool(reward sdk.Coin) DistributeGoal {
-	if d.BlockChainRewardToIndexingNodeFromTrafficPool.IsEqual(sdk.Coin{}) {
-		d.BlockChainRewardToIndexingNodeFromTrafficPool = reward
+func (d DistributeGoal) AddBlockChainRewardToMetaNodeFromTrafficPool(reward sdk.Coin) DistributeGoal {
+	if d.BlockChainRewardToMetaNodeFromTrafficPool.IsEqual(sdk.Coin{}) {
+		d.BlockChainRewardToMetaNodeFromTrafficPool = reward
 	} else {
-		d.BlockChainRewardToIndexingNodeFromTrafficPool = d.BlockChainRewardToIndexingNodeFromTrafficPool.Add(reward)
+		d.BlockChainRewardToMetaNodeFromTrafficPool = d.BlockChainRewardToMetaNodeFromTrafficPool.Add(reward)
 	}
 	return d
 }
-func (d DistributeGoal) AddMetaNodeRewardToIndexingNodeFromMiningPool(reward sdk.Coin) DistributeGoal {
-	if d.MetaNodeRewardToIndexingNodeFromMiningPool.IsEqual(sdk.Coin{}) {
-		d.MetaNodeRewardToIndexingNodeFromMiningPool = reward
+func (d DistributeGoal) AddMetaNodeRewardToMetaNodeFromMiningPool(reward sdk.Coin) DistributeGoal {
+	if d.MetaNodeRewardToMetaNodeFromMiningPool.IsEqual(sdk.Coin{}) {
+		d.MetaNodeRewardToMetaNodeFromMiningPool = reward
 	} else {
-		d.MetaNodeRewardToIndexingNodeFromMiningPool = d.MetaNodeRewardToIndexingNodeFromMiningPool.Add(reward)
+		d.MetaNodeRewardToMetaNodeFromMiningPool = d.MetaNodeRewardToMetaNodeFromMiningPool.Add(reward)
 	}
 	return d
 }
-func (d DistributeGoal) AddMetaNodeRewardToIndexingNodeFromTrafficPool(reward sdk.Coin) DistributeGoal {
-	if d.MetaNodeRewardToIndexingNodeFromTrafficPool.IsEqual(sdk.Coin{}) {
-		d.MetaNodeRewardToIndexingNodeFromTrafficPool = reward
+func (d DistributeGoal) AddMetaNodeRewardToMetaNodeFromTrafficPool(reward sdk.Coin) DistributeGoal {
+	if d.MetaNodeRewardToMetaNodeFromTrafficPool.IsEqual(sdk.Coin{}) {
+		d.MetaNodeRewardToMetaNodeFromTrafficPool = reward
 	} else {
-		d.MetaNodeRewardToIndexingNodeFromTrafficPool = d.MetaNodeRewardToIndexingNodeFromTrafficPool.Add(reward)
+		d.MetaNodeRewardToMetaNodeFromTrafficPool = d.MetaNodeRewardToMetaNodeFromTrafficPool.Add(reward)
 	}
 	return d
 }
@@ -148,38 +151,38 @@ func (d DistributeGoal) AddTrafficRewardToResourceNodeFromTrafficPool(reward sdk
 func (d DistributeGoal) String() string {
 	return fmt.Sprintf(`DistributeGoal:{
 		BlockChainRewardToValidatorFromMiningPool:    	%s
-		BlockChainRewardToIndexingNodeFromMiningPool: 	%s
+		BlockChainRewardToMetaNodeFromMiningPool: 	%s
 		BlockChainRewardToResourceNodeFromMiningPool: 	%s
-		MetaNodeRewardToIndexingNodeFromMiningPool:   	%s
+		MetaNodeRewardToMetaNodeFromMiningPool:   	%s
 		TrafficRewardToResourceNodeFromMiningPool:    	%s
 		BlockChainRewardToValidatorFromTrafficPool:   	%s
-		BlockChainRewardToIndexingNodeFromTrafficPool:	%s
+		BlockChainRewardToMetaNodeFromTrafficPool:	%s
 		BlockChainRewardToResourceNodeFromTrafficPool:	%s
-		MetaNodeRewardToIndexingNodeFromTrafficPool:  	%s
+		MetaNodeRewardToMetaNodeFromTrafficPool:  	%s
 		TrafficRewardToResourceNodeFromTrafficPool:   	%s
 	}`,
 		d.BlockChainRewardToValidatorFromMiningPool,
-		d.BlockChainRewardToIndexingNodeFromMiningPool,
+		d.BlockChainRewardToMetaNodeFromMiningPool,
 		d.BlockChainRewardToResourceNodeFromMiningPool,
-		d.MetaNodeRewardToIndexingNodeFromMiningPool,
+		d.MetaNodeRewardToMetaNodeFromMiningPool,
 		d.TrafficRewardToResourceNodeFromMiningPool,
 		d.BlockChainRewardToValidatorFromTrafficPool,
-		d.BlockChainRewardToIndexingNodeFromTrafficPool,
+		d.BlockChainRewardToMetaNodeFromTrafficPool,
 		d.BlockChainRewardToResourceNodeFromTrafficPool,
-		d.MetaNodeRewardToIndexingNodeFromTrafficPool,
+		d.MetaNodeRewardToMetaNodeFromTrafficPool,
 		d.TrafficRewardToResourceNodeFromTrafficPool,
 	)
 }
 
-type Reward struct {
-	WalletAddress         sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"` // account address of node
-	RewardFromMiningPool  sdk.Coins      `json:"reward_from_mining_pool" yaml:"reward_from_mining_pool"`
-	RewardFromTrafficPool sdk.Coins      `json:"reward_from_traffic_pool" yaml:"reward_from_traffic_pool"`
-}
+//type Reward struct {
+//	WalletAddress         sdk.AccAddress `json:"wallet_address" yaml:"wallet_address"` // account address of node
+//	RewardFromMiningPool  sdk.Coins      `json:"reward_from_mining_pool" yaml:"reward_from_mining_pool"`
+//	RewardFromTrafficPool sdk.Coins      `json:"reward_from_traffic_pool" yaml:"reward_from_traffic_pool"`
+//}
 
 func NewReward(walletAddress sdk.AccAddress, rewardFromMiningPool sdk.Coins, rewardFromTrafficPool sdk.Coins) Reward {
 	return Reward{
-		WalletAddress:         walletAddress,
+		WalletAddress:         walletAddress.String(),
 		RewardFromMiningPool:  rewardFromMiningPool,
 		RewardFromTrafficPool: rewardFromTrafficPool,
 	}
@@ -200,7 +203,7 @@ func (r Reward) AddRewardFromTrafficPool(reward sdk.Coin) Reward {
 }
 
 // String returns a human readable string representation of a Reward.
-func (r Reward) String() string {
+func (r Reward) HrpString() string {
 	return fmt.Sprintf(`Reward:{
 		WalletAddress:			%s
   		RewardFromMiningPool:	%s

@@ -2,72 +2,115 @@ package register
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper Keeper, data types.GenesisState) {
-	keeper.SetParams(ctx, data.Params)
+func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
+	keeper.SetParams(ctx, *data.Params)
+
+	freshStart := keeper.GetResourceNodeNotBondedToken(ctx).IsZero() &&
+		keeper.GetResourceNodeBondedToken(ctx).IsZero() &&
+		keeper.GetMetaNodeNotBondedToken(ctx).IsZero() &&
+		keeper.GetMetaNodeBondedToken(ctx).IsZero()
 
 	initialStakeTotal := sdk.ZeroInt()
-	resNodeBondedToken := sdk.ZeroInt()
-	resNodeNotBondedToken := sdk.ZeroInt()
-	for _, resourceNode := range data.ResourceNodes {
-		if resourceNode.GetStatus() == sdk.Bonded {
-			initialStakeTotal = initialStakeTotal.Add(resourceNode.GetTokens())
-			resNodeBondedToken = resNodeBondedToken.Add(resourceNode.GetTokens())
-		} else if resourceNode.GetStatus() == sdk.Unbonded {
-			resNodeNotBondedToken = resNodeNotBondedToken.Add(resourceNode.GetTokens())
+	lenOfGenesisBondedResourceNode := int64(0)
+
+	for _, resourceNode := range data.GetResourceNodes() {
+		ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.OwnerAddress)
+		if err != nil {
+			panic(err)
+		}
+		switch resourceNode.GetStatus() {
+		case stakingtypes.Bonded:
+			lenOfGenesisBondedResourceNode++
+			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+			if freshStart {
+				err = keeper.SendCoinsFromAccountToResNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens))
+				if err != nil {
+					panic(err)
+				}
+			}
+		case stakingtypes.Unbonded:
+			if freshStart {
+				err = keeper.SendCoinsFromAccountToResNodeNotBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens))
+				if err != nil {
+					panic(err)
+				}
+			}
+		default:
+			panic(types.ErrInvalidNodeStat)
 		}
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
-	keeper.SetResourceNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeBondedToken))
-	keeper.SetResourceNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), resNodeNotBondedToken))
+	// set initial genesis number of resource nodes
+	keeper.SetBondedResourceNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedResourceNode))
 
-	idxNodeBondedToken := sdk.ZeroInt()
-	idxNodeNotBondedToken := sdk.ZeroInt()
-	for _, indexingNode := range data.IndexingNodes {
-		if indexingNode.GetStatus() == sdk.Bonded {
-			initialStakeTotal = initialStakeTotal.Add(indexingNode.GetTokens())
-			idxNodeBondedToken = idxNodeBondedToken.Add(indexingNode.GetTokens())
-		} else if indexingNode.GetStatus() == sdk.Unbonded {
-			idxNodeNotBondedToken = idxNodeNotBondedToken.Add(indexingNode.GetTokens())
+	lenOfGenesisBondedMetaNode := int64(0)
+	for _, metaNode := range data.GetMetaNodes() {
+		ownerAddr, err := sdk.AccAddressFromBech32(metaNode.OwnerAddress)
+		if err != nil {
+			panic(err)
 		}
-		keeper.SetIndexingNode(ctx, indexingNode)
+		switch metaNode.GetStatus() {
+		case stakingtypes.Bonded:
+			lenOfGenesisBondedMetaNode++
+			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			if freshStart {
+				err = keeper.SendCoinsFromAccountToMetaNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
+				if err != nil {
+					panic(err)
+				}
+			}
+		case stakingtypes.Unbonded:
+			if freshStart {
+				err = keeper.SendCoinsFromAccountToMetaNodeNotBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
+				if err != nil {
+					panic(err)
+				}
+			}
+		default:
+			panic(types.ErrInvalidNodeStat)
+		}
+		keeper.SetMetaNode(ctx, metaNode)
 	}
-	keeper.SetIndexingNodeBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeBondedToken))
-	keeper.SetIndexingNodeNotBondedToken(ctx, sdk.NewCoin(keeper.BondDenom(ctx), idxNodeNotBondedToken))
+	// set initial genesis number of meta nodes
+	keeper.SetBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
 
-	totalUnissuedPrepay := data.TotalUnissuedPrepay
+	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	initialUOzonePrice := sdk.ZeroDec()
 	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
 	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
 	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
-	keeper.SetTotalUnissuedPrepay(ctx, sdk.Coin{
-		Denom:  data.Params.BondDenom,
-		Amount: totalUnissuedPrepay,
-	})
 
-	for _, slashing := range data.SlashingInfo {
-		keeper.SetSlashing(ctx, slashing.WalletAddress, slashing.Value)
+	for _, slashing := range data.Slashing {
+		walletAddress, err := sdk.AccAddressFromBech32(slashing.GetWalletAddress())
+		if err != nil {
+			panic(err)
+		}
+
+		keeper.SetSlashing(ctx, walletAddress, sdk.NewInt(slashing.Value))
 	}
+	return
 }
 
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
+func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisState) {
 	params := keeper.GetParams(ctx)
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
-	indexingNodes := keeper.GetAllIndexingNodes(ctx)
-	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
+	metaNodes := keeper.GetAllMetaNodes(ctx)
 	initialUOzonePrice := keeper.CurrUozPrice(ctx)
 
-	var slashingInfo []types.Slashing
+	var slashingInfo []*types.Slashing
 	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
 		if val.GT(sdk.ZeroInt()) {
 			slashing := types.NewSlashing(walletAddress, val)
@@ -76,12 +119,11 @@ func ExportGenesis(ctx sdk.Context, keeper Keeper) (data types.GenesisState) {
 		return false
 	})
 
-	return types.GenesisState{
-		Params:              params,
-		ResourceNodes:       resourceNodes,
-		IndexingNodes:       indexingNodes,
-		InitialUozPrice:     initialUOzonePrice,
-		TotalUnissuedPrepay: totalUnissuedPrepay,
-		SlashingInfo:        slashingInfo,
+	return &types.GenesisState{
+		Params:          &params,
+		ResourceNodes:   resourceNodes,
+		MetaNodes:       metaNodes,
+		InitialUozPrice: initialUOzonePrice,
+		Slashing:        slashingInfo,
 	}
 }

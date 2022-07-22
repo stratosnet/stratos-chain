@@ -1,170 +1,276 @@
 package cli
 
 import (
-	"bufio"
-	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/context"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/x/auth"
-	"github.com/cosmos/cosmos-sdk/x/auth/client/utils"
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+	flag "github.com/spf13/pflag"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-// GetTxCmd returns the transaction commands for this module
-func GetTxCmd(cdc *codec.Codec) *cobra.Command {
+// NewTxCmd returns the transaction commands for this module
+func NewTxCmd() *cobra.Command {
 	registerTxCmd := &cobra.Command{
 		Use:                        types.ModuleName,
-		Short:                      fmt.Sprintf("%s transactions subcommands", types.ModuleName),
+		Short:                      "transactions subcommands",
 		DisableFlagParsing:         true,
 		SuggestionsMinimumDistance: 2,
 		RunE:                       client.ValidateCmd,
 	}
 
-	registerTxCmd.AddCommand(flags.PostCommands(
-		CreateResourceNodeCmd(cdc),
-		RemoveResourceNodeCmd(cdc),
-		UpdateResourceNodeCmd(cdc),
-		UpdateResourceNodeStakeCmd(cdc),
+	registerTxCmd.AddCommand(
+		CreateResourceNodeCmd(),
+		RemoveResourceNodeCmd(),
+		UpdateResourceNodeCmd(),
+		UpdateResourceNodeStakeCmd(),
 
-		CreateIndexingNodeCmd(cdc),
-		RemoveIndexingNodeCmd(cdc),
-		UpdateIndexingNodeCmd(cdc),
-		UpdateIndexingNodeStakeCmd(cdc),
-		IndexingNodeRegistrationVoteCmd(cdc),
-	)...)
+		CreateMetaNodeCmd(),
+		RemoveMetaNodeCmd(),
+		UpdateMetaNodeCmd(),
+		UpdateMetaNodeStakeCmd(),
+		MetaNodeRegistrationVoteCmd(),
+	)
 
 	return registerTxCmd
 }
 
 // CreateResourceNodeCmd will create a file upload tx and sign it with the given key.
-func CreateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
+func CreateResourceNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "create-resource-node [flags]",
 		Short: "create a new resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			if !viper.IsSet(FlagNetworkAddress) {
-				return errors.New("required flag(s) \"network-id\" not set")
-			}
-
-			if !viper.IsSet(FlagMoniker) {
-				return errors.New("required flag(s) \"moniker\" not set")
-			}
-			txBldr, msg, err := buildCreateResourceNodeMsg(cliCtx, txBldr)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildCreateResourceNodeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsPk)
-	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsNodeType)
-	cmd.Flags().AddFlagSet(FsDescription)
+	cmd.Flags().AddFlagSet(flagSetPublicKey())
+	cmd.Flags().AddFlagSet(flagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetNodeType())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagNodeType)
+	_ = cmd.MarkFlagRequired(FlagMoniker)
 	return cmd
 }
 
-// UpdateResourceNodeStakeCmd will add/subtract resource node's stake.
-func UpdateResourceNodeStakeCmd(cdc *codec.Codec) *cobra.Command {
+// CreateMetaNodeCmd will create a file upload tx and sign it with the given key.
+func CreateMetaNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-resource-node-stake [flags]",
-		Short: "update resource node's stake",
+		Use:   "create-meta-node [flags]",
+		Short: "create a new meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			txBldr, msg, err := buildUpdateResourceNodeStakeMsg(cliCtx, txBldr)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
 
-	cmd.Flags().AddFlagSet(FsIncrStake)
-	cmd.Flags().AddFlagSet(FsStakeDelta)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagStakeDelta)
-	_ = cmd.MarkFlagRequired(FlagIncrStake)
-	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	return cmd
-}
-
-// CreateIndexingNodeCmd will create a file upload tx and sign it with the given key.
-func CreateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "create-indexing-node [flags]",
-		Short: "create a new indexing node",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			if !viper.IsSet(FlagNetworkAddress) {
-				return errors.New("required flag(s) \"network-id\" not set")
-			}
-			if !viper.IsSet(FlagMoniker) {
-				return errors.New("required flag(s) \"moniker\" not set")
-			}
-			txBldr, msg, err := buildCreateIndexingNodeMsg(cliCtx, txBldr)
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildCreateMetaNodeMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
-	cmd.Flags().AddFlagSet(FsPk)
-	cmd.Flags().AddFlagSet(FsAmount)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsDescription)
+	cmd.Flags().AddFlagSet(flagSetPublicKey())
+	cmd.Flags().AddFlagSet(flagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagAmount)
 	_ = cmd.MarkFlagRequired(FlagPubKey)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+	_ = cmd.MarkFlagRequired(FlagMoniker)
 
 	return cmd
 }
 
-// UpdateIndexingNodeStakeCmd will add/subtract indexing node's stake.
-func UpdateIndexingNodeStakeCmd(cdc *codec.Codec) *cobra.Command {
+func RemoveResourceNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-indexing-node-stake [flags]",
-		Short: "update indexing node's stake",
+		Use: "remove-resource-node [flag]",
+		//Args:  cobra.ExactArgs(1),
+		Short: "remove resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			txBldr, msg, err := buildUpdateIndexingNodeStakeMsg(cliCtx, txBldr)
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildRemoveResourceNodeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+
+	return cmd
+}
+
+func RemoveMetaNodeCmd() *cobra.Command {
+
+	cmd := &cobra.Command{
+		Use: "remove-meta-node [flag]",
+		//Args:  cobra.ExactArgs(1),
+		Short: "remove meta node",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildRemoveMetaNodeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+
+	return cmd
+}
+
+func UpdateResourceNodeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-resource-node [flags]",
+		Short: "update resource node info",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildUpdateResourceNodeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsIncrStake)
-	cmd.Flags().AddFlagSet(FsStakeDelta)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetNodeType())
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+	//_ = cmd.MarkFlagRequired(FlagMoniker)
+	//_ = cmd.MarkFlagRequired(FlagNodeType)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+func UpdateMetaNodeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-meta-node [flags]",
+		Short: "update meta node info",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildUpdateMetaNodeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+	//_ = cmd.MarkFlagRequired(FlagMoniker)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+// UpdateResourceNodeStakeCmd will add/subtract resource node's stake.
+func UpdateResourceNodeStakeCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "update-resource-node-stake [flags]",
+		Short: "update resource node's stake",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildUpdateResourceNodeStakeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetStakeUpdate())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagStakeDelta)
@@ -173,196 +279,66 @@ func UpdateIndexingNodeStakeCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-// makes a new CreateResourceNodeMsg.
-func buildCreateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	amountStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amountStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	networkAddrstr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-	ownerAddr := cliCtx.GetFromAddress()
-	pkStr := viper.GetString(FlagPubKey)
-	nodeTypeRef := viper.GetInt(FlagNodeType)
-
-	pubKey, er := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
-	if er != nil {
-		return txBldr, nil, err
-	}
-
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
-	)
-
-	// validate nodeTypeRef
-	if t := types.NodeType(nodeTypeRef).Type(); t == "UNKNOWN" {
-		return txBldr, nil, types.ErrNodeType
-	}
-	msg := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, desc, types.NodeType(nodeTypeRef))
-	return txBldr, msg, nil
-}
-
-// makes a new UpdateResourceNodeStakeMsg.
-func buildUpdateResourceNodeStakeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	stakeDeltaStr := viper.GetString(FlagStakeDelta)
-	stakeDelta, err := sdk.ParseCoin(stakeDeltaStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	incrStakeStr := viper.GetString(FlagIncrStake)
-	incrStake, err := strconv.ParseBool(incrStakeStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	networkAddrStr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	ownerAddr := cliCtx.GetFromAddress()
-
-	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
-	return txBldr, msg, nil
-}
-
-// makes a new MsgCreateIndexingNode.
-func buildCreateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	amountStr := viper.GetString(FlagAmount)
-	amount, err := sdk.ParseCoin(amountStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	networkAddrstr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrstr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-	ownerAddr := cliCtx.GetFromAddress()
-	pkStr := viper.GetString(FlagPubKey)
-
-	pubKey, err := stratos.GetPubKeyFromBech32(stratos.Bech32PubKeyTypeSdsP2PPub, pkStr)
-
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
-	)
-	msg := types.NewMsgCreateIndexingNode(networkAddr, pubKey, amount, ownerAddr, desc)
-	return txBldr, msg, nil
-}
-
-// makes a new UpdateIndexingNodeStakeMsg.
-func buildUpdateIndexingNodeStakeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	stakeDeltaStr := viper.GetString(FlagStakeDelta)
-	stakeDelta, err := sdk.ParseCoin(stakeDeltaStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	incrStakeStr := viper.GetString(FlagIncrStake)
-	incrStake, err := strconv.ParseBool(incrStakeStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	networkAddrStr := viper.GetString(FlagNetworkAddress)
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-
-	ownerAddr := cliCtx.GetFromAddress()
-
-	msg := types.NewMsgUpdateIndexingNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
-	return txBldr, msg, nil
-}
-
-func RemoveResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
+// UpdateMetaNodeStakeCmd will add/subtract meta node's stake.
+func UpdateMetaNodeStakeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "remove-resource-node [resource_node_address] [owner_address]",
-		Args:  cobra.ExactArgs(2),
-		Short: "remove resource node",
+		Use:   "update-meta-node-stake [flags]",
+		Short: "update meta node's stake",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[1]).WithCodec(cdc)
-
-			resourceNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			ownerAddr := cliCtx.GetFromAddress()
 
-			msg := types.NewMsgRemoveResourceNode(resourceNodeAddr, ownerAddr)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildUpdateMetaNodeStakeMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
+
+	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
+	cmd.Flags().AddFlagSet(flagSetStakeUpdate())
+
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagStakeDelta)
+	_ = cmd.MarkFlagRequired(FlagIncrStake)
+	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	return cmd
 }
 
-func RemoveIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
+// MetaNodeRegistrationVoteCmd Meta node registration need to be approved by 2/3 of existing meta nodes
+func MetaNodeRegistrationVoteCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "remove-indexing-node [indexing_node_address] [owner_address]",
-		Args:  cobra.ExactArgs(2),
-		Short: "remove indexing node",
+		Use:   "meta-node-reg-vote [flags]",
+		Short: "vote for the registration of a new meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[1]).WithCodec(cdc)
-
-			indexingNodeAddr, err := stratos.SdsAddressFromBech32(args[0])
+			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
 				return err
 			}
-			ownerAddr := cliCtx.GetFromAddress()
 
-			msg := types.NewMsgRemoveIndexingNode(indexingNodeAddr, ownerAddr)
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
-	}
-	return cmd
-}
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+			txf, msg, err := newBuildMetaNodeRegistrationVoteMsg(clientCtx, txf, cmd.Flags())
 
-// IndexingNodeRegistrationVoteCmd Indexing node registration need to be approved by 2/3 of existing indexing nodes
-func IndexingNodeRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "indexing_node_reg_vote",
-		Short: "vote for the registration of a new indexing node",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			txBldr, msg, err := buildIndexingNodeRegistrationVoteMsg(cliCtx, txBldr)
 			if err != nil {
 				return err
 			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
 
-	cmd.Flags().AddFlagSet(FsCandidateNetworkAddress)
-	cmd.Flags().AddFlagSet(FsCandidateOwnerAddress)
-	cmd.Flags().AddFlagSet(FsOpinion)
-	cmd.Flags().AddFlagSet(FsVoterNetworkAddress)
+	cmd.Flags().AddFlagSet(flagSetVoting())
+
+	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagCandidateNetworkAddress)
@@ -372,136 +348,321 @@ func IndexingNodeRegistrationVoteCmd(cdc *codec.Codec) *cobra.Command {
 	return cmd
 }
 
-func buildIndexingNodeRegistrationVoteMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	candidateNetworkAddrStr := viper.GetString(FlagCandidateNetworkAddress)
-	candidateNetworkAddr, err := stratos.SdsAddressFromBech32(candidateNetworkAddrStr)
+// makes a new CreateResourceNodeMsg.
+func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateResourceNode, error) {
+	flagAmountStr, err := fs.GetString(FlagAmount)
 	if err != nil {
-		return txBldr, nil, err
+		return txf, nil, err
 	}
-	candidateOwnerAddrStr := viper.GetString(FlagCandidateOwnerAddress)
-	candidateOwnerAddr, err := sdk.AccAddressFromBech32(candidateOwnerAddrStr)
+	amount, err := sdk.ParseCoinNormalized(flagAmountStr)
 	if err != nil {
-		return txBldr, nil, err
+		return txf, nil, err
 	}
-	opinionVal := viper.GetBool(FlagOpinion)
-	opinion := types.VoteOpinionFromBool(opinionVal)
-	voterNetworkAddrStr := viper.GetString(FlagVoterNetworkAddress)
-	voterNetworkAddr, err := stratos.SdsAddressFromBech32(voterNetworkAddrStr)
-	if err != nil {
-		return txBldr, nil, err
-	}
-	voterOwnerAddr := cliCtx.GetFromAddress()
 
-	msg := types.NewMsgIndexingNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinion, voterNetworkAddr, voterOwnerAddr)
-	return txBldr, msg, nil
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	ownerAddr := clientCtx.GetFromAddress()
+
+	pkStr, err := fs.GetString(FlagPubKey)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	pubKey, err := stratos.SdsPubKeyFromBech32(pkStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
+	)
+
+	// validate nodeTypeVal
+	nodeType := types.NodeType(nodeTypeVal)
+	if t := nodeType.Type(); t == "UNKNOWN" {
+		return txf, nil, types.ErrNodeType
+	}
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, nodeTypeVal)
+	if er != nil {
+		return txf, nil, err
+	}
+	return txf, msg, nil
 }
 
-func UpdateResourceNodeCmd(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update-resource-node [flags]",
-		Short: "update resource node info",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			txBldr, msg, err := buildUpdateResourceNodeMsg(cliCtx, txBldr)
-			if err != nil {
-				return err
-			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
+// makes a new MsgCreateMetaNode.
+func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateMetaNode, error) {
+	flagAmountStr, err := fs.GetString(FlagAmount)
+	if err != nil {
+		return txf, nil, err
+	}
+	amount, err := sdk.ParseCoinNormalized(flagAmountStr)
+	if err != nil {
+		return txf, nil, err
 	}
 
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsDescription)
-	cmd.Flags().AddFlagSet(FsNodeType)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	_ = cmd.MarkFlagRequired(FlagMoniker)
-	_ = cmd.MarkFlagRequired(FlagNodeType)
-	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	ownerAddr := clientCtx.GetFromAddress()
 
-	return cmd
+	pkStr, err := fs.GetString(FlagPubKey)
+	if err != nil {
+		return txf, nil, err
+	}
+	pubKey, er := stratos.SdsPubKeyFromBech32(pkStr)
+	if er != nil {
+		return txf, nil, err
+	}
+
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
+	)
+	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, description)
+	if er != nil {
+		return txf, nil, err
+	}
+	return txf, msg, nil
 }
 
 // makes a new MsgUpdateResourceNode.
-func buildUpdateResourceNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	//networkAddr := viper.GetString(FlagNetworkAddr)
+func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNode, error) {
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
+	ownerAddr := clientCtx.GetFromAddress()
+
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
 	)
 
-	nodeType := viper.GetInt(FlagNodeType)
-
-	nodeAddrStr := viper.GetString(FlagNetworkAddress)
-	nodeAddr, err := stratos.SdsAddressFromBech32(nodeAddrStr)
+	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
 	if err != nil {
-		return txBldr, nil, err
+		return txf, nil, types.ErrInvalidNodeType
 	}
 
-	ownerAddr := cliCtx.GetFromAddress()
-	if t := types.NodeType(nodeType).Type(); t == "UNKNOWN" {
-		return txBldr, nil, types.ErrNodeType
+	// validate nodeTypeVal
+	nodeType := types.NodeType(nodeTypeVal)
+	if t := nodeType.Type(); t == "UNKNOWN" {
+		return txf, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgUpdateResourceNode(desc, types.NodeType(nodeType), nodeAddr, ownerAddr)
-	return txBldr, msg, nil
+	msg := types.NewMsgUpdateResourceNode(*description, nodeTypeVal, networkAddr, ownerAddr)
+	return txf, msg, nil
 }
 
-func UpdateIndexingNodeCmd(cdc *codec.Codec) *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "update-indexing-node [flags]",
-		Short: "update indexing node info",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inBuf := bufio.NewReader(cmd.InOrStdin())
-			txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			cliCtx := context.NewCLIContextWithInput(inBuf).WithCodec(cdc)
-			txBldr, msg, err := buildUpdateIndexingNodeMsg(cliCtx, txBldr)
-			if err != nil {
-				return err
-			}
-			return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
-		},
+// makes a new MsgUpdateMetaNode.
+func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNode, error) {
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
 	}
 
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
-	cmd.Flags().AddFlagSet(FsDescription)
-	cmd.Flags().AddFlagSet(FsNetworkAddress)
+	ownerAddr := clientCtx.GetFromAddress()
 
-	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	_ = cmd.MarkFlagRequired(FlagMoniker)
-	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-
-	return cmd
-}
-
-// makes a new MsgUpdateIndexingNode.
-func buildUpdateIndexingNodeMsg(cliCtx context.CLIContext, txBldr auth.TxBuilder) (auth.TxBuilder, sdk.Msg, error) {
-	//networkAddr := viper.GetString(FlagNetworkAddr)
-
-	desc := types.NewDescription(
-		viper.GetString(FlagMoniker),
-		viper.GetString(FlagIdentity),
-		viper.GetString(FlagWebsite),
-		viper.GetString(FlagSecurityContact),
-		viper.GetString(FlagDetails),
+	moniker, _ := fs.GetString(FlagMoniker)
+	identity, _ := fs.GetString(FlagIdentity)
+	website, _ := fs.GetString(FlagWebsite)
+	security, _ := fs.GetString(FlagSecurityContact)
+	details, _ := fs.GetString(FlagDetails)
+	description := types.NewDescription(
+		moniker,
+		identity,
+		website,
+		security,
+		details,
 	)
 
-	nodeAddrStr := viper.GetString(FlagNetworkAddress)
-	nodeAddr, err := stratos.SdsAddressFromBech32(nodeAddrStr)
+	msg := types.NewMsgUpdateMetaNode(*description, networkAddr, ownerAddr)
+	return txf, msg, nil
+}
+
+// newBuildUpdateResourceNodeStakeMsg makes a new UpdateResourceNodeStakeMsg.
+func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNodeStake, error) {
+	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
 	if err != nil {
-		return txBldr, nil, err
+		return txf, nil, err
+	}
+	stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
+	if err != nil {
+		return txf, nil, err
 	}
 
-	ownerAddr := cliCtx.GetFromAddress()
+	incrStakeStr, err := fs.GetString(FlagIncrStake)
+	if err != nil {
+		return txf, nil, err
+	}
+	incrStake, err := strconv.ParseBool(incrStakeStr)
+	if err != nil {
+		return txf, nil, err
+	}
 
-	msg := types.NewMsgUpdateIndexingNode(desc, nodeAddr, ownerAddr)
-	return txBldr, msg, nil
+	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	ownerAddr := clientCtx.GetFromAddress()
+
+	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, &stakeDelta, incrStake)
+	return txf, msg, nil
+}
+
+// newBuildUpdateMetaNodeStakeMsg makes a new UpdateMetaNodeStakeMsg.
+func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNodeStake, error) {
+	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
+	if err != nil {
+		return txf, nil, err
+	}
+	stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	incrStakeStr, err := fs.GetString(FlagIncrStake)
+	if err != nil {
+		return txf, nil, err
+	}
+	incrStake, err := strconv.ParseBool(incrStakeStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	ownerAddr := clientCtx.GetFromAddress()
+
+	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &stakeDelta, incrStake)
+	return txf, msg, nil
+}
+
+func newBuildMetaNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgMetaNodeRegistrationVote, error) {
+	candidateNetworkAddrStr, err := fs.GetString(FlagCandidateNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	candidateNetworkAddr, err := stratos.SdsAddressFromBech32(candidateNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	candidateOwnerAddrStr, err := fs.GetString(FlagCandidateOwnerAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	candidateOwnerAddr, err := sdk.AccAddressFromBech32(candidateOwnerAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	opinionVal, err := fs.GetBool(FlagOpinion)
+	if err != nil {
+		return txf, nil, err
+	}
+	//opinion := types.VoteOpinionFromBool(opinionVal)
+	voterNetworkAddrStr, err := fs.GetString(FlagVoterNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	voterNetworkAddr, err := stratos.SdsAddressFromBech32(voterNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	voterOwnerAddr := clientCtx.GetFromAddress()
+
+	msg := types.NewMsgMetaNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinionVal, voterNetworkAddr, voterOwnerAddr)
+	return txf, msg, nil
+}
+
+func newBuildRemoveResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgRemoveResourceNode, error) {
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	ownerAddr := clientCtx.GetFromAddress()
+
+	msg := types.NewMsgRemoveResourceNode(networkAddr, ownerAddr)
+
+	return txf, msg, nil
+}
+
+func newBuildRemoveMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgRemoveMetaNode, error) {
+	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	ownerAddr := clientCtx.GetFromAddress()
+
+	msg := types.NewMsgRemoveMetaNode(networkAddr, ownerAddr)
+
+	return txf, msg, nil
 }

@@ -7,10 +7,10 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/x/bank"
-	"github.com/cosmos/cosmos-sdk/x/params"
-	"github.com/stratosnet/stratos-chain/x/pot"
-	"github.com/stratosnet/stratos-chain/x/register"
+	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
+	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/tendermint/tendermint/libs/log"
 )
@@ -23,29 +23,29 @@ var (
 // encoding/decoding library.
 type Keeper struct {
 	key            sdk.StoreKey
-	cdc            *codec.Codec
-	paramSpace     params.Subspace
-	BankKeeper     bank.Keeper
-	RegisterKeeper register.Keeper
-	PotKeeper      pot.Keeper
+	cdc            codec.Codec
+	paramSpace     paramtypes.Subspace
+	bankKeeper     bankKeeper.Keeper
+	RegisterKeeper registerKeeper.Keeper
+	PotKeeper      potKeeper.Keeper
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
 // (binary) encode and decode concrete sdk.MsgUploadFile.
 // nolint
 func NewKeeper(
-	cdc *codec.Codec,
+	cdc codec.Codec,
 	key sdk.StoreKey,
-	paramSpace params.Subspace,
-	bankKeeper bank.Keeper,
-	registerKeeper register.Keeper,
-	potKeeper pot.Keeper,
+	paramSpace paramtypes.Subspace,
+	bankKeeper bankKeeper.Keeper,
+	registerKeeper registerKeeper.Keeper,
+	potKeeper potKeeper.Keeper,
 ) Keeper {
 	return Keeper{
 		key:            key,
 		cdc:            cdc,
 		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
-		BankKeeper:     bankKeeper,
+		bankKeeper:     bankKeeper,
 		RegisterKeeper: registerKeeper,
 		PotKeeper:      potKeeper,
 	}
@@ -79,7 +79,7 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
-func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
@@ -91,9 +91,13 @@ func (k Keeper) purchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 			Add(amount)).ToDec()).
 		TruncateInt()
 
-	// update total unissued prepay
-	newTotalUnissuedPrepay := Pt.Add(amount)
-	k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
+	// send coins to total unissued prepay pool
+	err := k.RegisterKeeper.SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx, from, sdk.NewCoin(k.BondDenom(ctx), amount))
+	if err != nil {
+		return sdk.ZeroInt()
+	}
+	//newTotalUnissuedPrepay := Pt.Add(amount)
+	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
 
 	// update remaining uoz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
@@ -118,22 +122,33 @@ func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 // Prepay transfers coins from bank to sds (volumn) pool
 func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
 	// src - hasCoins?
-	if !k.BankKeeper.HasCoins(ctx, sender, coins) {
-		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	//if !k.bankKeeper.HasCoins(ctx, sender, coins) {
+	//	return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+	//}
+	for _, coin := range coins {
+		hasCoin := k.bankKeeper.HasBalance(ctx, sender, coin)
+		if !hasCoin {
+			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+		}
 	}
+
+	prepay := coins.AmountOf(k.BondDenom(ctx))
+	purchased := k.purchaseUozAndSubCoins(ctx, sender, prepay)
 
 	err := k.doPrepay(ctx, sender, coins)
 	if err != nil {
 		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
 	}
-
-	_, err = k.BankKeeper.SubtractCoins(ctx, sender, coins)
-	if err != nil {
-		return sdk.ZeroInt(), err
-	}
-
-	prepay := coins.AmountOf(k.BondDenom(ctx))
-	purchased := k.purchaseUoz(ctx, prepay)
+	//// sub coins from sender's wallet
+	//err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, regtypes.TotalUnissuedPrepayName, coins)
+	//if err != nil {
+	//	return sdk.ZeroInt(), err
+	//}
+	//
+	//_, err = k.bankKeeper.SubtractCoins(ctx, sender, coins)
+	//if err != nil {
+	//	return sdk.ZeroInt(), err
+	//}
 
 	return purchased, nil
 }
@@ -159,7 +174,7 @@ func (k Keeper) GetPrepay(ctx sdk.Context, sender sdk.AccAddress) (sdk.Int, erro
 	return prepaidBalance, nil
 }
 
-// GetPrepay Returns bytearr of the existing prepay coins
+// GetPrepayBytes returns bytearr of the existing prepay coins
 func (k Keeper) GetPrepayBytes(ctx sdk.Context, sender sdk.AccAddress) ([]byte, error) {
 	store := ctx.KVStore(k.key)
 	storeValue := store.Get(types.PrepayBalanceKey(sender))
@@ -218,6 +233,7 @@ func (k Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins
 }
 
 // IterateFileUpload Iterate over all uploaded files.
+// Iteration for all uploaded files
 func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
 	store := ctx.KVStore(k.key)
 	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
@@ -225,7 +241,7 @@ func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.Fi
 	for ; iter.Valid(); iter.Next() {
 		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
 		var fileInfo types.FileInfo
-		k.cdc.MustUnmarshalBinaryLengthPrefixed(iter.Value(), &fileInfo)
+		k.cdc.MustUnmarshal(iter.Value(), &fileInfo)
 		if handler(fileHash, fileInfo) {
 			break
 		}
@@ -233,6 +249,7 @@ func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.Fi
 }
 
 // IteratePrepay Iterate over all prepay KVs.
+// Iteration for all prepay KVs
 func (k Keeper) IteratePrepay(ctx sdk.Context, handler func(sdk.AccAddress, sdk.Int) (stop bool)) {
 	store := ctx.KVStore(k.key)
 	iter := sdk.KVStorePrefixIterator(store, types.PrepayBalancePrefix)

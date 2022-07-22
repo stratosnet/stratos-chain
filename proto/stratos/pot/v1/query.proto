@@ -1,0 +1,128 @@
+syntax = "proto3";
+package stratos.pot.v1;
+
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+
+import "stratos/pot/v1/pot.proto";
+
+option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // VolumeReport queries VolumeReport info for given epoch.
+  rpc VolumeReport(QueryVolumeReportRequest) returns (QueryVolumeReportResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/volume-report/{epoch}";
+  }
+
+  // PotRewardsByEpoch queries Pot rewards by a given epoch.
+  rpc PotRewardsByEpoch(QueryPotRewardsByEpochRequest) returns (QueryPotRewardsByEpochResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/rewards/epoch/{epoch}";
+  }
+
+  // PotRewardsByOwner queries Pot rewards by a given owner wallet address.
+  rpc PotRewardsByOwner(QueryPotRewardsByOwnerRequest) returns (QueryPotRewardsByOwnerResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}";
+  }
+
+  // PotSlashingByOwner queries Pot Pot slashingBy by owner wallet address.
+  rpc PotSlashingByOwner(QueryPotSlashingByOwnerRequest) returns (QueryPotSlashingByOwnerResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/slashing/{wallet_address}";
+  }
+
+  // Params queries POT module Params info.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/params";
+  }
+
+
+}
+
+// QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
+message QueryVolumeReportRequest {
+  // epoch defines the epoch number to query for.
+   int64 epoch = 1;
+}
+
+message ReportInfo {
+  int64 epoch     = 1;
+  string reference = 2;
+  string tx_hash = 3;
+  string reporter = 4;
+
+}
+
+// QueryVolumeReportResponse is response type for the Query/ResourceNode RPC method
+message QueryVolumeReportResponse {
+  // node defines the the volumeReport info.
+  ReportInfo report_info = 1;
+  int64 height = 2;
+}
+
+
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1;
+}
+
+// QueryPotRewardsByEpochRequest is request type for the Query/PotRewardsByEpoch by a given epoch RPC method
+message QueryPotRewardsByEpochRequest {
+  int64 epoch = 1;
+  string wallet_address = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+// QueryVolumeReportResponse is response type for the Query/PotRewardsByEpoch RPC method
+message QueryPotRewardsByEpochResponse {
+  repeated Reward   rewards = 1;
+  int64             height  = 2;
+  cosmos.base.query.v1beta1.PageResponse pagination = 3;
+}
+
+message PotRewardByOwner {
+  string                              wallet_address = 1;
+  repeated cosmos.base.v1beta1.Coin   MatureTotalReward = 2
+  [(gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+
+  repeated cosmos.base.v1beta1.Coin   ImmatureTotalReward = 3
+[(gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+}
+
+
+// QueryPotRewardsByOwnerRequest is request type for the Query/PotRewardsByOwner by a given owner RPC method
+message QueryPotRewardsByOwnerRequest {
+  string wallet_address = 1;
+}
+
+// QueryPotRewardsByOwnerResponse is response type for the Query/PotRewardsByOwner RPC method
+message QueryPotRewardsByOwnerResponse {
+  PotRewardByOwner    rewards = 1;
+  int64               height  = 2;
+}
+
+
+// QueryPotSlashingByOwnerRequest is request type for the Query/Slashing by a given owner RPC method
+message QueryPotSlashingByOwnerRequest {
+  string wallet_address = 1;
+}
+
+// QueryPotSlashingByOwnerResponse is response type for the Query/Slashing RPC method
+message QueryPotSlashingByOwnerResponse {
+  string    slashing = 1;
+  int64     height  = 2;
+}
+
+
+
+
+
+
