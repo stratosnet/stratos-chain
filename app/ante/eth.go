@@ -556,7 +556,7 @@ func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 		return next(ctx, tx, simulate)
 	}
 
-	overriddenTxs := tod.evmKeeper.GetOverriddenTxHashes(ctx)
+	overriddenTxs := tod.evmKeeper.GetOverriddenTxHashMap(ctx)
 	if len(overriddenTxs) == 0 {
 		return next(ctx, tx, simulate)
 	}
@@ -567,10 +567,9 @@ func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
 		}
 
-		for _, overriddenTxHash := range overriddenTxs {
-			if msgEthTx.Hash == overriddenTxHash {
-				return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is overridden")
-			}
+		_, ok = overriddenTxs[msgEthTx.Hash]
+		if ok {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is overridden")
 		}
 	}
 

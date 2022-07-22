@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	overriddenTxHashes []string
+	overriddenTxHashes map[string]struct{}
 )
 
 // BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.
@@ -29,7 +29,7 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 	k.SetBaseFeeParam(ctx, baseFee)
 
 	if !ctx.IsCheckTx() {
-		overriddenTxHashes = make([]string, 0)
+		overriddenTxHashes = make(map[string]struct{}, 0)
 		block, err := core.BlockByHash(&rpctypes.Context{}, ctx.HeaderHash().Bytes())
 		rawTxs := block.Block.Txs
 		if err != nil {
@@ -78,7 +78,7 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 							// find tx has same nonce with higher gas price from same sender,
 							// record tx hash to overriddenTxHashes, let it fail in anteHandler
 							// overriddenTxHashes need to be cleared in the EndBlock function
-							overriddenTxHashes = append(overriddenTxHashes, msgEthTx.Hash)
+							overriddenTxHashes[msgEthTx.Hash] = struct{}{}
 							break
 						}
 					}
@@ -125,7 +125,7 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 	return []abci.ValidatorUpdate{}
 }
 
-func (k *Keeper) GetOverriddenTxHashes(ctx sdk.Context) []string {
+func (k *Keeper) GetOverriddenTxHashMap(ctx sdk.Context) map[string]struct{} {
 	if ctx.IsCheckTx() {
 		return nil
 	}
