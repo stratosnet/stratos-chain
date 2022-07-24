@@ -25,80 +25,21 @@
 
 - <b>Platform</b>
 
-  * Linux(tested on Ubuntu18.04 and 20.04)
-  * Mac OS
-  * Windows 
+    * Linux(tested on Ubuntu18.04 and 20.04)
+    * Mac OS
+    * Windows
 
-    It is possible to build and run the software on Windows. However, we did not test it on Windows completely.
-    It may give you unexpected results, or it may require additional setup.
+      It is possible to build and run the software on Windows. However, we did not test it on Windows completely.
+      It may give you unexpected results, or it may require additional setup.
 
-    An alternative option is to install a separate virtual Linux system using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) or [VMware Workstation](https://www.vmware.com/ca/products/workstation-player/workstation-player-evaluation.html)
-
---- ---
-
-## Executables
-
-The `Stratos-Chain` comes with 2 types of executables that can be found in `stratos/stratos-chain/build` directory.
-
-|    Command          | Description        |
-| :-----------:     | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `stchaincli`   | the client end. It is the command line interface for interacting with `stchaind`. It is the entry point into the Stratos network (main-, test- or private net), capable of running as a full node (default), archive node (retaining all historical state) or a light node (retrieving data live). It can be used by other processes as a gateway into the Stratos network via JSON RPC endpoints. |
-|   `stchaind`   | the app Daemon (server)|
-
-
-### `stchaincli`
-
-```
-Usage:
-  stchaincli [command]
-
-Available Commands:
-  status      Query remote node for status
-  config      Create or query an application CLI configuration file
-  query       Querying subcommands
-  tx          Transactions subcommands
-  rest-server Start LCD (light-client daemon), a local REST server
-  keys        Add or view local private keys
-  version     Print the app version
-  help        Help about any command
-```
-
-Each `stchaincli` command may contain a set of flags or parameters. for more details, please refer to [Stratos Chain `stchaincli` Commands(Part1)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part1)) and [Stratos Chain `stchaincli` Commands(Part2)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part2))
-
-### `stchaind`
-
-```
-Usage:
-  stchaind [command]
-
-Available Commands:
-  init                Initialize private validator, p2p, genesis, and application configuration files
-  collect-gentxs      Collect genesis txs and output a genesis.json file
-  migrate             Migrate genesis to a specified target version
-  gentx               Generate a genesis tx carrying a self delegation
-  validate-genesis    validates the genesis file at the default location or at the location passed as an arg
-  add-genesis-account Add a genesis account to genesis.json
-  faucet              Run a faucet cmd
-  debug               Tool for helping with debugging your application
-  start               Run the full node
-  unsafe-reset-all    Resets the blockchain database, removes address book files, and resets priv_validator.json to the genesis state
-  tendermint          Tendermint subcommands
-  export              Export state to JSON
-  version             Print the app version
-  help                Help about any command
-```
-
-Each `stchaind` command may contain a set of flags or parameters. for more details, please refer to [Stratos-chain `stchaind` Commands](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands)
+      An alternative option is to install a separate virtual Linux system using [VirtualBox](https://www.virtualbox.org/wiki/Downloads) or [VMware Workstation](https://www.vmware.com/ca/products/workstation-player/workstation-player-evaluation.html)
 
 --- ---
 
 ## Connect to `Stratos` Network
 
-Going through all the possible command line flags is out of scope here,
-but we've enumerated a few common parameter combos to get you up to speed quickly on how you can run your own `Stratos` instance.
-
 ### A Full node on the test Stratos network
-For prerequisites and detailed instructions of connecting to `Tropos Incentive Testnet` network, please read the [Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet).
+For prerequisites and detailed instructions of connecting to `Tropos Incentive Testnet` network, please refer to [Connecting to Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet).
 
 ### Full node on the main Stratos network - TBA
 Prerequisites and detailed instructions of main network will be added later.
@@ -113,17 +54,24 @@ Prerequisites and detailed instructions of main network will be added later.
 
 ## References
 
-* [`stchaincli` Commands(Part1)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part1))
+<details>
+    <summary><b><code>Stratos-chain</code> document List</b></summary>
 
-* [`stchaincli` Commands(Part2)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaincli%60-Commands(Part2))
+<br>
 
-* [`stchaind` Commands](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands)
+* [Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet)
+ 
+* ['stchaind' Commands(part1)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands(part1))
+
+* [stchaind' Commands(part2)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands(part2))
+
+* [gRPC Queries](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-gRPC-Queries)
 
 * [REST APIs](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-REST-APIs)
 
 * [How to become a validator](https://github.com/stratosnet/stratos-chain/wiki/How-to-Become-a-Validator)
 
-* [`ppd terminal` subcommands](https://github.com/stratosnet/sds/wiki/%60ppd-terminal%60--subcommands)
+</details>
 
 --- ---
 
@@ -143,7 +91,7 @@ Please make sure your contributions adhere to our coding guidelines:
   guidelines.
 * Pull requests need to be based on and opened against the `main` branch.
 * Commit messages should be prefixed with the package(s) they modify.
-    * E.g. "eth, rpc: make trace configs optional"
+  * E.g. "eth, rpc: make trace configs optional"
 
 --- ---
 
