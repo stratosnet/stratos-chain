@@ -185,7 +185,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	metaNodes := setupAllMetaNodes()
 	resourceNodes := setupAllResourceNodes()
 
-	stApp := app.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
+	stApp := app.SetupWithGenesisNodeSet(t, false, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	bankKeeper := stApp.GetBankKeeper()
