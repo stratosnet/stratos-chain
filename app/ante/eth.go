@@ -326,6 +326,9 @@ func NewEthIncrementSenderSequenceDecorator(ak evmtypes.AccountKeeper) EthIncrem
 // contract creation, the nonce will be incremented during the transaction execution and not within
 // this AnteHandler decorator.
 func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
+	if ctx.IsCheckTx() {
+		return next(ctx, tx, simulate)
+	}
 	for _, msg := range tx.GetMsgs() {
 		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
 		if !ok {
@@ -531,6 +534,42 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeAmt, requiredFee)
 				}
 			}
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}
+
+type EthTxOverrideDecorator struct {
+	evmKeeper EVMKeeper
+}
+
+// NewEthTxOverrideDecorator creates a new EthTxOverrideDecorator
+func NewEthTxOverrideDecorator(ek EVMKeeper) EthTxOverrideDecorator {
+	return EthTxOverrideDecorator{
+		evmKeeper: ek,
+	}
+}
+
+func (tod EthTxOverrideDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if ctx.IsCheckTx() {
+		return next(ctx, tx, simulate)
+	}
+
+	overriddenTxs := tod.evmKeeper.GetOverriddenTxHashMap(ctx)
+	if len(overriddenTxs) == 0 {
+		return next(ctx, tx, simulate)
+	}
+
+	for _, msg := range tx.GetMsgs() {
+		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+		if !ok {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+		}
+
+		_, ok = overriddenTxs[msgEthTx.Hash]
+		if ok {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrWrongSequence, "transaction is overridden")
 		}
 	}
 

@@ -426,9 +426,11 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		genEvmParamsChainCfg := genEvmParams["chain_config"].(map[string]interface{})
 		genEvmParamsChainId := genEvmParamsChainCfg["chain_id"].(string)
 
+		clientCtx := clientCtx.WithChainID(genEvmParamsChainId)
+
 		tmEndpoint := "/websocket"
 		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config, genEvmParamsChainId)
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config)
 		if err != nil {
 			return err
 		}
