@@ -33,6 +33,10 @@ const (
 	codeErrCannotFindReport
 	codeErrCannotFindReward
 	codeErrInvalidAddress
+	codeErrInvalidDenom
+	codeErrWithdrawFailure
+	codeErrFoundationDepositFailure
+	codeErrSlashingResourceNodeFailure
 )
 
 var (
@@ -64,4 +68,8 @@ var (
 	ErrCannotFindReport                  = sdkerrors.Register(ModuleName, codeErrCannotFindReport, "Can not find report")
 	ErrCannotFindReward                  = sdkerrors.Register(ModuleName, codeErrCannotFindReward, "Can not find Pot rewards")
 	ErrInvalidAddress                    = sdkerrors.Register(ModuleName, codeErrInvalidAddress, "invalid address")
+	ErrInvalidDenom                      = sdkerrors.Register(ModuleName, codeErrInvalidDenom, "invalid denomination")
+	ErrWithdrawFailure                   = sdkerrors.Register(ModuleName, codeErrWithdrawFailure, "failure during withdraw")
+	ErrFoundationDepositFailure          = sdkerrors.Register(ModuleName, codeErrFoundationDepositFailure, "failure during foundation deposit")
+	ErrSlashingResourceNodeFailure       = sdkerrors.Register(ModuleName, codeErrSlashingResourceNodeFailure, "failure during slashing resource node")
 )
