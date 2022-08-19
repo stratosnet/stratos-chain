@@ -173,8 +173,6 @@ var (
 		registertypes.TotalSlashedPoolName:          {authtypes.Minter, authtypes.Burner},
 
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
-		pottypes.MiningRewardPool:  nil,
-		pottypes.TrafficRewardPool: nil,
 		pottypes.TotalRewardPool:   nil,
 		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},
 

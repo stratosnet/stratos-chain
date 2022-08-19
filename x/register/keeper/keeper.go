@@ -56,7 +56,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // SetHooks Set the register hooks
-func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
+func (k Keeper) SetHooks(sh types.RegisterHooks) Keeper {
 	if k.hooks != nil {
 		panic("cannot set register hooks twice")
 	}

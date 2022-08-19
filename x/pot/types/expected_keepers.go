@@ -36,19 +36,10 @@ type BankKeeper interface {
 	HasBalance(ctx sdk.Context, addr sdk.AccAddress, amt sdk.Coin) bool
 	GetAllBalances(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
-	LockedCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-	SpendableCoins(ctx sdk.Context, addr sdk.AccAddress) sdk.Coins
-
-	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderPool, recipientPool string, amt sdk.Coins) error
-	UndelegateCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
-	DelegateCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
-
-	MintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
-	BurnCoins(ctx sdk.Context, name string, amt sdk.Coins) error
 }
 
 type RegisterKeeper interface {
