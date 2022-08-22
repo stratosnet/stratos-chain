@@ -48,14 +48,16 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume, reporter stratos.SdsAddress,
-	epoch sdk.Int, reportReference string, txHash string) (totalConsumedOzone sdk.Dec, err error) {
+	epoch sdk.Int, reportReference string, txHash string) (err error) {
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
 	k.SetVolumeReport(ctx, epoch, reportRecord)
-	//distribute POT reward
-	totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch)
 
-	return totalConsumedOzone, err
+	// save for reward distribution in the EndBlock
+	k.SetUnhandledEpoch(ctx, epoch)
+	k.SetUnhandledReport(ctx, walletVolumes)
+
+	return err
 }
 
 func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {

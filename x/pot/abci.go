@@ -14,6 +14,23 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 }
 
 // EndBlocker called every block, process inflation, update validator set.
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	// 	TODO: fill out if your application requires endblock, if not you can delete this function
+func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []abci.ValidatorUpdate {
+
+	walletVolumes, found := k.GetUnhandledReport(ctx)
+	if !found {
+		return []abci.ValidatorUpdate{}
+	}
+	epoch := k.GetUnhandledEpoch(ctx)
+	logger := k.Logger(ctx)
+
+	//distribute POT reward
+	_, err := k.DistributePotReward(ctx, walletVolumes, epoch)
+	if err != nil {
+		logger.Error("An error occurred while distributing the reward. ", err)
+	}
+
+	k.SetUnhandledReport(ctx, nil)
+	k.SetUnhandledEpoch(ctx, sdk.Int{})
+
+	return []abci.ValidatorUpdate{}
 }
