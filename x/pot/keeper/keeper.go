@@ -52,8 +52,10 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalle
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
 	k.SetVolumeReport(ctx, epoch, reportRecord)
-	//distribute POT reward
-	totalConsumedOzone, err = k.DistributePotReward(ctx, walletVolumes, epoch)
+
+	// save for reward distribution in the EndBlock
+	k.SetUnhandledEpoch(ctx, epoch)
+	k.SetUnhandledReport(ctx, walletVolumes)
 
 	return totalConsumedOzone, err
 }
