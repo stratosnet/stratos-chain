@@ -16,6 +16,12 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []abci.ValidatorUpdate {
 
+	// Do not distribute rewards until the next block
+	if !k.GetIsReadyToDistributeReward(ctx) && k.GetUnhandledEpoch(ctx).GT(sdk.ZeroInt()) {
+		k.SetIsReadyToDistributeReward(ctx, true)
+		return []abci.ValidatorUpdate{}
+	}
+
 	walletVolumes, found := k.GetUnhandledReport(ctx)
 	if !found {
 		return []abci.ValidatorUpdate{}
@@ -30,7 +36,7 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 	}
 
 	k.SetUnhandledReport(ctx, nil)
-	k.SetUnhandledEpoch(ctx, sdk.Int{})
+	k.SetUnhandledEpoch(ctx, sdk.ZeroInt())
 
 	return []abci.ValidatorUpdate{}
 }

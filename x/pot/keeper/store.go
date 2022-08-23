@@ -150,3 +150,19 @@ func (k Keeper) SetUnhandledEpoch(ctx sdk.Context, epoch sdk.Int) {
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(epoch)
 	store.Set(types.UnhandledEpochKey, b)
 }
+
+func (k Keeper) GetIsReadyToDistributeReward(ctx sdk.Context) (isReady bool) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.IsReadyToDistributeReward)
+	if b == nil {
+		return false
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &isReady)
+	return
+}
+
+func (k Keeper) SetIsReadyToDistributeReward(ctx sdk.Context, isReady bool) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(isReady)
+	store.Set(types.IsReadyToDistributeReward, b)
+}

@@ -53,7 +53,7 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 
-	totalConsumedOzone, err := k.VolumeReport(ctx, msg.WalletVolumes, reporter, epoch, msg.ReportReference, txhash)
+	err = k.VolumeReport(ctx, msg.WalletVolumes, reporter, epoch, msg.ReportReference, txhash)
 	if err != nil {
 		return nil, err
 	}
@@ -61,7 +61,6 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeVolumeReport,
-			sdk.NewAttribute(types.AttributeKeyTotalConsumedOzone, totalConsumedOzone.String()),
 			sdk.NewAttribute(types.AttributeKeyReportReference, hex.EncodeToString([]byte(msg.ReportReference))),
 			sdk.NewAttribute(types.AttributeKeyEpoch, msg.Epoch.String()),
 		),

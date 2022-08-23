@@ -37,6 +37,7 @@ const (
 	codeErrWithdrawFailure
 	codeErrFoundationDepositFailure
 	codeErrSlashingResourceNodeFailure
+	codeErrRewardDistributionNotComplete
 )
 
 var (
@@ -72,4 +73,5 @@ var (
 	ErrWithdrawFailure                   = sdkerrors.Register(ModuleName, codeErrWithdrawFailure, "failure during withdraw")
 	ErrFoundationDepositFailure          = sdkerrors.Register(ModuleName, codeErrFoundationDepositFailure, "failure during foundation deposit")
 	ErrSlashingResourceNodeFailure       = sdkerrors.Register(ModuleName, codeErrSlashingResourceNodeFailure, "failure during slashing resource node")
+	ErrRewardDistributionNotComplete     = sdkerrors.Register(ModuleName, codeErrRewardDistributionNotComplete, "Reward distribution not completed")
 )

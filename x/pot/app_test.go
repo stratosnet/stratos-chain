@@ -356,6 +356,11 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		require.NoError(t, err)
 
 		/********************* commit & check result *********************/
+		// reward distribution start at height = height + 1 where volume report tx executed
+		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
+		stApp.Commit()
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
