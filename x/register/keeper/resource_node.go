@@ -93,6 +93,16 @@ func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin,
 ) (ozoneLimitChange sdk.Int, err error) {
 
+	needAddCount := true
+	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
+	if err != nil {
+		return sdk.ZeroInt(), types.ErrInvalidNetworkAddr
+	}
+	nodeStored, found := k.GetResourceNode(ctx, networkAddr)
+	if found && nodeStored.IsBonded() {
+		needAddCount = false
+	}
+
 	coins := sdk.NewCoins(tokenToAdd)
 
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
@@ -167,10 +177,13 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	}
 
 	k.SetResourceNode(ctx, resourceNode)
-	// increase resource node count
-	v := k.GetBondedResourceNodeCnt(ctx)
-	count := v.Add(sdk.NewInt(1))
-	k.SetBondedResourceNodeCnt(ctx, count)
+
+	if needAddCount {
+		// increase resource node count
+		v := k.GetBondedResourceNodeCnt(ctx)
+		count := v.Add(sdk.NewInt(1))
+		k.SetBondedResourceNodeCnt(ctx, count)
+	}
 
 	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 
