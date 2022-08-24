@@ -21,22 +21,6 @@ func (k Keeper) GetTotalMinedTokens(ctx sdk.Context) (totalMinedToken sdk.Coin) 
 	return
 }
 
-func (k Keeper) setMinedTokens(ctx sdk.Context, epoch sdk.Int, minedToken sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(minedToken)
-	store.Set(types.GetMinedTokensKey(epoch), b)
-}
-
-func (k Keeper) GetMinedTokens(ctx sdk.Context, epoch sdk.Int) (minedToken sdk.Coin) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.GetMinedTokensKey(epoch))
-	if b == nil {
-		return sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &minedToken)
-	return
-}
-
 func (k Keeper) SetLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(epoch)

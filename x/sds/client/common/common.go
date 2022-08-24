@@ -8,26 +8,6 @@ import (
 	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
-// QueryUploadedFile queries the hash of an uploaded file by sender
-//func QueryUploadedFile(clientCtx client.Context, queryRoute, fileHashHex string) ([]byte, int64, error) {
-//	fileHashByteArr, err := hex.DecodeString(fileHashHex)
-//	if err != nil {
-//		return nil, 0, fmt.Errorf("invalid file hash, please specify a hash in hex format %w", err)
-//	}
-//	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryUploadedFile)
-//	return clientCtx.QueryWithData(route, fileHashByteArr)
-//}
-
-// QueryPrepayBalance queries the prepaid balance by sender in VolumnPool
-//func QueryPrepayBalance(clientCtx client.Context, queryRoute, sender string) ([]byte, int64, error) {
-//	accAddr, err := sdk.AccAddressFromBech32(sender)
-//	if err != nil {
-//		return nil, 0, fmt.Errorf("invalid sender, please specify a sender in Bech32 format %w", err)
-//	}
-//	route := fmt.Sprintf("custom/%s/%s", queryRoute, sds.QueryPrepay)
-//	return clientCtx.QueryWithData(route, accAddr)
-//}
-
 // QuerySimulatePrepay queries the ongoing price for prepay
 func QuerySimulatePrepay(clientCtx client.Context, amtToPrepay sdk.Int) ([]byte, int64, error) {
 	amtByteArray, err := amtToPrepay.MarshalJSON()

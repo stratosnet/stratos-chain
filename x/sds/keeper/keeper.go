@@ -96,8 +96,6 @@ func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 	if err != nil {
 		return sdk.ZeroInt()
 	}
-	//newTotalUnissuedPrepay := Pt.Add(amount)
-	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(k.BondDenom(ctx), newTotalUnissuedPrepay))
 
 	// update remaining uoz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
@@ -121,115 +119,17 @@ func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 
 // Prepay transfers coins from bank to sds (volumn) pool
 func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
-	// src - hasCoins?
-	//if !k.bankKeeper.HasCoins(ctx, sender, coins) {
-	//	return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	//}
 	for _, coin := range coins {
 		hasCoin := k.bankKeeper.HasBalance(ctx, sender, coin)
 		if !hasCoin {
-			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
+			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", sender.String())
 		}
 	}
 
 	prepay := coins.AmountOf(k.BondDenom(ctx))
 	purchased := k.purchaseUozAndSubCoins(ctx, sender, prepay)
 
-	err := k.doPrepay(ctx, sender, coins)
-	if err != nil {
-		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "Failed prepay from acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	//// sub coins from sender's wallet
-	//err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, sender, regtypes.TotalUnissuedPrepayName, coins)
-	//if err != nil {
-	//	return sdk.ZeroInt(), err
-	//}
-	//
-	//_, err = k.bankKeeper.SubtractCoins(ctx, sender, coins)
-	//if err != nil {
-	//	return sdk.ZeroInt(), err
-	//}
-
 	return purchased, nil
-}
-
-// HasPrepay Returns bool indicating if the sender did prepay before
-func (k Keeper) hasPrepay(ctx sdk.Context, sender sdk.AccAddress) bool {
-	store := ctx.KVStore(k.key)
-	return store.Has(types.PrepayBalanceKey(sender))
-}
-
-// GetPrepay Returns the existing prepay coins
-func (k Keeper) GetPrepay(ctx sdk.Context, sender sdk.AccAddress) (sdk.Int, error) {
-	store := ctx.KVStore(k.key)
-	storeValue := store.Get(types.PrepayBalanceKey(sender))
-	if storeValue == nil {
-		return sdk.Int{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "No prepayment info for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	var prepaidBalance sdk.Int
-	err := prepaidBalance.UnmarshalJSON(storeValue)
-	if err != nil {
-		return sdk.Int{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Unmarshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	return prepaidBalance, nil
-}
-
-// GetPrepayBytes returns bytearr of the existing prepay coins
-func (k Keeper) GetPrepayBytes(ctx sdk.Context, sender sdk.AccAddress) ([]byte, error) {
-	store := ctx.KVStore(k.key)
-	storeValue := store.Get(types.PrepayBalanceKey(sender))
-	if storeValue == nil {
-		return []byte{}, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "No prepayment info for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	return storeValue, nil
-}
-
-// SetPrepay Sets init coins
-func (k Keeper) SetPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
-	store := ctx.KVStore(k.key)
-	storeKey := types.PrepayBalanceKey(sender)
-	balance := sdk.NewInt(0)
-	for _, coin := range coins {
-		balance = balance.Add(coin.Amount)
-	}
-	storeValue, err := balance.MarshalJSON()
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Marshalling failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	store.Set(storeKey, storeValue)
-	return nil
-}
-
-// AppendPrepay adds more coins to existing coins
-func (k Keeper) appendPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
-	store := ctx.KVStore(k.key)
-	storeKey := types.PrepayBalanceKey(sender)
-	storeValue := store.Get(storeKey)
-	var prepaidBalance sdk.Int
-	err := prepaidBalance.UnmarshalJSON(storeValue)
-	if err != nil {
-		//prepaidBalance = sdk.NewInt(0)
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Unmarshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	for _, coin := range coins {
-		prepaidBalance = prepaidBalance.Add(coin.Amount)
-	}
-	newStoreValue, err := prepaidBalance.MarshalJSON()
-	if err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "Marshal failed for acc %s", hex.EncodeToString(types.PrepayBalanceKey(sender)))
-	}
-	store.Set(storeKey, newStoreValue)
-	return nil
-}
-
-func (k Keeper) doPrepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) error {
-	// tar - has key?
-	if k.hasPrepay(ctx, sender) {
-		// has key - append coins
-		return k.appendPrepay(ctx, sender, coins)
-	}
-	// doesn't have key - create new
-	return k.SetPrepay(ctx, sender, coins)
 }
 
 // IterateFileUpload Iterate over all uploaded files.
@@ -243,25 +143,6 @@ func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.Fi
 		var fileInfo types.FileInfo
 		k.cdc.MustUnmarshal(iter.Value(), &fileInfo)
 		if handler(fileHash, fileInfo) {
-			break
-		}
-	}
-}
-
-// IteratePrepay Iterate over all prepay KVs.
-// Iteration for all prepay KVs
-func (k Keeper) IteratePrepay(ctx sdk.Context, handler func(sdk.AccAddress, sdk.Int) (stop bool)) {
-	store := ctx.KVStore(k.key)
-	iter := sdk.KVStorePrefixIterator(store, types.PrepayBalancePrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		senderAddr := sdk.AccAddress(iter.Key()[len(types.PrepayBalancePrefix):])
-		var amt sdk.Int
-		err := amt.UnmarshalJSON(iter.Value())
-		if err != nil {
-			panic("invalid prepay amount")
-		}
-		if handler(senderAddr, amt) {
 			break
 		}
 	}

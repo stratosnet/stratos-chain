@@ -54,11 +54,7 @@ func FileUploadTxCmd() *cobra.Command {
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
 		},
 	}
-	//cmd = flags.PostCommands(cmd)[0]
-	//cmd.Flags().String(flags.FlagFrom, "", "from address")
-	//cmd.Flags().String(FlagFileHash, "", "Hash of uploaded file")
-	//cmd.Flags().String(FlagReporter, "", "Reporter of file")
-	//cmd.Flags().String(FlagUploader, "", "Uploader of file")
+
 	cmd.Flags().AddFlagSet(flagSetFileHash())
 	cmd.Flags().AddFlagSet(flagSetReporter())
 	cmd.Flags().AddFlagSet(flagSetUploader())
@@ -100,26 +96,9 @@ func PrepayTxCmd() *cobra.Command {
 			}
 
 			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
-			//
-			//
-			//
-			//inBuf := bufio.NewReader(cmd.InOrStdin())
-			//txBldr := auth.NewTxBuilderFromCLI(inBuf).WithTxEncoder(utils.GetTxEncoder(cdc))
-			//cliCtx := context.NewCLIContextWithInputAndFrom(inBuf, args[0]).WithCodec(cdc)
-			//
-			//coins, err := sdk.ParseCoins(args[1])
-			//if err != nil {
-			//	return err
-			//}
-			//
-			//// build and sign the transaction, then broadcast to Tendermint
-			//msg := types.NewMsgPrepay(cliCtx.GetFromAddress(), coins)
-			//return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)
-	//cmd = flags.PostCommands(cmd)[0]
-
 	return cmd
 }
 
