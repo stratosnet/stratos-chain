@@ -28,7 +28,7 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 
 	k.SetBaseFeeParam(ctx, baseFee)
 
-	if !ctx.IsCheckTx() {
+	if !ctx.IsCheckTx() && len(ctx.HeaderHash()) > 0 {
 		overriddenTxHashes = make(map[string]struct{}, 0)
 		block, err := core.BlockByHash(&rpctypes.Context{}, ctx.HeaderHash().Bytes())
 		rawTxs := block.Block.Txs

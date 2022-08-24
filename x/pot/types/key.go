@@ -28,6 +28,9 @@ var (
 	ImmatureTotalRewardKeyPrefix = []byte{0x15} // key: prefix{address}
 
 	VolumeReportStoreKeyPrefix = []byte{0x41} // VolumeReportStoreKeyPrefix prefix for volumeReport store
+	UnhandledReportKeyPrefix   = []byte{0x42} // prefix for report need to be handled, after reward distribution, clear data
+	UnhandledEpochKey          = []byte{0x43} // prefix for epoch need to be handled, after reward distribution, clear data
+	IsReadyToDistributeReward  = []byte{0x44}
 )
 
 func GetMinedTokensKey(epoch sdk.Int) []byte {

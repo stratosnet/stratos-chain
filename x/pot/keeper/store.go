@@ -117,3 +117,52 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	bz := types.ModuleCdc.MustMarshalLengthPrefixed(reportRecord)
 	store.Set(storeKey, bz)
 }
+
+func (k Keeper) GetUnhandledReport(ctx sdk.Context) (walletVolumes []*types.SingleWalletVolume, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.UnhandledReportKeyPrefix)
+	if bz == nil {
+		return walletVolumes, false
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(bz, &walletVolumes)
+	found = true
+	return
+}
+
+func (k Keeper) SetUnhandledReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(walletVolumes)
+	store.Set(types.UnhandledReportKeyPrefix, b)
+}
+
+func (k Keeper) GetUnhandledEpoch(ctx sdk.Context) (epoch sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.UnhandledEpochKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &epoch)
+	return
+}
+
+func (k Keeper) SetUnhandledEpoch(ctx sdk.Context, epoch sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(epoch)
+	store.Set(types.UnhandledEpochKey, b)
+}
+
+func (k Keeper) GetIsReadyToDistributeReward(ctx sdk.Context) (isReady bool) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.IsReadyToDistributeReward)
+	if b == nil {
+		return false
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &isReady)
+	return
+}
+
+func (k Keeper) SetIsReadyToDistributeReward(ctx sdk.Context, isReady bool) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(isReady)
+	store.Set(types.IsReadyToDistributeReward, b)
+}

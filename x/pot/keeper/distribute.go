@@ -7,9 +7,17 @@ import (
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
+var (
+	foundationToFeePool     sdk.Coin
+	unissuedPrepayToFeePool sdk.Coin
+	foundationToReward      sdk.Coin
+	unissuedPrepayToReward  sdk.Coin
+	distributeGoal          types.DistributeGoal
+	rewardDetailMap         map[string]types.Reward
+)
+
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (totalConsumedUoz sdk.Dec, err error) {
-	distributeGoal := types.InitDistributeGoal()
-	rewardDetailMap := make(map[string]types.Reward) //key: wallet address
+	k.InitVariable(ctx)
 
 	//1, calc traffic reward in total
 	totalConsumedUoz = k.GetTotalConsumedUoz(trafficList).ToDec()
@@ -17,173 +25,43 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	if err != nil {
 		return totalConsumedUoz, err
 	}
+	unissuedPrepayToFeePool = distributeGoal.BlockChainRewardToValidatorFromTrafficPool
 
 	//2, calc mining reward in total
 	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
 		return totalConsumedUoz, err
 	}
-
-	/**
-	distributeGoalBalance is used for keeping the balance to return to the reward provider's account
-
-	After calculation by step 3,4,
-	distributeGoalBalance retains FULL rewards that will be distributed to validators
-	& the REMAINING rewards that will be returned to the reward provider’s account
-	*/
-	distributeGoalBalance := distributeGoal
+	foundationToFeePool = distributeGoal.BlockChainRewardToValidatorFromMiningPool
 
 	//3, calc reward for resource node, store to rewardDetailMap by wallet address(owner address)
-	rewardDetailMap, distributeGoalBalance = k.CalcRewardForResourceNode(ctx, totalConsumedUoz, trafficList, distributeGoalBalance, rewardDetailMap)
+	rewardDetailMap = k.CalcRewardForResourceNode(ctx, totalConsumedUoz, trafficList, distributeGoal, rewardDetailMap)
 
 	//4, calc reward from meta node, store to rewardDetailMap by wallet address(owner address)
-	rewardDetailMap, distributeGoalBalance = k.CalcRewardForMetaNode(ctx, distributeGoalBalance, rewardDetailMap)
+	rewardDetailMap = k.CalcRewardForMetaNode(ctx, distributeGoal, rewardDetailMap)
 
-	//5, [TLC] deduct reward from provider account (the value of parameter of distributeGoal will not change)
-	err = k.deductRewardFromRewardProviderAccount(ctx, distributeGoal, epoch)
-	if err != nil {
-		return totalConsumedUoz, err
-	}
-
-	//6, [TLC] distribute staking reward to fee pool for validators
-	distributeGoalBalance, err = k.distributeValidatorRewardToFeePool(ctx, distributeGoalBalance)
-	if err != nil {
-		return totalConsumedUoz, err
-	}
-
-	//7, IMPORTANT: sort map and convert to slice to keep the order
+	//5, IMPORTANT: sort map and convert to slice to keep the order
 	rewardDetailList := sortDetailMapToSlice(rewardDetailMap)
 
-	//8, distribute all rewards to resource nodes & meta nodes
-	err = k.distributeRewardToSdsNodes(ctx, rewardDetailList, epoch)
+	//6, record all rewards to resource & meta nodes
+	err = k.saveRewardInfo(ctx, rewardDetailList, epoch)
 	if err != nil {
 		return totalConsumedUoz, err
 	}
 
-	//9, [TLC] return balance to traffic pool & mining pool
-	err = k.returnBalance(ctx, distributeGoalBalance, epoch)
-	if err != nil {
-		return totalConsumedUoz, err
-	}
-
-	//10, mature rewards for all nodes
+	//7, mature rewards for all nodes
 	totalSlashed := k.rewardMatureAndSubSlashing(ctx, epoch)
 
-	//11, save reported epoch
+	//8, save reported epoch
 	k.SetLastReportedEpoch(ctx, epoch)
 
-	//12, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
-	err = k.TransferMiningTrafficRewardsToTotalRewards(ctx, totalSlashed)
+	//9, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
+	err = k.transferTokens(ctx, totalSlashed)
 	if err != nil {
 		return totalConsumedUoz, err
 	}
 
 	return totalConsumedUoz, nil
-}
-
-func (k Keeper) deductRewardFromRewardProviderAccount(ctx sdk.Context, goal types.DistributeGoal, epoch sdk.Int) (err error) {
-	totalRewardFromMiningPool := goal.BlockChainRewardToValidatorFromMiningPool.
-		Add(goal.BlockChainRewardToMetaNodeFromMiningPool).
-		Add(goal.MetaNodeRewardToMetaNodeFromMiningPool).
-		Add(goal.BlockChainRewardToResourceNodeFromMiningPool).
-		Add(goal.TrafficRewardToResourceNodeFromMiningPool)
-	totalRewardFromTrafficPool := goal.BlockChainRewardToValidatorFromTrafficPool.
-		Add(goal.BlockChainRewardToMetaNodeFromTrafficPool).
-		Add(goal.MetaNodeRewardToMetaNodeFromTrafficPool).
-		Add(goal.BlockChainRewardToResourceNodeFromTrafficPool).
-		Add(goal.TrafficRewardToResourceNodeFromTrafficPool)
-
-	// [TLC][Foundation -> MiningRewardPool]: deduct mining reward from foundation account
-	foundationAccountAddr := k.AccountKeeper.GetModuleAddress(types.FoundationAccount)
-	if foundationAccountAddr == nil {
-		ctx.Logger().Error("foundation account address of distribution module does not exist.")
-		return types.ErrUnknownAccountAddress
-	}
-
-	hasCoin := k.BankKeeper.HasBalance(ctx, foundationAccountAddr, totalRewardFromMiningPool)
-	if !hasCoin {
-		ctx.Logger().Info("balance of foundation account is 0")
-		return types.ErrInsufficientFoundationAccBalance
-	}
-	amountToDeduct := sdk.NewCoins(totalRewardFromMiningPool)
-	err = k.BankKeeper.SendCoinsFromAccountToModule(ctx, foundationAccountAddr, types.MiningRewardPool, amountToDeduct)
-	if err != nil {
-		return err
-	}
-
-	// [Non-TLC] update mined token record by adding mining reward
-	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
-	newTotalMinedToken := oldTotalMinedToken.Add(totalRewardFromMiningPool)
-	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
-	k.setMinedTokens(ctx, epoch, totalRewardFromMiningPool)
-
-	// [TLC][TotalUnIssuedPrepay -> TrafficRewardPool]: deduct traffic reward from prepay pool
-	totalUnissuedPrepayAddr := k.AccountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepayName)
-	if totalUnissuedPrepayAddr == nil {
-		ctx.Logger().Error("TotalUnIssuedPrepay account address of register module does not exist.")
-		return types.ErrUnknownAccountAddress
-	}
-
-	hasCoinInUnissuedPrepay := k.BankKeeper.HasBalance(ctx, totalUnissuedPrepayAddr, totalRewardFromTrafficPool)
-	if !hasCoinInUnissuedPrepay {
-		ctx.Logger().Info("Insufficient balance of TotalUnIssuedPrepay module account")
-		return types.ErrInsufficientUnissuedPrePayBalance
-	}
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepayName, types.TrafficRewardPool, sdk.NewCoins(totalRewardFromTrafficPool))
-	//totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
-	//newTotalUnIssuedPrePay := totalUnIssuedPrepay.Sub(totalRewardFromTrafficPool)
-	//if newTotalUnIssuedPrePay.IsNegative() {
-	//	return types.ErrInsufficientUnissuedPrePayBalance
-	//}
-	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (k Keeper) returnBalance(ctx sdk.Context, balance types.DistributeGoal, currentEpoch sdk.Int) (err error) {
-	balanceOfMiningPool := balance.BlockChainRewardToMetaNodeFromMiningPool.
-		Add(balance.MetaNodeRewardToMetaNodeFromMiningPool).
-		Add(balance.BlockChainRewardToResourceNodeFromMiningPool).
-		Add(balance.TrafficRewardToResourceNodeFromMiningPool)
-	balanceOfTrafficPool := balance.BlockChainRewardToMetaNodeFromTrafficPool.
-		Add(balance.MetaNodeRewardToMetaNodeFromTrafficPool).
-		Add(balance.BlockChainRewardToResourceNodeFromTrafficPool).
-		Add(balance.TrafficRewardToResourceNodeFromTrafficPool)
-
-	// return balance to foundation account
-	//foundationAccountAddr := k.AccountKeeper.GetModuleAddress(types.FoundationAccount)
-	//if foundationAccountAddr == nil {
-	//	ctx.Logger().Error("foundation account address of distribution module does not exist.")
-	//	return types.ErrUnknownAccountAddress
-	//}
-	// [TLC] [MiningRewardPool -> FoundationAccount]
-	amountToAdd := sdk.NewCoins(balanceOfMiningPool)
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.MiningRewardPool, types.FoundationAccount, amountToAdd)
-	if err != nil {
-		return err
-	}
-
-	//return balance to minedToken record
-	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
-	newTotalMinedToken := oldTotalMinedToken.Sub(balanceOfMiningPool)
-	oldMinedToken := k.GetMinedTokens(ctx, currentEpoch)
-	newMinedToken := oldMinedToken.Sub(balanceOfMiningPool)
-	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
-	k.setMinedTokens(ctx, currentEpoch, newMinedToken)
-
-	// return balance to prepay pool
-	// [TLC][TrafficRewardPool -> TotalUnIssuedPrepay]
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TrafficRewardPool, regtypes.TotalUnissuedPrepayName, sdk.NewCoins(balanceOfTrafficPool))
-	if err != nil {
-		return err
-	}
-	//totalUnIssuedPrepay := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx)
-	//newTotalUnIssuedPrePay := totalUnIssuedPrepay.Add(balanceOfTrafficPool)
-	//k.RegisterKeeper.SetTotalUnissuedPrepay(ctx, newTotalUnIssuedPrePay)
-
-	return nil
 }
 
 func (k Keeper) CalcTrafficRewardInTotal(
@@ -275,7 +153,7 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 }
 
 // Iteration for each rewarded SDS node
-func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []types.Reward, currentEpoch sdk.Int) (err error) {
+func (k Keeper) saveRewardInfo(ctx sdk.Context, rewardDetailList []types.Reward, currentEpoch sdk.Int) (err error) {
 	matureEpoch := k.getMatureEpochByCurrentEpoch(ctx, currentEpoch)
 
 	for _, reward := range rewardDetailList {
@@ -285,6 +163,12 @@ func (k Keeper) distributeRewardToSdsNodes(ctx sdk.Context, rewardDetailList []t
 		}
 		k.addNewIndividualAndUpdateImmatureTotal(ctx, walletAddr, matureEpoch, reward)
 	}
+
+	newMinedTotal := foundationToFeePool.Add(foundationToReward)
+	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
+	newTotalMinedToken := oldTotalMinedToken.Add(newMinedTotal)
+	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
+	k.setMinedTokens(ctx, currentEpoch, newMinedTotal)
 	return nil
 }
 
@@ -338,41 +222,10 @@ func (k Keeper) getMatureEpochByCurrentEpoch(ctx sdk.Context, currentEpoch sdk.I
 	return matureEpoch
 }
 
-// move reward to fee pool for validator traffic reward distribution
-func (k Keeper) distributeValidatorRewardToFeePool(ctx sdk.Context, distributeGoal types.DistributeGoal) (types.DistributeGoal, error) {
-	rewardFromMiningPool := distributeGoal.BlockChainRewardToValidatorFromMiningPool
-	rewardFromTrafficPool := distributeGoal.BlockChainRewardToValidatorFromTrafficPool
-	//totalRewardSendToFeePool := sdk.NewCoins(rewardFromMiningPool).Add(rewardFromTrafficPool)
-
-	feePoolAccAddr := k.AccountKeeper.GetModuleAddress(k.feeCollectorName)
-
-	if feePoolAccAddr == nil {
-		ctx.Logger().Error("account address of distribution module does not exist.")
-		return distributeGoal, types.ErrUnknownAccountAddress
-	}
-
-	// separately sending totalRerewardFromMiningPool and rewardFromTrafficPool instead of sending totalRewardSendToFeePool to feeCollector module acc
-	// [TLC] [MiningRewardPool -> feeCollectorPool]
-	err := k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.MiningRewardPool, feePoolAccAddr, sdk.NewCoins(rewardFromMiningPool))
-	if err != nil {
-		return distributeGoal, err
-	}
-	// [TLC] [TrafficRewardPool -> feeCollectorPool]
-	err = k.BankKeeper.SendCoinsFromModuleToAccount(ctx, types.TrafficRewardPool, feePoolAccAddr, sdk.NewCoins(rewardFromTrafficPool))
-	if err != nil {
-		return distributeGoal, err
-	}
-
-	distributeGoal.BlockChainRewardToValidatorFromMiningPool = sdk.Coin{}
-	distributeGoal.BlockChainRewardToValidatorFromTrafficPool = sdk.Coin{}
-
-	return distributeGoal, nil
-}
-
 // Iteration for calculating reward of resource nodes
 func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.Dec, trafficList []*types.SingleWalletVolume,
 	distributeGoalBalance types.DistributeGoal, rewardDetailMap map[string]types.Reward,
-) (map[string]types.Reward, types.DistributeGoal) {
+) map[string]types.Reward {
 
 	totalUsedFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	totalUsedFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
@@ -417,11 +270,9 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 		rewardDetailMap[walletAddr.String()] = newReward
 	}
 
-	// deduct used reward from distributeGoalBalance
-	distributeGoalBalance.BlockChainRewardToResourceNodeFromMiningPool =
-		distributeGoalBalance.BlockChainRewardToResourceNodeFromMiningPool.Sub(totalUsedFromMiningPool)
-	distributeGoalBalance.BlockChainRewardToResourceNodeFromTrafficPool =
-		distributeGoalBalance.BlockChainRewardToResourceNodeFromTrafficPool.Sub(totalUsedFromTrafficPool)
+	// record value preparing for transfer
+	foundationToReward = foundationToReward.Add(totalUsedFromMiningPool)
+	unissuedPrepayToReward = unissuedPrepayToReward.Add(totalUsedFromTrafficPool)
 
 	totalUsedFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	totalUsedFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
@@ -454,18 +305,17 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 		newReward = newReward.AddRewardFromTrafficPool(trafficRewardFromTrafficPool)
 		rewardDetailMap[walletAddr.String()] = newReward
 	}
-	// deduct used reward from distributeGoal
-	distributeGoalBalance.TrafficRewardToResourceNodeFromMiningPool =
-		distributeGoalBalance.TrafficRewardToResourceNodeFromMiningPool.Sub(totalUsedFromMiningPool)
-	distributeGoalBalance.TrafficRewardToResourceNodeFromTrafficPool =
-		distributeGoalBalance.TrafficRewardToResourceNodeFromTrafficPool.Sub(totalUsedFromTrafficPool)
 
-	return rewardDetailMap, distributeGoalBalance
+	// record value preparing for transfer
+	foundationToReward = foundationToReward.Add(totalUsedFromMiningPool)
+	unissuedPrepayToReward = unissuedPrepayToReward.Add(totalUsedFromTrafficPool)
+
+	return rewardDetailMap
 }
 
 // Iteration for calculating reward of meta nodes
 func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance types.DistributeGoal, rewardDetailMap map[string]types.Reward,
-) (map[string]types.Reward, types.DistributeGoal) {
+) map[string]types.Reward {
 
 	totalUsedStakeRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	totalUsedStakeRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
@@ -473,8 +323,6 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 	totalUsedMetaRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 
 	totalStakeOfMetaNodes := k.RegisterKeeper.GetMetaNodeBondedToken(ctx).Amount
-	//metaNodeList := k.RegisterKeeper.GetAllMetaNodes(ctx)// bonded nodes
-	//metaNodeCnt := sdk.NewInt(int64(len(metaNodeList)))
 
 	metaNodeCnt := k.RegisterKeeper.GetBondedMetaNodeCnt(ctx)
 	// 1, calc stake reward
@@ -525,17 +373,15 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 		rewardDetailMap[walletAddr.String()] = newReward
 	}
 
-	// deduct used reward from distributeGoal
-	distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool =
-		distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool.Sub(totalUsedStakeRewardFromMiningPool)
-	distributeGoalBalance.BlockChainRewardToMetaNodeFromTrafficPool =
-		distributeGoalBalance.BlockChainRewardToMetaNodeFromTrafficPool.Sub(totalUsedStakeRewardFromTrafficPool)
-	distributeGoalBalance.MetaNodeRewardToMetaNodeFromMiningPool =
-		distributeGoalBalance.MetaNodeRewardToMetaNodeFromMiningPool.Sub(totalUsedMetaRewardFromMiningPool)
-	distributeGoalBalance.MetaNodeRewardToMetaNodeFromTrafficPool =
-		distributeGoalBalance.MetaNodeRewardToMetaNodeFromTrafficPool.Sub(totalUsedMetaRewardFromTrafficPool)
+	// record value preparing for transfer
+	foundationToReward = foundationToReward.
+		Add(totalUsedStakeRewardFromMiningPool).
+		Add(totalUsedMetaRewardFromMiningPool)
+	unissuedPrepayToReward = unissuedPrepayToReward.
+		Add(totalUsedStakeRewardFromTrafficPool).
+		Add(totalUsedMetaRewardFromTrafficPool)
 
-	return rewardDetailMap, distributeGoalBalance
+	return rewardDetailMap
 }
 
 // Iteration for getting total consumed OZ from traffic
@@ -613,30 +459,31 @@ func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress 
 	}
 }
 
-func (k Keeper) TransferMiningTrafficRewardsToTotalRewards(ctx sdk.Context, totalSlashed sdk.Coins) error {
-	miningRewardAccountAddr := k.AccountKeeper.GetModuleAddress(types.MiningRewardPool)
-	if miningRewardAccountAddr == nil {
-		ctx.Logger().Error("mining reward account address of distribution module does not exist.")
-		return types.ErrUnknownAccountAddress
-	}
-	miningRewardPoolBalances := k.BankKeeper.GetAllBalances(ctx, miningRewardAccountAddr)
-
-	trafficRewardAccountAddr := k.AccountKeeper.GetModuleAddress(types.TrafficRewardPool)
-	if trafficRewardAccountAddr == nil {
-		ctx.Logger().Error("traffic reward account address of distribution module does not exist.")
-		return types.ErrUnknownAccountAddress
-	}
-	trafficRewardPoolBalances := k.BankKeeper.GetAllBalances(ctx, trafficRewardAccountAddr)
-
-	err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.MiningRewardPool, types.TotalRewardPool, miningRewardPoolBalances)
+func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
+	// [TLC] [FoundationAccount -> feeCollectorPool] Transfer mining reward to fee_pool for validators
+	err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.FoundationAccount, k.feeCollectorName, sdk.NewCoins(foundationToFeePool))
 	if err != nil {
 		return err
 	}
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TrafficRewardPool, types.TotalRewardPool, trafficRewardPoolBalances)
+	// [TLC] [TotalUnissuedPrepayName -> feeCollectorPool] Transfer traffic reward to fee_pool for validators
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepayName, k.feeCollectorName, sdk.NewCoins(unissuedPrepayToFeePool))
 	if err != nil {
 		return err
 	}
 
+	// [TLC] [FoundationAccount -> TotalRewardPool] Transfer mining reward to TotalRewardPool for sds nodes
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.FoundationAccount, types.TotalRewardPool, sdk.NewCoins(foundationToReward))
+	if err != nil {
+		return err
+	}
+
+	// [TLC] [TotalUnissuedPrepay -> TotalRewardPool] Transfer traffic reward to TotalRewardPool for sds nodes
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepayName, types.TotalRewardPool, sdk.NewCoins(unissuedPrepayToReward))
+	if err != nil {
+		return err
+	}
+
+	// [TLC] [TotalRewardPool -> TotalSlashedPool] Transfer slashed reward to TotalSlashedPool
 	// transfer totalSlashed TODO whether to burn the slashed tokens in TotalSlashedPoolName
 	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TotalRewardPool, regtypes.TotalSlashedPoolName, totalSlashed)
 	if err != nil {
@@ -644,4 +491,13 @@ func (k Keeper) TransferMiningTrafficRewardsToTotalRewards(ctx sdk.Context, tota
 	}
 
 	return nil
+}
+
+func (k Keeper) InitVariable(ctx sdk.Context) {
+	foundationToFeePool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	unissuedPrepayToFeePool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	foundationToReward = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
+	unissuedPrepayToReward = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	distributeGoal = types.InitDistributeGoal()
+	rewardDetailMap = make(map[string]types.Reward) //key: wallet address
 }

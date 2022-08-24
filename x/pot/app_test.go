@@ -294,6 +294,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		println("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
 
 		println("---------------------------")
+		potKeeper.InitVariable(ctx)
 		distributeGoal := types.InitDistributeGoal()
 		distributeGoal, err := potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedUoz)
 		require.NoError(t, err)
@@ -304,10 +305,9 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		println("---------------------------")
 		println("distribute detail:")
-		distributeGoalBalance := distributeGoal
 		rewardDetailMap := make(map[string]types.Reward)
-		rewardDetailMap, distributeGoalBalance = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedUoz, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
-		rewardDetailMap, distributeGoalBalance = potKeeper.CalcRewardForMetaNode(ctx, distributeGoalBalance, rewardDetailMap)
+		rewardDetailMap = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedUoz, volumeReportMsg.WalletVolumes, distributeGoal, rewardDetailMap)
+		rewardDetailMap = potKeeper.CalcRewardForMetaNode(ctx, distributeGoal, rewardDetailMap)
 
 		println("resource_wallet1:  address = " + resOwner1.String())
 		println("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
@@ -356,6 +356,11 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		require.NoError(t, err)
 
 		/********************* commit & check result *********************/
+		// reward distribution start at height = height + 1 where volume report tx executed
+		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
+		stApp.Commit()
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
@@ -466,6 +471,10 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	}
 	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change.String(), upcomingMaturedIndividual.String())
+
+	totalRewardPoolAddr := accountKeeper.GetModuleAddress(types.TotalRewardPool)
+	totalRewardPoolBalance := bankKeeper.GetAllBalances(ctx, totalRewardPoolAddr)
+	println("totalRewardPoolBalance			= " + totalRewardPoolBalance.String())
 }
 
 func checkValidator(t *testing.T, app *app.NewApp, addr sdk.ValAddress, expFound bool) stakingtypes.Validator {
