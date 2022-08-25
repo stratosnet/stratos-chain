@@ -146,3 +146,10 @@
 | [txpool_content](08_txpool.md)                       | TxPool    |      ✔      |        |                    |
 | [txpool_inspect](08_txpool.md)                       | TxPool    |      ✔      |        |                    |
 | [txpool_status](08_txpool.md)                        | TxPool    |      ✔      |        |                    |
+
+---
+## Denominations
+
+1 ETH = 10^9 Gwei = 10^18 wei = 1 STOS = 10^9 nstos
+
+---

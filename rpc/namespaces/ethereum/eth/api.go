@@ -248,7 +248,7 @@ func (e *PublicAPI) BlockNumber() (hexutil.Uint64, error) {
 	return e.backend.BlockNumber()
 }
 
-// GetBalance returns the provided account's balance up to the provided block number.
+// GetBalance returns the provided account's balance up to the provided block number in wei.
 func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (*hexutil.Big, error) {
 	e.logger.Debug("eth_getBalance", "address", address.String(), "block number or hash", blockNrOrHash)
 
