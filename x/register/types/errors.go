@@ -66,6 +66,7 @@ const (
 	codeErrUpdateResourceNodeStake
 	codeErrUpdateMetaNodeStake
 	codeErrVoteMetaNode
+	codeErrResourceNodeRegDisabled
 )
 
 var (
@@ -130,4 +131,5 @@ var (
 	ErrUpdateResourceNodeStake            = sdkerrors.Register(ModuleName, codeErrUpdateResourceNodeStake, "failed to update stake for resource node")
 	ErrUpdateMetaNodeStake                = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeStake, "failed to update stake for meta node")
 	ErrVoteMetaNode                       = sdkerrors.Register(ModuleName, codeErrVoteMetaNode, "failed to vote meta node")
+	ErrResourceNodeRegDisabled            = sdkerrors.Register(ModuleName, codeErrResourceNodeRegDisabled, "resource node registration is disabled")
 )
