@@ -42,3 +42,9 @@ func (k Keeper) UnbondingCompletionTime(ctx sdk.Context) (res time.Duration) {
 	k.paramSpace.Get(ctx, types.KeyUnbondingCompletionTime, &res)
 	return
 }
+
+// ResourceNodeRegEnabled
+func (k Keeper) ResourceNodeRegEnabled(ctx sdk.Context) (res bool) {
+	k.paramSpace.Get(ctx, types.KeyResourceNodeRegEnabled, &res)
+	return
+}

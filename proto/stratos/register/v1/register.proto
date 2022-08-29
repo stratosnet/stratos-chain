@@ -35,6 +35,7 @@ message Params {
     (gogoproto.jsontag)  = "max_entries",
     (gogoproto.moretags) = "yaml:\"max_entries\",omitempty"
   ];
+  bool resource_node_reg_enabled = 5 [(gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""];
 }
 
 message ResourceNode {

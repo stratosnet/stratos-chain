@@ -29,6 +29,10 @@ var _ types.MsgServer = msgServer{}
 func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types.MsgCreateResourceNode) (*types.MsgCreateResourceNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if !k.ResourceNodeRegEnabled(ctx) {
+		return &types.MsgCreateResourceNodeResponse{}, types.ErrResourceNodeRegDisabled
+	}
+
 	// check to see if the pubkey or sender has been registered before
 	pkAny := msg.GetPubkey()
 	cachedPubkey := pkAny.GetCachedValue()
