@@ -168,7 +168,6 @@ func (k Keeper) saveRewardInfo(ctx sdk.Context, rewardDetailList []types.Reward,
 	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
 	newTotalMinedToken := oldTotalMinedToken.Add(newMinedTotal)
 	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
-	k.setMinedTokens(ctx, currentEpoch, newMinedTotal)
 	return nil
 }
 

@@ -6,7 +6,6 @@ import "github.com/cosmos/cosmos-sdk/types"
 const (
 	QueryParams         = "params"
 	QueryUploadedFile   = "uploaded_file"
-	QueryPrepay         = "prepay"
 	QuerySimulatePrepay = "simulate_prepay"
 	QueryCurrUozPrice   = "curr_uoz_price"
 	QueryUozSupply      = "uoz_supply"

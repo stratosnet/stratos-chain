@@ -1,10 +1,7 @@
 syntax = "proto3";
 package stratos.sds.v1;
 
-import "gogoproto/gogo.proto";
-
 import "google/api/annotations.proto";
-
 import "stratos/sds/v1/sds.proto";
 
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
@@ -14,10 +11,6 @@ service Query {
   // Query uploaded file info by hash
   rpc Fileupload(QueryFileUploadRequest) returns (QueryFileUploadResponse) {
     option (google.api.http).get = "/stratos/sds/v1/file_upload/{file_hash}";
-  }
-  // Query balance of prepayment in Volume Pool
-  rpc Prepay(QueryPrepayRequest) returns (QueryPrepayResponse) {
-    option (google.api.http).get = "/stratos/sds/v1/prepay/{acct_addr}";
   }
 
   // Params queries SDS module Params info.
@@ -36,18 +29,6 @@ message QueryFileUploadRequest {
 // QueryFileuploadResponse is response type for the Query/Fileupload RPC method
 message QueryFileUploadResponse {
   FileInfo file_info = 1;
-}
-
-// QueryPrepayRequest is request type for the Query/Prepay RPC method
-message QueryPrepayRequest {
-  string acct_addr = 1;
-}
-
-// QueryPrepayResponse is response type for the Query/Prepay RPC method
-message QueryPrepayResponse {
-  string balance = 1 [
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.

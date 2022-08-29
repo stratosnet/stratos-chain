@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
+
 	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
 
@@ -12,30 +14,19 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
-const (
-	QueryUploadedFile   = "uploaded_file"
-	QueryPrepay         = "prepay"
-	QuerySimulatePrepay = "simulate_prepay"
-	QueryCurrUozPrice   = "curr_uoz_price"
-	QueryUozSupply      = "uoz_supply"
-	QuerySdsParams      = "params"
-)
-
 // NewQuerier creates a new querier for sds clients.
 func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case QueryUploadedFile:
+		case types.QueryUploadedFile:
 			return queryUploadedFileByHash(ctx, req, k, legacyQuerierCdc)
-		case QueryPrepay:
-			return queryPrepay(ctx, req, k, legacyQuerierCdc)
-		case QuerySimulatePrepay:
+		case types.QuerySimulatePrepay:
 			return querySimulatePrepay(ctx, req, k, legacyQuerierCdc)
-		case QueryCurrUozPrice:
+		case types.QueryCurrUozPrice:
 			return queryCurrUozPrice(ctx, req, k, legacyQuerierCdc)
-		case QueryUozSupply:
+		case types.QueryUozSupply:
 			return queryUozSupply(ctx, req, k, legacyQuerierCdc)
-		case QuerySdsParams:
+		case types.QueryParams:
 			return getSdsParams(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown sds query endpoint "+req.String()+hex.EncodeToString(req.Data))
@@ -61,15 +52,6 @@ func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, _
 	}
 
 	return fileInfo, nil
-}
-
-// queryPrepay fetch prepaid balance of an account.
-func queryPrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
-	balance, err := k.GetPrepayBytes(ctx, req.Data)
-	if err != nil {
-		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
-	}
-	return balance, nil
 }
 
 // querySimulatePrepay fetch amt of uoz with a simulated prepay of X ustos.

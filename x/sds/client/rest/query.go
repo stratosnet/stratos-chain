@@ -11,8 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
 	"github.com/stratosnet/stratos-chain/x/sds/client/common"
-	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
@@ -29,7 +28,7 @@ func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
 		UozSupplyHandlerFn(clientCtx),
 	).Methods("GET")
 	r.HandleFunc("/sds/params",
-		sdsParamsHandlerFn(clientCtx, sdskeeper.QuerySdsParams),
+		sdsParamsHandlerFn(clientCtx, types.QueryParams),
 	).Methods("GET")
 
 }
@@ -43,7 +42,7 @@ func sdsParamsHandlerFn(clientCtx client.Context, queryPath string) http.Handler
 			return
 		}
 
-		route := fmt.Sprintf("custom/%s/%s", sdstypes.QuerierRoute, queryPath)
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
 		res, height, err := cliCtx.Query(route)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
