@@ -22,12 +22,13 @@ type Keeper struct {
 	AccountKeeper    types.AccountKeeper
 	StakingKeeper    types.StakingKeeper
 	RegisterKeeper   types.RegisterKeeper
+	DistrKeeper      types.DistrKeeper
 }
 
 // NewKeeper creates a pot keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspace, feeCollectorName string,
 	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper,
-	registerKeeper types.RegisterKeeper,
+	registerKeeper types.RegisterKeeper, distrKeeper types.DistrKeeper,
 ) Keeper {
 	keeper := Keeper{
 		cdc:              cdc,
@@ -38,6 +39,7 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspac
 		AccountKeeper:    accountKeeper,
 		StakingKeeper:    stakingKeeper,
 		RegisterKeeper:   registerKeeper,
+		DistrKeeper:      distrKeeper,
 	}
 	return keeper
 }

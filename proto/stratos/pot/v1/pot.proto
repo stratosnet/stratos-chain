@@ -24,6 +24,12 @@ message Params {
     (gogoproto.jsontag)  = "mining_reward_params",
     (gogoproto.moretags) = "yaml:\"mining_reward_params\""
   ];
+  string community_tax = 5 [
+    (gogoproto.jsontag)  = "community_tax",
+    (gogoproto.moretags)   = "yaml:\"community_tax\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
 }
 
 message MiningRewardParam {

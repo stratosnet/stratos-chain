@@ -8,12 +8,13 @@ import (
 )
 
 var (
-	foundationToFeePool     sdk.Coin
-	unissuedPrepayToFeePool sdk.Coin
-	foundationToReward      sdk.Coin
-	unissuedPrepayToReward  sdk.Coin
-	distributeGoal          types.DistributeGoal
-	rewardDetailMap         map[string]types.Reward
+	foundationToFeePool           sdk.Coin
+	unissuedPrepayToFeePool       sdk.Coin
+	foundationToReward            sdk.Coin
+	unissuedPrepayToReward        sdk.Coin
+	unissuedPrepayToCommunityPool sdk.Dec
+	distributeGoal                types.DistributeGoal
+	rewardDetailMap               map[string]types.Reward
 )
 
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (totalConsumedUoz sdk.Dec, err error) {
@@ -226,9 +227,6 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 	distributeGoalBalance types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) map[string]types.Reward {
 
-	totalUsedFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-	totalUsedFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-
 	// 1, calc stake reward
 	totalStakeOfResourceNodes := k.RegisterKeeper.GetResourceNodeBondedToken(ctx).Amount
 
@@ -249,32 +247,36 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 		if !ok {
 			continue
 		}
+
 		shareOfToken := tokens.ToDec().Quo(totalStakeOfResourceNodes.ToDec())
 		stakeRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx),
-			distributeGoalBalance.BlockChainRewardToResourceNodeFromMiningPool.Amount.ToDec().Mul(shareOfToken).TruncateInt())
-		stakeRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx),
-			distributeGoalBalance.BlockChainRewardToResourceNodeFromTrafficPool.Amount.ToDec().Mul(shareOfToken).TruncateInt())
+			distributeGoalBalance.BlockChainRewardToResourceNodeFromMiningPool.Amount.ToDec().
+				Mul(shareOfToken).
+				TruncateInt())
 
-		totalUsedFromMiningPool = totalUsedFromMiningPool.Add(stakeRewardFromMiningPool)
-		totalUsedFromTrafficPool = totalUsedFromTrafficPool.Add(stakeRewardFromTrafficPool)
+		// reward from traffic pool need to pay community tax
+		stakeRewardFromTrafficPoolBeforeTax := distributeGoalBalance.BlockChainRewardToResourceNodeFromTrafficPool.Amount.ToDec().
+			Mul(shareOfToken)
+		stakeRewardFromTrafficPoolAfterTax, tax := k.CalcCommunityTax(ctx, stakeRewardFromTrafficPoolBeforeTax)
 
+		// update rewardDetailMap
 		if _, ok := rewardDetailMap[walletAddr.String()]; !ok {
 			reward := types.NewDefaultReward(walletAddr)
 			rewardDetailMap[walletAddr.String()] = reward
 		}
-
 		newReward := rewardDetailMap[walletAddr.String()]
 		newReward = newReward.AddRewardFromMiningPool(stakeRewardFromMiningPool)
-		newReward = newReward.AddRewardFromTrafficPool(stakeRewardFromTrafficPool)
+		newReward = newReward.AddRewardFromTrafficPool(stakeRewardFromTrafficPoolAfterTax)
 		rewardDetailMap[walletAddr.String()] = newReward
+
+		// record value preparing for transfer
+		foundationToReward = foundationToReward.
+			Add(stakeRewardFromMiningPool)
+		unissuedPrepayToReward = unissuedPrepayToReward.
+			Add(stakeRewardFromTrafficPoolAfterTax)
+		unissuedPrepayToCommunityPool = unissuedPrepayToCommunityPool.
+			Add(tax)
 	}
-
-	// record value preparing for transfer
-	foundationToReward = foundationToReward.Add(totalUsedFromMiningPool)
-	unissuedPrepayToReward = unissuedPrepayToReward.Add(totalUsedFromTrafficPool)
-
-	totalUsedFromMiningPool = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-	totalUsedFromTrafficPool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 
 	// 2, calc traffic reward
 	for _, walletTraffic := range trafficList {
@@ -282,32 +284,35 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 		if err != nil {
 			continue
 		}
-		//walletAddr := walletTraffic.WalletAddress
 		trafficVolume := walletTraffic.Volume
 
 		shareOfTraffic := trafficVolume.ToDec().Quo(totalConsumedUoz)
 		trafficRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx),
 			distributeGoalBalance.TrafficRewardToResourceNodeFromMiningPool.Amount.ToDec().Mul(shareOfTraffic).TruncateInt())
-		trafficRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx),
-			distributeGoalBalance.TrafficRewardToResourceNodeFromTrafficPool.Amount.ToDec().Mul(shareOfTraffic).TruncateInt())
 
-		totalUsedFromMiningPool = totalUsedFromMiningPool.Add(trafficRewardFromMiningPool)
-		totalUsedFromTrafficPool = totalUsedFromTrafficPool.Add(trafficRewardFromTrafficPool)
+		// reward from traffic pool need to pay community tax
+		trafficRewardFromTrafficPoolBeforTax := distributeGoalBalance.TrafficRewardToResourceNodeFromTrafficPool.Amount.ToDec().
+			Mul(shareOfTraffic)
+		trafficRewardFromTrafficPoolAfterTax, tax := k.CalcCommunityTax(ctx, trafficRewardFromTrafficPoolBeforTax)
 
+		// update rewardDetailMap
 		if _, ok := rewardDetailMap[walletAddr.String()]; !ok {
 			reward := types.NewDefaultReward(walletAddr)
 			rewardDetailMap[walletAddr.String()] = reward
 		}
-
 		newReward := rewardDetailMap[walletAddr.String()]
 		newReward = newReward.AddRewardFromMiningPool(trafficRewardFromMiningPool)
-		newReward = newReward.AddRewardFromTrafficPool(trafficRewardFromTrafficPool)
+		newReward = newReward.AddRewardFromTrafficPool(trafficRewardFromTrafficPoolAfterTax)
 		rewardDetailMap[walletAddr.String()] = newReward
-	}
 
-	// record value preparing for transfer
-	foundationToReward = foundationToReward.Add(totalUsedFromMiningPool)
-	unissuedPrepayToReward = unissuedPrepayToReward.Add(totalUsedFromTrafficPool)
+		// record value preparing for transfer
+		foundationToReward = foundationToReward.
+			Add(trafficRewardFromMiningPool)
+		unissuedPrepayToReward = unissuedPrepayToReward.
+			Add(trafficRewardFromTrafficPoolAfterTax)
+		unissuedPrepayToCommunityPool = unissuedPrepayToCommunityPool.
+			Add(tax)
+	}
 
 	return rewardDetailMap
 }
@@ -316,15 +321,9 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) map[string]types.Reward {
 
-	totalUsedStakeRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-	totalUsedStakeRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-	totalUsedMetaRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
-	totalUsedMetaRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
-
 	totalStakeOfMetaNodes := k.RegisterKeeper.GetMetaNodeBondedToken(ctx).Amount
-
 	metaNodeCnt := k.RegisterKeeper.GetBondedMetaNodeCnt(ctx)
-	// 1, calc stake reward
+
 	mataNodeIterator := k.RegisterKeeper.GetMetaNodeIterator(ctx)
 	defer mataNodeIterator.Close()
 
@@ -343,42 +342,46 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 			continue
 		}
 
+		// 1, calc stake reward
 		shareOfToken := tokens.ToDec().Quo(totalStakeOfMetaNodes.ToDec())
 		stakeRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx),
-			distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool.Amount.ToDec().Mul(shareOfToken).TruncateInt())
-		stakeRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx),
-			distributeGoalBalance.BlockChainRewardToMetaNodeFromTrafficPool.Amount.ToDec().Mul(shareOfToken).TruncateInt())
-
-		totalUsedStakeRewardFromMiningPool = totalUsedStakeRewardFromMiningPool.Add(stakeRewardFromMiningPool)
-		totalUsedStakeRewardFromTrafficPool = totalUsedStakeRewardFromTrafficPool.Add(stakeRewardFromTrafficPool)
+			distributeGoalBalance.BlockChainRewardToMetaNodeFromMiningPool.Amount.ToDec().
+				Mul(shareOfToken).
+				TruncateInt())
+		stakeRewardFromTrafficPool := distributeGoalBalance.BlockChainRewardToMetaNodeFromTrafficPool.Amount.ToDec().
+			Mul(shareOfToken)
 
 		// 2, calc meta reward
 		metaRewardFromMiningPool := sdk.NewCoin(k.RewardDenom(ctx),
-			distributeGoalBalance.MetaNodeRewardToMetaNodeFromMiningPool.Amount.ToDec().Quo(metaNodeCnt.ToDec()).TruncateInt())
-		metaRewardFromTrafficPool := sdk.NewCoin(k.BondDenom(ctx),
-			distributeGoalBalance.MetaNodeRewardToMetaNodeFromTrafficPool.Amount.ToDec().Quo(metaNodeCnt.ToDec()).TruncateInt())
+			distributeGoalBalance.MetaNodeRewardToMetaNodeFromMiningPool.Amount.ToDec().
+				Quo(metaNodeCnt.ToDec()).
+				TruncateInt())
+		metaRewardFromTrafficPool := distributeGoalBalance.MetaNodeRewardToMetaNodeFromTrafficPool.Amount.ToDec().
+			Quo(metaNodeCnt.ToDec())
 
-		totalUsedMetaRewardFromMiningPool = totalUsedMetaRewardFromMiningPool.Add(metaRewardFromMiningPool)
-		totalUsedMetaRewardFromTrafficPool = totalUsedMetaRewardFromTrafficPool.Add(metaRewardFromTrafficPool)
+		// reward from traffic pool need to pay community tax
+		rewardFromTrafficPoolBeforeTax := stakeRewardFromTrafficPool.Add(metaRewardFromTrafficPool)
+		rewardFromTrafficPoolAfterTax, tax := k.CalcCommunityTax(ctx, rewardFromTrafficPoolBeforeTax)
 
+		// update rewardDetailMap
 		if _, ok := rewardDetailMap[walletAddr.String()]; !ok {
 			reward := types.NewDefaultReward(walletAddr)
 			rewardDetailMap[walletAddr.String()] = reward
 		}
-
 		newReward := rewardDetailMap[walletAddr.String()]
 		newReward = newReward.AddRewardFromMiningPool(stakeRewardFromMiningPool.Add(metaRewardFromMiningPool))
-		newReward = newReward.AddRewardFromTrafficPool(stakeRewardFromTrafficPool.Add(metaRewardFromTrafficPool))
+		newReward = newReward.AddRewardFromTrafficPool(rewardFromTrafficPoolAfterTax)
 		rewardDetailMap[walletAddr.String()] = newReward
-	}
 
-	// record value preparing for transfer
-	foundationToReward = foundationToReward.
-		Add(totalUsedStakeRewardFromMiningPool).
-		Add(totalUsedMetaRewardFromMiningPool)
-	unissuedPrepayToReward = unissuedPrepayToReward.
-		Add(totalUsedStakeRewardFromTrafficPool).
-		Add(totalUsedMetaRewardFromTrafficPool)
+		// record value preparing for transfer
+		foundationToReward = foundationToReward.
+			Add(stakeRewardFromMiningPool).
+			Add(metaRewardFromMiningPool)
+		unissuedPrepayToReward = unissuedPrepayToReward.
+			Add(rewardFromTrafficPoolAfterTax)
+		unissuedPrepayToCommunityPool = unissuedPrepayToCommunityPool.
+			Add(tax)
+	}
 
 	return rewardDetailMap
 }
@@ -489,6 +492,14 @@ func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 		return err
 	}
 
+	// [TLC] [TotalUnissuedPrepay -> Distribution] Need to record to FeePool.CommunityPool
+	taxCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), unissuedPrepayToCommunityPool.TruncateInt()))
+	prepayAccAddr := k.AccountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepayName)
+	err = k.DistrKeeper.FundCommunityPool(ctx, taxCoins, prepayAccAddr)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -497,6 +508,16 @@ func (k Keeper) InitVariable(ctx sdk.Context) {
 	unissuedPrepayToFeePool = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
 	foundationToReward = sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	unissuedPrepayToReward = sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	unissuedPrepayToCommunityPool = sdk.ZeroDec()
 	distributeGoal = types.InitDistributeGoal()
 	rewardDetailMap = make(map[string]types.Reward) //key: wallet address
+}
+
+func (k Keeper) CalcCommunityTax(ctx sdk.Context, rewardBeforeTax sdk.Dec) (reward sdk.Coin, tax sdk.Dec) {
+	communityTax := k.GetCommunityTax(ctx)
+	tax = rewardBeforeTax.Mul(communityTax)
+	rewardAmt := rewardBeforeTax.Sub(tax).TruncateInt()
+	reward = sdk.NewCoin(k.BondDenom(ctx), rewardAmt)
+
+	return
 }
