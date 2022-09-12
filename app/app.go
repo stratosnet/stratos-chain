@@ -420,6 +420,7 @@ func NewInitApp(
 		app.accountKeeper,
 		app.stakingKeeper,
 		app.registerKeeper,
+		app.distrKeeper,
 	)
 
 	app.sdsKeeper = sdskeeper.NewKeeper(
