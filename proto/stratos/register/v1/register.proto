@@ -19,23 +19,27 @@ message Params {
     (gogoproto.jsontag)  = "bond_denom",
     (gogoproto.moretags) = "yaml:\"bond_denom\""
   ];
-  google.protobuf.Duration  unbonding_threashold_time = 2 [
+  string  reward_denom = 2 [
+    (gogoproto.jsontag)  = "reward_denom",
+    (gogoproto.moretags) = "yaml:\"reward_denom\""
+  ];
+  google.protobuf.Duration  unbonding_threashold_time = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.jsontag)  = "unbonding_threashold_time",
     (gogoproto.moretags) = "yaml:\"unbonding_threashold_time\""
   ];
-  google.protobuf.Duration  unbonding_completion_time = 3 [
+  google.protobuf.Duration  unbonding_completion_time = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
     (gogoproto.jsontag)  = "unbonding_completion_time",
     (gogoproto.moretags) = "yaml:\"unbonding_completion_time\""
   ];
-  uint32  max_entries               = 4 [
+  uint32  max_entries               = 5 [
     (gogoproto.jsontag)  = "max_entries",
     (gogoproto.moretags) = "yaml:\"max_entries\",omitempty"
   ];
-  bool resource_node_reg_enabled = 5 [(gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""];
+  bool resource_node_reg_enabled = 6 [(gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""];
 }
 
 message ResourceNode {

@@ -361,6 +361,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		require.NotNil(t, feePoolAccAddr)
 		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 
+		println("--------------------------- deliver volumeReportMsg")
 		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
 		require.NoError(t, err)
 
@@ -396,18 +397,13 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 }
 
 // return : coins - slashing
-func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Int) sdk.Coins {
-	ret := sdk.Coins{}
-	for _, coin := range coins {
-		if coin.Amount.GTE(slashing) {
-			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
-			ret = ret.Add(coin)
-			slashing = sdk.ZeroInt()
-		} else {
-			slashing = slashing.Sub(coin.Amount)
-			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
-			ret = ret.Add(coin)
-		}
+func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Coin) (ret sdk.Coins) {
+	slashingDenom := slashing.Denom
+	rewardToken := sdk.NewCoin(slashingDenom, coins.AmountOf(slashingDenom))
+	if rewardToken.IsGTE(slashing) {
+		ret = coins.Sub(sdk.NewCoins(slashing))
+	} else {
+		ret = coins.Sub(sdk.NewCoins(rewardToken))
 	}
 	return ret
 }
@@ -451,7 +447,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	println("resource node 1 initial slashingAmt        = " + initialSlashingAmt.String())
 	currentSlashingAmt := registerKeeper.GetSlashing(ctx, resOwner1)
 	println("resource node 1 currentSlashingAmt         = " + currentSlashingAmt.String())
-	slashingDeducted := initialSlashingAmt.Sub(currentSlashingAmt)
+	slashingDeducted := sdk.NewCoin(k.RewardDenom(ctx), initialSlashingAmt.Sub(currentSlashingAmt))
 	println("resource node 1 slashing deducted          = " + slashingDeducted.String())
 	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
@@ -469,7 +465,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		Sub(newFoundationAccBalance).
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
-	println("rewardSrcChange				= " + rewardSrcChange.String())
+	println("rewardSrcChange                            = " + rewardSrcChange.String())
 
 	rewardDestChange := feeCollectorValChange.
 		Add(individualRewardTotal...).
@@ -480,7 +476,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 
 	println("************************ slashing test***********************************")
-	println("slashing change				= " + slashingDeducted.String())
+	println("slashing change                            = " + slashingDeducted.String())
 
 	upcomingMaturedIndividual := sdk.Coins{}
 	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
@@ -488,7 +484,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
 		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingDeducted)
 	}
-	println("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
+	println("upcomingMaturedIndividual                  = " + upcomingMaturedIndividual.String())
 
 	// get mature total changes
 	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
@@ -496,12 +492,12 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	if matureTotalOfResNode1Change == nil || matureTotalOfResNode1Change.IsAnyNegative() {
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
-	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
+	println("matureTotalOfResNode1Change                = " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change.String(), upcomingMaturedIndividual.String())
 
 	totalRewardPoolAddr := accountKeeper.GetModuleAddress(types.TotalRewardPool)
 	totalRewardPoolBalance := bankKeeper.GetAllBalances(ctx, totalRewardPoolAddr)
-	println("totalRewardPoolBalance			= " + totalRewardPoolBalance.String())
+	println("totalRewardPoolBalance                     = " + totalRewardPoolBalance.String())
 }
 
 func checkValidator(t *testing.T, app *app.NewApp, addr sdk.ValAddress, expFound bool) stakingtypes.Validator {
