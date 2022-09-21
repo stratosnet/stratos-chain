@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -13,7 +15,7 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 	if slashing.LTE(sdk.ZeroInt()) || coins.Empty() || coins.IsZero() {
 		return coins, deducted
 	}
-
+	fmt.Println("!!!!!!!!!!!!!! DeductSlashing(): walletAddress = " + walletAddress.String() + ", coins = " + coins.String())
 	for _, coin := range coins {
 		if coin.Amount.GTE(slashing) {
 			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
@@ -28,6 +30,7 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 		}
 	}
 	k.SetSlashing(ctx, walletAddress, slashing)
+	fmt.Println("!!!!!!!!!!!!!! DeductSlashing(): remaining = " + remaining.String() + ", deducted = " + deducted.String())
 	return remaining, deducted
 }
 

@@ -171,7 +171,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 			resNodeBondedAmt = resNodeBondedAmt.Add(resNode.Tokens)
 		}
 		balances = append(balances, banktypes.Balance{
-			Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPoolName).String(),
+			Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPool).String(),
 			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, resNodeBondedAmt)},
 		})
 
@@ -181,12 +181,12 @@ func SetupWithGenesisNodeSet(t *testing.T,
 			metaNodeBondedAmt = metaNodeBondedAmt.Add(metaNode.Tokens)
 		}
 		balances = append(balances, banktypes.Balance{
-			Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPoolName).String(),
+			Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPool).String(),
 			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, metaNodeBondedAmt)},
 		})
 
 		balances = append(balances, banktypes.Balance{
-			Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepayName).String(),
+			Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay).String(),
 			Coins:   sdk.Coins{totalUnissuedPrepay},
 		})
 	}
