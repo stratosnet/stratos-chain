@@ -109,6 +109,10 @@ func (k Keeper) GetUnhandledReport(ctx sdk.Context) (walletVolumes []*types.Sing
 		return walletVolumes, false
 	}
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(bz, &walletVolumes)
+
+	if walletVolumes == nil {
+		return walletVolumes, false
+	}
 	found = true
 	return
 }

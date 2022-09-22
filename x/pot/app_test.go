@@ -262,7 +262,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			totalConsumedUoz := resNodeSlashingUOZAmt1.ToDec()
 
 			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedUoz)
-			println("slashingAmtSetup=" + slashingAmtSetup.String())
+			println("slashingAmtSetup = " + slashingAmtSetup.String())
 			require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
 			println("********************************* Deliver Slashing Tx END ********************************************")
@@ -361,6 +361,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		require.NotNil(t, feePoolAccAddr)
 		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 
+		println("--------------------------- deliver volumeReportMsg")
 		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
 		require.NoError(t, err)
 
@@ -396,18 +397,13 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 }
 
 // return : coins - slashing
-func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Int) sdk.Coins {
-	ret := sdk.Coins{}
-	for _, coin := range coins {
-		if coin.Amount.GTE(slashing) {
-			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
-			ret = ret.Add(coin)
-			slashing = sdk.ZeroInt()
-		} else {
-			slashing = slashing.Sub(coin.Amount)
-			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
-			ret = ret.Add(coin)
-		}
+func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Coin) (ret sdk.Coins) {
+	slashingDenom := slashing.Denom
+	rewardToken := sdk.NewCoin(slashingDenom, coins.AmountOf(slashingDenom))
+	if rewardToken.IsGTE(slashing) {
+		ret = coins.Sub(sdk.NewCoins(slashing))
+	} else {
+		ret = coins.Sub(sdk.NewCoins(rewardToken))
 	}
 	return ret
 }
@@ -423,20 +419,23 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	lastUnissuedPrepay sdk.Coin,
 	lastCommunityPool sdk.Coins,
 	lastMatureTotalOfResNode1 sdk.Coins,
-	slashingAmtSetup sdk.Int,
+	initialSlashingAmt sdk.Int,
 	feeCollectorToFeePoolAtBeginBlock sdk.Coin) {
 
-	currentSlashing := registerKeeper.GetSlashing(ctx, resNodeAddr2)
-	println("currentSlashing					= " + currentSlashing.String())
-
+	// print individual reward
 	individualRewardTotal := sdk.Coins{}
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
-
 	k.IteratorIndividualReward(ctx, newMatureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
 		individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
 		println("individualReward of [" + walletAddress.String() + "] = " + individualReward.String())
 		return false
 	})
+	println("---------------------------")
+	k.IteratorMatureTotal(ctx, func(walletAddress sdk.AccAddress, matureTotal sdk.Coins) (stop bool) {
+		println("MatureTotal of [" + walletAddress.String() + "] = " + matureTotal.String())
+		return false
+	})
+	println("---------------------------")
 
 	feeCollectorAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 	require.NotNil(t, feeCollectorAccAddr)
@@ -445,44 +444,47 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	newUnissuedPrepay := sdk.NewCoins(registerKeeper.GetTotalUnissuedPrepay(ctx))
 	newCommunityPool := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(k.BondDenom(ctx)).TruncateInt()))
 
-	slashingChange := slashingAmtSetup.Sub(registerKeeper.GetSlashing(ctx, resOwner1))
-	println("resource node 1 slashing change		= " + slashingChange.String())
+	println("resource node 1 initial slashingAmt        = " + initialSlashingAmt.String())
+	currentSlashingAmt := registerKeeper.GetSlashing(ctx, resOwner1)
+	println("resource node 1 currentSlashingAmt         = " + currentSlashingAmt.String())
+	slashingDeducted := sdk.NewCoin(k.RewardDenom(ctx), initialSlashingAmt.Sub(currentSlashingAmt))
+	println("resource node 1 slashing deducted          = " + slashingDeducted.String())
 	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
-	println("resource node 1 matureTotal		= " + matureTotal.String())
-	println("resource node 1 immatureTotal		= " + immatureTotal.String())
+	println("resource node 1 matureTotal                = " + matureTotal.String())
+	println("resource node 1 immatureTotal              = " + immatureTotal.String())
 
 	// distribution module will send all tokens from "fee_collector" to "distribution" account in the BeginBlocker() method
 	feeCollectorValChange := bankKeeper.GetAllBalances(ctx, feeCollectorAccAddr)
-	println("reward for validator send to fee_collector	= " + feeCollectorValChange.String())
+	println("reward for validator send to fee_collector = " + feeCollectorValChange.String())
 	communityTaxChange := newCommunityPool.Sub(lastCommunityPool).Sub(sdk.NewCoins(feeCollectorToFeePoolAtBeginBlock))
-	println("community tax change in community_pool  = " + communityTaxChange.String())
-	println("community_pool amount of ustos          = " + newCommunityPool.String())
+	println("community tax change in community_pool     = " + communityTaxChange.String())
+	println("community_pool amount of ustos             = " + newCommunityPool.String())
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
-	println("rewardSrcChange				= " + rewardSrcChange.String())
+	println("rewardSrcChange                            = " + rewardSrcChange.String())
 
 	rewardDestChange := feeCollectorValChange.
 		Add(individualRewardTotal...).
 		Add(communityTaxChange...)
 
-	println("rewardDestChange			= " + rewardDestChange.String())
+	println("rewardDestChange                           = " + rewardDestChange.String())
 
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 
 	println("************************ slashing test***********************************")
-	println("slashing change				= " + slashingChange.String())
+	println("slashing change                            = " + slashingDeducted.String())
 
 	upcomingMaturedIndividual := sdk.Coins{}
 	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
 	if found {
 		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
-		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingChange)
+		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingDeducted)
 	}
-	println("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
+	println("upcomingMaturedIndividual                  = " + upcomingMaturedIndividual.String())
 
 	// get mature total changes
 	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
@@ -490,12 +492,12 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	if matureTotalOfResNode1Change == nil || matureTotalOfResNode1Change.IsAnyNegative() {
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
-	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
+	println("matureTotalOfResNode1Change                = " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change.String(), upcomingMaturedIndividual.String())
 
 	totalRewardPoolAddr := accountKeeper.GetModuleAddress(types.TotalRewardPool)
 	totalRewardPoolBalance := bankKeeper.GetAllBalances(ctx, totalRewardPoolAddr)
-	println("totalRewardPoolBalance			= " + totalRewardPoolBalance.String())
+	println("totalRewardPoolBalance                     = " + totalRewardPoolBalance.String())
 }
 
 func checkValidator(t *testing.T, app *app.NewApp, addr sdk.ValAddress, expFound bool) stakingtypes.Validator {

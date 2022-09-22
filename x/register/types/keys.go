@@ -18,18 +18,16 @@ const (
 	RouterKey = ModuleName
 	// QuerierRoute to be used for querier msgs
 	QuerierRoute = ModuleName
-	// ResourceNodeBondedPoolName stores the total balance of bonded resource nodes
-	ResourceNodeBondedPoolName = "resource_node_bonded_pool"
-	// ResourceNodeNotBondedPoolName stores the total balance of not bonded resource nodes
-	ResourceNodeNotBondedPoolName = "resource_node_not_bonded_pool"
-	// MetaNodeBondedPoolName stores the total balance of bonded Meta nodes
-	MetaNodeBondedPoolName = "meta_node_bonded_pool"
-	// MetaNodeNotBondedPoolName stores the total balance of not bonded meta nodes
-	MetaNodeNotBondedPoolName = "meta_node_not_bonded_pool"
-	// TotalUnissuedPrepayName stores the balance of total unissued prepay
-	TotalUnissuedPrepayName = "total_unissued_prepay"
-	// TotalSlashedPoolName stores the balance of total unissued prepay
-	TotalSlashedPoolName = "total_slashed_pool"
+	// ResourceNodeBondedPool stores the total balance of bonded resource nodes
+	ResourceNodeBondedPool = "resource_node_bonded_pool"
+	// ResourceNodeNotBondedPool stores the total balance of not bonded resource nodes
+	ResourceNodeNotBondedPool = "resource_node_not_bonded_pool"
+	// MetaNodeBondedPool stores the total balance of bonded Meta nodes
+	MetaNodeBondedPool = "meta_node_bonded_pool"
+	// MetaNodeNotBondedPool stores the total balance of not bonded meta nodes
+	MetaNodeNotBondedPool = "meta_node_not_bonded_pool"
+	// TotalUnissuedPrepay stores the balance of total unissued prepay
+	TotalUnissuedPrepay = "total_unissued_prepay"
 )
 
 var (

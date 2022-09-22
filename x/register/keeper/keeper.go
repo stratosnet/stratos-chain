@@ -24,6 +24,7 @@ type Keeper struct {
 	paramSpace            paramtypes.Subspace
 	accountKeeper         types.AccountKeeper
 	bankKeeper            types.BankKeeper
+	distrKeeper           types.DistrKeeper
 	hooks                 types.RegisterHooks
 	resourceNodeCache     map[string]cachedResourceNode
 	resourceNodeCacheList *list.List
@@ -33,7 +34,7 @@ type Keeper struct {
 
 // NewKeeper creates a register keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) Keeper {
+	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
 
 	keeper := Keeper{
 		storeKey:              key,
@@ -41,6 +42,7 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 		paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
 		accountKeeper:         accountKeeper,
 		bankKeeper:            bankKeeper,
+		distrKeeper:           distrKeeper,
 		hooks:                 nil,
 		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
 		resourceNodeCacheList: list.New(),
@@ -89,11 +91,11 @@ func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fr
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromWallet, types.TotalUnissuedPrepayName, sdk.NewCoins(coinToSend))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromWallet, types.TotalUnissuedPrepay, sdk.NewCoins(coinToSend))
 }
 
 func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
-	totalUnissuedPrepayAccAddr := k.accountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepayName)
+	totalUnissuedPrepayAccAddr := k.accountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepay)
 	if totalUnissuedPrepayAccAddr == nil {
 		ctx.Logger().Error("account address for total unissued prepay does not exist.")
 		return sdk.Coin{
@@ -178,78 +180,6 @@ func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	return limitToSub.TruncateInt()
 }
 
-//// GetResourceNetworksIterator gets an iterator over all network addresses
-//func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
-//	store := ctx.KVStore(k.storeKey)
-//	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-//}
-//
-//// GetMetaNetworksIterator gets an iterator over all network addresses
-//func (k Keeper) GetMetaNetworksIterator(ctx sdk.Context) sdk.Iterator {
-//	store := ctx.KVStore(k.storeKey)
-//	return sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
-//}
-
-//func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
-//	var networkList []stratos.SdsAddress
-//	iterator := keeper.GetResourceNetworksIterator(ctx)
-//	for ; iterator.Valid(); iterator.Next() {
-//		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-//		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
-//		if err != nil {
-//			continue
-//		}
-//		networkList = append(networkList, networkAddr)
-//	}
-//	iter := keeper.GetMetaNetworksIterator(ctx)
-//	for ; iter.Valid(); iter.Next() {
-//		metaNode := types.MustUnmarshalMetaNode(k.cdc, iter.Value())
-//		networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
-//		if err != nil {
-//			continue
-//		}
-//		networkList = append(networkList, networkAddr)
-//	}
-//	r := removeDuplicateValues(k, networkList)
-//	return r
-//}
-
-//func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res []byte) {
-//	keys := make(map[string]bool)
-//	for _, entry := range stringSlice {
-//		if _, value := keys[entry.String()]; !value {
-//			bytes, err := entry.MarshalJSON()
-//			if err != nil {
-//				continue
-//			}
-//			keys[entry.String()] = true
-//			res = append(res, bytes...)
-//			res = append(res, ';')
-//		}
-//	}
-//	return res[:len(res)-1]
-//}
-
-//// GetUnbondingNodes return a given amount of all the UnbondingMetaNodes
-//func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
-//	maxRetrieve uint32) (unbondingMetaNodes []types.UnbondingNode) {
-//
-//	unbondingMetaNodes = make([]types.UnbondingNode, maxRetrieve)
-//
-//	store := ctx.KVStore(k.storeKey)
-//	metaNodePrefixKey := types.GetUBDNodeKey(networkAddr)
-//	iterator := sdk.KVStorePrefixIterator(store, metaNodePrefixKey)
-//	defer iterator.Close()
-//
-//	i := 0
-//	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
-//		unbondingMetaNode := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-//		unbondingMetaNodes[i] = unbondingMetaNode
-//		i++
-//	}
-//	return unbondingMetaNodes[:i] // trim if the array length < maxRetrieve
-//}
-
 // GetUnbondingNode return a unbonding UnbondingMetaNode
 func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	networkAddr stratos.SdsAddress) (ubd types.UnbondingNode, found bool) {
@@ -264,21 +194,6 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	ubd = types.MustUnmarshalUnbondingNode(k.cdc, value)
 	return ubd, true
 }
-
-//// IterateUnbondingNodes iterates through all of the unbonding metaNodes
-//func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingNode) (stop bool)) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
-//	defer iterator.Close()
-//
-//	for i := int64(0); iterator.Valid(); iterator.Next() {
-//		ubd := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-//		if stop := fn(i, ubd); stop {
-//			break
-//		}
-//		i++
-//	}
-//}
 
 // HasMaxUnbondingMetaNodeEntries - check if unbonding MetaNode has maximum number of entries
 func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress) bool {
@@ -438,13 +353,6 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 	return balances, ubd.IsMetaNode, nil
 }
 
-//// CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
-//// it does not return the total unbonding amount.
-//func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddress) error {
-//	_, _, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
-//	return err
-//}
-
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of meta node
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
@@ -575,19 +483,6 @@ func (k Keeper) UnbondMetaNode(
 	return ozoneLimitChange, unbondingMatureTime, nil
 }
 
-//// GetAllUnbondingNodes get the set of all ubd nodes with no limits, used during genesis dump
-//func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.UnbondingNode) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
-//	defer iterator.Close()
-//
-//	for ; iterator.Valid(); iterator.Next() {
-//		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-//		unbondingNodes = append(unbondingNodes, node)
-//	}
-//	return unbondingNodes
-//}
-
 // GetAllUnbondingNodesTotalBalance Iteration for getting the total balance of all unbonding nodes
 func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 	store := ctx.KVStore(k.storeKey)
@@ -643,18 +538,6 @@ func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	total = (Pt.ToDec().Quo(S.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
 	return remaining, total
 }
-
-//func (k Keeper) SetInitialGenesisBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
-//	store := ctx.KVStore(k.storeKey)
-//	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
-//	store.Set(types.ResourceNodeCntKey, b)
-//}
-
-//func (k Keeper) SetInitialGenesisBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
-//	store := ctx.KVStore(k.storeKey)
-//	b := types.ModuleCdc.MustMarshal(count)
-//	store.Set(types.MetaNodeCntKey, b)
-//}
 
 func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
 	store := ctx.KVStore(k.storeKey)

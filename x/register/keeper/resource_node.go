@@ -120,15 +120,9 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 
 	switch resourceNode.GetStatus() {
 	case stakingtypes.Unbonded:
-		targetModuleAccName = types.ResourceNodeNotBondedPoolName
-		//notBondedTokenInPool := k.GetResourceNodeNotBondedToken(ctx)
-		//notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
-		//k.SetResourceNodeNotBondedToken(ctx, notBondedTokenInPool)
+		targetModuleAccName = types.ResourceNodeNotBondedPool
 	case stakingtypes.Bonded:
-		targetModuleAccName = types.ResourceNodeBondedPoolName
-		//bondedTokenInPool := k.GetResourceNodeBondedToken(ctx)
-		//bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
-		//k.SetResourceNodeBondedToken(ctx, bondedTokenInPool)
+		targetModuleAccName = types.ResourceNodeBondedPool
 	case stakingtypes.Unbonding:
 		return sdk.ZeroInt(), types.ErrUnbondingNode
 	}
@@ -149,7 +143,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		resourceNode.Status = stakingtypes.Bonded
 
 		tokenToTrasfer := sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens)
-		nBondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
+		nBondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPool)
 		if nBondedResourceAccountAddr == nil {
 			ctx.Logger().Error("not bonded account address for resource nodes does not exist.")
 			return sdk.ZeroInt(), types.ErrUnknownAccountAddress
@@ -160,20 +154,10 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 			return sdk.ZeroInt(), types.ErrInsufficientBalance
 		}
 
-		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPoolName, types.ResourceNodeBondedPoolName, sdk.NewCoins(tokenToTrasfer))
+		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPool, types.ResourceNodeBondedPool, sdk.NewCoins(tokenToTrasfer))
 		if err != nil {
 			return sdk.ZeroInt(), types.ErrInsufficientBalance
 		}
-		//notBondedToken := k.GetResourceNodeNotBondedToken(ctx)
-		//bondedToken := k.GetResourceNodeBondedToken(ctx)
-		//
-		//if notBondedToken.IsLT(tokenToBond) {
-		//	return sdk.ZeroInt(), types.ErrInsufficientBalanceOfNotBondedPool
-		//}
-		//notBondedToken = notBondedToken.Sub(tokenToBond)
-		//bondedToken = bondedToken.Add(tokenToBond)
-		//k.SetResourceNodeNotBondedToken(ctx, notBondedToken)
-		//k.SetResourceNodeBondedToken(ctx, bondedToken)
 	}
 
 	k.SetResourceNode(ctx, resourceNode)
@@ -191,7 +175,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {
-	bondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
+	bondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPool)
 	if bondedResourceAccountAddr == nil {
 		ctx.Logger().Error("bonded pool account address for resource nodes does not exist.")
 		return types.ErrUnknownAccountAddress
@@ -202,7 +186,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, r
 		return types.ErrInsufficientBalance
 	}
 
-	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeBondedPoolName, types.ResourceNodeNotBondedPoolName, sdk.NewCoins(tokenToSub))
+	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeBondedPool, types.ResourceNodeNotBondedPool, sdk.NewCoins(tokenToSub))
 	if err != nil {
 		return types.ErrInsufficientBalance
 	}
@@ -232,7 +216,7 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	}
 
 	// deduct tokens from NotBondedPool
-	nBondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
+	nBondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPool)
 	if nBondedResourceAccountAddr == nil {
 		ctx.Logger().Error("not bonded account address for resource nodes does not exist.")
 		return types.ErrUnknownAccountAddress
@@ -244,16 +228,18 @@ func (k Keeper) SubtractResourceNodeStake(ctx sdk.Context, resourceNode types.Re
 	}
 
 	// deduct slashing amount first, slashed amt goes into TotalSlashedPool
-	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
+	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins, k.BondDenom(ctx))
 	if !remaining.IsZero() {
 		// add remaining tokens to owner acc
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ResourceNodeNotBondedPoolName, ownerAddr, remaining)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ResourceNodeNotBondedPool, ownerAddr, remaining)
 		if err != nil {
 			return err
 		}
 	}
 	if !slashed.IsZero() {
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPoolName, types.TotalSlashedPoolName, slashed)
+		// slashed token send to community_pool
+		resNodeNotBondedPoolAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPool)
+		err = k.distrKeeper.FundCommunityPool(ctx, slashed, resNodeNotBondedPoolAddr)
 		if err != nil {
 			return err
 		}
@@ -360,7 +346,7 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 }
 
 func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPoolName)
+	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPool)
 	if resourceNodeBondedAccAddr == nil {
 		ctx.Logger().Error("account address for resource node bonded pool does not exist.")
 		return sdk.Coin{
@@ -372,7 +358,7 @@ func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 }
 
 func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	resourceNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPoolName)
+	resourceNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPool)
 	if resourceNodeNotBondedAccAddr == nil {
 		ctx.Logger().Error("account address for resource node Not bonded pool does not exist.")
 		return sdk.Coin{
@@ -387,12 +373,12 @@ func (k Keeper) SendCoinsFromAccountToResNodeNotBondedPool(ctx sdk.Context, from
 	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
 		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeNotBondedPoolName, sdk.NewCoins(amt))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeNotBondedPool, sdk.NewCoins(amt))
 }
 
 func (k Keeper) SendCoinsFromAccountToResNodeBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
 	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
 		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeBondedPoolName, sdk.NewCoins(amt))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeBondedPool, sdk.NewCoins(amt))
 }

@@ -59,7 +59,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	//8, save reported epoch
 	k.SetLastReportedEpoch(ctx, epoch)
 
-	//9, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
+	//9, update remaining ozone limit
+	remainingUozLimit := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, remainingUozLimit.Add(totalConsumedUoz.TruncateInt()))
+
+	//10, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
 	err = k.transferTokens(ctx, totalSlashed)
 	if err != nil {
 		return totalConsumedUoz, err
@@ -199,7 +203,7 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
 
 			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-			remaining, deducted := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
+			remaining, deducted := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature, k.RewardDenom(ctx))
 			totalSlashed = totalSlashed.Add(deducted...)
 
 			matureTotal := oldMatureTotal.Add(remaining...)
@@ -484,8 +488,8 @@ func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 	if err != nil {
 		return err
 	}
-	// [TLC] [TotalUnissuedPrepayName -> feeCollectorPool] Transfer traffic reward to fee_pool for validators
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepayName, k.feeCollectorName, sdk.NewCoins(unissuedPrepayToFeeCollector))
+	// [TLC] [TotalUnissuedPrepay -> feeCollectorPool] Transfer traffic reward to fee_pool for validators
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepay, k.feeCollectorName, sdk.NewCoins(unissuedPrepayToFeeCollector))
 	if err != nil {
 		return err
 	}
@@ -497,21 +501,21 @@ func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 	}
 
 	// [TLC] [TotalUnissuedPrepay -> TotalRewardPool] Transfer traffic reward to TotalRewardPool for sds nodes
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepayName, types.TotalRewardPool, sdk.NewCoins(unissuedPrepayToReward))
+	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepay, types.TotalRewardPool, sdk.NewCoins(unissuedPrepayToReward))
 	if err != nil {
 		return err
 	}
 
-	// [TLC] [TotalRewardPool -> TotalSlashedPool] Transfer slashed reward to TotalSlashedPool
-	// transfer totalSlashed TODO whether to burn the slashed tokens in TotalSlashedPoolName
-	err = k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.TotalRewardPool, regtypes.TotalSlashedPoolName, totalSlashed)
+	// [TLC] [TotalRewardPool -> Distribution] Transfer slashed reward to FeePool.CommunityPool
+	totalRewardPoolAccAddr := k.AccountKeeper.GetModuleAddress(types.TotalRewardPool)
+	err = k.DistrKeeper.FundCommunityPool(ctx, totalSlashed, totalRewardPoolAccAddr)
 	if err != nil {
 		return err
 	}
 
 	// [TLC] [TotalUnissuedPrepay -> Distribution] Transfer tax to FeePool.CommunityPool
 	taxCoins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), unissuedPrepayToCommunityPool.TruncateInt()))
-	prepayAccAddr := k.AccountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepayName)
+	prepayAccAddr := k.AccountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepay)
 	err = k.DistrKeeper.FundCommunityPool(ctx, taxCoins, prepayAccAddr)
 	if err != nil {
 		return err

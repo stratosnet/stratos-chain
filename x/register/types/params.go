@@ -16,7 +16,6 @@ var _ paramtypes.ParamSet = &Params{}
 
 // Default parameter namespace
 const (
-	DefaultParamSpace             = ModuleName
 	DefaultBondDenom              = types.USTOS
 	DefaultMaxEntries             = uint32(16)
 	DefaultResourceNodeRegEnabled = true
