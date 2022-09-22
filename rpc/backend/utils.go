@@ -10,8 +10,6 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -370,27 +368,4 @@ func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
 		logs = append(logs, &log)
 	}
 	return evmtypes.LogsToEthereum(logs), nil
-}
-
-func (b *Backend) parseGasUnit(args evmtypes.TransactionArgs) (evmtypes.TransactionArgs, error) {
-	var err error
-
-	args.GasPrice, err = stratos.WeiToUstosBigInt(args.GasPrice)
-	if err != nil {
-		return args, err
-	}
-	args.MaxFeePerGas, err = stratos.WeiToUstosBigInt(args.MaxFeePerGas)
-	if err != nil {
-		return args, err
-	}
-	args.MaxPriorityFeePerGas, err = stratos.WeiToUstosBigInt(args.MaxPriorityFeePerGas)
-	if err != nil {
-		return args, err
-	}
-	args.Value, err = stratos.WeiToUstosBigInt(args.Value)
-	if err != nil {
-		return args, err
-	}
-
-	return args, nil
 }
