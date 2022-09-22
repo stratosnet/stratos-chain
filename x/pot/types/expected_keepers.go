@@ -50,6 +50,7 @@ type RegisterKeeper interface {
 	DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins) (remaining, deducted sdk.Coins)
 
 	GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int)
+	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
 	GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin)
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)

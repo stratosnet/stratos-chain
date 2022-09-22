@@ -59,7 +59,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	//8, save reported epoch
 	k.SetLastReportedEpoch(ctx, epoch)
 
-	//9, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
+	//9, update remaining ozone limit
+	remainingUozLimit := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, remainingUozLimit.Add(totalConsumedUoz.TruncateInt()))
+
+	//10, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
 	err = k.transferTokens(ctx, totalSlashed)
 	if err != nil {
 		return totalConsumedUoz, err
