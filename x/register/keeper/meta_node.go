@@ -216,7 +216,7 @@ func (k Keeper) SubtractMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, 
 	}
 
 	// deduct slashing amount first, slashed amt goes into TotalSlashedPool
-	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
+	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins, k.BondDenom(ctx))
 	if !remaining.IsZero() {
 		// add remaining tokens to owner acc
 		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.MetaNodeNotBondedPool, ownerAddr, remaining)

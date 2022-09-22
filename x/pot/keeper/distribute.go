@@ -203,7 +203,7 @@ func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int
 			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
 
 			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-			remaining, deducted := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature)
+			remaining, deducted := k.RegisterKeeper.DeductSlashing(ctx, walletAddress, immatureToMature, k.RewardDenom(ctx))
 			totalSlashed = totalSlashed.Add(deducted...)
 
 			matureTotal := oldMatureTotal.Add(remaining...)

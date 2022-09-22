@@ -47,7 +47,7 @@ type RegisterKeeper interface {
 
 	GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res sdk.Int)
 	SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdk.Int)
-	DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins) (remaining, deducted sdk.Coins)
+	DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins, slashingDenom string) (remaining, deducted sdk.Coins)
 
 	GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int)
 	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)

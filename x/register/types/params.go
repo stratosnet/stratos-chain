@@ -17,7 +17,6 @@ var _ paramtypes.ParamSet = &Params{}
 // Default parameter namespace
 const (
 	DefaultBondDenom              = types.USTOS
-	DefaultRewardDenom            = "utros"
 	DefaultMaxEntries             = uint32(16)
 	DefaultResourceNodeRegEnabled = true
 )
@@ -25,7 +24,6 @@ const (
 // Parameter store keys
 var (
 	KeyBondDenom               = []byte("BondDenom")
-	KeyRewardDenom             = []byte("RewardDenom")
 	KeyUnbondingThreasholdTime = []byte("UnbondingThreasholdTime")
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("MaxEntries")
@@ -43,12 +41,9 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom, rewardDenom string, threashold, completion time.Duration,
-	maxEntries uint32, resourceNodeRegEnabled bool) Params {
-
+func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint32, resourceNodeRegEnabled bool) Params {
 	return Params{
 		BondDenom:               bondDenom,
-		RewardDenom:             rewardDenom,
 		UnbondingThreasholdTime: threashold,
 		UnbondingCompletionTime: completion,
 		MaxEntries:              maxEntries,
@@ -60,7 +55,6 @@ func NewParams(bondDenom, rewardDenom string, threashold, completion time.Durati
 func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 	return paramtypes.ParamSetPairs{
 		paramtypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		paramtypes.NewParamSetPair(KeyRewardDenom, &p.RewardDenom, validateRewardDenom),
 		paramtypes.NewParamSetPair(KeyUnbondingThreasholdTime, &p.UnbondingThreasholdTime, validateUnbondingThreasholdTime),
 		paramtypes.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
 		paramtypes.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
@@ -70,9 +64,6 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 
 func (p Params) Validate() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
-		return err
-	}
-	if err := validateRewardDenom(p.RewardDenom); err != nil {
 		return err
 	}
 	if err := validateUnbondingThreasholdTime(p.UnbondingThreasholdTime); err != nil {
@@ -92,14 +83,7 @@ func (p Params) Validate() error {
 
 // DefaultParams defines the parameters for this module
 func DefaultParams() *Params {
-	p := NewParams(
-		DefaultBondDenom,
-		DefaultRewardDenom,
-		DefaultUnbondingThreasholdTime,
-		DefaultUnbondingCompletionTime,
-		DefaultMaxEntries,
-		DefaultResourceNodeRegEnabled,
-	)
+	p := NewParams(DefaultBondDenom, DefaultUnbondingThreasholdTime, DefaultUnbondingCompletionTime, DefaultMaxEntries, DefaultResourceNodeRegEnabled)
 	return &p
 }
 
@@ -111,22 +95,6 @@ func validateBondDenom(i interface{}) error {
 
 	if strings.TrimSpace(v) == "" {
 		return errors.New("bond denom cannot be blank")
-	}
-	if err := sdk.ValidateDenom(v); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func validateRewardDenom(i interface{}) error {
-	v, ok := i.(string)
-	if !ok {
-		return fmt.Errorf("invalid parameter type: %T", i)
-	}
-
-	if strings.TrimSpace(v) == "" {
-		return errors.New("mining reward denom cannot be blank")
 	}
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
