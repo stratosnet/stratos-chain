@@ -271,12 +271,6 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 		return nil, errors.New("invalid balance")
 	}
 
-	//return balance using unit "wei"
-	val, err = stratos.UstosToWei(val)
-	if err != nil {
-		return nil, err
-	}
-
 	return (*hexutil.Big)(val.BigInt()), nil
 }
 

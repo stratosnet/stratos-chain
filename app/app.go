@@ -2,14 +2,15 @@ package app
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/rakyll/statik/fs"
 	"github.com/spf13/cast"
-
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmos "github.com/tendermint/tendermint/libs/os"
@@ -786,4 +787,40 @@ func initParamsKeeper(
 	paramsKeeper.Subspace(evmtypes.ModuleName)
 
 	return paramsKeeper
+}
+
+var beginBlockStart, endBlockStart, deliverTxStart time.Time
+var currentHeight int64
+
+func (app *NewApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
+	currentHeight = req.GetHeader().Height
+	beginBlockStart = time.Now()
+	defer app.timeCost("****** begin_block costs", beginBlockStart)
+	res = app.BaseApp.BeginBlock(req)
+	return
+}
+
+func (app *NewApp) DeliverTx(req abci.RequestDeliverTx) (res abci.ResponseDeliverTx) {
+	deliverTxStart = time.Now()
+	defer app.timeCost("------ deliver_tx  costs", deliverTxStart)
+	res = app.BaseApp.DeliverTx(req)
+	return
+}
+
+func (app *NewApp) EndBlock(req abci.RequestEndBlock) (res abci.ResponseEndBlock) {
+	endBlockStart = time.Now()
+	defer app.timeCost("****** end_block   costs", endBlockStart)
+	res = app.BaseApp.EndBlock(req)
+	return
+}
+
+func (app *NewApp) Commit() (res abci.ResponseCommit) {
+	defer app.timeCost(fmt.Sprintf("****** block %v costs", currentHeight), beginBlockStart)
+	res = app.BaseApp.Commit()
+	return
+}
+
+func (app *NewApp) timeCost(info string, start time.Time) {
+	tc := time.Since(start)
+	app.Logger().Info(fmt.Sprintf("benchmark: %s %v", info, tc))
 }

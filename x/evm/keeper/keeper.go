@@ -257,12 +257,18 @@ func (k *Keeper) GetNonce(ctx sdk.Context, addr common.Address) uint64 {
 	return acct.GetSequence()
 }
 
-// GetBalance load account's balance of gas token
+// GetBalance load account's balance of gas token in wei
 func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
 	params := k.GetParams(ctx)
 	coin := k.bankKeeper.GetBalance(ctx, cosmosAddr, params.EvmDenom)
-	return coin.Amount.BigInt()
+	amountInUstos := coin.Amount
+	//return balance using unit "wei"
+	amountInWei, err := stratos.UstosToWei(amountInUstos)
+	if err != nil {
+		return big.NewInt(0)
+	}
+	return amountInWei.BigInt()
 }
 
 // BaseFee returns current base fee, return values:

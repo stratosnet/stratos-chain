@@ -16,3 +16,11 @@ func UstosToWei(ustosVal sdk.Int) (weiVal sdk.Int, err error) {
 
 	return ustosVal.MulRaw(int64(math.Pow10(WeiUstosUnitDiff))), nil
 }
+
+func WeiToUstos(weiVal sdk.Int) (ustosVal sdk.Int, err error) {
+	if weiVal.IsNegative() {
+		return ustosVal, sdkerrors.Wrap(err, "value is negative")
+	}
+
+	return weiVal.QuoRaw(int64(math.Pow10(WeiUstosUnitDiff))), nil
+}

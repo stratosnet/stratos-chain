@@ -71,13 +71,17 @@ func (k *Keeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(ke
 }
 
 // SetBalance update account's balance, compare with current balance first, then decide to mint or burn.
-func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *big.Int) error {
+func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amountInWei *big.Int) error {
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
 
 	params := k.GetParams(ctx)
 	coin := k.bankKeeper.GetBalance(ctx, cosmosAddr, params.EvmDenom)
 	balance := coin.Amount.BigInt()
-	delta := new(big.Int).Sub(amount, balance)
+	amountInUstos, err := stratos.WeiToUstos(sdk.NewIntFromBigInt(amountInWei))
+	if err != nil {
+		return err
+	}
+	delta := new(big.Int).Sub(amountInUstos.BigInt(), balance)
 	switch delta.Sign() {
 	case 1:
 		// mint
