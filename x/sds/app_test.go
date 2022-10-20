@@ -105,12 +105,12 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
 //		randomPurchase := sdk.NewInt(int64(rand.Float64() * 100 * 1000000000))
-//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", randomPurchase)))
-//		log.Printf("%v Uoz purchased by %v ustos, remaining ozone limit drops to %v", purchased, randomPurchase, registerKeeper.GetRemainingOzoneLimit(ctx))
+//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", randomPurchase)))
+//		log.Printf("%v Uoz purchased by %v wei, remaining ozone limit drops to %v", purchased, randomPurchase, registerKeeper.GetRemainingOzoneLimit(ctx))
 //	}
 //}
 //
@@ -148,10 +148,10 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
-//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(10000000000))))
+//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", sdk.NewInt(10000000000))))
 //		log.Printf("%v Uoz purchased by 10 stos, remaining ozone limit drops to %v", purchased, registerKeeper.GetRemainingOzoneLimit(ctx))
 //	}
 //}
@@ -190,10 +190,10 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
-//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(10000000000))))
+//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", sdk.NewInt(10000000000))))
 //		log.Printf("%v Uoz purchased by 10 stos", purchased)
 //	}
 //}
@@ -266,7 +266,7 @@ package sds
 //		Lt = Lt.Sub(uozPurchased)
 //		keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
 //		keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, Lt)
-//		log.Printf("---- prepay #%v: %v ustos----", i, val)
+//		log.Printf("---- prepay #%v: %v wei----", i, val)
 //		log.Printf("uozPriceBefore is %v", uozPriceBefore)
 //		log.Printf("uozPurchased is %v", uozPurchased)
 //		log.Printf("uozPriceAfter is %v", uozPriceAfter)

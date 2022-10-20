@@ -8,12 +8,14 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // DefaultParamSpace Default parameter namespace
 const (
-	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "utros"
+	DefaultBondDenom   = stratos.Wei
+	DefaultRewardDenom = stratos.Utros
 	DefaultMatureEpoch = 2016
 )
 

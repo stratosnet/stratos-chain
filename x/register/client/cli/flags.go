@@ -67,7 +67,7 @@ func flagSetNodeType() *flag.FlagSet {
 func flagSetStakeUpdate() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagStakeDelta, "", "Stake change of coins to be made (always positive like 100000ustos)")
+	fs.String(FlagStakeDelta, "", "Stake change of coins to be made (always positive like 100000wei)")
 	fs.String(FlagIncrStake, "", "Boolean indicator of increase/decrease of stake delta, true for increase and false for decrease")
 
 	return fs

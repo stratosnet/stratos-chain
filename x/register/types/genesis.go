@@ -6,6 +6,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -68,20 +70,26 @@ func ValidateGenesis(data GenesisState) error {
 func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	ownerAddress, err := sdk.AccAddressFromBech32(v.OwnerAddress)
 	if err != nil {
-		return MetaNode{}, ErrInvalidOwnerAddr
+		return MetaNode{}, sdkerrors.Wrap(ErrInvalidOwnerAddr, err.Error())
 	}
 
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
-		return MetaNode{}, ErrInvalidNetworkAddr
+		return MetaNode{}, sdkerrors.Wrap(ErrInvalidNetworkAddr, err.Error())
 	}
+
+	tokens, err := sdk.ParseCoinsNormalized(v.Tokens)
+	if err != nil {
+		return MetaNode{}, sdkerrors.Wrap(ErrBadDenom, err.Error())
+	}
+	tokenAmt := tokens.AmountOf(DefaultBondDenom)
 
 	return MetaNode{
 		NetworkAddress: netAddr.String(),
 		Pubkey:         v.GetPubkey(),
 		Suspend:        v.GetSuspend(),
 		Status:         v.GetStatus(),
-		Tokens:         v.Tokens,
+		Tokens:         tokenAmt,
 		OwnerAddress:   ownerAddress.String(),
 		Description:    v.GetDescription(),
 	}, nil

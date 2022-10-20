@@ -29,8 +29,9 @@ import (
 )
 
 const (
-	chainID    = "testchain_1-1"
-	stos2ustos = 1000000000
+	chainID     = "testchain_1-1"
+	stos2wei    = stratos.StosToWei
+	rewardDenom = stratos.Utros
 
 	stopFlagOutOfTotalMiningReward = true
 	stopFlagSpecificMinedReward    = false
@@ -38,7 +39,7 @@ const (
 )
 
 var (
-	paramSpecificMinedReward = sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(160000000000)))
+	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
 	resNodeSlashingUOZAmt1 = sdk.NewInt(1000000000000000000)
@@ -49,12 +50,11 @@ var (
 
 	depositForSendingTx, _    = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepayVal, _ = sdk.NewIntFromString("1000000000000")
-	totalUnissuedPrepay       = sdk.NewCoin("ustos", totalUnissuedPrepayVal)
-	initialUOzonePrice        = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
+	totalUnissuedPrepay       = stratos.NewCoin(totalUnissuedPrepayVal)
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
-	foundationDeposit          = sdk.NewCoins(sdk.NewCoin("utros", sdk.NewInt(40000000000000000)))
+	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(rewardDenom, sdk.NewInt(40000000000000000)))
 
 	resOwnerPrivKey1 = secp256k1.GenPrivKey()
 	resOwnerPrivKey2 = secp256k1.GenPrivKey()
@@ -77,43 +77,43 @@ var (
 	resNodePubKey1       = secp256k1.GenPrivKey().PubKey()
 	resNodeAddr1         = sdk.AccAddress(resNodePubKey1.Address())
 	resNodeNetworkId1    = stratos.SdsAddress(resNodePubKey1.Address())
-	resNodeInitialStake1 = sdk.NewInt(3 * stos2ustos)
+	resNodeInitialStake1 = sdk.NewInt(3 * stos2wei)
 
 	resNodePubKey2       = secp256k1.GenPrivKey().PubKey()
 	resNodeAddr2         = sdk.AccAddress(resNodePubKey2.Address())
 	resNodeNetworkId2    = stratos.SdsAddress(resNodePubKey2.Address())
-	resNodeInitialStake2 = sdk.NewInt(3 * stos2ustos)
+	resNodeInitialStake2 = sdk.NewInt(3 * stos2wei)
 
 	resNodePubKey3       = secp256k1.GenPrivKey().PubKey()
 	resNodeAddr3         = sdk.AccAddress(resNodePubKey3.Address())
 	resNodeNetworkId3    = stratos.SdsAddress(resNodePubKey3.Address())
-	resNodeInitialStake3 = sdk.NewInt(3 * stos2ustos)
+	resNodeInitialStake3 = sdk.NewInt(3 * stos2wei)
 
 	resNodePubKey4       = secp256k1.GenPrivKey().PubKey()
 	resNodeAddr4         = sdk.AccAddress(resNodePubKey4.Address())
 	resNodeNetworkId4    = stratos.SdsAddress(resNodePubKey4.Address())
-	resNodeInitialStake4 = sdk.NewInt(3 * stos2ustos)
+	resNodeInitialStake4 = sdk.NewInt(3 * stos2wei)
 
 	resNodePubKey5       = secp256k1.GenPrivKey().PubKey()
 	resNodeAddr5         = sdk.AccAddress(resNodePubKey5.Address())
 	resNodeNetworkId5    = stratos.SdsAddress(resNodePubKey5.Address())
-	resNodeInitialStake5 = sdk.NewInt(3 * stos2ustos)
+	resNodeInitialStake5 = sdk.NewInt(3 * stos2wei)
 
 	idxNodePrivKey1      = secp256k1.GenPrivKey()
 	idxNodePubKey1       = idxNodePrivKey1.PubKey()
 	idxNodeAddr1         = sdk.AccAddress(idxNodePubKey1.Address())
 	idxNodeNetworkId1    = stratos.SdsAddress(idxNodePubKey1.Address())
-	idxNodeInitialStake1 = sdk.NewInt(5 * stos2ustos)
+	idxNodeInitialStake1 = sdk.NewInt(5 * stos2wei)
 
 	idxNodePubKey2       = secp256k1.GenPrivKey().PubKey()
 	idxNodeAddr2         = sdk.AccAddress(idxNodePubKey2.Address())
 	idxNodeNetworkId2    = stratos.SdsAddress(idxNodePubKey2.Address())
-	idxNodeInitialStake2 = sdk.NewInt(5 * stos2ustos)
+	idxNodeInitialStake2 = sdk.NewInt(5 * stos2wei)
 
 	idxNodePubKey3       = secp256k1.GenPrivKey().PubKey()
 	idxNodeAddr3         = sdk.AccAddress(idxNodePubKey3.Address())
 	idxNodeNetworkId3    = stratos.SdsAddress(idxNodePubKey3.Address())
-	idxNodeInitialStake3 = sdk.NewInt(5 * stos2ustos)
+	idxNodeInitialStake3 = sdk.NewInt(5 * stos2wei)
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
 	valOpPubKey1  = valOpPrivKey1.PubKey()
@@ -122,7 +122,7 @@ var (
 
 	valConsPrivKey1 = ed25519.GenPrivKey()
 	valConsPubk1    = valConsPrivKey1.PubKey()
-	valInitialStake = sdk.NewInt(15 * stos2ustos)
+	valInitialStake = sdk.NewInt(15 * stos2wei)
 )
 
 // initialize data of volume report
@@ -215,7 +215,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	commission := stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, sdk.NewCoin("ustos", valInitialStake), description, commission, sdk.OneInt())
+	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdk.OneInt())
 
 	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
 	accNum = valOpAcc1.GetAccountNumber()
@@ -459,7 +459,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	println("reward for validator send to fee_collector = " + feeCollectorValChange.String())
 	communityTaxChange := newCommunityPool.Sub(lastCommunityPool).Sub(sdk.NewCoins(feeCollectorToFeePoolAtBeginBlock))
 	println("community tax change in community_pool     = " + communityTaxChange.String())
-	println("community_pool amount of ustos             = " + newCommunityPool.String())
+	println("community_pool amount of wei               = " + newCommunityPool.String())
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
@@ -544,43 +544,43 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 	balances := []banktypes.Balance{
 		{
 			Address: resOwner1.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake1.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake1.Add(depositForSendingTx))},
 		},
 		{
 			Address: resOwner2.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake2)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake2)},
 		},
 		{
 			Address: resOwner3.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake3)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake3)},
 		},
 		{
 			Address: resOwner4.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake4)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake4)},
 		},
 		{
 			Address: resOwner5.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", resNodeInitialStake5)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake5)},
 		},
 		{
 			Address: idxOwner1.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeInitialStake1)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake1)},
 		},
 		{
 			Address: idxOwner2.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeInitialStake2)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake2)},
 		},
 		{
 			Address: idxOwner3.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", idxNodeInitialStake3)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake3)},
 		},
 		{
 			Address: valOpAccAddr1.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", valInitialStake)},
+			Coins:   sdk.Coins{stratos.NewCoin(valInitialStake)},
 		},
 		{
 			Address: idxNodeAddr1.String(),
-			Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+			Coins:   sdk.Coins{stratos.NewCoin(sdk.ZeroInt())},
 		},
 		{
 			Address: foundationDepositorAccAddr.String(),

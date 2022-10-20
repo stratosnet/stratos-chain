@@ -16,7 +16,7 @@ var _ paramtypes.ParamSet = &Params{}
 
 // Default parameter namespace
 const (
-	DefaultBondDenom              = types.USTOS
+	DefaultBondDenom              = types.Wei
 	DefaultMaxEntries             = uint32(16)
 	DefaultResourceNodeRegEnabled = true
 )
@@ -29,10 +29,9 @@ var (
 	KeyMaxEntries              = []byte("MaxEntries")
 	KeyResourceNodeRegEnabled  = []byte("ResourceNodeRegEnabled")
 
-	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour           // threashold for unbonding - by default 180 days
-	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour            // lead time to complete unbonding - by default 14 days
-	DefaultUozPrice                = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
-	DefaultTotalUnissuedPrepay     = sdk.NewInt(0)
+	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
+	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
+	DefaultUozPrice                = sdk.NewDec(1000000)  // 0.001gwei -> 1uoz = 1000000wei -> 1uoz
 )
 
 // ParamKeyTable returns the parameter key table.

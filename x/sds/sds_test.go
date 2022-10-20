@@ -19,8 +19,8 @@ package sds
 //
 //const (
 //	chainID      = ""
-//	DefaultDenom = "ustos"
-//	stos2ustos   = 1000000000
+//	DefaultDenom = "wei"
+//	stos2wei   = 1000000000
 //)
 //
 //var (
@@ -29,16 +29,16 @@ package sds
 //	resourceNodeVolume1 = sdk.NewInt(500000000000)
 //	resourceNodeVolume2 = sdk.NewInt(300000000000)
 //	resourceNodeVolume3 = sdk.NewInt(200000000000)
-//	prepayAmt           = sdk.NewInt(2 * stos2ustos)
+//	prepayAmt           = sdk.NewInt(2 * stos2wei)
 //
 //	depositForSendingTx, _             = sdk.NewIntFromString("100000000000000000000000000000")
-//	initialUOzonePrice                 = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
+//	initialUOzonePrice                 = sdk.NewDec(1000000) // 0.001 gwei -> 1 uoz
 //	totalUnissuedPrepayVal, _          = sdk.NewIntFromString("100000000000000000")
-//	totalUnissuedPrepay                = sdk.NewCoin("ustos", totalUnissuedPrepayVal)
+//	totalUnissuedPrepay                = sdk.NewCoin("wei", totalUnissuedPrepayVal)
 //	remainingOzoneLimit, _             = sdk.NewIntFromString("500000000000000000000")
 //	totalUnissuedPrepayTestPurchase, _ = sdk.NewIntFromString("0")
 //	remainingOzoneLimitTestPurchase, _ = sdk.NewIntFromString("100000000000")
-//	initialUOzonePriceTestPurchase     = sdk.NewDecWithPrec(1000000, 9) // 0.001 ustos -> 1 uoz
+//	initialUOzonePriceTestPurchase     = sdk.NewDecWithPrec(1000000, 9) // 0.001 wei -> 1 uoz
 //
 //	foundationDeposit = sdk.NewInt(40000000000000000)
 //
@@ -62,38 +62,38 @@ package sds
 //
 //	pubKeyRes1                   = secp256k1.GenPrivKey().PubKey()
 //	addrRes1                     = sdk.AccAddress(pubKeyRes1.Address())
-//	initialStakeRes1             = sdk.NewInt(3 * stos2ustos)
+//	initialStakeRes1             = sdk.NewInt(3 * stos2wei)
 //	initialStakeRes1TestPurchase = sdk.NewInt(100000000000)
 //
 //	pubKeyRes2       = secp256k1.GenPrivKey().PubKey()
 //	addrRes2         = sdk.AccAddress(pubKeyRes2.Address())
-//	initialStakeRes2 = sdk.NewInt(3 * stos2ustos)
+//	initialStakeRes2 = sdk.NewInt(3 * stos2wei)
 //
 //	pubKeyRes3       = secp256k1.GenPrivKey().PubKey()
 //	addrRes3         = sdk.AccAddress(pubKeyRes3.Address())
-//	initialStakeRes3 = sdk.NewInt(3 * stos2ustos)
+//	initialStakeRes3 = sdk.NewInt(3 * stos2wei)
 //
 //	pubKeyRes4       = secp256k1.GenPrivKey().PubKey()
 //	addrRes4         = sdk.AccAddress(pubKeyRes4.Address())
-//	initialStakeRes4 = sdk.NewInt(3 * stos2ustos)
+//	initialStakeRes4 = sdk.NewInt(3 * stos2wei)
 //
 //	pubKeyRes5       = secp256k1.GenPrivKey().PubKey()
 //	addrRes5         = sdk.AccAddress(pubKeyRes5.Address())
-//	initialStakeRes5 = sdk.NewInt(3 * stos2ustos)
+//	initialStakeRes5 = sdk.NewInt(3 * stos2wei)
 //
 //	privKeyIdx1                  = ed25519.GenPrivKey()
 //	pubKeyIdx1                   = privKeyIdx1.PubKey()
 //	addrIdx1                     = stratos.SdsAddress(pubKeyIdx1.Address())
-//	initialStakeIdx1             = sdk.NewInt(5 * stos2ustos)
-//	initialStakeIdx1TestPurchase = sdk.NewInt(100 * stos2ustos)
+//	initialStakeIdx1             = sdk.NewInt(5 * stos2wei)
+//	initialStakeIdx1TestPurchase = sdk.NewInt(100 * stos2wei)
 //
 //	pubKeyIdx2       = ed25519.GenPrivKey().PubKey()
 //	addrIdx2         = stratos.SdsAddress(pubKeyIdx2.Address())
-//	initialStakeIdx2 = sdk.NewInt(5 * stos2ustos)
+//	initialStakeIdx2 = sdk.NewInt(5 * stos2wei)
 //
 //	pubKeyIdx3       = ed25519.GenPrivKey().PubKey()
 //	addrIdx3         = stratos.SdsAddress(pubKeyIdx3.Address())
-//	initialStakeIdx3 = sdk.NewInt(5 * stos2ustos)
+//	initialStakeIdx3 = sdk.NewInt(5 * stos2wei)
 //
 //	valOpPrivKey1 = secp256k1.GenPrivKey()
 //	valOpPubKey1  = valOpPrivKey1.PubKey()
@@ -102,30 +102,30 @@ package sds
 //
 //	valConsPrivKey1 = secp256k1.GenPrivKey()
 //	valConsPubk1    = valConsPrivKey1.PubKey()
-//	valInitialStake = sdk.NewInt(15 * stos2ustos)
+//	valInitialStake = sdk.NewInt(15 * stos2wei)
 //
 //	// accs for sds module
 //	sdsAccPrivKey1      = secp256k1.GenPrivKey()
 //	sdsAccPubKey1       = sdsAccPrivKey1.PubKey()
 //	sdsAccAddr1         = sdk.AccAddress(sdsAccPubKey1.Address())
-//	sdsAccBal1          = sdk.NewInt(100 * stos2ustos)
-//	initialStakeSdsIdx1 = sdk.NewInt(5 * stos2ustos)
+//	sdsAccBal1          = sdk.NewInt(100 * stos2wei)
+//	initialStakeSdsIdx1 = sdk.NewInt(5 * stos2wei)
 //
 //	sdsAccPrivKey2 = secp256k1.GenPrivKey()
 //	sdsAccPubKey2  = sdsAccPrivKey2.PubKey()
 //	sdsAccAddr2    = sdk.AccAddress(sdsAccPubKey2.Address())
-//	sdsAccBal2     = sdk.NewInt(100 * stos2ustos)
+//	sdsAccBal2     = sdk.NewInt(100 * stos2wei)
 //
 //	sdsAccPrivKey3 = secp256k1.GenPrivKey()
 //	sdsAccPubKey3  = sdsAccPrivKey3.PubKey()
 //	sdsAccAddr3    = sdk.AccAddress(sdsAccPubKey3.Address())
-//	sdsAccBal3     = sdk.NewInt(100 * stos2ustos)
+//	sdsAccBal3     = sdk.NewInt(100 * stos2wei)
 //
 //	// sp node used in sds module
 //	spNodePrivKeyIdx1      = secp256k1.GenPrivKey()
 //	spNodePubKeyIdx1       = spNodePrivKeyIdx1.PubKey()
 //	spNodeAddrIdx1         = sdk.AccAddress(spNodePubKeyIdx1.Address())
-//	spNodeInitialStakeIdx1 = sdk.NewInt(5 * stos2ustos)
+//	spNodeInitialStakeIdx1 = sdk.NewInt(5 * stos2wei)
 //	spP2pAddr              = ed25519.GenPrivKey().PubKey().Address()
 //)
 //

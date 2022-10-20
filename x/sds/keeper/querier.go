@@ -54,7 +54,7 @@ func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, _
 	return fileInfo, nil
 }
 
-// querySimulatePrepay fetch amt of uoz with a simulated prepay of X ustos.
+// querySimulatePrepay fetch amt of uoz with a simulated prepay of X wei.
 func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
 	var amtToPrepay sdk.Int
 	err := amtToPrepay.UnmarshalJSON(req.Data)

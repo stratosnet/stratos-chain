@@ -189,7 +189,7 @@ package register
 //		for _, macc := range blacklistedAddrs {
 //			supplyKeeper.SetModuleAccount(ctx, macc)
 //		}
-//		stakingGenesis := staking.NewGenesisState(staking.NewParams(staking.DefaultUnbondingTime, staking.DefaultMaxValidators, staking.DefaultMaxEntries, 0, "ustos"), nil, nil)
+//		stakingGenesis := staking.NewGenesisState(staking.NewParams(staking.DefaultUnbondingTime, staking.DefaultMaxValidators, staking.DefaultMaxEntries, 0, "wei"), nil, nil)
 //		totalSupply := sdk.NewCoins(sdk.NewCoin(sdk.DefaultBondDenom, sdk.NewInt(100000000000000)))
 //		supplyKeeper.SetSupply(ctx, supply.NewSupply(totalSupply))
 //

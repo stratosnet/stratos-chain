@@ -148,11 +148,11 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 	if err != nil {
 		return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
-	slashing, ok := sdk.NewIntFromString(msg.Slashing.String())
+	uozAmt, ok := sdk.NewIntFromString(msg.Slashing.String())
 	if !ok {
 		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAmount
 	}
-	amt, nodeType, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, slashing, msg.Suspend)
+	tokenAmt, nodeType, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, uozAmt, msg.Suspend)
 	if err != nil {
 		return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrSlashingResourceNodeFailure, err.Error())
 	}
@@ -161,7 +161,7 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 			types.EventTypeSlashing,
 			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress),
 			sdk.NewAttribute(types.AttributeKeyNodeP2PAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyAmount, amt.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, tokenAmt.String()),
 			sdk.NewAttribute(types.AttributeKeySlashingNodeType, nodeType.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
 		),

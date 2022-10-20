@@ -16,7 +16,7 @@ import (
 	3, unstaking resource node.
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
-	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType registertypes.NodeType, err error) {
+	uozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
@@ -28,18 +28,18 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	//slashing amt is equivalent to reward traffic calculation
 	trafficList := []*types.SingleWalletVolume{{
 		WalletAddress: node.OwnerAddress,
-		Volume:        &ozAmt,
+		Volume:        &uozAmt,
 	}}
 	totalConsumedUoz := k.GetTotalConsumedUoz(trafficList).ToDec()
-	slash := k.GetTrafficReward(ctx, totalConsumedUoz)
+	slashTokenAmt := k.GetTrafficReward(ctx, totalConsumedUoz)
 
 	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
 
 	// only slashing the reward token for now.
-	newSlashing := oldSlashing.Add(slash.TruncateInt())
+	newSlashing := oldSlashing.Add(slashTokenAmt.TruncateInt())
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
-	return slash.TruncateInt(), registertypes.NodeType(node.NodeType), nil
+	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

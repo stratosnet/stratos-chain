@@ -46,9 +46,7 @@ message GenesisMetaNode {
   bool                                suspend = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];  // has the meta node been suspended from bonded status?
   cosmos.staking.v1beta1.BondStatus   status = 4 [ (gogoproto.moretags) = "yaml:\"status\""];   // meta node status (Unspecified/Bonded/Unbonding/Unbonded)
   string                              tokens = 5 [
-    (gogoproto.nullable) = false,
-    (gogoproto.moretags) = "yaml:\"token\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (gogoproto.moretags) = "yaml:\"token\""
   ]; // delegated tokens
   string                              owner_address = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ]; // owner address of the meta node
   register.v1.Description             description = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];  // description terms for the meta node

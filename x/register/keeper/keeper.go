@@ -139,7 +139,7 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 }
 
 func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //wei
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
@@ -162,7 +162,7 @@ func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 }
 
 func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
+	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //wei
 	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
 		return sdk.ZeroInt()

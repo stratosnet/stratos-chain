@@ -15,10 +15,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-var (
-	RewardToUstos = sdk.NewInt(1)
-)
-
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
