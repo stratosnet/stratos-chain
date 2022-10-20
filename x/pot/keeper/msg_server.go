@@ -148,11 +148,11 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 	if err != nil {
 		return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
-	uozAmt, ok := sdk.NewIntFromString(msg.Slashing.String())
+	nozAmt, ok := sdk.NewIntFromString(msg.Slashing.String())
 	if !ok {
 		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAmount
 	}
-	tokenAmt, nodeType, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, uozAmt, msg.Suspend)
+	tokenAmt, nodeType, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, nozAmt, msg.Suspend)
 	if err != nil {
 		return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrSlashingResourceNodeFailure, err.Error())
 	}

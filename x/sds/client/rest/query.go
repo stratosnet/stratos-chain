@@ -20,12 +20,12 @@ func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
 		SimulatePrepayHandlerFn(clientCtx),
 	).Methods("GET")
 	r.HandleFunc(
-		"/sds/uozPrice",
-		UozPriceHandlerFn(clientCtx),
+		"/sds/nozPrice",
+		NozPriceHandlerFn(clientCtx),
 	).Methods("GET")
 	r.HandleFunc(
-		"/sds/uozSupply",
-		UozSupplyHandlerFn(clientCtx),
+		"/sds/nozSupply",
+		NozSupplyHandlerFn(clientCtx),
 	).Methods("GET")
 	r.HandleFunc("/sds/params",
 		sdsParamsHandlerFn(clientCtx, types.QueryParams),
@@ -81,38 +81,38 @@ func SimulatePrepayHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	}
 }
 
-// UozPriceHandlerFn HTTP request handler to query ongoing uoz price
-func UozPriceHandlerFn(clientCtx client.Context) http.HandlerFunc {
+// NozPriceHandlerFn HTTP request handler to query ongoing noz price
+func NozPriceHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
-		resp, height, err := common.QueryCurrUozPrice(cliCtx)
+		resp, height, err := common.QueryCurrNozPrice(cliCtx)
 
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
-		var uozPrice sdk.Dec
-		err = uozPrice.UnmarshalJSON(resp)
+		var nozPrice sdk.Dec
+		err = nozPrice.UnmarshalJSON(resp)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, uozPrice)
+		rest.PostProcessResponse(w, cliCtx, nozPrice)
 	}
 }
 
-// UozSupplyHandlerFn HTTP request handler to query uoz supply details
-func UozSupplyHandlerFn(clientCtx client.Context) http.HandlerFunc {
+// NozSupplyHandlerFn HTTP request handler to query noz supply details
+func NozSupplyHandlerFn(clientCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
 		if !ok {
 			return
 		}
-		resp, height, err := common.QueryUozSupply(cliCtx)
+		resp, height, err := common.QueryNozSupply(cliCtx)
 
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
@@ -122,14 +122,14 @@ func UozSupplyHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			Remaining sdk.Int
 			Total     sdk.Int
 		}
-		var uozSupply Supply
-		err = json.Unmarshal(resp, &uozSupply)
+		var nozSupply Supply
+		err = json.Unmarshal(resp, &nozSupply)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		cliCtx = cliCtx.WithHeight(height)
-		rest.PostProcessResponse(w, cliCtx, uozSupply)
+		rest.PostProcessResponse(w, cliCtx, nozSupply)
 	}
 }
 

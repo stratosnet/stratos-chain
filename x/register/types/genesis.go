@@ -15,14 +15,14 @@ import (
 func NewGenesisState(params *Params,
 	resourceNodes ResourceNodes,
 	metaNodes MetaNodes,
-	initialUOzonePrice sdk.Dec,
+	initialNOzonePrice sdk.Dec,
 	slashingInfo []*Slashing,
 ) *GenesisState {
 	return &GenesisState{
 		Params:          params,
 		ResourceNodes:   resourceNodes,
 		MetaNodes:       metaNodes,
-		InitialUozPrice: initialUOzonePrice,
+		InitialNozPrice: initialNOzonePrice,
 		Slashing:        slashingInfo,
 	}
 }
@@ -33,7 +33,7 @@ func DefaultGenesisState() *GenesisState {
 		Params:          DefaultParams(),
 		ResourceNodes:   ResourceNodes{},
 		MetaNodes:       MetaNodes{},
-		InitialUozPrice: DefaultUozPrice,
+		InitialNozPrice: DefaultNozPrice,
 		Slashing:        make([]*Slashing, 0),
 	}
 }
@@ -61,8 +61,8 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if (data.InitialUozPrice).LTE(sdk.ZeroDec()) {
-		return ErrInitialUOzonePrice
+	if (data.InitialNozPrice).LTE(sdk.ZeroDec()) {
+		return ErrInitialNOzonePrice
 	}
 	return nil
 }

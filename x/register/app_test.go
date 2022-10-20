@@ -208,7 +208,7 @@ package register
 //			DefaultParams(),
 //			resourceNodes,
 //			indexingNodes,
-//			initialUOzonePrice,
+//			initialNOzonePrice,
 //			sdk.ZeroInt(),
 //			make([]Slashing, 0),
 //		)

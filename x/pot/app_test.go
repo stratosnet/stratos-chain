@@ -42,7 +42,7 @@ var (
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
-	resNodeSlashingUOZAmt1 = sdk.NewInt(1000000000000000000)
+	resNodeSlashingNOZAmt1 = sdk.NewInt(1000000000000000000)
 
 	resourceNodeVolume1 = sdk.NewInt(500000)
 	resourceNodeVolume2 = sdk.NewInt(300000)
@@ -154,7 +154,7 @@ func setupSlashingMsg() *types.MsgSlashingResourceNode {
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingUOZAmt1, true)
+	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true)
 	return slashingMsg
 }
 
@@ -259,9 +259,9 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 			slashingAmtSetup = registerKeeper.GetSlashing(ctx, resOwner1)
 
-			totalConsumedUoz := resNodeSlashingUOZAmt1.ToDec()
+			totalConsumedNoz := resNodeSlashingNOZAmt1.ToDec()
 
-			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedUoz)
+			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
 			println("slashingAmtSetup = " + slashingAmtSetup.String())
 			require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
@@ -285,13 +285,13 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			break
 		}
 
-		totalConsumedUoz := potKeeper.GetTotalConsumedUoz(volumeReportMsg.WalletVolumes).ToDec()
+		totalConsumedNoz := potKeeper.GetTotalConsumedNoz(volumeReportMsg.WalletVolumes).ToDec()
 
 		/********************* print info *********************/
 		println("epoch " + volumeReportMsg.Epoch.String())
 		S := registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 		Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
-		Y := totalConsumedUoz
+		Y := totalConsumedNoz
 		Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 		//println("R = (S + Pt) * Y / (Lt + Y)")
@@ -300,7 +300,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		println("---------------------------")
 		potKeeper.InitVariable(ctx)
 		distributeGoal := types.InitDistributeGoal()
-		distributeGoal, err := potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedUoz)
+		distributeGoal, err := potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
 		require.NoError(t, err)
 
 		distributeGoal, err = potKeeper.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
@@ -310,7 +310,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		println("---------------------------")
 		println("distribute detail:")
 		rewardDetailMap := make(map[string]types.Reward)
-		rewardDetailMap = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedUoz, volumeReportMsg.WalletVolumes, distributeGoal, rewardDetailMap)
+		rewardDetailMap = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedNoz, volumeReportMsg.WalletVolumes, distributeGoal, rewardDetailMap)
 		rewardDetailMap = potKeeper.CalcRewardForMetaNode(ctx, distributeGoal, rewardDetailMap)
 
 		println("resource_wallet1:  address = " + resOwner1.String())

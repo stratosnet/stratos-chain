@@ -148,7 +148,7 @@
         ]
       },
       "foundation_account": "st1ha389w9dqfhcxajajqcu6ssfal8wnrt2ztlyjn",
-      "initial_uoz_price": "10000000000",
+      "initial_noz_price": "10000000000",
       "mature_epoch": "2016"
     },
     "bank": {

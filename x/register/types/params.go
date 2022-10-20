@@ -31,7 +31,7 @@ var (
 
 	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
 	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
-	DefaultUozPrice                = sdk.NewDec(1000000)  // 0.001gwei -> 1uoz = 1000000wei -> 1uoz
+	DefaultNozPrice                = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
 )
 
 // ParamKeyTable returns the parameter key table.

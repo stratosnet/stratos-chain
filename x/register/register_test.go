@@ -63,7 +63,7 @@ package register
 //
 //	resNodeInitStake   = sdk.NewInt(10000000000)
 //	idxNodeInitStake   = sdk.NewInt(10000000000)
-//	initialUOzonePrice = sdk.NewDec(1000000) // 0.001 gwei -> 1 uoz
+//	initialNOzonePrice = sdk.NewDec(1000000) // 0.001 gwei -> 1 noz
 //)
 //
 //func setupAllResourceNodes() []ResourceNode {

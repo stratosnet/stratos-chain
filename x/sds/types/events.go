@@ -11,7 +11,7 @@ const (
 
 	AttributeKeyRecipient    = "recipient"
 	AttributeKeyCoins        = "coins"
-	AttributeKeyPurchasedUoz = "purchased"
+	AttributeKeyPurchasedNoz = "purchased"
 
 	AttributeValueCategory = ModuleName
 )

@@ -29,11 +29,11 @@ message GenesisState {
 //    (gogoproto.castrepeated) = "github.com/stratosnet/stratos-chain/x/register/types.MetaNodes",
     (gogoproto.moretags)     = "yaml:\"meta_nodes\""
    ];
-  string                            initial_uoz_price = 4 [
-    (gogoproto.moretags) = "yaml:\"initial_uoz_price\"",
+  string                            initial_noz_price = 4 [
+    (gogoproto.moretags) = "yaml:\"initial_noz_price\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
-  ]; //initial price of uoz
+  ]; //initial price of noz
   repeated register.v1.Slashing     slashing = 5 [ (gogoproto.moretags) = "yaml:\"slashing_info\"" ];
 }
 

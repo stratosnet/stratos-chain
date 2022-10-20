@@ -32,13 +32,13 @@ package sds
 //	prepayAmt           = sdk.NewInt(2 * stos2wei)
 //
 //	depositForSendingTx, _             = sdk.NewIntFromString("100000000000000000000000000000")
-//	initialUOzonePrice                 = sdk.NewDec(1000000) // 0.001 gwei -> 1 uoz
+//	initialNOzonePrice                 = sdk.NewDec(1000000) // 0.001 gwei -> 1 noz
 //	totalUnissuedPrepayVal, _          = sdk.NewIntFromString("100000000000000000")
 //	totalUnissuedPrepay                = sdk.NewCoin("wei", totalUnissuedPrepayVal)
 //	remainingOzoneLimit, _             = sdk.NewIntFromString("500000000000000000000")
 //	totalUnissuedPrepayTestPurchase, _ = sdk.NewIntFromString("0")
 //	remainingOzoneLimitTestPurchase, _ = sdk.NewIntFromString("100000000000")
-//	initialUOzonePriceTestPurchase     = sdk.NewDecWithPrec(1000000, 9) // 0.001 wei -> 1 uoz
+//	initialNOzonePriceTestPurchase     = sdk.NewDecWithPrec(1000000, 9) // 0.001 wei -> 1 noz
 //
 //	foundationDeposit = sdk.NewInt(40000000000000000)
 //
