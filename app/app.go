@@ -795,32 +795,32 @@ var currentHeight int64
 func (app *NewApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
 	currentHeight = req.GetHeader().Height
 	beginBlockStart = time.Now()
-	defer app.timeCost("****** begin_block costs", beginBlockStart)
+	defer app.timeCost(fmt.Sprintf("begin_block_at_height_%v costs", currentHeight), beginBlockStart)
 	res = app.BaseApp.BeginBlock(req)
 	return
 }
 
 func (app *NewApp) DeliverTx(req abci.RequestDeliverTx) (res abci.ResponseDeliverTx) {
 	deliverTxStart = time.Now()
-	defer app.timeCost("------ deliver_tx  costs", deliverTxStart)
+	defer app.timeCost(fmt.Sprintf("deliver_tx tx_at_height_%v costs", currentHeight), deliverTxStart)
 	res = app.BaseApp.DeliverTx(req)
 	return
 }
 
 func (app *NewApp) EndBlock(req abci.RequestEndBlock) (res abci.ResponseEndBlock) {
 	endBlockStart = time.Now()
-	defer app.timeCost("****** end_block   costs", endBlockStart)
+	defer app.timeCost(fmt.Sprintf("end_block_at_height_%v costs", currentHeight), endBlockStart)
 	res = app.BaseApp.EndBlock(req)
 	return
 }
 
 func (app *NewApp) Commit() (res abci.ResponseCommit) {
-	defer app.timeCost(fmt.Sprintf("****** block %v costs", currentHeight), beginBlockStart)
+	defer app.timeCost(fmt.Sprintf("block_at_height_%v costs", currentHeight), beginBlockStart)
 	res = app.BaseApp.Commit()
 	return
 }
 
 func (app *NewApp) timeCost(info string, start time.Time) {
 	tc := time.Since(start)
-	app.Logger().Info(fmt.Sprintf("benchmark: %s %v", info, tc))
+	app.Logger().Info(fmt.Sprintf("benchmark_%s %v", info, tc))
 }
