@@ -3,6 +3,7 @@ package keeper
 import (
 	"fmt"
 
+	"github.com/ethereum/go-ethereum/common"
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/rpc/core"
 	rpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
@@ -30,6 +31,8 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 
 	if !ctx.IsCheckTx() && len(ctx.HeaderHash()) > 0 {
 		overriddenTxHashes = make(map[string]struct{}, 0)
+		k.Logger(ctx).Info(fmt.Sprintf("evm_keeper_begin_block: len(ctx.HeaderHash().Bytes()) = %v", len(ctx.HeaderHash().Bytes())))
+		k.Logger(ctx).Info(fmt.Sprintf("evm_keeper_begin_block: ctx.HeaderHash().Bytes() = = %v", common.Bytes2Hex(ctx.HeaderHash().Bytes())))
 		block, err := core.BlockByHash(&rpctypes.Context{}, ctx.HeaderHash().Bytes())
 		rawTxs := block.Block.Txs
 		if err != nil {
