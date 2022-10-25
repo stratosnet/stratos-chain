@@ -36,26 +36,17 @@ const (
 	codeEcoderrNoRegistrationVotePoolFound
 	codeErrDuplicateVoting
 	codeErrVoteExpired
-	codeErrInsufficientBalanceOfBondedPool
 	codeErrInsufficientBalanceOfNotBondedPool
-	codeErrSubAllTokens
-	codeErrED25519InvalidPubKey
 	codeErrEmptyNodeNetworkAddress
 	codeErrEmptyPubKey
-	codeErrInvalidGenesisToken
 	codeErrNoUnbondingNode
 	codeErrMaxUnbondingNodeEntries
-	codeErrNoNodeForAddress
 	codeErrUnbondingNode
-	codeErrInvalidNodeStatBonded
 	codeErrInitialUOzonePrice
 	codeErrInvalidStakeChange
-	codeErrTotalUnissuedPrepay
 	codeErrInvalidNodeType
 	codeErrUnknownAccountAddress
 	codeErrUnknownPubKey
-	codeErrNoNodeFound
-	codeErrInitialBalanceNotZero
 	codeErrInvalidNodeStat
 	codeErrRegisterResourceNode
 	codeErrRegisterMetaNode
@@ -101,26 +92,17 @@ var (
 	ErrNoRegistrationVotePoolFound        = sdkerrors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
 	ErrDuplicateVoting                    = sdkerrors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")
 	ErrVoteExpired                        = sdkerrors.Register(ModuleName, codeErrVoteExpired, "vote expired")
-	ErrInsufficientBalanceOfBondedPool    = sdkerrors.Register(ModuleName, codeErrInsufficientBalanceOfBondedPool, "insufficient balance of bonded pool")
 	ErrInsufficientBalanceOfNotBondedPool = sdkerrors.Register(ModuleName, codeErrInsufficientBalanceOfNotBondedPool, "insufficient balance of not bonded pool")
-	ErrSubAllTokens                       = sdkerrors.Register(ModuleName, codeErrSubAllTokens, "can not sub all tokens since the node is still bonded")
-	ErrED25519InvalidPubKey               = sdkerrors.Register(ModuleName, codeErrED25519InvalidPubKey, "ED25519 public keys are unsupported")
 	ErrEmptyNodeNetworkAddress            = sdkerrors.Register(ModuleName, codeErrEmptyNodeNetworkAddress, "missing node network address")
 	ErrEmptyPubKey                        = sdkerrors.Register(ModuleName, codeErrEmptyPubKey, "missing public key")
-	ErrInvalidGenesisToken                = sdkerrors.Register(ModuleName, codeErrInvalidGenesisToken, "invalid genesis token")
 	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, codeErrNoUnbondingNode, "no unbonding node found")
 	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, codeErrMaxUnbondingNodeEntries, "too many unbonding node entries for networkAddr tuple")
-	ErrNoNodeForAddress                   = sdkerrors.Register(ModuleName, codeErrNoNodeForAddress, "registered node does not contain address")
 	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, codeErrUnbondingNode, "changes cannot be made to an unbonding node")
-	ErrInvalidNodeStatBonded              = sdkerrors.Register(ModuleName, codeErrInvalidNodeStatBonded, "invalid node status: bonded")
 	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, codeErrInitialUOzonePrice, "initial uOzone price must be positive")
 	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, codeErrInvalidStakeChange, "invalid change for stake")
-	ErrTotalUnissuedPrepay                = sdkerrors.Register(ModuleName, codeErrTotalUnissuedPrepay, "total unissued prepay must be non-negative")
 	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeType, "invalid node type")
 	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
 	ErrUnknownPubKey                      = sdkerrors.Register(ModuleName, codeErrUnknownPubKey, "unknown pubKey ")
-	ErrNoNodeFound                        = sdkerrors.Register(ModuleName, codeErrNoNodeFound, "node does not exist ")
-	ErrInitialBalanceNotZero              = sdkerrors.Register(ModuleName, codeErrInitialBalanceNotZero, "initial balance isn't zero ")
 	ErrInvalidNodeStat                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeStat, "invalid node status")
 	ErrRegisterResourceNode               = sdkerrors.Register(ModuleName, codeErrRegisterResourceNode, "failed to register resource node")
 	ErrRegisterMetaNode                   = sdkerrors.Register(ModuleName, codeErrRegisterMetaNode, "failed to register meta node")

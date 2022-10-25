@@ -27,7 +27,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.ErrInvalidAddress
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if _, found := k.RegisterKeeper.GetMetaNode(ctx, reporter); found == false {
@@ -38,7 +38,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 	var heightReEncoded sdk.Int
 	err = heightReEncoded.UnmarshalJSON(heightByteArr)
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.ErrJSONUnmarshal
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	fileInfo := types.NewFileInfo(&heightReEncoded, msg.Reporter, msg.Uploader)
@@ -76,12 +76,12 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return &types.MsgPrepayResponse{}, sdkerrors.ErrInvalidAddress
+		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	purchased, err := k.Prepay(ctx, sender, msg.Coins)
 	if err != nil {
-		return nil, types.ErrPrepayFailure
+		return nil, sdkerrors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
