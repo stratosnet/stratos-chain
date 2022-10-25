@@ -19,27 +19,27 @@ var (
 )
 
 func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (
-	totalConsumedUoz sdk.Dec, err error) {
+	totalConsumedNoz sdk.Dec, err error) {
 
 	k.InitVariable(ctx)
 
 	//1, calc traffic reward in total
-	totalConsumedUoz = k.GetTotalConsumedUoz(trafficList).ToDec()
-	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedUoz)
+	totalConsumedNoz = k.GetTotalConsumedNoz(trafficList).ToDec()
+	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
 	if err != nil {
-		return totalConsumedUoz, err
+		return totalConsumedNoz, err
 	}
 	unissuedPrepayToFeeCollector = distributeGoal.StakeTrafficRewardToValidator
 
 	//2, calc mining reward in total
 	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
-		return totalConsumedUoz, err
+		return totalConsumedNoz, err
 	}
 	foundationToFeeCollector = distributeGoal.StakeMiningRewardToValidator
 
 	//3, calc reward for resource node, store to rewardDetailMap by wallet address(owner address)
-	rewardDetailMap = k.CalcRewardForResourceNode(ctx, totalConsumedUoz, trafficList, distributeGoal, rewardDetailMap)
+	rewardDetailMap = k.CalcRewardForResourceNode(ctx, totalConsumedNoz, trafficList, distributeGoal, rewardDetailMap)
 
 	//4, calc reward from meta node, store to rewardDetailMap by wallet address(owner address)
 	rewardDetailMap = k.CalcRewardForMetaNode(ctx, distributeGoal, rewardDetailMap)
@@ -50,7 +50,7 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	//6, record all rewards to resource & meta nodes
 	err = k.saveRewardInfo(ctx, rewardDetailList, epoch)
 	if err != nil {
-		return totalConsumedUoz, err
+		return totalConsumedNoz, err
 	}
 
 	//7, mature rewards for all nodes
@@ -60,23 +60,23 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	k.SetLastReportedEpoch(ctx, epoch)
 
 	//9, update remaining ozone limit
-	remainingUozLimit := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
-	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, remainingUozLimit.Add(totalConsumedUoz.TruncateInt()))
+	remainingNozLimit := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, remainingNozLimit.Add(totalConsumedNoz.TruncateInt()))
 
 	//10, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
 	err = k.transferTokens(ctx, totalSlashed)
 	if err != nil {
-		return totalConsumedUoz, err
+		return totalConsumedNoz, err
 	}
 
-	return totalConsumedUoz, nil
+	return totalConsumedNoz, nil
 }
 
 func (k Keeper) CalcTrafficRewardInTotal(
-	ctx sdk.Context, distributeGoal types.DistributeGoal, totalConsumedUoz sdk.Dec,
+	ctx sdk.Context, distributeGoal types.DistributeGoal, totalConsumedNoz sdk.Dec,
 ) (types.DistributeGoal, error) {
 
-	totalTrafficReward := k.GetTrafficReward(ctx, totalConsumedUoz)
+	totalTrafficReward := k.GetTrafficReward(ctx, totalConsumedNoz)
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
 	miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens)
 	if err != nil && err != types.ErrOutOfIssuance {
@@ -103,12 +103,12 @@ func (k Keeper) CalcTrafficRewardInTotal(
 }
 
 // [S] is initial genesis deposit by all resource nodes and meta nodes at t=0
-// The current unissued prepay Volume Pool [pt] is the total remaining prepay uSTOS kept by Stratos Network but not issued to Resource Node as rewards. At time t=0,  pt=0
+// The current unissued prepay Volume Pool [pt] is the total remaining prepay wei kept by Stratos Network but not issued to Resource Node as rewards. At time t=0,  pt=0
 // total consumed Ozone is [Y]
 // The remaining total Ozone limit [lt] is the upper bound of total Ozone that users can purchase from Stratos blockchain.
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
-func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedUoz sdk.Dec) (result sdk.Dec) {
+func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedNoz sdk.Dec) (result sdk.Dec) {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
 	if S.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
@@ -117,13 +117,13 @@ func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedUoz sdk.Dec) (res
 	if Pt.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("total remaining prepay not issued is 0")
 	}
-	Y := totalConsumedUoz
+	Y := totalConsumedNoz
 	if Y.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("total consumed uoz is 0")
+		ctx.Logger().Info("total consumed noz is 0")
 	}
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 	if Lt.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("remaining total uoz limit is 0")
+		ctx.Logger().Info("remaining total noz limit is 0")
 	}
 	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 	if R.Equal(sdk.ZeroDec()) {
@@ -226,7 +226,7 @@ func (k Keeper) getMatureEpochByCurrentEpoch(ctx sdk.Context, currentEpoch sdk.I
 }
 
 // Iteration for calculating reward of resource nodes
-func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.Dec, trafficList []*types.SingleWalletVolume,
+func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedNoz sdk.Dec, trafficList []*types.SingleWalletVolume,
 	distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) map[string]types.Reward {
 
@@ -291,7 +291,7 @@ func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedUoz sdk.
 		}
 		trafficVolume := walletTraffic.Volume
 
-		shareOfTraffic := trafficVolume.ToDec().Quo(totalConsumedUoz)
+		shareOfTraffic := trafficVolume.ToDec().Quo(totalConsumedNoz)
 
 		// mining reward for resource node
 		miningReward := sdk.NewCoin(k.RewardDenom(ctx),
@@ -399,7 +399,7 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 }
 
 // Iteration for getting total consumed OZ from traffic
-func (k Keeper) GetTotalConsumedUoz(trafficList []*types.SingleWalletVolume) sdk.Int {
+func (k Keeper) GetTotalConsumedNoz(trafficList []*types.SingleWalletVolume) sdk.Int {
 	totalTraffic := sdk.ZeroInt()
 	for _, vol := range trafficList {
 		toAdd, ok := sdk.NewIntFromString(vol.Volume.String())

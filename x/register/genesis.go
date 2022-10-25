@@ -82,11 +82,11 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
-	initialUOzonePrice := sdk.ZeroDec()
-	initialUOzonePrice = initialUOzonePrice.Add(data.InitialUozPrice)
+	initialNOzonePrice := sdk.ZeroDec()
+	initialNOzonePrice = initialNOzonePrice.Add(data.InitialNozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
-	keeper.SetInitialUOzonePrice(ctx, initialUOzonePrice)
-	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialUOzonePrice).TruncateInt()
+	keeper.SetInitialNOzonePrice(ctx, initialNOzonePrice)
+	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialNOzonePrice).TruncateInt()
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 
 	for _, slashing := range data.Slashing {
@@ -108,7 +108,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
 	metaNodes := keeper.GetAllMetaNodes(ctx)
-	initialUOzonePrice := keeper.CurrUozPrice(ctx)
+	initialNOzonePrice := keeper.CurrNozPrice(ctx)
 
 	var slashingInfo []*types.Slashing
 	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
@@ -123,7 +123,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		Params:          &params,
 		ResourceNodes:   resourceNodes,
 		MetaNodes:       metaNodes,
-		InitialUozPrice: initialUOzonePrice,
+		InitialNozPrice: initialNOzonePrice,
 		Slashing:        slashingInfo,
 	}
 }

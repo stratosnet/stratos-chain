@@ -153,7 +153,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 			stakingtypes.DefaultMaxValidators,
 			stakingtypes.DefaultMaxEntries,
 			stakingtypes.DefaultHistoricalEntries,
-			stratos.USTOS),
+			stratos.Wei),
 		validators,
 		delegations)
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
@@ -162,7 +162,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		// add bonded amount to bonded pool module account
 		balances = append(balances, banktypes.Balance{
 			Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, bondedAmt)},
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, bondedAmt)},
 		})
 
 		// add bonded amount of resource nodes to module account
@@ -172,7 +172,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		}
 		balances = append(balances, banktypes.Balance{
 			Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPool).String(),
-			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, resNodeBondedAmt)},
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, resNodeBondedAmt)},
 		})
 
 		// add bonded amount of meta nodes to module account
@@ -182,7 +182,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		}
 		balances = append(balances, banktypes.Balance{
 			Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPool).String(),
-			Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, metaNodeBondedAmt)},
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, metaNodeBondedAmt)},
 		})
 
 		balances = append(balances, banktypes.Balance{
@@ -194,7 +194,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
 		// add genesis acc tokens and delegated tokens to total supply
-		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(stratos.USTOS, bondedAmt))...)
+		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(stratos.Wei, bondedAmt))...)
 	}
 
 	// update total supply
@@ -206,7 +206,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		registertypes.DefaultParams(),
 		resourceNodes,
 		metaNodes,
-		registertypes.DefaultUozPrice,
+		registertypes.DefaultNozPrice,
 		make([]*registertypes.Slashing, 0),
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
@@ -414,7 +414,7 @@ func SignCheckDeliver(
 	tx, err := GenTx(
 		txCfg,
 		msgs,
-		sdk.Coins{sdk.NewInt64Coin(stratos.USTOS, 0)},
+		sdk.Coins{sdk.NewInt64Coin(stratos.Wei, 0)},
 		DefaultGenTxGas,
 		chainID,
 		accNums,
@@ -464,7 +464,7 @@ func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, i
 		txs[i], err = GenTx(
 			txGen,
 			msgs,
-			sdk.Coins{sdk.NewInt64Coin(stratos.USTOS, 0)},
+			sdk.Coins{sdk.NewInt64Coin(stratos.Wei, 0)},
 			DefaultGenTxGas,
 			"",
 			accNums,

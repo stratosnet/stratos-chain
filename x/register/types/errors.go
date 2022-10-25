@@ -42,7 +42,7 @@ const (
 	codeErrNoUnbondingNode
 	codeErrMaxUnbondingNodeEntries
 	codeErrUnbondingNode
-	codeErrInitialUOzonePrice
+	codeErrInitialNOzonePrice
 	codeErrInvalidStakeChange
 	codeErrInvalidNodeType
 	codeErrUnknownAccountAddress
@@ -98,7 +98,7 @@ var (
 	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, codeErrNoUnbondingNode, "no unbonding node found")
 	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, codeErrMaxUnbondingNodeEntries, "too many unbonding node entries for networkAddr tuple")
 	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, codeErrUnbondingNode, "changes cannot be made to an unbonding node")
-	ErrInitialUOzonePrice                 = sdkerrors.Register(ModuleName, codeErrInitialUOzonePrice, "initial uOzone price must be positive")
+	ErrInitialNOzonePrice                 = sdkerrors.Register(ModuleName, codeErrInitialNOzonePrice, "initial noz price must be positive")
 	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, codeErrInvalidStakeChange, "invalid change for stake")
 	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeType, "invalid node type")
 	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")

@@ -18,14 +18,14 @@ func QuerySimulatePrepay(clientCtx client.Context, amtToPrepay sdk.Int) ([]byte,
 	return clientCtx.QueryWithData(route, amtByteArray)
 }
 
-// QueryCurrUozPrice queries the current price for uoz
-func QueryCurrUozPrice(clientCtx client.Context) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", sdstypes.QuerierRoute, sdstypes.QueryCurrUozPrice)
+// QueryCurrNozPrice queries the current price for noz
+func QueryCurrNozPrice(clientCtx client.Context) ([]byte, int64, error) {
+	route := fmt.Sprintf("custom/%s/%s", sdstypes.QuerierRoute, sdstypes.QueryCurrNozPrice)
 	return clientCtx.QueryWithData(route, nil)
 }
 
-// QueryUozSupply QueryCurrUozPrice queries the current price for uoz
-func QueryUozSupply(clientCtx client.Context) ([]byte, int64, error) {
-	route := fmt.Sprintf("custom/%s/%s", sdstypes.QuerierRoute, sdstypes.QueryUozSupply)
+// QueryNozSupply QueryCurrNozPrice queries the current price for noz
+func QueryNozSupply(clientCtx client.Context) ([]byte, int64, error) {
+	route := fmt.Sprintf("custom/%s/%s", sdstypes.QuerierRoute, sdstypes.QueryNozSupply)
 	return clientCtx.QueryWithData(route, nil)
 }

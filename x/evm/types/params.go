@@ -16,7 +16,7 @@ import (
 var _ paramtypes.ParamSet = &Params{}
 
 const (
-	DefaultEVMDenom = stratos.USTOS
+	DefaultEVMDenom = stratos.Wei
 )
 
 // Parameter keys

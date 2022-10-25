@@ -22,10 +22,10 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return queryUploadedFileByHash(ctx, req, k, legacyQuerierCdc)
 		case types.QuerySimulatePrepay:
 			return querySimulatePrepay(ctx, req, k, legacyQuerierCdc)
-		case types.QueryCurrUozPrice:
-			return queryCurrUozPrice(ctx, req, k, legacyQuerierCdc)
-		case types.QueryUozSupply:
-			return queryUozSupply(ctx, req, k, legacyQuerierCdc)
+		case types.QueryCurrNozPrice:
+			return queryCurrNozPrice(ctx, req, k, legacyQuerierCdc)
+		case types.QueryNozSupply:
+			return queryNozSupply(ctx, req, k, legacyQuerierCdc)
 		case types.QueryParams:
 			return getSdsParams(ctx, req, k, legacyQuerierCdc)
 		default:
@@ -54,33 +54,33 @@ func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, _
 	return fileInfo, nil
 }
 
-// querySimulatePrepay fetch amt of uoz with a simulated prepay of X ustos.
+// querySimulatePrepay fetch amt of noz with a simulated prepay of X wei.
 func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
 	var amtToPrepay sdk.Int
 	err := amtToPrepay.UnmarshalJSON(req.Data)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	uozAmt := k.simulatePurchaseUoz(ctx, amtToPrepay)
-	uozAmtByte, _ := uozAmt.MarshalJSON()
-	return uozAmtByte, nil
+	nozAmt := k.simulatePurchaseNoz(ctx, amtToPrepay)
+	nozAmtByte, _ := nozAmt.MarshalJSON()
+	return nozAmtByte, nil
 }
 
-// queryCurrUozPrice fetch current uoz price.
-func queryCurrUozPrice(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
-	uozPrice := k.RegisterKeeper.CurrUozPrice(ctx)
-	uozPriceByte, _ := uozPrice.MarshalJSON()
-	return uozPriceByte, nil
+// queryCurrNozPrice fetch current noz price.
+func queryCurrNozPrice(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
+	nozPrice := k.RegisterKeeper.CurrNozPrice(ctx)
+	nozPriceByte, _ := nozPrice.MarshalJSON()
+	return nozPriceByte, nil
 }
 
-// queryUozSupply fetch remaining/total uoz supply.
-func queryUozSupply(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
+// queryNozSupply fetch remaining/total noz supply.
+func queryNozSupply(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
 	type Supply struct {
 		Remaining sdk.Int
 		Total     sdk.Int
 	}
-	var uozSupply Supply
-	uozSupply.Remaining, uozSupply.Total = k.RegisterKeeper.UozSupply(ctx)
-	uozSupplyByte, _ := json.Marshal(uozSupply)
-	return uozSupplyByte, nil
+	var nozSupply Supply
+	nozSupply.Remaining, nozSupply.Total = k.RegisterKeeper.NozSupply(ctx)
+	nozSupplyByte, _ := json.Marshal(nozSupply)
+	return nozSupplyByte, nil
 }

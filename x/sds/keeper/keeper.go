@@ -15,10 +15,6 @@ import (
 	"github.com/tendermint/tendermint/libs/log"
 )
 
-var (
-	RewardToUstos = sdk.NewInt(1)
-)
-
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
@@ -79,7 +75,7 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
-func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) sdk.Int {
+func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
@@ -97,14 +93,14 @@ func (k Keeper) purchaseUozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 		return sdk.ZeroInt()
 	}
 
-	// update remaining uoz limit
+	// update remaining noz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
 	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
 
 	return purchased
 }
 
-func (k Keeper) simulatePurchaseUoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
 	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
@@ -127,7 +123,7 @@ func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) 
 	}
 
 	prepay := coins.AmountOf(k.BondDenom(ctx))
-	purchased := k.purchaseUozAndSubCoins(ctx, sender, prepay)
+	purchased := k.purchaseNozAndSubCoins(ctx, sender, prepay)
 
 	return purchased, nil
 }

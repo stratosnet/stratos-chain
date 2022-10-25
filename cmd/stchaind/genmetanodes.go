@@ -7,24 +7,26 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
 	"github.com/tendermint/tendermint/libs/cli"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/server"
+	"github.com/cosmos/cosmos-sdk/x/bank/exported"
 	"github.com/cosmos/cosmos-sdk/x/genutil"
 	genutiltypes "github.com/cosmos/cosmos-sdk/x/genutil/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 const (
-	defaultDemon       = "ustos"
 	flagGenMetaNodeDir = "gen-meta-node-dir"
 )
 
@@ -155,10 +157,10 @@ func getMetaNodeInfoFromFile(cdc codec.Codec, genMetaNodesDir string, genDoc tmt
 				"account %v not in genesis.json: %+v", ownerAddrStr, balanceMap)
 		}
 
-		if ownerBalance.GetCoins().AmountOf(defaultDemon).LT(metaNode.Tokens) {
+		if ownerBalance.GetCoins().AmountOf(stratos.Wei).LT(metaNode.Tokens) {
 			return appGenMetaNodes, fmt.Errorf(
 				"insufficient fund for delegation %v: %v < %v",
-				ownerBalance.GetAddress(), ownerBalance.GetCoins().AmountOf(defaultDemon), metaNode.Tokens,
+				ownerBalance.GetAddress(), ownerBalance.GetCoins(), metaNode.Tokens,
 			)
 		}
 

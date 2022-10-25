@@ -63,7 +63,7 @@ package register
 //
 //	resNodeInitStake   = sdk.NewInt(10000000000)
 //	idxNodeInitStake   = sdk.NewInt(10000000000)
-//	initialUOzonePrice = sdk.NewDecWithPrec(10000000, 9) // 0.001 ustos -> 1 uoz
+//	initialNOzonePrice = sdk.NewDec(1000000) // 0.001 gwei -> 1 noz
 //)
 //
 //func setupAllResourceNodes() []ResourceNode {
@@ -104,49 +104,49 @@ package register
 //	//************************** setup resource nodes owners' accounts **************************
 //	resOwnerAcc1 := &auth.BaseAccount{
 //		Address: resOwnerAddr1,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", resOwnerInitBalance)},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", resOwnerInitBalance)},
 //	}
 //	resOwnerAcc2 := &auth.BaseAccount{
 //		Address: resOwnerAddr2,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", resOwnerInitBalance)},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", resOwnerInitBalance)},
 //	}
 //
 //	resOwnerAcc3 := &auth.BaseAccount{
 //		Address: resOwnerAddr3,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", resOwnerInitBalance)},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", resOwnerInitBalance)},
 //	}
 //
 //	idxOwnerAcc1 := &auth.BaseAccount{
 //		Address: idxOwnerAddr1,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxOwnerInitBalance)},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", idxOwnerInitBalance)},
 //	}
 //	idxOwnerAcc2 := &auth.BaseAccount{
 //		Address: idxOwnerAddr2,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxOwnerInitBalance)},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", idxOwnerInitBalance)},
 //	}
 //	idxOwnerAcc3 := &auth.BaseAccount{
 //		Address: idxOwnerAddr3,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", idxOwnerInitBalance)},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", idxOwnerInitBalance)},
 //	}
 //
 //	resNodeAcc2 := &auth.BaseAccount{
 //		Address: resNodeAddr2,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", sdk.ZeroInt())},
 //	}
 //
 //	resNodeAcc3 := &auth.BaseAccount{
 //		Address: resNodeAddr3,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", sdk.ZeroInt())},
 //	}
 //
 //	idxNodeAcc1 := &auth.BaseAccount{
 //		Address: idxNodeAddr1,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", sdk.ZeroInt())},
 //	}
 //
 //	idxNodeAcc3 := &auth.BaseAccount{
 //		Address: idxNodeAddr3,
-//		Coins:   sdk.Coins{sdk.NewCoin("ustos", sdk.ZeroInt())},
+//		Coins:   sdk.Coins{sdk.NewCoin("wei", sdk.ZeroInt())},
 //	}
 //
 //	accs := []authexported.Account{

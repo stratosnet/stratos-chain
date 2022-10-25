@@ -89,7 +89,7 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 			types.EventTypePrepay,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
 			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
-			sdk.NewAttribute(types.AttributeKeyPurchasedUoz, purchased.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchasedNoz, purchased.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

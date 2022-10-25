@@ -35,7 +35,7 @@
             "address": "st1ha389w9dqfhcxajajqcu6ssfal8wnrt2ztlyjn",
             "coins": [
               {
-                "denom": "ustos",
+                "denom": "wei",
                 "amount": "50000000000000000"
               }
             ],
@@ -50,7 +50,7 @@
             "address": "st1f4x4cz957hmp6cl8zyqxsxum6w5jv9czduskv0",
             "coins": [
               {
-                "denom": "ustos",
+                "denom": "wei",
                 "amount": "100000000000"
               }
             ],
@@ -65,7 +65,7 @@
             "address": "st1krq3vgrmhagz688e49qh6eu0ktmczs52jtp743",
             "coins": [
               {
-                "denom": "ustos",
+                "denom": "wei",
                 "amount": "100000000000"
               }
             ],
@@ -80,7 +80,7 @@
             "address": "st1kwaztacd25qshjmutsvsm6ttfexsjvkymh7d89",
             "coins": [
               {
-                "denom": "ustos",
+                "denom": "wei",
                 "amount": "100000000000"
               }
             ],
@@ -95,7 +95,7 @@
     "upgrade": {},
     "pot": {
       "params": {
-        "bond_denom": "ustos",
+        "bond_denom": "wei",
         "mining_reward_params": [
           {
             "total_mined_valve_start": "0",
@@ -148,7 +148,7 @@
         ]
       },
       "foundation_account": "st1ha389w9dqfhcxajajqcu6ssfal8wnrt2ztlyjn",
-      "initial_uoz_price": "10000000000",
+      "initial_noz_price": "10000000000",
       "mature_epoch": "2016"
     },
     "bank": {
@@ -156,13 +156,9 @@
     },
     "register": {
       "params": {
-        "bond_denom": "ustos"
+        "bond_denom": "wei"
       },
-      "last_resource_node_total_ustos": "0",
-      "last_resource_node_ustoss": null,
       "resource_nodes": null,
-      "last_indexing_node_total_ustos": "0",
-      "last_indexing_node_ustoss": null,
       "indexing_nodes": null
     },
     "gov": {
@@ -173,7 +169,7 @@
       "deposit_params": {
         "min_deposit": [
           {
-            "denom": "ustos",
+            "denom": "wei",
             "amount": "10000000"
           }
         ],
@@ -233,7 +229,7 @@
                   "validator_address": "stvaloper1ha389w9dqfhcxajajqcu6ssfal8wnrt248kywc",
                   "pubkey": "stvalconspub1zcjduepq2gg2hhkms3ahme78gty8pv6ax49la4t5xrrmw7vnw0gxgx4wjjzqqjtcmn",
                   "value": {
-                    "denom": "ustos",
+                    "denom": "wei",
                     "amount": "100000000"
                   }
                 }
@@ -279,7 +275,7 @@
                   "validator_address": "stvaloper1f4x4cz957hmp6cl8zyqxsxum6w5jv9cz6seksy",
                   "pubkey": "stvalconspub1zcjduepq87r8h6sqa79lpucmg8tnmlll6l9cfja8lsjlf9ep3fadmwh3slnselr5yc",
                   "value": {
-                    "denom": "ustos",
+                    "denom": "wei",
                     "amount": "100000000"
                   }
                 }
@@ -325,7 +321,7 @@
                   "validator_address": "stvaloper1krq3vgrmhagz688e49qh6eu0ktmczs5298g7f6",
                   "pubkey": "stvalconspub1zcjduepq0a85gp0nfcpkep56w0llslpzsfn5avf86zegf6qqsruh565x3m6qfunvx0",
                   "value": {
-                    "denom": "ustos",
+                    "denom": "wei",
                     "amount": "100000000"
                   }
                 }
@@ -371,7 +367,7 @@
                   "validator_address": "stvaloper1kwaztacd25qshjmutsvsm6ttfexsjvkyvmhdmw",
                   "pubkey": "stvalconspub1zcjduepquyltzmypwwad9tr24md7wmxjt2wu09xvk2uwxg60mnh992kapnqq8uakzv",
                   "value": {
-                    "denom": "ustos",
+                    "denom": "wei",
                     "amount": "100000000"
                   }
                 }
@@ -401,7 +397,7 @@
         "max_validators": 100,
         "max_entries": 7,
         "historical_entries": 0,
-        "bond_denom": "ustos"
+        "bond_denom": "wei"
       },
       "last_total_power": "0",
       "last_validator_powers": null,
