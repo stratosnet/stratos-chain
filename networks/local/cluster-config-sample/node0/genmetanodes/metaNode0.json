@@ -1,0 +1,18 @@
+{
+  "network_address":"stsds18648ls7x859se9y58jsep4r09srdud90qhz7us",
+  "pubkey": {
+    "@type": "/cosmos.crypto.ed25519.PubKey",
+    "key": "vSUv5j+90PCPwWtgoIM7PRi+ozP9K19QMIzyDFu6tRw="
+  },
+  "suspend":false,
+  "status":3,
+  "tokens":"1stos",
+  "owner_address":"st1rcuxtmpuye30z3374pqu9vae8hx697uuk3zlvs",
+  "description":{
+    "moniker":"stratos-foundation",
+    "identity":"",
+    "website":"",
+    "security_contact":"",
+    "details":""
+  }
+}
