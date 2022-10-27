@@ -11,7 +11,6 @@ type Keeper interface {
 	GetAccount(ctx sdk.Context, addr common.Address) *Account
 	GetState(ctx sdk.Context, addr common.Address, key common.Hash) common.Hash
 	GetCode(ctx sdk.Context, codeHash common.Hash) []byte
-	GetOverriddenTxHashMap(ctx sdk.Context) map[string]struct{}
 
 	// the callback returns false to break early
 	ForEachStorage(ctx sdk.Context, addr common.Address, cb func(key, value common.Hash) bool)

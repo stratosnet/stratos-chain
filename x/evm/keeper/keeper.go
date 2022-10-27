@@ -48,7 +48,6 @@ type Keeper struct {
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
 
-	txDecoder sdk.TxDecoder
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
 }
@@ -58,7 +57,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
-	tracer string, txDecoder sdk.TxDecoder,
+	tracer string,
 ) *Keeper {
 	// ensure evm module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -80,7 +79,6 @@ func NewKeeper(
 		storeKey:      storeKey,
 		transientKey:  transientKey,
 		tracer:        tracer,
-		txDecoder:     txDecoder,
 	}
 }
 
