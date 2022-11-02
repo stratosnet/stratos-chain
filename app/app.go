@@ -792,31 +792,34 @@ func initParamsKeeper(
 
 var beginBlockStart, endBlockStart, deliverTxStart time.Time
 var currentHeight int64
+var txCnt int64
 
 func (app *NewApp) BeginBlock(req abci.RequestBeginBlock) (res abci.ResponseBeginBlock) {
 	currentHeight = req.GetHeader().Height
+	txCnt = 0
 	beginBlockStart = time.Now()
-	defer app.timeCost(fmt.Sprintf("begin_block_at_height_%v costs", currentHeight), beginBlockStart)
+	defer app.timeCost(fmt.Sprintf("begin_block: begin_block_at_height_%v costs", currentHeight), beginBlockStart)
 	res = app.BaseApp.BeginBlock(req)
 	return
 }
 
 func (app *NewApp) DeliverTx(req abci.RequestDeliverTx) (res abci.ResponseDeliverTx) {
 	deliverTxStart = time.Now()
-	defer app.timeCost(fmt.Sprintf("deliver_tx tx_at_height_%v costs", currentHeight), deliverTxStart)
+	txCnt++
+	defer app.timeCost(fmt.Sprintf("deliver_tx: tx_at_height_%v costs", currentHeight), deliverTxStart)
 	res = app.BaseApp.DeliverTx(req)
 	return
 }
 
 func (app *NewApp) EndBlock(req abci.RequestEndBlock) (res abci.ResponseEndBlock) {
 	endBlockStart = time.Now()
-	defer app.timeCost(fmt.Sprintf("end_block_at_height_%v costs", currentHeight), endBlockStart)
+	defer app.timeCost(fmt.Sprintf("endblock: end_block_at_height_%v costs", currentHeight), endBlockStart)
 	res = app.BaseApp.EndBlock(req)
 	return
 }
 
 func (app *NewApp) Commit() (res abci.ResponseCommit) {
-	defer app.timeCost(fmt.Sprintf("block_at_height_%v costs", currentHeight), beginBlockStart)
+	defer app.timeCost(fmt.Sprintf("commit: block_at_height_%v, tx_count is %v costs", currentHeight, txCnt), beginBlockStart)
 	res = app.BaseApp.Commit()
 	return
 }
