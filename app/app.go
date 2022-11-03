@@ -353,7 +353,7 @@ func NewInitApp(
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tKeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
 		app.accountKeeper, app.bankKeeper, app.stakingKeeper,
-		tracer, encodingConfig.TxConfig.TxDecoder(),
+		tracer,
 	)
 
 	// Create IBC Keeper
