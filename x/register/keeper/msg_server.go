@@ -69,7 +69,7 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(pk.Bytes())),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-			sdk.NewAttribute(types.AttributeKeyInitialStake, msg.Value.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyInitialStake, msg.Value.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -152,7 +152,7 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
-			sdk.NewAttribute(types.AttributeKeyStakeToRemove, resourceNode.Tokens.String()),
+			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -320,7 +320,7 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
-			sdk.NewAttribute(types.AttributeKeyStakeDelta, msg.StakeDelta.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyStakeDelta, msg.StakeDelta.String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
