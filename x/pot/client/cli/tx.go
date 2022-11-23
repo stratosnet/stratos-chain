@@ -144,15 +144,17 @@ func buildLegacyWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.F
 	if err != nil {
 		return txf, nil, err
 	}
-
 	from := clientCtx.GetFromAddress()
 
+	targetAddressStr, err := fs.GetString(FlagTargetAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	var targetAddress sdk.AccAddress
-	flagTargetAddress := fs.Lookup(FlagTargetAddress)
-	if flagTargetAddress == nil {
+	if targetAddressStr == "" {
 		targetAddress = from
 	} else {
-		targetAddressStr, _ := fs.GetString(FlagTargetAddress)
 		targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
 		if err != nil {
 			return txf, nil, err

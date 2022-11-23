@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"context"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +8,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -108,11 +108,6 @@ func (k msgServer) HandleMsgWithdraw(goCtx context.Context, msg *types.MsgWithdr
 func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.MsgLegacyWithdraw) (*types.MsgLegacyWithdrawResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	legacyWalletAddress, err := sdk.AccAddressFromBech32(msg.LegacyWalletAddress)
-	if err != nil {
-		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
-	}
-
 	targetAddress, err := sdk.AccAddressFromBech32(msg.TargetAddress)
 	if err != nil {
 		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
@@ -122,14 +117,15 @@ func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.Msg
 	if err != nil {
 		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
+
 	fromAcc := k.AccountKeeper.GetAccount(ctx, fromAddress)
 	pubKey := fromAcc.GetPubKey()
-
 	legacyPubKey := secp256k1.PubKey{Key: pubKey.Bytes()}
-	legacyAddr := legacyPubKey.Address()
+	legacyWalletAddress := sdk.AccAddress(legacyPubKey.Address().Bytes())
 
-	if !bytes.Equal(legacyAddr.Bytes(), legacyWalletAddress.Bytes()) {
-		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrLegacyAddressNotMatch, err.Error())
+	legacyWalletAddrStr, err := bech32.ConvertAndEncode(stratos.AccountAddressPrefix, legacyWalletAddress.Bytes())
+	if err != nil {
+		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrLegacyWithdrawFailure, err.Error())
 	}
 
 	err = k.Withdraw(ctx, msg.Amount, legacyWalletAddress, targetAddress)
@@ -141,7 +137,7 @@ func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.Msg
 		sdk.NewEvent(
 			types.EventTypeLegacyWithdraw,
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyLegacyWalletAddress, msg.LegacyWalletAddress),
+			sdk.NewAttribute(types.AttributeKeyLegacyWalletAddress, legacyWalletAddrStr),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

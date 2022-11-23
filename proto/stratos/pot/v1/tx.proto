@@ -91,11 +91,7 @@ message MsgLegacyWithdraw {
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
-  string                         legacy_wallet_address = 3 [
-    (gogoproto.jsontag) = "legacy_wallet_address",
-    (gogoproto.moretags) = "yaml:\"legacy_wallet_address\""
-  ];
-  string                         target_address = 4 [
+  string                         target_address = 3 [
     (gogoproto.jsontag) = "target_address",
     (gogoproto.moretags) = "yaml:\"target_address\""
   ];
