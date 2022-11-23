@@ -35,6 +35,8 @@ const (
 	codeErrSlashingResourceNodeFailure
 	codeErrRewardDistributionNotComplete
 	codeErrVolumeReport
+	codeErrLegacyAddressNotMatch
+	codeErrLegacyWithdrawFailure
 )
 
 var (
@@ -68,4 +70,6 @@ var (
 	ErrSlashingResourceNodeFailure    = sdkerrors.Register(ModuleName, codeErrSlashingResourceNodeFailure, "failure during slashing resource node")
 	ErrRewardDistributionNotComplete  = sdkerrors.Register(ModuleName, codeErrRewardDistributionNotComplete, "Reward distribution not completed")
 	ErrVolumeReport                   = sdkerrors.Register(ModuleName, codeErrVolumeReport, "volume report failed")
+	ErrLegacyAddressNotMatch          = sdkerrors.Register(ModuleName, codeErrLegacyAddressNotMatch, "public key does not mathe the legacy wallet address")
+	ErrLegacyWithdrawFailure          = sdkerrors.Register(ModuleName, codeErrLegacyWithdrawFailure, "failure during legacyWithdraw")
 )

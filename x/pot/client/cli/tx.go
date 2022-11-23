@@ -33,6 +33,7 @@ func NewTxCmd() *cobra.Command {
 	potTxCmd.AddCommand(
 		VolumeReportCmd(),
 		WithdrawCmd(),
+		LegacyWithdrawCmd(),
 		FoundationDepositCmd(),
 		SlashingResourceNodeCmd(),
 	)
@@ -61,11 +62,8 @@ func WithdrawCmd() *cobra.Command {
 		},
 	}
 
-	//cmd.Flags().AddFlagSet(FsAmount)
-	//cmd.Flags().AddFlagSet(FsTargetAddress)
 	cmd.Flags().AddFlagSet(flagSetAmount())
 	cmd.Flags().AddFlagSet(flagSetTargetAddress())
-
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagAmount)
@@ -99,17 +97,69 @@ func buildWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet
 		}
 	}
 
-	//if viper.IsSet(FlagTargetAddress) {
-	//	targetAddressStr := viper.GetString(FlagTargetAddress)
-	//	targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
-	//	if err != nil {
-	//		return txf, nil, err
-	//	}
-	//} else {
-	//	targetAddress = walletAddress
-	//}
-
 	msg := types.NewMsgWithdraw(amount, walletAddress, targetAddress)
+
+	return txf, msg, nil
+}
+
+func LegacyWithdrawCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "legacy-withdraw",
+		Short: "withdraw POT reward recorded by legacy wallet address",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
+				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
+
+			txf, msg, err := buildLegacyWithdrawMsg(clientCtx, txf, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+		},
+	}
+
+	cmd.Flags().AddFlagSet(flagSetAmount())
+	cmd.Flags().AddFlagSet(flagSetTargetAddress())
+	flags.AddTxFlagsToCmd(cmd)
+
+	_ = cmd.MarkFlagRequired(FlagAmount)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+
+	return cmd
+}
+
+// makes a new LegacyWithdrawMsg.
+func buildLegacyWithdrawMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgLegacyWithdraw, error) {
+	amountStr, err := fs.GetString(FlagAmount)
+	if err != nil {
+		return txf, nil, err
+	}
+	amount, err := sdk.ParseCoinsNormalized(amountStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
+	from := clientCtx.GetFromAddress()
+
+	var targetAddress sdk.AccAddress
+	flagTargetAddress := fs.Lookup(FlagTargetAddress)
+	if flagTargetAddress == nil {
+		targetAddress = from
+	} else {
+		targetAddressStr, _ := fs.GetString(FlagTargetAddress)
+		targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
+		if err != nil {
+			return txf, nil, err
+		}
+	}
+
+	msg := types.NewMsgLegacyWithdraw(amount, from, targetAddress)
 
 	return txf, msg, nil
 }
