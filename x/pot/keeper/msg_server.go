@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -101,6 +103,49 @@ func (k msgServer) HandleMsgWithdraw(goCtx context.Context, msg *types.MsgWithdr
 		),
 	})
 	return &types.MsgWithdrawResponse{}, nil
+}
+
+func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.MsgLegacyWithdraw) (*types.MsgLegacyWithdrawResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	targetAddress, err := sdk.AccAddressFromBech32(msg.TargetAddress)
+	if err != nil {
+		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
+	}
+
+	fromAddress, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
+	}
+
+	fromAcc := k.AccountKeeper.GetAccount(ctx, fromAddress)
+	pubKey := fromAcc.GetPubKey()
+	legacyPubKey := secp256k1.PubKey{Key: pubKey.Bytes()}
+	legacyWalletAddress := sdk.AccAddress(legacyPubKey.Address().Bytes())
+
+	legacyWalletAddrStr, err := bech32.ConvertAndEncode(stratos.AccountAddressPrefix, legacyWalletAddress.Bytes())
+	if err != nil {
+		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrLegacyWithdrawFailure, err.Error())
+	}
+
+	err = k.Withdraw(ctx, msg.Amount, legacyWalletAddress, targetAddress)
+	if err != nil {
+		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrLegacyWithdrawFailure, err.Error())
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeLegacyWithdraw,
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
+			sdk.NewAttribute(types.AttributeKeyLegacyWalletAddress, legacyWalletAddrStr),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
+		),
+	})
+	return &types.MsgLegacyWithdrawResponse{}, nil
 }
 
 func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.MsgFoundationDeposit) (*types.MsgFoundationDepositResponse, error) {

@@ -2,10 +2,7 @@ syntax = "proto3";
 package stratos.pot.v1;
 
 import "gogoproto/gogo.proto";
-//import "google/protobuf/any.proto";
 import "google/api/annotations.proto";
-
-//import "cosmos_proto/cosmos.proto";
 import "stratos/pot/v1/pot.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
@@ -19,6 +16,9 @@ service Msg {
   };
   rpc HandleMsgWithdraw(MsgWithdraw) returns (MsgWithdrawResponse) {
     option (google.api.http).post = "/stratos/pot/v1/withdraw";
+  };
+  rpc HandleMsgLegacyWithdraw(MsgLegacyWithdraw) returns (MsgLegacyWithdrawResponse) {
+    option (google.api.http).post = "/stratos/pot/v1/legacy_withdraw";
   };
   rpc HandleMsgFoundationDeposit(MsgFoundationDeposit) returns (MsgFoundationDepositResponse) {
     option (google.api.http).post = "/stratos/pot/v1/foundation_deposit";
@@ -78,6 +78,27 @@ message MsgWithdraw {
 }
 // MsgWithdrawResponse defines the Msg/MsgWithdraw response type.
 message MsgWithdrawResponse {}
+
+// MsgLegacyWithdraw encapsulates an legacyWithdraw transaction as an SDK message.
+message MsgLegacyWithdraw {
+  repeated cosmos.base.v1beta1.Coin amount = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag)  = "amount",
+    (gogoproto.moretags) = "yaml:\"amount\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  string                         from = 2 [
+    (gogoproto.jsontag) = "from",
+    (gogoproto.moretags) = "yaml:\"from\""
+  ];
+  string                         target_address = 3 [
+    (gogoproto.jsontag) = "target_address",
+    (gogoproto.moretags) = "yaml:\"target_address\""
+  ];
+}
+
+// MsgLegacyWithdrawResponse defines the Msg/MsgWithdraw response type.
+message MsgLegacyWithdrawResponse {}
 
 // MsgFoundationDeposit - encapsulates an FoundationDeposit transaction as an SDK message
 message MsgFoundationDeposit {
