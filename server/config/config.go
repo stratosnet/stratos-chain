@@ -53,7 +53,7 @@ const (
 	DefaultMinGasPrices uint64 = 1e9
 
 	// 1000000wei = 0.01gwei
-	MinimalMinGasPrices uint64 = 1e6
+	MinimalMinGasPrices uint64 = 1e7
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
