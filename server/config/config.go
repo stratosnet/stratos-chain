@@ -4,9 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
+	stratos "github.com/stratosnet/stratos-chain/types"
 
 	"github.com/tendermint/tendermint/libs/strings"
 
@@ -46,6 +48,12 @@ const (
 	DefaultHTTPTimeout = 30 * time.Second
 
 	DefaultHTTPIdleTimeout = 120 * time.Second
+
+	// default 1000000000wei = 1gwei
+	DefaultMinGasPrices uint64 = 1e9
+
+	// 1000000wei = 0.01gwei
+	MinimalMinGasPrices uint64 = 1e6
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
@@ -125,9 +133,9 @@ func AppConfig(denom string) (string, interface{}) {
 	// - if you set srvCfg.MinGasPrices non-empty, validators CAN tweak their
 	//   own app.toml to override, or use this default value.
 	//
-	// In stratos, we set the min gas prices to 0.
+	// In stratos, we set the min gas prices to 0.01gwei.
 	if denom != "" {
-		srvCfg.MinGasPrices = "0" + denom
+		srvCfg.MinGasPrices = strconv.FormatUint(DefaultMinGasPrices, 10) + denom
 	}
 
 	customAppConfig := Config{
@@ -330,4 +338,12 @@ func (c Config) ValidateBasic() error {
 	}
 
 	return c.Config.ValidateBasic()
+}
+
+func GetDefaultMinGasPricesCoinStr() string {
+	return strconv.FormatUint(DefaultMinGasPrices, 10) + stratos.Wei
+}
+
+func GetMinimalMinGasPricesCoinStr() string {
+	return strconv.FormatUint(MinimalMinGasPrices, 10) + stratos.Wei
 }

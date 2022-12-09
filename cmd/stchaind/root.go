@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -227,7 +228,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		a.encCfg,
 		appOpts,
 		baseapp.SetPruning(pruningOpts),
-		baseapp.SetMinGasPrices(cast.ToString(appOpts.Get(sdkserver.FlagMinGasPrices))),
+		baseapp.SetMinGasPrices(checkMinGasPrices(appOpts, logger)),
 		baseapp.SetHaltHeight(cast.ToUint64(appOpts.Get(sdkserver.FlagHaltHeight))),
 		baseapp.SetHaltTime(cast.ToUint64(appOpts.Get(sdkserver.FlagHaltTime))),
 		baseapp.SetMinRetainBlocks(cast.ToUint64(appOpts.Get(sdkserver.FlagMinRetainBlocks))),
@@ -238,6 +239,28 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		baseapp.SetSnapshotInterval(cast.ToUint64(appOpts.Get(sdkserver.FlagStateSyncSnapshotInterval))),
 		baseapp.SetSnapshotKeepRecent(cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent))),
 	)
+}
+
+func checkMinGasPrices(appOpts servertypes.AppOptions, logger log.Logger) string {
+	minGasPricesInputStr := cast.ToString(appOpts.Get(sdkserver.FlagMinGasPrices))
+	minGasPricesInput, err := sdk.ParseCoinNormalized(minGasPricesInputStr)
+	if err != nil {
+		panic(err)
+	}
+
+	minimalMinGasPricesStr := servercfg.GetMinimalMinGasPricesCoinStr()
+	minimalMinGasPrices, err := sdk.ParseCoinNormalized(minimalMinGasPricesStr)
+	if err != nil {
+		panic(err)
+	}
+
+	if minGasPricesInput.IsLT(minimalMinGasPrices) {
+		logger.Info(fmt.Sprintf("min-gas-prices %v is less than minimal value %v, set to default %v",
+			minGasPricesInputStr, minimalMinGasPricesStr, servercfg.GetDefaultMinGasPricesCoinStr()))
+		return servercfg.GetDefaultMinGasPricesCoinStr()
+	}
+
+	return minGasPricesInput.String()
 }
 
 // appExport creates a new simapp (optionally at a given height)
