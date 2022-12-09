@@ -118,7 +118,7 @@ func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) 
 	for _, coin := range coins {
 		hasCoin := k.bankKeeper.HasBalance(ctx, sender, coin)
 		if !hasCoin {
-			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInvalidCoins, "No valid coins to be deducted from acc %s", sender.String())
+			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "Insufficient balance in the acc %s", sender.String())
 		}
 	}
 
