@@ -255,9 +255,9 @@ func checkMinGasPrices(appOpts servertypes.AppOptions, logger log.Logger) string
 	}
 
 	if minGasPricesInput.IsLT(minimalMinGasPrices) {
-		logger.Info(fmt.Sprintf("min-gas-prices %v is less than minimal value %v, set to default %v",
-			minGasPricesInputStr, minimalMinGasPricesStr, servercfg.GetDefaultMinGasPricesCoinStr()))
-		return servercfg.GetDefaultMinGasPricesCoinStr()
+		logger.Info(fmt.Sprintf("min-gas-prices %v is less than minimal value %v, set to minimal value",
+			minGasPricesInputStr, minimalMinGasPricesStr))
+		return minimalMinGasPricesStr
 	}
 
 	return minGasPricesInput.String()
