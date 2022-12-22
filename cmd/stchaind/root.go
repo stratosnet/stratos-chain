@@ -238,6 +238,7 @@ func (a appCreator) newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, a
 		baseapp.SetSnapshotStore(snapshotStore),
 		baseapp.SetSnapshotInterval(cast.ToUint64(appOpts.Get(sdkserver.FlagStateSyncSnapshotInterval))),
 		baseapp.SetSnapshotKeepRecent(cast.ToUint32(appOpts.Get(sdkserver.FlagStateSyncSnapshotKeepRecent))),
+		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get("iavl-cache-size"))),
 	)
 }
 
