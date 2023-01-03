@@ -58,6 +58,7 @@ const (
 	codeErrUpdateMetaNodeStake
 	codeErrVoteMetaNode
 	codeErrResourceNodeRegDisabled
+	codeErrInvalidSuspensionStatForUnbondNode
 )
 
 var (
@@ -114,4 +115,5 @@ var (
 	ErrUpdateMetaNodeStake                = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeStake, "failed to update stake for meta node")
 	ErrVoteMetaNode                       = sdkerrors.Register(ModuleName, codeErrVoteMetaNode, "failed to vote meta node")
 	ErrResourceNodeRegDisabled            = sdkerrors.Register(ModuleName, codeErrResourceNodeRegDisabled, "resource node registration is disabled")
+	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")
 )
