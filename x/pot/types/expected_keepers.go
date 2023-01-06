@@ -66,6 +66,8 @@ type RegisterKeeper interface {
 
 	DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
 	IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+
+	NozSupply(ctx sdk.Context) (remaining, total sdk.Int)
 }
 
 type StakingKeeper interface {

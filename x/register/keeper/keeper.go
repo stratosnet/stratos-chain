@@ -66,15 +66,15 @@ func (k Keeper) SetHooks(sh types.RegisterHooks) Keeper {
 	return k
 }
 
-func (k Keeper) SetInitialNOzonePrice(ctx sdk.Context, price sdk.Dec) {
+func (k Keeper) SetNOzonePrice(ctx sdk.Context, price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(price)
-	store.Set(types.InitialNOzonePriceKey, b)
+	store.Set(types.NOzonePriceKey, b)
 }
 
-func (k Keeper) GetInitialNOzonePrice(ctx sdk.Context) (price sdk.Dec) {
+func (k Keeper) GetNOzonePrice(ctx sdk.Context) (price sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.InitialNOzonePriceKey)
+	b := store.Get(types.NOzonePriceKey)
 	if b == nil {
 		panic("Stored initial noz price should not have been nil")
 	}
@@ -139,41 +139,43 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 }
 
 func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// get remainingOzoneLimit before adding stake
+	remainingBefore := k.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+
 	// update effectiveTotalStake
 	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
 	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(stake)
 	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
 
-	effectiveGenesisDeposit := effectiveTotalStakeAfter.ToDec() //wei
+	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
 	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //noz
-	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " noz")
-	limitToAdd := currentLimit.Mul(stake.ToDec()).Quo(effectiveGenesisDeposit)
-	//ctx.Logger().Info("----- limitToAdd is " + limitToAdd.String() + " noz")
-	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
-	//ctx.Logger().Info("----- newLimit is " + newLimit.String() + " noz")
-	k.SetRemainingOzoneLimit(ctx, newLimit)
+
+	limitToAdd := stake.ToDec().Quo(stakeNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Add(limitToAdd).TruncateInt())
 	return limitToAdd.TruncateInt()
 }
 
 func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// get remainingOzoneLimit before adding stake
+	remainingBefore := k.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+
 	// update effectiveTotalStake
 	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
 	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(stake)
 	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
 
-	effectiveGenesisDeposit := effectiveTotalStakeAfter.ToDec() //wei
+	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
 	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //noz
-	limitToSub := currentLimit.Mul(stake.ToDec()).Quo(effectiveGenesisDeposit)
-	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
-	k.SetRemainingOzoneLimit(ctx, newLimit)
+	limitToSub := stake.ToDec().Quo(stakeNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Sub(limitToSub).TruncateInt())
 	return limitToSub.TruncateInt()
 }
 
@@ -539,10 +541,12 @@ func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
 // NozSupply calc remaining/total supply for noz
 func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
+	stakeNozRate := k.GetStakeNozRate(ctx)
 	St := k.GetEffectiveGenesisStakeTotal(ctx)
-	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
-	// total supply = Lt * ( 1 + Pt / S )
-	total = Pt.ToDec().Quo(St.ToDec()).Add(sdk.NewInt(1).ToDec()).Mul(remaining.ToDec()).TruncateInt()
+	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
+	//Pt := k.GetTotalUnissuedPrepay(ctx).Amount
+	//// total supply = Lt * ( 1 + Pt / S )
+	//total = Pt.ToDec().Quo(St.ToDec()).Add(sdk.NewInt(1).ToDec()).Mul(remaining.ToDec()).TruncateInt()
 	return remaining, total
 }
 
@@ -602,5 +606,21 @@ func (k Keeper) GetEffectiveGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
 		return sdk.ZeroInt()
 	}
 	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
+	return
+}
+
+func (k Keeper) SetStakeNozRate(ctx sdk.Context, stakeNozRate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stakeNozRate)
+	store.Set(types.StakeNozRateKey, b)
+}
+
+func (k Keeper) GetStakeNozRate(ctx sdk.Context) (stakeNozRate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.StakeNozRateKey)
+	if b == nil {
+		panic("Stored stake noz rate should not be nil")
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stakeNozRate)
 	return
 }

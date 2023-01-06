@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -25,6 +27,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 
 	//1, calc traffic reward in total
 	totalConsumedNoz = k.GetTotalConsumedNoz(trafficList).ToDec()
+	remaining, total := k.RegisterKeeper.NozSupply(ctx)
+	if totalConsumedNoz.Add(remaining.ToDec()).GT(total.ToDec()) {
+		return totalConsumedNoz, errors.New("remaining+consumed Noz exceeds total Noz supply")
+	}
+
 	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
 	if err != nil {
 		return totalConsumedNoz, err

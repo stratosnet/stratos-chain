@@ -29,12 +29,18 @@ message GenesisState {
 //    (gogoproto.castrepeated) = "github.com/stratosnet/stratos-chain/x/register/types.MetaNodes",
     (gogoproto.moretags)     = "yaml:\"meta_nodes\""
    ];
-  string                            initial_noz_price = 4 [
-    (gogoproto.moretags) = "yaml:\"initial_noz_price\"",
+  string                        remaining_noz_limit = 4 [
+   (gogoproto.nullable) = false,
+   (gogoproto.jsontag)  = "remaining_noz_limit",
+   (gogoproto.moretags) = "yaml:\"remaining_noz_limit\"",
+   (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ]; // remaining noz limit
+  repeated register.v1.Slashing     slashing = 5 [ (gogoproto.moretags) = "yaml:\"slashing_info\"" ];
+  string                            stake_noz_rate = 6 [
+    (gogoproto.moretags) = "yaml:\"stake_noz_rate\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable)   = false
-  ]; //initial price of noz
-  repeated register.v1.Slashing     slashing = 5 [ (gogoproto.moretags) = "yaml:\"slashing_info\"" ];
+  ]; //fixed rate of stake over noz
 }
 
 message GenesisMetaNode {

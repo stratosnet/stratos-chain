@@ -169,7 +169,11 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		k.SetBondedResourceNodeCnt(ctx, count)
 	}
 
-	ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+	if !resourceNode.Suspend {
+		ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+	} else {
+		ozoneLimitChange = sdk.ZeroInt()
+	}
 
 	return ozoneLimitChange, nil
 }
