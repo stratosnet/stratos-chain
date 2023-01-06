@@ -55,9 +55,9 @@ var (
 
 	resNodeSlashingNOZAmt1 = sdk.NewInt(100000000000)
 
-	resourceNodeVolume1, _ = sdk.NewIntFromString("666")
-	resourceNodeVolume2, _ = sdk.NewIntFromString("222")
-	resourceNodeVolume3, _ = sdk.NewIntFromString("111")
+	resourceNodeVolume1 = sdk.NewInt(537500000000)
+	resourceNodeVolume2 = sdk.NewInt(200000000000)
+	resourceNodeVolume3 = sdk.NewInt(200000000000)
 
 	depositForSendingTx, _ = sdk.NewIntFromString("100000000000000000000000000000")
 	totalUnissuedPrepayVal = sdk.ZeroInt()
@@ -608,7 +608,7 @@ func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
 }
 func setupPrepayMsg() *sdstypes.MsgPrepay {
 	sender := resOwner1
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(stratos.NewCoinInt64(1000000000)))
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(stratos.NewCoinInt64(1000000000000000000)))
 	return prepayMsg
 }
 
@@ -1188,7 +1188,7 @@ func TestOzPriceChangePrepay(t *testing.T) {
 		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
-		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after PREPAY")
+		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should not change after PREPAY")
 		println("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		priceBefore = priceAfter

@@ -36,7 +36,7 @@ var (
 	UpperBoundOfTotalOzoneKey     = []byte{0x04}
 	SlashingPrefix                = []byte{0x05}
 	InitialGenesisStakeTotalKey   = []byte{0x06} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
-	NOzonePriceKey                = []byte{0x07} // key of effective noz price at t=0
+	NOzonePriceKey                = []byte{0x07} // key of effective noz price
 	MetaNodeCntKey                = []byte{0x08} // the number of all meta nodes
 	ResourceNodeCntKey            = []byte{0x09} // the number of all resource nodes
 	EffectiveGenesisStakeTotalKey = []byte{0x10} // key of effective(ongoing) genesis deposit by all resource nodes and meta nodes at time t
