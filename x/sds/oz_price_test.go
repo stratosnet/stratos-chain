@@ -40,11 +40,11 @@ Test scenarios:
 */
 
 const (
-	chainID          = "testchain_1-1"
-	stos2wei         = stratos.StosToWei
-	StosToWeiPostfix = "000000000000000000" // 1 Stos = 1e18 wei
-	rewardDenom      = stratos.Utros
-	stakeNozRateStr  = "100000"
+	chainID         = "testchain_1-1"
+	stos2wei        = stratos.StosToWei
+	StosToWeiSuffix = "000000000000000000" // 1 Stos = 1e18 wei
+	rewardDenom     = stratos.Utros
+	stakeNozRateStr = "100000"
 )
 
 var (
@@ -85,22 +85,26 @@ var (
 	idxOwner2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
 	idxOwner3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
 
-	resNodeInitialStakeForMultipleNodes = sdk.NewInt(3 * stos2wei)
+	resNodeInitialStakeForMultipleNodes, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialStakeForMultipleNodes = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey1       = ed25519.GenPrivKey().PubKey()
-	resNodeAddr1         = sdk.AccAddress(resNodePubKey1.Address())
-	resNodeNetworkId1    = stratos.SdsAddress(resNodePubKey1.Address())
-	resNodeInitialStake1 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey1          = ed25519.GenPrivKey().PubKey()
+	resNodeAddr1            = sdk.AccAddress(resNodePubKey1.Address())
+	resNodeNetworkId1       = stratos.SdsAddress(resNodePubKey1.Address())
+	resNodeInitialStake1, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialStake1 = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey2       = ed25519.GenPrivKey().PubKey()
-	resNodeAddr2         = sdk.AccAddress(resNodePubKey2.Address())
-	resNodeNetworkId2    = stratos.SdsAddress(resNodePubKey2.Address())
-	resNodeInitialStake2 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey2          = ed25519.GenPrivKey().PubKey()
+	resNodeAddr2            = sdk.AccAddress(resNodePubKey2.Address())
+	resNodeNetworkId2       = stratos.SdsAddress(resNodePubKey2.Address())
+	resNodeInitialStake2, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialStake2 = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey3       = ed25519.GenPrivKey().PubKey()
-	resNodeAddr3         = sdk.AccAddress(resNodePubKey3.Address())
-	resNodeNetworkId3    = stratos.SdsAddress(resNodePubKey3.Address())
-	resNodeInitialStake3 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey3          = ed25519.GenPrivKey().PubKey()
+	resNodeAddr3            = sdk.AccAddress(resNodePubKey3.Address())
+	resNodeNetworkId3       = stratos.SdsAddress(resNodePubKey3.Address())
+	resNodeInitialStake3, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialStake3 = sdk.NewInt(3 * stos2wei)
 
 	resNodePubKey4       = ed25519.GenPrivKey().PubKey()
 	resNodeAddr4         = sdk.AccAddress(resNodePubKey4.Address())
@@ -112,21 +116,24 @@ var (
 	resNodeNetworkId5    = stratos.SdsAddress(resNodePubKey5.Address())
 	resNodeInitialStake5 = sdk.NewInt(3 * stos2wei)
 
-	idxNodePrivKey1      = ed25519.GenPrivKey()
-	idxNodePubKey1       = idxNodePrivKey1.PubKey()
-	idxNodeAddr1         = sdk.AccAddress(idxNodePubKey1.Address())
-	idxNodeNetworkId1    = stratos.SdsAddress(idxNodePubKey1.Address())
-	idxNodeInitialStake1 = sdk.NewInt(5 * stos2wei)
+	idxNodePrivKey1         = ed25519.GenPrivKey()
+	idxNodePubKey1          = idxNodePrivKey1.PubKey()
+	idxNodeAddr1            = sdk.AccAddress(idxNodePubKey1.Address())
+	idxNodeNetworkId1       = stratos.SdsAddress(idxNodePubKey1.Address())
+	idxNodeInitialStake1, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
+	//idxNodeInitialStake1 = sdk.NewInt(5 * stos2wei)
 
-	idxNodePubKey2       = ed25519.GenPrivKey().PubKey()
-	idxNodeAddr2         = sdk.AccAddress(idxNodePubKey2.Address())
-	idxNodeNetworkId2    = stratos.SdsAddress(idxNodePubKey2.Address())
-	idxNodeInitialStake2 = sdk.NewInt(5 * stos2wei)
+	idxNodePubKey2          = ed25519.GenPrivKey().PubKey()
+	idxNodeAddr2            = sdk.AccAddress(idxNodePubKey2.Address())
+	idxNodeNetworkId2       = stratos.SdsAddress(idxNodePubKey2.Address())
+	idxNodeInitialStake2, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
+	//idxNodeInitialStake2 = sdk.NewInt(5 * stos2wei)
 
-	idxNodePubKey3       = ed25519.GenPrivKey().PubKey()
-	idxNodeAddr3         = sdk.AccAddress(idxNodePubKey3.Address())
-	idxNodeNetworkId3    = stratos.SdsAddress(idxNodePubKey3.Address())
-	idxNodeInitialStake3 = sdk.NewInt(5 * stos2wei)
+	idxNodePubKey3          = ed25519.GenPrivKey().PubKey()
+	idxNodeAddr3            = sdk.AccAddress(idxNodePubKey3.Address())
+	idxNodeNetworkId3       = stratos.SdsAddress(idxNodePubKey3.Address())
+	idxNodeInitialStake3, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
+	//idxNodeInitialStake3 = sdk.NewInt(5 * stos2wei)
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
 	valOpPubKey1  = valOpPrivKey1.PubKey()
@@ -135,7 +142,7 @@ var (
 
 	valConsPrivKey1    = ed25519.GenPrivKey()
 	valConsPubk1       = valConsPrivKey1.PubKey()
-	valInitialStake, _ = sdk.NewIntFromString("15" + StosToWeiPostfix)
+	valInitialStake, _ = sdk.NewIntFromString("15" + StosToWeiSuffix)
 )
 
 type NozPriceFactors struct {
@@ -179,8 +186,8 @@ func TestPriceCurve(t *testing.T) {
 		if i > 50 && rand.Intn(5) >= 3 {
 			tempPrepaySign = -1
 		}
-		stakeDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(stakeChangePerm[i]) + StosToWeiPostfix)
-		unissuedPrepayDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(prepayChangePerm[i]) + StosToWeiPostfix)
+		stakeDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(stakeChangePerm[i]) + StosToWeiSuffix)
+		unissuedPrepayDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(prepayChangePerm[i]) + StosToWeiSuffix)
 		change := &PriceChangeEvent{
 			stakeDelta:          stakeDeltaChange.Mul(sdk.NewInt(int64(tempStakeSign))),
 			unissuedPrepayDelta: unissuedPrepayDeltaChange.Mul(sdk.NewInt(int64(tempPrepaySign))),
@@ -598,6 +605,15 @@ func setupSlashingMsg() *pottypes.MsgSlashingResourceNode {
 	return slashingMsg
 }
 
+func setupSuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *pottypes.MsgSlashingResourceNode {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, idxNodeNetworkId1)
+	reportOwner := make([]sdk.AccAddress, 0)
+	reportOwner = append(reportOwner, idxOwner1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, resNodeSlashingNOZAmt1, true)
+	return slashingMsg
+}
+
 func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
 	reporters = append(reporters, idxNodeNetworkId1)
@@ -608,7 +624,17 @@ func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
 }
 func setupPrepayMsg() *sdstypes.MsgPrepay {
 	sender := resOwner1
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(stratos.NewCoinInt64(1000000000000000000)))
+	amount, _ := sdk.NewIntFromString("1" + StosToWeiSuffix)
+	coin := sdk.NewCoin(stratos.Wei, amount)
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(coin))
+	return prepayMsg
+}
+
+func setupPrepayMsgWithResOwner(resOwner sdk.AccAddress) *sdstypes.MsgPrepay {
+	sender := resOwner
+	amount, _ := sdk.NewIntFromString("3" + StosToWeiSuffix)
+	coin := sdk.NewCoin(stratos.Wei, amount)
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
 }
 
@@ -620,6 +646,15 @@ func setupMsgCreateResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resN
 	nodeType := uint32(registertypes.STORAGE)
 	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialStakeForMultipleNodes), resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
 	return createResourceNodeMsg
+}
+
+func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *pottypes.MsgSlashingResourceNode {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, idxNodeNetworkId1)
+	reportOwner := make([]sdk.AccAddress, 0)
+	reportOwner = append(reportOwner, idxOwner1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, sdk.ZeroInt(), false)
+	return slashingMsg
 }
 
 func setupMsgCreateResourceNode1() *registertypes.MsgCreateResourceNode {
@@ -930,7 +965,7 @@ func setupAccountsMultipleResNodes(resOwners []sdk.AccAddress) ([]authtypes.Gene
 		accs = append(accs, resOwnerAcc)
 		balances = append(balances, banktypes.Balance{
 			Address: resOwnerAcc.Address,
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake1.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStakeForMultipleNodes.Add(depositForSendingTx))},
 		})
 	}
 
@@ -1481,6 +1516,33 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := registerKeeper.NozSupply(ctx)
+	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
+	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
+	//	InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
+	//	EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+	//	StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
+	//	NozSupply:            nozSupply,
+	//})
+
+	// start testing
+	println("********************************* Deliver Create and unsuspend ResourceNode Tx START ********************************************")
+
+	prepayMsg := setupPrepayMsgWithResOwner(resOwners[0])
+	/********************* deliver tx *********************/
+
+	resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[0])
+	ownerAccNum := resOwnerAcc.GetAccountNumber()
+	ownerAccSeq := resOwnerAcc.GetSequence()
+
+	_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[0])
+	require.NoError(t, err)
+	/********************* commit & check result *********************/
+	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	ctx = stApp.BaseApp.NewContext(true, header)
+
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
@@ -1490,10 +1552,6 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
 		NozSupply:            nozSupply,
 	})
-
-	// start testing
-	println("********************************* Deliver CreateResourceNode Tx START ********************************************")
-
 	priceBefore := nozPriceFactorsSeq0
 	priceAfter := nozPriceFactorsSeq0
 	dataToExcel = append(dataToExcel, priceBefore)
@@ -1517,29 +1575,57 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
 
+		unsuspendMsg := setupUnsuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
+		/********************* deliver tx *********************/
+
+		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
+		ownerAccNum = idxOwnerAcc.GetAccountNumber()
+		ownerAccSeq = idxOwnerAcc.GetSequence()
+
+		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		require.NoError(t, err)
+		/********************* commit & check result *********************/
+		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		ctx = stApp.BaseApp.NewContext(true, header)
+
 		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after CreateResourceNode")
 		require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit should increase after CreateResourceNode")
-		println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		println("********************************* Deliver Create and unsuspend ResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		dataToExcel = append(dataToExcel, priceAfter)
 		priceBefore = priceAfter
 	}
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeNetworkIds[i], resOwners[i])
+		slashingMsg := setupSuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
 		/********************* deliver tx *********************/
 
-		resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])
-		ownerAccNum := resOwnerAcc.GetAccountNumber()
-		ownerAccSeq := resOwnerAcc.GetSequence()
+		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
+		ownerAccNum = idxOwnerAcc.GetAccountNumber()
+		ownerAccSeq = idxOwnerAcc.GetSequence()
 
-		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[i])
+		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
+
+		//createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeNetworkIds[i], resOwners[i])
+		///********************* deliver tx *********************/
+		//
+		//resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])
+		//ownerAccNum := resOwnerAcc.GetAccountNumber()
+		//ownerAccSeq := resOwnerAcc.GetSequence()
+		//
+		//_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[i])
+		//require.NoError(t, err)
+		///********************* commit & check result *********************/
+		//header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		//stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		//ctx = stApp.BaseApp.NewContext(true, header)
 
 		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after RemoveResourceNode")
@@ -1630,6 +1716,50 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := registerKeeper.NozSupply(ctx)
+	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
+	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
+	//	InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
+	//	EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+	//	StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
+	//	NozSupply:            nozSupply,
+	//})
+
+	for i := 0; i < NUM_OF_SAMPLE; i++ {
+		unsuspendMsg := setupUnsuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
+		/********************* deliver tx *********************/
+
+		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
+		ownerAccNum := idxOwnerAcc.GetAccountNumber()
+		ownerAccSeq := idxOwnerAcc.GetSequence()
+
+		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		require.NoError(t, err)
+		/********************* commit & check result *********************/
+		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		ctx = stApp.BaseApp.NewContext(true, header)
+
+	}
+
+	// start testing
+	println("********************************* Deliver RemoveResourceNode Tx START ********************************************")
+
+	prepayMsg := setupPrepayMsgWithResOwner(resOwners[0])
+	/********************* deliver tx *********************/
+
+	resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[0])
+	ownerAccNum := resOwnerAcc.GetAccountNumber()
+	ownerAccSeq := resOwnerAcc.GetSequence()
+
+	_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[0])
+	require.NoError(t, err)
+	/********************* commit & check result *********************/
+	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	ctx = stApp.BaseApp.NewContext(true, header)
+
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
@@ -1640,27 +1770,37 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 		NozSupply:            nozSupply,
 	})
 
-	// start testing
-	println("********************************* Deliver RemoveResourceNode Tx START ********************************************")
-
 	priceBefore := nozPriceFactorsSeq0
 	priceAfter := nozPriceFactorsSeq0
 	dataToExcel = append(dataToExcel, priceBefore)
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeNetworkIds[i], resOwners[i])
+		slashingMsg := setupSuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
 		/********************* deliver tx *********************/
 
-		resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])
-		ownerAccNum := resOwnerAcc.GetAccountNumber()
-		ownerAccSeq := resOwnerAcc.GetSequence()
+		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
+		ownerAccNum = idxOwnerAcc.GetAccountNumber()
+		ownerAccSeq = idxOwnerAcc.GetSequence()
 
-		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[i])
+		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
+		//createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeNetworkIds[i], resOwners[i])
+		///********************* deliver tx *********************/
+		//
+		//resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])
+		//ownerAccNum := resOwnerAcc.GetAccountNumber()
+		//ownerAccSeq := resOwnerAcc.GetSequence()
+		//
+		//_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[i])
+		//require.NoError(t, err)
+		///********************* commit & check result *********************/
+		//header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		//stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		//ctx = stApp.BaseApp.NewContext(true, header)
 
 		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after RemoveResourceNode")
