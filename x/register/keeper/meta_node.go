@@ -162,6 +162,7 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 	if !metaNode.Suspend {
 		ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
 	} else {
+		// if node is currently suspended, ozone limit will be increased upon unsuspension instead of NOW
 		ozoneLimitChange = sdk.ZeroInt()
 	}
 

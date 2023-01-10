@@ -398,6 +398,13 @@ func (k Keeper) UnbondResourceNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
+	// check if node_token - unbonding_token > amt_to_unbond
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := resourceNode.Tokens.Sub(unbondingStake)
+	if availableStake.LT(amt) {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -412,8 +419,8 @@ func (k Keeper) UnbondResourceNode(
 		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
-	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(resourceNode.Tokens) {
+	// change node status to unbonding if unbonding all available tokens
+	if amt.Equal(availableStake) {
 		resourceNode.Status = stakingtypes.Unbonding
 
 		k.SetResourceNode(ctx, resourceNode)
@@ -459,6 +466,13 @@ func (k Keeper) UnbondMetaNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
+	// check if node_token - unbonding_token > amt_to_unbond
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := metaNode.Tokens.Sub(unbondingStake)
+	if availableStake.LT(amt) {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -473,8 +487,8 @@ func (k Keeper) UnbondMetaNode(
 		// adjust ozone limit
 		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
-	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(metaNode.Tokens) {
+	// change node status to unbonding if unbonding all available tokens
+	if amt.Equal(availableStake) {
 		metaNode.Status = stakingtypes.Unbonding
 		// decrease meta node count
 		v := k.GetBondedMetaNodeCnt(ctx)
