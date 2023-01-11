@@ -64,7 +64,7 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if (data.RemainingNozLimit).LTE(sdk.ZeroInt()) {
+	if (data.RemainingNozLimit).LT(sdk.ZeroInt()) {
 		return ErrRemainingNozLimit
 	}
 
