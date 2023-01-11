@@ -66,22 +66,6 @@ func (k Keeper) SetHooks(sh types.RegisterHooks) Keeper {
 	return k
 }
 
-func (k Keeper) SetNOzonePrice(ctx sdk.Context, price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(price)
-	store.Set(types.NOzonePriceKey, b)
-}
-
-func (k Keeper) GetNOzonePrice(ctx sdk.Context) (price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.NOzonePriceKey)
-	if b == nil {
-		panic("Stored initial noz price should not have been nil")
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &price)
-	return
-}
-
 func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fromWallet sdk.AccAddress, coinToSend sdk.Coin) error {
 	fromAcc := k.accountKeeper.GetAccount(ctx, fromWallet)
 	if fromAcc == nil {
@@ -558,9 +542,6 @@ func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	stakeNozRate := k.GetStakeNozRate(ctx)
 	St := k.GetEffectiveGenesisStakeTotal(ctx)
 	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
-	//Pt := k.GetTotalUnissuedPrepay(ctx).Amount
-	//// total supply = Lt * ( 1 + Pt / S )
-	//total = Pt.ToDec().Quo(St.ToDec()).Add(sdk.NewInt(1).ToDec()).Mul(remaining.ToDec()).TruncateInt()
 	return remaining, total
 }
 

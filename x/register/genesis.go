@@ -61,7 +61,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		switch metaNode.GetStatus() {
 		case stakingtypes.Bonded:
 			lenOfGenesisBondedMetaNode++
-			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			if !metaNode.Suspend {
+				initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			}
 			if freshStart {
 				err = keeper.SendCoinsFromAccountToMetaNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
 				if err != nil {

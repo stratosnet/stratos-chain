@@ -95,7 +95,7 @@ package sds
 //	}
 //
 //	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
-//	initialNOzonePrice := registerKeeper.GetNOzonePrice(ctx)
+//	initialNOzonePrice := registerKeeper.GetInitialNOzonePrice(ctx)
 //	log.Printf("Before: initial nozone price is %v \n\n", initialNOzonePrice)
 //	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialNOzonePrice).TruncateInt()
 //	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
@@ -138,7 +138,7 @@ package sds
 //	}
 //
 //	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
-//	initialNOzonePrice := registerKeeper.GetNOzonePrice(ctx)
+//	initialNOzonePrice := registerKeeper.GetInitialNOzonePrice(ctx)
 //	log.Printf("Before: initial nozone price is %v \n\n", initialNOzonePrice)
 //	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialNOzonePrice).TruncateInt()
 //	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
@@ -180,7 +180,7 @@ package sds
 //
 //	//init pp nodes.
 //	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
-//	initialNOzonePrice := registerKeeper.GetNOzonePrice(ctx)
+//	initialNOzonePrice := registerKeeper.GetInitialNOzonePrice(ctx)
 //	log.Printf("Before: initial nozone price is %v \n\n", initialNOzonePrice)
 //	//initOzoneLimit := initialStakeTotal.ToDec().Quo(initialNOzonePrice.ToDec()).TruncateInt()
 //	//registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
