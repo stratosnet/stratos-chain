@@ -15,26 +15,29 @@ import (
 func NewGenesisState(params *Params,
 	resourceNodes ResourceNodes,
 	metaNodes MetaNodes,
-	initialNOzonePrice sdk.Dec,
+	remainingNozLimit sdk.Int,
 	slashingInfo []*Slashing,
+	stakeNozRate sdk.Dec,
 ) *GenesisState {
 	return &GenesisState{
-		Params:          params,
-		ResourceNodes:   resourceNodes,
-		MetaNodes:       metaNodes,
-		InitialNozPrice: initialNOzonePrice,
-		Slashing:        slashingInfo,
+		Params:            params,
+		ResourceNodes:     resourceNodes,
+		MetaNodes:         metaNodes,
+		RemainingNozLimit: remainingNozLimit,
+		Slashing:          slashingInfo,
+		StakeNozRate:      stakeNozRate,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:          DefaultParams(),
-		ResourceNodes:   ResourceNodes{},
-		MetaNodes:       MetaNodes{},
-		InitialNozPrice: DefaultNozPrice,
-		Slashing:        make([]*Slashing, 0),
+		Params:            DefaultParams(),
+		ResourceNodes:     ResourceNodes{},
+		MetaNodes:         MetaNodes{},
+		RemainingNozLimit: DefaultRemainingNozLimit,
+		Slashing:          make([]*Slashing, 0),
+		StakeNozRate:      DefaultStakeNozRate,
 	}
 }
 
@@ -61,8 +64,12 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if (data.InitialNozPrice).LTE(sdk.ZeroDec()) {
-		return ErrInitialNOzonePrice
+	if (data.RemainingNozLimit).LT(sdk.ZeroInt()) {
+		return ErrRemainingNozLimit
+	}
+
+	if (data.StakeNozRate).LTE(sdk.ZeroDec()) {
+		return ErrStakeNozRate
 	}
 	return nil
 }

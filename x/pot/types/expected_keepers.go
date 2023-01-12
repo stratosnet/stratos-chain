@@ -57,10 +57,18 @@ type RegisterKeeper interface {
 	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
+	GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int)
+	SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int)
 
 	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 	GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator
 	GetBondedMetaNodeCnt(ctx sdk.Context) sdk.Int
+
+	DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+	IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int
+
+	NozSupply(ctx sdk.Context) (remaining, total sdk.Int)
 }
 
 type StakingKeeper interface {

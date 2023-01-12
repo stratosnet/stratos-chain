@@ -1,6 +1,8 @@
 package keeper
 
 import (
+	"errors"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -25,6 +27,11 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 
 	//1, calc traffic reward in total
 	totalConsumedNoz = k.GetTotalConsumedNoz(trafficList).ToDec()
+	remaining, total := k.RegisterKeeper.NozSupply(ctx)
+	if totalConsumedNoz.Add(remaining.ToDec()).GT(total.ToDec()) {
+		return totalConsumedNoz, errors.New("remaining+consumed Noz exceeds total Noz supply")
+	}
+
 	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
 	if err != nil {
 		return totalConsumedNoz, err
@@ -109,9 +116,9 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
 func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedNoz sdk.Dec) (result sdk.Dec) {
-	S := k.RegisterKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
-	if S.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initial genesis deposit by all resource nodes and meta nodes is 0")
+	St := k.RegisterKeeper.GetEffectiveTotalStake(ctx).ToDec()
+	if St.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effective genesis deposit by all resource nodes and meta nodes is 0")
 	}
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	if Pt.Equal(sdk.ZeroDec()) {
@@ -125,7 +132,7 @@ func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedNoz sdk.Dec) (res
 	if Lt.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("remaining total noz limit is 0")
 	}
-	R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
+	R := St.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
 	if R.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("traffic reward to distribute is 0")
 	}

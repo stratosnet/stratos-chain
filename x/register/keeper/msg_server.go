@@ -141,7 +141,13 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 		return nil, types.ErrUnbondingNode
 	}
 
-	ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, resourceNode.Tokens)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, p2pAddress)
+	availableStake := resourceNode.Tokens.Sub(unbondingStake)
+	if availableStake.LTE(sdk.ZeroInt()) {
+		return nil, types.ErrInsufficientBalance
+	}
+
+	ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, availableStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUnbondResourceNode, err.Error())
 	}
@@ -180,7 +186,13 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 		return nil, types.ErrUnbondingNode
 	}
 
-	ozoneLimitChange, completionTime, err := k.UnbondMetaNode(ctx, metaNode, metaNode.Tokens)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, p2pAddress)
+	availableStake := metaNode.Tokens.Sub(unbondingStake)
+	if availableStake.LTE(sdk.ZeroInt()) {
+		return nil, types.ErrInsufficientBalance
+	}
+
+	ozoneLimitChange, completionTime, err := k.UnbondMetaNode(ctx, metaNode, availableStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}

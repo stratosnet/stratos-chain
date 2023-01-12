@@ -51,7 +51,7 @@ package keeper
 //	}
 //	log.Printf("Before: remaining ozone limit is %v", k.GetRemainingOzoneLimit(ctx))
 //	for i, val := range resouceNodeTokens {
-//		ozoneLimitChange := k.increaseOzoneLimitByAddStake(ctx, val)
+//		ozoneLimitChange := k.IncreaseOzoneLimitByAddStake(ctx, val)
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, k.GetRemainingOzoneLimit(ctx))
 //	}
 //}

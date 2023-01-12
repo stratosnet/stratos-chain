@@ -22,7 +22,8 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	if !ok {
 		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
-
+	toBeSuspended := node.Suspend == false && suspend == true
+	toBeUnsuspended := node.Suspend == true && suspend == false
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
@@ -40,6 +41,21 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
+
+	// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
+	unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
+	stakeToMakeOzoneLimitChange := sdk.ZeroInt()
+	// no effective stake after subtracting unbonding stake
+	if node.Tokens.LTE(unbondingStake) {
+		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrInsufficientBalance
+	}
+	stakeToMakeOzoneLimitChange = node.Tokens.Sub(unbondingStake)
+	if toBeSuspended {
+		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, stakeToMakeOzoneLimitChange)
+	}
+	if toBeUnsuspended {
+		k.RegisterKeeper.IncreaseOzoneLimitByAddStake(ctx, stakeToMakeOzoneLimitChange)
+	}
 
 	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

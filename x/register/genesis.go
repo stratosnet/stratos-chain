@@ -28,7 +28,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		switch resourceNode.GetStatus() {
 		case stakingtypes.Bonded:
 			lenOfGenesisBondedResourceNode++
-			initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+			if !resourceNode.Suspend {
+				initialStakeTotal = initialStakeTotal.Add(resourceNode.Tokens)
+			}
 			if freshStart {
 				err = keeper.SendCoinsFromAccountToResNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens))
 				if err != nil {
@@ -59,7 +61,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		switch metaNode.GetStatus() {
 		case stakingtypes.Bonded:
 			lenOfGenesisBondedMetaNode++
-			initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			if !metaNode.Suspend {
+				initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
+			}
 			if freshStart {
 				err = keeper.SendCoinsFromAccountToMetaNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
 				if err != nil {
@@ -82,11 +86,22 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
-	initialNOzonePrice := sdk.ZeroDec()
-	initialNOzonePrice = initialNOzonePrice.Add(data.InitialNozPrice)
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
-	keeper.SetInitialNOzonePrice(ctx, initialNOzonePrice)
-	initOzoneLimit := initialStakeTotal.Add(totalUnissuedPrepay).ToDec().Quo(initialNOzonePrice).TruncateInt()
+	keeper.SetEffectiveTotalStake(ctx, initialStakeTotal)
+	stakeNozRate := sdk.ZeroDec()
+	stakeNozRate = stakeNozRate.Add(data.StakeNozRate)
+	keeper.SetStakeNozRate(ctx, stakeNozRate)
+
+	// calc total noz supply with EffectiveGenesisStakeTotal and stakeNozRate
+	totalNozSupply := initialStakeTotal.ToDec().Quo(stakeNozRate).TruncateInt()
+	initOzoneLimit := sdk.ZeroInt()
+	if freshStart && totalUnissuedPrepay.Equal(sdk.ZeroInt()) {
+		// fresh start
+		initOzoneLimit = initOzoneLimit.Add(totalNozSupply)
+	} else {
+		// not fresh start
+		initOzoneLimit = initOzoneLimit.Add(data.RemainingNozLimit)
+	}
 	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 
 	for _, slashing := range data.Slashing {
@@ -108,7 +123,8 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 
 	resourceNodes := keeper.GetAllResourceNodes(ctx)
 	metaNodes := keeper.GetAllMetaNodes(ctx)
-	initialNOzonePrice := keeper.CurrNozPrice(ctx)
+	remainingNozLimit := keeper.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := keeper.GetStakeNozRate(ctx)
 
 	var slashingInfo []*types.Slashing
 	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
@@ -120,10 +136,11 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	})
 
 	return &types.GenesisState{
-		Params:          &params,
-		ResourceNodes:   resourceNodes,
-		MetaNodes:       metaNodes,
-		InitialNozPrice: initialNOzonePrice,
-		Slashing:        slashingInfo,
+		Params:            &params,
+		ResourceNodes:     resourceNodes,
+		MetaNodes:         metaNodes,
+		RemainingNozLimit: remainingNozLimit,
+		Slashing:          slashingInfo,
+		StakeNozRate:      stakeNozRate,
 	}
 }

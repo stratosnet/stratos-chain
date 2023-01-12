@@ -206,8 +206,9 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		registertypes.DefaultParams(),
 		resourceNodes,
 		metaNodes,
-		registertypes.DefaultNozPrice,
+		registertypes.DefaultRemainingNozLimit,
 		make([]*registertypes.Slashing, 0),
+		registertypes.DefaultStakeNozRate,
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
 

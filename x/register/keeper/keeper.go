@@ -66,22 +66,6 @@ func (k Keeper) SetHooks(sh types.RegisterHooks) Keeper {
 	return k
 }
 
-func (k Keeper) SetInitialNOzonePrice(ctx sdk.Context, price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(price)
-	store.Set(types.InitialNOzonePriceKey, b)
-}
-
-func (k Keeper) GetInitialNOzonePrice(ctx sdk.Context) (price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.InitialNOzonePriceKey)
-	if b == nil {
-		panic("Stored initial noz price should not have been nil")
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &price)
-	return
-}
-
 func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fromWallet sdk.AccAddress, coinToSend sdk.Coin) error {
 	fromAcc := k.accountKeeper.GetAccount(ctx, fromWallet)
 	if fromAcc == nil {
@@ -138,45 +122,44 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //wei
-	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
+func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// get remainingOzoneLimit before adding stake
+	remainingBefore := k.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+
+	// update effectiveTotalStake
+	effectiveTotalStakeBefore := k.GetEffectiveTotalStake(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(stake)
+	k.SetEffectiveTotalStake(ctx, effectiveTotalStakeAfter)
+
+	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
+	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialNozonePrice := k.GetInitialNOzonePrice(ctx)
-	if initialNozonePrice.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialNozonePrice is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
-	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialNozonePrice)
-	//ctx.Logger().Debug("----- initialOzoneLimit is " + initialOzoneLimit.String() + " noz", )
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //noz
-	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " noz")
-	limitToAdd := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
-	//ctx.Logger().Info("----- limitToAdd is " + limitToAdd.String() + " noz")
-	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
-	//ctx.Logger().Info("----- newLimit is " + newLimit.String() + " noz")
-	k.SetRemainingOzoneLimit(ctx, newLimit)
+
+	limitToAdd := stake.ToDec().Quo(stakeNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Add(limitToAdd).TruncateInt())
 	return limitToAdd.TruncateInt()
 }
 
-func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //wei
-	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
+func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// get remainingOzoneLimit before adding stake
+	remainingBefore := k.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+
+	// update effectiveTotalStake
+	effectiveTotalStakeBefore := k.GetEffectiveTotalStake(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(stake)
+	k.SetEffectiveTotalStake(ctx, effectiveTotalStakeAfter)
+
+	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
+	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialNozonePrice := k.GetInitialNOzonePrice(ctx)
-	if initialNozonePrice.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialNozonePrice is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
-	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialNozonePrice)
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //noz
-	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
-	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
-	k.SetRemainingOzoneLimit(ctx, newLimit)
+	limitToSub := stake.ToDec().Quo(stakeNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Sub(limitToSub).TruncateInt())
 	return limitToSub.TruncateInt()
 }
 
@@ -394,6 +377,18 @@ func (k Keeper) UnbondResourceNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
+	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
+	if resourceNode.Suspend {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+	}
+
+	// check if node_token - unbonding_token > amt_to_unbond
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := resourceNode.Tokens.Sub(unbondingStake)
+	if availableStake.LT(amt) {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -405,11 +400,11 @@ func (k Keeper) UnbondResourceNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 		// adjust ozone limit
-		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
-	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(resourceNode.Tokens) {
+	// change node status to unbonding if unbonding all available tokens
+	if amt.Equal(availableStake) {
 		resourceNode.Status = stakingtypes.Unbonding
 
 		k.SetResourceNode(ctx, resourceNode)
@@ -450,6 +445,18 @@ func (k Keeper) UnbondMetaNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
+	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
+	if metaNode.Suspend {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+	}
+
+	// check if node_token - unbonding_token > amt_to_unbond
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := metaNode.Tokens.Sub(unbondingStake)
+	if availableStake.LT(amt) {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -462,10 +469,10 @@ func (k Keeper) UnbondMetaNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
 		// adjust ozone limit
-		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
-	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(metaNode.Tokens) {
+	// change node status to unbonding if unbonding all available tokens
+	if amt.Equal(availableStake) {
 		metaNode.Status = stakingtypes.Unbonding
 		// decrease meta node count
 		v := k.GetBondedMetaNodeCnt(ctx)
@@ -521,10 +528,10 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 
 // CurrNozPrice calcs current noz price
 func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
-	S := k.GetInitialGenesisStakeTotal(ctx)
+	St := k.GetEffectiveTotalStake(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.GetRemainingOzoneLimit(ctx)
-	currNozPrice := (S.Add(Pt)).ToDec().
+	currNozPrice := (St.Add(Pt)).ToDec().
 		Quo(Lt.ToDec())
 	return currNozPrice
 }
@@ -532,10 +539,9 @@ func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
 // NozSupply calc remaining/total supply for noz
 func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
-	S := k.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
-	// total supply = Lt * ( 1 + Pt / S )
-	total = Pt.ToDec().Quo(S.ToDec()).Add(sdk.NewInt(1).ToDec()).Mul(remaining.ToDec()).TruncateInt()
+	stakeNozRate := k.GetStakeNozRate(ctx)
+	St := k.GetEffectiveTotalStake(ctx)
+	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
 }
 
@@ -580,4 +586,36 @@ func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 
 func (k Keeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}
+
+func (k Keeper) SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
+	store.Set(types.EffectiveGenesisStakeTotalKey, b)
+}
+
+func (k Keeper) GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.EffectiveGenesisStakeTotalKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
+	return
+}
+
+func (k Keeper) SetStakeNozRate(ctx sdk.Context, stakeNozRate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stakeNozRate)
+	store.Set(types.StakeNozRateKey, b)
+}
+
+func (k Keeper) GetStakeNozRate(ctx sdk.Context) (stakeNozRate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.StakeNozRateKey)
+	if b == nil {
+		panic("Stored stake noz rate should not be nil")
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stakeNozRate)
+	return
 }
