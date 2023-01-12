@@ -57,8 +57,8 @@ type RegisterKeeper interface {
 	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 
 	GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
-	GetEffectiveGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int)
-	SetEffectiveGenesisStakeTotal(ctx sdk.Context, stake sdk.Int)
+	GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int)
+	SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int)
 
 	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 	GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator

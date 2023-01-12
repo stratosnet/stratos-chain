@@ -116,7 +116,7 @@ func (k Keeper) CalcTrafficRewardInTotal(
 // the total generated traffic rewards as [R]
 // R = (S + Pt) * Y / (Lt + Y)
 func (k Keeper) GetTrafficReward(ctx sdk.Context, totalConsumedNoz sdk.Dec) (result sdk.Dec) {
-	St := k.RegisterKeeper.GetEffectiveGenesisStakeTotal(ctx).ToDec()
+	St := k.RegisterKeeper.GetEffectiveTotalStake(ctx).ToDec()
 	if St.Equal(sdk.ZeroDec()) {
 		ctx.Logger().Info("effective genesis deposit by all resource nodes and meta nodes is 0")
 	}

@@ -261,7 +261,7 @@ func TestOzPriceChange(t *testing.T) {
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
@@ -384,7 +384,7 @@ func TestOzPriceChange(t *testing.T) {
 
 	/********************* print info *********************/
 	println("epoch " + volumeReportMsg.Epoch.String())
-	St := registerKeeper.GetEffectiveGenesisStakeTotal(ctx).ToDec()
+	St := registerKeeper.GetEffectiveTotalStake(ctx).ToDec()
 	Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	Y := totalConsumedNoz
 	Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
@@ -688,7 +688,7 @@ func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
 func printCurrNozPrice(ctx sdk.Context, registerKeeper registerKeeper.Keeper, nozPriceFactorsBefore NozPriceFactors) (NozPriceFactors, sdk.Dec, sdk.Dec) {
 	nozPriceFactorsAfter := NozPriceFactors{}
 	nozPriceFactorsAfter.InitialTotalStakes = registerKeeper.GetInitialGenesisStakeTotal(ctx)
-	nozPriceFactorsAfter.EffectiveTotalStakes = registerKeeper.GetEffectiveGenesisStakeTotal(ctx)
+	nozPriceFactorsAfter.EffectiveTotalStakes = registerKeeper.GetEffectiveTotalStake(ctx)
 	nozPriceFactorsAfter.TotalUnissuedPrepay = registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	nozPriceFactorsAfter.StakeAndPrepay = nozPriceFactorsAfter.InitialTotalStakes.Add(nozPriceFactorsAfter.TotalUnissuedPrepay)
 	nozPriceFactorsAfter.OzoneLimit = registerKeeper.GetRemainingOzoneLimit(ctx)
@@ -739,7 +739,7 @@ func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Int) sdk.C
 	return ret
 }
 
-//for main net
+// for main net
 func checkResult(t *testing.T, ctx sdk.Context,
 	k potKeeper.Keeper,
 	accountKeeper authkeeper.AccountKeeper,
@@ -1192,7 +1192,7 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
@@ -1295,7 +1295,7 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
@@ -1519,7 +1519,7 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 	//	InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-	//	EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+	//	EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 	//	StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
@@ -1546,7 +1546,7 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
@@ -1719,7 +1719,7 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 	//	InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-	//	EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+	//	EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 	//	StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
@@ -1763,7 +1763,7 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
 		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
 		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveGenesisStakeTotal(ctx),
+		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
 		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
 		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),

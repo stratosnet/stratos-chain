@@ -128,9 +128,9 @@ func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 	stakeNozRate := k.GetStakeNozRate(ctx)
 
 	// update effectiveTotalStake
-	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+	effectiveTotalStakeBefore := k.GetEffectiveTotalStake(ctx)
 	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(stake)
-	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
+	k.SetEffectiveTotalStake(ctx, effectiveTotalStakeAfter)
 
 	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
 	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
@@ -149,9 +149,9 @@ func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	stakeNozRate := k.GetStakeNozRate(ctx)
 
 	// update effectiveTotalStake
-	effectiveTotalStakeBefore := k.GetEffectiveGenesisStakeTotal(ctx)
+	effectiveTotalStakeBefore := k.GetEffectiveTotalStake(ctx)
 	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(stake)
-	k.SetEffectiveGenesisStakeTotal(ctx, effectiveTotalStakeAfter)
+	k.SetEffectiveTotalStake(ctx, effectiveTotalStakeAfter)
 
 	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
 	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
@@ -528,7 +528,7 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 
 // CurrNozPrice calcs current noz price
 func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
-	St := k.GetEffectiveGenesisStakeTotal(ctx)
+	St := k.GetEffectiveTotalStake(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.GetRemainingOzoneLimit(ctx)
 	currNozPrice := (St.Add(Pt)).ToDec().
@@ -540,7 +540,7 @@ func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
 func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
 	stakeNozRate := k.GetStakeNozRate(ctx)
-	St := k.GetEffectiveGenesisStakeTotal(ctx)
+	St := k.GetEffectiveTotalStake(ctx)
 	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
 }
@@ -588,13 +588,13 @@ func (k Keeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.Acc
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
 }
 
-func (k Keeper) SetEffectiveGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
+func (k Keeper) SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
 	store.Set(types.EffectiveGenesisStakeTotalKey, b)
 }
 
-func (k Keeper) GetEffectiveGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
+func (k Keeper) GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.EffectiveGenesisStakeTotalKey)
 	if b == nil {

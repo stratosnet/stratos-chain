@@ -87,7 +87,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	keeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
-	keeper.SetEffectiveGenesisStakeTotal(ctx, initialStakeTotal)
+	keeper.SetEffectiveTotalStake(ctx, initialStakeTotal)
 	stakeNozRate := sdk.ZeroDec()
 	stakeNozRate = stakeNozRate.Add(data.StakeNozRate)
 	keeper.SetStakeNozRate(ctx, stakeNozRate)
