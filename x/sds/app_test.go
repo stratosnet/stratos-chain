@@ -70,7 +70,7 @@ package sds
 //	os.Exit(exitVal)
 //}
 //
-//func TestRandomPurchasedUoz(t *testing.T) {
+//func TestRandomPurchasedNoz(t *testing.T) {
 //	/********************* initialize mock app *********************/
 //
 //	mApp, k, _, registerKeeper, _ := getMockAppPrepay(t)
@@ -95,9 +95,9 @@ package sds
 //	}
 //
 //	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
-//	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
-//	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
-//	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
+//	initialNOzonePrice := registerKeeper.GetInitialNOzonePrice(ctx)
+//	log.Printf("Before: initial nozone price is %v \n\n", initialNOzonePrice)
+//	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialNOzonePrice).TruncateInt()
 //	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 //	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 //	for i, val := range resouceNodeTokens {
@@ -105,16 +105,16 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
 //		randomPurchase := sdk.NewInt(int64(rand.Float64() * 100 * 1000000000))
-//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", randomPurchase)))
-//		log.Printf("%v Uoz purchased by %v ustos, remaining ozone limit drops to %v", purchased, randomPurchase, registerKeeper.GetRemainingOzoneLimit(ctx))
+//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", randomPurchase)))
+//		log.Printf("%v Noz purchased by %v wei, remaining ozone limit drops to %v", purchased, randomPurchase, registerKeeper.GetRemainingOzoneLimit(ctx))
 //	}
 //}
 //
-//func TestPurchasedUoz(t *testing.T) {
+//func TestPurchasedNoz(t *testing.T) {
 //	/********************* initialize mock app *********************/
 //	mApp, k, _, registerKeeper, _ := getMockAppPrepay(t)
 //	accs := setupAccounts(mApp)
@@ -138,9 +138,9 @@ package sds
 //	}
 //
 //	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
-//	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
-//	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
-//	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice).TruncateInt()
+//	initialNOzonePrice := registerKeeper.GetInitialNOzonePrice(ctx)
+//	log.Printf("Before: initial nozone price is %v \n\n", initialNOzonePrice)
+//	initOzoneLimit := initialStakeTotal.ToDec().Quo(initialNOzonePrice).TruncateInt()
 //	registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 //	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 //	for i, val := range resouceNodeTokens {
@@ -148,11 +148,11 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
-//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(10000000000))))
-//		log.Printf("%v Uoz purchased by 10 stos, remaining ozone limit drops to %v", purchased, registerKeeper.GetRemainingOzoneLimit(ctx))
+//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", sdk.NewInt(10000000000))))
+//		log.Printf("%v Noz purchased by 10 stos, remaining ozone limit drops to %v", purchased, registerKeeper.GetRemainingOzoneLimit(ctx))
 //	}
 //}
 //
@@ -180,9 +180,9 @@ package sds
 //
 //	//init pp nodes.
 //	log.Printf("Before: initial stake supply is %v \n\n", initialStakeTotal)
-//	initialUOzonePrice := registerKeeper.GetInitialUOzonePrice(ctx)
-//	log.Printf("Before: initial uozone price is %v \n\n", initialUOzonePrice)
-//	//initOzoneLimit := initialStakeTotal.ToDec().Quo(initialUOzonePrice.ToDec()).TruncateInt()
+//	initialNOzonePrice := registerKeeper.GetInitialNOzonePrice(ctx)
+//	log.Printf("Before: initial nozone price is %v \n\n", initialNOzonePrice)
+//	//initOzoneLimit := initialStakeTotal.ToDec().Quo(initialNOzonePrice.ToDec()).TruncateInt()
 //	//registerKeeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 //	log.Printf("Before: remaining ozone limit is %v \n\n", registerKeeper.GetRemainingOzoneLimit(ctx))
 //	for i, val := range resouceNodeTokens {
@@ -190,11 +190,11 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("ustos", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
-//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("ustos", sdk.NewInt(10000000000))))
-//		log.Printf("%v Uoz purchased by 10 stos", purchased)
+//		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", sdk.NewInt(10000000000))))
+//		log.Printf("%v noz purchased by 10 stos", purchased)
 //	}
 //}
 //
@@ -224,10 +224,10 @@ package sds
 //	newBalanceCoin := sdk.NewCoin(DefaultDenom, newBalanceInt)
 //	mock.CheckBalance(t, mApp, sdsAccAddr3, sdk.NewCoins(newBalanceCoin))
 //
-//	///********************* test uozPrice *********************/
+//	///********************* test nozPrice *********************/
 //	header := abci.Header{Height: mApp.LastBlockHeight() + 1}
 //	ctx := mApp.BaseApp.NewContext(true, header)
-//	log.Print("====== Testing uozPrice ======\n\n")
+//	log.Print("====== Testing nozPrice ======\n\n")
 //	initS := sdk.NewInt(43000)
 //	initLt := sdk.NewInt(43000)
 //	initPt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
@@ -251,25 +251,25 @@ package sds
 //		Pt := keeper.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 //		Lt := keeper.RegisterKeeper.GetRemainingOzoneLimit(ctx)
 //
-//		uozPriceBefore := S.ToDec().Add(Pt.ToDec()).Quo(Lt.ToDec()).TruncateInt()
+//		nozPriceBefore := S.ToDec().Add(Pt.ToDec()).Quo(Lt.ToDec()).TruncateInt()
 //
-//		uozPurchased := Lt.ToDec().
+//		nozPurchased := Lt.ToDec().
 //			Mul(val.ToDec()).
 //			Quo((S.
 //				Add(Pt).
 //				Add(val)).ToDec()).
 //			TruncateInt()
 //
-//		uozPriceAfter := S.ToDec().Add(Pt.ToDec()).Add(val.ToDec()).Quo(Lt.ToDec().Sub(uozPurchased.ToDec())).TruncateInt()
+//		nozPriceAfter := S.ToDec().Add(Pt.ToDec()).Add(val.ToDec()).Quo(Lt.ToDec().Sub(nozPurchased.ToDec())).TruncateInt()
 //
 //		Pt = Pt.Add(val)
-//		Lt = Lt.Sub(uozPurchased)
+//		Lt = Lt.Sub(nozPurchased)
 //		keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
 //		keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, Lt)
-//		log.Printf("---- prepay #%v: %v ustos----", i, val)
-//		log.Printf("uozPriceBefore is %v", uozPriceBefore)
-//		log.Printf("uozPurchased is %v", uozPurchased)
-//		log.Printf("uozPriceAfter is %v", uozPriceAfter)
+//		log.Printf("---- prepay #%v: %v wei----", i, val)
+//		log.Printf("nozPriceBefore is %v", nozPriceBefore)
+//		log.Printf("nozPurchased is %v", nozPurchased)
+//		log.Printf("nozPriceAfter is %v", nozPriceAfter)
 //		log.Printf("New Pt is %v", Pt)
 //		log.Printf("New Lt is %v", Lt)
 //		log.Print("\n")
@@ -422,7 +422,7 @@ package sds
 //			register.DefaultParams(),
 //			resourceNodes,
 //			indexingNodes,
-//			initialUOzonePrice,
+//			initialNOzonePrice,
 //			sdk.ZeroInt(),
 //			make([]register.Slashing, 0),
 //		)
@@ -490,7 +490,7 @@ package sds
 //			register.DefaultParams(),
 //			nil,
 //			indexingNodes,
-//			initialUOzonePriceTestPurchase,
+//			initialNOzonePriceTestPurchase,
 //			sdk.ZeroInt(),
 //			make([]register.Slashing, 0),
 //		)

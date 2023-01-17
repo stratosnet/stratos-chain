@@ -6,29 +6,30 @@ import (
 )
 
 // DeductSlashing deduct slashing amount from coins, return the coins that after deduction
-func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins) (remaining, deducted sdk.Coins) {
+func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins, slashingDenom string) (remaining, deducted sdk.Coins) {
 	slashing := k.GetSlashing(ctx, walletAddress)
-	remaining = sdk.Coins{}
+	remaining = coins
 	deducted = sdk.Coins{}
-	if slashing.LTE(sdk.ZeroInt()) || coins.Empty() || coins.IsZero() {
-		return coins, deducted
+
+	if slashing.LTE(sdk.ZeroInt()) || coins.Empty() || coins.AmountOf(slashingDenom).IsZero() {
+		return
 	}
 
-	for _, coin := range coins {
-		if coin.Amount.GTE(slashing) {
-			coin = coin.Sub(sdk.NewCoin(coin.Denom, slashing))
-			remaining = remaining.Add(coin)
-			deducted = deducted.Add(sdk.NewCoin(coin.Denom, slashing))
-			slashing = sdk.ZeroInt()
-		} else {
-			slashing = slashing.Sub(coin.Amount)
-			deducted = deducted.Add(coin)
-			coin = sdk.NewCoin(coin.Denom, sdk.ZeroInt())
-			remaining = remaining.Add(coin)
-		}
+	coinAmt := coins.AmountOf(slashingDenom)
+	if coinAmt.GTE(slashing) {
+		deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, slashing))
+		coinAmt = coinAmt.Sub(slashing)
+		remaining = remaining.Sub(deducted)
+		slashing = sdk.ZeroInt()
+	} else {
+		deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, coinAmt))
+		slashing = slashing.Sub(coinAmt)
+		remaining = remaining.Sub(deducted)
+		coinAmt = sdk.ZeroInt()
 	}
+
 	k.SetSlashing(ctx, walletAddress, slashing)
-	return remaining, deducted
+	return
 }
 
 // Iteration for each slashing

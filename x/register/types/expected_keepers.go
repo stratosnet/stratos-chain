@@ -3,6 +3,7 @@ package types
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -70,4 +71,9 @@ type RegisterHooks interface {
 	//BeforeNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isMetaNode bool) // Must be called when a node's shares are modified
 	//BeforeNodeRemoved(ctx sdk.Context, networkAddr sdk.AccAddress, isMetaNode bool)  // Must be called when a node is removed
 	//AfterNodeModified(ctx sdk.Context, networkAddr sdk.AccAddress, isMetaNode bool)
+}
+
+type DistrKeeper interface {
+	FundCommunityPool(ctx sdk.Context, amount sdk.Coins, sender sdk.AccAddress) error
+	GetFeePool(ctx sdk.Context) (feePool distrtypes.FeePool)
 }

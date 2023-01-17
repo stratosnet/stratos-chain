@@ -27,7 +27,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, err
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	if _, found := k.RegisterKeeper.GetMetaNode(ctx, reporter); found == false {
@@ -38,7 +38,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 	var heightReEncoded sdk.Int
 	err = heightReEncoded.UnmarshalJSON(heightByteArr)
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, err
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	fileInfo := types.NewFileInfo(&heightReEncoded, msg.Reporter, msg.Uploader)
@@ -71,17 +71,17 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 	//}
 
 	if k.bankKeeper.IsSendEnabledCoin(ctx, sdk.NewCoin(types.DefaultBondDenom, sdk.OneInt())) == false {
-		return &types.MsgPrepayResponse{}, nil
+		return &types.MsgPrepayResponse{}, sdkerrors.ErrInvalidCoins
 	}
 
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return &types.MsgPrepayResponse{}, nil
+		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	purchased, err := k.Prepay(ctx, sender, msg.Coins)
 	if err != nil {
-		return nil, err
+		return nil, sdkerrors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
@@ -89,7 +89,7 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 			types.EventTypePrepay,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
 			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
-			sdk.NewAttribute(types.AttributeKeyPurchasedUoz, purchased.String()),
+			sdk.NewAttribute(types.AttributeKeyPurchasedNoz, purchased.String()),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,

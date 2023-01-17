@@ -80,7 +80,7 @@ Example:
 	f.Uint32(flagCoinType, stratos.GetConfig().GetCoinType(), "coin type number for HD derivation")
 	f.Uint32(flagAccount, 0, "Account number for HD derivation")
 	f.Uint32(flagIndex, 0, "Address index number for HD derivation")
-	f.String(flags.FlagKeyAlgorithm, string(hd.Secp256k1Type), "Key signing algorithm to generate keys for")
+	f.String(flags.FlagKeyAlgorithm, string(stratoshd.EthSecp256k1Type), "Key signing algorithm to generate keys for")
 
 	return cmd
 }

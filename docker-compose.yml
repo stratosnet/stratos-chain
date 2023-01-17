@@ -7,6 +7,7 @@ services:
     ports:
       - "26656-26657:26656-26657"
       - "1317:1317"
+      - "8545:8545"
     environment:
       - ID=0
       - LOG=${LOG:-stchaind.log}
@@ -66,4 +67,5 @@ networks:
       config:
       -
         subnet: 192.168.11.0/16
+        gateway: 192.168.11.1
 

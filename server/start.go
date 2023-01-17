@@ -128,7 +128,7 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().String(srvflags.Address, "tcp://0.0.0.0:26658", "Listen address")
 	cmd.Flags().String(srvflags.Transport, "socket", "Transport protocol: socket, grpc")
 	cmd.Flags().String(srvflags.TraceStore, "", "Enable KVStore tracing to an output file")
-	cmd.Flags().String(server.FlagMinGasPrices, "", "Minimum gas prices to accept for transactions; Any fee in a tx must meet this minimum (e.g. 0.01stos)")
+	cmd.Flags().String(server.FlagMinGasPrices, config.GetDefaultMinGasPricesCoinStr(), "Minimum gas prices to accept for transactions; Any fee in a tx must meet this minimum (e.g. 0.01stos)")
 	cmd.Flags().IntSlice(server.FlagUnsafeSkipUpgrades, []int{}, "Skip a set of upgrade heights to continue the old binary")
 	cmd.Flags().Uint64(server.FlagHaltHeight, 0, "Block height at which to gracefully halt the chain and shutdown the node")
 	cmd.Flags().Uint64(server.FlagHaltTime, 0, "Minimum block time (in Unix seconds) at which to gracefully halt the chain and shutdown the node")
@@ -154,8 +154,8 @@ which accepts a path for the resulting pprof file.
 	cmd.Flags().StringSlice(srvflags.JSONRPCAPI, config.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
 	cmd.Flags().String(srvflags.JSONRPCAddress, config.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
 	cmd.Flags().String(srvflags.JSONWsAddress, config.DefaultJSONRPCWsAddress, "the JSON-RPC WS server address to listen on")
-	cmd.Flags().Uint64(srvflags.JSONRPCGasCap, config.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is ustos (0=infinite)")
-	cmd.Flags().Float64(srvflags.JSONRPCTxFeeCap, config.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 ustos)")
+	cmd.Flags().Uint64(srvflags.JSONRPCGasCap, config.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is wei (0=infinite)")
+	cmd.Flags().Float64(srvflags.JSONRPCTxFeeCap, config.DefaultTxFeeCap, "Sets a cap on transaction fee that can be sent via the RPC APIs (1 = default 1 wei)")
 	cmd.Flags().Int32(srvflags.JSONRPCFilterCap, config.DefaultFilterCap, "Sets the global cap for total number of filters that can be created")
 	cmd.Flags().Duration(srvflags.JSONRPCEVMTimeout, config.DefaultEVMTimeout, "Sets a timeout used for eth_call (0=infinite)")
 	cmd.Flags().Duration(srvflags.JSONRPCHTTPTimeout, config.DefaultHTTPTimeout, "Sets a read/write timeout for json-rpc http server (0=infinite)")
@@ -274,7 +274,11 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		return err
 	}
 
-	config := config.GetConfig(ctx.Viper)
+	config, err := config.GetConfig(ctx.Viper)
+	if err != nil {
+		logger.Error("get config failed", " error", err.Error())
+		return err
+	}
 
 	if err := config.ValidateBasic(); err != nil {
 		if strings.Contains(err.Error(), "set min gas price in app.toml or flag or env variable") {
@@ -426,9 +430,11 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		genEvmParamsChainCfg := genEvmParams["chain_config"].(map[string]interface{})
 		genEvmParamsChainId := genEvmParamsChainCfg["chain_id"].(string)
 
+		clientCtx := clientCtx.WithChainID(genEvmParamsChainId)
+
 		tmEndpoint := "/websocket"
 		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config, genEvmParamsChainId)
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config)
 		if err != nil {
 			return err
 		}

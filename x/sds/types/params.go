@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // Default parameter namespace
 const (
-	DefaultParamSpace = ModuleName
-	DefaultBondDenom  = "ustos"
+	DefaultBondDenom = stratos.Wei
 )
 
 // Parameter store keys
@@ -63,7 +64,7 @@ func validateBondDenom(i interface{}) error {
 
 func (p Params) ValidateBasic() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
 	}
 	return nil
 }

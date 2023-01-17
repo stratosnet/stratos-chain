@@ -248,7 +248,7 @@ func (e *PublicAPI) BlockNumber() (hexutil.Uint64, error) {
 	return e.backend.BlockNumber()
 }
 
-// GetBalance returns the provided account's balance up to the provided block number.
+// GetBalance returns the provided account's balance up to the provided block number in wei.
 func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (*hexutil.Big, error) {
 	e.logger.Debug("eth_getBalance", "address", address.String(), "block number or hash", blockNrOrHash)
 
@@ -269,12 +269,6 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 	val, ok := sdk.NewIntFromString(res.Balance)
 	if !ok {
 		return nil, errors.New("invalid balance")
-	}
-
-	//return balance using unit "wei"
-	val, err = stratos.UstosToWei(val)
-	if err != nil {
-		return nil, err
 	}
 
 	return (*hexutil.Big)(val.BigInt()), nil
@@ -557,8 +551,8 @@ func checkTxFee(gasPrice *big.Int, gas uint64, cap float64) error {
 		return nil
 	}
 	totalfee := new(big.Float).SetInt(new(big.Int).Mul(gasPrice, new(big.Int).SetUint64(gas)))
-	// 1 stos in 10^9 ustos
-	oneToken := new(big.Float).SetFloat64(math.Pow10(stratos.BaseDenomUnit))
+	// 1 stos in 10^18 wei
+	oneToken := new(big.Float).SetInt(big.NewInt(stratos.StosToWei))
 	// quo = rounded(x/y)
 	feeEth := new(big.Float).Quo(totalfee, oneToken)
 	// no need to check error from parsing

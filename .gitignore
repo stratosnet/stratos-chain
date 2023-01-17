@@ -5,3 +5,5 @@ build
 vendor/
 .idea/
 playground.go
+/tmp-swagger-gen/
+/github.com/

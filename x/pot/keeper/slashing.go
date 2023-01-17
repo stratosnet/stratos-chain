@@ -16,30 +16,46 @@ import (
 	3, unstaking resource node.
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
-	ozAmt sdk.Int, suspend bool) (amt sdk.Int, nodeType registertypes.NodeType, err error) {
+	nozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
 		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
-
+	toBeSuspended := node.Suspend == false && suspend == true
+	toBeUnsuspended := node.Suspend == true && suspend == false
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
 	trafficList := []*types.SingleWalletVolume{{
 		WalletAddress: node.OwnerAddress,
-		Volume:        &ozAmt,
+		Volume:        &nozAmt,
 	}}
-	totalConsumedUoz := k.GetTotalConsumedUoz(trafficList).ToDec()
-	slash := k.GetTrafficReward(ctx, totalConsumedUoz)
+	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToDec()
+	slashTokenAmt := k.GetTrafficReward(ctx, totalConsumedNoz)
 
 	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
 
 	// only slashing the reward token for now.
-	newSlashing := oldSlashing.Add(slash.TruncateInt())
+	newSlashing := oldSlashing.Add(slashTokenAmt.TruncateInt())
 
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
-	return slash.TruncateInt(), registertypes.NodeType(node.NodeType), nil
+	// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
+	unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
+	stakeToMakeOzoneLimitChange := sdk.ZeroInt()
+	// no effective stake after subtracting unbonding stake
+	if node.Tokens.LTE(unbondingStake) {
+		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrInsufficientBalance
+	}
+	stakeToMakeOzoneLimitChange = node.Tokens.Sub(unbondingStake)
+	if toBeSuspended {
+		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, stakeToMakeOzoneLimitChange)
+	}
+	if toBeUnsuspended {
+		k.RegisterKeeper.IncreaseOzoneLimitByAddStake(ctx, stakeToMakeOzoneLimitChange)
+	}
+
+	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

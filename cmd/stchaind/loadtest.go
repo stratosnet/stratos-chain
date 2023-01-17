@@ -41,7 +41,7 @@ package main
 //	defaultNodeURI        = "tcp://127.0.0.1:26657"
 //	defaultKeyringBackend = "test"
 //	defaultHome           = "build/node/stchaincli"
-//	defaultDenom          = "ustos"
+//	defaultDenom          = "wei"
 //	defaultChainId        = "test-chain"
 //)
 //

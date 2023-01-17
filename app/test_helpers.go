@@ -104,6 +104,7 @@ func Setup(isCheckTx bool, chainId string) *NewApp {
 // of one consensus engine unit (10^6) in the default token of the simapp from first genesis
 // account. A Nop logger is set in SimApp.
 func SetupWithGenesisNodeSet(t *testing.T,
+	freshStart bool,
 	valSet *tmtypes.ValidatorSet,
 	metaNodes []registertypes.MetaNode,
 	resourceNodes []registertypes.ResourceNode,
@@ -152,46 +153,48 @@ func SetupWithGenesisNodeSet(t *testing.T,
 			stakingtypes.DefaultMaxValidators,
 			stakingtypes.DefaultMaxEntries,
 			stakingtypes.DefaultHistoricalEntries,
-			stratos.USTOS),
+			stratos.Wei),
 		validators,
 		delegations)
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
-	// add bonded amount to bonded pool module account
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, bondedAmt)},
-	})
+	if !freshStart {
+		// add bonded amount to bonded pool module account
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, bondedAmt)},
+		})
 
-	// add bonded amount of resource nodes to module account
-	resNodeBondedAmt := sdk.ZeroInt()
-	for _, resNode := range resourceNodes {
-		resNodeBondedAmt = resNodeBondedAmt.Add(resNode.Tokens)
+		// add bonded amount of resource nodes to module account
+		resNodeBondedAmt := sdk.ZeroInt()
+		for _, resNode := range resourceNodes {
+			resNodeBondedAmt = resNodeBondedAmt.Add(resNode.Tokens)
+		}
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPool).String(),
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, resNodeBondedAmt)},
+		})
+
+		// add bonded amount of meta nodes to module account
+		metaNodeBondedAmt := sdk.ZeroInt()
+		for _, metaNode := range metaNodes {
+			metaNodeBondedAmt = metaNodeBondedAmt.Add(metaNode.Tokens)
+		}
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPool).String(),
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, metaNodeBondedAmt)},
+		})
+
+		balances = append(balances, banktypes.Balance{
+			Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay).String(),
+			Coins:   sdk.Coins{totalUnissuedPrepay},
+		})
 	}
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(registertypes.ResourceNodeBondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, resNodeBondedAmt)},
-	})
-
-	// add bonded amount of meta nodes to module account
-	metaNodeBondedAmt := sdk.ZeroInt()
-	for _, metaNode := range metaNodes {
-		metaNodeBondedAmt = metaNodeBondedAmt.Add(metaNode.Tokens)
-	}
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(registertypes.MetaNodeBondedPoolName).String(),
-		Coins:   sdk.Coins{sdk.NewCoin(stratos.USTOS, metaNodeBondedAmt)},
-	})
-
-	balances = append(balances, banktypes.Balance{
-		Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepayName).String(),
-		Coins:   sdk.Coins{totalUnissuedPrepay},
-	})
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
 		// add genesis acc tokens and delegated tokens to total supply
-		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(stratos.USTOS, bondedAmt))...)
+		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(stratos.Wei, bondedAmt))...)
 	}
 
 	// update total supply
@@ -203,8 +206,9 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		registertypes.DefaultParams(),
 		resourceNodes,
 		metaNodes,
-		registertypes.DefaultUozPrice,
+		registertypes.DefaultRemainingNozLimit,
 		make([]*registertypes.Slashing, 0),
+		registertypes.DefaultStakeNozRate,
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
 
@@ -411,7 +415,7 @@ func SignCheckDeliver(
 	tx, err := GenTx(
 		txCfg,
 		msgs,
-		sdk.Coins{sdk.NewInt64Coin(stratos.USTOS, 0)},
+		sdk.Coins{sdk.NewInt64Coin(stratos.Wei, 0)},
 		DefaultGenTxGas,
 		chainID,
 		accNums,
@@ -461,7 +465,7 @@ func GenSequenceOfTxs(txGen client.TxConfig, msgs []sdk.Msg, accNums []uint64, i
 		txs[i], err = GenTx(
 			txGen,
 			msgs,
-			sdk.Coins{sdk.NewInt64Coin(stratos.USTOS, 0)},
+			sdk.Coins{sdk.NewInt64Coin(stratos.Wei, 0)},
 			DefaultGenTxGas,
 			"",
 			accNums,

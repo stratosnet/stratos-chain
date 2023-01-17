@@ -142,15 +142,9 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 
 	switch metaNode.GetStatus() {
 	case stakingtypes.Unbonded:
-		targetModuleAccName = types.MetaNodeNotBondedPoolName
-		//notBondedTokenInPool := k.GetMetaNodeNotBondedToken(ctx)
-		//notBondedTokenInPool = notBondedTokenInPool.Add(tokenToAdd)
-		//k.SetMetaNodeNotBondedToken(ctx, notBondedTokenInPool)
+		targetModuleAccName = types.MetaNodeNotBondedPool
 	case stakingtypes.Bonded:
-		targetModuleAccName = types.MetaNodeBondedPoolName
-		//bondedTokenInPool := k.GetMetaNodeBondedToken(ctx)
-		//bondedTokenInPool = bondedTokenInPool.Add(tokenToAdd)
-		//k.SetMetaNodeBondedToken(ctx, bondedTokenInPool)
+		targetModuleAccName = types.MetaNodeBondedPool
 	case stakingtypes.Unbonding:
 		return sdk.ZeroInt(), types.ErrUnbondingNode
 	}
@@ -164,13 +158,19 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 
 	metaNode = metaNode.AddToken(tokenToAdd.Amount)
 	k.SetMetaNode(ctx, metaNode)
-	ozoneLimitChange = k.increaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+
+	if !metaNode.Suspend {
+		ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+	} else {
+		// if node is currently suspended, ozone limit will be increased upon unsuspension instead of NOW
+		ozoneLimitChange = sdk.ZeroInt()
+	}
 
 	return ozoneLimitChange, nil
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingMetaNode(ctx sdk.Context, metaNode types.MetaNode, tokenToSub sdk.Coin) error {
-	bondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPoolName)
+	bondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPool)
 	if bondedMetaAccountAddr == nil {
 		ctx.Logger().Error("bonded pool account address for meta nodes does not exist.")
 		return types.ErrUnknownAccountAddress
@@ -181,7 +181,7 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingMetaNode(ctx sdk.Context, metaN
 		return types.ErrInsufficientBalance
 	}
 
-	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeBondedPoolName, types.MetaNodeNotBondedPoolName, sdk.NewCoins(tokenToSub))
+	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeBondedPool, types.MetaNodeNotBondedPool, sdk.NewCoins(tokenToSub))
 	if err != nil {
 		return types.ErrInsufficientBalance
 	}
@@ -210,7 +210,7 @@ func (k Keeper) SubtractMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, 
 	}
 
 	// deduct tokens from NotBondedPool
-	nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPoolName)
+	nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
 	if nBondedMetaAccountAddr == nil {
 		ctx.Logger().Error("not bonded account address for meta nodes does not exist.")
 		return types.ErrUnknownAccountAddress
@@ -220,24 +220,20 @@ func (k Keeper) SubtractMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, 
 	if !hasCoin {
 		return types.ErrInsufficientBalanceOfNotBondedPool
 	}
-	//notBondedTokenInPool := k.GetMetaNodeNotBondedToken(ctx)
-	//if notBondedTokenInPool.IsLT(tokenToSub) {
-	//	return types.ErrInsufficientBalanceOfNotBondedPool
-	//}
-	//notBondedTokenInPool = notBondedTokenInPool.Sub(tokenToSub)
-	//k.SetMetaNodeNotBondedToken(ctx, notBondedTokenInPool)
 
 	// deduct slashing amount first, slashed amt goes into TotalSlashedPool
-	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins)
+	remaining, slashed := k.DeductSlashing(ctx, ownerAddr, coins, k.BondDenom(ctx))
 	if !remaining.IsZero() {
 		// add remaining tokens to owner acc
-		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.MetaNodeNotBondedPoolName, ownerAddr, remaining)
+		err = k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.MetaNodeNotBondedPool, ownerAddr, remaining)
 		if err != nil {
 			return err
 		}
 	}
 	if !slashed.IsZero() {
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPoolName, types.TotalSlashedPoolName, slashed)
+		// slashed token send to community_pool
+		metaNodeNotBondedPoolAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
+		err = k.distrKeeper.FundCommunityPool(ctx, slashed, metaNodeNotBondedPoolAddr)
 		if err != nil {
 			return err
 		}
@@ -360,7 +356,7 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), node.Tokens)
 
 		// sub coins from not bonded pool
-		nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPoolName)
+		nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
 		if nBondedMetaAccountAddr == nil {
 			ctx.Logger().Error("not bonded account address for meta nodes does not exist.")
 			return node.Status, types.ErrUnknownAccountAddress
@@ -371,21 +367,10 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 			return node.Status, types.ErrInsufficientBalance
 		}
 
-		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPoolName, types.MetaNodeBondedPoolName, sdk.NewCoins(tokenToBond))
+		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPool, types.MetaNodeBondedPool, sdk.NewCoins(tokenToBond))
 		if err != nil {
 			return node.Status, err
 		}
-
-		//notBondedToken := k.GetMetaNodeNotBondedToken(ctx)
-		//bondedToken := k.GetMetaNodeBondedToken(ctx)
-		//
-		//if notBondedToken.IsLT(tokenToBond) {
-		//	return node.Status, types.ErrInsufficientBalance
-		//}
-		//notBondedToken = notBondedToken.Sub(tokenToBond)
-		//bondedToken = bondedToken.Add(tokenToBond)
-		//k.SetMetaNodeNotBondedToken(ctx, notBondedToken)
-		//k.SetMetaNodeBondedToken(ctx, bondedToken)
 	}
 
 	return node.Status, nil
@@ -463,7 +448,7 @@ func (k Keeper) UpdateMetaNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddr
 }
 
 func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	metaNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPoolName)
+	metaNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPool)
 	if metaNodeBondedAccAddr == nil {
 		ctx.Logger().Error("account address for meta node bonded pool does not exist.")
 		return sdk.Coin{
@@ -475,7 +460,7 @@ func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 }
 
 func (k Keeper) GetMetaNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
-	metaNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPoolName)
+	metaNodeNotBondedAccAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
 	if metaNodeNotBondedAccAddr == nil {
 		ctx.Logger().Error("account address for meta node Not bonded pool does not exist.")
 		return sdk.Coin{
@@ -496,12 +481,12 @@ func (k Keeper) SendCoinsFromAccountToMetaNodeNotBondedPool(ctx sdk.Context, fro
 	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
 		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeNotBondedPoolName, sdk.NewCoins(amt))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeNotBondedPool, sdk.NewCoins(amt))
 }
 
 func (k Keeper) SendCoinsFromAccountToMetaNodeBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
 	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
 		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeBondedPoolName, sdk.NewCoins(amt))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeBondedPool, sdk.NewCoins(amt))
 }
