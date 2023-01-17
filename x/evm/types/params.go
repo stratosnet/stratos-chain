@@ -16,7 +16,7 @@ import (
 var _ paramtypes.ParamSet = &Params{}
 
 const (
-	DefaultEVMDenom = stratos.USTOS
+	DefaultEVMDenom = stratos.Wei
 )
 
 // Parameter keys
@@ -163,16 +163,11 @@ func IsLondon(ethConfig *params.ChainConfig, height int64) bool {
 
 // creates a new FeeMarketParams instance
 func NewFeeMarketParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64, enableHeight int64) FeeMarketParams {
-	ustosBaseFee, err := stratos.WeiToUstos(sdk.NewIntFromUint64(baseFee))
-	if err != nil {
-		panic(err)
-	}
-
 	return FeeMarketParams{
 		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: baseFeeChangeDenom,
 		ElasticityMultiplier:     elasticityMultiplier,
-		BaseFee:                  ustosBaseFee,
+		BaseFee:                  sdk.NewIntFromUint64(baseFee),
 		EnableHeight:             enableHeight,
 	}
 }

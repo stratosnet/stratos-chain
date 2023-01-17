@@ -43,35 +43,6 @@ func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest
 	return &types.QueryFileUploadResponse{FileInfo: &fileInfo}, nil
 }
 
-func (q Querier) Prepay(c context.Context, req *types.QueryPrepayRequest) (*types.QueryPrepayResponse, error) {
-	if req == nil {
-		return &types.QueryPrepayResponse{}, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if req.GetAcctAddr() == "" {
-		return &types.QueryPrepayResponse{}, status.Error(codes.InvalidArgument, " Network address cannot be empty")
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-
-	accAddr, err := sdk.AccAddressFromBech32(req.GetAcctAddr())
-	if err != nil {
-		return &types.QueryPrepayResponse{}, err
-	}
-	balance, err := q.GetPrepay(ctx, accAddr)
-	if err != nil {
-		return &types.QueryPrepayResponse{}, fmt.Errorf("invalid sender address: %w", err)
-	}
-
-	//balanceInt64, err := strconv.ParseInt(balance.S, 10, 64)
-	//if err != nil {
-	//	return &types.QueryPrepayResponse{}, err
-	//}
-
-	//balance := sdk.NewInt(balanceInt64)
-	return &types.QueryPrepayResponse{Balance: &balance}, nil
-}
-
 func (q Querier) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := q.GetParams(ctx)

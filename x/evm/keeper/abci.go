@@ -3,12 +3,12 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/stratosnet/stratos-chain/x/evm/types"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 // BeginBlock sets the sdk Context and EIP155 chain id to the Keeper.

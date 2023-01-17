@@ -72,9 +72,9 @@ package keeper
 //	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 //
 //	//Register new SP node after genesis initialized
-//	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+//	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("wei", spNodeStakeNew)))
 //	_, err := k.RegisterIndexingNode(ctx, spNodeAddrNew, spNodePubKeyNew, spNodeOwnerNew,
-//		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
+//		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("wei", spNodeStakeNew))
 //	require.NoError(t, err)
 //
 //	//set expireTime of voting to 7 days before
@@ -120,9 +120,9 @@ package keeper
 //	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 //
 //	//Register new SP node after genesis initialized
-//	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+//	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("wei", spNodeStakeNew)))
 //	_, err := k.RegisterIndexingNode(ctx, spNodeAddrNew, spNodePubKeyNew, spNodeOwnerNew,
-//		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
+//		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("wei", spNodeStakeNew))
 //	require.NoError(t, err)
 //
 //	//After registration, the status of new SP node is UNBONDED
@@ -172,12 +172,12 @@ package keeper
 //	k.SetInitialGenesisStakeTotal(ctx, initialStake1.Add(initialStake2).Add(initialStake3).Add(initialStake4))
 //
 //	//Register new SP node after genesis initialized
-//	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("ustos", spNodeStakeNew)))
+//	createAccount(t, ctx, accountKeeper, bankKeeper, spNodeOwnerNew, sdk.NewCoins(sdk.NewCoin("wei", spNodeStakeNew)))
 //	//_, err := k.bankKeeper.AddCoins(ctx, spNodeAddr4, sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), sdk.NewInt(10000000000000))))
 //	//require.NoError(t, err)
 //
 //	_, err := k.RegisterIndexingNode(ctx, spNodeAddrNew, spNodePubKeyNew, spNodeOwnerNew,
-//		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("ustos", spNodeStakeNew))
+//		types.NewDescription("sds://newIndexingNode", "", "", "", ""), sdk.NewCoin("wei", spNodeStakeNew))
 //	require.NoError(t, err)
 //
 //	//After registration, the status of new SP node is UNBONDED

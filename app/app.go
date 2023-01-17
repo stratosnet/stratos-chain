@@ -165,16 +165,13 @@ var (
 		//pot.FoundationAccount:          nil,
 		registertypes.ModuleName: {authtypes.Minter, authtypes.Burner},
 		//upgrading module accounts
-		registertypes.ResourceNodeBondedPoolName:    {authtypes.Minter},
-		registertypes.ResourceNodeNotBondedPoolName: {authtypes.Minter},
-		registertypes.MetaNodeBondedPoolName:        {authtypes.Minter},
-		registertypes.MetaNodeNotBondedPoolName:     {authtypes.Minter},
-		registertypes.TotalUnissuedPrepayName:       {authtypes.Minter},
-		registertypes.TotalSlashedPoolName:          {authtypes.Minter, authtypes.Burner},
+		registertypes.ResourceNodeBondedPool:    {authtypes.Minter},
+		registertypes.ResourceNodeNotBondedPool: {authtypes.Minter},
+		registertypes.MetaNodeBondedPool:        {authtypes.Minter},
+		registertypes.MetaNodeNotBondedPool:     {authtypes.Minter},
+		registertypes.TotalUnissuedPrepay:       {authtypes.Minter},
 
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
-		pottypes.MiningRewardPool:  nil,
-		pottypes.TrafficRewardPool: nil,
 		pottypes.TotalRewardPool:   nil,
 		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},
 
@@ -410,6 +407,7 @@ func NewInitApp(
 		app.GetSubspace(registertypes.ModuleName),
 		app.accountKeeper,
 		app.bankKeeper,
+		app.distrKeeper,
 	)
 
 	app.potKeeper = potkeeper.NewKeeper(
@@ -422,6 +420,7 @@ func NewInitApp(
 		app.accountKeeper,
 		app.stakingKeeper,
 		app.registerKeeper,
+		app.distrKeeper,
 	)
 
 	app.sdsKeeper = sdskeeper.NewKeeper(

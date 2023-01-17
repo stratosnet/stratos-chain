@@ -1,23 +1,39 @@
 package types
 
+import (
+	sdk "github.com/cosmos/cosmos-sdk/types"
+)
+
 const (
 	CoinType = 606
 
-	// DisplayDenom defines the denomination displayed to users in client applications.
-	DisplayDenom = "USTOS"
+	// Stos defines the denomination displayed to users in client applications.
+	Stos  = "stos"
+	Gwei  = "gwei"
+	Wei   = "wei"
+	Utros = "utros" // reward denom
 
-	USTOS string = "ustos"
+	// WeiDenomUnit defines the base denomination unit for stos.
+	// 1 stos = 1x10^{WeiDenomUnit} wei
+	WeiDenomUnit  = 18
+	GweiDenomUnit = 9
 
-	//1 eth = 1x10^18 wei
-	EthDenomUnit = 18
-
-	// BaseDenomUnit defines the base denomination unit for stos.
-	// 1 stos = 1x10^{BaseDenomUnit} ustos
-	BaseDenomUnit = 9
-
-	// 1 ustos = 1x10^{DenomUnitDiff} wei
-	DenomUnitDiff = EthDenomUnit - BaseDenomUnit
+	StosToWei  = 1e18 // 1 Stos = 1e18 wei
+	StosToGwei = 1e9  // 1 Stos = 1e9 Gwei
+	GweiToWei  = 1e9  // 1 Gwei = 1e9 wei
 
 	// DefaultGasPrice is default gas price for evm transactions
 	DefaultGasPrice = 20
 )
+
+func NewCoin(amount sdk.Int) sdk.Coin {
+	return sdk.NewCoin(Wei, amount)
+}
+
+func NewDecCoin(amount sdk.Int) sdk.DecCoin {
+	return sdk.NewDecCoin(Wei, amount)
+}
+
+func NewCoinInt64(amount int64) sdk.Coin {
+	return sdk.NewInt64Coin(Wei, amount)
+}

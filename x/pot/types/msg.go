@@ -8,6 +8,7 @@ import (
 const (
 	VolumeReportMsgType      = "volume_report"
 	WithdrawMsgType          = "withdraw"
+	LegacyWithdrawMsgType    = "legacy_withdraw"
 	FoundationDepositMsgType = "foundation_deposit"
 )
 
@@ -15,6 +16,7 @@ const (
 var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
+	_ sdk.Msg = &MsgLegacyWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
 	_ sdk.Msg = &MsgSlashingResourceNode{}
 )
@@ -159,6 +161,51 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	}
 	if len(msg.WalletAddress) == 0 {
 		return ErrMissingWalletAddress
+	}
+	if len(msg.TargetAddress) == 0 {
+		return ErrMissingTargetAddress
+	}
+	return nil
+}
+
+func NewMsgLegacyWithdraw(amount sdk.Coins, from sdk.AccAddress, targetAddress sdk.AccAddress) *MsgLegacyWithdraw {
+	return &MsgLegacyWithdraw{
+		Amount:        amount,
+		From:          from.String(),
+		TargetAddress: targetAddress.String(),
+	}
+}
+
+// Route Implement
+func (msg MsgLegacyWithdraw) Route() string { return RouterKey }
+
+// GetSigners Implement
+func (msg MsgLegacyWithdraw) GetSigners() []sdk.AccAddress {
+	var addrs []sdk.AccAddress
+	from, err := sdk.AccAddressFromBech32(msg.From)
+	if err != nil {
+		return addrs
+	}
+	addrs = append(addrs, from)
+	return addrs
+}
+
+// Type Implement
+func (msg MsgLegacyWithdraw) Type() string { return LegacyWithdrawMsgType }
+
+// GetSignBytes gets the bytes for the message signer to sign on
+func (msg MsgLegacyWithdraw) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
+// ValidateBasic validity check for the AnteHandler
+func (msg MsgLegacyWithdraw) ValidateBasic() error {
+	if !(msg.Amount.IsValid()) {
+		return ErrWithdrawAmountInvalid
+	}
+	if len(msg.From) == 0 {
+		return ErrEmptyFromAddr
 	}
 	if len(msg.TargetAddress) == 0 {
 		return ErrMissingTargetAddress

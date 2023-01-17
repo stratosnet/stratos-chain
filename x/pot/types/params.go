@@ -6,13 +6,16 @@ import (
 	"strings"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // DefaultParamSpace Default parameter namespace
 const (
-	DefaultBondDenom   = "ustos"
-	DefaultRewardDenom = "utros"
+	DefaultBondDenom   = stratos.Wei
+	DefaultRewardDenom = stratos.Utros
 	DefaultMatureEpoch = 2016
 )
 
@@ -20,8 +23,11 @@ const (
 var (
 	KeyBondDenom          = []byte("BondDenom")
 	KeyRewardDenom        = []byte("RewardDenom")
-	KeyMatureEpoch        = []byte("matureEpoch")
+	KeyMatureEpoch        = []byte("MatureEpoch")
 	KeyMiningRewardParams = []byte("MiningRewardParams")
+	KeyCommunityTax       = []byte("CommunityTax")
+
+	DefaultCommunityTax = sdk.NewDecWithPrec(2, 2) // 2%
 )
 
 //var _ subspace.ParamSet = &Params{}
@@ -33,12 +39,13 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 //
 // NewParams creates a new Params object
-func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []*MiningRewardParam) Params {
+func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []*MiningRewardParam, communityTax sdk.Dec) Params {
 	return Params{
 		BondDenom:          bondDenom,
 		RewardDenom:        rewardDenom,
 		MatureEpoch:        matureEpoch,
 		MiningRewardParams: miningRewardParams,
+		CommunityTax:       communityTax,
 	}
 }
 
@@ -81,7 +88,7 @@ func DefaultParams() Params {
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(2500000000)),
 		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
 
-	return NewParams(DefaultBondDenom, DefaultRewardDenom, DefaultMatureEpoch, miningRewardParams)
+	return NewParams(DefaultBondDenom, DefaultRewardDenom, DefaultMatureEpoch, miningRewardParams, DefaultCommunityTax)
 }
 
 // HrpString implements the stringer interface for Params
@@ -101,6 +108,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyRewardDenom, &p.RewardDenom, validateRewardDenom),
 		paramtypes.NewParamSetPair(KeyMatureEpoch, &p.MatureEpoch, validateMatureEpoch),
 		paramtypes.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
+		paramtypes.NewParamSetPair(KeyCommunityTax, &p.CommunityTax, validateCommunityTax),
 	}
 }
 
@@ -153,15 +161,37 @@ func validateMiningRewardParams(i interface{}) error {
 	return nil
 }
 
+func validateCommunityTax(i interface{}) error {
+	v, ok := i.(sdk.Dec)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if v.IsNil() {
+		return fmt.Errorf("pot community tax must be not nil")
+	}
+	if v.IsNegative() {
+		return fmt.Errorf("pot community tax must be positive: %s", v)
+	}
+	if v.GT(sdk.OneDec()) {
+		return fmt.Errorf("pot community tax too large: %s", v)
+	}
+
+	return nil
+}
+
 func (p Params) ValidateBasic() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
 	}
 	if err := validateRewardDenom(p.RewardDenom); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate reward denomination")
 	}
 	if err := validateMatureEpoch(p.MatureEpoch); err != nil {
-		return err
+		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mature epoch")
+	}
+	if err := validateCommunityTax(p.CommunityTax); err != nil {
+		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate community tax")
 	}
 	return nil
 }

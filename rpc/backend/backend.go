@@ -97,7 +97,10 @@ type Backend struct {
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
 func NewBackend(ctx *server.Context, logger log.Logger, clientCtx client.Context) *Backend {
-	appConf := config.GetConfig(ctx.Viper)
+	appConf, err := config.GetConfig(ctx.Viper)
+	if err != nil {
+		panic(err)
+	}
 
 	return &Backend{
 		ctx:         context.Background(),

@@ -24,6 +24,7 @@ type Keeper struct {
 	paramSpace            paramtypes.Subspace
 	accountKeeper         types.AccountKeeper
 	bankKeeper            types.BankKeeper
+	distrKeeper           types.DistrKeeper
 	hooks                 types.RegisterHooks
 	resourceNodeCache     map[string]cachedResourceNode
 	resourceNodeCacheList *list.List
@@ -33,7 +34,7 @@ type Keeper struct {
 
 // NewKeeper creates a register keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) Keeper {
+	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
 
 	keeper := Keeper{
 		storeKey:              key,
@@ -41,6 +42,7 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 		paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
 		accountKeeper:         accountKeeper,
 		bankKeeper:            bankKeeper,
+		distrKeeper:           distrKeeper,
 		hooks:                 nil,
 		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
 		resourceNodeCacheList: list.New(),
@@ -56,28 +58,12 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 // SetHooks Set the register hooks
-func (k *Keeper) SetHooks(sh types.RegisterHooks) *Keeper {
+func (k Keeper) SetHooks(sh types.RegisterHooks) Keeper {
 	if k.hooks != nil {
 		panic("cannot set register hooks twice")
 	}
 	k.hooks = sh
 	return k
-}
-
-func (k Keeper) SetInitialUOzonePrice(ctx sdk.Context, price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(price)
-	store.Set(types.InitialUOzonePriceKey, b)
-}
-
-func (k Keeper) GetInitialUOzonePrice(ctx sdk.Context) (price sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.InitialUOzonePriceKey)
-	if b == nil {
-		panic("Stored initial uOzone price should not have been nil")
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &price)
-	return
 }
 
 func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fromWallet sdk.AccAddress, coinToSend sdk.Coin) error {
@@ -89,11 +75,11 @@ func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fr
 	if !hasCoin {
 		return types.ErrInsufficientBalance
 	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromWallet, types.TotalUnissuedPrepayName, sdk.NewCoins(coinToSend))
+	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromWallet, types.TotalUnissuedPrepay, sdk.NewCoins(coinToSend))
 }
 
 func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
-	totalUnissuedPrepayAccAddr := k.accountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepayName)
+	totalUnissuedPrepayAccAddr := k.accountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepay)
 	if totalUnissuedPrepayAccAddr == nil {
 		ctx.Logger().Error("account address for total unissued prepay does not exist.")
 		return sdk.Coin{
@@ -136,119 +122,46 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k Keeper) increaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
-	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialGenesisDeposit is zero, increase ozone limit failed")
+func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// get remainingOzoneLimit before adding stake
+	remainingBefore := k.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+
+	// update effectiveTotalStake
+	effectiveTotalStakeBefore := k.GetEffectiveTotalStake(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Add(stake)
+	k.SetEffectiveTotalStake(ctx, effectiveTotalStakeAfter)
+
+	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
+	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
-	if initialUozonePrice.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
-	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
-	//ctx.Logger().Debug("----- initialOzoneLimit is " + initialOzoneLimit.String() + " uoz", )
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	//ctx.Logger().Info("----- currentLimit is " + currentLimit.String() + " uoz")
-	limitToAdd := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
-	//ctx.Logger().Info("----- limitToAdd is " + limitToAdd.String() + " uoz")
-	newLimit := currentLimit.Add(limitToAdd).TruncateInt()
-	//ctx.Logger().Info("----- newLimit is " + newLimit.String() + " uoz")
-	k.SetRemainingOzoneLimit(ctx, newLimit)
+
+	limitToAdd := stake.ToDec().Quo(stakeNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Add(limitToAdd).TruncateInt())
 	return limitToAdd.TruncateInt()
 }
 
-func (k Keeper) decreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
-	initialGenesisDeposit := k.GetInitialGenesisStakeTotal(ctx).ToDec() //ustos
-	if initialGenesisDeposit.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialGenesisDeposit is zero, decrease ozone limit failed")
+func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
+	// get remainingOzoneLimit before adding stake
+	remainingBefore := k.GetRemainingOzoneLimit(ctx)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+
+	// update effectiveTotalStake
+	effectiveTotalStakeBefore := k.GetEffectiveTotalStake(ctx)
+	effectiveTotalStakeAfter := effectiveTotalStakeBefore.Sub(stake)
+	k.SetEffectiveTotalStake(ctx, effectiveTotalStakeAfter)
+
+	effectiveGenesisDeposit := effectiveTotalStakeBefore.ToDec() //wei
+	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
 		return sdk.ZeroInt()
 	}
-	initialUozonePrice := k.GetInitialUOzonePrice(ctx)
-	if initialUozonePrice.Equal(sdk.ZeroDec()) {
-		ctx.Logger().Info("initialUozonePrice is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
-	}
-	initialOzoneLimit := initialGenesisDeposit.Quo(initialUozonePrice)
-	currentLimit := k.GetRemainingOzoneLimit(ctx).ToDec() //uoz
-	limitToSub := initialOzoneLimit.Mul(stake.ToDec()).Quo(initialGenesisDeposit)
-	newLimit := currentLimit.Sub(limitToSub).TruncateInt()
-	k.SetRemainingOzoneLimit(ctx, newLimit)
+	limitToSub := stake.ToDec().Quo(stakeNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Sub(limitToSub).TruncateInt())
 	return limitToSub.TruncateInt()
 }
-
-//// GetResourceNetworksIterator gets an iterator over all network addresses
-//func (k Keeper) GetResourceNetworksIterator(ctx sdk.Context) sdk.Iterator {
-//	store := ctx.KVStore(k.storeKey)
-//	return sdk.KVStorePrefixIterator(store, types.ResourceNodeKey)
-//}
-//
-//// GetMetaNetworksIterator gets an iterator over all network addresses
-//func (k Keeper) GetMetaNetworksIterator(ctx sdk.Context) sdk.Iterator {
-//	store := ctx.KVStore(k.storeKey)
-//	return sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
-//}
-
-//func (k Keeper) GetNetworks(ctx sdk.Context, keeper Keeper) (res []byte) {
-//	var networkList []stratos.SdsAddress
-//	iterator := keeper.GetResourceNetworksIterator(ctx)
-//	for ; iterator.Valid(); iterator.Next() {
-//		resourceNode := types.MustUnmarshalResourceNode(k.cdc, iterator.Value())
-//		networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
-//		if err != nil {
-//			continue
-//		}
-//		networkList = append(networkList, networkAddr)
-//	}
-//	iter := keeper.GetMetaNetworksIterator(ctx)
-//	for ; iter.Valid(); iter.Next() {
-//		metaNode := types.MustUnmarshalMetaNode(k.cdc, iter.Value())
-//		networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
-//		if err != nil {
-//			continue
-//		}
-//		networkList = append(networkList, networkAddr)
-//	}
-//	r := removeDuplicateValues(k, networkList)
-//	return r
-//}
-
-//func removeDuplicateValues(keeper Keeper, stringSlice []stratos.SdsAddress) (res []byte) {
-//	keys := make(map[string]bool)
-//	for _, entry := range stringSlice {
-//		if _, value := keys[entry.String()]; !value {
-//			bytes, err := entry.MarshalJSON()
-//			if err != nil {
-//				continue
-//			}
-//			keys[entry.String()] = true
-//			res = append(res, bytes...)
-//			res = append(res, ';')
-//		}
-//	}
-//	return res[:len(res)-1]
-//}
-
-//// GetUnbondingNodes return a given amount of all the UnbondingMetaNodes
-//func (k Keeper) GetUnbondingNodes(ctx sdk.Context, networkAddr stratos.SdsAddress,
-//	maxRetrieve uint32) (unbondingMetaNodes []types.UnbondingNode) {
-//
-//	unbondingMetaNodes = make([]types.UnbondingNode, maxRetrieve)
-//
-//	store := ctx.KVStore(k.storeKey)
-//	metaNodePrefixKey := types.GetUBDNodeKey(networkAddr)
-//	iterator := sdk.KVStorePrefixIterator(store, metaNodePrefixKey)
-//	defer iterator.Close()
-//
-//	i := 0
-//	for ; iterator.Valid() && i < int(maxRetrieve); iterator.Next() {
-//		unbondingMetaNode := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-//		unbondingMetaNodes[i] = unbondingMetaNode
-//		i++
-//	}
-//	return unbondingMetaNodes[:i] // trim if the array length < maxRetrieve
-//}
 
 // GetUnbondingNode return a unbonding UnbondingMetaNode
 func (k Keeper) GetUnbondingNode(ctx sdk.Context,
@@ -264,21 +177,6 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context,
 	ubd = types.MustUnmarshalUnbondingNode(k.cdc, value)
 	return ubd, true
 }
-
-//// IterateUnbondingNodes iterates through all of the unbonding metaNodes
-//func (k Keeper) IterateUnbondingNodes(ctx sdk.Context, fn func(index int64, ubd types.UnbondingNode) (stop bool)) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
-//	defer iterator.Close()
-//
-//	for i := int64(0); iterator.Valid(); iterator.Next() {
-//		ubd := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-//		if stop := fn(i, ubd); stop {
-//			break
-//		}
-//		i++
-//	}
-//}
 
 // HasMaxUnbondingMetaNodeEntries - check if unbonding MetaNode has maximum number of entries
 func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress) bool {
@@ -438,13 +336,6 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 	return balances, ubd.IsMetaNode, nil
 }
 
-//// CompleteUnbonding performs the same logic as CompleteUnbondingWithAmount except
-//// it does not return the total unbonding amount.
-//func (k Keeper) CompleteUnbonding(ctx sdk.Context, networkAddr stratos.SdsAddress) error {
-//	_, _, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
-//	return err
-//}
-
 func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of meta node
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
@@ -486,6 +377,18 @@ func (k Keeper) UnbondResourceNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
+	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
+	if resourceNode.Suspend {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+	}
+
+	// check if node_token - unbonding_token > amt_to_unbond
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := resourceNode.Tokens.Sub(unbondingStake)
+	if availableStake.LT(amt) {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -497,11 +400,11 @@ func (k Keeper) UnbondResourceNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
 		// adjust ozone limit
-		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
-	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(resourceNode.Tokens) {
+	// change node status to unbonding if unbonding all available tokens
+	if amt.Equal(availableStake) {
 		resourceNode.Status = stakingtypes.Unbonding
 
 		k.SetResourceNode(ctx, resourceNode)
@@ -542,6 +445,18 @@ func (k Keeper) UnbondMetaNode(
 		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
+	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
+	if metaNode.Suspend {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+	}
+
+	// check if node_token - unbonding_token > amt_to_unbond
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := metaNode.Tokens.Sub(unbondingStake)
+	if availableStake.LT(amt) {
+		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	}
+
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
@@ -554,10 +469,10 @@ func (k Keeper) UnbondMetaNode(
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
 		// adjust ozone limit
-		ozoneLimitChange = k.decreaseOzoneLimitBySubtractStake(ctx, amt)
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
-	// change node status to unbonding if unbonding all tokens
-	if amt.Equal(metaNode.Tokens) {
+	// change node status to unbonding if unbonding all available tokens
+	if amt.Equal(availableStake) {
 		metaNode.Status = stakingtypes.Unbonding
 		// decrease meta node count
 		v := k.GetBondedMetaNodeCnt(ctx)
@@ -574,19 +489,6 @@ func (k Keeper) UnbondMetaNode(
 	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 	return ozoneLimitChange, unbondingMatureTime, nil
 }
-
-//// GetAllUnbondingNodes get the set of all ubd nodes with no limits, used during genesis dump
-//func (k Keeper) GetAllUnbondingNodes(ctx sdk.Context) (unbondingNodes []types.UnbondingNode) {
-//	store := ctx.KVStore(k.storeKey)
-//	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
-//	defer iterator.Close()
-//
-//	for ; iterator.Valid(); iterator.Next() {
-//		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
-//		unbondingNodes = append(unbondingNodes, node)
-//	}
-//	return unbondingNodes
-//}
 
 // GetAllUnbondingNodesTotalBalance Iteration for getting the total balance of all unbonding nodes
 func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
@@ -624,37 +526,24 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	return balance
 }
 
-// CurrUozPrice calcs current uoz price
-func (k Keeper) CurrUozPrice(ctx sdk.Context) sdk.Dec {
-	S := k.GetInitialGenesisStakeTotal(ctx)
+// CurrNozPrice calcs current noz price
+func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
+	St := k.GetEffectiveTotalStake(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.GetRemainingOzoneLimit(ctx)
-	currUozPrice := (S.Add(Pt)).ToDec().
+	currNozPrice := (St.Add(Pt)).ToDec().
 		Quo(Lt.ToDec())
-	return currUozPrice
+	return currNozPrice
 }
 
-// UozSupply calc remaining/total supply for uoz
-func (k Keeper) UozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
+// NozSupply calc remaining/total supply for noz
+func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
-	S := k.GetInitialGenesisStakeTotal(ctx)
-	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
-	// total supply = Lt * ( 1 + Pt / S )
-	total = (Pt.ToDec().Quo(S.ToDec()).TruncateInt().Add(sdk.NewInt(1))).Mul(remaining)
+	stakeNozRate := k.GetStakeNozRate(ctx)
+	St := k.GetEffectiveTotalStake(ctx)
+	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
 }
-
-//func (k Keeper) SetInitialGenesisBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
-//	store := ctx.KVStore(k.storeKey)
-//	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
-//	store.Set(types.ResourceNodeCntKey, b)
-//}
-
-//func (k Keeper) SetInitialGenesisBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
-//	store := ctx.KVStore(k.storeKey)
-//	b := types.ModuleCdc.MustMarshal(count)
-//	store.Set(types.MetaNodeCntKey, b)
-//}
 
 func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
@@ -697,4 +586,36 @@ func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 
 func (k Keeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
+}
+
+func (k Keeper) SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
+	store.Set(types.EffectiveGenesisStakeTotalKey, b)
+}
+
+func (k Keeper) GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.EffectiveGenesisStakeTotalKey)
+	if b == nil {
+		return sdk.ZeroInt()
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
+	return
+}
+
+func (k Keeper) SetStakeNozRate(ctx sdk.Context, stakeNozRate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := types.ModuleCdc.MustMarshalLengthPrefixed(stakeNozRate)
+	store.Set(types.StakeNozRateKey, b)
+}
+
+func (k Keeper) GetStakeNozRate(ctx sdk.Context) (stakeNozRate sdk.Dec) {
+	store := ctx.KVStore(k.storeKey)
+	b := store.Get(types.StakeNozRateKey)
+	if b == nil {
+		panic("Stored stake noz rate should not be nil")
+	}
+	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stakeNozRate)
+	return
 }

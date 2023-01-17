@@ -28,11 +28,15 @@ func main() {
 
 // RegisterDenoms registers the base and display denominations to the SDK.
 func registerDenoms() {
-	if err := sdk.RegisterDenom(stratos.DisplayDenom, sdk.OneDec()); err != nil {
+	if err := sdk.RegisterDenom(stratos.Stos, sdk.OneDec()); err != nil {
 		panic(err)
 	}
 
-	if err := sdk.RegisterDenom(stratos.USTOS, sdk.NewDecWithPrec(1, stratos.BaseDenomUnit)); err != nil {
+	if err := sdk.RegisterDenom(stratos.Gwei, sdk.NewDecWithPrec(1, stratos.GweiDenomUnit)); err != nil {
+		panic(err)
+	}
+
+	if err := sdk.RegisterDenom(stratos.Wei, sdk.NewDecWithPrec(1, stratos.WeiDenomUnit)); err != nil {
 		panic(err)
 	}
 }
