@@ -20,7 +20,7 @@
 - <b>Software(tested version)</b>
 
         * Ubuntu 18.04+
-        * Go 1.16+ linux/amd64
+        * Go 1.18+ linux/amd64
 
 
 - <b>Platform</b>
@@ -39,7 +39,7 @@
 ## Connect to `Stratos` Network
 
 ### A Full node on the test Stratos network
-For prerequisites and detailed instructions of connecting to `Tropos Incentive Testnet` network, please refer to [Connecting to Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet).
+For prerequisites and detailed instructions of connecting to `Tropos Incentive Testnet` network, please refer to [Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet).
 
 ### Full node on the main Stratos network - TBA
 Prerequisites and detailed instructions of main network will be added later.
@@ -60,7 +60,7 @@ Prerequisites and detailed instructions of main network will be added later.
 <br>
 
 * [Tropos Incentive Testnet](https://github.com/stratosnet/sds/wiki/Tropos-Incentive-Testnet)
- 
+
 * ['stchaind' Commands(part1)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands(part1))
 
 * [stchaind' Commands(part2)](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-%60stchaind%60-Commands(part2))
@@ -70,6 +70,8 @@ Prerequisites and detailed instructions of main network will be added later.
 * [REST APIs](https://github.com/stratosnet/stratos-chain/wiki/Stratos-Chain-REST-APIs)
 
 * [How to become a validator](https://github.com/stratosnet/stratos-chain/wiki/How-to-Become-a-Validator)
+
+* [`ppd terminal` subcommand](https://github.com/stratosnet/sds/wiki/%60ppd-terminal%60--subcommands)
 
 </details>
 
@@ -91,13 +93,13 @@ Please make sure your contributions adhere to our coding guidelines:
   guidelines.
 * Pull requests need to be based on and opened against the `main` branch.
 * Commit messages should be prefixed with the package(s) they modify.
-  * E.g. "eth, rpc: make trace configs optional"
+    * E.g. "eth, rpc: make trace configs optional"
 
 --- ---
 
 ## License
 
-Copyright 2022 Stratos
+Copyright 2023 Stratos
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
