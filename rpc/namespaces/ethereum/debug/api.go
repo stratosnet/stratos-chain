@@ -72,7 +72,7 @@ func NewAPI(
 func (a *API) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfig) (interface{}, error) {
 	a.logger.Debug("debug_traceTransaction", "hash", hash)
 	// Get transaction by hash
-	transaction, err := a.backend.GetTxByEthHash(hash)
+	transaction, err := a.backend.GetTxByHash(hash)
 	if err != nil {
 		a.logger.Debug("tx not found", "hash", hash)
 		return nil, err
