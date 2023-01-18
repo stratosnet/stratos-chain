@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/node"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -67,7 +68,7 @@ type EVMBackend interface {
 	SendTransaction(args evmtypes.TransactionArgs) (common.Hash, error)
 	GetCoinbase() (sdk.AccAddress, error)
 	GetTransactionByHash(txHash common.Hash) (*types.RPCTransaction, error)
-	GetTxByEthHash(txHash common.Hash) (*tmrpctypes.ResultTx, error)
+	GetTxByHash(txHash common.Hash) (*tmrpctypes.ResultTx, error)
 	GetTxByTxIndex(height int64, txIndex uint) (*tmrpctypes.ResultTx, error)
 	EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *types.BlockNumber) (hexutil.Uint64, error)
 	BaseFee(height int64) (*big.Int, error)
@@ -91,12 +92,13 @@ type Backend struct {
 	ctx         context.Context
 	clientCtx   client.Context
 	queryClient *types.QueryClient // gRPC query client
+	tmNode      *node.Node         // directly tendermint access, new impl
 	logger      log.Logger
 	cfg         config.Config
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
-func NewBackend(ctx *server.Context, logger log.Logger, clientCtx client.Context) *Backend {
+func NewBackend(ctx *server.Context, tmNode *node.Node, logger log.Logger, clientCtx client.Context) *Backend {
 	appConf, err := config.GetConfig(ctx.Viper)
 	if err != nil {
 		panic(err)
@@ -105,6 +107,7 @@ func NewBackend(ctx *server.Context, logger log.Logger, clientCtx client.Context
 	return &Backend{
 		ctx:         context.Background(),
 		clientCtx:   clientCtx,
+		tmNode:      tmNode,
 		queryClient: types.NewQueryClient(clientCtx),
 		logger:      logger.With("module", "backend"),
 		cfg:         appConf,

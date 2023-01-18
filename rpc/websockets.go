@@ -41,7 +41,7 @@ type WebsocketsServer interface {
 type SubscriptionResponseJSON struct {
 	Jsonrpc string      `json:"jsonrpc"`
 	Result  interface{} `json:"result"`
-	ID      float64     `json:"id"`
+	ID      string      `json:"id"`
 }
 
 type SubscriptionNotification struct {
@@ -202,7 +202,7 @@ func (s *websocketsServer) readLoop(wsConn *wsConn) {
 			continue
 		}
 
-		connID, ok := msg["id"].(float64)
+		connID, ok := msg["id"].(string)
 		if !ok {
 			s.sendErrResponse(
 				wsConn,

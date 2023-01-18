@@ -392,7 +392,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	e.logger.Debug("eth_getTransactionLogs", "hash", txHash)
 
 	hexTx := txHash.Hex()
-	res, err := e.backend.GetTxByEthHash(txHash)
+	res, err := e.backend.GetTxByHash(txHash)
 	if err != nil {
 		e.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, nil
@@ -528,7 +528,12 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 		return common.Hash{}, err
 	}
 
-	txHash := ethereumTx.AsTransaction().Hash()
+	ethTx := ethereumTx.AsTransaction()
+	if !ethTx.Protected() {
+		// Ensure only eip155 signed transactions are submitted.
+		return common.Hash{}, errors.New("legacy pre-eip-155 transactions not supported")
+	}
+	txHash := ethTx.Hash()
 
 	syncCtx := e.clientCtx.WithBroadcastMode(flags.BroadcastSync)
 	rsp, err := syncCtx.BroadcastTx(txBytes)
@@ -806,7 +811,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (map[string]interfac
 	hexTx := hash.Hex()
 	e.logger.Debug("eth_getTransactionReceipt", "hash", hexTx)
 
-	res, err := e.backend.GetTxByEthHash(hash)
+	res, err := e.backend.GetTxByHash(hash)
 	if err != nil {
 		e.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, nil
