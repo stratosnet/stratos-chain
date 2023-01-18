@@ -6,6 +6,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
+	"github.com/tendermint/tendermint/node"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -18,7 +19,7 @@ import (
 )
 
 // StartJSONRPC starts the JSON-RPC server
-func StartJSONRPC(ctx *server.Context, clientCtx client.Context, tmRPCAddr, tmEndpoint string, config config.Config) (*http.Server, chan struct{}, error) {
+func StartJSONRPC(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, tmRPCAddr, tmEndpoint string, config config.Config) (*http.Server, chan struct{}, error) {
 	tmWsClient := ConnectTmWS(tmRPCAddr, tmEndpoint, ctx.Logger)
 
 	logger := ctx.Logger.With("module", "geth")
@@ -37,7 +38,7 @@ func StartJSONRPC(ctx *server.Context, clientCtx client.Context, tmRPCAddr, tmEn
 	rpcServer := ethrpc.NewServer()
 
 	rpcAPIArr := config.JSONRPC.API
-	apis := rpc.GetRPCAPIs(ctx, clientCtx, tmWsClient, rpcAPIArr)
+	apis := rpc.GetRPCAPIs(ctx, tmNode, clientCtx, tmWsClient, rpcAPIArr)
 
 	for _, api := range apis {
 		if err := rpcServer.RegisterName(api.Namespace, api.Service); err != nil {

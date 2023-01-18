@@ -5,6 +5,7 @@ package rpc
 import (
 	"fmt"
 
+	"github.com/tendermint/tendermint/node"
 	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -44,16 +45,16 @@ const (
 )
 
 // APICreator creates the JSON-RPC API implementations.
-type APICreator = func(*server.Context, client.Context, *rpcclient.WSClient) []rpc.API
+type APICreator = func(*server.Context, *node.Node, client.Context, *rpcclient.WSClient) []rpc.API
 
 // apiCreators defines the JSON-RPC API namespaces.
 var apiCreators map[string]APICreator
 
 func init() {
 	apiCreators = map[string]APICreator{
-		EthNamespace: func(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient) []rpc.API {
+		EthNamespace: func(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, tmWSClient *rpcclient.WSClient) []rpc.API {
 			nonceLock := new(types.AddrLocker)
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+			evmBackend := backend.NewBackend(ctx, tmNode, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: EthNamespace,
@@ -69,7 +70,7 @@ func init() {
 				},
 			}
 		},
-		Web3Namespace: func(*server.Context, client.Context, *rpcclient.WSClient) []rpc.API {
+		Web3Namespace: func(*server.Context, *node.Node, client.Context, *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: Web3Namespace,
@@ -79,7 +80,7 @@ func init() {
 				},
 			}
 		},
-		NetNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
+		NetNamespace: func(ctx *server.Context, _ *node.Node, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: NetNamespace,
@@ -89,8 +90,8 @@ func init() {
 				},
 			}
 		},
-		PersonalNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+		PersonalNamespace: func(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: PersonalNamespace,
@@ -100,7 +101,7 @@ func init() {
 				},
 			}
 		},
-		TxPoolNamespace: func(ctx *server.Context, _ client.Context, _ *rpcclient.WSClient) []rpc.API {
+		TxPoolNamespace: func(ctx *server.Context, _ *node.Node, _ client.Context, _ *rpcclient.WSClient) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: TxPoolNamespace,
@@ -110,8 +111,8 @@ func init() {
 				},
 			}
 		},
-		DebugNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+		DebugNamespace: func(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: DebugNamespace,
@@ -121,8 +122,8 @@ func init() {
 				},
 			}
 		},
-		MinerNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+		MinerNamespace: func(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: MinerNamespace,
@@ -136,12 +137,12 @@ func init() {
 }
 
 // GetRPCAPIs returns the list of all APIs
-func GetRPCAPIs(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient, selectedAPIs []string) []rpc.API {
+func GetRPCAPIs(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, tmWSClient *rpcclient.WSClient, selectedAPIs []string) []rpc.API {
 	var apis []rpc.API
 
 	for _, ns := range selectedAPIs {
 		if creator, ok := apiCreators[ns]; ok {
-			apis = append(apis, creator(ctx, clientCtx, tmWSClient)...)
+			apis = append(apis, creator(ctx, tmNode, clientCtx, tmWSClient)...)
 		} else {
 			ctx.Logger.Error("invalid namespace value", "namespace", ns)
 		}
