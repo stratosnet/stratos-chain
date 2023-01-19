@@ -12,13 +12,15 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-
+	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -159,6 +161,54 @@ func ErrRevertedWith(data []byte) DataError {
 	return &dataError{
 		msg:  "VM execution error.",
 		data: fmt.Sprintf("0x%s", hex.EncodeToString(data)),
+	}
+}
+
+// TmTxToEthTx convert ethereum and rest transaction on ethereum based structure
+func TmTxToEthTx(
+	txConfig client.TxConfig,
+	resTx *tmrpctypes.ResultTx,
+	blockHash common.Hash,
+	blockNumber, index uint64,
+	baseFee *big.Int,
+) (*RPCTransaction, error) {
+	tx, err := txConfig.TxDecoder()(resTx.Tx)
+	if err != nil {
+		return nil, err
+	}
+	// the `msgIndex` is inferred from tx events, should be within the bound.
+	// always taking first into account
+	msg := tx.GetMsgs()[0]
+
+	fmt.Printf("debug res TX structure: %+v", sdktypes.NewResponseResultTx(resTx, nil, "").String())
+
+	if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
+		tx := ethMsg.AsTransaction()
+		return NewRPCTransaction(tx, blockHash, blockNumber, index, baseFee)
+	} else {
+		addr := msg.GetSigners()[0]
+		from := common.BytesToAddress(addr.Bytes())
+		// TODO: Impl this sigs
+		v := (*hexutil.Big)(new(big.Int).SetInt64(0))
+		r := (*hexutil.Big)(new(big.Int).SetInt64(0))
+		s := (*hexutil.Big)(new(big.Int).SetInt64(0))
+		return &RPCTransaction{
+			BlockHash:        &blockHash,
+			BlockNumber:      (*hexutil.Big)(new(big.Int).SetUint64(blockNumber)),
+			Type:             hexutil.Uint64(0),
+			From:             from,
+			Gas:              hexutil.Uint64(resTx.TxResult.GasUsed),
+			GasPrice:         (*hexutil.Big)(new(big.Int).SetInt64(stratos.DefaultGasPrice)),
+			Hash:             common.BytesToHash(resTx.Tx.Hash()),
+			Input:            make(hexutil.Bytes, 0),
+			Nonce:            hexutil.Uint64(0),
+			To:               new(common.Address),
+			TransactionIndex: (*hexutil.Uint64)(&index),
+			Value:            (*hexutil.Big)(new(big.Int).SetInt64(0)), // TODO: Add value
+			V:                v,
+			R:                r,
+			S:                s,
+		}, nil
 	}
 }
 
