@@ -12,16 +12,15 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
-	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/tendermint/tendermint/mempool"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/common/math"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	tmrpccoretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
@@ -164,15 +163,36 @@ func ErrRevertedWith(data []byte) DataError {
 	}
 }
 
+// GetBlockCumulativeGas returns the cumulative gas used on a block up to a given
+// transaction index. The returned gas used includes the gas from both the SDK and
+// EVM module transactions.
+func GetBlockCumulativeGas(blockResults *tmrpccoretypes.ResultBlockResults, idx int) uint64 {
+	var gasUsed uint64
+
+	for i := 0; i < idx && i < len(blockResults.TxsResults); i++ {
+		tx := blockResults.TxsResults[i]
+		gasUsed += uint64(tx.GasUsed)
+	}
+	return gasUsed
+}
+
+func GetPendingTx(mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPCTransaction, error) {
+	for _, uTx := range mem.ReapMaxTxs(50) {
+		if bytes.Equal(uTx.Hash(), hash.Bytes()) {
+			return TmTxToEthTx(nil, uTx, nil, nil, nil)
+		}
+	}
+	return nil, nil
+}
+
 // TmTxToEthTx convert ethereum and rest transaction on ethereum based structure
 func TmTxToEthTx(
 	txConfig client.TxConfig,
-	resTx *tmrpctypes.ResultTx,
-	blockHash common.Hash,
-	blockNumber, index uint64,
-	baseFee *big.Int,
+	tmTx tmtypes.Tx,
+	blockHash *common.Hash,
+	blockNumber, index *uint64,
 ) (*RPCTransaction, error) {
-	tx, err := txConfig.TxDecoder()(resTx.Tx)
+	tx, err := txConfig.TxDecoder()(tmTx)
 	if err != nil {
 		return nil, err
 	}
@@ -180,11 +200,9 @@ func TmTxToEthTx(
 	// always taking first into account
 	msg := tx.GetMsgs()[0]
 
-	fmt.Printf("debug res TX structure: %+v", sdktypes.NewResponseResultTx(resTx, nil, "").String())
-
 	if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
 		tx := ethMsg.AsTransaction()
-		return NewRPCTransaction(tx, blockHash, blockNumber, index, baseFee)
+		return NewRPCTransaction(tx, *blockHash, *blockNumber, *index)
 	} else {
 		addr := msg.GetSigners()[0]
 		from := common.BytesToAddress(addr.Bytes())
@@ -193,17 +211,17 @@ func TmTxToEthTx(
 		r := (*hexutil.Big)(new(big.Int).SetInt64(0))
 		s := (*hexutil.Big)(new(big.Int).SetInt64(0))
 		return &RPCTransaction{
-			BlockHash:        &blockHash,
-			BlockNumber:      (*hexutil.Big)(new(big.Int).SetUint64(blockNumber)),
+			BlockHash:        blockHash,
+			BlockNumber:      (*hexutil.Big)(new(big.Int).SetUint64(*blockNumber)),
 			Type:             hexutil.Uint64(0),
 			From:             from,
-			Gas:              hexutil.Uint64(resTx.TxResult.GasUsed),
+			Gas:              hexutil.Uint64(0), // TODO: Add gas
 			GasPrice:         (*hexutil.Big)(new(big.Int).SetInt64(stratos.DefaultGasPrice)),
-			Hash:             common.BytesToHash(resTx.Tx.Hash()),
+			Hash:             common.BytesToHash(tmTx.Hash()),
 			Input:            make(hexutil.Bytes, 0),
 			Nonce:            hexutil.Uint64(0),
 			To:               new(common.Address),
-			TransactionIndex: (*hexutil.Uint64)(&index),
+			TransactionIndex: (*hexutil.Uint64)(index),
 			Value:            (*hexutil.Big)(new(big.Int).SetInt64(0)), // TODO: Add value
 			V:                v,
 			R:                r,
@@ -218,16 +236,15 @@ func NewTransactionFromMsg(
 	msg *evmtypes.MsgEthereumTx,
 	blockHash common.Hash,
 	blockNumber, index uint64,
-	baseFee *big.Int,
 ) (*RPCTransaction, error) {
 	tx := msg.AsTransaction()
-	return NewRPCTransaction(tx, blockHash, blockNumber, index, baseFee)
+	return NewRPCTransaction(tx, blockHash, blockNumber, index)
 }
 
 // NewTransactionFromData returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func NewRPCTransaction(
-	tx *ethtypes.Transaction, blockHash common.Hash, blockNumber, index uint64, baseFee *big.Int,
+	tx *ethtypes.Transaction, blockHash common.Hash, blockNumber, index uint64,
 ) (*RPCTransaction, error) {
 	// Determine the signer. For replay-protected transactions, use the most permissive
 	// signer, because we assume that signers are backwards-compatible with old
@@ -271,14 +288,7 @@ func NewRPCTransaction(
 		result.ChainID = (*hexutil.Big)(tx.ChainId())
 		result.GasFeeCap = (*hexutil.Big)(tx.GasFeeCap())
 		result.GasTipCap = (*hexutil.Big)(tx.GasTipCap())
-		// if the transaction has been mined, compute the effective gas price
-		if baseFee != nil && blockHash != (common.Hash{}) {
-			// price = min(tip, gasFeeCap - baseFee) + baseFee
-			price := math.BigMin(new(big.Int).Add(tx.GasTipCap(), baseFee), tx.GasFeeCap())
-			result.GasPrice = (*hexutil.Big)(price)
-		} else {
-			result.GasPrice = (*hexutil.Big)(tx.GasFeeCap())
-		}
+		result.GasPrice = (*hexutil.Big)(tx.GasPrice())
 	}
 	return result, nil
 }

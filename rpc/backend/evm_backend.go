@@ -317,7 +317,6 @@ func (b *Backend) EthBlockFromTendermint(
 				common.BytesToHash(block.Hash()),
 				uint64(block.Height),
 				txIndex,
-				baseFee,
 			)
 			if err != nil {
 				b.logger.Debug("NewTransactionFromData for receipt failed", "hash", tx.Hash().Hex(), "error", err.Error())
@@ -565,55 +564,33 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
 func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransaction, error) {
 	res, err := b.GetTxByHash(txHash)
-	// hexTx := txHash.Hex()
-	// TODO: Reimplement in generic way with basic transaction handling
-	// if err != nil {
-	// 	// try to find tx in mempool
-	// 	txs, err := b.PendingTransactions()
+	b.logger.Debug("debug res TX structure: %+v", sdk.NewResponseResultTx(res, nil, "").String())
 	if err != nil {
-		b.logger.Debug("tx not found", "hash", txHash, "error", err.Error())
-		return nil, nil
+		// TODO: Get chain id value from genesis
+		tx, err := types.GetPendingTx(b.GetMempool(), txHash, b.ChainConfig().ChainID)
+		if err != nil {
+			b.logger.Debug("tx not found", "hash", txHash, "error", err.Error())
+			return nil, nil
+		}
+		return tx, nil
 	}
 
-	// 	for _, tx := range txs {
-	// 		msg, err := evmtypes.UnwrapEthereumMsg(tx, txHash)
-	// 		if err != nil {
-	// 			// not ethereum tx
-	// 			continue
-	// 		}
-
-	// 		if msg.Hash == hexTx {
-	// 			rpctx, err := types.NewTransactionFromMsg(
-	// 				msg,
-	// 				common.Hash{},
-	// 				uint64(0),
-	// 				uint64(0),
-	// 				b.ChainConfig().ChainID,
-	// 			)
-	// 			if err != nil {
-	// 				return nil, err
-	// 			}
-	// 			return rpctx, nil
-	// 		}
-	// 	}
-
-	// 	b.logger.Debug("tx not found", "hash", hexTx)
-	// 	return nil, nil
-	// }
-	block := b.tmNode.BlockStore().LoadBlock(res.Height)
+	block := b.GetBlockStore().LoadBlock(res.Height)
 	if block == nil {
 		b.logger.Debug("eth_getTransactionByHash", "hash", txHash, "block not found")
 		return nil, err
 	}
 
+	blockHash := common.BytesToHash(block.Hash())
+	blockHeight := uint64(res.Height)
+	txIndex := uint64(res.Index)
+
 	return types.TmTxToEthTx(
 		b.clientCtx.TxConfig,
-		res,
-		common.BytesToHash(block.Hash()),
-		uint64(res.Height),
-		uint64(res.Index),
-		// TODO: Get this value from genesis
-		b.ChainConfig().ChainID,
+		res.Tx,
+		&blockHash,
+		&blockHeight,
+		&txIndex,
 	)
 }
 

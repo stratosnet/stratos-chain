@@ -6,8 +6,10 @@ import (
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
+	"github.com/tendermint/tendermint/mempool"
 	"github.com/tendermint/tendermint/node"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/tendermint/tendermint/store"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -28,6 +30,7 @@ import (
 type BackendI interface { // nolint: revive
 	CosmosBackend
 	EVMBackend
+	TMBackend
 }
 
 // CosmosBackend implements the functionality shared within cosmos namespaces
@@ -85,6 +88,12 @@ type EVMBackend interface {
 	GetEthereumMsgsFromTendermintBlock(block *tmrpctypes.ResultBlock, blockRes *tmrpctypes.ResultBlockResults) []*evmtypes.MsgEthereumTx
 }
 
+type TMBackend interface {
+	// tendermint helpers
+	GetBlockStore() *store.BlockStore
+	GetMempool() mempool.Mempool
+}
+
 var _ BackendI = (*Backend)(nil)
 
 // Backend implements the BackendI interface
@@ -112,4 +121,12 @@ func NewBackend(ctx *server.Context, tmNode *node.Node, logger log.Logger, clien
 		logger:      logger.With("module", "backend"),
 		cfg:         appConf,
 	}
+}
+
+func (b *Backend) GetBlockStore() *store.BlockStore {
+	return b.tmNode.BlockStore()
+}
+
+func (b *Backend) GetMempool() mempool.Mempool {
+	return b.tmNode.Mempool()
 }
