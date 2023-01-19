@@ -20,6 +20,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	tmjsonrpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -599,35 +600,15 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransactio
 	// 	b.logger.Debug("tx not found", "hash", hexTx)
 	// 	return nil, nil
 	// }
-
-	if res.TxResult.Code != 0 {
-		return nil, errors.New("invalid ethereum tx")
-	}
-
-	tx, err := b.clientCtx.TxConfig.TxDecoder()(res.Tx)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(tx.GetMsgs()) == 0 {
-		return nil, errors.New("cosmos tx empty msg")
-	}
-
-	// the `msgIndex` is inferred from tx events, should be within the bound.
-	// always taking first into account
-	msg, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
-	if !ok {
-		return nil, errors.New("invalid ethereum tx")
-	}
-
 	block := b.tmNode.BlockStore().LoadBlock(res.Height)
 	if block == nil {
 		b.logger.Debug("eth_getTransactionByHash", "hash", txHash, "block not found")
 		return nil, err
 	}
 
-	return types.NewTransactionFromMsg(
-		msg,
+	return types.TmTxToEthTx(
+		b.clientCtx.TxConfig,
+		res,
 		common.BytesToHash(block.Hash()),
 		uint64(res.Height),
 		uint64(res.Index),
@@ -639,7 +620,15 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransactio
 func (b *Backend) GetTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
 	resTx, err := tmrpccore.Tx(nil, hash.Bytes(), false)
 	if err != nil {
-		return nil, err
+		query := fmt.Sprintf("%s.%s='%s'", evmtypes.TypeMsgEthereumTx, evmtypes.AttributeKeyEthereumTxHash, hash.Hex())
+		resTxs, err := tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
+		if err != nil {
+			return nil, err
+		}
+		if len(resTxs.Txs) == 0 {
+			return nil, errors.Errorf("ethereum tx not found for hash %s", hash.Hex())
+		}
+		return resTxs.Txs[0], nil
 	}
 	return resTx, nil
 }
@@ -650,7 +639,7 @@ func (b *Backend) GetTxByTxIndex(height int64, index uint) (*tmrpctypes.ResultTx
 		height, evmtypes.TypeMsgEthereumTx,
 		evmtypes.AttributeKeyTxIndex, index,
 	)
-	resTxs, err := b.clientCtx.Client.TxSearch(b.ctx, query, false, nil, nil, "")
+	resTxs, err := tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
 	if err != nil {
 		return nil, err
 	}
