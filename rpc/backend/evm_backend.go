@@ -83,7 +83,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map
 
 // GetBlockByHash returns the block identified by hash.
 func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error) {
-	resBlock, err := b.clientCtx.Client.BlockByHash(b.ctx, hash.Bytes())
+	resBlock, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		b.logger.Debug("BlockByHash block not found", "hash", hash.Hex(), "error", err.Error())
 		return nil, err
@@ -120,7 +120,7 @@ func (b *Backend) BlockByNumber(blockNum types.BlockNumber) (*ethtypes.Block, er
 		}
 	}
 
-	resBlock, err := b.clientCtx.Client.Block(b.ctx, &height)
+	resBlock, err := tmrpccore.Block(nil, &height)
 	if err != nil {
 		b.logger.Debug("HeaderByNumber failed", "height", height)
 		return nil, err
@@ -135,7 +135,7 @@ func (b *Backend) BlockByNumber(blockNum types.BlockNumber) (*ethtypes.Block, er
 
 // BlockByHash returns the block identified by hash.
 func (b *Backend) BlockByHash(hash common.Hash) (*ethtypes.Block, error) {
-	resBlock, err := b.clientCtx.Client.BlockByHash(b.ctx, hash.Bytes())
+	resBlock, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		b.logger.Debug("HeaderByHash failed", "hash", hash.Hex())
 		return nil, err
@@ -212,9 +212,9 @@ func (b *Backend) GetTendermintBlockByNumber(blockNum types.BlockNumber) (*tmrpc
 		}
 	}
 
-	resBlock, err := b.clientCtx.Client.Block(b.ctx, &height)
+	resBlock, err := tmrpccore.Block(nil, &height)
 	if err != nil {
-		if resBlock, err = b.clientCtx.Client.Block(b.ctx, nil); err != nil {
+		if resBlock, err = tmrpccore.Block(nil, nil); err != nil {
 			b.logger.Debug("tendermint client failed to get latest block", "height", height, "error", err.Error())
 			return nil, nil
 		}
@@ -230,7 +230,7 @@ func (b *Backend) GetTendermintBlockByNumber(blockNum types.BlockNumber) (*tmrpc
 
 // GetTendermintBlockByHash returns a Tendermint format block by block number
 func (b *Backend) GetTendermintBlockByHash(blockHash common.Hash) (*tmrpctypes.ResultBlock, error) {
-	resBlock, err := b.clientCtx.Client.BlockByHash(b.ctx, blockHash.Bytes())
+	resBlock, err := tmrpccore.BlockByHash(nil, blockHash.Bytes())
 	if err != nil {
 		b.logger.Debug("tendermint client failed to get block", "blockHash", blockHash.Hex(), "error", err.Error())
 	}
@@ -245,7 +245,7 @@ func (b *Backend) GetTendermintBlockByHash(blockHash common.Hash) (*tmrpctypes.R
 
 // BlockBloom query block bloom filter from block results
 func (b *Backend) BlockBloom(height *int64) (ethtypes.Bloom, error) {
-	result, err := b.clientCtx.Client.BlockResults(b.ctx, height)
+	result, err := tmrpccore.BlockResults(nil, height)
 	if err != nil {
 		return ethtypes.Bloom{}, err
 	}
@@ -277,7 +277,7 @@ func (b *Backend) EthBlockFromTendermint(
 		return nil, err
 	}
 
-	resBlockResult, err := b.clientCtx.Client.BlockResults(ctx, &block.Height)
+	resBlockResult, err := tmrpccore.BlockResults(nil, &block.Height)
 	if err != nil {
 		return nil, err
 	}
@@ -407,7 +407,7 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, 
 		}
 	}
 
-	resBlock, err := b.clientCtx.Client.Block(b.ctx, &height)
+	resBlock, err := tmrpccore.Block(nil, &height)
 	if err != nil {
 		b.logger.Debug("HeaderByNumber failed")
 		return nil, err
@@ -430,7 +430,7 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, 
 
 // HeaderByHash returns the block header identified by hash.
 func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) {
-	resBlock, err := b.clientCtx.Client.BlockByHash(b.ctx, blockHash.Bytes())
+	resBlock, err := tmrpccore.BlockByHash(nil, blockHash.Bytes())
 	if err != nil {
 		b.logger.Debug("HeaderByHash failed", "hash", blockHash.Hex())
 		return nil, err
@@ -458,13 +458,10 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 // PendingTransactions returns the transactions that are in the transaction pool
 // and have a from address that is one of the accounts this node manages.
 func (b *Backend) PendingTransactions() ([]*sdk.Tx, error) {
-	res, err := b.clientCtx.Client.UnconfirmedTxs(b.ctx, nil)
-	if err != nil {
-		return nil, err
-	}
+	txs := b.GetMempool().ReapMaxTxs(100)
 
-	result := make([]*sdk.Tx, 0, len(res.Txs))
-	for _, txBz := range res.Txs {
+	result := make([]*sdk.Tx, 0, len(txs))
+	for _, txBz := range txs {
 		tx, err := b.clientCtx.TxConfig.TxDecoder()(txBz)
 		if err != nil {
 			return nil, err
@@ -478,7 +475,7 @@ func (b *Backend) PendingTransactions() ([]*sdk.Tx, error) {
 // GetLogsByHeight returns all the logs from all the ethereum transactions in a block.
 func (b *Backend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 	// NOTE: we query the state in case the tx result logs are not persisted after an upgrade.
-	blockRes, err := b.clientCtx.Client.BlockResults(b.ctx, height)
+	blockRes, err := tmrpccore.BlockResults(nil, height)
 	if err != nil {
 		return nil, err
 	}
@@ -498,7 +495,7 @@ func (b *Backend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 
 // GetLogs returns all the logs from all the ethereum transactions in a block.
 func (b *Backend) GetLogs(hash common.Hash) ([][]*ethtypes.Log, error) {
-	block, err := b.clientCtx.Client.BlockByHash(b.ctx, hash.Bytes())
+	block, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		return nil, err
 	}
@@ -538,12 +535,7 @@ func (b *Backend) BloomStatus() (uint64, uint64) {
 
 // GetCoinbase is the address that staking rewards will be send to (alias for Etherbase).
 func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
-	node, err := b.clientCtx.GetNode()
-	if err != nil {
-		return nil, err
-	}
-
-	status, err := node.Status(b.ctx)
+	status, err := tmrpccore.Status(nil)
 	if err != nil {
 		return nil, err
 	}
@@ -552,7 +544,7 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 		ConsAddress: sdk.ConsAddress(status.ValidatorInfo.Address).String(),
 	}
 
-	res, err := b.queryClient.ValidatorAccount(b.ctx, req)
+	res, err := b.GetEVMKeeper().ValidatorAccount(b.ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -586,7 +578,6 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransactio
 	txIndex := uint64(res.Index)
 
 	return types.TmTxToEthTx(
-		b.clientCtx.TxConfig,
 		res.Tx,
 		&blockHash,
 		&blockHeight,
@@ -660,7 +651,7 @@ func (b *Backend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash, e
 	}
 
 	// Query params to use the EVM denomination
-	res, err := b.queryClient.QueryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{})
+	res, err := b.GetEVMKeeper().Params(b.ctx, &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		b.logger.Error("failed to query evm params", "error", err.Error())
 		return common.Hash{}, err
@@ -924,7 +915,7 @@ func (b *Backend) FeeHistory(
 		}
 
 		// tendermint block result
-		tendermintBlockResult, err := b.clientCtx.Client.BlockResults(b.ctx, &tendermintblock.Block.Height)
+		tendermintBlockResult, err := tmrpccore.BlockResults(nil, &tendermintblock.Block.Height)
 		if tendermintBlockResult == nil {
 			b.logger.Debug("block result not found", "height", tendermintblock.Block.Height, "error", err.Error())
 			return nil, err

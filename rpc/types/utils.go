@@ -15,11 +15,15 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/mempool"
 
+	sdkcodec "github.com/cosmos/cosmos-sdk/codec"
+	sdkcodectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 	tmrpccoretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
@@ -71,7 +75,7 @@ func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFe
 
 // BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
 func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Context, blockHeight int64) (int64, error) {
-	resConsParams, err := clientCtx.Client.ConsensusParams(goCtx, &blockHeight)
+	resConsParams, err := tmrpccore.ConsensusParams(nil, &blockHeight)
 	if err != nil {
 		return int64(^uint32(0)), err
 	}
@@ -179,7 +183,7 @@ func GetBlockCumulativeGas(blockResults *tmrpccoretypes.ResultBlockResults, idx 
 func GetPendingTx(mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPCTransaction, error) {
 	for _, uTx := range mem.ReapMaxTxs(50) {
 		if bytes.Equal(uTx.Hash(), hash.Bytes()) {
-			return TmTxToEthTx(nil, uTx, nil, nil, nil)
+			return TmTxToEthTx(uTx, nil, nil, nil)
 		}
 	}
 	return nil, nil
@@ -187,11 +191,13 @@ func GetPendingTx(mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPC
 
 // TmTxToEthTx convert ethereum and rest transaction on ethereum based structure
 func TmTxToEthTx(
-	txConfig client.TxConfig,
 	tmTx tmtypes.Tx,
 	blockHash *common.Hash,
 	blockNumber, index *uint64,
 ) (*RPCTransaction, error) {
+	interfaceRegistry := sdkcodectypes.NewInterfaceRegistry()
+	marshaler := sdkcodec.NewProtoCodec(interfaceRegistry)
+	txConfig := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
 	tx, err := txConfig.TxDecoder()(tmTx)
 	if err != nil {
 		return nil, err
