@@ -16,10 +16,11 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc"
 	"github.com/stratosnet/stratos-chain/server/config"
+	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 )
 
 // StartJSONRPC starts the JSON-RPC server
-func StartJSONRPC(ctx *server.Context, tmNode *node.Node, clientCtx client.Context, tmRPCAddr, tmEndpoint string, config config.Config) (*http.Server, chan struct{}, error) {
+func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, clientCtx client.Context, tmRPCAddr, tmEndpoint string, config config.Config) (*http.Server, chan struct{}, error) {
 	tmWsClient := ConnectTmWS(tmRPCAddr, tmEndpoint, ctx.Logger)
 
 	logger := ctx.Logger.With("module", "geth")
@@ -38,7 +39,7 @@ func StartJSONRPC(ctx *server.Context, tmNode *node.Node, clientCtx client.Conte
 	rpcServer := ethrpc.NewServer()
 
 	rpcAPIArr := config.JSONRPC.API
-	apis := rpc.GetRPCAPIs(ctx, tmNode, clientCtx, tmWsClient, rpcAPIArr)
+	apis := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, clientCtx, tmWsClient, rpcAPIArr)
 
 	for _, api := range apis {
 		if err := rpcServer.RegisterName(api.Namespace, api.Service); err != nil {

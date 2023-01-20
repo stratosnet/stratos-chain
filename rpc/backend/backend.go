@@ -5,9 +5,11 @@ import (
 	"math/big"
 	"time"
 
+	cs "github.com/tendermint/tendermint/consensus"
 	"github.com/tendermint/tendermint/libs/log"
 	"github.com/tendermint/tendermint/mempool"
 	"github.com/tendermint/tendermint/node"
+	"github.com/tendermint/tendermint/p2p"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 	"github.com/tendermint/tendermint/store"
 
@@ -23,6 +25,7 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
+	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -41,6 +44,7 @@ type CosmosBackend interface {
 	// GetAccounts()
 	// SignDirect()
 	// SignAmino()
+	GetEVMKeeper() *evmkeeper.Keeper
 }
 
 // EVMBackend implements the functionality shared within ethereum namespaces
@@ -90,8 +94,11 @@ type EVMBackend interface {
 
 type TMBackend interface {
 	// tendermint helpers
+	GetNode() *node.Node
 	GetBlockStore() *store.BlockStore
 	GetMempool() mempool.Mempool
+	GetConsensusReactor() *cs.Reactor
+	GetSwitch() *p2p.Switch
 }
 
 var _ BackendI = (*Backend)(nil)
@@ -102,12 +109,13 @@ type Backend struct {
 	clientCtx   client.Context
 	queryClient *types.QueryClient // gRPC query client
 	tmNode      *node.Node         // directly tendermint access, new impl
+	evmkeeper   *evmkeeper.Keeper
 	logger      log.Logger
 	cfg         config.Config
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
-func NewBackend(ctx *server.Context, tmNode *node.Node, logger log.Logger, clientCtx client.Context) *Backend {
+func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Keeper, logger log.Logger, clientCtx client.Context) *Backend {
 	appConf, err := config.GetConfig(ctx.Viper)
 	if err != nil {
 		panic(err)
@@ -117,10 +125,20 @@ func NewBackend(ctx *server.Context, tmNode *node.Node, logger log.Logger, clien
 		ctx:         context.Background(),
 		clientCtx:   clientCtx,
 		tmNode:      tmNode,
+		evmkeeper:   evmkeeper,
 		queryClient: types.NewQueryClient(clientCtx),
 		logger:      logger.With("module", "backend"),
 		cfg:         appConf,
 	}
+}
+
+func (b *Backend) GetEVMKeeper() *evmkeeper.Keeper {
+	// TODO: Make readonly storage access only
+	return b.evmkeeper
+}
+
+func (b *Backend) GetNode() *node.Node {
+	return b.tmNode
 }
 
 func (b *Backend) GetBlockStore() *store.BlockStore {
@@ -129,4 +147,12 @@ func (b *Backend) GetBlockStore() *store.BlockStore {
 
 func (b *Backend) GetMempool() mempool.Mempool {
 	return b.tmNode.Mempool()
+}
+
+func (b *Backend) GetConsensusReactor() *cs.Reactor {
+	return b.tmNode.ConsensusReactor()
+}
+
+func (b *Backend) GetSwitch() *p2p.Switch {
+	return b.tmNode.Switch()
 }

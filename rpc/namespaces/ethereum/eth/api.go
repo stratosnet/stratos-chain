@@ -146,7 +146,11 @@ func (e *PublicAPI) ChainId() (*hexutil.Big, error) { // nolint
 func (e *PublicAPI) Syncing() (interface{}, error) {
 	e.logger.Debug("eth_syncing")
 
-	status, err := e.clientCtx.Client.Status(e.ctx)
+	if !e.backend.GetConsensusReactor().WaitSync() {
+		return false, nil
+	}
+
+	status, err := tmrpccore.Status(nil)
 	if err != nil {
 		return false, err
 	}
@@ -158,9 +162,9 @@ func (e *PublicAPI) Syncing() (interface{}, error) {
 	return map[string]interface{}{
 		"startingBlock": hexutil.Uint64(status.SyncInfo.EarliestBlockHeight),
 		"currentBlock":  hexutil.Uint64(status.SyncInfo.LatestBlockHeight),
-		// "highestBlock":  nil, // NA
-		// "pulledStates":  nil, // NA
-		// "knownStates":   nil, // NA
+		"highestBlock":  nil, // NA
+		"pulledStates":  nil, // NA
+		"knownStates":   nil, // NA
 	}, nil
 }
 
@@ -312,7 +316,7 @@ func (e *PublicAPI) GetTransactionCount(address common.Address, blockNrOrHash rp
 func (e *PublicAPI) GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Uint {
 	e.logger.Debug("eth_getBlockTransactionCountByHash", "hash", hash.Hex())
 
-	block, err := e.clientCtx.Client.BlockByHash(e.ctx, hash.Bytes())
+	block, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		e.logger.Debug("block not found", "hash", hash.Hex(), "error", err.Error())
 		return nil
@@ -323,7 +327,7 @@ func (e *PublicAPI) GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Ui
 		return nil
 	}
 
-	blockRes, err := e.clientCtx.Client.BlockResults(e.ctx, &block.Block.Height)
+	blockRes, err := tmrpccore.BlockResults(nil, &block.Block.Height)
 	if err != nil {
 		return nil
 	}
@@ -336,7 +340,7 @@ func (e *PublicAPI) GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Ui
 // GetBlockTransactionCountByNumber returns the number of transactions in the block identified by number.
 func (e *PublicAPI) GetBlockTransactionCountByNumber(blockNum rpctypes.BlockNumber) *hexutil.Uint {
 	e.logger.Debug("eth_getBlockTransactionCountByNumber", "height", blockNum.Int64())
-	block, err := e.clientCtx.Client.Block(e.ctx, blockNum.TmHeight())
+	block, err := tmrpccore.Block(nil, blockNum.TmHeight())
 	if err != nil {
 		e.logger.Debug("block not found", "height", blockNum.Int64(), "error", err.Error())
 		return nil
@@ -347,7 +351,7 @@ func (e *PublicAPI) GetBlockTransactionCountByNumber(blockNum rpctypes.BlockNumb
 		return nil
 	}
 
-	blockRes, err := e.clientCtx.Client.BlockResults(e.ctx, &block.Block.Height)
+	blockRes, err := tmrpccore.BlockResults(nil, &block.Block.Height)
 	if err != nil {
 		return nil
 	}
@@ -747,7 +751,7 @@ func (e *PublicAPI) getTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock,
 			return nil, nil
 		}
 	} else {
-		blockRes, err := e.clientCtx.Client.BlockResults(e.ctx, &block.Block.Height)
+		blockRes, err := tmrpccore.BlockResults(nil, &block.Block.Height)
 		if err != nil {
 			return nil, nil
 		}
@@ -774,7 +778,7 @@ func (e *PublicAPI) getTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock,
 func (e *PublicAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
 	e.logger.Debug("eth_getTransactionByBlockHashAndIndex", "hash", hash.Hex(), "index", idx)
 
-	block, err := e.clientCtx.Client.BlockByHash(e.ctx, hash.Bytes())
+	block, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		e.logger.Debug("block not found", "hash", hash.Hex(), "error", err.Error())
 		return nil, nil
@@ -792,7 +796,7 @@ func (e *PublicAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexu
 func (e *PublicAPI) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockNumber, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
 	e.logger.Debug("eth_getTransactionByBlockNumberAndIndex", "number", blockNum, "index", idx)
 
-	block, err := e.clientCtx.Client.Block(e.ctx, blockNum.TmHeight())
+	block, err := tmrpccore.Block(nil, blockNum.TmHeight())
 	if err != nil {
 		e.logger.Debug("block not found", "height", blockNum.Int64(), "error", err.Error())
 		return nil, nil
@@ -831,7 +835,6 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 	txIndex := uint64(res.Index)
 
 	rpcTx, err := rpctypes.TmTxToEthTx(
-		e.clientCtx.TxConfig,
 		res.Tx,
 		&blockHash,
 		&blockHeight,
@@ -933,7 +936,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 // 		return nil, fmt.Errorf("ethereum tx not found in msgs: %s", hexTx)
 // 	}
 
-// 	resBlock, err := e.clientCtx.Client.Block(e.ctx, &res.Height)
+// 	resBlock, err := tmrpccore.Block(nil, &res.Height)
 // 	if err != nil {
 // 		e.logger.Debug("block not found", "height", res.Height, "error", err.Error())
 // 		return nil, nil
@@ -960,7 +963,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 // 	}
 
 // 	cumulativeGasUsed := uint64(0)
-// 	blockRes, err := e.clientCtx.Client.BlockResults(e.ctx, &res.Height)
+// 	blockRes, err := tmrpccore.BlockResults(nil, &res.Height)
 // 	if err != nil {
 // 		e.logger.Debug("failed to retrieve block results", "height", res.Height, "error", err.Error())
 // 		return nil, nil
