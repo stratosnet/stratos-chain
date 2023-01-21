@@ -5,12 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
-	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
@@ -26,7 +23,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	grpctypes "github.com/cosmos/cosmos-sdk/types/grpc"
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -40,24 +36,16 @@ var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
 // Because abci app state could lag behind from tendermint latest block, it's more stable
 // for the client to use the latest block number in abci app state than tendermint rpc.
 func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
-	// do any grpc query, ignore the response and use the returned block height
-	var header metadata.MD
-	_, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{}, grpc.Header(&header))
+	res, err := tmrpccore.Block(nil, nil)
 	if err != nil {
 		return hexutil.Uint64(0), err
 	}
 
-	blockHeightHeader := header.Get(grpctypes.GRPCBlockHeightHeader)
-	if headerLen := len(blockHeightHeader); headerLen != 1 {
-		return 0, fmt.Errorf("unexpected '%s' gRPC header length; got %d, expected: %d", grpctypes.GRPCBlockHeightHeader, headerLen, 1)
+	if res.Block == nil {
+		return hexutil.Uint64(0), errors.Errorf("block store not loaded")
 	}
 
-	height, err := strconv.ParseUint(blockHeightHeader[0], 10, 64)
-	if err != nil {
-		return 0, fmt.Errorf("failed to parse block height: %w", err)
-	}
-
-	return hexutil.Uint64(height), nil
+	return hexutil.Uint64(res.Block.Height), nil
 }
 
 // GetBlockByNumber returns the block identified by number.
@@ -155,7 +143,7 @@ func (b *Backend) EthBlockFromTm(block *tmtypes.Block) (*ethtypes.Block, error) 
 		b.logger.Debug("HeaderByNumber BlockBloom failed", "height", height)
 	}
 
-	baseFee, err := b.BaseFee(height)
+	baseFee, err := b.BaseFee()
 	if err != nil {
 		b.logger.Debug("HeaderByNumber BaseFee failed", "height", height, "error", err.Error())
 		return nil, err
@@ -270,9 +258,7 @@ func (b *Backend) EthBlockFromTendermint(
 ) (map[string]interface{}, error) {
 	ethRPCTxs := []interface{}{}
 
-	ctx := types.ContextWithHeight(block.Height)
-
-	baseFee, err := b.BaseFee(block.Height)
+	baseFee, err := b.BaseFee()
 	if err != nil {
 		return nil, err
 	}
@@ -336,7 +322,8 @@ func (b *Backend) EthBlockFromTendermint(
 		ConsAddress: sdk.ConsAddress(block.Header.ProposerAddress).String(),
 	}
 
-	res, err := b.queryClient.ValidatorAccount(ctx, req)
+	sdkCtx := b.GetSdkContext(&block.Header)
+	res, err := b.GetEVMKeeper().ValidatorAccount(sdk.WrapSDKContext(sdkCtx), req)
 	if err != nil {
 		b.logger.Debug(
 			"failed to query validator operator address",
@@ -354,7 +341,7 @@ func (b *Backend) EthBlockFromTendermint(
 
 	validatorAddr := common.BytesToAddress(addr)
 
-	gasLimit, err := types.BlockMaxGasFromConsensusParams(ctx, b.clientCtx, block.Height)
+	gasLimit, err := types.BlockMaxGasFromConsensusParams(b.clientCtx, block.Height)
 	if err != nil {
 		b.logger.Error("failed to query consensus params", "error", err.Error())
 	}
@@ -418,7 +405,7 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, 
 		b.logger.Debug("HeaderByNumber BlockBloom failed", "height", resBlock.Block.Height)
 	}
 
-	baseFee, err := b.BaseFee(resBlock.Block.Height)
+	baseFee, err := b.BaseFee()
 	if err != nil {
 		b.logger.Debug("HeaderByNumber BaseFee failed", "height", resBlock.Block.Height, "error", err.Error())
 		return nil, err
@@ -445,7 +432,7 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 		b.logger.Debug("HeaderByHash BlockBloom failed", "height", resBlock.Block.Height)
 	}
 
-	baseFee, err := b.BaseFee(resBlock.Block.Height)
+	baseFee, err := b.BaseFee()
 	if err != nil {
 		b.logger.Debug("HeaderByHash BaseFee failed", "height", resBlock.Block.Height, "error", err.Error())
 		return nil, err
@@ -651,7 +638,8 @@ func (b *Backend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash, e
 	}
 
 	// Query params to use the EVM denomination
-	res, err := b.GetEVMKeeper().Params(b.ctx, &evmtypes.QueryParamsRequest{})
+	sdkCtx := b.GetSdkContext(nil)
+	res, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		b.logger.Error("failed to query evm params", "error", err.Error())
 		return common.Hash{}, err
@@ -713,10 +701,20 @@ func (b *Backend) EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *ty
 		GasCap: b.RPCGasCap(),
 	}
 
-	// From ContextWithHeight: if the provided height is 0,
-	// it will return an empty context and the gRPC query will use
+	resBlock, err := b.GetTendermintBlockByNumber(blockNr)
+	if err != nil {
+		return 0, err
+	}
+
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return 0, nil
+	}
+
+	// it will return an empty context and the sdk.Context will use
 	// the latest block height for querying.
-	res, err := b.queryClient.EstimateGas(types.ContextWithHeight(blockNr.Int64()), &req)
+	sdkCtx := b.GetSdkContext(&resBlock.Block.Header)
+	res, err := b.GetEVMKeeper().EstimateGas(sdk.WrapSDKContext(sdkCtx), &req)
 	if err != nil {
 		return 0, err
 	}
@@ -737,11 +735,7 @@ func (b *Backend) GetTransactionCount(address common.Address, blockNum types.Blo
 	}
 
 	includePending := blockNum == types.EthPendingBlockNumber
-	nonce, err := b.getAccountNonce(address, includePending, blockNum.Int64(), b.logger)
-	if err != nil {
-		return nil, err
-	}
-
+	nonce := b.getAccountNonce(address, includePending, blockNum.Int64())
 	n := hexutil.Uint64(nonce)
 	return &n, nil
 }
@@ -785,7 +779,8 @@ func (b *Backend) RPCBlockRangeCap() int32 {
 // the node config. If set value is 0, it will default to 20.
 
 func (b *Backend) RPCMinGasPrice() int64 {
-	evmParams, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{})
+	sdkCtx := b.GetSdkContext(nil)
+	evmParams, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return stratos.DefaultGasPrice
 	}
@@ -801,7 +796,8 @@ func (b *Backend) RPCMinGasPrice() int64 {
 
 // ChainConfig returns the latest ethereum chain configuration
 func (b *Backend) ChainConfig() *params.ChainConfig {
-	params, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{})
+	sdkCtx := b.GetSdkContext(nil)
+	params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return nil
 	}
@@ -812,13 +808,15 @@ func (b *Backend) ChainConfig() *params.ChainConfig {
 // SuggestGasTipCap returns the suggested tip cap
 // Although we don't support tx prioritization yet, but we return a positive value to help client to
 // mitigate the base fee changes.
-func (b *Backend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
-	if baseFee == nil {
+func (b *Backend) SuggestGasTipCap() (*big.Int, error) {
+	baseFee, err := b.BaseFee()
+	if err != nil {
 		// london hardfork not enabled or feemarket not enabled
 		return big.NewInt(0), nil
 	}
 
-	params, err := b.queryClient.Params(b.ctx, &evmtypes.QueryParamsRequest{})
+	sdkCtx := b.GetSdkContext(nil)
+	params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return nil, err
 	}
@@ -844,9 +842,20 @@ func (b *Backend) SuggestGasTipCap(baseFee *big.Int) (*big.Int, error) {
 // If the base fee is not enabled globally, the query returns nil.
 // If the London hard fork is not activated at the current height, the query will
 // return nil.
-func (b *Backend) BaseFee(height int64) (*big.Int, error) {
+func (b *Backend) BaseFee() (*big.Int, error) {
+	resBlock, err := b.GetTendermintBlockByNumber(types.EthLatestBlockNumber)
+	if err != nil {
+		return nil, err
+	}
+
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
+	}
+
+	sdkCtx := b.GetSdkContext(&resBlock.Block.Header)
 	// return BaseFee if London hard fork is activated and feemarket is enabled
-	res, err := b.queryClient.BaseFee(types.ContextWithHeight(height), &evmtypes.QueryBaseFeeRequest{})
+	res, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
 	if err != nil {
 		return nil, err
 	}

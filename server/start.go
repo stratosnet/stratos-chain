@@ -8,11 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"reflect"
 	"runtime/pprof"
 	"strings"
 	"time"
-	"unsafe"
 
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
@@ -40,11 +38,12 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stosapp "github.com/stratosnet/stratos-chain/app"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	ethdebug "github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/debug"
 	"github.com/stratosnet/stratos-chain/server/config"
 	srvflags "github.com/stratosnet/stratos-chain/server/flags"
-	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 )
 
 // StartCmd runs the service passed in, either stand-alone or in-process with
@@ -438,14 +437,12 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		tmEndpoint := "/websocket"
 		tmRPCAddr := cfg.RPC.ListenAddress
 
-		evmKeeper := getEvmKeeper(app)
-		// ms := app.CommitMultiStore()
-		// sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, nil)
+		evmApp := app.(stosapp.EVMLKeeperApp)
+		evmKeeper := evmApp.GetEVMKeeper()
+		ms := app.CommitMultiStore()
+		sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, nil)
 
-		// evmConf := evmKeeper.GetParams(sdkCtx)
-		// fmt.Printf("\nCONFIG EVM CHAIN ID: %s\n", evmConf.ChainConfig.ChainID.String())
-
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, tmNode, evmKeeper, clientCtx, tmRPCAddr, tmEndpoint, config)
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, tmRPCAddr, tmEndpoint, config)
 		if err != nil {
 			return err
 		}
@@ -511,15 +508,4 @@ func openTraceWriter(traceWriterFile string) (w io.Writer, err error) {
 		os.O_WRONLY|os.O_APPEND|os.O_CREATE,
 		0o600,
 	)
-}
-
-func getEvmKeeper(app types.Application) *evmkeeper.Keeper {
-	// NOTE: Do not touch this!
-	// hack to get evmKeeper as it in generic interface of types.Application
-	tiField := reflect.ValueOf(app).Elem().FieldByName("evmKeeper")
-	// unlock for modification
-	tiField = reflect.NewAt(tiField.Type(), unsafe.Pointer(tiField.UnsafeAddr())).Elem()
-	evmKeeper := tiField.Interface().(*evmkeeper.Keeper)
-	fmt.Printf("evmKeeper: %+v\n", evmKeeper)
-	return evmKeeper
 }

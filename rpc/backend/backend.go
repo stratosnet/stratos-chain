@@ -27,6 +27,7 @@ import (
 	"github.com/stratosnet/stratos-chain/server/config"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // BackendI implements the Cosmos and EVM backend.
@@ -45,6 +46,7 @@ type CosmosBackend interface {
 	// SignDirect()
 	// SignAmino()
 	GetEVMKeeper() *evmkeeper.Keeper
+	GetSdkContext(header *tmtypes.Header) sdk.Context
 }
 
 // EVMBackend implements the functionality shared within ethereum namespaces
@@ -57,7 +59,7 @@ type EVMBackend interface {
 	RPCTxFeeCap() float64         // RPCTxFeeCap is the global transaction fee(price * gaslimit) cap for send-transaction variants. The unit is ether.
 
 	RPCMinGasPrice() int64
-	SuggestGasTipCap(baseFee *big.Int) (*big.Int, error)
+	SuggestGasTipCap() (*big.Int, error)
 
 	// Blockchain API
 	BlockNumber() (hexutil.Uint64, error)
@@ -78,7 +80,7 @@ type EVMBackend interface {
 	GetTxByHash(txHash common.Hash) (*tmrpctypes.ResultTx, error)
 	GetTxByTxIndex(height int64, txIndex uint) (*tmrpctypes.ResultTx, error)
 	EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *types.BlockNumber) (hexutil.Uint64, error)
-	BaseFee(height int64) (*big.Int, error)
+	BaseFee() (*big.Int, error)
 
 	// Fee API
 	FeeHistory(blockCount rpc.DecimalOrHex, lastBlock rpc.BlockNumber, rewardPercentiles []float64) (*types.FeeHistoryResult, error)
@@ -105,36 +107,45 @@ var _ BackendI = (*Backend)(nil)
 
 // Backend implements the BackendI interface
 type Backend struct {
-	ctx         context.Context
-	clientCtx   client.Context
-	queryClient *types.QueryClient // gRPC query client
-	tmNode      *node.Node         // directly tendermint access, new impl
-	evmkeeper   *evmkeeper.Keeper
-	logger      log.Logger
-	cfg         config.Config
+	ctx       context.Context
+	clientCtx client.Context
+	tmNode    *node.Node // directly tendermint access, new impl
+	evmkeeper *evmkeeper.Keeper
+	sdkCtx    sdk.Context
+	logger    log.Logger
+	cfg       config.Config
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
-func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Keeper, logger log.Logger, clientCtx client.Context) *Backend {
+func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Keeper, sdkCtx sdk.Context, logger log.Logger, clientCtx client.Context) *Backend {
 	appConf, err := config.GetConfig(ctx.Viper)
 	if err != nil {
 		panic(err)
 	}
 
 	return &Backend{
-		ctx:         context.Background(),
-		clientCtx:   clientCtx,
-		tmNode:      tmNode,
-		evmkeeper:   evmkeeper,
-		queryClient: types.NewQueryClient(clientCtx),
-		logger:      logger.With("module", "backend"),
-		cfg:         appConf,
+		ctx:       context.Background(),
+		clientCtx: clientCtx,
+		tmNode:    tmNode,
+		evmkeeper: evmkeeper,
+		sdkCtx:    sdkCtx,
+		logger:    logger.With("module", "backend"),
+		cfg:       appConf,
 	}
 }
 
 func (b *Backend) GetEVMKeeper() *evmkeeper.Keeper {
-	// TODO: Make readonly storage access only
 	return b.evmkeeper
+}
+
+func (b *Backend) GetSdkContext(header *tmtypes.Header) sdk.Context {
+	sdkCtx := b.sdkCtx
+	if header != nil {
+		sdkCtx = sdkCtx.WithHeaderHash(header.Hash())
+		header := types.FormatTmHeaderToProto(header)
+		sdkCtx = sdkCtx.WithBlockHeader(header)
+	}
+	return sdkCtx
 }
 
 func (b *Backend) GetNode() *node.Node {
