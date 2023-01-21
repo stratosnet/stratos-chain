@@ -8,16 +8,14 @@ import (
 	"math/big"
 	"sort"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -56,7 +54,7 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 		// In this clause, user left some fields unspecified.
 		if head.BaseFee != nil && args.GasPrice == nil {
 			if args.MaxPriorityFeePerGas == nil {
-				tip, err := b.SuggestGasTipCap(head.BaseFee)
+				tip, err := b.SuggestGasTipCap()
 				if err != nil {
 					return args, err
 				}
@@ -81,7 +79,7 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 			}
 
 			if args.GasPrice == nil {
-				price, err := b.SuggestGasTipCap(head.BaseFee)
+				price, err := b.SuggestGasTipCap()
 				if err != nil {
 					return args, err
 				}
@@ -107,7 +105,7 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 	if args.Nonce == nil {
 		// get the nonce from the account retriever
 		// ignore error in case tge account doesn't exist yet
-		nonce, _ := b.getAccountNonce(*args.From, true, 0, b.logger)
+		nonce := b.getAccountNonce(*args.From, true, 0)
 		args.Nonce = (*hexutil.Uint64)(&nonce)
 	}
 
@@ -170,52 +168,22 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 // If the pending value is true, it will iterate over the mempool (pending)
 // txs in order to compute and return the pending tx sequence.
 // Todo: include the ability to specify a blockNumber
-func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height int64, logger log.Logger) (uint64, error) {
-	queryClient := authtypes.NewQueryClient(b.clientCtx)
-	res, err := queryClient.Account(types.ContextWithHeight(height), &authtypes.QueryAccountRequest{Address: sdk.AccAddress(accAddr.Bytes()).String()})
+func (b *Backend) getAccountNonce(address common.Address, pending bool, height int64) uint64 {
+	var (
+		pendingNonce uint64
+	)
+	if pending {
+		pendingNonce = types.GetPendingTxCountByAddress(b.GetMempool(), address)
+	}
+	req := evmtypes.QueryCosmosAccountRequest{
+		Address: address.Hex(),
+	}
+	sdkCtx := b.GetSdkContext(nil)
+	acc, err := b.GetEVMKeeper().CosmosAccount(sdk.WrapSDKContext(sdkCtx), &req)
 	if err != nil {
-		return 0, err
+		return pendingNonce
 	}
-	var acc authtypes.AccountI
-	if err := b.clientCtx.InterfaceRegistry.UnpackAny(res.Account, &acc); err != nil {
-		return 0, err
-	}
-
-	nonce := acc.GetSequence()
-
-	if !pending {
-		return nonce, nil
-	}
-
-	// the account retriever doesn't include the uncommitted transactions on the nonce so we need to
-	// to manually add them.
-	pendingTxs, err := b.PendingTransactions()
-	if err != nil {
-		logger.Error("failed to fetch pending transactions", "error", err.Error())
-		return nonce, nil
-	}
-
-	// add the uncommitted txs to the nonce counter
-	// only supports `MsgEthereumTx` style tx
-	for _, tx := range pendingTxs {
-		for _, msg := range (*tx).GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				// not ethereum tx
-				break
-			}
-
-			sender, err := ethMsg.GetSender(b.ChainConfig().ChainID)
-			if err != nil {
-				continue
-			}
-			if sender == accAddr {
-				nonce++
-			}
-		}
-	}
-
-	return nonce, nil
+	return acc.GetSequence() + pendingNonce
 }
 
 // output: targetOneFeeHistory
@@ -227,7 +195,7 @@ func (b *Backend) processBlock(
 	targetOneFeeHistory *types.OneFeeHistory,
 ) error {
 	blockHeight := tendermintBlock.Block.Height
-	blockBaseFee, err := b.BaseFee(blockHeight)
+	blockBaseFee, err := b.BaseFee()
 	if err != nil {
 		return err
 	}
