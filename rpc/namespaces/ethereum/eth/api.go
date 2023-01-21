@@ -35,6 +35,7 @@ import (
 	"github.com/stratosnet/stratos-chain/crypto/hd"
 	"github.com/stratosnet/stratos-chain/ethereum/eip712"
 	"github.com/stratosnet/stratos-chain/rpc/backend"
+	"github.com/stratosnet/stratos-chain/rpc/types"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -45,7 +46,6 @@ import (
 type PublicAPI struct {
 	ctx          context.Context
 	clientCtx    client.Context
-	queryClient  *rpctypes.QueryClient
 	chainIDEpoch *big.Int
 	logger       log.Logger
 	backend      backend.BackendI
@@ -89,7 +89,6 @@ func NewPublicAPI(
 	api := &PublicAPI{
 		ctx:          context.Background(),
 		clientCtx:    clientCtx,
-		queryClient:  rpctypes.NewQueryClient(clientCtx),
 		chainIDEpoch: cfg.ChainID,
 		logger:       logger.With("client", "json-rpc"),
 		backend:      backend,
@@ -105,10 +104,6 @@ func (e *PublicAPI) ClientCtx() client.Context {
 	return e.clientCtx
 }
 
-func (e *PublicAPI) QueryClient() *rpctypes.QueryClient {
-	return e.queryClient
-}
-
 func (e *PublicAPI) Ctx() context.Context {
 	return e.ctx
 }
@@ -122,18 +117,9 @@ func (e *PublicAPI) ProtocolVersion() hexutil.Uint {
 // ChainId is the EIP-155 replay-protection chain id for the current ethereum chain config.
 func (e *PublicAPI) ChainId() (*hexutil.Big, error) { // nolint
 	e.logger.Debug("eth_chainId")
-	// if current block is at or past the EIP-155 replay-protection fork block, return chainID from config
-	bn, err := e.backend.BlockNumber()
-	if err != nil {
-		e.logger.Debug("failed to fetch latest block number", "error", err.Error())
-		return (*hexutil.Big)(e.chainIDEpoch), nil
-	}
-
-	if config := e.backend.ChainConfig(); config.IsEIP155(new(big.Int).SetUint64(uint64(bn))) {
-		return (*hexutil.Big)(config.ChainID), nil
-	}
-
-	return nil, fmt.Errorf("chain not synced beyond EIP-155 replay-protection fork block")
+	ctx := e.backend.GetSdkContext(nil)
+	params := e.backend.GetEVMKeeper().GetParams(ctx)
+	return (*hexutil.Big)(params.ChainConfig.ChainID.BigInt()), nil
 }
 
 // Syncing returns false in case the node is currently not syncing with the network. It can be up to date or has not
@@ -200,7 +186,7 @@ func (e *PublicAPI) GasPrice() (*hexutil.Big, error) {
 		err    error
 	)
 	if head := e.backend.CurrentHeader(); head.BaseFee != nil {
-		result, err = e.backend.SuggestGasTipCap(head.BaseFee)
+		result, err = e.backend.SuggestGasTipCap()
 		if err != nil {
 			return nil, err
 		}
@@ -215,8 +201,7 @@ func (e *PublicAPI) GasPrice() (*hexutil.Big, error) {
 // MaxPriorityFeePerGas returns a suggestion for a gas tip cap for dynamic fee transactions.
 func (e *PublicAPI) MaxPriorityFeePerGas() (*hexutil.Big, error) {
 	e.logger.Debug("eth_maxPriorityFeePerGas")
-	head := e.backend.CurrentHeader()
-	tipcap, err := e.backend.SuggestGasTipCap(head.BaseFee)
+	tipcap, err := e.backend.SuggestGasTipCap()
 	if err != nil {
 		return nil, err
 	}
@@ -262,21 +247,20 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 		return nil, err
 	}
 
-	req := &evmtypes.QueryBalanceRequest{
-		Address: address.String(),
-	}
-
-	res, err := e.queryClient.Balance(rpctypes.ContextWithHeight(blockNum.Int64()), req)
+	resBlock, err := e.backend.GetTendermintBlockByNumber(blockNum)
 	if err != nil {
 		return nil, err
 	}
 
-	val, ok := sdk.NewIntFromString(res.Balance)
-	if !ok {
-		return nil, errors.New("invalid balance")
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
 	}
 
-	return (*hexutil.Big)(val.BigInt()), nil
+	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	balance := e.backend.GetEVMKeeper().GetBalance(sdkCtx, address)
+
+	return (*hexutil.Big)(balance), nil
 }
 
 // GetStorageAt returns the contract storage at the given address, block number, and key.
@@ -288,18 +272,19 @@ func (e *PublicAPI) GetStorageAt(address common.Address, key string, blockNrOrHa
 		return nil, err
 	}
 
-	req := &evmtypes.QueryStorageRequest{
-		Address: address.String(),
-		Key:     key,
-	}
-
-	res, err := e.queryClient.Storage(rpctypes.ContextWithHeight(blockNum.Int64()), req)
+	resBlock, err := e.backend.GetTendermintBlockByNumber(blockNum)
 	if err != nil {
 		return nil, err
 	}
 
-	value := common.HexToHash(res.Value)
-	return value.Bytes(), nil
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
+	}
+
+	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	state := e.backend.GetEVMKeeper().GetState(sdkCtx, address, common.HexToHash(key))
+	return state.Bytes(), nil
 }
 
 // GetTransactionCount returns the number of transactions at the given address up to the given block number.
@@ -384,7 +369,18 @@ func (e *PublicAPI) GetCode(address common.Address, blockNrOrHash rpctypes.Block
 		Address: address.String(),
 	}
 
-	res, err := e.queryClient.Code(rpctypes.ContextWithHeight(blockNum.Int64()), req)
+	resBlock, err := e.backend.GetTendermintBlockByNumber(blockNum)
+	if err != nil {
+		return nil, err
+	}
+
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
+	}
+
+	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	res, err := e.backend.GetEVMKeeper().Code(sdk.WrapSDKContext(sdkCtx), req)
 	if err != nil {
 		return nil, err
 	}
@@ -513,14 +509,11 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 		return common.Hash{}, err
 	}
 
+	sdkCtx := e.backend.GetSdkContext(nil)
 	// Query params to use the EVM denomination
-	res, err := e.queryClient.QueryClient.Params(e.ctx, &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		e.logger.Error("failed to query evm params", "error", err.Error())
-		return common.Hash{}, err
-	}
+	params := e.backend.GetEVMKeeper().GetParams(sdkCtx)
 
-	cosmosTx, err := ethereumTx.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), res.Params.EvmDenom)
+	cosmosTx, err := ethereumTx.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), params.EvmDenom)
 	if err != nil {
 		e.logger.Error("failed to build cosmos tx", "error", err.Error())
 		return common.Hash{}, err
@@ -668,11 +661,23 @@ func (e *PublicAPI) doCall(
 		GasCap: e.backend.RPCGasCap(),
 	}
 
-	// From ContextWithHeight: if the provided height is 0,
+	resBlock, err := e.backend.GetTendermintBlockByNumber(blockNr)
+	if err != nil {
+		return nil, err
+	}
+
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
+	}
+
+	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+
 	// it will return an empty context and the gRPC query will use
 	// the latest block height for querying.
-	ctx := rpctypes.ContextWithHeight(blockNr.Int64())
 	timeout := e.backend.RPCEVMTimeout()
+
+	ctx := sdk.WrapSDKContext(sdkCtx)
 
 	// Setup context so it may be canceled the call has completed
 	// or, in case of unmetered gas, setup a context with a timeout.
@@ -687,7 +692,7 @@ func (e *PublicAPI) doCall(
 	// this makes sure resources are cleaned up.
 	defer cancel()
 
-	res, err := e.queryClient.EthCall(ctx, &req)
+	res, err := e.backend.GetEVMKeeper().EthCall(ctx, &req)
 	if err != nil {
 		return nil, err
 	}
@@ -920,156 +925,6 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 	return receipt, nil
 }
 
-// // GetTransactionReceipt returns the transaction receipt identified by hash.
-// func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (map[string]interface{}, error) {
-// 	hexTx := hash.Hex()
-// 	e.logger.Debug("eth_getTransactionReceipt", "hash", hexTx)
-
-// 	res, err := e.backend.GetTxByHash(hash)
-// 	if err != nil {
-// 		e.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
-// 		return nil, nil
-// 	}
-
-// 	msgIndex, attrs := rpctypes.FindTxAttributes(res.TxResult.Events, hexTx)
-// 	if msgIndex < 0 {
-// 		return nil, fmt.Errorf("ethereum tx not found in msgs: %s", hexTx)
-// 	}
-
-// 	resBlock, err := tmrpccore.Block(nil, &res.Height)
-// 	if err != nil {
-// 		e.logger.Debug("block not found", "height", res.Height, "error", err.Error())
-// 		return nil, nil
-// 	}
-
-// 	tx, err := e.clientCtx.TxConfig.TxDecoder()(res.Tx)
-// 	if err != nil {
-// 		e.logger.Debug("decoding failed", "error", err.Error())
-// 		return nil, fmt.Errorf("failed to decode tx: %w", err)
-// 	}
-
-// 	// the `msgIndex` is inferred from tx events, should be within the bound.
-// 	msg := tx.GetMsgs()[msgIndex]
-// 	ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-// 	if !ok {
-// 		e.logger.Debug(fmt.Sprintf("invalid tx type: %T", msg))
-// 		return nil, fmt.Errorf("invalid tx type: %T", msg)
-// 	}
-
-// 	txData, err := evmtypes.UnpackTxData(ethMsg.Data)
-// 	if err != nil {
-// 		e.logger.Error("failed to unpack tx data", "error", err.Error())
-// 		return nil, err
-// 	}
-
-// 	cumulativeGasUsed := uint64(0)
-// 	blockRes, err := tmrpccore.BlockResults(nil, &res.Height)
-// 	if err != nil {
-// 		e.logger.Debug("failed to retrieve block results", "height", res.Height, "error", err.Error())
-// 		return nil, nil
-// 	}
-
-// 	for i := 0; i < int(res.Index) && i < len(blockRes.TxsResults); i++ {
-// 		cumulativeGasUsed += uint64(blockRes.TxsResults[i].GasUsed)
-// 	}
-// 	cumulativeGasUsed += rpctypes.AccumulativeGasUsedOfMsg(res.TxResult.Events, msgIndex)
-
-// 	var gasUsed uint64
-// 	if len(tx.GetMsgs()) == 1 {
-// 		// backward compatibility
-// 		gasUsed = uint64(res.TxResult.GasUsed)
-// 	} else {
-// 		gasUsed, err = rpctypes.GetUint64Attribute(attrs, evmtypes.AttributeKeyTxGasUsed)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 	}
-
-// 	// Get the transaction result from the log
-// 	_, found := attrs[evmtypes.AttributeKeyEthereumTxFailed]
-// 	var status hexutil.Uint
-// 	if found {
-// 		status = hexutil.Uint(ethtypes.ReceiptStatusFailed)
-// 	} else {
-// 		status = hexutil.Uint(ethtypes.ReceiptStatusSuccessful)
-// 	}
-
-// 	from, err := ethMsg.GetSender(e.chainIDEpoch)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	// parse tx logs from events
-// 	logs, err := backend.TxLogsFromEvents(res.TxResult.Events, msgIndex)
-// 	if err != nil {
-// 		e.logger.Debug("logs not found", "hash", hexTx, "error", err.Error())
-// 	}
-
-// 	// Try to find txIndex from events
-// 	found = false
-// 	txIndex, err := rpctypes.GetUint64Attribute(attrs, evmtypes.AttributeKeyTxIndex)
-// 	if err == nil {
-// 		found = true
-// 	} else {
-// 		// Fallback to find tx index by iterating all valid eth transactions
-// 		msgs := e.backend.GetEthereumMsgsFromTendermintBlock(resBlock, blockRes)
-// 		for i := range msgs {
-// 			if msgs[i].Hash == hexTx {
-// 				txIndex = uint64(i)
-// 				found = true
-// 				break
-// 			}
-// 		}
-// 	}
-// 	if !found {
-// 		return nil, errors.New("can't find index of ethereum tx")
-// 	}
-
-// 	receipt := map[string]interface{}{
-// 		// Consensus fields: These fields are defined by the Yellow Paper
-// 		"status":            status,
-// 		"cumulativeGasUsed": hexutil.Uint64(cumulativeGasUsed),
-// 		"logsBloom":         ethtypes.BytesToBloom(ethtypes.LogsBloom(logs)),
-// 		"logs":              logs,
-
-// 		// Implementation fields: These fields are added by geth when processing a transaction.
-// 		// They are stored in the chain database.
-// 		"transactionHash": hash,
-// 		"contractAddress": nil,
-// 		"gasUsed":         hexutil.Uint64(gasUsed),
-// 		"type":            hexutil.Uint(txData.TxType()),
-
-// 		// Inclusion information: These fields provide information about the inclusion of the
-// 		// transaction corresponding to this receipt.
-// 		"blockHash":        common.BytesToHash(resBlock.Block.Header.Hash()).Hex(),
-// 		"blockNumber":      hexutil.Uint64(res.Height),
-// 		"transactionIndex": hexutil.Uint64(txIndex),
-
-// 		// sender and receiver (contract or EOA) addreses
-// 		"from": from,
-// 		"to":   txData.GetTo(),
-// 	}
-
-// 	if logs == nil {
-// 		receipt["logs"] = [][]*ethtypes.Log{}
-// 	}
-
-// 	// If the ContractAddress is 20 0x0 bytes, assume it is not a contract creation
-// 	if txData.GetTo() == nil {
-// 		receipt["contractAddress"] = crypto.CreateAddress(from, txData.GetNonce())
-// 	}
-
-// 	if dynamicTx, ok := txData.(*evmtypes.DynamicFeeTx); ok {
-// 		baseFee, err := e.backend.BaseFee(res.Height)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		receipt["effectiveGasPrice"] = hexutil.Big(*dynamicTx.GetEffectiveGasPrice(baseFee))
-// 	}
-
-// 	return receipt, nil
-// }
-
 // GetPendingTransactions returns the transactions that are in the transaction pool
 // and have a from address that is one of the accounts this node manages.
 func (e *PublicAPI) GetPendingTransactions() ([]*rpctypes.RPCTransaction, error) {
@@ -1126,7 +981,6 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 	}
 
 	height := blockNum.Int64()
-	ctx := rpctypes.ContextWithHeight(height)
 
 	// if the height is equal to zero, meaning the query condition of the block is either "pending" or "latest"
 	if height == 0 {
@@ -1142,14 +996,24 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 		height = int64(bn)
 	}
 
-	clientCtx := e.clientCtx.WithHeight(height)
-
 	// query storage proofs
 	storageProofs := make([]rpctypes.StorageResult, len(storageKeys))
 
+	resBlock, err := e.backend.GetTendermintBlockByNumber(blockNum)
+	if err != nil {
+		return nil, err
+	}
+
+	// return if requested block height is greater than the current one or chain not synced
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
+	}
+
+	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+
 	for i, key := range storageKeys {
 		hexKey := common.HexToHash(key)
-		valueBz, proof, err := e.queryClient.GetProof(clientCtx, evmtypes.StoreKey, evmtypes.StateKey(address, hexKey.Bytes()))
+		valueBz, proof, err := types.GetProof(height, evmtypes.StoreKey, evmtypes.StateKey(address, hexKey.Bytes()))
 		if err != nil {
 			return nil, err
 		}
@@ -1168,18 +1032,11 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 	}
 
 	// query EVM account
-	req := &evmtypes.QueryAccountRequest{
-		Address: address.String(),
-	}
-
-	res, err := e.queryClient.Account(ctx, req)
-	if err != nil {
-		return nil, err
-	}
+	acc := e.backend.GetEVMKeeper().GetAccountOrEmpty(sdkCtx, address)
 
 	// query account proofs
 	accountKey := authtypes.AddressStoreKey(sdk.AccAddress(address.Bytes()))
-	_, proof, err := e.queryClient.GetProof(clientCtx, authtypes.StoreKey, accountKey)
+	_, proof, err := types.GetProof(height, authtypes.StoreKey, accountKey)
 	if err != nil {
 		return nil, err
 	}
@@ -1190,17 +1047,12 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 		accProofStr = proof.String()
 	}
 
-	balance, ok := sdk.NewIntFromString(res.Balance)
-	if !ok {
-		return nil, errors.New("invalid balance")
-	}
-
 	return &rpctypes.AccountResult{
 		Address:      address,
 		AccountProof: []string{accProofStr},
-		Balance:      (*hexutil.Big)(balance.BigInt()),
-		CodeHash:     common.HexToHash(res.CodeHash),
-		Nonce:        hexutil.Uint64(res.Nonce),
+		Balance:      (*hexutil.Big)(acc.Balance),
+		CodeHash:     common.BytesToHash(acc.CodeHash),
+		Nonce:        hexutil.Uint64(acc.Nonce),
 		StorageHash:  common.Hash{}, // NOTE: stratos doesn't have a storage hash. TODO: implement?
 		StorageProof: storageProofs,
 	}, nil

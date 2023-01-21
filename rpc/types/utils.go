@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"context"
 	"encoding/hex"
 	"fmt"
 	"math/big"
@@ -14,15 +13,18 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/mempool"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	sdkcodec "github.com/cosmos/cosmos-sdk/codec"
 	sdkcodectypes "github.com/cosmos/cosmos-sdk/codec/types"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 	tmrpccoretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
@@ -74,7 +76,7 @@ func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFe
 }
 
 // BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
-func BlockMaxGasFromConsensusParams(goCtx context.Context, clientCtx client.Context, blockHeight int64) (int64, error) {
+func BlockMaxGasFromConsensusParams(clientCtx client.Context, blockHeight int64) (int64, error) {
 	resConsParams, err := tmrpccore.ConsensusParams(nil, &blockHeight)
 	if err != nil {
 		return int64(^uint32(0)), err
@@ -167,6 +169,83 @@ func ErrRevertedWith(data []byte) DataError {
 	}
 }
 
+// GetPendingTxCountByAddress is used to get pending tx count (nonce) for user address
+func GetPendingTxCountByAddress(mem mempool.Mempool, address common.Address) (total uint64) {
+	for _, tmTx := range mem.ReapMaxTxs(50) {
+		interfaceRegistry := sdkcodectypes.NewInterfaceRegistry()
+		marshaler := sdkcodec.NewProtoCodec(interfaceRegistry)
+		txConfig := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
+		tx, err := txConfig.TxDecoder()(tmTx)
+		if err != nil {
+			continue
+		}
+		msg := tx.GetMsgs()[0]
+		if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
+			ethTx := ethMsg.AsTransaction()
+			var signer ethtypes.Signer
+			if ethTx.Protected() {
+				signer = ethtypes.LatestSignerForChainID(ethTx.ChainId())
+			} else {
+				signer = ethtypes.HomesteadSigner{}
+			}
+			from, _ := ethtypes.Sender(signer, ethTx)
+			if bytes.Equal(from.Bytes(), address.Bytes()) {
+				total++
+			}
+		}
+	}
+	return
+}
+
+// GetProof performs an ABCI query with the given key and returns a merkle proof. The desired
+// tendermint height to perform the query should be set in the client context. The query will be
+// performed at one below this height (at the IAVL version) in order to obtain the correct merkle
+// proof. Proof queries at height less than or equal to 2 are not supported.
+// Issue: https://github.com/cosmos/cosmos-sdk/issues/6567
+func GetProof(height int64, storeKey string, key []byte) ([]byte, *crypto.ProofOps, error) {
+	// ABCI queries at height less than or equal to 2 are not supported.
+	// Base app does not support queries for height less than or equal to 1.
+	// Therefore, a query at height 2 would be equivalent to a query at height 3
+	if height <= 2 {
+		return nil, nil, fmt.Errorf("proof queries at height <= 2 are not supported")
+	}
+
+	// Use the IAVL height if a valid tendermint height is passed in.
+	height--
+
+	abciRes, err := tmrpccore.ABCIQuery(nil, fmt.Sprintf("store/%s/key", storeKey), key, height, true)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return abciRes.Response.Value, abciRes.Response.ProofOps, nil
+}
+
+func FormatTmHeaderToProto(header *tmtypes.Header) tmproto.Header {
+	return tmproto.Header{
+		Version: header.Version,
+		ChainID: header.ChainID,
+		Height:  header.Height,
+		Time:    header.Time,
+		LastBlockId: tmproto.BlockID{
+			Hash: header.LastBlockID.Hash,
+			PartSetHeader: tmproto.PartSetHeader{
+				Total: header.LastBlockID.PartSetHeader.Total,
+				Hash:  header.LastBlockID.PartSetHeader.Hash,
+			},
+		},
+		LastCommitHash:     header.LastCommitHash,
+		DataHash:           header.DataHash,
+		ValidatorsHash:     header.ValidatorsHash,
+		NextValidatorsHash: header.NextValidatorsHash,
+		ConsensusHash:      header.ConsensusHash,
+		AppHash:            header.AppHash,
+		LastResultsHash:    header.LastResultsHash,
+		EvidenceHash:       header.EvidenceHash,
+		ProposerAddress:    header.ProposerAddress,
+	}
+}
+
 // GetBlockCumulativeGas returns the cumulative gas used on a block up to a given
 // transaction index. The returned gas used includes the gas from both the SDK and
 // EVM module transactions.
@@ -202,6 +281,14 @@ func TmTxToEthTx(
 	if err != nil {
 		return nil, err
 	}
+
+	sigTx, ok := tx.(authsigning.SigVerifiableTx)
+	if !ok {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid transaction type")
+	}
+	sigs, _ := sigTx.GetSignaturesV2()
+
+	fmt.Printf("\nfirst sig: %s\n", sigs[0].Data)
 	// the `msgIndex` is inferred from tx events, should be within the bound.
 	// always taking first into account
 	msg := tx.GetMsgs()[0]
@@ -264,6 +351,7 @@ func NewRPCTransaction(
 	}
 	from, _ := ethtypes.Sender(signer, tx)
 	v, r, s := tx.RawSignatureValues()
+	fmt.Printf("\n v: %s, r: %s, s: %s \n", v, r, s)
 	result := &RPCTransaction{
 		Type:     hexutil.Uint64(tx.Type()),
 		From:     from,

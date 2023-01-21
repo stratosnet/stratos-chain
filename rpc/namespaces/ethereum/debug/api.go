@@ -22,6 +22,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/consensus/ethash"
@@ -43,27 +44,25 @@ type HandlerT struct {
 
 // API is the collection of tracing APIs exposed over the private debugging endpoint.
 type API struct {
-	ctx         *server.Context
-	logger      log.Logger
-	backend     backend.EVMBackend
-	clientCtx   client.Context
-	queryClient *rpctypes.QueryClient
-	handler     *HandlerT
+	ctx       *server.Context
+	logger    log.Logger
+	backend   backend.BackendI
+	clientCtx client.Context
+	handler   *HandlerT
 }
 
 // NewAPI creates a new API definition for the tracing methods of the Ethereum service.
 func NewAPI(
 	ctx *server.Context,
-	backend backend.EVMBackend,
+	backend backend.BackendI,
 	clientCtx client.Context,
 ) *API {
 	return &API{
-		ctx:         ctx,
-		logger:      ctx.Logger.With("module", "debug"),
-		backend:     backend,
-		clientCtx:   clientCtx,
-		queryClient: rpctypes.NewQueryClient(clientCtx),
-		handler:     new(HandlerT),
+		ctx:       ctx,
+		logger:    ctx.Logger.With("module", "debug"),
+		backend:   backend,
+		clientCtx: clientCtx,
+		handler:   new(HandlerT),
 	}
 }
 
@@ -156,7 +155,8 @@ func (a *API) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfig) (
 		// 0 is a special value in `ContextWithHeight`
 		contextHeight = 1
 	}
-	traceResult, err := a.queryClient.TraceTx(rpctypes.ContextWithHeight(contextHeight), &traceTxRequest)
+	sdkCtx := a.backend.GetSdkContext(&blk.Block.Header)
+	traceResult, err := a.backend.GetEVMKeeper().TraceTx(sdk.WrapSDKContext(sdkCtx), &traceTxRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -246,7 +246,6 @@ func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConf
 		// 0 is a special value for `ContextWithHeight`.
 		contextHeight = 1
 	}
-	ctxWithHeight := rpctypes.ContextWithHeight(int64(contextHeight))
 
 	traceBlockRequest := &evmtypes.QueryTraceBlockRequest{
 		Txs:         txsMessages,
@@ -256,7 +255,8 @@ func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConf
 		BlockHash:   common.Bytes2Hex(block.BlockID.Hash),
 	}
 
-	res, err := a.queryClient.TraceBlock(ctxWithHeight, traceBlockRequest)
+	sdkCtx := a.backend.GetSdkContext(&block.Block.Header)
+	res, err := a.backend.GetEVMKeeper().TraceBlock(sdk.WrapSDKContext(sdkCtx), traceBlockRequest)
 	if err != nil {
 		return nil, err
 	}

@@ -1,10 +1,8 @@
 package net
 
 import (
-	"context"
 	"math/big"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 )
@@ -23,12 +21,9 @@ func NewPublicAPI(backend backend.BackendI) *PublicAPI {
 
 // Version returns the current ethereum protocol version.
 func (s *PublicAPI) Version() (string, error) {
-	ctx := sdk.UnwrapSDKContext(context.Background())
-	config, err := s.backend.GetEVMKeeper().EVMConfig(ctx)
-	if err != nil {
-		return "", err
-	}
-	return config.ChainConfig.ChainID.String(), nil
+	ctx := s.backend.GetSdkContext(nil)
+	params := s.backend.GetEVMKeeper().GetParams(ctx)
+	return params.ChainConfig.ChainID.String(), nil
 }
 
 // Listening returns if client is actively listening for network connections.
