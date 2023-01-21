@@ -173,7 +173,7 @@ func (b *Backend) getAccountNonce(address common.Address, pending bool, height i
 		pendingNonce uint64
 	)
 	if pending {
-		pendingNonce = types.GetPendingTxCountByAddress(b.GetMempool(), address)
+		pendingNonce = types.GetPendingTxCountByAddress(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), address)
 	}
 	req := evmtypes.QueryCosmosAccountRequest{
 		Address: address.Hex(),
