@@ -7,18 +7,16 @@ import (
 	"math/big"
 	"strconv"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/mempool"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 
-	sdkcodec "github.com/cosmos/cosmos-sdk/codec"
-	sdkcodectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/tx"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -170,12 +168,9 @@ func ErrRevertedWith(data []byte) DataError {
 }
 
 // GetPendingTxCountByAddress is used to get pending tx count (nonce) for user address
-func GetPendingTxCountByAddress(mem mempool.Mempool, address common.Address) (total uint64) {
+func GetPendingTxCountByAddress(txDecoder sdk.TxDecoder, mem mempool.Mempool, address common.Address) (total uint64) {
 	for _, tmTx := range mem.ReapMaxTxs(50) {
-		interfaceRegistry := sdkcodectypes.NewInterfaceRegistry()
-		marshaler := sdkcodec.NewProtoCodec(interfaceRegistry)
-		txConfig := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
-		tx, err := txConfig.TxDecoder()(tmTx)
+		tx, err := txDecoder(tmTx)
 		if err != nil {
 			continue
 		}
@@ -189,6 +184,8 @@ func GetPendingTxCountByAddress(mem mempool.Mempool, address common.Address) (to
 				signer = ethtypes.HomesteadSigner{}
 			}
 			from, _ := ethtypes.Sender(signer, ethTx)
+			fmt.Println("signer", from.Hex())
+			fmt.Println("checking", address.Hex())
 			if bytes.Equal(from.Bytes(), address.Bytes()) {
 				total++
 			}
@@ -259,10 +256,10 @@ func GetBlockCumulativeGas(blockResults *tmrpccoretypes.ResultBlockResults, idx 
 	return gasUsed
 }
 
-func GetPendingTx(mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPCTransaction, error) {
+func GetPendingTx(txDecoder sdk.TxDecoder, mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPCTransaction, error) {
 	for _, uTx := range mem.ReapMaxTxs(50) {
 		if bytes.Equal(uTx.Hash(), hash.Bytes()) {
-			return TmTxToEthTx(uTx, nil, nil, nil)
+			return TmTxToEthTx(txDecoder, uTx, nil, nil, nil)
 		}
 	}
 	return nil, nil
@@ -270,25 +267,26 @@ func GetPendingTx(mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPC
 
 // TmTxToEthTx convert ethereum and rest transaction on ethereum based structure
 func TmTxToEthTx(
+	txDecoder sdk.TxDecoder,
 	tmTx tmtypes.Tx,
 	blockHash *common.Hash,
 	blockNumber, index *uint64,
 ) (*RPCTransaction, error) {
-	interfaceRegistry := sdkcodectypes.NewInterfaceRegistry()
-	marshaler := sdkcodec.NewProtoCodec(interfaceRegistry)
-	txConfig := tx.NewTxConfig(marshaler, tx.DefaultSignModes)
-	tx, err := txConfig.TxDecoder()(tmTx)
+	tx, err := txDecoder(tmTx)
 	if err != nil {
 		return nil, err
 	}
 
 	sigTx, ok := tx.(authsigning.SigVerifiableTx)
-	if !ok {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrTxDecode, "invalid transaction type")
+	if ok {
+		sigs, err := sigTx.GetSignaturesV2()
+		if err == nil {
+			fmt.Printf("\nsigs: %+v\n", sigs)
+		}
+	} else {
+		fmt.Printf("failed to get signature for %s\n", tmTx.Hash())
 	}
-	sigs, _ := sigTx.GetSignaturesV2()
 
-	fmt.Printf("\nfirst sig: %s\n", sigs[0].Data)
 	// the `msgIndex` is inferred from tx events, should be within the bound.
 	// always taking first into account
 	msg := tx.GetMsgs()[0]
