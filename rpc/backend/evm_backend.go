@@ -543,10 +543,10 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
 func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransaction, error) {
 	res, err := b.GetTxByHash(txHash)
-	b.logger.Debug("debug res TX structure: %+v", sdk.NewResponseResultTx(res, nil, "").String())
+	// fmt.Printf("debug res TX structure: %+v\n", sdk.NewResponseResultTx(res, nil, "").String())
 	if err != nil {
 		// TODO: Get chain id value from genesis
-		tx, err := types.GetPendingTx(b.GetMempool(), txHash, b.ChainConfig().ChainID)
+		tx, err := types.GetPendingTx(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), txHash, b.ChainConfig().ChainID)
 		if err != nil {
 			b.logger.Debug("tx not found", "hash", txHash, "error", err.Error())
 			return nil, nil
@@ -565,6 +565,7 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.RPCTransactio
 	txIndex := uint64(res.Index)
 
 	return types.TmTxToEthTx(
+		b.clientCtx.TxConfig.TxDecoder(),
 		res.Tx,
 		&blockHash,
 		&blockHeight,

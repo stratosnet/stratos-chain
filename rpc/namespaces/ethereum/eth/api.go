@@ -840,6 +840,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 	txIndex := uint64(res.Index)
 
 	rpcTx, err := rpctypes.TmTxToEthTx(
+		e.clientCtx.TxConfig.TxDecoder(),
 		res.Tx,
 		&blockHash,
 		&blockHeight,
