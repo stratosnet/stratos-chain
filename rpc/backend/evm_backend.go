@@ -269,48 +269,30 @@ func (b *Backend) EthBlockFromTendermint(
 	}
 
 	txResults := resBlockResult.TxsResults
-	txIndex := uint64(0)
 
-	for i, txBz := range block.Txs {
-		tx, err := b.clientCtx.TxConfig.TxDecoder()(txBz)
-		if err != nil {
-			b.logger.Debug("failed to decode transaction in block", "height", block.Height, "error", err.Error())
+	for i, tmTx := range block.Txs {
+		if !fullTx {
+			hash := common.Bytes2Hex(tmTx.Hash())
+			ethRPCTxs = append(ethRPCTxs, hash)
 			continue
 		}
 
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
-			}
+		blockHash := common.BytesToHash(block.Hash())
+		blockHeight := uint64(block.Height)
+		txIndex := uint64(i)
 
-			tx := ethMsg.AsTransaction()
-
-			// check tx exists on EVM by cross checking with blockResults
-			if txResults[i].Code != 0 {
-				b.logger.Debug("invalid tx result code", "hash", tx.Hash().Hex())
-				continue
-			}
-
-			if !fullTx {
-				hash := tx.Hash()
-				ethRPCTxs = append(ethRPCTxs, hash)
-				continue
-			}
-
-			rpcTx, err := types.NewRPCTransaction(
-				tx,
-				common.BytesToHash(block.Hash()),
-				uint64(block.Height),
-				txIndex,
-			)
-			if err != nil {
-				b.logger.Debug("NewTransactionFromData for receipt failed", "hash", tx.Hash().Hex(), "error", err.Error())
-				continue
-			}
-			ethRPCTxs = append(ethRPCTxs, rpcTx)
-			txIndex++
+		rpcTx, err := types.TmTxToEthTx(
+			b.clientCtx.TxConfig.TxDecoder(),
+			tmTx,
+			&blockHash,
+			&blockHeight,
+			&txIndex,
+		)
+		if err != nil {
+			b.logger.Debug("NewTransactionFromData for receipt failed", "hash", common.Bytes2Hex(tmTx.Hash()), "error", err.Error())
+			continue
 		}
+		ethRPCTxs = append(ethRPCTxs, rpcTx)
 	}
 
 	bloom, err := b.BlockBloom(&block.Height)
@@ -961,37 +943,4 @@ func (b *Backend) FeeHistory(
 	}
 
 	return &feeHistory, nil
-}
-
-// GetEthereumMsgsFromTendermintBlock returns all real MsgEthereumTxs from a Tendermint block.
-// It also ensures consistency over the correct txs indexes across RPC endpoints
-func (b *Backend) GetEthereumMsgsFromTendermintBlock(block *tmrpctypes.ResultBlock, blockRes *tmrpctypes.ResultBlockResults) []*evmtypes.MsgEthereumTx {
-	var result []*evmtypes.MsgEthereumTx
-
-	txResults := blockRes.TxsResults
-
-	for i, tx := range block.Block.Txs {
-		// check tx exists on EVM by cross checking with blockResults
-		if txResults[i].Code != 0 {
-			b.logger.Debug("invalid tx result code", "cosmos-hash", hexutil.Encode(tx.Hash()))
-			continue
-		}
-
-		tx, err := b.clientCtx.TxConfig.TxDecoder()(tx)
-		if err != nil {
-			b.logger.Debug("failed to decode transaction in block", "height", block.Block.Height, "error", err.Error())
-			continue
-		}
-
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
-			}
-
-			result = append(result, ethMsg)
-		}
-	}
-
-	return result
 }
