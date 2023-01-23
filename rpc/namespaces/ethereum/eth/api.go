@@ -312,13 +312,7 @@ func (e *PublicAPI) GetBlockTransactionCountByHash(hash common.Hash) *hexutil.Ui
 		return nil
 	}
 
-	blockRes, err := tmrpccore.BlockResults(nil, &block.Block.Height)
-	if err != nil {
-		return nil
-	}
-
-	ethMsgs := e.backend.GetEthereumMsgsFromTendermintBlock(block, blockRes)
-	n := hexutil.Uint(len(ethMsgs))
+	n := hexutil.Uint(len(block.Block.Txs))
 	return &n
 }
 
@@ -336,13 +330,7 @@ func (e *PublicAPI) GetBlockTransactionCountByNumber(blockNum rpctypes.BlockNumb
 		return nil
 	}
 
-	blockRes, err := tmrpccore.BlockResults(nil, &block.Block.Height)
-	if err != nil {
-		return nil
-	}
-
-	ethMsgs := e.backend.GetEthereumMsgsFromTendermintBlock(block, blockRes)
-	n := hexutil.Uint(len(ethMsgs))
+	n := hexutil.Uint(len(block.Block.Txs))
 	return &n
 }
 
@@ -733,49 +721,23 @@ func (e *PublicAPI) GetTransactionByHash(hash common.Hash) (*rpctypes.RPCTransac
 
 // getTransactionByBlockAndIndex is the common code shared by `GetTransactionByBlockNumberAndIndex` and `GetTransactionByBlockHashAndIndex`.
 func (e *PublicAPI) getTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
-	var msg *evmtypes.MsgEthereumTx
-	// try /tx_search first
-	res, err := e.backend.GetTxByTxIndex(block.Block.Height, uint(idx))
-	if err == nil {
-		tx, err := e.clientCtx.TxConfig.TxDecoder()(res.Tx)
-		if err != nil {
-			e.logger.Debug("invalid ethereum tx", "height", block.Block.Header, "index", idx)
-			return nil, nil
-		}
-		// find msg index in events
-		msgIndex := rpctypes.FindTxAttributesByIndex(res.TxResult.Events, uint64(idx))
-		if msgIndex < 0 {
-			e.logger.Debug("invalid ethereum tx", "height", block.Block.Header, "index", idx)
-			return nil, nil
-		}
-		var ok bool
-		// msgIndex is inferred from tx events, should be within bound.
-		msg, ok = tx.GetMsgs()[msgIndex].(*evmtypes.MsgEthereumTx)
-		if !ok {
-			e.logger.Debug("invalid ethereum tx", "height", block.Block.Header, "index", idx)
-			return nil, nil
-		}
-	} else {
-		blockRes, err := tmrpccore.BlockResults(nil, &block.Block.Height)
-		if err != nil {
-			return nil, nil
-		}
-
-		i := int(idx)
-		ethMsgs := e.backend.GetEthereumMsgsFromTendermintBlock(block, blockRes)
-		if i >= len(ethMsgs) {
-			e.logger.Debug("block txs index out of bound", "index", i)
-			return nil, nil
-		}
-
-		msg = ethMsgs[i]
+	// return if index out of bounds
+	if uint64(idx) >= uint64(len(block.Block.Txs)) {
+		return nil, nil
 	}
 
-	return rpctypes.NewTransactionFromMsg(
-		msg,
-		common.BytesToHash(block.Block.Hash()),
-		uint64(block.Block.Height),
-		uint64(idx),
+	tx := block.Block.Txs[idx]
+
+	blockHash := common.BytesToHash(block.Block.Hash())
+	blockHeight := uint64(block.Block.Height)
+	txIndex := uint64(idx)
+
+	return rpctypes.TmTxToEthTx(
+		e.clientCtx.TxConfig.TxDecoder(),
+		tx,
+		&blockHash,
+		&blockHeight,
+		&txIndex,
 	)
 }
 
@@ -931,32 +893,16 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 func (e *PublicAPI) GetPendingTransactions() ([]*rpctypes.RPCTransaction, error) {
 	e.logger.Debug("eth_getPendingTransactions")
 
-	txs, err := e.backend.PendingTransactions()
-	if err != nil {
-		return nil, err
-	}
+	txs := e.backend.GetMempool().ReapMaxTxs(100)
 
 	result := make([]*rpctypes.RPCTransaction, 0, len(txs))
 	for _, tx := range txs {
-		for _, msg := range (*tx).GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				// not valid ethereum tx
-				break
-			}
-
-			rpctx, err := rpctypes.NewTransactionFromMsg(
-				ethMsg,
-				common.Hash{},
-				uint64(0),
-				uint64(0),
-			)
-			if err != nil {
-				return nil, err
-			}
-
-			result = append(result, rpctx)
+		rpctx, err := rpctypes.TmTxToEthTx(e.clientCtx.TxConfig.TxDecoder(), tx, nil, nil, nil)
+		if err != nil {
+			return nil, err
 		}
+
+		result = append(result, rpctx)
 	}
 
 	return result, nil

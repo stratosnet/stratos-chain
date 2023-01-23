@@ -15,6 +15,7 @@ import (
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -265,6 +266,21 @@ func GetPendingTx(txDecoder sdk.TxDecoder, mem mempool.Mempool, hash common.Hash
 	return nil, nil
 }
 
+func GetNonEVMSignatures(sig []byte) (v, r, s *big.Int) {
+	var tmpV byte
+	if len(sig) == 65 {
+		tmpV = sig[len(sig)-1:][0]
+	} else {
+		// in case of 64 length
+		tmpV = byte(int(sig[0]) % 2)
+	}
+
+	v = new(big.Int).SetBytes([]byte{tmpV + 27})
+	r = new(big.Int).SetBytes(sig[:32])
+	s = new(big.Int).SetBytes(sig[32:64])
+	return
+}
+
 // TmTxToEthTx convert ethereum and rest transaction on ethereum based structure
 func TmTxToEthTx(
 	txDecoder sdk.TxDecoder,
@@ -277,16 +293,6 @@ func TmTxToEthTx(
 		return nil, err
 	}
 
-	sigTx, ok := tx.(authsigning.SigVerifiableTx)
-	if ok {
-		sigs, err := sigTx.GetSignaturesV2()
-		if err == nil {
-			fmt.Printf("\nsigs: %+v\n", sigs)
-		}
-	} else {
-		fmt.Printf("failed to get signature for %s\n", tmTx.Hash())
-	}
-
 	// the `msgIndex` is inferred from tx events, should be within the bound.
 	// always taking first into account
 	msg := tx.GetMsgs()[0]
@@ -297,39 +303,50 @@ func TmTxToEthTx(
 	} else {
 		addr := msg.GetSigners()[0]
 		from := common.BytesToAddress(addr.Bytes())
-		// TODO: Impl this sigs
-		v := (*hexutil.Big)(new(big.Int).SetInt64(0))
-		r := (*hexutil.Big)(new(big.Int).SetInt64(0))
-		s := (*hexutil.Big)(new(big.Int).SetInt64(0))
+
+		v := new(big.Int).SetInt64(0)
+		r := new(big.Int).SetInt64(0)
+		s := new(big.Int).SetInt64(0)
+		sigTx, ok := tx.(authsigning.SigVerifiableTx)
+		if ok {
+			sigs, _ := sigTx.GetSignaturesV2()
+			if len(sigs) > 0 {
+				sig := sigs[0]
+				sigProto := signing.SignatureDataToProto(sig.Data)
+				v, r, s = GetNonEVMSignatures(sigProto.GetSingle().GetSignature())
+			}
+		} else {
+			fmt.Printf("failed to get signature for %s\n", tmTx.Hash())
+		}
+
+		gas := uint64(0)
+		gasPrice := new(big.Int).SetInt64(stratos.DefaultGasPrice)
+		if feeTx, ok := tx.(sdk.FeeTx); ok {
+			gas = feeTx.GetGas()
+			gasPrice = new(big.Int).Div(
+				feeTx.GetFee().AmountOf("wei").BigInt(), // TODO: mv somehow wei from config
+				new(big.Int).SetUint64(gas),
+			)
+		}
+
 		return &RPCTransaction{
 			BlockHash:        blockHash,
 			BlockNumber:      (*hexutil.Big)(new(big.Int).SetUint64(*blockNumber)),
 			Type:             hexutil.Uint64(0),
 			From:             from,
-			Gas:              hexutil.Uint64(0), // TODO: Add gas
-			GasPrice:         (*hexutil.Big)(new(big.Int).SetInt64(stratos.DefaultGasPrice)),
+			Gas:              hexutil.Uint64(gas),
+			GasPrice:         (*hexutil.Big)(gasPrice),
 			Hash:             common.BytesToHash(tmTx.Hash()),
 			Input:            make(hexutil.Bytes, 0),
 			Nonce:            hexutil.Uint64(0),
 			To:               new(common.Address),
 			TransactionIndex: (*hexutil.Uint64)(index),
-			Value:            (*hexutil.Big)(new(big.Int).SetInt64(0)), // TODO: Add value
-			V:                v,
-			R:                r,
-			S:                s,
+			Value:            (*hexutil.Big)(new(big.Int).SetInt64(0)), // NOTE: How to get value in generic way?
+			V:                (*hexutil.Big)(v),
+			R:                (*hexutil.Big)(r),
+			S:                (*hexutil.Big)(s),
 		}, nil
 	}
-}
-
-// NewTransactionFromMsg returns a transaction that will serialize to the RPC
-// representation, with the given location metadata set (if available).
-func NewTransactionFromMsg(
-	msg *evmtypes.MsgEthereumTx,
-	blockHash common.Hash,
-	blockNumber, index uint64,
-) (*RPCTransaction, error) {
-	tx := msg.AsTransaction()
-	return NewRPCTransaction(tx, blockHash, blockNumber, index)
 }
 
 // NewTransactionFromData returns a transaction that will serialize to the RPC
