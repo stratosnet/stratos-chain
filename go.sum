@@ -802,8 +802,8 @@ github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969 h1:Oo2KZNP70K
 github.com/status-im/keycard-go v0.0.0-20200402102358-957c09536969/go.mod h1:RZLeN1LMWmRsyYjvAu+I6Dm9QmlDaIIt+Y+4Kd7Tp+Q=
 github.com/steakknife/bloomfilter v0.0.0-20180922174646-6819c0d2a570/go.mod h1:8OR4w3TdeIHIh1g6EMY5p0gVNOovcWC+1vpc7naMuAw=
 github.com/steakknife/hamming v0.0.0-20180906055917-c99c65617cd3/go.mod h1:hpGUWaI9xL8pRQCTXQgocU38Qw1g0Us7n5PxxTwTCYU=
-github.com/stratosnet/cosmos-sdk v0.45.12-0.20230120193304-2764d97976b4 h1:/bGD538eoeCGdGWx84/6gy/gDhs9/YNCSqntj5jLTEo=
-github.com/stratosnet/cosmos-sdk v0.45.12-0.20230120193304-2764d97976b4/go.mod h1:MGnVQqzBiOFq62Jxxcl+NEwYjEJDyyKleBakfxsrNjg=
+github.com/stratosnet/cosmos-sdk v0.45.12-0.20230124002546-fd8c3abd07d5 h1:WjTdRjQkoPKDtp2gaGu9s/Cv5QC4ahRI9VRuex+XvQE=
+github.com/stratosnet/cosmos-sdk v0.45.12-0.20230124002546-fd8c3abd07d5/go.mod h1:p8Nf05bzxH7rGhbEuC0L+GEX4Fwvq3MgYFbdTlprZLc=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/handy v0.0.0-20190108123426-d5acb3125c2a/go.mod h1:qNTQ5P5JnDBl6z3cMAg/SywNDC5ABu5ApDIw6lUbRmI=

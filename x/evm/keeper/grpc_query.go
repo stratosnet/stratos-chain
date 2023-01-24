@@ -516,7 +516,7 @@ func (k *Keeper) traceTx(
 		}
 
 		// Construct the JavaScript tracer to execute with
-		if tracer, err = tracers.New(traceConfig.Tracer, tCtx); err != nil {
+		if tracer, err = tracers.New(traceConfig.Tracer, tCtx, nil); err != nil {
 			return nil, 0, status.Error(codes.Internal, err.Error())
 		}
 

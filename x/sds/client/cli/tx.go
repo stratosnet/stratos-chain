@@ -81,7 +81,7 @@ func PrepayTxCmd() *cobra.Command {
 				return err
 			}
 
-			fromAddr, fromName, _, err := client.GetFromFields(cliCtx.Keyring, args[0], cliCtx.GenerateOnly)
+			fromAddr, fromName, _, err := client.GetFromFields(cliCtx, cliCtx.Keyring, args[0])
 			if err != nil {
 				return err
 			}
