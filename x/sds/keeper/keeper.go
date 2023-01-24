@@ -75,7 +75,7 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
-func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) sdk.Int {
+func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) (sdk.Int, error) {
 	St := k.RegisterKeeper.GetEffectiveTotalStake(ctx)
 	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
@@ -90,14 +90,14 @@ func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 	// send coins to total unissued prepay pool
 	err := k.RegisterKeeper.SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx, from, sdk.NewCoin(k.BondDenom(ctx), amount))
 	if err != nil {
-		return sdk.ZeroInt()
+		return sdk.ZeroInt(), err
 	}
 
 	// update remaining noz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
 	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
 
-	return purchased
+	return purchased, nil
 }
 
 func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
@@ -123,9 +123,7 @@ func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) 
 	}
 
 	prepay := coins.AmountOf(k.BondDenom(ctx))
-	purchased := k.purchaseNozAndSubCoins(ctx, sender, prepay)
-
-	return purchased, nil
+	return k.purchaseNozAndSubCoins(ctx, sender, prepay)
 }
 
 // IterateFileUpload Iterate over all uploaded files.
