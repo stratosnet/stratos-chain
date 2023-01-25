@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/big"
 	"strconv"
@@ -28,6 +29,8 @@ import (
 	tmrpccoretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
+var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
+
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
 func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
 	tx, err := clientCtx.TxConfig.TxDecoder()(txBz)
@@ -46,36 +49,113 @@ func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEth
 	return ethTxs, nil
 }
 
+func GetBlockBloom(blockResults *tmrpccoretypes.ResultBlockResults) (ethtypes.Bloom, error) {
+	for _, event := range blockResults.EndBlockEvents {
+		if event.Type != evmtypes.EventTypeBlockBloom {
+			continue
+		}
+
+		for _, attr := range event.Attributes {
+			if bytes.Equal(attr.Key, bAttributeKeyEthereumBloom) {
+				return ethtypes.BytesToBloom(attr.Value), nil
+			}
+		}
+	}
+	return ethtypes.Bloom{}, errors.New("block bloom event is not found")
+}
+
 // EthHeaderFromTendermint is an util function that returns an Ethereum Header
 // from a tendermint Header.
-func EthHeaderFromTendermint(header tmtypes.Header, bloom ethtypes.Bloom, baseFee *big.Int) *ethtypes.Header {
-	txHash := ethtypes.EmptyRootHash
-	if len(header.DataHash) == 0 {
-		txHash = common.BytesToHash(header.DataHash)
+func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
+	results, err := tmrpccore.BlockResults(nil, &header.Height)
+	if err != nil {
+		return nil, err
+	}
+	gasLimit, err := BlockMaxGasFromConsensusParams(header.Height)
+	if err != nil {
+		return nil, err
 	}
 
-	return &ethtypes.Header{
-		ParentHash:  common.BytesToHash(header.LastBlockID.Hash.Bytes()),
-		UncleHash:   ethtypes.EmptyUncleHash,
-		Coinbase:    common.BytesToAddress(header.ProposerAddress),
+	bloom, err := GetBlockBloom(results)
+	if err != nil {
+		return nil, err
+	}
+
+	gasUsed := int64(0)
+	for _, txResult := range results.TxsResults {
+		gasUsed += txResult.GasUsed
+	}
+
+	return &Header{
+		Hash:        common.BytesToHash(header.Hash()),
+		ParentHash:  common.BytesToHash(header.LastBlockID.Hash),
+		UncleHash:   common.Hash{},
+		Coinbase:    common.BytesToAddress(header.ProposerAddress.Bytes()),
 		Root:        common.BytesToHash(header.AppHash),
-		TxHash:      txHash,
-		ReceiptHash: ethtypes.EmptyRootHash,
+		TxHash:      common.BytesToHash(header.DataHash),
+		ReceiptHash: common.Hash{},
 		Bloom:       bloom,
-		Difficulty:  big.NewInt(0),
+		Difficulty:  big.NewInt(1), // NOTE: Maybe move to some constant?
 		Number:      big.NewInt(header.Height),
-		GasLimit:    0,
-		GasUsed:     0,
-		Time:        uint64(header.Time.UTC().Unix()),
-		Extra:       []byte{},
+		GasLimit:    uint64(gasLimit),
+		GasUsed:     uint64(gasUsed),
+		Time:        uint64(header.Time.Unix()),
+		Extra:       common.Hex2Bytes(""),
 		MixDigest:   common.Hash{},
 		Nonce:       ethtypes.BlockNonce{},
-		BaseFee:     baseFee,
+	}, nil
+}
+
+// EthBlockFromTendermint returns a JSON-RPC compatible Ethereum blockfrom a given Tendermint block.
+func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullTx bool) (*Block, error) {
+	header, err := EthHeaderFromTendermint(block.Header)
+	if err != nil {
+		return nil, err
 	}
+
+	transactions := make([]interface{}, 0, len(block.Txs))
+	for i, tmTx := range block.Txs {
+		if !fullTx {
+			transactions = append(transactions, common.Bytes2Hex(tmTx.Hash()))
+			continue
+		}
+		blockHash := common.BytesToHash(block.Hash())
+		blockHeight := uint64(block.Height)
+		txIndex := uint64(i)
+		tx, err := TmTxToEthTx(txDecoder, tmTx, &blockHash, &blockHeight, &txIndex)
+		if err != nil {
+			// NOTE: Add debug?
+			continue
+		}
+		transactions = append(transactions, tx)
+	}
+
+	return &Block{
+		Number:           hexutil.Uint64(header.Number.Uint64()),
+		Hash:             header.Hash,
+		ParentHash:       header.ParentHash,
+		Nonce:            ethtypes.BlockNonce{}, // PoW specific
+		Sha3Uncles:       common.Hash{},         // No uncles in Tendermint
+		LogsBloom:        header.Bloom,
+		TransactionsRoot: header.TxHash,
+		StateRoot:        header.Root,
+		Miner:            header.Coinbase,
+		MixHash:          common.Hash{},
+		Difficulty:       hexutil.Uint64(header.Difficulty.Uint64()),
+		TotalDifficulty:  hexutil.Uint64(header.Difficulty.Uint64()),
+		ExtraData:        common.Hex2Bytes(""),
+		Size:             hexutil.Uint64(block.Size()),
+		GasLimit:         (*hexutil.Big)(new(big.Int).SetUint64(header.GasLimit)),
+		GasUsed:          (*hexutil.Big)(new(big.Int).SetUint64(header.GasUsed)),
+		Timestamp:        hexutil.Uint64(header.Time),
+		Transactions:     transactions,
+		Uncles:           make([]common.Hash, 0),
+		ReceiptsRoot:     common.Hash{},
+	}, nil
 }
 
 // BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
-func BlockMaxGasFromConsensusParams(clientCtx client.Context, blockHeight int64) (int64, error) {
+func BlockMaxGasFromConsensusParams(blockHeight int64) (int64, error) {
 	resConsParams, err := tmrpccore.ConsensusParams(nil, &blockHeight)
 	if err != nil {
 		return int64(^uint32(0)), err
@@ -90,51 +170,6 @@ func BlockMaxGasFromConsensusParams(clientCtx client.Context, blockHeight int64)
 	}
 
 	return gasLimit, nil
-}
-
-// FormatBlock creates an ethereum block from a tendermint header and ethereum-formatted
-// transactions.
-func FormatBlock(
-	header tmtypes.Header, size int, gasLimit int64,
-	gasUsed *big.Int, transactions []interface{}, bloom ethtypes.Bloom,
-	validatorAddr common.Address, baseFee *big.Int,
-) map[string]interface{} {
-	var transactionsRoot common.Hash
-	if len(transactions) == 0 {
-		transactionsRoot = ethtypes.EmptyRootHash
-	} else {
-		transactionsRoot = common.BytesToHash(header.DataHash)
-	}
-
-	result := map[string]interface{}{
-		"number":           hexutil.Uint64(header.Height),
-		"hash":             hexutil.Bytes(header.Hash()),
-		"parentHash":       common.BytesToHash(header.LastBlockID.Hash.Bytes()),
-		"nonce":            ethtypes.BlockNonce{},   // PoW specific
-		"sha3Uncles":       ethtypes.EmptyUncleHash, // No uncles in Tendermint
-		"logsBloom":        bloom,
-		"stateRoot":        hexutil.Bytes(header.AppHash),
-		"miner":            validatorAddr,
-		"mixHash":          common.Hash{},
-		"difficulty":       (*hexutil.Big)(big.NewInt(0)),
-		"extraData":        "0x",
-		"size":             hexutil.Uint64(size),
-		"gasLimit":         hexutil.Uint64(gasLimit), // Static gas limit
-		"gasUsed":          (*hexutil.Big)(gasUsed),
-		"timestamp":        hexutil.Uint64(header.Time.Unix()),
-		"transactionsRoot": transactionsRoot,
-		"receiptsRoot":     ethtypes.EmptyRootHash,
-
-		"uncles":          []common.Hash{},
-		"transactions":    transactions,
-		"totalDifficulty": (*hexutil.Big)(big.NewInt(0)),
-	}
-
-	if baseFee != nil {
-		result["baseFeePerGas"] = (*hexutil.Big)(baseFee)
-	}
-
-	return result
 }
 
 type DataError interface {
@@ -185,8 +220,6 @@ func GetPendingTxCountByAddress(txDecoder sdk.TxDecoder, mem mempool.Mempool, ad
 				signer = ethtypes.HomesteadSigner{}
 			}
 			from, _ := ethtypes.Sender(signer, ethTx)
-			fmt.Println("signer", from.Hex())
-			fmt.Println("checking", address.Hex())
 			if bytes.Equal(from.Bytes(), address.Bytes()) {
 				total++
 			}
@@ -366,7 +399,6 @@ func NewRPCTransaction(
 	}
 	from, _ := ethtypes.Sender(signer, tx)
 	v, r, s := tx.RawSignatureValues()
-	fmt.Printf("\n v: %s, r: %s, s: %s \n", v, r, s)
 	result := &RPCTransaction{
 		Type:     hexutil.Uint64(tx.Type()),
 		From:     from,

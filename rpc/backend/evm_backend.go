@@ -1,7 +1,6 @@
 package backend
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -18,7 +17,6 @@ import (
 
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 	tmjsonrpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -29,8 +27,6 @@ import (
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
-
-var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
 
 // BlockNumber returns the current block number in abci app state.
 // Because abci app state could lag behind from tendermint latest block, it's more stable
@@ -49,7 +45,7 @@ func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
 }
 
 // GetBlockByNumber returns the block identified by number.
-func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map[string]interface{}, error) {
+func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error) {
 	resBlock, err := b.GetTendermintBlockByNumber(blockNum)
 	if err != nil {
 		return nil, err
@@ -60,7 +56,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map
 		return nil, nil
 	}
 
-	res, err := b.EthBlockFromTendermint(resBlock.Block, fullTx)
+	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 	if err != nil {
 		b.logger.Debug("EthBlockFromTendermint failed", "height", blockNum, "error", err.Error())
 		return nil, err
@@ -70,7 +66,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map
 }
 
 // GetBlockByHash returns the block identified by hash.
-func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error) {
+func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, error) {
 	resBlock, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		b.logger.Debug("BlockByHash block not found", "hash", hash.Hex(), "error", err.Error())
@@ -82,11 +78,11 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]inte
 		return nil, nil
 	}
 
-	return b.EthBlockFromTendermint(resBlock.Block, fullTx)
+	return types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 }
 
 // BlockByNumber returns the block identified by number.
-func (b *Backend) BlockByNumber(blockNum types.BlockNumber) (*ethtypes.Block, error) {
+func (b *Backend) BlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error) {
 	height := blockNum.Int64()
 
 	switch blockNum {
@@ -118,11 +114,11 @@ func (b *Backend) BlockByNumber(blockNum types.BlockNumber) (*ethtypes.Block, er
 		return nil, errors.Errorf("block not found for height %d", height)
 	}
 
-	return b.EthBlockFromTm(resBlock.Block)
+	return types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 }
 
 // BlockByHash returns the block identified by hash.
-func (b *Backend) BlockByHash(hash common.Hash) (*ethtypes.Block, error) {
+func (b *Backend) BlockByHash(hash common.Hash, fullTx bool) (*types.Block, error) {
 	resBlock, err := tmrpccore.BlockByHash(nil, hash.Bytes())
 	if err != nil {
 		b.logger.Debug("HeaderByHash failed", "hash", hash.Hex())
@@ -133,46 +129,7 @@ func (b *Backend) BlockByHash(hash common.Hash) (*ethtypes.Block, error) {
 		return nil, errors.Errorf("block not found for hash %s", hash)
 	}
 
-	return b.EthBlockFromTm(resBlock.Block)
-}
-
-func (b *Backend) EthBlockFromTm(block *tmtypes.Block) (*ethtypes.Block, error) {
-	height := block.Height
-	bloom, err := b.BlockBloom(&height)
-	if err != nil {
-		b.logger.Debug("HeaderByNumber BlockBloom failed", "height", height)
-	}
-
-	baseFee, err := b.BaseFee()
-	if err != nil {
-		b.logger.Debug("HeaderByNumber BaseFee failed", "height", height, "error", err.Error())
-		return nil, err
-	}
-
-	ethHeader := types.EthHeaderFromTendermint(block.Header, bloom, baseFee)
-
-	var txs []*ethtypes.Transaction
-	for _, txBz := range block.Txs {
-		tx, err := b.clientCtx.TxConfig.TxDecoder()(txBz)
-		if err != nil {
-			b.logger.Debug("failed to decode transaction in block", "height", height, "error", err.Error())
-			continue
-		}
-
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
-			}
-
-			tx := ethMsg.AsTransaction()
-			txs = append(txs, tx)
-		}
-	}
-
-	// TODO: add tx receipts
-	ethBlock := ethtypes.NewBlock(ethHeader, txs, nil, nil, nil)
-	return ethBlock, nil
+	return types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 }
 
 // GetTendermintBlockByNumber returns a Tendermint format block by block number
@@ -237,124 +194,17 @@ func (b *Backend) BlockBloom(height *int64) (ethtypes.Bloom, error) {
 	if err != nil {
 		return ethtypes.Bloom{}, err
 	}
-	for _, event := range result.EndBlockEvents {
-		if event.Type != evmtypes.EventTypeBlockBloom {
-			continue
-		}
-
-		for _, attr := range event.Attributes {
-			if bytes.Equal(attr.Key, bAttributeKeyEthereumBloom) {
-				return ethtypes.BytesToBloom(attr.Value), nil
-			}
-		}
-	}
-	return ethtypes.Bloom{}, errors.New("block bloom event is not found")
-}
-
-// EthBlockFromTendermint returns a JSON-RPC compatible Ethereum block from a given Tendermint block and its block result.
-func (b *Backend) EthBlockFromTendermint(
-	block *tmtypes.Block,
-	fullTx bool,
-) (map[string]interface{}, error) {
-	ethRPCTxs := []interface{}{}
-
-	baseFee, err := b.BaseFee()
-	if err != nil {
-		return nil, err
-	}
-
-	resBlockResult, err := tmrpccore.BlockResults(nil, &block.Height)
-	if err != nil {
-		return nil, err
-	}
-
-	txResults := resBlockResult.TxsResults
-
-	for i, tmTx := range block.Txs {
-		if !fullTx {
-			hash := common.Bytes2Hex(tmTx.Hash())
-			ethRPCTxs = append(ethRPCTxs, hash)
-			continue
-		}
-
-		blockHash := common.BytesToHash(block.Hash())
-		blockHeight := uint64(block.Height)
-		txIndex := uint64(i)
-
-		rpcTx, err := types.TmTxToEthTx(
-			b.clientCtx.TxConfig.TxDecoder(),
-			tmTx,
-			&blockHash,
-			&blockHeight,
-			&txIndex,
-		)
-		if err != nil {
-			b.logger.Debug("NewTransactionFromData for receipt failed", "hash", common.Bytes2Hex(tmTx.Hash()), "error", err.Error())
-			continue
-		}
-		ethRPCTxs = append(ethRPCTxs, rpcTx)
-	}
-
-	bloom, err := b.BlockBloom(&block.Height)
-	if err != nil {
-		b.logger.Debug("failed to query BlockBloom", "height", block.Height, "error", err.Error())
-	}
-
-	req := &evmtypes.QueryValidatorAccountRequest{
-		ConsAddress: sdk.ConsAddress(block.Header.ProposerAddress).String(),
-	}
-
-	sdkCtx := b.GetSdkContext(&block.Header)
-	res, err := b.GetEVMKeeper().ValidatorAccount(sdk.WrapSDKContext(sdkCtx), req)
-	if err != nil {
-		b.logger.Debug(
-			"failed to query validator operator address",
-			"height", block.Height,
-			"cons-address", req.ConsAddress,
-			"error", err.Error(),
-		)
-		return nil, err
-	}
-
-	addr, err := sdk.AccAddressFromBech32(res.AccountAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	validatorAddr := common.BytesToAddress(addr)
-
-	gasLimit, err := types.BlockMaxGasFromConsensusParams(b.clientCtx, block.Height)
-	if err != nil {
-		b.logger.Error("failed to query consensus params", "error", err.Error())
-	}
-
-	gasUsed := uint64(0)
-
-	for _, txsResult := range txResults {
-		// workaround for cosmos-sdk bug. https://github.com/cosmos/cosmos-sdk/issues/10832
-		if txsResult.GetCode() == 11 && txsResult.GetLog() == "no block gas left to run tx: out of gas" {
-			// block gas limit has exceeded, other txs must have failed with same reason.
-			break
-		}
-		gasUsed += uint64(txsResult.GetGasUsed())
-	}
-
-	formattedBlock := types.FormatBlock(
-		block.Header, block.Size(),
-		gasLimit, new(big.Int).SetUint64(gasUsed),
-		ethRPCTxs, bloom, validatorAddr, baseFee,
-	)
-	return formattedBlock, nil
+	return types.GetBlockBloom(result)
 }
 
 // CurrentHeader returns the latest block header
-func (b *Backend) CurrentHeader() *ethtypes.Header {
+func (b *Backend) CurrentHeader() *types.Header {
 	header, _ := b.HeaderByNumber(types.EthLatestBlockNumber)
 	return header
 }
 
 // HeaderByNumber returns the block header identified by height.
-func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, error) {
+func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, error) {
 	height := blockNum.Int64()
 
 	switch blockNum {
@@ -382,23 +232,16 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, 
 		return nil, err
 	}
 
-	bloom, err := b.BlockBloom(&resBlock.Block.Height)
+	ethHeader, err := types.EthHeaderFromTendermint(resBlock.Block.Header)
 	if err != nil {
-		b.logger.Debug("HeaderByNumber BlockBloom failed", "height", resBlock.Block.Height)
-	}
-
-	baseFee, err := b.BaseFee()
-	if err != nil {
-		b.logger.Debug("HeaderByNumber BaseFee failed", "height", resBlock.Block.Height, "error", err.Error())
+		b.logger.Debug("HeaderByNumber EthHeaderFromTendermint failed", "height", resBlock.Block.Height, "error", err.Error())
 		return nil, err
 	}
-
-	ethHeader := types.EthHeaderFromTendermint(resBlock.Block.Header, bloom, baseFee)
 	return ethHeader, nil
 }
 
 // HeaderByHash returns the block header identified by hash.
-func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) {
+func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 	resBlock, err := tmrpccore.BlockByHash(nil, blockHash.Bytes())
 	if err != nil {
 		b.logger.Debug("HeaderByHash failed", "hash", blockHash.Hex())
@@ -409,18 +252,11 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error) 
 		return nil, errors.Errorf("block not found for hash %s", blockHash.Hex())
 	}
 
-	bloom, err := b.BlockBloom(&resBlock.Block.Height)
+	ethHeader, err := types.EthHeaderFromTendermint(resBlock.Block.Header)
 	if err != nil {
-		b.logger.Debug("HeaderByHash BlockBloom failed", "height", resBlock.Block.Height)
-	}
-
-	baseFee, err := b.BaseFee()
-	if err != nil {
-		b.logger.Debug("HeaderByHash BaseFee failed", "height", resBlock.Block.Height, "error", err.Error())
+		b.logger.Debug("HeaderByHash EthHeaderFromTendermint failed", "height", resBlock.Block.Height, "error", err.Error())
 		return nil, err
 	}
-
-	ethHeader := types.EthHeaderFromTendermint(resBlock.Block.Header, bloom, baseFee)
 	return ethHeader, nil
 }
 
@@ -914,7 +750,7 @@ func (b *Backend) FeeHistory(
 		}
 
 		oneFeeHistory := types.OneFeeHistory{}
-		err = b.processBlock(tendermintblock, &ethBlock, rewardPercentiles, tendermintBlockResult, &oneFeeHistory)
+		err = b.processBlock(tendermintblock, ethBlock, rewardPercentiles, tendermintBlockResult, &oneFeeHistory)
 		if err != nil {
 			return nil, err
 		}

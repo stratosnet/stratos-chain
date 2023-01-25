@@ -434,15 +434,12 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 		clientCtx := clientCtx.WithChainID(genEvmParamsChainId)
 
-		tmEndpoint := "/websocket"
-		tmRPCAddr := cfg.RPC.ListenAddress
-
 		evmApp := app.(stosapp.EVMLKeeperApp)
 		evmKeeper := evmApp.GetEVMKeeper()
 		ms := app.CommitMultiStore()
 		sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, nil)
 
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, tmRPCAddr, tmEndpoint, config)
+		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, config)
 		if err != nil {
 			return err
 		}

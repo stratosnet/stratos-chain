@@ -21,9 +21,7 @@ import (
 )
 
 // StartJSONRPC starts the JSON-RPC server
-func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, sdkCtx sdk.Context, clientCtx client.Context, tmRPCAddr, tmEndpoint string, config config.Config) (*http.Server, chan struct{}, error) {
-	tmWsClient := ConnectTmWS(tmRPCAddr, tmEndpoint, ctx.Logger)
-
+func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, sdkCtx sdk.Context, clientCtx client.Context, config config.Config) (*http.Server, chan struct{}, error) {
 	logger := ctx.Logger.With("module", "geth")
 	ethlog.Root().SetHandler(ethlog.FuncHandler(func(r *ethlog.Record) error {
 		switch r.Lvl {
@@ -40,7 +38,7 @@ func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.K
 	rpcServer := ethrpc.NewServer()
 
 	rpcAPIArr := config.JSONRPC.API
-	apis := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, tmWsClient, rpcAPIArr)
+	apis := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, rpcAPIArr)
 
 	for _, api := range apis {
 		if err := rpcServer.RegisterName(api.Namespace, api.Service); err != nil {
@@ -93,9 +91,7 @@ func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.K
 
 	ctx.Logger.Info("Starting JSON WebSocket server", "address", config.JSONRPC.WsAddress)
 
-	// allocate separate WS connection to Tendermint
-	tmWsClient = ConnectTmWS(tmRPCAddr, tmEndpoint, ctx.Logger)
-	wsSrv := rpc.NewWebsocketsServer(clientCtx, ctx.Logger, tmWsClient, config)
+	wsSrv := rpc.NewWebsocketsServer(clientCtx, ctx.Logger, tmNode, config)
 	wsSrv.Start()
 	return httpSrv, httpSrvDone, nil
 }
