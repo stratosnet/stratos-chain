@@ -465,7 +465,7 @@ func (a *API) GetHeaderRlp(number uint64) (hexutil.Bytes, error) {
 
 // GetBlockRlp retrieves the RLP encoded for of a single block.
 func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
-	block, err := a.backend.BlockByNumber(rpctypes.BlockNumber(number))
+	block, err := a.backend.BlockByNumber(rpctypes.BlockNumber(number), true)
 	if err != nil {
 		return nil, err
 	}
@@ -475,7 +475,7 @@ func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
 
 // PrintBlock retrieves a block and returns its pretty printed form.
 func (a *API) PrintBlock(number uint64) (string, error) {
-	block, err := a.backend.BlockByNumber(rpctypes.BlockNumber(number))
+	block, err := a.backend.BlockByNumber(rpctypes.BlockNumber(number), true)
 	if err != nil {
 		return "", err
 	}

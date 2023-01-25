@@ -8,7 +8,6 @@ import (
 
 	"github.com/tendermint/tendermint/libs/log"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -24,9 +23,9 @@ import (
 
 // Backend defines the methods requided by the PublicFilterAPI backend
 type Backend interface {
-	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (map[string]interface{}, error)
-	HeaderByNumber(blockNum types.BlockNumber) (*ethtypes.Header, error)
-	HeaderByHash(blockHash common.Hash) (*ethtypes.Header, error)
+	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error)
+	HeaderByNumber(blockNum types.BlockNumber) (*types.Header, error)
+	HeaderByHash(blockHash common.Hash) (*types.Header, error)
 	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
 	GetLogsByNumber(blockNum types.BlockNumber) ([][]*ethtypes.Log, error)
 	BlockBloom(height *int64) (ethtypes.Bloom, error)
@@ -64,14 +63,14 @@ type PublicFilterAPI struct {
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, tmWSClient *rpcclient.WSClient, backend Backend) *PublicFilterAPI {
+func NewPublicAPI(logger log.Logger, clientCtx client.Context, eventBus *tmtypes.EventBus, backend Backend) *PublicFilterAPI {
 	logger = logger.With("api", "filter")
 	api := &PublicFilterAPI{
 		logger:    logger,
 		clientCtx: clientCtx,
 		backend:   backend,
 		filters:   make(map[rpc.ID]*filter),
-		events:    NewEventSystem(logger, tmWSClient),
+		events:    NewEventSystem(logger, eventBus),
 	}
 
 	go api.timeoutLoop()
@@ -109,9 +108,6 @@ func (api *PublicFilterAPI) timeoutLoop() {
 //
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newPendingTransactionFilter
 func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
-	api.filtersMu.Lock()
-	defer api.filtersMu.Unlock()
-
 	if len(api.filters) >= int(api.backend.RPCFilterCap()) {
 		return rpc.ID("error creating pending tx filter: max limit reached")
 	}
@@ -121,42 +117,22 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 		// wrap error on the ID
 		return rpc.ID(fmt.Sprintf("error creating pending tx filter: %s", err.Error()))
 	}
-
+	api.filtersMu.Lock()
 	api.filters[pendingTxSub.ID()] = &filter{typ: filters.PendingTransactionsSubscription, deadline: time.NewTimer(deadline), hashes: make([]common.Hash, 0), s: pendingTxSub}
+	api.filtersMu.Unlock()
 
 	go func(txsCh <-chan coretypes.ResultEvent, errCh <-chan error) {
 		defer cancelSubs()
 
 		for {
 			select {
-			case ev, ok := <-txsCh:
-				if !ok {
-					api.filtersMu.Lock()
-					delete(api.filters, pendingTxSub.ID())
-					api.filtersMu.Unlock()
-					return
-				}
-
-				data, ok := ev.Data.(tmtypes.EventDataTx)
-				if !ok {
-					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
-					continue
-				}
-
-				tx, err := api.clientCtx.TxConfig.TxDecoder()(data.Tx)
-				if err != nil {
-					api.logger.Debug("fail to decode tx", "error", err.Error())
-					continue
-				}
+			case ev := <-txsCh:
+				data, _ := ev.Data.(tmtypes.EventDataTx)
+				txHash := common.BytesToHash(tmtypes.Tx(data.Tx).Hash())
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[pendingTxSub.ID()]; found {
-					for _, msg := range tx.GetMsgs() {
-						ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
-						if ok {
-							f.hashes = append(f.hashes, common.HexToHash(ethTx.Hash))
-						}
-					}
+					f.hashes = append(f.hashes, txHash)
 				}
 				api.filtersMu.Unlock()
 			case <-errCh:
@@ -195,31 +171,20 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 
 		for {
 			select {
-			case ev, ok := <-txsCh:
-				if !ok {
-					api.filtersMu.Lock()
-					delete(api.filters, pendingTxSub.ID())
-					api.filtersMu.Unlock()
-					return
-				}
-
+			case ev := <-txsCh:
 				data, ok := ev.Data.(tmtypes.EventDataTx)
 				if !ok {
-					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
-					continue
+					err = fmt.Errorf("invalid event data %T, expected %s", ev.Data, tmtypes.EventTx)
+					pendingTxSub.err <- err
+					return
 				}
+				txHash := common.BytesToHash(tmtypes.Tx(data.Tx).Hash())
 
-				tx, err := api.clientCtx.TxConfig.TxDecoder()(data.Tx)
+				// To keep the original behaviour, send a single tx hash in one notification.
+				// TODO(rjl493456442) Send a batch of tx hashes in one notification
+				err = notifier.Notify(rpcSub.ID, txHash)
 				if err != nil {
-					api.logger.Debug("fail to decode tx", "error", err.Error())
-					continue
-				}
-
-				for _, msg := range tx.GetMsgs() {
-					ethTx, ok := msg.(*evmtypes.MsgEthereumTx)
-					if ok {
-						_ = notifier.Notify(rpcSub.ID, common.HexToHash(ethTx.Hash))
-					}
+					return
 				}
 			case <-rpcSub.Err():
 				pendingTxSub.Unsubscribe(api.events)
@@ -239,58 +204,47 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 //
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newblockfilter
 func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
-	api.filtersMu.Lock()
-	defer api.filtersMu.Unlock()
-
-	if len(api.filters) >= int(api.backend.RPCFilterCap()) {
-		return rpc.ID("error creating block filter: max limit reached")
-	}
-
-	headerSub, cancelSubs, err := api.events.SubscribeNewHeads()
+	headersSub, cancelSubs, err := api.events.SubscribeNewHeads()
 	if err != nil {
 		// wrap error on the ID
 		return rpc.ID(fmt.Sprintf("error creating block filter: %s", err.Error()))
 	}
 
-	api.filters[headerSub.ID()] = &filter{typ: filters.BlocksSubscription, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: headerSub}
+	api.filtersMu.Lock()
+	api.filters[headersSub.ID()] = &filter{typ: filters.BlocksSubscription, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: headersSub}
+	api.filtersMu.Unlock()
 
 	go func(headersCh <-chan coretypes.ResultEvent, errCh <-chan error) {
 		defer cancelSubs()
 
 		for {
 			select {
-			case ev, ok := <-headersCh:
-				if !ok {
-					api.filtersMu.Lock()
-					delete(api.filters, headerSub.ID())
-					api.filtersMu.Unlock()
-					return
-				}
-
+			case ev := <-headersCh:
 				data, ok := ev.Data.(tmtypes.EventDataNewBlockHeader)
 				if !ok {
-					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
+					err = fmt.Errorf("invalid event data %T, expected %s", ev.Data, tmtypes.EventNewBlockHeader)
+					headersSub.err <- err
+					return
+				}
+				header, err := types.EthHeaderFromTendermint(data.Header)
+				if err != nil {
 					continue
 				}
-
-				baseFee := types.BaseFeeFromEvents(data.ResultBeginBlock.Events)
-
-				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
 				api.filtersMu.Lock()
-				if f, found := api.filters[headerSub.ID()]; found {
-					f.hashes = append(f.hashes, header.Hash())
+				if f, found := api.filters[headersSub.ID()]; found {
+					f.hashes = append(f.hashes, header.Hash)
 				}
 				api.filtersMu.Unlock()
 			case <-errCh:
 				api.filtersMu.Lock()
-				delete(api.filters, headerSub.ID())
+				delete(api.filters, headersSub.ID())
 				api.filtersMu.Unlock()
 				return
 			}
 		}
-	}(headerSub.eventCh, headerSub.Err())
+	}(headersSub.eventCh, headersSub.Err())
 
-	return headerSub.ID()
+	return headersSub.ID()
 }
 
 // NewHeads send a notification each time a new (header) block is appended to the chain.
@@ -313,23 +267,24 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 
 		for {
 			select {
-			case ev, ok := <-headersCh:
+			case ev := <-headersCh:
+				data, ok := ev.Data.(tmtypes.EventDataNewBlockHeader)
 				if !ok {
-					headersSub.Unsubscribe(api.events)
+					err = fmt.Errorf("invalid event data %T, expected %s", ev.Data, tmtypes.EventNewBlockHeader)
+					headersSub.err <- err
 					return
 				}
 
-				data, ok := ev.Data.(tmtypes.EventDataNewBlockHeader)
-				if !ok {
-					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
-					continue
+				header, err := types.EthHeaderFromTendermint(data.Header)
+				if err != nil {
+					headersSub.err <- err
+					return
 				}
-
-				baseFee := types.BaseFeeFromEvents(data.ResultBeginBlock.Events)
-
-				// TODO: fetch bloom from events
-				header := types.EthHeaderFromTendermint(data.Header, ethtypes.Bloom{}, baseFee)
-				_ = notifier.Notify(rpcSub.ID, header)
+				err = notifier.Notify(rpcSub.ID, header)
+				if err != nil {
+					headersSub.err <- err
+					return
+				}
 			case <-rpcSub.Err():
 				headersSub.Unsubscribe(api.events)
 				return
@@ -363,12 +318,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 
 		for {
 			select {
-			case ev, ok := <-logsCh:
-				if !ok {
-					logsSub.Unsubscribe(api.events)
-					return
-				}
-
+			case ev := <-logsCh:
 				// filter only events from EVM module txs
 				_, isMsgEthereumTx := ev.Events[evmtypes.TypeMsgEthereumTx]
 
@@ -380,19 +330,24 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 				// get transaction result data
 				dataTx, ok := ev.Data.(tmtypes.EventDataTx)
 				if !ok {
-					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
-					continue
+					err = fmt.Errorf("invalid event data %T, expected %s", ev.Data, tmtypes.EventTx)
+					logsSub.err <- err
+					return
 				}
 
 				txResponse, err := evmtypes.DecodeTxResponse(dataTx.TxResult.Result.Data)
 				if err != nil {
+					logsSub.err <- err
 					return
 				}
 
-				logs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
-
-				for _, log := range logs {
-					_ = notifier.Notify(rpcSub.ID, log)
+				matchedLogs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
+				for _, log := range matchedLogs {
+					err = notifier.Notify(rpcSub.ID, log)
+					if err != nil {
+						logsSub.err <- err
+						return
+					}
 				}
 			case <-rpcSub.Err(): // client send an unsubscribe request
 				logsSub.Unsubscribe(api.events)
@@ -421,9 +376,6 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 //
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newfilter
 func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, error) {
-	api.filtersMu.Lock()
-	defer api.filtersMu.Unlock()
-
 	if len(api.filters) >= int(api.backend.RPCFilterCap()) {
 		return rpc.ID(""), fmt.Errorf("error creating filter: max limit reached")
 	}
@@ -440,28 +392,26 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 
 	filterID = logsSub.ID()
 
+	api.filtersMu.Lock()
 	api.filters[filterID] = &filter{typ: filters.LogsSubscription, crit: criteria, deadline: time.NewTimer(deadline), hashes: []common.Hash{}, s: logsSub}
+	api.filtersMu.Unlock()
 
 	go func(eventCh <-chan coretypes.ResultEvent) {
 		defer cancelSubs()
 
 		for {
 			select {
-			case ev, ok := <-eventCh:
-				if !ok {
-					api.filtersMu.Lock()
-					delete(api.filters, filterID)
-					api.filtersMu.Unlock()
-					return
-				}
+			case ev := <-eventCh:
 				dataTx, ok := ev.Data.(tmtypes.EventDataTx)
 				if !ok {
-					api.logger.Debug("event data type mismatch", "type", fmt.Sprintf("%T", ev.Data))
-					continue
+					err = fmt.Errorf("invalid event data %T, expected EventDataTx", ev.Data)
+					logsSub.err <- err
+					return
 				}
 
 				txResponse, err := evmtypes.DecodeTxResponse(dataTx.TxResult.Result.Data)
 				if err != nil {
+					logsSub.err <- err
 					return
 				}
 
@@ -611,4 +561,9 @@ func (api *PublicFilterAPI) GetFilterChanges(id rpc.ID) (interface{}, error) {
 	default:
 		return nil, fmt.Errorf("invalid filter %s type %d", id, f.typ)
 	}
+}
+
+// Syncing provides information when this nodes starts synchronising with the OneLedger network and when it's finished.
+func (api *PublicFilterAPI) Syncing() (*rpc.Subscription, error) {
+	return &rpc.Subscription{}, rpc.ErrNotificationsUnsupported
 }

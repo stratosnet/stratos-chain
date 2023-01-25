@@ -48,11 +48,16 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 		return args, errors.New("latest header is nil")
 	}
 
+	baseFee, err := b.BaseFee()
+	if err != nil {
+		return args, err
+	}
+
 	// If user specifies both maxPriorityfee and maxFee, then we do not
 	// need to consult the chain for defaults. It's definitely a London tx.
 	if args.MaxPriorityFeePerGas == nil || args.MaxFeePerGas == nil {
 		// In this clause, user left some fields unspecified.
-		if head.BaseFee != nil && args.GasPrice == nil {
+		if baseFee != nil && args.GasPrice == nil {
 			if args.MaxPriorityFeePerGas == nil {
 				tip, err := b.SuggestGasTipCap()
 				if err != nil {
@@ -64,7 +69,7 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 			if args.MaxFeePerGas == nil {
 				gasFeeCap := new(big.Int).Add(
 					(*big.Int)(args.MaxPriorityFeePerGas),
-					new(big.Int).Mul(head.BaseFee, big.NewInt(2)),
+					new(big.Int).Mul(baseFee, big.NewInt(2)),
 				)
 				args.MaxFeePerGas = (*hexutil.Big)(gasFeeCap)
 			}
@@ -83,11 +88,11 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 				if err != nil {
 					return args, err
 				}
-				if head.BaseFee != nil {
+				if baseFee != nil {
 					// The legacy tx gas price suggestion should not add 2x base fee
 					// because all fees are consumed, so it would result in a spiral
 					// upwards.
-					price.Add(price, head.BaseFee)
+					price.Add(price, baseFee)
 				}
 				args.GasPrice = (*hexutil.Big)(price)
 			}
@@ -189,7 +194,7 @@ func (b *Backend) getAccountNonce(address common.Address, pending bool, height i
 // output: targetOneFeeHistory
 func (b *Backend) processBlock(
 	tendermintBlock *tmrpctypes.ResultBlock,
-	ethBlock *map[string]interface{},
+	ethBlock *types.Block,
 	rewardPercentiles []float64,
 	tendermintBlockResult *tmrpctypes.ResultBlockResults,
 	targetOneFeeHistory *types.OneFeeHistory,
@@ -204,15 +209,9 @@ func (b *Backend) processBlock(
 	targetOneFeeHistory.BaseFee = blockBaseFee
 
 	// set gas used ratio
-	gasLimitUint64, ok := (*ethBlock)["gasLimit"].(hexutil.Uint64)
-	if !ok {
-		return fmt.Errorf("invalid gas limit type: %T", (*ethBlock)["gasLimit"])
-	}
+	gasLimitUint64 := hexutil.Uint64(ethBlock.GasLimit.ToInt().Uint64())
 
-	gasUsedBig, ok := (*ethBlock)["gasUsed"].(*hexutil.Big)
-	if !ok {
-		return fmt.Errorf("invalid gas used type: %T", (*ethBlock)["gasUsed"])
-	}
+	gasUsedBig := ethBlock.GasUsed
 
 	gasusedfloat, _ := new(big.Float).SetInt(gasUsedBig.ToInt()).Float64()
 

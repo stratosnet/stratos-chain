@@ -87,3 +87,78 @@ type OneFeeHistory struct {
 	Reward       []*big.Int // each element of the array will have the tip provided to miners for the percentile given
 	GasUsedRatio float64    // the ratio of gas used to the gas limit for each block
 }
+
+// NOTE: Forked because tendermint block hash calculated in another way
+// default ethereum take rlp from the struct
+type Header struct {
+	Hash        common.Hash         `json:"hash"             gencodec:"required"`
+	ParentHash  common.Hash         `json:"parentHash"       gencodec:"required"`
+	UncleHash   common.Hash         `json:"sha3Uncles"       gencodec:"required"`
+	Coinbase    common.Address      `json:"miner"            gencodec:"required"`
+	Root        common.Hash         `json:"stateRoot"        gencodec:"required"`
+	TxHash      common.Hash         `json:"transactionsRoot" gencodec:"required"`
+	ReceiptHash common.Hash         `json:"receiptsRoot"     gencodec:"required"`
+	Bloom       ethtypes.Bloom      `json:"logsBloom"        gencodec:"required"`
+	Difficulty  *big.Int            `json:"difficulty"       gencodec:"required"`
+	Number      *big.Int            `json:"number"           gencodec:"required"`
+	GasLimit    uint64              `json:"gasLimit"         gencodec:"required"`
+	GasUsed     uint64              `json:"gasUsed"          gencodec:"required"`
+	Time        uint64              `json:"timestamp"        gencodec:"required"`
+	Extra       []byte              `json:"extraData"        gencodec:"required"`
+	MixDigest   common.Hash         `json:"mixHash"`
+	Nonce       ethtypes.BlockNonce `json:"nonce"`
+
+	// BaseFee was added by EIP-1559 and is ignored in legacy headers.
+	// TODO: Add support
+	// NOTE: Do we need this in real?
+	// BaseFee *big.Int `json:"baseFeePerGas" rlp:"optional"`
+}
+
+// Block represents a block returned to RPC clients.
+type Block struct {
+	Number           hexutil.Uint64      `json:"number"`
+	Hash             common.Hash         `json:"hash"`
+	ParentHash       common.Hash         `json:"parentHash"`
+	Nonce            ethtypes.BlockNonce `json:"nonce"`
+	Sha3Uncles       common.Hash         `json:"sha3Uncles"`
+	LogsBloom        ethtypes.Bloom      `json:"logsBloom"`
+	TransactionsRoot common.Hash         `json:"transactionsRoot"`
+	StateRoot        common.Hash         `json:"stateRoot"`
+	Miner            common.Address      `json:"miner"`
+	MixHash          common.Hash         `json:"mixHash"`
+	Difficulty       hexutil.Uint64      `json:"difficulty"`
+	TotalDifficulty  hexutil.Uint64      `json:"totalDifficulty"`
+	ExtraData        hexutil.Bytes       `json:"extraData"`
+	Size             hexutil.Uint64      `json:"size"`
+	GasLimit         *hexutil.Big        `json:"gasLimit"`
+	GasUsed          *hexutil.Big        `json:"gasUsed"`
+	Timestamp        hexutil.Uint64      `json:"timestamp"`
+	Uncles           []common.Hash       `json:"uncles"`
+	ReceiptsRoot     common.Hash         `json:"receiptsRoot"`
+	Transactions     []interface{}       `json:"transactions"`
+}
+
+// TransactionReceipt represents a mined transaction returned to RPC clients.
+type TransactionReceipt struct {
+	// Consensus fields: These fields are defined by the Yellow Paper
+	Status            hexutil.Uint64  `json:"status"`
+	CumulativeGasUsed hexutil.Uint64  `json:"cumulativeGasUsed"`
+	LogsBloom         ethtypes.Bloom  `json:"logsBloom"`
+	Logs              []*ethtypes.Log `json:"logs"`
+
+	// Implementation fields: These fields are added by geth when processing a transaction.
+	// They are stored in the chain database.
+	TransactionHash common.Hash     `json:"transactionHash"`
+	ContractAddress *common.Address `json:"contractAddress"`
+	GasUsed         hexutil.Uint64  `json:"gasUsed"`
+
+	// Inclusion information: These fields provide information about the inclusion of the
+	// transaction corresponding to this receipt.
+	BlockHash        common.Hash    `json:"blockHash"`
+	BlockNumber      hexutil.Big    `json:"blockNumber"`
+	TransactionIndex hexutil.Uint64 `json:"transactionIndex"`
+
+	// sender and receiver (contract or EOA) addresses
+	From common.Address  `json:"from"`
+	To   *common.Address `json:"to"`
+}
