@@ -99,7 +99,7 @@ func NewLogsFromEth(ethlogs []*ethtypes.Log) []*Log {
 
 // LogsToEthereum casts the stratos Logs to a slice of Ethereum Logs.
 func LogsToEthereum(logs []*Log) []*ethtypes.Log {
-	ethLogs := make([]*ethtypes.Log, 0)
+	var ethLogs []*ethtypes.Log // nolint: prealloc
 	for i := range logs {
 		ethLogs = append(ethLogs, logs[i].ToEthereum())
 	}

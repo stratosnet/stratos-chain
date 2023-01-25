@@ -185,12 +185,16 @@ func (e *PublicAPI) GasPrice() (*hexutil.Big, error) {
 		result *big.Int
 		err    error
 	)
-	if head := e.backend.CurrentHeader(); head.BaseFee != nil {
+	baseFee, err := e.backend.BaseFee()
+	if err != nil {
+		return nil, err
+	}
+	if baseFee != nil {
 		result, err = e.backend.SuggestGasTipCap()
 		if err != nil {
 			return nil, err
 		}
-		result = result.Add(result, head.BaseFee)
+		result = result.Add(result, baseFee)
 	} else {
 		result = big.NewInt(e.backend.RPCMinGasPrice())
 	}
@@ -702,13 +706,13 @@ func (e *PublicAPI) EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *
 }
 
 // GetBlockByHash returns the block identified by hash.
-func (e *PublicAPI) GetBlockByHash(hash common.Hash, fullTx bool) (map[string]interface{}, error) {
+func (e *PublicAPI) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, error) {
 	e.logger.Debug("eth_getBlockByHash", "hash", hash.Hex(), "full", fullTx)
 	return e.backend.GetBlockByHash(hash, fullTx)
 }
 
 // GetBlockByNumber returns the block identified by number.
-func (e *PublicAPI) GetBlockByNumber(ethBlockNum rpctypes.BlockNumber, fullTx bool) (map[string]interface{}, error) {
+func (e *PublicAPI) GetBlockByNumber(ethBlockNum rpctypes.BlockNumber, fullTx bool) (*types.Block, error) {
 	e.logger.Debug("eth_getBlockByNumber", "number", ethBlockNum, "full", fullTx)
 	return e.backend.GetBlockByNumber(ethBlockNum, fullTx)
 }
@@ -840,6 +844,8 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 			logs, err = backend.TxLogsFromEvents(res.TxResult.Events, 0)
 			if err != nil {
 				e.logger.Debug("logs not found", "hash", hash, "error", err.Error())
+			}
+			if logs == nil {
 				logs = make([]*ethtypes.Log, 0)
 			}
 			if rpcTx.To == nil {
