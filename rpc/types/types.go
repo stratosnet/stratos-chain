@@ -107,6 +107,7 @@ type Header struct {
 	Extra       []byte              `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash         `json:"mixHash"`
 	Nonce       ethtypes.BlockNonce `json:"nonce"`
+	Size        uint64              `json:"size"`
 
 	// BaseFee was added by EIP-1559 and is ignored in legacy headers.
 	// TODO: Add support

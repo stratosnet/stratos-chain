@@ -70,7 +70,7 @@ func NewPublicAPI(logger log.Logger, clientCtx client.Context, eventBus *tmtypes
 		clientCtx: clientCtx,
 		backend:   backend,
 		filters:   make(map[rpc.ID]*filter),
-		events:    NewEventSystem(logger, eventBus),
+		events:    NewEventSystem(clientCtx, logger, eventBus),
 	}
 
 	go api.timeoutLoop()
@@ -127,8 +127,18 @@ func (api *PublicFilterAPI) NewPendingTransactionFilter() rpc.ID {
 		for {
 			select {
 			case ev := <-txsCh:
-				data, _ := ev.Data.(tmtypes.EventDataTx)
-				txHash := common.BytesToHash(tmtypes.Tx(data.Tx).Hash())
+				data, ok := ev.Data.(tmtypes.EventDataTx)
+				if !ok {
+					err = fmt.Errorf("invalid event data %T, expected %s", ev.Data, tmtypes.EventTx)
+					pendingTxSub.err <- err
+					return
+				}
+
+				txHash, err := types.GetTxHash(api.clientCtx.TxConfig.TxDecoder(), tmtypes.Tx(data.Tx))
+				if err != nil {
+					pendingTxSub.err <- err
+					return
+				}
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[pendingTxSub.ID()]; found {
@@ -178,7 +188,12 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 					pendingTxSub.err <- err
 					return
 				}
-				txHash := common.BytesToHash(tmtypes.Tx(data.Tx).Hash())
+
+				txHash, err := types.GetTxHash(api.clientCtx.TxConfig.TxDecoder(), tmtypes.Tx(data.Tx))
+				if err != nil {
+					pendingTxSub.err <- err
+					return
+				}
 
 				// To keep the original behaviour, send a single tx hash in one notification.
 				// TODO(rjl493456442) Send a batch of tx hashes in one notification
@@ -319,12 +334,10 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 		for {
 			select {
 			case ev := <-logsCh:
-				// filter only events from EVM module txs
-				_, isMsgEthereumTx := ev.Events[evmtypes.TypeMsgEthereumTx]
-
+				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
+				fmt.Printf("\x1b[32m------ logs tx type is evm from sub: %t\x1b[0m\n", isMsgEthereumTx)
 				if !isMsgEthereumTx {
-					// ignore transaction as it's not from the evm module
-					return
+					continue
 				}
 
 				// get transaction result data
@@ -334,14 +347,18 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 					logsSub.err <- err
 					return
 				}
+				fmt.Printf("\x1b[32m------ logs tx dataTx: %+v\x1b[0m\n", dataTx)
 
 				txResponse, err := evmtypes.DecodeTxResponse(dataTx.TxResult.Result.Data)
 				if err != nil {
 					logsSub.err <- err
 					return
 				}
+				fmt.Printf("\x1b[32m------ logs tx response: %+v\x1b[0m\n", txResponse)
+				fmt.Printf("\x1b[32m------ logs crit: %+v\x1b[0m\n", crit)
 
 				matchedLogs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
+				fmt.Printf("\x1b[32m------ logs matchedLogs: %+v\x1b[0m\n", matchedLogs)
 				for _, log := range matchedLogs {
 					err = notifier.Notify(rpcSub.ID, log)
 					if err != nil {
@@ -402,6 +419,11 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 		for {
 			select {
 			case ev := <-eventCh:
+				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
+				if !isMsgEthereumTx {
+					continue
+				}
+
 				dataTx, ok := ev.Data.(tmtypes.EventDataTx)
 				if !ok {
 					err = fmt.Errorf("invalid event data %T, expected EventDataTx", ev.Data)
