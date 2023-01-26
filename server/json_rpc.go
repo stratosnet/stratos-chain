@@ -1,18 +1,11 @@
 package server
 
 import (
-	"net/http"
-	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
 	"github.com/tendermint/tendermint/node"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
-	"github.com/cosmos/cosmos-sdk/server/types"
 	ethlog "github.com/ethereum/go-ethereum/log"
-	ethrpc "github.com/ethereum/go-ethereum/rpc"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/rpc"
@@ -21,7 +14,7 @@ import (
 )
 
 // StartJSONRPC starts the JSON-RPC server
-func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, sdkCtx sdk.Context, clientCtx client.Context, config config.Config) (*http.Server, chan struct{}, error) {
+func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, sdkCtx sdk.Context, clientCtx client.Context, config config.Config) error {
 	logger := ctx.Logger.With("module", "geth")
 	ethlog.Root().SetHandler(ethlog.FuncHandler(func(r *ethlog.Record) error {
 		switch r.Lvl {
@@ -35,63 +28,15 @@ func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.K
 		return nil
 	}))
 
-	rpcServer := ethrpc.NewServer()
-
-	rpcAPIArr := config.JSONRPC.API
-	apis := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, rpcAPIArr)
-
-	for _, api := range apis {
-		if err := rpcServer.RegisterName(api.Namespace, api.Service); err != nil {
-			ctx.Logger.Error(
-				"failed to register service in JSON RPC namespace",
-				"namespace", api.Namespace,
-				"service", api.Service,
-			)
-			return nil, nil, err
-		}
+	apis := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, config.JSONRPC.API)
+	web3Srv := rpc.NewWeb3Server(config, logger)
+	err := web3Srv.StartHTTP(apis)
+	if err != nil {
+		return err
 	}
-
-	r := mux.NewRouter()
-	r.HandleFunc("/", rpcServer.ServeHTTP).Methods("POST")
-
-	handlerWithCors := cors.Default()
-	if config.API.EnableUnsafeCORS {
-		handlerWithCors = cors.AllowAll()
+	err = web3Srv.StartWS(apis)
+	if err != nil {
+		return err
 	}
-
-	httpSrv := &http.Server{
-		Addr:         config.JSONRPC.Address,
-		Handler:      handlerWithCors.Handler(r),
-		ReadTimeout:  config.JSONRPC.HTTPTimeout,
-		WriteTimeout: config.JSONRPC.HTTPTimeout,
-		IdleTimeout:  config.JSONRPC.HTTPIdleTimeout,
-	}
-	httpSrvDone := make(chan struct{}, 1)
-
-	errCh := make(chan error)
-	go func() {
-		ctx.Logger.Info("Starting JSON-RPC server", "address", config.JSONRPC.Address)
-		if err := httpSrv.ListenAndServe(); err != nil {
-			if err == http.ErrServerClosed {
-				close(httpSrvDone)
-				return
-			}
-
-			ctx.Logger.Error("failed to start JSON-RPC server", "error", err.Error())
-			errCh <- err
-		}
-	}()
-
-	select {
-	case err := <-errCh:
-		ctx.Logger.Error("failed to boot JSON-RPC server", "error", err.Error())
-		return nil, nil, err
-	case <-time.After(types.ServerStartTime): // assume JSON RPC server started successfully
-	}
-
-	ctx.Logger.Info("Starting JSON WebSocket server", "address", config.JSONRPC.WsAddress)
-
-	wsSrv := rpc.NewWebsocketsServer(clientCtx, ctx.Logger, tmNode, config)
-	wsSrv.Start()
-	return httpSrv, httpSrvDone, nil
+	return nil
 }

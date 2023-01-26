@@ -6,13 +6,12 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/pkg/errors"
-
 	"github.com/tendermint/tendermint/libs/log"
 	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
 	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
-	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
 	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -40,9 +39,9 @@ var (
 // EventSystem creates subscriptions, processes events and broadcasts them to the
 // subscription which match the subscription criteria using the Tendermint's RPC client.
 type EventSystem struct {
-	logger     log.Logger
-	ctx        context.Context
-	tmWSClient *rpcclient.WSClient
+	logger    log.Logger
+	ctx       context.Context
+	clientCtx client.Context
 
 	index      filterIndex
 	topicChans map[string]chan<- coretypes.ResultEvent
@@ -72,7 +71,7 @@ type EventSystem struct {
 //
 // The returned manager has a loop that needs to be stopped with the Stop function
 // or by stopping the given mux.
-func NewEventSystem(logger log.Logger, eventBus *tmtypes.EventBus) *EventSystem {
+func NewEventSystem(clientCtx client.Context, logger log.Logger, eventBus *tmtypes.EventBus) *EventSystem {
 	index := make(filterIndex)
 	for i := filters.UnknownSubscription; i < filters.LastIndexSubscription; i++ {
 		index[i] = make(map[rpc.ID]*Subscription)
@@ -81,6 +80,7 @@ func NewEventSystem(logger log.Logger, eventBus *tmtypes.EventBus) *EventSystem 
 	es := &EventSystem{
 		logger:        logger,
 		ctx:           context.Background(),
+		clientCtx:     clientCtx,
 		index:         index,
 		topicChans:    make(map[string]chan<- coretypes.ResultEvent, len(index)),
 		indexMux:      new(sync.RWMutex),
@@ -285,6 +285,7 @@ func (es *EventSystem) subscribeLogs(crit filters.FilterCriteria) (*Subscription
 		installed: make(chan struct{}, 1),
 		err:       make(chan error, 1),
 	}
+	fmt.Printf("\x1b[32m------ logs subscribe: %+v\x1b[0m\n", sub)
 	return es.subscribe(sub)
 }
 
@@ -336,6 +337,7 @@ type filterIndex map[filters.Type]map[rpc.ID]*Subscription
 
 func (es *EventSystem) handleLogs(ev coretypes.ResultEvent) {
 	data, _ := ev.Data.(tmtypes.EventDataTx)
+	fmt.Printf("\x1b[32m------ logs data: %+v\x1b[0m\n", data)
 	// logReceipt := onetypes.GetTxEthLogs(&data.TxResult.Result, data.Index)
 	resultData, err := evmtypes.DecodeTransactionLogs(data.TxResult.Result.Data)
 	if err != nil {
@@ -358,8 +360,12 @@ func (es *EventSystem) handleTxsEvent(ev coretypes.ResultEvent) {
 	data, _ := ev.Data.(tmtypes.EventDataTx)
 	for _, f := range es.index[filters.PendingTransactionsSubscription] {
 		// NOTE: In previous version, data.Tx return types.Tx, but right now just bytes,
-		// so we need manually covert in order to get sha256 hash fot tx payload
-		f.hashes <- []common.Hash{common.BytesToHash(tmtypes.Tx(data.Tx).Hash())}
+		// so we need manually covert in order to get sha256 hash fot tx payload.
+		txHash, err := types.GetTxHash(es.clientCtx.TxConfig.TxDecoder(), tmtypes.Tx(data.Tx))
+		if err != nil {
+			continue
+		}
+		f.hashes <- []common.Hash{txHash}
 	}
 }
 
@@ -427,6 +433,7 @@ func (es *EventSystem) eventLoop() {
 		case logsEv := <-es.logsSub.eventCh:
 			es.handleLogs(logsEv)
 		case logsEv := <-es.pendingLogsSub.eventCh:
+			fmt.Println("\x1b[32m------ logs trigger from event loop\x1b[0m")
 			es.handleLogs(logsEv)
 
 		case f := <-es.install:
