@@ -103,6 +103,8 @@ func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 		Extra:       common.Hex2Bytes(""),
 		MixDigest:   common.Hash{},
 		Nonce:       ethtypes.BlockNonce{},
+		// TODO: Add size somehow for legacy subscription support as for a new Header type after London
+		// is not exist but still present in newBlockHeaders call on subscription
 	}, nil
 }
 
@@ -312,6 +314,24 @@ func GetNonEVMSignatures(sig []byte) (v, r, s *big.Int) {
 	r = new(big.Int).SetBytes(sig[:32])
 	s = new(big.Int).SetBytes(sig[32:64])
 	return
+}
+
+// GetTxHash get hash depends on what type, unfortunatelly system support two tx hash algo
+// in order to have opportunity for off chain tx hash computation
+func GetTxHash(txDecoder sdk.TxDecoder, tmTx tmtypes.Tx) (common.Hash, error) {
+	tx, err := txDecoder(tmTx)
+	if err != nil {
+		return common.Hash{}, err
+	}
+	if len(tx.GetMsgs()) == 0 {
+		return common.Hash{}, errors.New("tx contain empty msgs")
+	}
+	msg := tx.GetMsgs()[0]
+	if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
+		return ethMsg.AsTransaction().Hash(), nil
+	} else {
+		return common.BytesToHash(tmTx.Hash()), nil
+	}
 }
 
 // TmTxToEthTx convert ethereum and rest transaction on ethereum based structure
