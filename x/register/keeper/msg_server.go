@@ -321,7 +321,7 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 		return &types.MsgUpdateResourceNodeStakeResponse{}, errors.New("invalid stake delta")
 	}
 
-	ozoneLimitChange, completionTime, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
+	ozoneLimitChange, completionTime, node, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
 	}
@@ -333,6 +333,7 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
 			sdk.NewAttribute(types.AttributeKeyStakeDelta, msg.StakeDelta.String()),
+			sdk.NewAttribute(types.AttributeKeyCurrentStake, sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
