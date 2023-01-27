@@ -80,17 +80,6 @@ func getEthTransactionByHash(clientCtx client.Context, hashHex string) ([]byte, 
 		return nil, err
 	}
 
-	// client := types.NewQueryClient(clientCtx)
-	// res, err := client.BaseFee(context.Background(), &types.QueryBaseFeeRequest{})
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// var baseFee *big.Int
-	// if res.BaseFee != nil {
-	// 	baseFee = res.BaseFee.BigInt()
-	// }
-
 	blockHash := common.BytesToHash(block.Block.Header.Hash())
 
 	ethTxs, err := rpctypes.RawTxToEthTx(clientCtx, tx.Tx)
