@@ -69,7 +69,7 @@ func GetBlockBloom(blockResults *tmrpccoretypes.ResultBlockResults) (ethtypes.Bl
 func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 	results, err := tmrpccore.BlockResults(nil, &header.Height)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 	gasLimit, err := BlockMaxGasFromConsensusParams(header.Height)
 	if err != nil {
@@ -112,6 +112,7 @@ func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullTx bool) (*Block, error) {
 	header, err := EthHeaderFromTendermint(block.Header)
 	if err != nil {
+		fmt.Printf("------------------------------------------------------ err: %s\n", err)
 		return nil, err
 	}
 

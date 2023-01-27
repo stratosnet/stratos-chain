@@ -225,6 +225,7 @@ func (es *EventSystem) resubscribe(subscriber string, q tmpubsub.Query) tmtypes.
 // block is "latest". If the fromBlock > toBlock an error is returned.
 func (es *EventSystem) SubscribeLogs(crit filters.FilterCriteria) (*Subscription, context.CancelFunc, error) {
 	var from, to rpc.BlockNumber
+	fmt.Printf("\x1b[32m------ SubscribeLogs crit: %+v\x1b[0m\n", crit)
 	if crit.FromBlock == nil {
 		from = rpc.LatestBlockNumber
 	} else {
@@ -427,13 +428,16 @@ func (es *EventSystem) eventLoop() {
 	for {
 		select {
 		case txEvent := <-es.txsSub.eventCh:
+			fmt.Printf("\x1b[32m------ tx event trigger from event loop: %+v\x1b[0m\n", txEvent)
 			es.handleTxsEvent(txEvent)
 		case headerEv := <-es.chainSub.eventCh:
+			fmt.Printf("\x1b[32m------ header event trigger from event loop: %+v\x1b[0m\n", headerEv)
 			es.handleChainEvent(headerEv)
 		case logsEv := <-es.logsSub.eventCh:
+			fmt.Printf("\x1b[32m------ logs event trigger from event loop: %+v\x1b[0m\n", logsEv)
 			es.handleLogs(logsEv)
 		case logsEv := <-es.pendingLogsSub.eventCh:
-			fmt.Println("\x1b[32m------ logs trigger from event loop\x1b[0m")
+			fmt.Printf("\x1b[32m------ pending logs event trigger from event loop: %+v\x1b[0m\n", logsEv)
 			es.handleLogs(logsEv)
 
 		case f := <-es.install:
