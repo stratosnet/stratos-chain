@@ -335,7 +335,7 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 			select {
 			case ev := <-logsCh:
 				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
-				fmt.Printf("\x1b[32m------ logs tx type is evm from sub: %t\x1b[0m\n", isMsgEthereumTx)
+				api.logger.Debug("\x1b[32m------ logs tx type is evm from sub: %t\x1b[0m\n", isMsgEthereumTx)
 				if !isMsgEthereumTx {
 					continue
 				}
@@ -347,18 +347,18 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 					logsSub.err <- err
 					return
 				}
-				fmt.Printf("\x1b[32m------ logs tx dataTx: %+v\x1b[0m\n", dataTx)
+				api.logger.Debug("\x1b[32m------ logs tx dataTx: %+v\x1b[0m\n", dataTx)
 
 				txResponse, err := evmtypes.DecodeTxResponse(dataTx.TxResult.Result.Data)
 				if err != nil {
 					logsSub.err <- err
 					return
 				}
-				fmt.Printf("\x1b[32m------ logs tx response: %+v\x1b[0m\n", txResponse)
-				fmt.Printf("\x1b[32m------ logs crit: %+v\x1b[0m\n", crit)
+				api.logger.Debug("\x1b[32m------ logs tx response: %+v\x1b[0m\n", txResponse)
+				api.logger.Debug("\x1b[32m------ logs crit: %+v\x1b[0m\n", crit)
 
 				matchedLogs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
-				fmt.Printf("\x1b[32m------ logs matchedLogs: %+v\x1b[0m\n", matchedLogs)
+				api.logger.Debug("\x1b[32m------ logs matchedLogs: %+v\x1b[0m\n", matchedLogs)
 				for _, log := range matchedLogs {
 					err = notifier.Notify(rpcSub.ID, log)
 					if err != nil {
