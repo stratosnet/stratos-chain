@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -15,18 +16,38 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 		return
 	}
 
+	// 1 utros ~ 1e9 wei
+	// todo: remove this part on main net
+	if slashingDenom == stratos.Utros {
+		utrosAmt := coins.AmountOf(slashingDenom)
+		utrosAmtAsWei := utrosAmt.MulRaw(1e9)
+		if utrosAmtAsWei.GTE(slashing) {
+			slashingAmtAsUtros := slashing.QuoRaw(1e9).ToDec()
+			if slashingAmtAsUtros.IsInteger() {
+				deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, slashingAmtAsUtros.TruncateInt()))
+			} else {
+				// deduct 1 more utros for none zero decimals
+				deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, slashingAmtAsUtros.TruncateInt().Add(sdk.NewInt(1))))
+			}
+			slashing = sdk.ZeroInt()
+		} else {
+			deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, utrosAmt))
+			slashing = slashing.Sub(utrosAmtAsWei)
+		}
+		remaining = remaining.Sub(deducted)
+		k.SetSlashing(ctx, walletAddress, slashing)
+		return
+	}
+
 	coinAmt := coins.AmountOf(slashingDenom)
 	if coinAmt.GTE(slashing) {
 		deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, slashing))
-		coinAmt = coinAmt.Sub(slashing)
-		remaining = remaining.Sub(deducted)
 		slashing = sdk.ZeroInt()
 	} else {
 		deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, coinAmt))
 		slashing = slashing.Sub(coinAmt)
-		remaining = remaining.Sub(deducted)
-		coinAmt = sdk.ZeroInt()
 	}
+	remaining = remaining.Sub(deducted)
 
 	k.SetSlashing(ctx, walletAddress, slashing)
 	return

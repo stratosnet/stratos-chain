@@ -143,7 +143,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	querier := keeper.Querier{Keeper: am.keeper}
 	types.RegisterQueryServer(cfg.QueryServer(), querier)
 
-	m := keeper.NewMigrator(am.keeper)
+	m := keeper.NewMigrator(am.keeper, types.ModuleCdc)
+	// in-place store migrations from ConsensusVersion 1 to 2.
 	_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }
 
