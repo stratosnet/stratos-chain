@@ -1,7 +1,10 @@
 package keeper
 
 import (
+	gogotypes "github.com/gogo/protobuf/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -71,7 +74,7 @@ func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress
 func (k Keeper) SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetSlashingKey(walletAddress)
-	bz := types.ModuleCdc.MustMarshalLengthPrefixed(slashing)
+	bz := k.cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{Value: slashing.String()})
 	store.Set(storeKey, bz)
 }
 
@@ -81,6 +84,13 @@ func (k Keeper) GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res 
 	if bz == nil {
 		return sdk.ZeroInt()
 	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(bz, &res)
+
+	var resStr gogotypes.StringValue
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &resStr)
+	res, ok := sdk.NewIntFromString(resStr.GetValue())
+	if !ok {
+		return sdk.ZeroInt()
+	}
+
 	return
 }
