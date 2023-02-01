@@ -1,4 +1,4 @@
-package v09
+package v0_9_1
 
 const (
 	// ModuleName is the name of the module

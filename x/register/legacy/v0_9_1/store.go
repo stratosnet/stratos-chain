@@ -1,10 +1,13 @@
-package v09
+package v0_9_1
 
 import (
+	gogotypes "github.com/gogo/protobuf/types"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	gogotypes "github.com/gogo/protobuf/types"
+
+	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // before: slashing 1utros -> 1ustos(handled as 1wei)
@@ -41,10 +44,11 @@ func migrateSlashingAmt(store sdk.KVStore, cdc codec.Codec, aminoCodec *codec.Le
 
 		//use proto codec instead
 		newBz := cdc.MustMarshalLengthPrefixed(&gogotypes.StringValue{Value: newSlashingAmt.String()})
+		storeKey := types.GetSlashingKey(key)
 
 		// slashing amount updated with new value
-		store.Set(key, newBz)
 		oldSlashingStore.Delete(iterator.Key())
+		store.Set(storeKey, newBz)
 	}
 
 	return nil

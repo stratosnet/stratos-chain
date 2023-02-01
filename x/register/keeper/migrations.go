@@ -4,7 +4,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	v09register "github.com/stratosnet/stratos-chain/x/register/legacy/v09"
+	v0_9_1register "github.com/stratosnet/stratos-chain/x/register/legacy/v0_9_1"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -20,5 +20,5 @@ func NewMigrator(keeper Keeper, aminoCodec *codec.LegacyAmino) Migrator {
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	return v09register.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.aminoCodec)
+	return v0_9_1register.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, m.aminoCodec)
 }
