@@ -2,6 +2,7 @@ package types
 
 import (
 	"bytes"
+	"crypto/sha1"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -32,6 +33,21 @@ import (
 
 var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
 var MempoolCapacity = 100
+
+// HashToUint64 used to convert string or hash string to uint64
+func HashToUint64(s string) uint64 {
+	h := sha1.New()
+	h.Write([]byte(s))
+
+	hash := h.Sum(nil)[:2]
+	result := uint64(0)
+	for i := 0; i < len(hash); i++ {
+		result = result << 8
+		result += uint64(hash[i])
+
+	}
+	return result
+}
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
 func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
@@ -374,6 +390,7 @@ func TmTxToEthTx(
 		addr := msg.GetSigners()[0]
 		from := common.BytesToAddress(addr.Bytes())
 
+		nonce := uint64(0)
 		v := new(big.Int).SetInt64(0)
 		r := new(big.Int).SetInt64(0)
 		s := new(big.Int).SetInt64(0)
@@ -384,6 +401,7 @@ func TmTxToEthTx(
 				sig := sigs[0]
 				sigProto := signing.SignatureDataToProto(sig.Data)
 				v, r, s = GetNonEVMSignatures(sigProto.GetSingle().GetSignature())
+				nonce = sig.Sequence
 			}
 		} else {
 			fmt.Printf("failed to get signature for %s\n", tmTx.Hash())
@@ -407,13 +425,13 @@ func TmTxToEthTx(
 		return &Transaction{
 			BlockHash:        blockHash,
 			BlockNumber:      (*hexutil.Big)(bNumber),
-			Type:             hexutil.Uint64(0),
+			Type:             hexutil.Uint64(HashToUint64(sdk.MsgTypeURL(msg))),
 			From:             from,
 			Gas:              hexutil.Uint64(gas),
 			GasPrice:         (*hexutil.Big)(gasPrice),
 			Hash:             common.BytesToHash(tmTx.Hash()),
 			Input:            make(hexutil.Bytes, 0),
-			Nonce:            hexutil.Uint64(0),
+			Nonce:            hexutil.Uint64(nonce),
 			To:               new(common.Address),
 			TransactionIndex: (*hexutil.Uint64)(index),
 			Value:            (*hexutil.Big)(new(big.Int).SetInt64(0)), // NOTE: How to get value in generic way?
