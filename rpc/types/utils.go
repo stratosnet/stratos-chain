@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"sort"
 	"strconv"
 
 	"github.com/cosmos/cosmos-sdk/client"
@@ -30,6 +31,7 @@ import (
 )
 
 var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
+var MempoolCapacity = 100
 
 // RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
 func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
@@ -207,7 +209,7 @@ func ErrRevertedWith(data []byte) DataError {
 
 // GetPendingTxCountByAddress is used to get pending tx count (nonce) for user address
 func GetPendingTxCountByAddress(txDecoder sdk.TxDecoder, mem mempool.Mempool, address common.Address) (total uint64) {
-	for _, tmTx := range mem.ReapMaxTxs(50) {
+	for _, tmTx := range mem.ReapMaxTxs(MempoolCapacity) {
 		tx, err := txDecoder(tmTx)
 		if err != nil {
 			continue
@@ -292,13 +294,28 @@ func GetBlockCumulativeGas(blockResults *tmrpccoretypes.ResultBlockResults, idx 
 	return gasUsed
 }
 
-func GetPendingTx(txDecoder sdk.TxDecoder, mem mempool.Mempool, hash common.Hash, chainID *big.Int) (*RPCTransaction, error) {
-	for _, uTx := range mem.ReapMaxTxs(50) {
+func GetPendingTx(txDecoder sdk.TxDecoder, mem mempool.Mempool, hash common.Hash) (*Transaction, error) {
+	for _, uTx := range mem.ReapMaxTxs(MempoolCapacity) {
 		if bytes.Equal(uTx.Hash(), hash.Bytes()) {
 			return TmTxToEthTx(txDecoder, uTx, nil, nil, nil)
 		}
 	}
 	return nil, nil
+}
+
+func GetPendingTxs(txDecoder sdk.TxDecoder, mem mempool.Mempool) []*Transaction {
+	txs := make([]*Transaction, 0, MempoolCapacity)
+	for _, uTx := range mem.ReapMaxTxs(MempoolCapacity) {
+		if tx, err := TmTxToEthTx(txDecoder, uTx, nil, nil, nil); err == nil {
+			txs = append(txs, tx)
+		}
+	}
+	sort.Sort(TxByNonce(txs))
+	return txs
+}
+
+func GetPendingTxsLen(mem mempool.Mempool) int {
+	return len(mem.ReapMaxTxs(MempoolCapacity))
 }
 
 func GetNonEVMSignatures(sig []byte) (v, r, s *big.Int) {
@@ -340,7 +357,7 @@ func TmTxToEthTx(
 	tmTx tmtypes.Tx,
 	blockHash *common.Hash,
 	blockNumber, index *uint64,
-) (*RPCTransaction, error) {
+) (*Transaction, error) {
 	tx, err := txDecoder(tmTx)
 	if err != nil {
 		return nil, err
@@ -382,9 +399,14 @@ func TmTxToEthTx(
 			)
 		}
 
-		return &RPCTransaction{
+		var bNumber *big.Int
+		if blockNumber != nil {
+			bNumber = new(big.Int).SetUint64(*blockNumber)
+		}
+
+		return &Transaction{
 			BlockHash:        blockHash,
-			BlockNumber:      (*hexutil.Big)(new(big.Int).SetUint64(*blockNumber)),
+			BlockNumber:      (*hexutil.Big)(bNumber),
 			Type:             hexutil.Uint64(0),
 			From:             from,
 			Gas:              hexutil.Uint64(gas),
@@ -406,7 +428,7 @@ func TmTxToEthTx(
 // representation, with the given location metadata set (if available).
 func NewRPCTransaction(
 	tx *ethtypes.Transaction, blockHash common.Hash, blockNumber, index uint64,
-) (*RPCTransaction, error) {
+) (*Transaction, error) {
 	// Determine the signer. For replay-protected transactions, use the most permissive
 	// signer, because we assume that signers are backwards-compatible with old
 	// transactions. For non-protected transactions, the homestead signer signer is used
@@ -419,7 +441,7 @@ func NewRPCTransaction(
 	}
 	from, _ := ethtypes.Sender(signer, tx)
 	v, r, s := tx.RawSignatureValues()
-	result := &RPCTransaction{
+	result := &Transaction{
 		Type:     hexutil.Uint64(tx.Type()),
 		From:     from,
 		Gas:      hexutil.Uint64(tx.Gas()),

@@ -718,13 +718,13 @@ func (e *PublicAPI) GetBlockByNumber(ethBlockNum rpctypes.BlockNumber, fullTx bo
 }
 
 // GetTransactionByHash returns the transaction identified by hash.
-func (e *PublicAPI) GetTransactionByHash(hash common.Hash) (*rpctypes.RPCTransaction, error) {
+func (e *PublicAPI) GetTransactionByHash(hash common.Hash) (*rpctypes.Transaction, error) {
 	e.logger.Debug("eth_getTransactionByHash", "hash", hash.Hex())
 	return e.backend.GetTransactionByHash(hash)
 }
 
 // getTransactionByBlockAndIndex is the common code shared by `GetTransactionByBlockNumberAndIndex` and `GetTransactionByBlockHashAndIndex`.
-func (e *PublicAPI) getTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
+func (e *PublicAPI) getTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock, idx hexutil.Uint) (*rpctypes.Transaction, error) {
 	// return if index out of bounds
 	if uint64(idx) >= uint64(len(block.Block.Txs)) {
 		return nil, nil
@@ -746,7 +746,7 @@ func (e *PublicAPI) getTransactionByBlockAndIndex(block *tmrpctypes.ResultBlock,
 }
 
 // GetTransactionByBlockHashAndIndex returns the transaction identified by hash and index.
-func (e *PublicAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
+func (e *PublicAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexutil.Uint) (*rpctypes.Transaction, error) {
 	e.logger.Debug("eth_getTransactionByBlockHashAndIndex", "hash", hash.Hex(), "index", idx)
 
 	block, err := tmrpccore.BlockByHash(nil, hash.Bytes())
@@ -764,7 +764,7 @@ func (e *PublicAPI) GetTransactionByBlockHashAndIndex(hash common.Hash, idx hexu
 }
 
 // GetTransactionByBlockNumberAndIndex returns the transaction identified by number and index.
-func (e *PublicAPI) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockNumber, idx hexutil.Uint) (*rpctypes.RPCTransaction, error) {
+func (e *PublicAPI) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockNumber, idx hexutil.Uint) (*rpctypes.Transaction, error) {
 	e.logger.Debug("eth_getTransactionByBlockNumberAndIndex", "number", blockNum, "index", idx)
 
 	block, err := tmrpccore.Block(nil, blockNum.TmHeight())
@@ -896,12 +896,12 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 
 // GetPendingTransactions returns the transactions that are in the transaction pool
 // and have a from address that is one of the accounts this node manages.
-func (e *PublicAPI) GetPendingTransactions() ([]*rpctypes.RPCTransaction, error) {
+func (e *PublicAPI) GetPendingTransactions() ([]*rpctypes.Transaction, error) {
 	e.logger.Debug("eth_getPendingTransactions")
 
 	txs := e.backend.GetMempool().ReapMaxTxs(100)
 
-	result := make([]*rpctypes.RPCTransaction, 0, len(txs))
+	result := make([]*rpctypes.Transaction, 0, len(txs))
 	for _, tx := range txs {
 		rpctx, err := rpctypes.TmTxToEthTx(e.clientCtx.TxConfig.TxDecoder(), tx, nil, nil, nil)
 		if err != nil {

@@ -76,7 +76,7 @@ type EVMBackend interface {
 	GetTransactionCount(address common.Address, blockNum types.BlockNumber) (*hexutil.Uint64, error)
 	SendTransaction(args evmtypes.TransactionArgs) (common.Hash, error)
 	GetCoinbase() (sdk.AccAddress, error)
-	GetTransactionByHash(txHash common.Hash) (*types.RPCTransaction, error)
+	GetTransactionByHash(txHash common.Hash) (*types.Transaction, error)
 	GetTxByHash(txHash common.Hash) (*tmrpctypes.ResultTx, error)
 	GetTxByTxIndex(height int64, txIndex uint) (*tmrpctypes.ResultTx, error)
 	EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *types.BlockNumber) (hexutil.Uint64, error)

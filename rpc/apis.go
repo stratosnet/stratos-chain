@@ -104,12 +104,13 @@ func init() {
 				},
 			}
 		},
-		TxPoolNamespace: func(ctx *server.Context, _ *node.Node, _ *evmkeeper.Keeper, _ sdk.Context, _ client.Context) []rpc.API {
+		TxPoolNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, sdkCtx sdk.Context, clientCtx client.Context) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, sdkCtx, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: TxPoolNamespace,
 					Version:   apiVersion,
-					Service:   txpool.NewPublicAPI(ctx.Logger),
+					Service:   txpool.NewPublicAPI(ctx.Logger, clientCtx, evmBackend),
 					Public:    true,
 				},
 			}

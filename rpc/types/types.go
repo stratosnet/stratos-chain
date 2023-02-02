@@ -29,8 +29,8 @@ type StorageResult struct {
 	Proof []string     `json:"proof"`
 }
 
-// RPCTransaction represents a transaction that will serialize to the RPC representation of a transaction
-type RPCTransaction struct {
+// Transaction represents a transaction that will serialize to the RPC representation of a transaction
+type Transaction struct {
 	BlockHash        *common.Hash         `json:"blockHash"`
 	BlockNumber      *hexutil.Big         `json:"blockNumber"`
 	From             common.Address       `json:"from"`
@@ -163,3 +163,15 @@ type TransactionReceipt struct {
 	From common.Address  `json:"from"`
 	To   *common.Address `json:"to"`
 }
+
+type TxByNonce []*Transaction
+
+func (s TxByNonce) Len() int           { return len(s) }
+func (s TxByNonce) Less(i, j int) bool { return s[i].Nonce < s[j].Nonce }
+func (s TxByNonce) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
+
+// Transactions implements DerivableList for transactions.
+type Transactions []*Transaction
+
+// Len returns the length of s.
+func (s Transactions) Len() int { return len(s) }
