@@ -144,6 +144,11 @@ message MsgSlashingResourceNode {
     (gogoproto.jsontag) = "suspend",
     (gogoproto.moretags) = "yaml:\"suspend\""
   ];
+  string           effective_stake = 7 [
+    (gogoproto.jsontag)  = "effective_stake",
+    (gogoproto.moretags) = "yaml:\"effective_stake\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+   ];
 }
 // MsgSlashingResourceNodeResponse defines the Msg/MsgSlashingResourceNode response type.
 message MsgSlashingResourceNodeResponse {}

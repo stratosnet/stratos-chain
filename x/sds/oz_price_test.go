@@ -53,7 +53,8 @@ var (
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
-	resNodeSlashingNOZAmt1 = sdk.NewInt(100000000000)
+	resNodeSlashingNOZAmt1            = sdk.NewInt(100000000000)
+	resNodeSlashingEffectiveTokenAmt1 = sdk.NewInt(1000000000000000000)
 
 	resourceNodeVolume1 = sdk.NewInt(537500000000)
 	resourceNodeVolume2 = sdk.NewInt(200000000000)
@@ -601,7 +602,7 @@ func setupSlashingMsg() *pottypes.MsgSlashingResourceNode {
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true, resNodeSlashingEffectiveTokenAmt1)
 	return slashingMsg
 }
 
@@ -610,7 +611,7 @@ func setupSuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNodeP
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, resNodeSlashingNOZAmt1, true)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, resNodeSlashingNOZAmt1, true, resNodeSlashingEffectiveTokenAmt1)
 	return slashingMsg
 }
 
@@ -619,7 +620,7 @@ func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdk.ZeroInt(), false)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdk.ZeroInt(), false, resNodeSlashingEffectiveTokenAmt1)
 	return slashingMsg
 }
 func setupPrepayMsg() *sdstypes.MsgPrepay {
@@ -653,7 +654,7 @@ func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNod
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, sdk.ZeroInt(), false)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, sdk.ZeroInt(), false, resNodeSlashingEffectiveTokenAmt1)
 	return slashingMsg
 }
 

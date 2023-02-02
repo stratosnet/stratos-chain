@@ -16,23 +16,24 @@ const (
 	FlagReporterOwner   = "reporter-owner"
 	FlagNetworkAddress  = "network-address"
 	FlagSlashing        = "slashing"
+	FlagEffectiveStake  = "effective-stake"
 	FlagSuspend         = "suspend"
 	FlagBLSSignature    = "bls-signature"
 )
 
 var (
-//FsReporterAddr    = flag.NewFlagSet("", flag.ContinueOnError)
-//FsEpoch           = flag.NewFlagSet("", flag.ContinueOnError)
-//FsReportReference = flag.NewFlagSet("", flag.ContinueOnError)
-//FsWalletVolumes   = flag.NewFlagSet("", flag.ContinueOnError)
-//FsAmount          = flag.NewFlagSet("", flag.ContinueOnError)
-//FsWalletAddress   = flag.NewFlagSet("", flag.ContinueOnError)
-//FsTargetAddress   = flag.NewFlagSet("", flag.ContinueOnError)
-//FsReporters       = flag.NewFlagSet("", flag.ContinueOnError)
-//FsReportOwner     = flag.NewFlagSet("", flag.ContinueOnError)
-//FsNetworkAddress  = flag.NewFlagSet("", flag.ContinueOnError)
-//FsSlashing        = flag.NewFlagSet("", flag.ContinueOnError)
-//FsSuspend         = flag.NewFlagSet("", flag.ContinueOnError)
+// FsReporterAddr    = flag.NewFlagSet("", flag.ContinueOnError)
+// FsEpoch           = flag.NewFlagSet("", flag.ContinueOnError)
+// FsReportReference = flag.NewFlagSet("", flag.ContinueOnError)
+// FsWalletVolumes   = flag.NewFlagSet("", flag.ContinueOnError)
+// FsAmount          = flag.NewFlagSet("", flag.ContinueOnError)
+// FsWalletAddress   = flag.NewFlagSet("", flag.ContinueOnError)
+// FsTargetAddress   = flag.NewFlagSet("", flag.ContinueOnError)
+// FsReporters       = flag.NewFlagSet("", flag.ContinueOnError)
+// FsReportOwner     = flag.NewFlagSet("", flag.ContinueOnError)
+// FsNetworkAddress  = flag.NewFlagSet("", flag.ContinueOnError)
+// FsSlashing        = flag.NewFlagSet("", flag.ContinueOnError)
+// FsSuspend         = flag.NewFlagSet("", flag.ContinueOnError)
 )
 
 func init() {
@@ -119,5 +120,12 @@ func flagSetSlashing() *flag.FlagSet {
 func flagSetSuspend() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	fs.Bool(FlagSuspend, false, "if the resource node is suspend")
+	return fs
+}
+
+// flagSetFsSlashing Returns the FlagSet for slashing amount.
+func flagSetEffectiveStake() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+	fs.String(FlagEffectiveStake, "", "the amount of effective stake")
 	return fs
 }

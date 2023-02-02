@@ -169,14 +169,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		k.SetBondedResourceNodeCnt(ctx, count)
 	}
 
-	if !resourceNode.Suspend {
-		ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
-	} else {
-		// if node is currently suspended, ozone limit will be increased upon unsuspension instead of NOW
-		ozoneLimitChange = sdk.ZeroInt()
-	}
-
-	return ozoneLimitChange, nil
+	return sdk.ZeroInt(), nil
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {

@@ -158,7 +158,7 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
-			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), availableStake).String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(

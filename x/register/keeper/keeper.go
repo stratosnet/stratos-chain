@@ -384,10 +384,20 @@ func (k Keeper) UnbondResourceNode(
 
 	// check if node_token - unbonding_token > amt_to_unbond
 	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+
 	availableStake := resourceNode.Tokens.Sub(unbondingStake)
 	if availableStake.LT(amt) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
+
+	// check if 0 < (node_token - unbonding_token - amt_to_unbond) < effective_token,
+	// if true, tier downgrade needs to be triggered
+	// if availableStakeAfterUnbond == effectiveTokens, no tier change will happened
+	// if availableStakeAfterUnbond == 0, node will be removed
+	//effectiveTokens := resourceNode.EffectiveTokens
+	//availableStakeAfterUnbond := resourceNode.Tokens.Sub(unbondingStake).Sub(amt)
+	//needUpdateTier := availableStakeAfterUnbond.LT(effectiveTokens) &&
+	//	availableStakeAfterUnbond.GT(sdk.ZeroInt())
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
@@ -399,8 +409,8 @@ func (k Keeper) UnbondResourceNode(
 	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
-		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
+		// not adjusting ozone limit since resourceNode.EffectiveTokens are not changed
+		//ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// change node status to unbonding if unbonding all available tokens

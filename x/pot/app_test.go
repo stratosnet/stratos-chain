@@ -42,7 +42,8 @@ var (
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
-	resNodeSlashingNOZAmt1 = sdk.NewInt(1000000000000000000)
+	resNodeSlashingNOZAmt1            = sdk.NewInt(1000000000000000000)
+	resNodeSlashingEffectiveTokenAmt1 = sdk.NewInt(1000000000000000000)
 
 	resourceNodeVolume1 = sdk.NewInt(500000)
 	resourceNodeVolume2 = sdk.NewInt(300000)
@@ -154,7 +155,7 @@ func setupSlashingMsg() *types.MsgSlashingResourceNode {
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true)
+	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true, resNodeSlashingEffectiveTokenAmt1)
 	return slashingMsg
 }
 
@@ -408,7 +409,7 @@ func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Coin) (ret
 	return ret
 }
 
-//for main net
+// for main net
 func checkResult(t *testing.T, ctx sdk.Context,
 	k potKeeper.Keeper,
 	accountKeeper authkeeper.AccountKeeper,
