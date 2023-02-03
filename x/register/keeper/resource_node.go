@@ -310,36 +310,36 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 }
 
 func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
+	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, resourcenode types.ResourceNode, err error) {
 
 	blockTime := ctx.BlockHeader().Time
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), blockTime, types.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), blockTime, node, types.ErrNoResourceNodeFound
 	}
 
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !bytes.Equal(ownerAddrNode, ownerAddr) {
-		return sdk.ZeroInt(), blockTime, types.ErrInvalidOwnerAddr
+		return sdk.ZeroInt(), blockTime, node, types.ErrInvalidOwnerAddr
 	}
 
 	if incrStake {
 		ozoneLimitChange, err := k.AddResourceNodeStake(ctx, node, stakeDelta)
 		if err != nil {
-			return sdk.ZeroInt(), blockTime, err
+			return sdk.ZeroInt(), blockTime, node, err
 		}
-		return ozoneLimitChange, blockTime, nil
+		return ozoneLimitChange, blockTime, node, nil
 	} else {
 		// if !incrStake
 		if node.GetStatus() == stakingtypes.Unbonding {
-			return sdk.ZeroInt(), blockTime, types.ErrUnbondingNode
+			return sdk.ZeroInt(), blockTime, node, types.ErrUnbondingNode
 		}
 
 		ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
 		if err != nil {
-			return sdk.ZeroInt(), blockTime, err
+			return sdk.ZeroInt(), blockTime, node, err
 		}
-		return ozoneLimitChange, completionTime, nil
+		return ozoneLimitChange, completionTime, node, nil
 	}
 }
 

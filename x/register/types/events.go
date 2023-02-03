@@ -28,12 +28,12 @@ const (
 
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
 
-	AttributeKeyOZoneLimitChanges  = "ozone_limit_changes"
-	AttributeKeyInitialStake       = "initial_stake"
-	AttributeKeyStakeDelta         = "stake_delta"
-	AttributeKeyStakeToRemove      = "stake_to_remove"
-	AttributeKeyIncrStakeBool      = "incr_stake"
-	AttributeKeyNeedUpdateTierBool = "need_update_tier"
+	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
+	AttributeKeyInitialStake      = "initial_stake"
+	AttributeKeyCurrentStake      = "current_stake"
+	AttributeKeyStakeDelta        = "stake_delta"
+	AttributeKeyStakeToRemove     = "stake_to_remove"
+	AttributeKeyIncrStakeBool     = "incr_stake"
 
 	AttributeValueCategory = ModuleName
 )

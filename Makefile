@@ -38,6 +38,12 @@ build-windows: go.sum
 clean:
 	rm -rf $(BUILDDIR)/
 
+coverage:
+	go test ./... -coverprofile cover.out -coverpkg=./...
+	go tool cover -html cover.out -o cover.html
+	go tool cover -func cover.out | grep total:
+	rm cover.out
+
 ###############################################################################
 ###                                Localnet                                 ###
 ###############################################################################

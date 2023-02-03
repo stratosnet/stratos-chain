@@ -109,7 +109,7 @@ func (v ResourceNode) ConvertToString() string {
 		Status:				%s
 		Tokens:				%s
 		Owner Address: 		%s
-		NodeType:           %s
+		NodeType:           %v
 		Description:		%s
 		CreationTime:		%s
 	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(), v.Tokens,
