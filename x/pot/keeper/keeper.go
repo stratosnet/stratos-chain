@@ -49,7 +49,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume, reporter stratos.SdsAddress,
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (err error) {
 
 	// tx fail when unhandled epoch > 0

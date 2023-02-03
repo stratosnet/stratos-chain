@@ -54,7 +54,9 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 
-	err = k.VolumeReport(ctx, msg.WalletVolumes, reporter, epoch, msg.ReportReference, txhash)
+	walletVolumes := types.WalletVolumes{Volumes: msg.WalletVolumes}
+
+	err = k.VolumeReport(ctx, walletVolumes, reporter, epoch, msg.ReportReference, txhash)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrVolumeReport, err.Error())
 	}

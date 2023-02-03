@@ -1,10 +1,12 @@
 package pot
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
-	// abci "github.com/tendermint/tendermint/abci/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/stratosnet/stratos-chain/x/pot/keeper"
+	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -30,12 +32,12 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 	logger := k.Logger(ctx)
 
 	//distribute POT reward
-	_, err := k.DistributePotReward(ctx, walletVolumes, epoch)
+	_, err := k.DistributePotReward(ctx, walletVolumes.Volumes, epoch)
 	if err != nil {
 		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
 	}
 
-	k.SetUnhandledReport(ctx, nil)
+	k.SetUnhandledReport(ctx, types.WalletVolumes{})
 	k.SetUnhandledEpoch(ctx, sdk.ZeroInt())
 
 	return []abci.ValidatorUpdate{}

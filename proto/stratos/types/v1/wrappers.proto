@@ -1,0 +1,20 @@
+syntax = "proto3";
+package stratos.types.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/stratosnet/stratos-chain/types";
+
+message Int {
+  string Value = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+message Coins {
+  repeated cosmos.base.v1beta1.Coin Value = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

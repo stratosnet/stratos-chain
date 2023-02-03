@@ -90,25 +90,32 @@ message Reward {
 
 message SingleWalletVolume {
     string                            wallet_address   = 1 [
-      (gogoproto.jsontag)  = "wallet_address",
+      (gogoproto.jsontag) = "wallet_address",
       (gogoproto.moretags) = "yaml:\"wallet_address\""
     ];
-    string                   volume        = 2 [
-      (gogoproto.jsontag)  = "volume",
-      (gogoproto.moretags) = "yaml:\"volume\"",
-      (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-    ];
+  string                   volume = 2 [
+    (gogoproto.jsontag) = "volume",
+    (gogoproto.moretags) = "yaml:\"volume\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+message WalletVolumes {
+  repeated SingleWalletVolume Volumes = 1 [
+    (gogoproto.jsontag) = "volumes",
+    (gogoproto.moretags) = "yaml:\"volumes\""
+  ];
 }
 
 message VolumeReportRecord {
-    string reporter   = 1 [
-      (gogoproto.jsontag)  = "reporter",
-      (gogoproto.moretags) = "yaml:\"reporter\""
-    ];
-    string report_reference   = 2 [
-      (gogoproto.jsontag)  = "report_reference",
-      (gogoproto.moretags) = "yaml:\"report_reference\""
-    ];
+  string reporter = 1 [
+    (gogoproto.jsontag) = "reporter",
+    (gogoproto.moretags) = "yaml:\"reporter\""
+  ];
+  string report_reference = 2 [
+    (gogoproto.jsontag) = "report_reference",
+    (gogoproto.moretags) = "yaml:\"report_reference\""
+  ];
     string tx_hash   = 3 [
       (gogoproto.jsontag)  = "tx_hash",
       (gogoproto.moretags) = "yaml:\"tx_hash\""

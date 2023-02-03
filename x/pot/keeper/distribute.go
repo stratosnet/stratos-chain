@@ -443,52 +443,6 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 	return
 }
 
-// Iteration for getting individule reward of each owner at a specific epoch
-func (k Keeper) IteratorIndividualReward(ctx sdk.Context, epoch sdk.Int, handler func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.GetIndividualRewardIteratorKey(epoch))
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.GetIndividualRewardIteratorKey(epoch)):])
-
-		var individualReward types.Reward
-		types.ModuleCdc.MustUnmarshalLengthPrefixed(iter.Value(), &individualReward)
-		if handler(addr, individualReward) {
-			break
-		}
-	}
-}
-
-// Iteration for getting total immature reward
-func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, immatureTotal sdk.Coins) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.ImmatureTotalRewardKeyPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix):])
-		var immatureTotal sdk.Coins
-		types.ModuleCdc.MustUnmarshalLengthPrefixed(iter.Value(), &immatureTotal)
-		if handler(addr, immatureTotal) {
-			break
-		}
-	}
-}
-
-// IteratorMatureTotal Iteration for getting total mature reward
-func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, matureTotal sdk.Coins) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.MatureTotalRewardKeyPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix):])
-		var matureTotal sdk.Coins
-		types.ModuleCdc.MustUnmarshalLengthPrefixed(iter.Value(), &matureTotal)
-		if handler(addr, matureTotal) {
-			break
-		}
-	}
-}
-
 func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 	// [TLC] [FoundationAccount -> feeCollectorPool] Transfer mining reward to fee_pool for validators
 	err := k.BankKeeper.SendCoinsFromModuleToModule(ctx, types.FoundationAccount, k.feeCollectorName, sdk.NewCoins(foundationToFeeCollector))
