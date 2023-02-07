@@ -49,7 +49,6 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 //
 // The actual codec used for serialization should be provided to x/register and
 // defined at the application level.
-
 var ModuleCdc *codec.LegacyAmino
 
 func init() {

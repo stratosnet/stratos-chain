@@ -29,7 +29,12 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }
 
-// ModuleCdc defines the module codec
+// ModuleCdc references the global x/sds module codec. Note, the codec should
+// ONLY be used in certain instances of tests and for JSON encoding as Amino is
+// still used for that purpose.
+//
+// The actual codec used for serialization should be provided to x/sds and
+// defined at the application level.
 var ModuleCdc *codec.LegacyAmino
 
 func init() {

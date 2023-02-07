@@ -66,9 +66,6 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 // HandleMsgPrepay Handles MsgPrepay.
 func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*types.MsgPrepayResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	//if k.bankKeeper.GetSendEnabled(ctx) == false {
-	//	return nil, nil
-	//}
 
 	if k.bankKeeper.IsSendEnabledCoin(ctx, sdk.NewCoin(types.DefaultBondDenom, sdk.OneInt())) == false {
 		return &types.MsgPrepayResponse{}, sdkerrors.ErrInvalidCoins
