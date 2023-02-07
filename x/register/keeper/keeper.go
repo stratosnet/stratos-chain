@@ -140,6 +140,13 @@ func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 
 	limitToAdd := stake.ToDec().Quo(stakeNozRate)
 	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Add(limitToAdd).TruncateInt())
+
+	//ctx.Logger().Debug("----- IncreaseOzoneLimitByAddStake, ",
+	//	"effectiveTotalStakeBefore=", effectiveTotalStakeBefore.String(),
+	//	"effectiveTotalStakeAfter=", effectiveTotalStakeAfter.String(),
+	//	"remainingBefore=", remainingBefore.String(),
+	//	"remainingAfter=", k.GetRemainingOzoneLimit(ctx).String(),
+	//)
 	return limitToAdd.TruncateInt()
 }
 
@@ -160,6 +167,13 @@ func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	}
 	limitToSub := stake.ToDec().Quo(stakeNozRate)
 	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Sub(limitToSub).TruncateInt())
+
+	//ctx.Logger().Debug("----- DecreaseOzoneLimitBySubtractStake, ",
+	//	"effectiveTotalStakeBefore=", effectiveTotalStakeBefore.String(),
+	//	"effectiveTotalStakeAfter=", effectiveTotalStakeAfter.String(),
+	//	"remainingBefore=", remainingBefore.String(),
+	//	"remainingAfter=", k.GetRemainingOzoneLimit(ctx).String(),
+	//)
 	return limitToSub.TruncateInt()
 }
 

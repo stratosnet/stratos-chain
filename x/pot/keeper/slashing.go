@@ -33,9 +33,10 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
 
 	logger := k.Logger(ctx)
-	logger.Info("------ potKeeper.SlashingResourceNode get inputs: ",
+	logger.Debug("------ potKeeper.SlashingResourceNode get inputs: ",
 		"nozAmt=", nozAmt.String(),
 		"node.Tokens=", node.Tokens.String(),
+		"unbondingStake=", unbondingStake.String(),
 		"suspend=", strconv.FormatBool(suspend),
 		"toBeUnsuspended=", strconv.FormatBool(toBeUnsuspended),
 		"effectiveStakeAfter=", effectiveStakeAfter.String(),
