@@ -107,6 +107,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 	var debug bool
 	if _, ok := tracer.(types.NoOpTracer); !ok {
 		debug = true
+		noBaseFee = true
 	}
 
 	return vm.Config{
@@ -374,14 +375,21 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
 	}
 
+	// NOTE: In order to achive this, nonce should be checked in ante handler and increased, othervise
+	// it could make pottential nonce overide with double spend or contract rewrite
+	// take over the nonce management from evm:
+	// reset sender's nonce to msg.Nonce() before calling evm on msg nonce
+	// as nonce already increased in db
+	stateDB.SetNonce(sender.Address(), msg.Nonce())
+
 	if contractCreation {
-		// take over the nonce management from evm:
-		// - reset sender's nonce to msg.Nonce() before calling evm.
-		// - increase sender's nonce by one no matter the result.
-		stateDB.SetNonce(sender.Address(), msg.Nonce())
+		// no need to increase nonce here as contract as during contract creation:
+		// - tx.origin nonce increase automatically
+		// - if IsEIP158 enabled, contract nonce will be set as 1
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
-		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 	} else {
+		// should be incresed before call on nonce from msg so we make sure nonce remaining same as on init tx
+		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 

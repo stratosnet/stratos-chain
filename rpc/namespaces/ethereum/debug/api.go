@@ -2,10 +2,12 @@ package debug
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"os"
 	"runtime"
 	"runtime/debug"
@@ -14,13 +16,17 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	"github.com/ethereum/go-ethereum/eth/tracers"
 	stderrors "github.com/pkg/errors"
+
+	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -30,8 +36,32 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
+	jstracers "github.com/stratosnet/stratos-chain/x/evm/tracers/js"
+	nativetracers "github.com/stratosnet/stratos-chain/x/evm/tracers/native"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
+
+const (
+	// defaultTraceTimeout is the amount of time a single transaction can execute
+	// by default before being forcefully aborted.
+	defaultTraceTimeout = 5 * time.Second
+
+	// NOTE: Commented for now. Maybe even not needed as cosmos could obtain state by version
+	// If we have transaction, we could just take snapshot from previous height, whih should be enough
+	// defaultTraceReexec is the number of blocks the tracer is willing to go back
+	// and reexecute to produce missing historical state necessary to run a specific
+	// trace.
+	// defaultTraceReexec = uint64(128)
+)
+
+// initialize tracers
+// NOTE: Required action as some go-ethereum modules incapsulated, so some tracer copy pasted
+// so should be periodically checked in order to update/extend functionality
+func init() {
+	jstracers.InitTracer()
+	nativetracers.InitTracer()
+}
 
 // HandlerT keeps track of the cpu profiler and trace execution
 type HandlerT struct {
@@ -68,108 +98,96 @@ func NewAPI(
 
 // TraceTransaction returns the structured logs created during the execution of EVM
 // and returns them as a JSON object.
-func (a *API) TraceTransaction(hash common.Hash, config *evmtypes.TraceConfig) (interface{}, error) {
+func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tracers.TraceConfig) (interface{}, error) {
+	// Assemble the structured logger or the JavaScript tracer
+	var (
+		tracer  tracers.Tracer
+		err     error
+		timeout = defaultTraceTimeout
+	)
 	a.logger.Debug("debug_traceTransaction", "hash", hash)
+
 	// Get transaction by hash
-	transaction, err := a.backend.GetTxByHash(hash)
+	resultTx, err := a.backend.GetTxByHash(hash)
+	if err != nil {
+		a.logger.Debug("debug_traceTransaction", "tx not found", "hash", hash)
+		return nil, err
+	}
+
+	tx, err := a.clientCtx.TxConfig.TxDecoder()(resultTx.Tx)
 	if err != nil {
 		a.logger.Debug("tx not found", "hash", hash)
 		return nil, err
 	}
 
-	// check if block number is 0
-	if transaction.Height == 0 {
-		return nil, errors.New("genesis is not traceable")
+	if len(tx.GetMsgs()) == 0 {
+		return nil, fmt.Errorf("empty msg")
 	}
 
-	blk, err := a.backend.GetTendermintBlockByNumber(rpctypes.BlockNumber(transaction.Height))
-	if err != nil {
-		a.logger.Debug("block not found", "height", transaction.Height)
-		return nil, err
-	}
-
-	msgIndex, _ := rpctypes.FindTxAttributes(transaction.TxResult.Events, hash.Hex())
-	if msgIndex < 0 {
-		return nil, fmt.Errorf("ethereum tx not found in msgs: %s", hash.Hex())
-	}
-
-	// check tx index is not out of bound
-	if uint32(len(blk.Block.Txs)) < transaction.Index {
-		a.logger.Debug("tx index out of bounds", "index", transaction.Index, "hash", hash.String(), "height", blk.Block.Height)
-		return nil, fmt.Errorf("transaction not included in block %v", blk.Block.Height)
-	}
-
-	var predecessors []*evmtypes.MsgEthereumTx
-	for _, txBz := range blk.Block.Txs[:transaction.Index] {
-		tx, err := a.clientCtx.TxConfig.TxDecoder()(txBz)
-		if err != nil {
-			a.logger.Debug("failed to decode transaction in block", "height", blk.Block.Height, "error", err.Error())
-			continue
-		}
-		for _, msg := range tx.GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				continue
-			}
-
-			predecessors = append(predecessors, ethMsg)
-		}
-	}
-
-	tx, err := a.clientCtx.TxConfig.TxDecoder()(transaction.Tx)
-	if err != nil {
-		a.logger.Debug("tx not found", "hash", hash)
-		return nil, err
-	}
-
-	// add predecessor messages in current cosmos tx
-	for i := 0; i < msgIndex; i++ {
-		ethMsg, ok := tx.GetMsgs()[i].(*evmtypes.MsgEthereumTx)
-		if !ok {
-			continue
-		}
-		predecessors = append(predecessors, ethMsg)
-	}
-
-	ethMessage, ok := tx.GetMsgs()[msgIndex].(*evmtypes.MsgEthereumTx)
+	ethMsg, ok := tx.GetMsgs()[0].(*evmtypes.MsgEthereumTx)
 	if !ok {
-		a.logger.Debug("invalid transaction type", "type", fmt.Sprintf("%T", tx))
-		return nil, fmt.Errorf("invalid transaction type %T", tx)
+		a.logger.Debug("debug_traceTransaction", "invalid transaction type", "type", fmt.Sprintf("%T", tx))
+		return logger.NewStructLogger(nil).GetResult()
 	}
 
-	traceTxRequest := evmtypes.QueryTraceTxRequest{
-		Msg:          ethMessage,
-		Predecessors: predecessors,
-		BlockNumber:  blk.Block.Height,
-		BlockTime:    blk.Block.Time,
-		BlockHash:    common.Bytes2Hex(blk.BlockID.Hash),
-	}
-
-	if config != nil {
-		traceTxRequest.TraceConfig = config
-	}
-
-	// minus one to get the context of block beginning
-	contextHeight := transaction.Height - 1
-	if contextHeight < 1 {
-		// 0 is a special value in `ContextWithHeight`
-		contextHeight = 1
-	}
-	sdkCtx := a.backend.GetSdkContext(&blk.Block.Header)
-	traceResult, err := a.backend.GetEVMKeeper().TraceTx(sdk.WrapSDKContext(sdkCtx), &traceTxRequest)
-	if err != nil {
+	blockRes, err := tmrpccore.Block(nil, &resultTx.Height)
+	if err != nil || blockRes.Block == nil {
+		a.logger.Debug("debug_traceTransaction", "block not found", "height", resultTx.Height)
 		return nil, err
 	}
 
-	// Response format is unknown due to custom tracer config param
-	// More information can be found here https://geth.ethereum.org/docs/dapp/tracing-filtered
-	var decodedResult interface{}
-	err = json.Unmarshal(traceResult.Data, &decodedResult)
+	txctx := &tracers.Context{
+		BlockHash: common.BytesToHash(blockRes.Block.Hash()),
+		TxIndex:   int(resultTx.Index),
+		TxHash:    ethMsg.AsTransaction().Hash(),
+	}
+
+	// Default tracer is the struct logger
+	tracer = logger.NewStructLogger(config.Config)
+	if config.Tracer != nil {
+		tracer, err = tracers.New(*config.Tracer, txctx, config.TracerConfig)
+		if err != nil {
+			return nil, err
+		}
+	}
+	// Define a meaningful timeout of a single transaction trace
+	if config.Timeout != nil {
+		if timeout, err = time.ParseDuration(*config.Timeout); err != nil {
+			return nil, err
+		}
+	}
+
+	deadlineCtx, cancel := context.WithTimeout(ctx, timeout)
+	go func() {
+		<-deadlineCtx.Done()
+		if errors.Is(deadlineCtx.Err(), context.DeadlineExceeded) {
+			tracer.Stop(errors.New("execution timeout"))
+		}
+	}()
+	defer cancel()
+
+	parentHeight := blockRes.Block.Header.Height - 1
+	sdkCtx, err := a.backend.GetSdkContextWithVersion(&blockRes.Block.Header, parentHeight)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to load state at height: %d\n", parentHeight)
+	}
+
+	keeper := a.backend.GetEVMKeeper()
+
+	cfg, err := keeper.EVMConfig(sdkCtx)
 	if err != nil {
 		return nil, err
 	}
+	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(blockRes.Block.Height))
 
-	return decodedResult, nil
+	msg, err := ethMsg.AsMessage(signer, cfg.BaseFee)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := keeper.ApplyMessage(sdkCtx, msg, tracer, false); err != nil {
+		return nil, fmt.Errorf("tracing failed: %w", err)
+	}
+	return tracer.GetResult()
 }
 
 // TraceBlockByNumber returns the structured logs created during the execution of

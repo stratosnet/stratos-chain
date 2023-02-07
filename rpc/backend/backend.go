@@ -23,10 +23,12 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
@@ -47,6 +49,7 @@ type CosmosBackend interface {
 	// SignAmino()
 	GetEVMKeeper() *evmkeeper.Keeper
 	GetSdkContext(header *tmtypes.Header) sdk.Context
+	GetSdkContextWithVersion(header *tmtypes.Header, version int64) (sdk.Context, error)
 }
 
 // EVMBackend implements the functionality shared within ethereum namespaces
@@ -137,14 +140,26 @@ func (b *Backend) GetEVMKeeper() *evmkeeper.Keeper {
 	return b.evmkeeper
 }
 
-func (b *Backend) GetSdkContext(header *tmtypes.Header) sdk.Context {
-	sdkCtx := b.sdkCtx
+func (b *Backend) copySdkContext(ms storetypes.MultiStore, header *tmtypes.Header) sdk.Context {
+	sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, b.logger)
 	if header != nil {
 		sdkCtx = sdkCtx.WithHeaderHash(header.Hash())
 		header := types.FormatTmHeaderToProto(header)
 		sdkCtx = sdkCtx.WithBlockHeader(header)
 	}
 	return sdkCtx
+}
+
+func (b *Backend) GetSdkContext(header *tmtypes.Header) sdk.Context {
+	return b.copySdkContext(b.sdkCtx.MultiStore().CacheMultiStore(), header)
+}
+
+func (b *Backend) GetSdkContextWithVersion(header *tmtypes.Header, version int64) (sdk.Context, error) {
+	cms, err := b.sdkCtx.MultiStore().CacheMultiStoreWithVersion(version)
+	if err != nil {
+		return sdk.Context{}, err
+	}
+	return b.copySdkContext(cms, header), nil
 }
 
 func (b *Backend) GetNode() *node.Node {
