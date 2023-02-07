@@ -17,25 +17,10 @@ import (
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
 
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
-
-// Backend defines the methods requided by the PublicFilterAPI backend
-type Backend interface {
-	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error)
-	HeaderByNumber(blockNum types.BlockNumber) (*types.Header, error)
-	HeaderByHash(blockHash common.Hash) (*types.Header, error)
-	GetLogs(blockHash common.Hash) ([][]*ethtypes.Log, error)
-	GetLogsByNumber(blockNum types.BlockNumber) ([][]*ethtypes.Log, error)
-	BlockBloom(height *int64) (ethtypes.Bloom, error)
-
-	BloomStatus() (uint64, uint64)
-
-	RPCFilterCap() int32
-	RPCLogsCap() int32
-	RPCBlockRangeCap() int32
-}
 
 // consider a filter inactive if it has not been polled for within deadline
 var deadline = 5 * time.Minute
@@ -56,19 +41,19 @@ type filter struct {
 type PublicFilterAPI struct {
 	logger    log.Logger
 	clientCtx client.Context
-	backend   Backend
+	backend   backend.BackendI
 	events    *EventSystem
 	filtersMu sync.Mutex
 	filters   map[rpc.ID]*filter
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, eventBus *tmtypes.EventBus, backend Backend) *PublicFilterAPI {
+func NewPublicAPI(logger log.Logger, clientCtx client.Context, eventBus *tmtypes.EventBus, b backend.BackendI) *PublicFilterAPI {
 	logger = logger.With("api", "filter")
 	api := &PublicFilterAPI{
 		logger:    logger,
 		clientCtx: clientCtx,
-		backend:   backend,
+		backend:   b,
 		filters:   make(map[rpc.ID]*filter),
 		events:    NewEventSystem(clientCtx, logger, eventBus),
 	}
@@ -243,8 +228,23 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 				}
 				header, err := types.EthHeaderFromTendermint(data.Header)
 				if err != nil {
-					continue
+					headersSub.err <- err
+					return
 				}
+				// override dynamicly miner address
+				sdkCtx, err := api.backend.GetSdkContextWithHeader(&data.Header)
+				if err != nil {
+					headersSub.err <- err
+					return
+				}
+
+				validator, err := api.backend.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
+				if err != nil {
+					headersSub.err <- err
+					return
+				}
+				header.Coinbase = validator
+
 				api.filtersMu.Lock()
 				if f, found := api.filters[headersSub.ID()]; found {
 					f.hashes = append(f.hashes, header.Hash)
@@ -295,6 +295,20 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					headersSub.err <- err
 					return
 				}
+				// override dynamicly miner address
+				sdkCtx, err := api.backend.GetSdkContextWithHeader(&data.Header)
+				if err != nil {
+					headersSub.err <- err
+					return
+				}
+
+				validator, err := api.backend.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
+				if err != nil {
+					headersSub.err <- err
+					return
+				}
+				header.Coinbase = validator
+
 				err = notifier.Notify(rpcSub.ID, header)
 				if err != nil {
 					headersSub.err <- err

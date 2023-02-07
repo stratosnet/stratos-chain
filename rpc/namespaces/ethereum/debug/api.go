@@ -130,14 +130,20 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 		return logger.NewStructLogger(nil).GetResult()
 	}
 
-	blockRes, err := tmrpccore.Block(nil, &resultTx.Height)
-	if err != nil || blockRes.Block == nil {
+	parentHeight := resultTx.Height - 1
+	parentBlock, err := tmrpccore.Block(nil, &parentHeight)
+	if err != nil || parentBlock.Block == nil {
+		a.logger.Debug("debug_traceTransaction", "block not found", "height", resultTx.Height)
+		return nil, err
+	}
+	currentBlock, err := tmrpccore.Block(nil, &resultTx.Height)
+	if err != nil || parentBlock.Block == nil {
 		a.logger.Debug("debug_traceTransaction", "block not found", "height", resultTx.Height)
 		return nil, err
 	}
 
 	txctx := &tracers.Context{
-		BlockHash: common.BytesToHash(blockRes.Block.Hash()),
+		BlockHash: common.BytesToHash(currentBlock.Block.Hash()),
 		TxIndex:   int(resultTx.Index),
 		TxHash:    ethMsg.AsTransaction().Hash(),
 	}
@@ -166,8 +172,7 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 	}()
 	defer cancel()
 
-	parentHeight := blockRes.Block.Header.Height - 1
-	sdkCtx, err := a.backend.GetSdkContextWithVersion(&blockRes.Block.Header, parentHeight)
+	sdkCtx, err := a.backend.GetSdkContextWithHeader(&parentBlock.Block.Header)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load state at height: %d\n", parentHeight)
 	}
@@ -178,7 +183,7 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 	if err != nil {
 		return nil, err
 	}
-	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(blockRes.Block.Height))
+	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(parentBlock.Block.Height))
 
 	msg, err := ethMsg.AsMessage(signer, cfg.BaseFee)
 	if err != nil {
@@ -273,7 +278,11 @@ func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConf
 		BlockHash:   common.Bytes2Hex(block.BlockID.Hash),
 	}
 
-	sdkCtx := a.backend.GetSdkContext(&block.Block.Header)
+	sdkCtx, err := a.backend.GetSdkContextWithHeader(&block.Block.Header)
+	if err != nil {
+		return nil, err
+	}
+
 	res, err := a.backend.GetEVMKeeper().TraceBlock(sdk.WrapSDKContext(sdkCtx), traceBlockRequest)
 	if err != nil {
 		return nil, err
@@ -483,7 +492,7 @@ func (a *API) GetHeaderRlp(number uint64) (hexutil.Bytes, error) {
 
 // GetBlockRlp retrieves the RLP encoded for of a single block.
 func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
-	block, err := a.backend.BlockByNumber(rpctypes.BlockNumber(number), true)
+	block, err := a.backend.GetBlockByNumber(rpctypes.BlockNumber(number), true)
 	if err != nil {
 		return nil, err
 	}
@@ -493,7 +502,7 @@ func (a *API) GetBlockRlp(number uint64) (hexutil.Bytes, error) {
 
 // PrintBlock retrieves a block and returns its pretty printed form.
 func (a *API) PrintBlock(number uint64) (string, error) {
-	block, err := a.backend.BlockByNumber(rpctypes.BlockNumber(number), true)
+	block, err := a.backend.GetBlockByNumber(rpctypes.BlockNumber(number), true)
 	if err != nil {
 		return "", err
 	}

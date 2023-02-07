@@ -37,7 +37,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stosapp "github.com/stratosnet/stratos-chain/app"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	ethdebug "github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/debug"
 	"github.com/stratosnet/stratos-chain/server/config"
@@ -415,12 +414,10 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	if config.JSONRPC.Enable {
 		evmApp := app.(stosapp.EVMLKeeperApp)
-		evmKeeper := evmApp.GetEVMKeeper()
-		ms := app.CommitMultiStore()
-		sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, nil)
-		clientCtx := clientCtx.WithChainID(evmKeeper.GetParams(sdkCtx).ChainConfig.ChainID.String())
+		// sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, nil)
+		// clientCtx := clientCtx.WithChainID(evmKeeper.GetParams(sdkCtx).ChainConfig.ChainID.String())
 
-		err = StartJSONRPC(ctx, tmNode, evmKeeper, sdkCtx, clientCtx, config)
+		err = StartJSONRPC(ctx, tmNode, evmApp.GetEVMKeeper(), app.CommitMultiStore(), clientCtx, config)
 		if err != nil {
 			return err
 		}

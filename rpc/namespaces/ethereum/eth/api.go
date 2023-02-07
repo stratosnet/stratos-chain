@@ -117,7 +117,7 @@ func (e *PublicAPI) ProtocolVersion() hexutil.Uint {
 // ChainId is the EIP-155 replay-protection chain id for the current ethereum chain config.
 func (e *PublicAPI) ChainId() (*hexutil.Big, error) { // nolint
 	e.logger.Debug("eth_chainId")
-	ctx := e.backend.GetSdkContext(nil)
+	ctx := e.backend.GetSdkContext()
 	params := e.backend.GetEVMKeeper().GetParams(ctx)
 	return (*hexutil.Big)(params.ChainConfig.ChainID.BigInt()), nil
 }
@@ -261,7 +261,10 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 		return nil, nil
 	}
 
-	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	if err != nil {
+		return nil, err
+	}
 	balance := e.backend.GetEVMKeeper().GetBalance(sdkCtx, address)
 
 	return (*hexutil.Big)(balance), nil
@@ -286,17 +289,20 @@ func (e *PublicAPI) GetStorageAt(address common.Address, key string, blockNrOrHa
 		return nil, nil
 	}
 
-	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	if err != nil {
+		return nil, err
+	}
 	state := e.backend.GetEVMKeeper().GetState(sdkCtx, address, common.HexToHash(key))
 	return state.Bytes(), nil
 }
 
 // GetTransactionCount returns the number of transactions at the given address up to the given block number.
-func (e *PublicAPI) GetTransactionCount(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (*hexutil.Uint64, error) {
+func (e *PublicAPI) GetTransactionCount(address common.Address, blockNrOrHash rpctypes.BlockNumberOrHash) (hexutil.Uint64, error) {
 	e.logger.Debug("eth_getTransactionCount", "address", address.Hex(), "block number or hash", blockNrOrHash)
 	blockNum, err := e.getBlockNumber(blockNrOrHash)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	return e.backend.GetTransactionCount(address, blockNum)
 }
@@ -371,7 +377,10 @@ func (e *PublicAPI) GetCode(address common.Address, blockNrOrHash rpctypes.Block
 		return nil, nil
 	}
 
-	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	if err != nil {
+		return nil, err
+	}
 	res, err := e.backend.GetEVMKeeper().Code(sdk.WrapSDKContext(sdkCtx), req)
 	if err != nil {
 		return nil, err
@@ -501,7 +510,7 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 		return common.Hash{}, err
 	}
 
-	sdkCtx := e.backend.GetSdkContext(nil)
+	sdkCtx := e.backend.GetSdkContext()
 	// Query params to use the EVM denomination
 	params := e.backend.GetEVMKeeper().GetParams(sdkCtx)
 
@@ -663,7 +672,10 @@ func (e *PublicAPI) doCall(
 		return nil, nil
 	}
 
-	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	if err != nil {
+		return nil, err
+	}
 
 	// it will return an empty context and the gRPC query will use
 	// the latest block height for querying.
@@ -962,7 +974,10 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 		return nil, nil
 	}
 
-	sdkCtx := e.backend.GetSdkContext(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	if err != nil {
+		return nil, err
+	}
 
 	for i, key := range storageKeys {
 		hexKey := common.HexToHash(key)

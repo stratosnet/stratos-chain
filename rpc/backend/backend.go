@@ -48,8 +48,8 @@ type CosmosBackend interface {
 	// SignDirect()
 	// SignAmino()
 	GetEVMKeeper() *evmkeeper.Keeper
-	GetSdkContext(header *tmtypes.Header) sdk.Context
-	GetSdkContextWithVersion(header *tmtypes.Header, version int64) (sdk.Context, error)
+	GetSdkContext() sdk.Context
+	GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, error)
 }
 
 // EVMBackend implements the functionality shared within ethereum namespaces
@@ -60,9 +60,11 @@ type EVMBackend interface {
 	RPCGasCap() uint64            // global gas cap for eth_call over rpc: DoS protection
 	RPCEVMTimeout() time.Duration // global timeout for eth_call over rpc: DoS protection
 	RPCTxFeeCap() float64         // RPCTxFeeCap is the global transaction fee(price * gaslimit) cap for send-transaction variants. The unit is ether.
-
+	RPCFilterCap() int32
 	RPCMinGasPrice() int64
 	SuggestGasTipCap() (*big.Int, error)
+	RPCLogsCap() int32
+	RPCBlockRangeCap() int32
 
 	// Blockchain API
 	BlockNumber() (hexutil.Uint64, error)
@@ -70,13 +72,11 @@ type EVMBackend interface {
 	GetTendermintBlockByHash(blockHash common.Hash) (*tmrpctypes.ResultBlock, error)
 	GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error)
 	GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, error)
-	BlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error)
-	BlockByHash(blockHash common.Hash, fullTx bool) (*types.Block, error)
 	CurrentHeader() *types.Header
 	HeaderByNumber(blockNum types.BlockNumber) (*types.Header, error)
 	HeaderByHash(blockHash common.Hash) (*types.Header, error)
 	PendingTransactions() ([]*sdk.Tx, error)
-	GetTransactionCount(address common.Address, blockNum types.BlockNumber) (*hexutil.Uint64, error)
+	GetTransactionCount(address common.Address, blockNum types.BlockNumber) (hexutil.Uint64, error)
 	SendTransaction(args evmtypes.TransactionArgs) (common.Hash, error)
 	GetCoinbase() (sdk.AccAddress, error)
 	GetTransactionByHash(txHash common.Hash) (*types.Transaction, error)
@@ -84,6 +84,8 @@ type EVMBackend interface {
 	GetTxByTxIndex(height int64, txIndex uint) (*tmrpctypes.ResultTx, error)
 	EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *types.BlockNumber) (hexutil.Uint64, error)
 	BaseFee() (*big.Int, error)
+	GetLogsByNumber(blockNum types.BlockNumber) ([][]*ethtypes.Log, error)
+	BlockBloom(height *int64) (ethtypes.Bloom, error)
 
 	// Fee API
 	FeeHistory(blockCount rpc.DecimalOrHex, lastBlock rpc.BlockNumber, rewardPercentiles []float64) (*types.FeeHistoryResult, error)
@@ -113,13 +115,13 @@ type Backend struct {
 	clientCtx client.Context
 	tmNode    *node.Node // directly tendermint access, new impl
 	evmkeeper *evmkeeper.Keeper
-	sdkCtx    sdk.Context
+	ms        storetypes.MultiStore
 	logger    log.Logger
 	cfg       config.Config
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
-func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Keeper, sdkCtx sdk.Context, logger log.Logger, clientCtx client.Context) *Backend {
+func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Keeper, ms storetypes.MultiStore, logger log.Logger, clientCtx client.Context) *Backend {
 	appConf, err := config.GetConfig(ctx.Viper)
 	if err != nil {
 		panic(err)
@@ -130,7 +132,7 @@ func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Kee
 		clientCtx: clientCtx,
 		tmNode:    tmNode,
 		evmkeeper: evmkeeper,
-		sdkCtx:    sdkCtx,
+		ms:        ms,
 		logger:    logger.With("module", "backend"),
 		cfg:       appConf,
 	}
@@ -143,19 +145,28 @@ func (b *Backend) GetEVMKeeper() *evmkeeper.Keeper {
 func (b *Backend) copySdkContext(ms storetypes.MultiStore, header *tmtypes.Header) sdk.Context {
 	sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, b.logger)
 	if header != nil {
-		sdkCtx = sdkCtx.WithHeaderHash(header.Hash())
-		header := types.FormatTmHeaderToProto(header)
-		sdkCtx = sdkCtx.WithBlockHeader(header)
+		return sdkCtx.WithHeaderHash(
+			header.Hash(),
+		).WithBlockHeader(
+			types.FormatTmHeaderToProto(header),
+		).WithBlockHeight(
+			header.Height,
+		).WithProposer(
+			sdk.ConsAddress(header.ProposerAddress),
+		)
 	}
 	return sdkCtx
 }
 
-func (b *Backend) GetSdkContext(header *tmtypes.Header) sdk.Context {
-	return b.copySdkContext(b.sdkCtx.MultiStore().CacheMultiStore(), header)
+func (b *Backend) GetSdkContext() sdk.Context {
+	return b.copySdkContext(b.ms.CacheMultiStore(), nil)
 }
 
-func (b *Backend) GetSdkContextWithVersion(header *tmtypes.Header, version int64) (sdk.Context, error) {
-	cms, err := b.sdkCtx.MultiStore().CacheMultiStoreWithVersion(version)
+func (b *Backend) GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, error) {
+	if header == nil {
+		return b.GetSdkContext(), nil
+	}
+	cms, err := b.ms.CacheMultiStoreWithVersion(header.Height)
 	if err != nil {
 		return sdk.Context{}, err
 	}

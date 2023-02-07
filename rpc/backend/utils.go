@@ -110,7 +110,10 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 	if args.Nonce == nil {
 		// get the nonce from the account retriever
 		// ignore error in case tge account doesn't exist yet
-		nonce := b.getAccountNonce(*args.From, true, 0)
+		nonce, err := b.getAccountNonce(*args.From, types.EthPendingBlockNumber)
+		if err != nil {
+			return args, err
+		}
 		args.Nonce = (*hexutil.Uint64)(&nonce)
 	}
 
@@ -173,22 +176,35 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 // If the pending value is true, it will iterate over the mempool (pending)
 // txs in order to compute and return the pending tx sequence.
 // Todo: include the ability to specify a blockNumber
-func (b *Backend) getAccountNonce(address common.Address, pending bool, height int64) uint64 {
+func (b *Backend) getAccountNonce(address common.Address, height types.BlockNumber) (uint64, error) {
 	var (
 		pendingNonce uint64
 	)
-	if pending {
+	if height == types.EthPendingBlockNumber {
 		pendingNonce = types.GetPendingTxCountByAddress(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), address)
 	}
 	req := evmtypes.QueryCosmosAccountRequest{
 		Address: address.Hex(),
 	}
-	sdkCtx := b.GetSdkContext(nil)
+
+	block, err := b.GetTendermintBlockByNumber(height)
+	if err != nil {
+		return 0, err
+	}
+
+	if block.Block == nil {
+		return 0, fmt.Errorf("failed to get block for %d height", height)
+	}
+
+	sdkCtx, err := b.GetSdkContextWithHeader(&block.Block.Header)
+	if err != nil {
+		return 0, err
+	}
 	acc, err := b.GetEVMKeeper().CosmosAccount(sdk.WrapSDKContext(sdkCtx), &req)
 	if err != nil {
-		return pendingNonce
+		return pendingNonce, err
 	}
-	return acc.GetSequence() + pendingNonce
+	return acc.GetSequence() + pendingNonce, nil
 }
 
 // output: targetOneFeeHistory

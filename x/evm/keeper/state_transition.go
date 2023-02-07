@@ -3,6 +3,7 @@ package keeper
 import (
 	"math"
 	"math/big"
+	"sync"
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -123,6 +124,9 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 //  2. The requested height is from an previous height from the same chain epoch
 //  3. The requested height is from a height greater than the latest one
 func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
+	cache := make(map[int64]common.Hash)
+	var rw sync.Mutex
+
 	return func(height uint64) common.Hash {
 		h, err := stratos.SafeInt64(height)
 		if err != nil {
@@ -136,24 +140,20 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 			// hash directly from the context.
 			// Note: The headerHash is only set at begin block, it will be nil in case of a query context
 			headerHash := ctx.HeaderHash()
-			if len(headerHash) != 0 {
-				return common.BytesToHash(headerHash)
-			}
-
-			// only recompute the hash if not set (eg: checkTxState)
-			contextBlockHeader := ctx.BlockHeader()
-			header, err := tmtypes.HeaderFromProto(&contextBlockHeader)
-			if err != nil {
-				k.Logger(ctx).Error("failed to cast tendermint header from proto", "error", err)
-				return common.Hash{}
-			}
-
-			headerHash = header.Hash()
 			return common.BytesToHash(headerHash)
 
 		case ctx.BlockHeight() > h:
 			// Case 2: if the chain is not the current height we need to retrieve the hash from the store for the
 			// current chain epoch. This only applies if the current height is greater than the requested height.
+
+			// NOTE: In case of concurrency
+			rw.Lock()
+			defer rw.Unlock()
+
+			if hash, ok := cache[h]; ok {
+				return hash
+			}
+
 			histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, h)
 			if !found {
 				k.Logger(ctx).Debug("historical info not found", "height", h)
@@ -166,7 +166,9 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 				return common.Hash{}
 			}
 
-			return common.BytesToHash(header.Hash())
+			hash := common.BytesToHash(header.Hash())
+			cache[h] = hash
+			return hash
 		default:
 			// Case 3: heights greater than the current one returns an empty hash.
 			return common.Hash{}
