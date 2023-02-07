@@ -214,6 +214,7 @@ func TestOzPriceChange(t *testing.T) {
 	bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
 	potKeeper := stApp.GetPotKeeper()
+	distrKeeper := stApp.GetDistrKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -444,7 +445,7 @@ func TestOzPriceChange(t *testing.T) {
 	/********************* record data before delivering tx  *********************/
 	lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 	lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
-	lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
+	lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 	lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
 
 	/********************* deliver tx *********************/
@@ -1249,6 +1250,7 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
 	potKeeper := stApp.GetPotKeeper()
+	distrKeeper := stApp.GetDistrKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1404,7 +1406,7 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		/********************* record data before delivering tx  *********************/
 		_ = bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		_ = registerKeeper.GetTotalUnissuedPrepay(ctx)
-		_ = sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
+		_ = sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 		_ = potKeeper.GetMatureTotalReward(ctx, resOwner1)
 		//lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		//lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)

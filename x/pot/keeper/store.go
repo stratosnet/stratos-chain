@@ -37,9 +37,9 @@ func (k Keeper) GetLastReportedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	var intVal stratos.Int
-	k.cdc.MustUnmarshalLengthPrefixed(b, &intVal)
-	epoch = *intVal.Value
+	intValue := stratos.Int{}
+	k.cdc.MustUnmarshalLengthPrefixed(b, &intValue)
+	epoch = *intValue.Value
 	return
 }
 
@@ -67,7 +67,7 @@ func (k Keeper) IteratorIndividualReward(ctx sdk.Context, epoch sdk.Int, handler
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.AccAddress(iter.Key()[len(types.GetIndividualRewardIteratorKey(epoch)):])
 
-		var individualReward types.Reward
+		individualReward := types.Reward{}
 		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &individualReward)
 		if handler(addr, individualReward) {
 			break
@@ -87,9 +87,9 @@ func (k Keeper) GetMatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAddre
 	if b == nil {
 		return sdk.Coins{}
 	}
-	var coinsVal stratos.Coins
-	k.cdc.MustUnmarshalLengthPrefixed(b, &coinsVal)
-	value = coinsVal.GetValue()
+	coinsValue := stratos.Coins{}
+	k.cdc.MustUnmarshalLengthPrefixed(b, &coinsValue)
+	value = coinsValue.GetValue()
 	return
 }
 
@@ -100,9 +100,9 @@ func (k Keeper) IteratorMatureTotal(ctx sdk.Context, handler func(walletAddress 
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.AccAddress(iter.Key()[len(types.MatureTotalRewardKeyPrefix):])
-		var value stratos.Coins
-		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &value)
-		matureTotal := value.Value
+		coinsValue := stratos.Coins{}
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &coinsValue)
+		matureTotal := coinsValue.Value
 		if handler(addr, matureTotal) {
 			break
 		}
@@ -121,9 +121,9 @@ func (k Keeper) GetImmatureTotalReward(ctx sdk.Context, walletAddress sdk.AccAdd
 	if b == nil {
 		return sdk.Coins{}
 	}
-	var coinsVal stratos.Coins
-	k.cdc.MustUnmarshalLengthPrefixed(b, &coinsVal)
-	value = coinsVal.GetValue()
+	coinsValue := stratos.Coins{}
+	k.cdc.MustUnmarshalLengthPrefixed(b, &coinsValue)
+	value = coinsValue.GetValue()
 	return
 }
 
@@ -134,9 +134,9 @@ func (k Keeper) IteratorImmatureTotal(ctx sdk.Context, handler func(walletAddres
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		addr := sdk.AccAddress(iter.Key()[len(types.ImmatureTotalRewardKeyPrefix):])
-		var value stratos.Coins
-		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &value)
-		immatureTotal := value.Value
+		coinsValue := stratos.Coins{}
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &coinsValue)
+		immatureTotal := coinsValue.Value
 		if handler(addr, immatureTotal) {
 			break
 		}
@@ -187,9 +187,9 @@ func (k Keeper) GetUnhandledEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	if b == nil {
 		return sdk.ZeroInt()
 	}
-	var value stratos.Int
-	k.cdc.MustUnmarshalLengthPrefixed(b, &value)
-	epoch = *value.Value
+	intValue := stratos.Int{}
+	k.cdc.MustUnmarshalLengthPrefixed(b, &intValue)
+	epoch = *intValue.Value
 	return
 }
 
@@ -205,9 +205,9 @@ func (k Keeper) GetIsReadyToDistributeReward(ctx sdk.Context) (isReady bool) {
 	if b == nil {
 		return false
 	}
-	var value gogotypes.BoolValue
-	k.cdc.MustUnmarshalLengthPrefixed(b, &value)
-	isReady = value.Value
+	boolValue := gogotypes.BoolValue{}
+	k.cdc.MustUnmarshalLengthPrefixed(b, &boolValue)
+	isReady = boolValue.Value
 	return
 }
 

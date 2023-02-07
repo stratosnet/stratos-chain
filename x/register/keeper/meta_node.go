@@ -17,13 +17,13 @@ const (
 	votingValidityPeriodInSecond = 7 * 24 * 60 * 60 // 7 days
 )
 
-// Cache the amino decoding of meta nodes, as it can be the case that repeated slashing calls
+// Cache the proto decoding of meta nodes, as it can be the case that repeated slashing calls
 // cause many calls to getMetaNode, which were shown to throttle the state machine in our
 // simulation. Note this is quite biased though, as the simulator does more slashes than a
 // live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedMetaNode struct {
 	metaNode   types.MetaNode
-	marshalled string // marshalled amino bytes for the MetaNode object (not address)
+	marshalled string // marshalled proto bytes for the MetaNode object (not address)
 }
 
 func newCachedMetaNode(metaNode types.MetaNode, marshalled string) cachedMetaNode {
@@ -41,14 +41,14 @@ func (k Keeper) GetMetaNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (met
 		return metaNode, false
 	}
 
-	// If these amino encoded bytes are in the cache, return the cached meta node
+	// If these proto encoded bytes are in the cache, return the cached meta node
 	strValue := string(value)
 	if val, ok := k.metaNodeCache[strValue]; ok {
 		valToReturn := val.metaNode
 		return valToReturn, true
 	}
 
-	// amino bytes weren't found in cache, so amino unmarshal and add it to the cache
+	// proto bytes weren't found in cache, so unmarshal and add it to the cache
 	metaNode = types.MustUnmarshalMetaNode(k.cdc, value)
 	cachedVal := newCachedMetaNode(metaNode, strValue)
 	k.metaNodeCache[strValue] = newCachedMetaNode(metaNode, strValue)
@@ -72,7 +72,7 @@ func (k Keeper) SetMetaNode(ctx sdk.Context, metaNode types.MetaNode) {
 }
 
 // GetAllMetaNodes get the set of all meta nodes with no limits, used during genesis dump
-//Iteration for all meta nodes
+// Iteration for all meta nodes
 func (k Keeper) GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
@@ -169,6 +169,7 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 	return ozoneLimitChange, nil
 }
 
+// TODO: Unused parameter: metaNode
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingMetaNode(ctx sdk.Context, metaNode types.MetaNode, tokenToSub sdk.Coin) error {
 	bondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeBondedPool)
 	if bondedMetaAccountAddr == nil {
@@ -376,24 +377,6 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 	return node.Status, nil
 }
 
-func (k Keeper) GetMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr stratos.SdsAddress) (votePool types.MetaNodeRegistrationVotePool, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetMetaNodeRegistrationVotesKey(nodeAddr))
-	if bz == nil {
-		return votePool, false
-	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &votePool)
-	return votePool, true
-}
-
-func (k Keeper) SetMetaNodeRegistrationVotePool(ctx sdk.Context, votePool types.MetaNodeRegistrationVotePool) {
-	nodeAddr := votePool.GetNetworkAddress()
-	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&votePool)
-	node, _ := stratos.SdsAddressFromBech32(nodeAddr)
-	store.Set(types.GetMetaNodeRegistrationVotesKey(node), bz)
-}
-
 func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
 	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) error {
 
@@ -475,18 +458,4 @@ func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
 	return iterator
-}
-
-func (k Keeper) SendCoinsFromAccountToMetaNodeNotBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
-	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
-		return types.ErrInsufficientBalance
-	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeNotBondedPool, sdk.NewCoins(amt))
-}
-
-func (k Keeper) SendCoinsFromAccountToMetaNodeBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
-	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
-		return types.ErrInsufficientBalance
-	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeBondedPool, sdk.NewCoins(amt))
 }

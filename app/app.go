@@ -751,6 +751,10 @@ func (app *NewApp) GetPotKeeper() potkeeper.Keeper {
 	return app.potKeeper
 }
 
+func (app *NewApp) GetDistrKeeper() distrkeeper.Keeper {
+	return app.distrKeeper
+}
+
 // RegisterSwaggerAPI registers swagger route with API Server
 func RegisterSwaggerAPI(_ client.Context, rtr *mux.Router) {
 	statikFS, err := fs.New()

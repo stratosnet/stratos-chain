@@ -120,7 +120,7 @@ func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.Msg
 		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
 
-	fromAcc := k.AccountKeeper.GetAccount(ctx, fromAddress)
+	fromAcc := k.accountKeeper.GetAccount(ctx, fromAddress)
 	pubKey := fromAcc.GetPubKey()
 	legacyPubKey := secp256k1.PubKey{Key: pubKey.Bytes()}
 	legacyWalletAddress := sdk.AccAddress(legacyPubKey.Address().Bytes())

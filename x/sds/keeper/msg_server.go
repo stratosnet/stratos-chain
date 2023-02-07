@@ -30,7 +30,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	if _, found := k.RegisterKeeper.GetMetaNode(ctx, reporter); found == false {
+	if _, found := k.registerKeeper.GetMetaNode(ctx, reporter); found == false {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.GetReporter())
 	}
 	height := sdk.NewInt(ctx.BlockHeight())
@@ -66,7 +66,7 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 // HandleMsgPrepay Handles MsgPrepay.
 func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*types.MsgPrepayResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	//if k.BankKeeper.GetSendEnabled(ctx) == false {
+	//if k.bankKeeper.GetSendEnabled(ctx) == false {
 	//	return nil, nil
 	//}
 

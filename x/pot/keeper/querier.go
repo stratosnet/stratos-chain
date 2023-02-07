@@ -162,5 +162,5 @@ func querySlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keep
 		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
 	}
 
-	return []byte(k.RegisterKeeper.GetSlashing(ctx, addr).String()), nil
+	return []byte(k.registerKeeper.GetSlashing(ctx, addr).String()), nil
 }
