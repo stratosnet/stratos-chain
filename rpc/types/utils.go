@@ -385,7 +385,7 @@ func TmTxToEthTx(
 
 	if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
 		tx := ethMsg.AsTransaction()
-		return NewRPCTransaction(tx, *blockHash, *blockNumber, *index)
+		return NewRPCTransaction(tx, blockHash, blockNumber, index)
 	} else {
 		addr := msg.GetSigners()[0]
 		from := common.BytesToAddress(addr.Bytes())
@@ -445,7 +445,7 @@ func TmTxToEthTx(
 // NewTransactionFromData returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func NewRPCTransaction(
-	tx *ethtypes.Transaction, blockHash common.Hash, blockNumber, index uint64,
+	tx *ethtypes.Transaction, blockHash *common.Hash, blockNumber, index *uint64,
 ) (*Transaction, error) {
 	// Determine the signer. For replay-protected transactions, use the most permissive
 	// signer, because we assume that signers are backwards-compatible with old
@@ -473,10 +473,10 @@ func NewRPCTransaction(
 		R:        (*hexutil.Big)(r),
 		S:        (*hexutil.Big)(s),
 	}
-	if blockHash != (common.Hash{}) {
-		result.BlockHash = &blockHash
-		result.BlockNumber = (*hexutil.Big)(new(big.Int).SetUint64(blockNumber))
-		result.TransactionIndex = (*hexutil.Uint64)(&index)
+	if blockHash != nil {
+		result.BlockHash = blockHash
+		result.BlockNumber = (*hexutil.Big)(new(big.Int).SetUint64(*blockNumber))
+		result.TransactionIndex = (*hexutil.Uint64)(index)
 	}
 	switch tx.Type() {
 	case ethtypes.AccessListTxType:

@@ -88,10 +88,11 @@ func getEthTransactionByHash(clientCtx client.Context, hashHex string) ([]byte, 
 	}
 
 	height := uint64(tx.Height)
+	txIndex := uint64(tx.Index)
 
 	for _, ethTx := range ethTxs {
 		if common.HexToHash(ethTx.Hash) == common.BytesToHash(hash) {
-			rpcTx, err := rpctypes.NewRPCTransaction(ethTx.AsTransaction(), blockHash, height, uint64(tx.Index))
+			rpcTx, err := rpctypes.NewRPCTransaction(ethTx.AsTransaction(), &blockHash, &height, &txIndex)
 			if err != nil {
 				return nil, err
 			}
