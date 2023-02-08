@@ -536,20 +536,29 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 	txHash := ethTx.Hash()
 
 	mempool := e.backend.GetMempool()
-	e.logger.Info("Use sync mode to propagate tx", txHash)
-	resCh := make(chan *abci.Response, 1)
-	err = mempool.CheckTx(packet, func(res *abci.Response) {
-		resCh <- res
-	}, mempl.TxInfo{})
-	if err != nil {
-		e.logger.Error("failed to send eth tx packet to mempool", "error", err.Error())
-		return common.Hash{}, err
-	}
-	res := <-resCh
-	resBrodTx := res.GetCheckTx()
-	if resBrodTx.Code != 0 {
-		e.logger.Error("exec failed on check tx", "error", resBrodTx.Log)
-		return common.Hash{}, fmt.Errorf(resBrodTx.Log)
+	// TODO: Add to config
+	if true {
+		e.logger.Info("Use async mode to propagate tx", txHash)
+		err = mempool.CheckTx(packet, nil, mempl.TxInfo{})
+		if err != nil {
+			return common.Hash{}, err
+		}
+	} else {
+		e.logger.Info("Use sync mode to propagate tx", txHash)
+		resCh := make(chan *abci.Response, 1)
+		err = mempool.CheckTx(packet, func(res *abci.Response) {
+			resCh <- res
+		}, mempl.TxInfo{})
+		if err != nil {
+			e.logger.Error("failed to send eth tx packet to mempool", "error", err.Error())
+			return common.Hash{}, err
+		}
+		res := <-resCh
+		resBrodTx := res.GetCheckTx()
+		if resBrodTx.Code != 0 {
+			e.logger.Error("exec failed on check tx", "error", resBrodTx.Log)
+			return common.Hash{}, fmt.Errorf(resBrodTx.Log)
+		}
 	}
 
 	return txHash, nil
