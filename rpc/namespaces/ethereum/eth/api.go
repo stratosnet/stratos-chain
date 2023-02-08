@@ -7,6 +7,7 @@ import (
 	"math"
 	"math/big"
 
+	abci "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -20,7 +21,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/ethereum/go-ethereum/accounts/keystore"
@@ -39,6 +39,7 @@ import (
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	mempl "github.com/tendermint/tendermint/mempool"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
 
@@ -521,7 +522,7 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 	}
 
 	// Encode transaction by default Tx encoder
-	txBytes, err := e.clientCtx.TxConfig.TxEncoder()(cosmosTx)
+	packet, err := e.clientCtx.TxConfig.TxEncoder()(cosmosTx)
 	if err != nil {
 		e.logger.Error("failed to encode eth tx using default encoder", "error", err.Error())
 		return common.Hash{}, err
@@ -534,14 +535,21 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 	}
 	txHash := ethTx.Hash()
 
-	syncCtx := e.clientCtx.WithBroadcastMode(flags.BroadcastSync)
-	rsp, err := syncCtx.BroadcastTx(txBytes)
-	if rsp != nil && rsp.Code != 0 {
-		err = sdkerrors.ABCIError(rsp.Codespace, rsp.Code, rsp.RawLog)
-	}
+	mempool := e.backend.GetMempool()
+	e.logger.Info("Use sync mode to propagate tx", txHash)
+	resCh := make(chan *abci.Response, 1)
+	err = mempool.CheckTx(packet, func(res *abci.Response) {
+		resCh <- res
+	}, mempl.TxInfo{})
 	if err != nil {
-		e.logger.Error("failed to broadcast tx", "error", err.Error())
-		return txHash, err
+		e.logger.Error("failed to send eth tx packet to mempool", "error", err.Error())
+		return common.Hash{}, err
+	}
+	res := <-resCh
+	resBrodTx := res.GetCheckTx()
+	if resBrodTx.Code != 0 {
+		e.logger.Error("exec failed on check tx", "error", resBrodTx.Log)
+		return common.Hash{}, fmt.Errorf(resBrodTx.Log)
 	}
 
 	return txHash, nil

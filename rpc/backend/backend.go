@@ -166,6 +166,14 @@ func (b *Backend) GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, 
 	if header == nil {
 		return b.GetSdkContext(), nil
 	}
+	latestHeight, err := b.BlockNumber()
+	if err != nil {
+		return sdk.Context{}, err
+	}
+	if int64(latestHeight) == header.Height {
+		return b.copySdkContext(b.ms.CacheMultiStore(), header), nil
+	}
+
 	cms, err := b.ms.CacheMultiStoreWithVersion(header.Height)
 	if err != nil {
 		return sdk.Context{}, err

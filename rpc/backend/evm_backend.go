@@ -59,7 +59,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 	if err != nil {
 		b.logger.Debug("EthBlockFromTendermint failed", "height", blockNum, "error", err.Error())
-		return nil, err
+		return nil, nil
 	}
 
 	// override dynamicly miner address
@@ -71,7 +71,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 
 	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
 	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint no validator", "height", blockNum, "error", err.Error())
+		b.logger.Debug("GetCoinbaseAddress no validator", "height", blockNum, "error", err.Error())
 		return nil, err
 	}
 	res.Miner = validator
@@ -95,7 +95,7 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 	if err != nil {
 		b.logger.Debug("EthBlockFromTendermint failed", "hash", hash.Hex(), "error", err.Error())
-		return nil, err
+		return nil, nil
 	}
 
 	// override dynamicly miner address
@@ -107,7 +107,7 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 
 	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
 	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint no validator", "hash", hash.Hex(), "error", err.Error())
+		b.logger.Debug("GetCoinbaseAddress no validator", "hash", hash.Hex(), "error", err.Error())
 		return nil, err
 	}
 	res.Miner = validator
