@@ -2,6 +2,7 @@ package backend
 
 import (
 	"context"
+	"fmt"
 	"math/big"
 	"time"
 
@@ -166,11 +167,11 @@ func (b *Backend) GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, 
 	if header == nil {
 		return b.GetSdkContext(), nil
 	}
-	latestHeight, err := b.BlockNumber()
-	if err != nil {
-		return sdk.Context{}, err
+	latestHeight := b.GetBlockStore().Height()
+	if latestHeight == 0 {
+		return sdk.Context{}, fmt.Errorf("block store not loaded")
 	}
-	if int64(latestHeight) == header.Height {
+	if latestHeight == header.Height {
 		return b.copySdkContext(b.ms.CacheMultiStore(), header), nil
 	}
 

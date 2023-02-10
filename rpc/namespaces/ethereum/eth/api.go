@@ -536,8 +536,7 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 	txHash := ethTx.Hash()
 
 	mempool := e.backend.GetMempool()
-	// TODO: Add to config
-	if true {
+	if e.clientCtx.BroadcastMode == "async" {
 		e.logger.Info("Use async mode to propagate tx", txHash)
 		err = mempool.CheckTx(packet, nil, mempl.TxInfo{})
 		if err != nil {

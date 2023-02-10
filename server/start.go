@@ -414,8 +414,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 
 	if config.JSONRPC.Enable {
 		evmApp := app.(stosapp.EVMLKeeperApp)
-		// sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, nil)
-		// clientCtx := clientCtx.WithChainID(evmKeeper.GetParams(sdkCtx).ChainConfig.ChainID.String())
 
 		err = StartJSONRPC(ctx, tmNode, evmApp.GetEVMKeeper(), app.CommitMultiStore(), clientCtx, config)
 		if err != nil {
