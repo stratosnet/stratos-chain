@@ -343,6 +343,44 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 	}
 }
 
+func (k Keeper) UpdateEffectiveStake(ctx sdk.Context, networkAddr stratos.SdsAddress, effectiveStakeAfter sdk.Int) (
+	ozoneLimitChange, effectiveStakeChange sdk.Int, isUnsuspendedDuringUpdate bool, err error) {
+
+	node, found := k.GetResourceNode(ctx, networkAddr)
+	if !found {
+		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrNoResourceNodeFound
+	}
+
+	// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	// no effective stake after subtracting unbonding stake
+	if node.Tokens.LTE(unbondingStake) {
+		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrInsufficientBalance
+	}
+	availableStake := node.Tokens.Sub(unbondingStake)
+	if availableStake.LT(effectiveStakeAfter) {
+		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrInsufficientBalance
+	}
+
+	isUnsuspendedDuringUpdate = node.Suspend == true && effectiveStakeAfter.GT(sdk.ZeroInt())
+
+	effectiveStakeBefore := sdk.NewInt(0).Add(node.EffectiveTokens)
+	effectiveStakeChange = effectiveStakeAfter.Sub(effectiveStakeBefore)
+
+	node.EffectiveTokens = effectiveStakeAfter
+	// effectiveStakeAfter > 0 means node.Suspend = false
+	node.Suspend = false
+	k.SetResourceNode(ctx, node)
+
+	if effectiveStakeChange.IsNegative() {
+		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
+	}
+	if effectiveStakeChange.IsPositive() {
+		ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, effectiveStakeChange)
+	}
+	return ozoneLimitChange, effectiveStakeChange, isUnsuspendedDuringUpdate, nil
+}
+
 func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	resourceNodeBondedAccAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeBondedPool)
 	if resourceNodeBondedAccAddr == nil {

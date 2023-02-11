@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"strconv"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -18,41 +16,29 @@ Deduct slashing amount when:
 3, unstaking resource node.
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
-	nozAmt sdk.Int, suspend bool, effectiveStakeAfter sdk.Int) (tokenAmt sdk.Int, nodeType registertypes.NodeType, unsuspended bool, err error) {
+	nozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
 
 	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
-		return sdk.ZeroInt(), registertypes.NodeType(0), false, registertypes.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
 
-	toBeUnsuspended := node.Suspend == true && suspend == false
-	effectiveStakeBefore := sdk.NewInt(0).Add(node.EffectiveTokens)
-	effectiveStakeChange := effectiveStakeAfter.Sub(effectiveStakeBefore)
+	//toBeUnsuspended := node.Suspend == true && suspend == false
+	toBeSuspended := node.Suspend == false && suspend == true
 
-	// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
-	unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
-
-	logger := k.Logger(ctx)
-	logger.Debug("------ potKeeper.SlashingResourceNode get inputs: ",
-		"nozAmt=", nozAmt.String(),
-		"node.Tokens=", node.Tokens.String(),
-		"unbondingStake=", unbondingStake.String(),
-		"suspend=", strconv.FormatBool(suspend),
-		"toBeUnsuspended=", strconv.FormatBool(toBeUnsuspended),
-		"effectiveStakeAfter=", effectiveStakeAfter.String(),
-		"effectiveStakeBefore=", effectiveStakeBefore.String(),
-		"effectiveStakeChange=", effectiveStakeChange.String())
-	// no effective stake after subtracting unbonding stake
-	if node.Tokens.LTE(unbondingStake) {
-		return sdk.ZeroInt(), registertypes.NodeType(0), toBeUnsuspended, registertypes.ErrInsufficientBalance
-	}
-	availableStake := node.Tokens.Sub(unbondingStake)
-	if availableStake.LT(effectiveStakeAfter) {
-		return sdk.ZeroInt(), registertypes.NodeType(0), toBeUnsuspended, registertypes.ErrInsufficientBalance
-	}
+	//// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
+	//unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
+	//
+	//// no effective stake after subtracting unbonding stake
+	//if node.Tokens.LTE(unbondingStake) {
+	//	return sdk.ZeroInt(), registertypes.NodeType(0), toBeUnsuspended, registertypes.ErrInsufficientBalance
+	//}
+	//availableStake := node.Tokens.Sub(unbondingStake)
+	//if availableStake.LT(node.EffectiveTokens) {
+	//	return sdk.ZeroInt(), registertypes.NodeType(0), toBeUnsuspended, registertypes.ErrInsufficientBalance
+	//}
 
 	node.Suspend = suspend
-	node.EffectiveTokens = effectiveStakeAfter
 
 	//slashing amt is equivalent to reward traffic calculation
 	trafficList := []*types.SingleWalletVolume{{
@@ -67,14 +53,15 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	// only slashing the reward token for now.
 	newSlashing := oldSlashing.Add(slashTokenAmt.TruncateInt())
 
+	// directly change oz limit while node being suspended
+	if toBeSuspended {
+		effectiveStakeChange := sdk.ZeroInt().Sub(node.EffectiveTokens)
+		node.EffectiveTokens = sdk.ZeroInt()
+		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
+	}
+
 	k.RegisterKeeper.SetResourceNode(ctx, node)
 	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
-	if effectiveStakeChange.IsNegative() {
-		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
-	}
-	if effectiveStakeChange.IsPositive() {
-		k.RegisterKeeper.IncreaseOzoneLimitByAddStake(ctx, effectiveStakeChange)
-	}
-	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), toBeUnsuspended, nil
+	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

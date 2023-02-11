@@ -274,7 +274,6 @@ func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []
 		WalletAddress:  walletAddress.String(),
 		Slashing:       &slashing,
 		Suspend:        suspend,
-		EffectiveStake: &newEffectiveStake,
 	}
 }
 

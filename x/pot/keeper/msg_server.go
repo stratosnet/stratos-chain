@@ -198,11 +198,7 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAmount
 	}
 
-	effectiveStakeAmt, ok := sdk.NewIntFromString(msg.EffectiveStake.String())
-	if !ok {
-		return &types.MsgSlashingResourceNodeResponse{}, types.ErrInvalidAmount
-	}
-	tokenAmt, nodeType, isUnsuspendedDuringSlash, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, nozAmt, msg.Suspend, effectiveStakeAmt)
+	tokenAmt, nodeType, err := k.SlashingResourceNode(ctx, networkAddress, walletAddress, nozAmt, msg.Suspend)
 	if err != nil {
 		return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrSlashingResourceNodeFailure, err.Error())
 	}
@@ -212,9 +208,6 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress),
 			sdk.NewAttribute(types.AttributeKeyNodeP2PAddress, msg.NetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyAmount, tokenAmt.String()),
-			sdk.NewAttribute(types.AttributeKeyEffectiveStake, msg.EffectiveStake.String()),
-			sdk.NewAttribute(types.AttributeKeyIsEffectiveStakeChanged, strconv.FormatBool(!effectiveStakeAmt.IsZero())),
-			sdk.NewAttribute(types.AttributeKeyIsUnsuspendedDuringSlash, strconv.FormatBool(isUnsuspendedDuringSlash)),
 			sdk.NewAttribute(types.AttributeKeySlashingNodeType, nodeType.String()),
 			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
 		),

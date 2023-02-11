@@ -346,6 +346,44 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 	return &types.MsgUpdateResourceNodeStakeResponse{}, nil
 }
 
+func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *types.MsgUpdateEffectiveStake) (*types.MsgUpdateEffectiveStakeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	for _, reporter := range msg.Reporters {
+		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
+		if err != nil {
+			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		}
+		if !(k.IsSPNode(ctx, reporterSdsAddr)) {
+			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "MsgUpdateEffectiveStake is not sent by a meta node")
+		}
+	}
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+	}
+
+	if msg.EffectiveTokens.LTE(sdk.NewInt(0)) {
+		return &types.MsgUpdateEffectiveStakeResponse{}, errors.New("effective tokens should be greater than 0")
+	}
+
+	_, effectiveStakeChange, isUnsuspendedDuringUpdate, err := k.UpdateEffectiveStake(ctx, networkAddr, msg.EffectiveTokens)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateEffectiveStake,
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
+			sdk.NewAttribute(types.AttributeKeyEffectiveStakeChange, effectiveStakeChange.String()),
+			sdk.NewAttribute(types.AttributeKeyIsUnsuspended, strconv.FormatBool(isUnsuspendedDuringUpdate)),
+		),
+	})
+	return &types.MsgUpdateEffectiveStakeResponse{}, nil
+}
+
 func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.MsgUpdateMetaNode) (*types.MsgUpdateMetaNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 

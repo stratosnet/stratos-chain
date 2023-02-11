@@ -492,3 +492,8 @@ func (k Keeper) SendCoinsFromAccountToMetaNodeBondedPool(ctx sdk.Context, fromAc
 	}
 	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.MetaNodeBondedPool, sdk.NewCoins(amt))
 }
+
+func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
+	_, found = k.GetMetaNode(ctx, p2pAddr)
+	return found
+}

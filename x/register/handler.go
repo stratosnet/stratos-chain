@@ -28,6 +28,9 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgUpdateResourceNodeStake:
 			res, err := msgServer.HandleMsgUpdateResourceNodeStake(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgUpdateEffectiveStake:
+			res, err := msgServer.HandleMsgUpdateEffectiveStake(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgCreateMetaNode:
 			res, err := msgServer.HandleMsgCreateMetaNode(sdk.WrapSDKContext(ctx), msg)

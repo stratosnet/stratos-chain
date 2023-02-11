@@ -70,8 +70,7 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalle
 }
 
 func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
-	_, found = k.RegisterKeeper.GetMetaNode(ctx, p2pAddr)
-	return found
+	return k.RegisterKeeper.IsSPNode(ctx, p2pAddr)
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
