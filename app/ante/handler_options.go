@@ -48,7 +48,8 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewEthSetUpContextDecorator(options.EvmKeeper), // outermost AnteDecorator. SetUpContext must be called first
 		NewEthMempoolFeeDecorator(options.EvmKeeper),   // Check eth effective gas price against minimal-gas-prices
 		NewEthValidateBasicDecorator(options.EvmKeeper),
-		NewEthTxPayloadVerificationDecorator(),
+		// TODO: UNCOMMENT THIS FOR PROD!!!!!!
+		// NewEthTxPayloadVerificationDecorator(),
 		NewEthSigVerificationDecorator(options.EvmKeeper),
 		NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
 		NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
