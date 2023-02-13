@@ -32,7 +32,7 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 	//distribute POT reward
 	_, err := k.DistributePotReward(ctx, walletVolumes, epoch)
 	if err != nil {
-		logger.Error("An error occurred while distributing the reward. ", err)
+		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
 	}
 
 	k.SetUnhandledReport(ctx, nil)

@@ -5,11 +5,12 @@ package rpc
 import (
 	"fmt"
 
-	rpcclient "github.com/tendermint/tendermint/rpc/jsonrpc/client"
+	"github.com/tendermint/tendermint/node"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/ethereum/go-ethereum/rpc"
 
 	"github.com/stratosnet/stratos-chain/rpc/backend"
@@ -22,6 +23,8 @@ import (
 	"github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/txpool"
 	"github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/web3"
 	"github.com/stratosnet/stratos-chain/rpc/types"
+
+	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 )
 
 // RPC namespaces and API version
@@ -44,16 +47,16 @@ const (
 )
 
 // APICreator creates the JSON-RPC API implementations.
-type APICreator = func(*server.Context, client.Context, *rpcclient.WSClient) []rpc.API
+type APICreator = func(*server.Context, *node.Node, *evmkeeper.Keeper, storetypes.MultiStore, client.Context) []rpc.API
 
 // apiCreators defines the JSON-RPC API namespaces.
 var apiCreators map[string]APICreator
 
 func init() {
 	apiCreators = map[string]APICreator{
-		EthNamespace: func(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient) []rpc.API {
+		EthNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context) []rpc.API {
 			nonceLock := new(types.AddrLocker)
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: EthNamespace,
@@ -64,12 +67,12 @@ func init() {
 				{
 					Namespace: EthNamespace,
 					Version:   apiVersion,
-					Service:   filters.NewPublicAPI(ctx.Logger, clientCtx, tmWSClient, evmBackend),
+					Service:   filters.NewPublicAPI(ctx.Logger, clientCtx, tmNode.EventBus(), evmBackend),
 					Public:    true,
 				},
 			}
 		},
-		Web3Namespace: func(*server.Context, client.Context, *rpcclient.WSClient) []rpc.API {
+		Web3Namespace: func(*server.Context, *node.Node, *evmkeeper.Keeper, storetypes.MultiStore, client.Context) []rpc.API {
 			return []rpc.API{
 				{
 					Namespace: Web3Namespace,
@@ -79,18 +82,19 @@ func init() {
 				},
 			}
 		},
-		NetNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
+		NetNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: NetNamespace,
 					Version:   apiVersion,
-					Service:   net.NewPublicAPI(clientCtx),
+					Service:   net.NewPublicAPI(evmBackend),
 					Public:    true,
 				},
 			}
 		},
-		PersonalNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+		PersonalNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: PersonalNamespace,
@@ -100,18 +104,19 @@ func init() {
 				},
 			}
 		},
-		TxPoolNamespace: func(ctx *server.Context, _ client.Context, _ *rpcclient.WSClient) []rpc.API {
+		TxPoolNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: TxPoolNamespace,
 					Version:   apiVersion,
-					Service:   txpool.NewPublicAPI(ctx.Logger),
+					Service:   txpool.NewPublicAPI(ctx.Logger, clientCtx, evmBackend),
 					Public:    true,
 				},
 			}
 		},
-		DebugNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+		DebugNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: DebugNamespace,
@@ -121,8 +126,8 @@ func init() {
 				},
 			}
 		},
-		MinerNamespace: func(ctx *server.Context, clientCtx client.Context, _ *rpcclient.WSClient) []rpc.API {
-			evmBackend := backend.NewBackend(ctx, ctx.Logger, clientCtx)
+		MinerNamespace: func(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context) []rpc.API {
+			evmBackend := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 			return []rpc.API{
 				{
 					Namespace: MinerNamespace,
@@ -136,12 +141,12 @@ func init() {
 }
 
 // GetRPCAPIs returns the list of all APIs
-func GetRPCAPIs(ctx *server.Context, clientCtx client.Context, tmWSClient *rpcclient.WSClient, selectedAPIs []string) []rpc.API {
+func GetRPCAPIs(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context, selectedAPIs []string) []rpc.API {
 	var apis []rpc.API
 
 	for _, ns := range selectedAPIs {
 		if creator, ok := apiCreators[ns]; ok {
-			apis = append(apis, creator(ctx, clientCtx, tmWSClient)...)
+			apis = append(apis, creator(ctx, tmNode, evmKeeper, ms, clientCtx)...)
 		} else {
 			ctx.Logger.Error("invalid namespace value", "namespace", ns)
 		}

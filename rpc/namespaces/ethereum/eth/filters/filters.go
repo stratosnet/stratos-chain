@@ -13,6 +13,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/eth/filters"
 
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 )
 
@@ -26,7 +27,7 @@ type BloomIV struct {
 // Filter can be used to retrieve and filter logs.
 type Filter struct {
 	logger   log.Logger
-	backend  Backend
+	backend  backend.BackendI
 	criteria filters.FilterCriteria
 
 	bloomFilters [][]BloomIV // Filter the system is matching for
@@ -34,14 +35,14 @@ type Filter struct {
 
 // NewBlockFilter creates a new filter which directly inspects the contents of
 // a block to figure out whether it is interesting or not.
-func NewBlockFilter(logger log.Logger, backend Backend, criteria filters.FilterCriteria) *Filter {
+func NewBlockFilter(logger log.Logger, b backend.BackendI, criteria filters.FilterCriteria) *Filter {
 	// Create a generic filter and convert it into a block filter
-	return newFilter(logger, backend, criteria, nil)
+	return newFilter(logger, b, criteria, nil)
 }
 
 // NewRangeFilter creates a new filter which uses a bloom filter on blocks to
 // figure out whether a particular block is interesting or not.
-func NewRangeFilter(logger log.Logger, backend Backend, begin, end int64, addresses []common.Address, topics [][]common.Hash) *Filter {
+func NewRangeFilter(logger log.Logger, b backend.BackendI, begin, end int64, addresses []common.Address, topics [][]common.Hash) *Filter {
 	// Flatten the address and topic filter clauses into a single bloombits filter
 	// system. Since the bloombits are not positional, nil topics are permitted,
 	// which get flattened into a nil byte slice.
@@ -70,14 +71,14 @@ func NewRangeFilter(logger log.Logger, backend Backend, begin, end int64, addres
 		Topics:    topics,
 	}
 
-	return newFilter(logger, backend, criteria, createBloomFilters(filtersBz, logger))
+	return newFilter(logger, b, criteria, createBloomFilters(filtersBz, logger))
 }
 
 // newFilter returns a new Filter
-func newFilter(logger log.Logger, backend Backend, criteria filters.FilterCriteria, bloomFilters [][]BloomIV) *Filter {
+func newFilter(logger log.Logger, b backend.BackendI, criteria filters.FilterCriteria, bloomFilters [][]BloomIV) *Filter {
 	return &Filter{
 		logger:       logger,
-		backend:      backend,
+		backend:      b,
 		criteria:     criteria,
 		bloomFilters: bloomFilters,
 	}

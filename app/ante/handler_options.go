@@ -48,6 +48,8 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		NewEthSetUpContextDecorator(options.EvmKeeper), // outermost AnteDecorator. SetUpContext must be called first
 		NewEthMempoolFeeDecorator(options.EvmKeeper),   // Check eth effective gas price against minimal-gas-prices
 		NewEthValidateBasicDecorator(options.EvmKeeper),
+		// TODO: UNCOMMENT THIS FOR PROD!!!!!!
+		// NewEthTxPayloadVerificationDecorator(),
 		NewEthSigVerificationDecorator(options.EvmKeeper),
 		NewEthAccountVerificationDecorator(options.AccountKeeper, options.EvmKeeper),
 		NewEthGasConsumeDecorator(options.EvmKeeper, options.MaxTxGasWanted),
@@ -61,12 +63,12 @@ func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 		RejectMessagesDecorator{}, // reject MsgEthereumTxs
 		ante.NewSetUpContextDecorator(),
 		ante.NewRejectExtensionOptionsDecorator(),
-		ante.NewMempoolFeeDecorator(),
+		NewMempoolFeeDecorator(),
 		ante.NewValidateBasicDecorator(),
 		ante.NewTxTimeoutHeightDecorator(),
 		ante.NewValidateMemoDecorator(options.AccountKeeper),
 		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		ante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper),
+		NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper),
 		// SetPubKeyDecorator must be called before all signature verification decorators
 		ante.NewSetPubKeyDecorator(options.AccountKeeper),
 		ante.NewValidateSigCountDecorator(options.AccountKeeper),

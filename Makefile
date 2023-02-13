@@ -1,7 +1,8 @@
 BUILDDIR ?= $(CURDIR)/build
 
-APP_VER := v0.9.0
+APP_VER := v0.9.1
 COMMIT := $(GIT_COMMIT_HASH)
+TEST_DOCKER_REPO=stratos-chain-e2e
 
 ifeq ($(COMMIT),)
     VERSION := $(APP_VER)
@@ -37,6 +38,12 @@ build-windows: go.sum
 clean:
 	rm -rf $(BUILDDIR)/
 
+coverage:
+	go test ./... -coverprofile cover.out -coverpkg=./...
+	go tool cover -html cover.out -o cover.html
+	go tool cover -func cover.out | grep total:
+	rm cover.out
+
 ###############################################################################
 ###                                Localnet                                 ###
 ###############################################################################
@@ -53,5 +60,10 @@ localnet-start: build-linux localnet-stop
 # Stop testnet
 localnet-stop:
 	docker-compose down
+
+build-docker-e2e:
+	@docker build -f tests/e2e/Dockerfile -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) --build-arg uid=$(shell id -u) --build-arg gid=$(shell id -g) .
+	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
+	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
 
 .PHONY: build-linux build-mac build clean
