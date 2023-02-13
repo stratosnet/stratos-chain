@@ -8,16 +8,14 @@ import (
 	"math/big"
 	"sort"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -50,13 +48,18 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 		return args, errors.New("latest header is nil")
 	}
 
+	baseFee, err := b.BaseFee()
+	if err != nil {
+		return args, err
+	}
+
 	// If user specifies both maxPriorityfee and maxFee, then we do not
 	// need to consult the chain for defaults. It's definitely a London tx.
 	if args.MaxPriorityFeePerGas == nil || args.MaxFeePerGas == nil {
 		// In this clause, user left some fields unspecified.
-		if head.BaseFee != nil && args.GasPrice == nil {
+		if baseFee != nil && args.GasPrice == nil {
 			if args.MaxPriorityFeePerGas == nil {
-				tip, err := b.SuggestGasTipCap(head.BaseFee)
+				tip, err := b.SuggestGasTipCap()
 				if err != nil {
 					return args, err
 				}
@@ -66,7 +69,7 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 			if args.MaxFeePerGas == nil {
 				gasFeeCap := new(big.Int).Add(
 					(*big.Int)(args.MaxPriorityFeePerGas),
-					new(big.Int).Mul(head.BaseFee, big.NewInt(2)),
+					new(big.Int).Mul(baseFee, big.NewInt(2)),
 				)
 				args.MaxFeePerGas = (*hexutil.Big)(gasFeeCap)
 			}
@@ -81,15 +84,15 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 			}
 
 			if args.GasPrice == nil {
-				price, err := b.SuggestGasTipCap(head.BaseFee)
+				price, err := b.SuggestGasTipCap()
 				if err != nil {
 					return args, err
 				}
-				if head.BaseFee != nil {
+				if baseFee != nil {
 					// The legacy tx gas price suggestion should not add 2x base fee
 					// because all fees are consumed, so it would result in a spiral
 					// upwards.
-					price.Add(price, head.BaseFee)
+					price.Add(price, baseFee)
 				}
 				args.GasPrice = (*hexutil.Big)(price)
 			}
@@ -107,7 +110,10 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 	if args.Nonce == nil {
 		// get the nonce from the account retriever
 		// ignore error in case tge account doesn't exist yet
-		nonce, _ := b.getAccountNonce(*args.From, true, 0, b.logger)
+		nonce, err := b.getAccountNonce(*args.From, types.EthPendingBlockNumber)
+		if err != nil {
+			return args, err
+		}
 		args.Nonce = (*hexutil.Uint64)(&nonce)
 	}
 
@@ -170,64 +176,47 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 // If the pending value is true, it will iterate over the mempool (pending)
 // txs in order to compute and return the pending tx sequence.
 // Todo: include the ability to specify a blockNumber
-func (b *Backend) getAccountNonce(accAddr common.Address, pending bool, height int64, logger log.Logger) (uint64, error) {
-	queryClient := authtypes.NewQueryClient(b.clientCtx)
-	res, err := queryClient.Account(types.ContextWithHeight(height), &authtypes.QueryAccountRequest{Address: sdk.AccAddress(accAddr.Bytes()).String()})
+func (b *Backend) getAccountNonce(address common.Address, height types.BlockNumber) (uint64, error) {
+	var (
+		pendingNonce uint64
+	)
+	if height == types.EthPendingBlockNumber {
+		pendingNonce = types.GetPendingTxCountByAddress(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), address)
+	}
+	req := evmtypes.QueryCosmosAccountRequest{
+		Address: address.Hex(),
+	}
+
+	block, err := b.GetTendermintBlockByNumber(height)
 	if err != nil {
 		return 0, err
 	}
-	var acc authtypes.AccountI
-	if err := b.clientCtx.InterfaceRegistry.UnpackAny(res.Account, &acc); err != nil {
+
+	if block.Block == nil {
+		return 0, fmt.Errorf("failed to get block for %d height", height)
+	}
+
+	sdkCtx, err := b.GetSdkContextWithHeader(&block.Block.Header)
+	if err != nil {
 		return 0, err
 	}
-
-	nonce := acc.GetSequence()
-
-	if !pending {
-		return nonce, nil
-	}
-
-	// the account retriever doesn't include the uncommitted transactions on the nonce so we need to
-	// to manually add them.
-	pendingTxs, err := b.PendingTransactions()
+	acc, err := b.GetEVMKeeper().CosmosAccount(sdk.WrapSDKContext(sdkCtx), &req)
 	if err != nil {
-		logger.Error("failed to fetch pending transactions", "error", err.Error())
-		return nonce, nil
+		return pendingNonce, err
 	}
-
-	// add the uncommitted txs to the nonce counter
-	// only supports `MsgEthereumTx` style tx
-	for _, tx := range pendingTxs {
-		for _, msg := range (*tx).GetMsgs() {
-			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-			if !ok {
-				// not ethereum tx
-				break
-			}
-
-			sender, err := ethMsg.GetSender(b.ChainConfig().ChainID)
-			if err != nil {
-				continue
-			}
-			if sender == accAddr {
-				nonce++
-			}
-		}
-	}
-
-	return nonce, nil
+	return acc.GetSequence() + pendingNonce, nil
 }
 
 // output: targetOneFeeHistory
 func (b *Backend) processBlock(
 	tendermintBlock *tmrpctypes.ResultBlock,
-	ethBlock *map[string]interface{},
+	ethBlock *types.Block,
 	rewardPercentiles []float64,
 	tendermintBlockResult *tmrpctypes.ResultBlockResults,
 	targetOneFeeHistory *types.OneFeeHistory,
 ) error {
 	blockHeight := tendermintBlock.Block.Height
-	blockBaseFee, err := b.BaseFee(blockHeight)
+	blockBaseFee, err := b.BaseFee()
 	if err != nil {
 		return err
 	}
@@ -236,15 +225,9 @@ func (b *Backend) processBlock(
 	targetOneFeeHistory.BaseFee = blockBaseFee
 
 	// set gas used ratio
-	gasLimitUint64, ok := (*ethBlock)["gasLimit"].(hexutil.Uint64)
-	if !ok {
-		return fmt.Errorf("invalid gas limit type: %T", (*ethBlock)["gasLimit"])
-	}
+	gasLimitUint64 := hexutil.Uint64(ethBlock.GasLimit.ToInt().Uint64())
 
-	gasUsedBig, ok := (*ethBlock)["gasUsed"].(*hexutil.Big)
-	if !ok {
-		return fmt.Errorf("invalid gas used type: %T", (*ethBlock)["gasUsed"])
-	}
+	gasUsedBig := ethBlock.GasUsed
 
 	gasusedfloat, _ := new(big.Float).SetInt(gasUsedBig.ToInt()).Float64()
 

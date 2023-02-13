@@ -192,6 +192,10 @@ var (
 	}
 )
 
+type EVMLKeeperApp interface {
+	GetEVMKeeper() *evmkeeper.Keeper
+}
+
 type NewApp struct {
 	*baseapp.BaseApp
 
@@ -753,6 +757,10 @@ func (app *NewApp) GetPotKeeper() potkeeper.Keeper {
 
 func (app *NewApp) GetDistrKeeper() distrkeeper.Keeper {
 	return app.distrKeeper
+}
+
+func (app *NewApp) GetEVMKeeper() *evmkeeper.Keeper {
+	return app.evmKeeper
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

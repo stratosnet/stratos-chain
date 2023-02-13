@@ -104,7 +104,7 @@ func (api *API) SetEtherbase(etherbase common.Address) bool {
 		WithChainID(api.clientCtx.ChainID).
 		WithKeybase(api.clientCtx.Keyring).
 		WithTxConfig(api.clientCtx.TxConfig).
-		WithSequence(uint64(*nonce)).
+		WithSequence(uint64(nonce)).
 		WithGasAdjustment(1.25)
 
 	_, gas, err := tx.CalculateGas(api.clientCtx, txFactory, msg)
