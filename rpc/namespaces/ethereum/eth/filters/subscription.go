@@ -3,6 +3,7 @@ package filters
 import (
 	"time"
 
+	"github.com/stratosnet/stratos-chain/rpc/types"
 	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -20,7 +21,7 @@ type Subscription struct {
 	logsCrit  filters.FilterCriteria
 	logs      chan []*ethtypes.Log
 	hashes    chan []common.Hash
-	headers   chan *ethtypes.Header
+	headers   chan *types.Header
 	installed chan struct{} // closed when the filter is installed
 	eventCh   <-chan coretypes.ResultEvent
 	err       chan error

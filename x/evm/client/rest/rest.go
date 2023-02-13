@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"math/big"
 	"net/http"
 	"strings"
 
@@ -19,7 +18,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
-	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 // RegisterTxRoutes - Central function to define routes that get registered by the main application
@@ -82,17 +80,6 @@ func getEthTransactionByHash(clientCtx client.Context, hashHex string) ([]byte, 
 		return nil, err
 	}
 
-	client := types.NewQueryClient(clientCtx)
-	res, err := client.BaseFee(context.Background(), &types.QueryBaseFeeRequest{})
-	if err != nil {
-		return nil, err
-	}
-
-	var baseFee *big.Int
-	if res.BaseFee != nil {
-		baseFee = res.BaseFee.BigInt()
-	}
-
 	blockHash := common.BytesToHash(block.Block.Header.Hash())
 
 	ethTxs, err := rpctypes.RawTxToEthTx(clientCtx, tx.Tx)
@@ -101,10 +88,11 @@ func getEthTransactionByHash(clientCtx client.Context, hashHex string) ([]byte, 
 	}
 
 	height := uint64(tx.Height)
+	txIndex := uint64(tx.Index)
 
 	for _, ethTx := range ethTxs {
 		if common.HexToHash(ethTx.Hash) == common.BytesToHash(hash) {
-			rpcTx, err := rpctypes.NewRPCTransaction(ethTx.AsTransaction(), blockHash, height, uint64(tx.Index), baseFee)
+			rpcTx, err := rpctypes.NewRPCTransaction(ethTx.AsTransaction(), &blockHash, &height, &txIndex)
 			if err != nil {
 				return nil, err
 			}
