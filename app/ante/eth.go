@@ -361,42 +361,42 @@ func NewEthIncrementSenderSequenceDecorator(ak evmtypes.AccountKeeper) EthIncrem
 // contract creation, the nonce will be incremented during the transaction execution and not within
 // this AnteHandler decorator.
 func (issd EthIncrementSenderSequenceDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (sdk.Context, error) {
-	for _, msg := range tx.GetMsgs() {
-		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
-		if !ok {
-			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-		}
+	// for _, msg := range tx.GetMsgs() {
+	// 	msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+	// 	if !ok {
+	// 		return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+	// 	}
 
-		txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
-		if err != nil {
-			return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
-		}
+	// 	txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
+	// 	if err != nil {
+	// 		return ctx, sdkerrors.Wrap(err, "failed to unpack tx data")
+	// 	}
 
-		// increase sequence of sender
-		acc := issd.ak.GetAccount(ctx, msgEthTx.GetFrom())
-		if acc == nil {
-			return ctx, sdkerrors.Wrapf(
-				sdkerrors.ErrUnknownAddress,
-				"account %s is nil", common.BytesToAddress(msgEthTx.GetFrom().Bytes()),
-			)
-		}
-		nonce := acc.GetSequence()
+	// 	// increase sequence of sender
+	// 	acc := issd.ak.GetAccount(ctx, msgEthTx.GetFrom())
+	// 	if acc == nil {
+	// 		return ctx, sdkerrors.Wrapf(
+	// 			sdkerrors.ErrUnknownAddress,
+	// 			"account %s is nil", common.BytesToAddress(msgEthTx.GetFrom().Bytes()),
+	// 		)
+	// 	}
+	// 	nonce := acc.GetSequence()
 
-		// we merged the nonce verification to nonce increment, so when tx includes multiple messages
-		// with same sender, they'll be accepted.
-		if txData.GetNonce() != nonce {
-			return ctx, sdkerrors.Wrapf(
-				sdkerrors.ErrInvalidSequence,
-				"invalid nonce; got %d, expected %d", txData.GetNonce(), nonce,
-			)
-		}
+	// 	// we merged the nonce verification to nonce increment, so when tx includes multiple messages
+	// 	// with same sender, they'll be accepted.
+	// 	if txData.GetNonce() != nonce {
+	// 		return ctx, sdkerrors.Wrapf(
+	// 			sdkerrors.ErrInvalidSequence,
+	// 			"invalid nonce; got %d, expected %d", txData.GetNonce(), nonce,
+	// 		)
+	// 	}
 
-		if err := acc.SetSequence(nonce + 1); err != nil {
-			return ctx, sdkerrors.Wrapf(err, "failed to set sequence to %d", acc.GetSequence()+1)
-		}
+	// 	if err := acc.SetSequence(nonce + 1); err != nil {
+	// 		return ctx, sdkerrors.Wrapf(err, "failed to set sequence to %d", acc.GetSequence()+1)
+	// 	}
 
-		issd.ak.SetAccount(ctx, acc)
-	}
+	// 	issd.ak.SetAccount(ctx, acc)
+	// }
 
 	return next(ctx, tx, simulate)
 }
