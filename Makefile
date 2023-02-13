@@ -1,6 +1,6 @@
 BUILDDIR ?= $(CURDIR)/build
 
-APP_VER := v0.9.0
+APP_VER := v0.9.1
 COMMIT := $(GIT_COMMIT_HASH)
 TEST_DOCKER_REPO=stratos-chain-e2e
 
