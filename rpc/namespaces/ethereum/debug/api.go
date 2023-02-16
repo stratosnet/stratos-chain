@@ -36,6 +36,7 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
+	"github.com/stratosnet/stratos-chain/x/evm/pool"
 	jstracers "github.com/stratosnet/stratos-chain/x/evm/tracers/js"
 	nativetracers "github.com/stratosnet/stratos-chain/x/evm/tracers/native"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -108,7 +109,7 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 	a.logger.Debug("debug_traceTransaction", "hash", hash)
 
 	// Get transaction by hash
-	resultTx, err := a.backend.GetTxByHash(hash)
+	resultTx, err := pool.GetTmTxByHash(hash)
 	if err != nil {
 		a.logger.Debug("debug_traceTransaction", "tx not found", "hash", hash)
 		return nil, err
@@ -172,7 +173,7 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 	}()
 	defer cancel()
 
-	sdkCtx, err := a.backend.GetSdkContextWithHeader(&parentBlock.Block.Header)
+	sdkCtx, err := a.backend.GetEVMContext().GetSdkContextWithHeader(&parentBlock.Block.Header)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to load state at height: %d\n", parentHeight)
 	}
@@ -278,7 +279,7 @@ func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConf
 		BlockHash:   common.Bytes2Hex(block.BlockID.Hash),
 	}
 
-	sdkCtx, err := a.backend.GetSdkContextWithHeader(&block.Block.Header)
+	sdkCtx, err := a.backend.GetEVMContext().GetSdkContextWithHeader(&block.Block.Header)
 	if err != nil {
 		return nil, err
 	}

@@ -196,7 +196,7 @@ func (b *Backend) getAccountNonce(address common.Address, height types.BlockNumb
 		return 0, fmt.Errorf("failed to get block for %d height", height)
 	}
 
-	sdkCtx, err := b.GetSdkContextWithHeader(&block.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&block.Block.Header)
 	if err != nil {
 		return 0, err
 	}

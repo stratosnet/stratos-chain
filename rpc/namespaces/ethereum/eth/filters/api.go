@@ -232,7 +232,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 					return
 				}
 				// override dynamicly miner address
-				sdkCtx, err := api.backend.GetSdkContextWithHeader(&data.Header)
+				sdkCtx, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
 				if err != nil {
 					headersSub.err <- err
 					return
@@ -296,7 +296,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					return
 				}
 				// override dynamicly miner address
-				sdkCtx, err := api.backend.GetSdkContextWithHeader(&data.Header)
+				sdkCtx, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
 				if err != nil {
 					headersSub.err <- err
 					return

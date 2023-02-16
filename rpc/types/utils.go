@@ -89,7 +89,7 @@ func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 	if err != nil {
 		return nil, err
 	}
-	gasLimit, err := BlockMaxGasFromConsensusParams(header.Height)
+	gasLimit, err := BlockMaxGasFromConsensusParams(&header.Height)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +175,8 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 }
 
 // BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
-func BlockMaxGasFromConsensusParams(blockHeight int64) (int64, error) {
-	resConsParams, err := tmrpccore.ConsensusParams(nil, &blockHeight)
+func BlockMaxGasFromConsensusParams(blockHeight *int64) (int64, error) {
+	resConsParams, err := tmrpccore.ConsensusParams(nil, blockHeight)
 	if err != nil {
 		return int64(^uint32(0)), err
 	}

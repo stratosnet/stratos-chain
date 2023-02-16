@@ -2,7 +2,6 @@ package backend
 
 import (
 	"context"
-	"fmt"
 	"math/big"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
@@ -27,10 +27,10 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
+	evm "github.com/stratosnet/stratos-chain/x/evm"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
+	"github.com/stratosnet/stratos-chain/x/evm/pool"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 // BackendI implements the Cosmos and EVM backend.
@@ -49,8 +49,7 @@ type CosmosBackend interface {
 	// SignDirect()
 	// SignAmino()
 	GetEVMKeeper() *evmkeeper.Keeper
-	GetSdkContext() sdk.Context
-	GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, error)
+	GetEVMContext() *evm.Context
 }
 
 // EVMBackend implements the functionality shared within ethereum namespaces
@@ -81,7 +80,6 @@ type EVMBackend interface {
 	SendTransaction(args evmtypes.TransactionArgs) (common.Hash, error)
 	GetCoinbase() (sdk.AccAddress, error)
 	GetTransactionByHash(txHash common.Hash) (*types.Transaction, error)
-	GetTxByHash(txHash common.Hash) (*tmrpctypes.ResultTx, error)
 	GetTxByTxIndex(height int64, txIndex uint) (*tmrpctypes.ResultTx, error)
 	EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *types.BlockNumber) (hexutil.Uint64, error)
 	BaseFee() (*big.Int, error)
@@ -106,19 +104,22 @@ type TMBackend interface {
 	GetMempool() mempool.Mempool
 	GetConsensusReactor() *cs.Reactor
 	GetSwitch() *p2p.Switch
+	GetTxPool() *pool.TxPool
 }
 
 var _ BackendI = (*Backend)(nil)
 
 // Backend implements the BackendI interface
 type Backend struct {
-	ctx       context.Context
-	clientCtx client.Context
-	tmNode    *node.Node // directly tendermint access, new impl
-	evmkeeper *evmkeeper.Keeper
-	ms        storetypes.MultiStore
-	logger    log.Logger
-	cfg       config.Config
+	ctx        context.Context
+	clientCtx  client.Context
+	tmNode     *node.Node // directly tendermint access, new impl
+	evmkeeper  *evmkeeper.Keeper
+	evmContext *evm.Context
+	ms         storetypes.MultiStore
+	logger     log.Logger
+	cfg        config.Config
+	txPool     *pool.TxPool
 }
 
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
@@ -128,58 +129,35 @@ func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Kee
 		panic(err)
 	}
 
-	return &Backend{
-		ctx:       context.Background(),
-		clientCtx: clientCtx,
-		tmNode:    tmNode,
-		evmkeeper: evmkeeper,
-		ms:        ms,
-		logger:    logger.With("module", "backend"),
-		cfg:       appConf,
+	evmCtx := evm.NewContext(logger, ms, tmNode.BlockStore())
+	txPool, err := pool.NewTxPool(core.DefaultTxPoolConfig, appConf, logger, clientCtx, tmNode.Mempool(), evmkeeper, evmCtx)
+	if err != nil {
+		panic(err)
 	}
+
+	return &Backend{
+		ctx:        context.Background(),
+		clientCtx:  clientCtx,
+		tmNode:     tmNode,
+		evmkeeper:  evmkeeper,
+		evmContext: evmCtx,
+		ms:         ms,
+		logger:     logger.With("module", "backend"),
+		cfg:        appConf,
+		txPool:     txPool,
+	}
+}
+
+func (b *Backend) GetTxPool() *pool.TxPool {
+	return b.txPool
 }
 
 func (b *Backend) GetEVMKeeper() *evmkeeper.Keeper {
 	return b.evmkeeper
 }
 
-func (b *Backend) copySdkContext(ms storetypes.MultiStore, header *tmtypes.Header) sdk.Context {
-	sdkCtx := sdk.NewContext(ms, tmproto.Header{}, true, b.logger)
-	if header != nil {
-		return sdkCtx.WithHeaderHash(
-			header.Hash(),
-		).WithBlockHeader(
-			types.FormatTmHeaderToProto(header),
-		).WithBlockHeight(
-			header.Height,
-		).WithProposer(
-			sdk.ConsAddress(header.ProposerAddress),
-		)
-	}
-	return sdkCtx
-}
-
-func (b *Backend) GetSdkContext() sdk.Context {
-	return b.copySdkContext(b.ms.CacheMultiStore(), nil)
-}
-
-func (b *Backend) GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, error) {
-	if header == nil {
-		return b.GetSdkContext(), nil
-	}
-	latestHeight := b.GetBlockStore().Height()
-	if latestHeight == 0 {
-		return sdk.Context{}, fmt.Errorf("block store not loaded")
-	}
-	if latestHeight == header.Height {
-		return b.copySdkContext(b.ms.CacheMultiStore(), header), nil
-	}
-
-	cms, err := b.ms.CacheMultiStoreWithVersion(header.Height)
-	if err != nil {
-		return sdk.Context{}, err
-	}
-	return b.copySdkContext(cms, header), nil
+func (b *Backend) GetEVMContext() *evm.Context {
+	return b.evmContext
 }
 
 func (b *Backend) GetNode() *node.Node {
