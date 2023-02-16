@@ -13,13 +13,13 @@ import (
 
 const resourceNodeCacheSize = 500
 
-// Cache the amino decoding of resource nodes, as it can be the case that repeated slashing calls
+// Cache the proto decoding of resource nodes, as it can be the case that repeated slashing calls
 // cause many calls to GetResourceNode, which were shown to throttle the state machine in our
 // simulation. Note this is quite biased though, as the simulator does more slashes than a
 // live chain should, however we require the slashing to be fast as no one pays gas for it.
 type cachedResourceNode struct {
 	resourceNode types.ResourceNode
-	marshalled   string // marshalled amino bytes for the ResourceNode object (not address)
+	marshalled   string // marshalled proto bytes for the ResourceNode object (not address)
 }
 
 func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) cachedResourceNode {
@@ -38,14 +38,14 @@ func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) 
 		return resourceNode, false
 	}
 
-	// If these amino encoded bytes are in the cache, return the cached resource node
+	// If these proto encoded bytes are in the cache, return the cached resource node
 	strValue := string(value)
 	if val, ok := k.resourceNodeCache[strValue]; ok {
 		valToReturn := val.resourceNode
 		return valToReturn, true
 	}
 
-	// amino bytes weren't found in cache, so amino unmarshal and add it to the cache
+	// proto bytes weren't found in cache, so proto unmarshal and add it to the cache
 	resourceNode = types.MustUnmarshalResourceNode(k.cdc, value)
 	cachedVal := newCachedResourceNode(resourceNode, strValue)
 	k.resourceNodeCache[strValue] = newCachedResourceNode(resourceNode, strValue)
@@ -372,18 +372,4 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedAccAddr, k.BondDenom(ctx))
-}
-
-func (k Keeper) SendCoinsFromAccountToResNodeNotBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
-	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
-		return types.ErrInsufficientBalance
-	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeNotBondedPool, sdk.NewCoins(amt))
-}
-
-func (k Keeper) SendCoinsFromAccountToResNodeBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
-	if !k.bankKeeper.HasBalance(ctx, fromAcc, amt) {
-		return types.ErrInsufficientBalance
-	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromAcc, types.ResourceNodeBondedPool, sdk.NewCoins(amt))
 }

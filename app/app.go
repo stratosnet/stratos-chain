@@ -755,6 +755,10 @@ func (app *NewApp) GetPotKeeper() potkeeper.Keeper {
 	return app.potKeeper
 }
 
+func (app *NewApp) GetDistrKeeper() distrkeeper.Keeper {
+	return app.distrKeeper
+}
+
 func (app *NewApp) GetEVMKeeper() *evmkeeper.Keeper {
 	return app.evmKeeper
 }

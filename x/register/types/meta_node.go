@@ -149,7 +149,7 @@ func UnmarshalMetaNode(cdc codec.Codec, value []byte) (metaNode MetaNode, err er
 	return metaNode, err
 }
 
-//MetaNodes is a collection of meta node
+// MetaNodes is a collection of meta node
 type MetaNodes []MetaNode
 
 func NewMetaNodes(metaNodes ...MetaNode) MetaNodes {
@@ -222,32 +222,6 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 		ExpireTime:     expireTime,
 	}
 }
-
-// MustMarshalMetaNodeRegistrationVotePool returns the MetaNode bytes. Panics if fails
-func MustMarshalMetaNodeRegistrationVotePool(cdc codec.Codec, votePool MetaNodeRegistrationVotePool) []byte {
-	return cdc.MustMarshal(&votePool)
-}
-
-// MustUnmarshalMetaNodeRegistrationVotePool unmarshal an meta node from a store value. Panics if fails
-func MustUnmarshalMetaNodeRegistrationVotePool(cdc codec.Codec, value []byte) MetaNodeRegistrationVotePool {
-	votePool, err := UnmarshalMetaNodeRegistrationVotePool(cdc, value)
-	if err != nil {
-		panic(err)
-	}
-	return votePool
-}
-
-// UnmarshalMetaNodeRegistrationVotePool unmarshal an Meta node from a store value
-func UnmarshalMetaNodeRegistrationVotePool(cdc codec.Codec, value []byte) (votePool MetaNodeRegistrationVotePool, err error) {
-	err = cdc.Unmarshal(value, &votePool)
-	return votePool, err
-}
-
-//func (v1 MetaNode) Equal(v2 MetaNode) bool {
-//	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
-//	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
-//	return bytes.Equal(bz1, bz2)
-//}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v MetaNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {

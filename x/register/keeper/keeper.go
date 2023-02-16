@@ -10,6 +10,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -52,6 +53,10 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 	return keeper
 }
 
+func (k Keeper) GetBankKeeper() types.BankKeeper {
+	return k.bankKeeper
+}
+
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
@@ -66,18 +71,6 @@ func (k Keeper) SetHooks(sh types.RegisterHooks) Keeper {
 	return k
 }
 
-func (k Keeper) SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx sdk.Context, fromWallet sdk.AccAddress, coinToSend sdk.Coin) error {
-	fromAcc := k.accountKeeper.GetAccount(ctx, fromWallet)
-	if fromAcc == nil {
-		return types.ErrUnknownAccountAddress
-	}
-	hasCoin := k.bankKeeper.HasBalance(ctx, fromWallet, coinToSend)
-	if !hasCoin {
-		return types.ErrInsufficientBalance
-	}
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, fromWallet, types.TotalUnissuedPrepay, sdk.NewCoins(coinToSend))
-}
-
 func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin) {
 	totalUnissuedPrepayAccAddr := k.accountKeeper.GetModuleAddress(regtypes.TotalUnissuedPrepay)
 	if totalUnissuedPrepayAccAddr == nil {
@@ -88,38 +81,6 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAccAddr, k.BondDenom(ctx))
-}
-
-func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
-	store.Set(types.InitialGenesisStakeTotalKey, b)
-}
-
-func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.InitialGenesisStakeTotalKey)
-	if b == nil {
-		return sdk.ZeroInt()
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
-	return
-}
-
-func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(value)
-	store.Set(types.UpperBoundOfTotalOzoneKey, b)
-}
-
-func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.UpperBoundOfTotalOzoneKey)
-	if b == nil {
-		return sdk.ZeroInt()
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &value)
-	return
 }
 
 func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int) {
@@ -163,21 +124,6 @@ func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	return limitToSub.TruncateInt()
 }
 
-// GetUnbondingNode return a unbonding UnbondingMetaNode
-func (k Keeper) GetUnbondingNode(ctx sdk.Context,
-	networkAddr stratos.SdsAddress) (ubd types.UnbondingNode, found bool) {
-
-	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDNodeKey(networkAddr)
-	value := store.Get(key)
-	if value == nil {
-		return ubd, false
-	}
-
-	ubd = types.MustUnmarshalUnbondingNode(k.cdc, value)
-	return ubd, true
-}
-
 // HasMaxUnbondingMetaNodeEntries - check if unbonding MetaNode has maximum number of entries
 func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress) bool {
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
@@ -185,29 +131,6 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 		return false
 	}
 	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
-}
-
-// SetUnbondingNode sets the unbonding MetaNode
-func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
-	store := ctx.KVStore(k.storeKey)
-	bz := types.MustMarshalUnbondingNode(k.cdc, ubd)
-	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
-	if err != nil {
-		return
-	}
-	key := types.GetUBDNodeKey(networkAddr)
-	store.Set(key, bz)
-}
-
-// RemoveUnbondingNode removes the unbonding MetaNode object
-func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
-	store := ctx.KVStore(k.storeKey)
-	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
-	if err != nil {
-		return
-	}
-	key := types.GetUBDNodeKey(networkAddr)
-	store.Delete(key)
 }
 
 // SetUnbondingMetaNodeEntry adds an entry to the unbonding MetaNode at
@@ -227,65 +150,35 @@ func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAd
 
 // unbonding delegation queue timeslice operations
 
-// GetUnbondingNodeQueueTimeSlice gets a specific unbonding queue timeslice. A timeslice is a slice of DVPairs
-// corresponding to unbonding delegations that expire at a certain time.
-func (k Keeper) GetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (networkAddrs []stratos.SdsAddress) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetUBDTimeKey(timestamp))
-	if bz == nil {
-		return []stratos.SdsAddress{}
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(bz, &networkAddrs)
-	return networkAddrs
-}
-
-// SetUnbondingNodeQueueTimeSlice sets a specific unbonding queue timeslice.
-func (k Keeper) SetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time, keys []stratos.SdsAddress) {
-	store := ctx.KVStore(k.storeKey)
-	bz := types.ModuleCdc.MustMarshalLengthPrefixed(keys)
-	store.Set(types.GetUBDTimeKey(timestamp), bz)
-}
-
 // InsertUnbondingNodeQueue inserts an unbonding delegation to the appropriate timeslice in the unbonding queue
-func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNode,
-	completionTime time.Time) {
-
+func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNode, completionTime time.Time) {
 	timeSlice := k.GetUnbondingNodeQueueTimeSlice(ctx, completionTime)
-	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
-	if err != nil {
-		return
-	}
+	networkAddr := ubd.GetNetworkAddr()
+
 	if len(timeSlice) == 0 {
-		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, []stratos.SdsAddress{networkAddr})
+		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, []string{networkAddr})
 	} else {
 		timeSlice = append(timeSlice, networkAddr)
 		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, timeSlice)
 	}
 }
 
-// UnbondingNodeQueueIterator returns all the unbonding queue timeslices from time 0 until endTime
-func (k Keeper) UnbondingNodeQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return store.Iterator(types.UBDNodeQueueKey,
-		sdk.InclusiveEndBytes(types.GetUBDTimeKey(endTime)))
-}
-
 // DequeueAllMatureUBDQueue returns a concatenated list of all the timeslices inclusively previous to
 // currTime, and deletes the timeslices from the queue
 // Iteration for dequeuing  all mature unbonding queue
-func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
-	currTime time.Time) (matureUnbonds []stratos.SdsAddress) {
-
+// TODO: Unused parameter: currTime
+func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []string) {
 	store := ctx.KVStore(k.storeKey)
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
 	unbondingTimesliceIterator := k.UnbondingNodeQueueIterator(ctx, ctx.BlockHeader().Time)
 	defer unbondingTimesliceIterator.Close()
 
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
-		timeslice := []stratos.SdsAddress{}
+		timeSliceVal := stratos.SdsAddresses{} //[]stratos.SdsAddress{}
 		value := unbondingTimesliceIterator.Value()
-		types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &timeslice)
-		matureUnbonds = append(matureUnbonds, timeslice...)
+		k.cdc.MustUnmarshalLengthPrefixed(value, &timeSliceVal)
+		timeSlice := timeSliceVal.GetAddresses()
+		matureUnbonds = append(matureUnbonds, timeSlice...)
 		store.Delete(unbondingTimesliceIterator.Key())
 	}
 	ctx.Logger().Debug(fmt.Sprintf("DequeueAllMatureUBDQueue, %d matured unbonding nodes detected", len(matureUnbonds)))
@@ -295,7 +188,13 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context,
 // CompleteUnbondingWithAmount completes the unbonding of all mature entries in
 // the retrieved unbonding delegation object and returns the total unbonding
 // balance or an error upon failure.
-func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos.SdsAddress) (sdk.Coins, bool, error) {
+func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddrBech32 string) (sdk.Coins, bool, error) {
+	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrBech32)
+	if err != nil {
+		ctx.Logger().Error(fmt.Sprintf("NetworAddr: %s is invalid", networkAddrBech32))
+		return nil, false, types.ErrInvalidNetworkAddr
+	}
+
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
 	if !found {
 		ctx.Logger().Info(fmt.Sprintf("NetworAddr: %s not found while completing UnbondingWithAmount", networkAddr))
@@ -316,7 +215,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 			// track undelegation only when remaining or truncated shares are non-zero
 			if !entry.Balance.IsZero() {
 				amt := sdk.NewCoin(bondDenom, *entry.Balance)
-				err := k.SubtractUBDNodeStake(ctx, ubd, amt)
+				err := k.subtractUBDNodeStake(ctx, ubd, amt)
 				if err != nil {
 					return nil, false, err
 				}
@@ -328,7 +227,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 
 	// set the unbonding node or remove it if there are no more entries
 	if len(ubd.Entries) == 0 {
-		k.RemoveUnbondingNode(ctx, ubd)
+		k.RemoveUnbondingNode(ctx, networkAddr)
 	} else {
 		k.SetUnbondingNode(ctx, ubd)
 	}
@@ -336,7 +235,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddr stratos
 	return balances, ubd.IsMetaNode, nil
 }
 
-func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
+func (k Keeper) subtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of meta node
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
 	if err != nil {
@@ -357,8 +256,7 @@ func (k Keeper) SubtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 	return k.SubtractResourceNodeStake(ctx, resourceNode, tokenToSub)
 }
 
-func (k Keeper) UnbondResourceNode(
-	ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
+func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 	params := k.GetParams(ctx)
 	ctx.Logger().Info("Params of register module: " + params.String())
@@ -427,8 +325,7 @@ func (k Keeper) UnbondResourceNode(
 	return ozoneLimitChange, unbondingMatureTime, nil
 }
 
-func (k Keeper) UnbondMetaNode(
-	ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
+func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
@@ -498,7 +395,8 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 
 	var ubdTotal = sdk.ZeroInt()
 	for ; iterator.Valid(); iterator.Next() {
-		node := types.MustUnmarshalUnbondingNode(k.cdc, iterator.Value())
+		node := types.UnbondingNode{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &node)
 		for _, entry := range node.Entries {
 			ubdTotal = ubdTotal.Add(*entry.Balance)
 		}
@@ -507,9 +405,7 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 }
 
 // GetUnbondingNodeBalance returns an unbonding balance and an UnbondingNode
-func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
-	networkAddr stratos.SdsAddress) sdk.Int {
-
+func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int {
 	balance := sdk.ZeroInt()
 
 	store := ctx.KVStore(k.storeKey)
@@ -518,8 +414,8 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context,
 	if value == nil {
 		return balance
 	}
-
-	ubd := types.MustUnmarshalUnbondingNode(k.cdc, value)
+	ubd := types.UnbondingNode{}
+	k.cdc.MustUnmarshalLengthPrefixed(value, &ubd)
 	for _, entry := range ubd.Entries {
 		balance = balance.Add(*entry.Balance)
 	}
@@ -543,79 +439,4 @@ func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	St := k.GetEffectiveTotalStake(ctx)
 	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
-}
-
-func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
-	//ctx.Logger().Info("New ResourceNode count = " + count.String())
-	store.Set(types.ResourceNodeCntKey, b)
-}
-
-func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
-	if count.LT(sdk.ZeroInt()) {
-		//ctx.Logger().Info("count < 0, count = " + count.String())
-	}
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(count)
-	//ctx.Logger().Info("New MetaNode count = " + count.String())
-	store.Set(types.MetaNodeCntKey, b)
-}
-
-func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) (balance sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.ResourceNodeCntKey)
-	if value == nil {
-		return sdk.ZeroInt()
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
-	//ctx.Logger().Info("ResourceNode count = " + balance.String())
-	return
-}
-
-func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	value := store.Get(types.MetaNodeCntKey)
-	if value == nil {
-		return sdk.ZeroInt()
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(value, &balance)
-	//ctx.Logger().Info("MetaNode count = " + balance.String())
-	return
-}
-
-func (k Keeper) SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error {
-	return k.bankKeeper.SendCoinsFromAccountToModule(ctx, senderAddr, recipientModule, amt)
-}
-
-func (k Keeper) SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(stake)
-	store.Set(types.EffectiveGenesisStakeTotalKey, b)
-}
-
-func (k Keeper) GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.EffectiveGenesisStakeTotalKey)
-	if b == nil {
-		return sdk.ZeroInt()
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stake)
-	return
-}
-
-func (k Keeper) SetStakeNozRate(ctx sdk.Context, stakeNozRate sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := types.ModuleCdc.MustMarshalLengthPrefixed(stakeNozRate)
-	store.Set(types.StakeNozRateKey, b)
-}
-
-func (k Keeper) GetStakeNozRate(ctx sdk.Context) (stakeNozRate sdk.Dec) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.StakeNozRateKey)
-	if b == nil {
-		panic("Stored stake noz rate should not be nil")
-	}
-	types.ModuleCdc.MustUnmarshalLengthPrefixed(b, &stakeNozRate)
-	return
 }

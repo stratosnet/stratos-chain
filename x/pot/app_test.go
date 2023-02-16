@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -191,6 +192,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
 	potKeeper := stApp.GetPotKeeper()
+	distrKeeper := stApp.GetDistrKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -349,7 +351,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		/********************* record data before delivering tx  *********************/
 		lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
-		lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
+		lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 		lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
 
 		/********************* deliver tx *********************/
@@ -383,6 +385,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			accountKeeper,
 			bankKeeper,
 			registerKeeper,
+			distrKeeper,
 			epoch,
 			lastFoundationAccBalance,
 			lastUnissuedPrepay,
@@ -414,6 +417,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	accountKeeper authkeeper.AccountKeeper,
 	bankKeeper bankKeeper.Keeper,
 	registerKeeper registerKeeper.Keeper,
+	distrKeeper distrkeeper.Keeper,
 	currentEpoch sdk.Int,
 	lastFoundationAccBalance sdk.Coins,
 	lastUnissuedPrepay sdk.Coin,
@@ -442,7 +446,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	foundationAccountAddr := accountKeeper.GetModuleAddress(types.FoundationAccount)
 	newFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 	newUnissuedPrepay := sdk.NewCoins(registerKeeper.GetTotalUnissuedPrepay(ctx))
-	newCommunityPool := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(k.BondDenom(ctx)).TruncateInt()))
+	newCommunityPool := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(k.BondDenom(ctx)).TruncateInt()))
 
 	t.Log("resource node 1 initial slashingAmt        = " + initialSlashingAmt.String())
 	currentSlashingAmt := registerKeeper.GetSlashing(ctx, resOwner1)

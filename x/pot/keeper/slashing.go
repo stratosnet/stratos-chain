@@ -8,17 +8,17 @@ import (
 )
 
 /*
-	This function only record slashing amount.
+This function only record slashing amount.
 
-	Deduct slashing amount when:
-	1, calculate upcoming mature reward, deduct from mature_total & upcoming mature reward.
-	2, unstaking meta node.
-	3, unstaking resource node.
+Deduct slashing amount when:
+1, calculate upcoming mature reward, deduct from mature_total & upcoming mature reward.
+2, unstaking meta node.
+3, unstaking resource node.
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
 	nozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
 
-	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
+	node, ok := k.registerKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
 		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
@@ -34,16 +34,16 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToDec()
 	slashTokenAmt := k.GetTrafficReward(ctx, totalConsumedNoz)
 
-	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
+	oldSlashing := k.registerKeeper.GetSlashing(ctx, walletAddr)
 
 	// only slashing the reward token for now.
 	newSlashing := oldSlashing.Add(slashTokenAmt.TruncateInt())
 
-	k.RegisterKeeper.SetResourceNode(ctx, node)
-	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
+	k.registerKeeper.SetResourceNode(ctx, node)
+	k.registerKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
 	// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
-	unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
+	unbondingStake := k.registerKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
 	stakeToMakeOzoneLimitChange := sdk.ZeroInt()
 	// no effective stake after subtracting unbonding stake
 	if node.Tokens.LTE(unbondingStake) {
@@ -51,10 +51,10 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	}
 	stakeToMakeOzoneLimitChange = node.Tokens.Sub(unbondingStake)
 	if toBeSuspended {
-		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, stakeToMakeOzoneLimitChange)
+		k.registerKeeper.DecreaseOzoneLimitBySubtractStake(ctx, stakeToMakeOzoneLimitChange)
 	}
 	if toBeUnsuspended {
-		k.RegisterKeeper.IncreaseOzoneLimitByAddStake(ctx, stakeToMakeOzoneLimitChange)
+		k.registerKeeper.IncreaseOzoneLimitByAddStake(ctx, stakeToMakeOzoneLimitChange)
 	}
 
 	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), nil

@@ -8,9 +8,9 @@ import (
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch int64,
 	immatureTotalInfo []*ImmatureTotal, matureTotalInfo []*MatureTotal, individualRewardInfo []*Reward,
-) GenesisState {
+) *GenesisState {
 
-	return GenesisState{
+	return &GenesisState{
 		Params:               &params,
 		TotalMinedToken:      &totalMinedToken,
 		LastReportedEpoch:    lastReportedEpoch,

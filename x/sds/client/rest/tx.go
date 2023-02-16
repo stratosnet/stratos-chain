@@ -28,7 +28,7 @@ func postFileUploadHandlerFn(clientCtx client.Context) http.HandlerFunc {
 		}
 
 		var req FileUploadReq
-		if !rest.ReadRESTReq(w, r, types.ModuleCdc, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -75,7 +75,7 @@ func postPrepayHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 		var req PrepayReq
-		if !rest.ReadRESTReq(w, r, types.ModuleCdc, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 

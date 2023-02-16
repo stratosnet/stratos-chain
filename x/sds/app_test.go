@@ -232,13 +232,13 @@ package sds
 //	initLt := sdk.NewInt(43000)
 //	initPt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
 //
-//	keeper.RegisterKeeper.SetInitialGenesisStakeTotal(ctx, initS)
-//	keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, initPt)
-//	keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, initLt)
+//	keeper.registerKeeper.SetInitialGenesisStakeTotal(ctx, initS)
+//	keeper.registerKeeper.SetTotalUnissuedPrepay(ctx, initPt)
+//	keeper.registerKeeper.SetRemainingOzoneLimit(ctx, initLt)
 //
-//	log.Printf("==== init stake total is %v", keeper.RegisterKeeper.GetInitialGenesisStakeTotal(ctx))
-//	log.Printf("==== init prepay is %v", keeper.RegisterKeeper.GetTotalUnissuedPrepay(ctx))
-//	log.Printf("==== ozone limit is %v\n\n", keeper.RegisterKeeper.GetRemainingOzoneLimit(ctx))
+//	log.Printf("==== init stake total is %v", keeper.registerKeeper.GetInitialGenesisStakeTotal(ctx))
+//	log.Printf("==== init prepay is %v", keeper.registerKeeper.GetTotalUnissuedPrepay(ctx))
+//	log.Printf("==== ozone limit is %v\n\n", keeper.registerKeeper.GetRemainingOzoneLimit(ctx))
 //
 //	numPrepay := 5
 //	prepaySeq := make([]sdk.Int, 0)
@@ -247,9 +247,9 @@ package sds
 //	}
 //
 //	for i, val := range prepaySeq {
-//		S := keeper.RegisterKeeper.GetInitialGenesisStakeTotal(ctx)
-//		Pt := keeper.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
-//		Lt := keeper.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+//		S := keeper.registerKeeper.GetInitialGenesisStakeTotal(ctx)
+//		Pt := keeper.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
+//		Lt := keeper.registerKeeper.GetRemainingOzoneLimit(ctx)
 //
 //		nozPriceBefore := S.ToDec().Add(Pt.ToDec()).Quo(Lt.ToDec()).TruncateInt()
 //
@@ -264,8 +264,8 @@ package sds
 //
 //		Pt = Pt.Add(val)
 //		Lt = Lt.Sub(nozPurchased)
-//		keeper.RegisterKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
-//		keeper.RegisterKeeper.SetRemainingOzoneLimit(ctx, Lt)
+//		keeper.registerKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(keeper.BondDenom(ctx), Pt))
+//		keeper.registerKeeper.SetRemainingOzoneLimit(ctx, Lt)
 //		log.Printf("---- prepay #%v: %v wei----", i, val)
 //		log.Printf("nozPriceBefore is %v", nozPriceBefore)
 //		log.Printf("nozPurchased is %v", nozPurchased)
@@ -312,22 +312,22 @@ package sds
 //	blacklistedAddrs[notBondedPool.GetAddress().String()] = true
 //	blacklistedAddrs[bondPool.GetAddress().String()] = true
 //
-//	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
+//	bankKeeper := bank.NewBaseKeeper(mApp.accountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 //	maccPerms := map[string][]string{
 //		auth.FeeCollectorName:     {"fee_collector"},
 //		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 //		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 //	}
-//	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
+//	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.accountKeeper, bankKeeper, maccPerms)
 //	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
-//	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
-//	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(pot.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
+//	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.accountKeeper, bankKeeper)
+//	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(pot.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.accountKeeper, stakingKeeper, registerKeeper)
 //	keeper := NewKeeper(mApp.Cdc, keySds, mApp.ParamsKeeper.Subspace(DefaultParamSpace), bankKeeper, registerKeeper, potKeeper)
 //
 //	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
 //	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
 //	mApp.SetEndBlocker(getEndBlocker(keeper))
-//	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
+//	mApp.SetInitChainer(getInitChainer(mApp, keeper, mApp.accountKeeper, supplyKeeper,
 //		[]supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper, potKeeper))
 //
 //	err := mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
@@ -378,23 +378,23 @@ package sds
 //	blacklistedAddrs[foundationAccount.GetAddress().String()] = true
 //
 //	//accountKeeper := auth.NewAccountKeeper(mApp.Cdc, keyAcc, mApp.ParamsKeeper.Subspace(auth.DefaultParamspace), auth.ProtoBaseAccount)
-//	bankKeeper := bank.NewBaseKeeper(mApp.AccountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
+//	bankKeeper := bank.NewBaseKeeper(mApp.accountKeeper, mApp.ParamsKeeper.Subspace(bank.DefaultParamspace), blacklistedAddrs)
 //	maccPerms := map[string][]string{
 //		auth.FeeCollectorName:     {"fee_collector"},
 //		staking.NotBondedPoolName: {supply.Burner, supply.Staking},
 //		staking.BondedPoolName:    {supply.Burner, supply.Staking},
 //	}
-//	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.AccountKeeper, bankKeeper, maccPerms)
+//	supplyKeeper := supply.NewKeeper(mApp.Cdc, keySupply, mApp.accountKeeper, bankKeeper, maccPerms)
 //	stakingKeeper := staking.NewKeeper(mApp.Cdc, keyStaking, supplyKeeper, mApp.ParamsKeeper.Subspace(staking.DefaultParamspace))
-//	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.AccountKeeper, bankKeeper)
-//	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(pot.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.AccountKeeper, stakingKeeper, registerKeeper)
+//	registerKeeper := register.NewKeeper(mApp.Cdc, keyRegister, mApp.ParamsKeeper.Subspace(register.DefaultParamSpace), mApp.accountKeeper, bankKeeper)
+//	potKeeper := pot.NewKeeper(mApp.Cdc, keyPot, mApp.ParamsKeeper.Subspace(pot.DefaultParamSpace), auth.FeeCollectorName, bankKeeper, supplyKeeper, mApp.accountKeeper, stakingKeeper, registerKeeper)
 //
 //	keeper := NewKeeper(mApp.Cdc, keySds, mApp.ParamsKeeper.Subspace(DefaultParamSpace), bankKeeper, registerKeeper, potKeeper)
 //
 //	mApp.Router().AddRoute(staking.RouterKey, staking.NewHandler(stakingKeeper))
 //	mApp.Router().AddRoute(RouterKey, NewHandler(keeper))
 //	mApp.SetEndBlocker(getEndBlocker(keeper))
-//	mApp.SetInitChainer(getInitChainerTestPurchase(mApp, keeper, mApp.AccountKeeper, supplyKeeper,
+//	mApp.SetInitChainer(getInitChainerTestPurchase(mApp, keeper, mApp.accountKeeper, supplyKeeper,
 //		[]supplyexported.ModuleAccountI{feeCollector, notBondedPool, bondPool}, stakingKeeper, registerKeeper, potKeeper))
 //
 //	err := mApp.CompleteSetup(keySds, keyStaking, keySupply, keyRegister, keyPot)
@@ -405,7 +405,7 @@ package sds
 //
 //// getInitChainer initializes the chainer of the mock app and sets the genesis
 //// state. It returns an empty ResponseInitChain.
-//func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper,
+//func getInitChainer(mapp *mock.App, keeper Keeper, accountKeeper auth.accountKeeper, supplyKeeper supply.Keeper,
 //	blacklistedAddrs []supplyexported.ModuleAccountI, stakingKeeper staking.Keeper, registerKeeper register.Keeper, potKeeper pot.Keeper) sdk.InitChainer {
 //	return func(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 //		// set module accounts
@@ -461,7 +461,7 @@ package sds
 //		))
 //
 //		// init bank genesis
-//		keeper.BankKeeper.SetSendEnabled(ctx, true)
+//		keeper.bankKeeper.SetSendEnabled(ctx, true)
 //
 //		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), nil))
 //
@@ -473,7 +473,7 @@ package sds
 //
 //// getInitChainer initializes the chainer of the mock app and sets the genesis
 //// state. It returns an empty ResponseInitChain.
-//func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper auth.AccountKeeper, supplyKeeper supply.Keeper,
+//func getInitChainerTestPurchase(mapp *mock.App, keeper Keeper, accountKeeper auth.accountKeeper, supplyKeeper supply.Keeper,
 //	blacklistedAddrs []supplyexported.ModuleAccountI, stakingKeeper staking.Keeper, registerKeeper register.Keeper, potKeeper pot.Keeper) sdk.InitChainer {
 //	return func(ctx sdk.Context, req abci.RequestInitChain) abci.ResponseInitChain {
 //		// set module accounts
@@ -529,7 +529,7 @@ package sds
 //
 //		registerKeeper.SetTotalUnissuedPrepay(ctx, sdk.NewCoin(potKeeper.BondDenom(ctx), totalUnissuedPrepayTestPurchase))
 //		// init bank genesis
-//		keeper.BankKeeper.SetSendEnabled(ctx, true)
+//		keeper.bankKeeper.SetSendEnabled(ctx, true)
 //
 //		InitGenesis(ctx, keeper, NewGenesisState(types.DefaultParams(), nil))
 //
@@ -542,7 +542,7 @@ package sds
 //// getEndBlocker returns a staking endblocker.
 //func getEndBlocker(keeper Keeper) sdk.EndBlocker {
 //	return func(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
-//		validatorUpdates := keeper.PotKeeper.StakingKeeper.BlockValidatorUpdates(ctx)
+//		validatorUpdates := keeper.potKeeper.stakingKeeper.BlockValidatorUpdates(ctx)
 //
 //		return abci.ResponseEndBlock{
 //			ValidatorUpdates: validatorUpdates,

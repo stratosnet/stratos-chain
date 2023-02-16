@@ -197,7 +197,6 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 		return nil, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}
 
-	//completionTimeBz := amino.MustMarshalBinaryLengthPrefixed(completionTime)
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
 			types.EventTypeUnbondingMetaNode,

@@ -54,7 +54,9 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))
 
-	err = k.VolumeReport(ctx, msg.WalletVolumes, reporter, epoch, msg.ReportReference, txhash)
+	walletVolumes := types.WalletVolumes{Volumes: msg.WalletVolumes}
+
+	err = k.VolumeReport(ctx, walletVolumes, reporter, epoch, msg.ReportReference, txhash)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrVolumeReport, err.Error())
 	}
@@ -118,7 +120,7 @@ func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.Msg
 		return &types.MsgLegacyWithdrawResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
 
-	fromAcc := k.AccountKeeper.GetAccount(ctx, fromAddress)
+	fromAcc := k.accountKeeper.GetAccount(ctx, fromAddress)
 	pubKey := fromAcc.GetPubKey()
 	legacyPubKey := secp256k1.PubKey{Key: pubKey.Bytes()}
 	legacyWalletAddress := sdk.AccAddress(legacyPubKey.Address().Bytes())

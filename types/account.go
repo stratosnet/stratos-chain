@@ -43,7 +43,7 @@ type EthAccountI interface {
 // ----------------------------------------------------------------------------
 
 // ProtoAccount defines the prototype function for BaseAccount used for an
-// AccountKeeper.
+// accountKeeper.
 func ProtoAccount() authtypes.AccountI {
 	return &authtypes.BaseAccount{}
 	//return &EthAccount{
