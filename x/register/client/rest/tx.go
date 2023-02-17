@@ -388,7 +388,7 @@ func postUpdateEffectiveStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUpdateEffectiveStake(req.Reporters, req.ReporterOwner, networkAddr, req.EffectiveTokens, req.InitialTier, req.OngoingTier)
+		msg := types.NewMsgUpdateEffectiveStake(req.Reporters, req.ReporterOwner, networkAddr, req.EffectiveTokens)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

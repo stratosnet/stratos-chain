@@ -368,7 +368,7 @@ func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *typ
 		return &types.MsgUpdateEffectiveStakeResponse{}, errors.New("effective tokens should be greater than 0")
 	}
 
-	_, effectiveStakeChange, isUnsuspendedDuringUpdate, err := k.UpdateEffectiveStake(ctx, networkAddr, msg.EffectiveTokens)
+	_, _, isUnsuspendedDuringUpdate, err := k.UpdateEffectiveStake(ctx, networkAddr, msg.EffectiveTokens)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
 	}
@@ -377,7 +377,7 @@ func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *typ
 		sdk.NewEvent(
 			types.EventTypeUpdateEffectiveStake,
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyEffectiveStakeChange, effectiveStakeChange.String()),
+			sdk.NewAttribute(types.AttributeKeyEffectiveStakeAfter, msg.EffectiveTokens.String()),
 			sdk.NewAttribute(types.AttributeKeyIsUnsuspended, strconv.FormatBool(isUnsuspendedDuringUpdate)),
 		),
 	})

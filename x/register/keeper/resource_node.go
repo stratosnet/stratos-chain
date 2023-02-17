@@ -362,7 +362,7 @@ func (k Keeper) UpdateEffectiveStake(ctx sdk.Context, networkAddr stratos.SdsAdd
 		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrInsufficientBalance
 	}
 
-	isUnsuspendedDuringUpdate = node.Suspend == true && effectiveStakeAfter.GT(sdk.ZeroInt())
+	isUnsuspendedDuringUpdate = node.Suspend == true && node.EffectiveTokens.Equal(sdk.ZeroInt()) && effectiveStakeAfter.GT(sdk.ZeroInt())
 
 	effectiveStakeBefore := sdk.NewInt(0).Add(node.EffectiveTokens)
 	effectiveStakeChange = effectiveStakeAfter.Sub(effectiveStakeBefore)
