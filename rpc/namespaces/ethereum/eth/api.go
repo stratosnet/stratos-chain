@@ -36,7 +36,6 @@ import (
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/evm/pool"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
@@ -393,7 +392,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	e.logger.Debug("eth_getTransactionLogs", "hash", txHash)
 
 	hexTx := txHash.Hex()
-	res, err := pool.GetTmTxByHash(txHash)
+	res, err := evmtypes.GetTmTxByHash(txHash)
 	if err != nil {
 		e.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, nil
@@ -756,7 +755,7 @@ func (e *PublicAPI) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockN
 // GetTransactionReceipt returns the transaction receipt identified by hash.
 func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.TransactionReceipt, error) {
 	e.logger.Debug("eth_getTransactionReceipt", "hash", hash)
-	res, err := pool.GetTmTxByHash(hash)
+	res, err := evmtypes.GetTmTxByHash(hash)
 	if err != nil {
 		return nil, nil
 	}

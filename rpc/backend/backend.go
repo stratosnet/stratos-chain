@@ -122,20 +122,23 @@ type Backend struct {
 	txPool     *pool.TxPool
 }
 
+var backend *Backend
+
 // NewBackend creates a new Backend instance for cosmos and ethereum namespaces
 func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Keeper, ms storetypes.MultiStore, logger log.Logger, clientCtx client.Context) *Backend {
+	// NOTE: As NewBackend called 6 times, we are caching for the first load
+	if backend != nil {
+		return backend
+	}
 	appConf, err := config.GetConfig(ctx.Viper)
 	if err != nil {
 		panic(err)
 	}
 
 	evmCtx := evm.NewContext(logger, ms, tmNode.BlockStore())
-	txPool, err := pool.NewTxPool(core.DefaultTxPoolConfig, appConf, logger, clientCtx, tmNode.Mempool(), evmkeeper, evmCtx)
-	if err != nil {
-		panic(err)
-	}
+	txPool := pool.NewTxPool(core.DefaultTxPoolConfig, appConf, clientCtx, tmNode.Mempool(), evmkeeper, evmCtx)
 
-	return &Backend{
+	backend = &Backend{
 		ctx:        context.Background(),
 		clientCtx:  clientCtx,
 		tmNode:     tmNode,
@@ -146,6 +149,7 @@ func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Kee
 		cfg:        appConf,
 		txPool:     txPool,
 	}
+	return backend
 }
 
 func (b *Backend) GetTxPool() *pool.TxPool {

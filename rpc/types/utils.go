@@ -89,7 +89,7 @@ func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 	if err != nil {
 		return nil, err
 	}
-	gasLimit, err := BlockMaxGasFromConsensusParams(&header.Height)
+	gasLimit, err := evmtypes.BlockMaxGasFromConsensusParams(&header.Height)
 	if err != nil {
 		return nil, err
 	}
@@ -172,24 +172,6 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 		Uncles:           make([]common.Hash, 0),
 		ReceiptsRoot:     common.Hash{},
 	}, nil
-}
-
-// BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
-func BlockMaxGasFromConsensusParams(blockHeight *int64) (int64, error) {
-	resConsParams, err := tmrpccore.ConsensusParams(nil, blockHeight)
-	if err != nil {
-		return int64(^uint32(0)), err
-	}
-
-	gasLimit := resConsParams.ConsensusParams.Block.MaxGas
-	if gasLimit == -1 {
-		// Sets gas limit to max uint32 to not error with javascript dev tooling
-		// This -1 value indicating no block gas limit is set to max uint64 with geth hexutils
-		// which errors certain javascript dev tooling which only supports up to 53 bits
-		gasLimit = int64(^uint32(0))
-	}
-
-	return gasLimit, nil
 }
 
 type DataError interface {

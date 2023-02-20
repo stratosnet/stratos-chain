@@ -36,7 +36,6 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
-	"github.com/stratosnet/stratos-chain/x/evm/pool"
 	jstracers "github.com/stratosnet/stratos-chain/x/evm/tracers/js"
 	nativetracers "github.com/stratosnet/stratos-chain/x/evm/tracers/native"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -109,7 +108,7 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 	a.logger.Debug("debug_traceTransaction", "hash", hash)
 
 	// Get transaction by hash
-	resultTx, err := pool.GetTmTxByHash(hash)
+	resultTx, err := evmtypes.GetTmTxByHash(hash)
 	if err != nil {
 		a.logger.Debug("debug_traceTransaction", "tx not found", "hash", hash)
 		return nil, err

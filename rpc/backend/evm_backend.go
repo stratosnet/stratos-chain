@@ -24,7 +24,6 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/evm/pool"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
@@ -373,7 +372,7 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
 func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.Transaction, error) {
-	res, err := pool.GetTmTxByHash(txHash)
+	res, err := evmtypes.GetTmTxByHash(txHash)
 	if err != nil {
 		// TODO: Get chain id value from genesis
 		tx, err := types.GetPendingTx(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), txHash)
