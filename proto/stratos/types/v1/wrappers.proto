@@ -1,0 +1,34 @@
+syntax = "proto3";
+package stratos.types.v1;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+
+option go_package = "github.com/stratosnet/stratos-chain/types";
+
+message Int {
+  string Value = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+message Dec {
+  string Value = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
+  ];
+}
+
+message Coins {
+  repeated cosmos.base.v1beta1.Coin Value = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+// ValAddresses defines a repeated set of validator addresses.
+message SdsAddresses {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.stringer) = true;
+
+  repeated string Addresses = 1;
+}

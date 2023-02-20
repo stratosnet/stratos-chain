@@ -108,7 +108,7 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
 }
 
-func UnmarshalIndividualReward(cdc codec.BinaryCodec, value []byte) (v types.Reward, err error) {
+func UnmarshalIndividualReward(cdc codec.Codec, value []byte) (v types.Reward, err error) {
 	err = cdc.UnmarshalLengthPrefixed(value, &v)
 	return v, err
 }
@@ -270,7 +270,7 @@ func (q Querier) PotSlashingByOwner(c context.Context, req *types.QueryPotSlashi
 		return &types.QueryPotSlashingByOwnerResponse{}, err
 	}
 
-	slashing := q.RegisterKeeper.GetSlashing(ctx, walletAddr).String()
+	slashing := q.registerKeeper.GetSlashing(ctx, walletAddr).String()
 	return &types.QueryPotSlashingByOwnerResponse{Slashing: slashing, Height: height}, nil
 
 }

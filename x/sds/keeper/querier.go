@@ -68,7 +68,7 @@ func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *co
 
 // queryCurrNozPrice fetch current noz price.
 func queryCurrNozPrice(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
-	nozPrice := k.RegisterKeeper.CurrNozPrice(ctx)
+	nozPrice := k.registerKeeper.CurrNozPrice(ctx)
 	nozPriceByte, _ := nozPrice.MarshalJSON()
 	return nozPriceByte, nil
 }
@@ -80,7 +80,7 @@ func queryNozSupply(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.Leg
 		Total     sdk.Int
 	}
 	var nozSupply Supply
-	nozSupply.Remaining, nozSupply.Total = k.RegisterKeeper.NozSupply(ctx)
+	nozSupply.Remaining, nozSupply.Total = k.registerKeeper.NozSupply(ctx)
 	nozSupplyByte, _ := json.Marshal(nozSupply)
 	return nozSupplyByte, nil
 }

@@ -32,14 +32,16 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 				initialStakeTotal = initialStakeTotal.Add(resourceNode.EffectiveTokens)
 			}
 			if freshStart {
-				err = keeper.SendCoinsFromAccountToResNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens))
+				amount := sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens)
+				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
 			}
 		case stakingtypes.Unbonded:
 			if freshStart {
-				err = keeper.SendCoinsFromAccountToResNodeNotBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens))
+				amount := sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens)
+				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeNotBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
@@ -65,14 +67,16 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 				initialStakeTotal = initialStakeTotal.Add(metaNode.Tokens)
 			}
 			if freshStart {
-				err = keeper.SendCoinsFromAccountToMetaNodeBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
+				amount := sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens)
+				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
 			}
 		case stakingtypes.Unbonded:
 			if freshStart {
-				err = keeper.SendCoinsFromAccountToMetaNodeNotBondedPool(ctx, ownerAddr, sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens))
+				amount := sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens)
+				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeNotBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}

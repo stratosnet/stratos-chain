@@ -18,26 +18,11 @@ Deduct slashing amount when:
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
 	nozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
 
-	node, ok := k.RegisterKeeper.GetResourceNode(ctx, p2pAddr)
+	node, ok := k.registerKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
 		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
-
-	//toBeUnsuspended := node.Suspend == true && suspend == false
 	toBeSuspended := node.Suspend == false && suspend == true
-
-	//// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
-	//unbondingStake := k.RegisterKeeper.GetUnbondingNodeBalance(ctx, p2pAddr)
-	//
-	//// no effective stake after subtracting unbonding stake
-	//if node.Tokens.LTE(unbondingStake) {
-	//	return sdk.ZeroInt(), registertypes.NodeType(0), toBeUnsuspended, registertypes.ErrInsufficientBalance
-	//}
-	//availableStake := node.Tokens.Sub(unbondingStake)
-	//if availableStake.LT(node.EffectiveTokens) {
-	//	return sdk.ZeroInt(), registertypes.NodeType(0), toBeUnsuspended, registertypes.ErrInsufficientBalance
-	//}
-
 	node.Suspend = suspend
 
 	//slashing amt is equivalent to reward traffic calculation
@@ -48,7 +33,7 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToDec()
 	slashTokenAmt := k.GetTrafficReward(ctx, totalConsumedNoz)
 
-	oldSlashing := k.RegisterKeeper.GetSlashing(ctx, walletAddr)
+	oldSlashing := k.registerKeeper.GetSlashing(ctx, walletAddr)
 
 	// only slashing the reward token for now.
 	newSlashing := oldSlashing.Add(slashTokenAmt.TruncateInt())
@@ -57,11 +42,11 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	if toBeSuspended {
 		effectiveStakeChange := sdk.ZeroInt().Sub(node.EffectiveTokens)
 		node.EffectiveTokens = sdk.ZeroInt()
-		k.RegisterKeeper.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
+		k.registerKeeper.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
 	}
 
-	k.RegisterKeeper.SetResourceNode(ctx, node)
-	k.RegisterKeeper.SetSlashing(ctx, walletAddr, newSlashing)
+	k.registerKeeper.SetResourceNode(ctx, node)
+	k.registerKeeper.SetSlashing(ctx, walletAddr, newSlashing)
 
 	return slashTokenAmt.TruncateInt(), registertypes.NodeType(node.NodeType), nil
 }

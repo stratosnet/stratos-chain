@@ -82,7 +82,7 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // ValidateGenesis performs genesis state validation for the pot module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
-	err := types.ModuleCdc.UnmarshalJSON(bz, &data)
+	err := cdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
@@ -147,7 +147,7 @@ func (am AppModule) NewQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Q
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
@@ -156,7 +156,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return types.ModuleCdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock returns the begin blocker for the pot module.

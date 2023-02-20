@@ -27,6 +27,7 @@ const (
 	EthPendingBlockNumber  = BlockNumber(-2)
 	EthLatestBlockNumber   = BlockNumber(-1)
 	EthEarliestBlockNumber = BlockNumber(0)
+	EthInitialBlockNumber  = BlockNumber(1)
 )
 
 const (
@@ -45,6 +46,7 @@ func NewBlockNumber(n *big.Int) BlockNumber {
 	return BlockNumber(n.Int64())
 }
 
+// NOTE: Legacy, should be removed after cli rework
 // ContextWithHeight wraps a context with the a gRPC block height header. If the provided height is
 // 0, it will return an empty context and the gRPC query will use the latest block height for querying.
 // Note that all metadata are processed and removed by tendermint layer, so it wont be accessible at gRPC server level.

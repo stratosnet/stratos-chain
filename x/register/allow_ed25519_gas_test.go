@@ -37,7 +37,7 @@ package register
 //	)
 //	t.Log("registerResNodeMsg: ", registerResNodeMsg)
 //
-//	resOwnerAcc3 := mApp.AccountKeeper.GetAccount(ctx, resOwnerAddr3)
+//	resOwnerAcc3 := mApp.accountKeeper.GetAccount(ctx, resOwnerAddr3)
 //	accNumOwner := resOwnerAcc3.GetAccountNumber()
 //	t.Log("accNumOwner: ", accNumOwner)
 //	accSeqOwner := resOwnerAcc3.GetSequence()

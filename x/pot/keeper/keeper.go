@@ -18,11 +18,11 @@ type Keeper struct {
 	cdc              codec.Codec
 	paramSpace       paramstypes.Subspace
 	feeCollectorName string // name of the FeeCollector ModuleAccount
-	BankKeeper       types.BankKeeper
-	AccountKeeper    types.AccountKeeper
-	StakingKeeper    types.StakingKeeper
-	RegisterKeeper   types.RegisterKeeper
-	DistrKeeper      types.DistrKeeper
+	bankKeeper       types.BankKeeper
+	accountKeeper    types.AccountKeeper
+	stakingKeeper    types.StakingKeeper
+	registerKeeper   types.RegisterKeeper
+	distrKeeper      types.DistrKeeper
 }
 
 // NewKeeper creates a pot keeper
@@ -35,11 +35,11 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspac
 		storeKey:         key,
 		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
 		feeCollectorName: feeCollectorName,
-		BankKeeper:       bankKeeper,
-		AccountKeeper:    accountKeeper,
-		StakingKeeper:    stakingKeeper,
-		RegisterKeeper:   registerKeeper,
-		DistrKeeper:      distrKeeper,
+		bankKeeper:       bankKeeper,
+		accountKeeper:    accountKeeper,
+		stakingKeeper:    stakingKeeper,
+		registerKeeper:   registerKeeper,
+		distrKeeper:      distrKeeper,
 	}
 	return keeper
 }
@@ -49,7 +49,7 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalletVolume, reporter stratos.SdsAddress,
+func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (err error) {
 
 	// tx fail when unhandled epoch > 0
@@ -70,11 +70,11 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes []*types.SingleWalle
 }
 
 func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
-	return k.RegisterKeeper.IsSPNode(ctx, p2pAddr)
+	return k.registerKeeper.IsSPNode(ctx, p2pAddr)
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
-	err = k.BankKeeper.SendCoinsFromAccountToModule(ctx, from, types.FoundationAccount, amount)
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, types.FoundationAccount, amount)
 	if err != nil {
 		return err
 	}

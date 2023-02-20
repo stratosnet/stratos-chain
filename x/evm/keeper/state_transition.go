@@ -3,6 +3,7 @@ package keeper
 import (
 	"math"
 	"math/big"
+	"sync"
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -107,6 +108,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 	var debug bool
 	if _, ok := tracer.(types.NoOpTracer); !ok {
 		debug = true
+		noBaseFee = true
 	}
 
 	return vm.Config{
@@ -122,6 +124,9 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 //  2. The requested height is from an previous height from the same chain epoch
 //  3. The requested height is from a height greater than the latest one
 func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
+	cache := make(map[int64]common.Hash)
+	var rw sync.Mutex
+
 	return func(height uint64) common.Hash {
 		h, err := stratos.SafeInt64(height)
 		if err != nil {
@@ -135,24 +140,20 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 			// hash directly from the context.
 			// Note: The headerHash is only set at begin block, it will be nil in case of a query context
 			headerHash := ctx.HeaderHash()
-			if len(headerHash) != 0 {
-				return common.BytesToHash(headerHash)
-			}
-
-			// only recompute the hash if not set (eg: checkTxState)
-			contextBlockHeader := ctx.BlockHeader()
-			header, err := tmtypes.HeaderFromProto(&contextBlockHeader)
-			if err != nil {
-				k.Logger(ctx).Error("failed to cast tendermint header from proto", "error", err)
-				return common.Hash{}
-			}
-
-			headerHash = header.Hash()
 			return common.BytesToHash(headerHash)
 
 		case ctx.BlockHeight() > h:
 			// Case 2: if the chain is not the current height we need to retrieve the hash from the store for the
 			// current chain epoch. This only applies if the current height is greater than the requested height.
+
+			// NOTE: In case of concurrency
+			rw.Lock()
+			defer rw.Unlock()
+
+			if hash, ok := cache[h]; ok {
+				return hash
+			}
+
 			histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, h)
 			if !found {
 				k.Logger(ctx).Debug("historical info not found", "height", h)
@@ -165,7 +166,9 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 				return common.Hash{}
 			}
 
-			return common.BytesToHash(header.Hash())
+			hash := common.BytesToHash(header.Hash())
+			cache[h] = hash
+			return hash
 		default:
 			// Case 3: heights greater than the current one returns an empty hash.
 			return common.Hash{}
@@ -374,14 +377,29 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
 	}
 
+	// NOTE: In order to achive this, nonce should be checked in ante handler and increased, othervise
+	// it could make pottential nonce overide with double spend or contract rewrite
+	// take over the nonce management from evm:
+	// reset sender's nonce to msg.Nonce() before calling evm on msg nonce
+	// as nonce already increased in db
+	// TODO: UNCOMMENT THIS FOR PROD!!!!!!
+	// stateDB.SetNonce(sender.Address(), msg.Nonce())
+
 	if contractCreation {
-		// take over the nonce management from evm:
-		// - reset sender's nonce to msg.Nonce() before calling evm.
-		// - increase sender's nonce by one no matter the result.
+		// no need to increase nonce here as contract as during contract creation:
+		// - tx.origin nonce increase automatically
+		// - if IsEIP158 enabled, contract nonce will be set as 1
+
+		// NOTE: REMOVE THIS FOR PROD!!!!!!!!!!!
 		stateDB.SetNonce(sender.Address(), msg.Nonce())
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
+
+		// NOTE: REMOVE THIS FOR PROD!!!!!!!!!!!
 		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 	} else {
+		// should be incresed before call on nonce from msg so we make sure nonce remaining same as on init tx
+		// TODO: UNCOMMENT THIS FOR PROD!!!!!!
+		// stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 

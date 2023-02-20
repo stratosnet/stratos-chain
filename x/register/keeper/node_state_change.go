@@ -26,7 +26,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingMetaNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
 				),
 			)
 		} else {
@@ -34,7 +34,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingResourceNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr.String()),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
 				),
 			)
 		}
@@ -53,43 +53,33 @@ func (k Keeper) bondedToUnbonding(ctx sdk.Context, node interface{}, isMetaNode 
 		if temp.GetStatus() != stakingtypes.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, metaNode: %v\n", temp))
 		}
-		// decrease meta node count
-		//v := k.GetBondedMetaNodeCnt(ctx)
-		//count := v.Sub(sdk.NewInt(1))
-		//k.SetBondedMetaNodeCnt(ctx, count)
-
 		return k.beginUnbondingMetaNode(ctx, &temp, &coin)
 	default:
 		temp := node.(types.ResourceNode)
 		if temp.GetStatus() != stakingtypes.Bonded {
 			panic(fmt.Sprintf("bad state transition bondedToUnbonding, resourceNode: %v\n", temp))
 		}
-		// decrease resource node count
-		//v := k.GetBondedResourceNodeCnt(ctx)
-		//count := v.Sub(sdk.NewInt(1))
-		//k.SetBondedResourceNodeCnt(ctx, count)
-
 		return k.beginUnbondingResourceNode(ctx, &temp, &coin)
 	}
 }
 
-// switches a Node from unbonding state to unbonded state
-func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isMetaNode bool) interface{} {
-	switch isMetaNode {
-	case true:
-		temp := node.(types.MetaNode)
-		if temp.GetStatus() != stakingtypes.Unbonding {
-			panic(fmt.Sprintf("bad state transition unbondingToBonded, metaNode: %v\n", temp))
-		}
-		return k.completeUnbondingNode(ctx, temp, isMetaNode)
-	default:
-		temp := node.(types.ResourceNode)
-		if temp.GetStatus() != stakingtypes.Unbonding {
-			panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", temp))
-		}
-		return k.completeUnbondingNode(ctx, temp, isMetaNode)
-	}
-}
+//// switches a Node from unbonding state to unbonded state
+//func (k Keeper) unbondingToUnbonded(ctx sdk.Context, node interface{}, isMetaNode bool) interface{} {
+//	switch isMetaNode {
+//	case true:
+//		temp := node.(types.MetaNode)
+//		if temp.GetStatus() != stakingtypes.Unbonding {
+//			panic(fmt.Sprintf("bad state transition unbondingToBonded, metaNode: %v\n", temp))
+//		}
+//		return k.completeUnbondingNode(ctx, temp, isMetaNode)
+//	default:
+//		temp := node.(types.ResourceNode)
+//		if temp.GetStatus() != stakingtypes.Unbonding {
+//			panic(fmt.Sprintf("bad state transition unbondingToBonded, resourceNode: %v\n", temp))
+//		}
+//		return k.completeUnbondingNode(ctx, temp, isMetaNode)
+//	}
+//}
 
 // perform all the store operations for when a Node begins unbonding
 func (k Keeper) beginUnbondingResourceNode(ctx sdk.Context, resourceNode *types.ResourceNode, coin *sdk.Coin) *types.ResourceNode {
@@ -154,76 +144,75 @@ func (k Keeper) completeUnbondingNode(ctx sdk.Context, node interface{}, isMetaN
 	}
 }
 
-// Returns all the validator queue timeslices from time 0 until endTime
-func (k Keeper) UBDNodeQueueIterator(ctx sdk.Context, endTime time.Time) sdk.Iterator {
-	store := ctx.KVStore(k.storeKey)
-	return store.Iterator(types.UBDNodeQueueKey, sdk.InclusiveEndBytes(types.GetUBDTimeKey(endTime)))
-}
+//// Returns a concatenated list of all the timeslices before currTime, and deletes the timeslices from the queue
+//func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (matureNetworkAddrs []string) {
+//	// gets an iterator for all timeslices from time 0 until the current Blockheader time
+//	ubdTimesliceIterator := k.UnbondingNodeQueueIterator(ctx, ctx.BlockHeader().Time)
+//	defer ubdTimesliceIterator.Close()
+//
+//	for ; ubdTimesliceIterator.Valid(); ubdTimesliceIterator.Next() {
+//		addrValue := stratos.SdsAddresses{}
+//		k.cdc.MustUnmarshalLengthPrefixed(ubdTimesliceIterator.Value(), &addrValue)
+//		timeSlice := addrValue.GetAddresses()
+//		matureNetworkAddrs = append(matureNetworkAddrs, timeSlice...)
+//	}
+//
+//	return matureNetworkAddrs
+//}
 
-// Returns a concatenated list of all the timeslices before currTime, and deletes the timeslices from the queue
-func (k Keeper) GetAllMatureUBDNodeQueue(ctx sdk.Context, currTime time.Time) (matureNetworkAddrs []sdk.AccAddress) {
-	// gets an iterator for all timeslices from time 0 until the current Blockheader time
-	ubdTimesliceIterator := k.UBDNodeQueueIterator(ctx, ctx.BlockHeader().Time)
-	defer ubdTimesliceIterator.Close()
-
-	for ; ubdTimesliceIterator.Valid(); ubdTimesliceIterator.Next() {
-		timeslice := []sdk.AccAddress{}
-		types.ModuleCdc.MustUnmarshalLengthPrefixed(ubdTimesliceIterator.Value(), &timeslice)
-		matureNetworkAddrs = append(matureNetworkAddrs, timeslice...)
-	}
-
-	return matureNetworkAddrs
-}
-
-// Unbonds all the unbonding validators that have finished their unbonding period
-func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
-	store := ctx.KVStore(k.storeKey)
-	nodeTimesliceIterator := k.UBDNodeQueueIterator(ctx, ctx.BlockHeader().Time)
-	defer nodeTimesliceIterator.Close()
-
-	for ; nodeTimesliceIterator.Valid(); nodeTimesliceIterator.Next() {
-		timeslice := []stratos.SdsAddress{}
-		types.ModuleCdc.MustUnmarshalLengthPrefixed(nodeTimesliceIterator.Value(), &timeslice)
-
-		for _, networkAddr := range timeslice {
-			ubd, found := k.GetUnbondingNode(ctx, networkAddr)
-			ubdNetworkAddr, _ := stratos.SdsAddressFromBech32(ubd.NetworkAddr)
-			if !found {
-				panic("node in the unbonding queue was not found")
-			}
-
-			if ubd.IsMetaNode {
-
-				node, found := k.GetMetaNode(ctx, ubdNetworkAddr)
-				if !found {
-					panic("cannot find meta node " + ubd.NetworkAddr)
-				}
-				if node.GetStatus() != stakingtypes.Unbonding {
-					panic("unexpected node in unbonding queue; status was not unbonding")
-				}
-				k.unbondingToUnbonded(ctx, node, ubd.IsMetaNode)
-				k.removeMetaNode(ctx, ubdNetworkAddr)
-				_, found1 := k.GetMetaNode(ctx, ubdNetworkAddr)
-				if found1 {
-					ctx.Logger().Info("Removed meta node with addr " + ubd.NetworkAddr)
-				}
-			} else {
-				node, found := k.GetResourceNode(ctx, ubdNetworkAddr)
-				if !found {
-					panic("cannot find resource node " + ubd.NetworkAddr)
-				}
-				if node.GetStatus() != stakingtypes.Unbonding {
-					panic("unexpected node in unbonding queue; status was not unbonding")
-				}
-				k.unbondingToUnbonded(ctx, node, ubd.IsMetaNode)
-				k.removeResourceNode(ctx, ubdNetworkAddr)
-				_, found1 := k.GetResourceNode(ctx, ubdNetworkAddr)
-				if found1 {
-					ctx.Logger().Info("Removed resource node with addr " + ubd.NetworkAddr)
-				}
-
-			}
-		}
-		store.Delete(nodeTimesliceIterator.Key())
-	}
-}
+//// Unbonds all the unbonding validators that have finished their unbonding period
+//func (k Keeper) UnbondAllMatureUBDNodeQueue(ctx sdk.Context) {
+//	store := ctx.KVStore(k.storeKey)
+//	nodeTimesliceIterator := k.UnbondingNodeQueueIterator(ctx, ctx.BlockHeader().Time)
+//	defer nodeTimesliceIterator.Close()
+//
+//	for ; nodeTimesliceIterator.Valid(); nodeTimesliceIterator.Next() {
+//		addrValue := stratos.SdsAddresses{}
+//		k.cdc.MustUnmarshalLengthPrefixed(nodeTimesliceIterator.Value(), &addrValue)
+//		timeSlice := addrValue.GetAddresses()
+//
+//		for _, networkAddr := range timeSlice {
+//			ubdNetworkAddr, err := stratos.SdsAddressFromBech32(networkAddr)
+//			if err != nil {
+//				panic("network address in the unbonding queue is invalid")
+//			}
+//
+//			ubd, found := k.GetUnbondingNode(ctx, ubdNetworkAddr)
+//			if !found {
+//				panic("node in the unbonding queue was not found")
+//			}
+//
+//			if ubd.IsMetaNode {
+//				node, found := k.GetMetaNode(ctx, ubdNetworkAddr)
+//				if !found {
+//					panic("cannot find meta node " + ubd.NetworkAddr)
+//				}
+//				if node.GetStatus() != stakingtypes.Unbonding {
+//					panic("unexpected node in unbonding queue; status was not unbonding")
+//				}
+//				k.unbondingToUnbonded(ctx, node, ubd.IsMetaNode)
+//				k.removeMetaNode(ctx, ubdNetworkAddr)
+//				_, found1 := k.GetMetaNode(ctx, ubdNetworkAddr)
+//				if found1 {
+//					ctx.Logger().Info("Removed meta node with addr " + ubd.NetworkAddr)
+//				}
+//			} else {
+//				node, found := k.GetResourceNode(ctx, ubdNetworkAddr)
+//				if !found {
+//					panic("cannot find resource node " + ubd.NetworkAddr)
+//				}
+//				if node.GetStatus() != stakingtypes.Unbonding {
+//					panic("unexpected node in unbonding queue; status was not unbonding")
+//				}
+//				k.unbondingToUnbonded(ctx, node, ubd.IsMetaNode)
+//				k.removeResourceNode(ctx, ubdNetworkAddr)
+//				_, found1 := k.GetResourceNode(ctx, ubdNetworkAddr)
+//				if found1 {
+//					ctx.Logger().Info("Removed resource node with addr " + ubd.NetworkAddr)
+//				}
+//
+//			}
+//		}
+//		store.Delete(nodeTimesliceIterator.Key())
+//	}
+//}

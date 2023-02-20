@@ -4,15 +4,18 @@ import (
 	"encoding/hex"
 	"fmt"
 
+	"github.com/tendermint/tendermint/libs/log"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper encodes/decodes files using the go-amino (binary)
@@ -22,8 +25,8 @@ type Keeper struct {
 	cdc            codec.Codec
 	paramSpace     paramtypes.Subspace
 	bankKeeper     bankKeeper.Keeper
-	RegisterKeeper registerKeeper.Keeper
-	PotKeeper      potKeeper.Keeper
+	registerKeeper registerKeeper.Keeper
+	potKeeper      potKeeper.Keeper
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
@@ -42,8 +45,8 @@ func NewKeeper(
 		cdc:            cdc,
 		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
 		bankKeeper:     bankKeeper,
-		RegisterKeeper: registerKeeper,
-		PotKeeper:      potKeeper,
+		registerKeeper: registerKeeper,
+		potKeeper:      potKeeper,
 	}
 }
 
@@ -76,9 +79,9 @@ func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
 func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) (sdk.Int, error) {
-	St := k.RegisterKeeper.GetEffectiveTotalStake(ctx)
-	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	St := k.registerKeeper.GetEffectiveTotalStake(ctx)
+	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
+	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)
 
 	purchased := Lt.ToDec().
 		Mul(amount.ToDec()).
@@ -88,22 +91,23 @@ func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 		TruncateInt()
 
 	// send coins to total unissued prepay pool
-	err := k.RegisterKeeper.SendCoinsFromAccount2TotalUnissuedPrepayPool(ctx, from, sdk.NewCoin(k.BondDenom(ctx), amount))
+	prepayAmt := sdk.NewCoin(k.BondDenom(ctx), amount)
+	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
 
 	// update remaining noz limit
 	newRemainingOzoneLimit := Lt.Sub(purchased)
-	k.RegisterKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
+	k.registerKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
 
 	return purchased, nil
 }
 
 func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
-	St := k.RegisterKeeper.GetEffectiveTotalStake(ctx)
-	Pt := k.RegisterKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.RegisterKeeper.GetRemainingOzoneLimit(ctx)
+	St := k.registerKeeper.GetEffectiveTotalStake(ctx)
+	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
+	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)
 	purchased := Lt.ToDec().
 		Mul(amount.ToDec()).
 		Quo((St.
