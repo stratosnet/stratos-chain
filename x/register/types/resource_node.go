@@ -98,7 +98,10 @@ func (v ResourceNode) ConvertToString() string {
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
-	pubKey, err := stratos.SdsPubKeyFromBech32(pkAny.String())
+	cachedPubkey := pkAny.GetCachedValue()
+	pk := cachedPubkey.(cryptotypes.PubKey)
+
+	pubKey, err := stratos.SdsPubKeyToBech32(pk)
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}

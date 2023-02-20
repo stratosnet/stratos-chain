@@ -10,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -37,7 +38,10 @@ func (v MetaNode) ConvertToString() string {
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
-	pubKey, err := stratos.SdsPubKeyFromBech32(pkAny.String())
+	cachedPubkey := pkAny.GetCachedValue()
+	pk := cachedPubkey.(cryptotypes.PubKey)
+
+	pubKey, err := stratos.SdsPubKeyToBech32(pk)
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}

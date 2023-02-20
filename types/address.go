@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/codec/legacy"
+	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"gopkg.in/yaml.v2"
 
@@ -46,33 +46,17 @@ var _ yaml.Marshaler = SdsAddress{}
 
 type SdsAddress []byte
 
-// SdsPubKeyFromBech32 returns a SdsPublicKey from a Bech32 string.
+// SdsPubKeyFromBech32 returns an ed25519 SdsPublicKey from a Bech32 string.
 func SdsPubKeyFromBech32(pubkeyStr string) (cryptotypes.PubKey, error) {
-	bech32Prefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
-	bz, err := sdk.GetFromBech32(pubkeyStr, bech32Prefix)
+	_, sdsPubKeyBytes, err := bech32.DecodeAndConvert(pubkeyStr)
 	if err != nil {
 		return nil, err
 	}
-
-	pk, err := legacy.PubKeyFromBytes(bz)
-	if err != nil {
-		return nil, err
-	}
-
-	return pk, nil
+	pubKey := ed25519.PubKey{Key: sdsPubKeyBytes}
+	return &pubKey, nil
 }
 
-// SdsPubKeyFromBytes returns a SdsPublicKey from a byte array.
-func SdsPubKeyFromByteArr(bytes []byte) (cryptotypes.PubKey, error) {
-	bech32PubPrefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
-	pubStr, err := sdk.Bech32ifyAddressBytes(bech32PubPrefix, bytes)
-	if err != nil {
-		return nil, err
-	}
-	return SdsPubKeyFromBech32(pubStr)
-}
-
-// SdsPubKeyFromBech32 convert a SdsPublicKey to a Bech32 string.
+// SdsPubKeyToBech32 convert a SdsPublicKey to a Bech32 string.
 func SdsPubKeyToBech32(pubkey cryptotypes.PubKey) (string, error) {
 	bech32PubPrefix := GetConfig().GetBech32SdsNodeP2PPubPrefix()
 	bech32Pub, err := bech32.ConvertAndEncode(bech32PubPrefix, pubkey.Bytes())
