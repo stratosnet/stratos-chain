@@ -2,7 +2,6 @@ package cli
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -380,7 +379,6 @@ func SlashingResourceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetWalletAddress())
 	cmd.Flags().AddFlagSet(flagSetSlashing())
 	cmd.Flags().AddFlagSet(flagSetSuspend())
-	cmd.Flags().AddFlagSet(flagSetEffectiveStake())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -390,7 +388,6 @@ func SlashingResourceNodeCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagWalletAddress)
 	_ = cmd.MarkFlagRequired(FlagSlashing)
 	_ = cmd.MarkFlagRequired(FlagSuspend)
-	_ = cmd.MarkFlagRequired(FlagEffectiveStake)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -469,15 +466,6 @@ func buildSlashingResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *
 		return txf, nil, err
 	}
 
-	flagEffectiveStakeStr, err := fs.GetString(FlagEffectiveStake)
-	if err != nil {
-		return txf, nil, err
-	}
-	effectiveStake, ok := sdk.NewIntFromString(flagEffectiveStakeStr)
-	if !ok {
-		return txf, nil, errors.New("invalid effective stake aount")
-	}
-
-	msg := types.NewMsgSlashingResourceNode(reporters, reporterOwner, networkAddress, walletAddress, slashing, suspend, effectiveStake)
+	msg := types.NewMsgSlashingResourceNode(reporters, reporterOwner, networkAddress, walletAddress, slashing, suspend)
 	return txf, msg, nil
 }

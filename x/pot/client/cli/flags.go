@@ -16,7 +16,6 @@ const (
 	FlagReporterOwner   = "reporter-owner"
 	FlagNetworkAddress  = "network-address"
 	FlagSlashing        = "slashing"
-	FlagEffectiveStake  = "effective-stake"
 	FlagSuspend         = "suspend"
 	FlagBLSSignature    = "bls-signature"
 )
@@ -120,12 +119,5 @@ func flagSetSlashing() *flag.FlagSet {
 func flagSetSuspend() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	fs.Bool(FlagSuspend, false, "if the resource node is suspend")
-	return fs
-}
-
-// flagSetFsSlashing Returns the FlagSet for slashing amount.
-func flagSetEffectiveStake() *flag.FlagSet {
-	fs := flag.NewFlagSet("", flag.ContinueOnError)
-	fs.String(FlagEffectiveStake, "", "the amount of effective stake")
 	return fs
 }

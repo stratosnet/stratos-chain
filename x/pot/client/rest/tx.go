@@ -50,7 +50,6 @@ type (
 		WalletAddress  sdk.AccAddress       `json:"wallet_address" yaml:"wallet_address"`   // wallet address of the pp node
 		Slashing       int64                `json:"slashing" yaml:"slashing"`
 		Suspend        bool                 `json:"suspend" yaml:"suspend"`
-		EffectiveStake string               `json:"effective_stake" yaml:"effective_stake"`
 	}
 )
 
@@ -231,12 +230,8 @@ func slashingResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		}
 
 		slashing := sdk.NewInt(req.Slashing)
-		effectiveStake, ok := sdk.NewIntFromString(req.EffectiveStake)
-		if !ok {
-			return
-		}
 
-		msg := types.NewMsgSlashingResourceNode(req.Reporters, req.ReporterOwner, req.NetworkAddress, req.WalletAddress, slashing, req.Suspend, effectiveStake)
+		msg := types.NewMsgSlashingResourceNode(req.Reporters, req.ReporterOwner, req.NetworkAddress, req.WalletAddress, slashing, req.Suspend)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
