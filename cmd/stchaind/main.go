@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go/doc/comment"
 	"os"
 
 	"github.com/cosmos/cosmos-sdk/server"
@@ -9,6 +10,12 @@ import (
 
 	"github.com/stratosnet/stratos-chain/app"
 	stratos "github.com/stratosnet/stratos-chain/types"
+)
+
+var (
+	// Force to build with go1.19, because sorting algorithm has been rewritten since go1.19
+	// The order of sorted results will be different between go1.18 & go1.19 if the values of the compared elements are equal
+	doc comment.Doc
 )
 
 func main() {
