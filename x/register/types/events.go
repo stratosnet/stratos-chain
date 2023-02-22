@@ -36,7 +36,7 @@ const (
 	AttributeKeyStakeToRemove        = "stake_to_remove"
 	AttributeKeyIncrStakeBool        = "incr_stake"
 	AttributeKeyEffectiveStakeChange = "effective_stake_change"
-	AttributeKeyEffectiveStakeAfter  = "effective_stake_After"
+	AttributeKeyEffectiveStakeAfter  = "effective_stake_after"
 	AttributeKeyIsUnsuspended        = "is_unsuspended"
 
 	AttributeValueCategory = ModuleName
