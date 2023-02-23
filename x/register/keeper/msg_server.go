@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 	"strconv"
 	"time"
 
@@ -53,11 +52,13 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 		ctx.Logger().Error("Resource node already exist")
 		return nil, types.ErrResourceNodePubKeyExists
 	}
-	if msg.Value.Denom != k.BondDenom(ctx) {
+
+	stake, _ := sdk.NormalizeDecCoin(msg.GetValue()).TruncateDecimal()
+	if stake.Denom != k.BondDenom(ctx) {
 		return nil, types.ErrBadDenom
 	}
 
-	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, types.NodeType(msg.NodeType), msg.Value)
+	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, types.NodeType(msg.NodeType), stake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrRegisterResourceNode, err.Error())
 	}
@@ -97,7 +98,9 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 		ctx.Logger().Error("Meta node already exist")
 		return nil, types.ErrMetaNodePubKeyExists
 	}
-	if msg.Value.Denom != k.BondDenom(ctx) {
+
+	stake, _ := sdk.NormalizeDecCoin(msg.GetValue()).TruncateDecimal()
+	if stake.Denom != k.BondDenom(ctx) {
 		return nil, types.ErrBadDenom
 	}
 
@@ -106,7 +109,7 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgCreateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, msg.Value)
+	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, *msg.Description, stake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrRegisterMetaNode, err.Error())
 	}
@@ -316,11 +319,12 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 		return &types.MsgUpdateResourceNodeStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	if msg.StakeDelta.Amount.LT(sdk.NewInt(0)) {
-		return &types.MsgUpdateResourceNodeStakeResponse{}, errors.New("invalid stake delta")
+	stakeDelta, _ := sdk.NormalizeDecCoin(msg.GetStakeDelta()).TruncateDecimal()
+	if stakeDelta.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrBadDenom
 	}
 
-	ozoneLimitChange, completionTime, node, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
+	ozoneLimitChange, completionTime, node, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, stakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
 	}
@@ -390,11 +394,12 @@ func (k msgServer) HandleMsgUpdateMetaNodeStake(goCtx context.Context, msg *type
 		return &types.MsgUpdateMetaNodeStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	if msg.StakeDelta.Amount.LT(sdk.NewInt(0)) {
-		return &types.MsgUpdateMetaNodeStakeResponse{}, errors.New("invalid stake delta")
+	stakeDelta, _ := sdk.NormalizeDecCoin(msg.GetStakeDelta()).TruncateDecimal()
+	if stakeDelta.Denom != k.BondDenom(ctx) {
+		return nil, types.ErrBadDenom
 	}
 
-	ozoneLimitChange, completionTime, err := k.UpdateMetaNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
+	ozoneLimitChange, completionTime, err := k.UpdateMetaNodeStake(ctx, networkAddr, ownerAddress, stakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateMetaNodeStake, err.Error())
 	}

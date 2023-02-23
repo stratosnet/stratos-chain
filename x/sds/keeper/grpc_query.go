@@ -11,6 +11,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+var _ types.QueryServer = Querier{}
+
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
 type Querier struct {
 	Keeper
@@ -43,10 +45,33 @@ func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest
 	return &types.QueryFileUploadResponse{FileInfo: &fileInfo}, nil
 }
 
-func (q Querier) Params(c context.Context, req *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
+func (q Querier) SimPrepay(c context.Context, request *types.QuerySimPrepayRequest) (*types.QuerySimPrepayResponse, error) {
+	if request == nil {
+		return &types.QuerySimPrepayResponse{}, status.Error(codes.InvalidArgument, "empty request")
+	}
+	if request.GetAmount() == nil {
+		return &types.QuerySimPrepayResponse{}, status.Error(codes.InvalidArgument, "Amount cannot be empty")
+	}
+	ctx := sdk.UnwrapSDKContext(c)
+	amount := sdk.NormalizeCoins(request.GetAmount())
+	noz := q.simulatePurchaseNoz(ctx, amount)
+	return &types.QuerySimPrepayResponse{Noz: noz}, nil
+}
+
+func (q Querier) NozPrice(c context.Context, _ *types.QueryNozPriceRequest) (*types.QueryNozPriceResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	nozPrice := q.registerKeeper.CurrNozPrice(ctx)
+	return &types.QueryNozPriceResponse{Price: nozPrice}, nil
+}
+
+func (q Querier) NozSupply(c context.Context, request *types.QueryNozSupplyRequest) (*types.QueryNozSupplyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	remaining, total := q.registerKeeper.NozSupply(ctx)
+	return &types.QueryNozSupplyResponse{Remaining: remaining, Total: total}, nil
+}
+
+func (q Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.QueryParamsResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 	params := q.GetParams(ctx)
 	return &types.QueryParamsResponse{Params: &params}, nil
 }
-
-var _ types.QueryServer = Querier{}

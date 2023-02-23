@@ -61,7 +61,9 @@ func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *co
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	nozAmt := k.simulatePurchaseNoz(ctx, amtToPrepay)
+	// temporary solution, avoid to modify Rest api. After upgrade to cosmos sdk v0.46.x, legacy Rest API will be removed
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amtToPrepay))
+	nozAmt := k.simulatePurchaseNoz(ctx, coins)
 	nozAmtByte, _ := nozAmt.MarshalJSON()
 	return nozAmtByte, nil
 }

@@ -6,6 +6,9 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
+	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
@@ -119,6 +122,234 @@ func (m *QueryFileUploadResponse) GetFileInfo() *FileInfo {
 	return nil
 }
 
+type QuerySimPrepayRequest struct {
+	Amount github_com_cosmos_cosmos_sdk_types.DecCoins `protobuf:"bytes,1,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.DecCoins" json:"amount" yaml:"amount"`
+}
+
+func (m *QuerySimPrepayRequest) Reset()         { *m = QuerySimPrepayRequest{} }
+func (m *QuerySimPrepayRequest) String() string { return proto.CompactTextString(m) }
+func (*QuerySimPrepayRequest) ProtoMessage()    {}
+func (*QuerySimPrepayRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b213ac8f144321e, []int{2}
+}
+func (m *QuerySimPrepayRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QuerySimPrepayRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QuerySimPrepayRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QuerySimPrepayRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySimPrepayRequest.Merge(m, src)
+}
+func (m *QuerySimPrepayRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QuerySimPrepayRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySimPrepayRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuerySimPrepayRequest proto.InternalMessageInfo
+
+func (m *QuerySimPrepayRequest) GetAmount() github_com_cosmos_cosmos_sdk_types.DecCoins {
+	if m != nil {
+		return m.Amount
+	}
+	return nil
+}
+
+type QuerySimPrepayResponse struct {
+	Noz github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=noz,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"noz" yaml:"noz"`
+}
+
+func (m *QuerySimPrepayResponse) Reset()         { *m = QuerySimPrepayResponse{} }
+func (m *QuerySimPrepayResponse) String() string { return proto.CompactTextString(m) }
+func (*QuerySimPrepayResponse) ProtoMessage()    {}
+func (*QuerySimPrepayResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b213ac8f144321e, []int{3}
+}
+func (m *QuerySimPrepayResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QuerySimPrepayResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QuerySimPrepayResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QuerySimPrepayResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySimPrepayResponse.Merge(m, src)
+}
+func (m *QuerySimPrepayResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QuerySimPrepayResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySimPrepayResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QuerySimPrepayResponse proto.InternalMessageInfo
+
+type QueryNozPriceRequest struct {
+}
+
+func (m *QueryNozPriceRequest) Reset()         { *m = QueryNozPriceRequest{} }
+func (m *QueryNozPriceRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryNozPriceRequest) ProtoMessage()    {}
+func (*QueryNozPriceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b213ac8f144321e, []int{4}
+}
+func (m *QueryNozPriceRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNozPriceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNozPriceRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNozPriceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNozPriceRequest.Merge(m, src)
+}
+func (m *QueryNozPriceRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNozPriceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNozPriceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNozPriceRequest proto.InternalMessageInfo
+
+type QueryNozPriceResponse struct {
+	Price github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,1,opt,name=price,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"price" yaml:"price"`
+}
+
+func (m *QueryNozPriceResponse) Reset()         { *m = QueryNozPriceResponse{} }
+func (m *QueryNozPriceResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryNozPriceResponse) ProtoMessage()    {}
+func (*QueryNozPriceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b213ac8f144321e, []int{5}
+}
+func (m *QueryNozPriceResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNozPriceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNozPriceResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNozPriceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNozPriceResponse.Merge(m, src)
+}
+func (m *QueryNozPriceResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNozPriceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNozPriceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNozPriceResponse proto.InternalMessageInfo
+
+type QueryNozSupplyRequest struct {
+}
+
+func (m *QueryNozSupplyRequest) Reset()         { *m = QueryNozSupplyRequest{} }
+func (m *QueryNozSupplyRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryNozSupplyRequest) ProtoMessage()    {}
+func (*QueryNozSupplyRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b213ac8f144321e, []int{6}
+}
+func (m *QueryNozSupplyRequest) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNozSupplyRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNozSupplyRequest.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNozSupplyRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNozSupplyRequest.Merge(m, src)
+}
+func (m *QueryNozSupplyRequest) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNozSupplyRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNozSupplyRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNozSupplyRequest proto.InternalMessageInfo
+
+type QueryNozSupplyResponse struct {
+	Remaining github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=remaining,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"remaining" yaml:"remaining"`
+	Total     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=total,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"total" yaml:"total"`
+}
+
+func (m *QueryNozSupplyResponse) Reset()         { *m = QueryNozSupplyResponse{} }
+func (m *QueryNozSupplyResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryNozSupplyResponse) ProtoMessage()    {}
+func (*QueryNozSupplyResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_5b213ac8f144321e, []int{7}
+}
+func (m *QueryNozSupplyResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryNozSupplyResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryNozSupplyResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryNozSupplyResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryNozSupplyResponse.Merge(m, src)
+}
+func (m *QueryNozSupplyResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryNozSupplyResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryNozSupplyResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryNozSupplyResponse proto.InternalMessageInfo
+
 // QueryParamsRequest is request type for the Query/Params RPC method.
 type QueryParamsRequest struct {
 }
@@ -127,7 +358,7 @@ func (m *QueryParamsRequest) Reset()         { *m = QueryParamsRequest{} }
 func (m *QueryParamsRequest) String() string { return proto.CompactTextString(m) }
 func (*QueryParamsRequest) ProtoMessage()    {}
 func (*QueryParamsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5b213ac8f144321e, []int{2}
+	return fileDescriptor_5b213ac8f144321e, []int{8}
 }
 func (m *QueryParamsRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -166,7 +397,7 @@ func (m *QueryParamsResponse) Reset()         { *m = QueryParamsResponse{} }
 func (m *QueryParamsResponse) String() string { return proto.CompactTextString(m) }
 func (*QueryParamsResponse) ProtoMessage()    {}
 func (*QueryParamsResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_5b213ac8f144321e, []int{3}
+	return fileDescriptor_5b213ac8f144321e, []int{9}
 }
 func (m *QueryParamsResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -205,6 +436,12 @@ func (m *QueryParamsResponse) GetParams() *Params {
 func init() {
 	proto.RegisterType((*QueryFileUploadRequest)(nil), "stratos.sds.v1.QueryFileUploadRequest")
 	proto.RegisterType((*QueryFileUploadResponse)(nil), "stratos.sds.v1.QueryFileUploadResponse")
+	proto.RegisterType((*QuerySimPrepayRequest)(nil), "stratos.sds.v1.QuerySimPrepayRequest")
+	proto.RegisterType((*QuerySimPrepayResponse)(nil), "stratos.sds.v1.QuerySimPrepayResponse")
+	proto.RegisterType((*QueryNozPriceRequest)(nil), "stratos.sds.v1.QueryNozPriceRequest")
+	proto.RegisterType((*QueryNozPriceResponse)(nil), "stratos.sds.v1.QueryNozPriceResponse")
+	proto.RegisterType((*QueryNozSupplyRequest)(nil), "stratos.sds.v1.QueryNozSupplyRequest")
+	proto.RegisterType((*QueryNozSupplyResponse)(nil), "stratos.sds.v1.QueryNozSupplyResponse")
 	proto.RegisterType((*QueryParamsRequest)(nil), "stratos.sds.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "stratos.sds.v1.QueryParamsResponse")
 }
@@ -212,30 +449,54 @@ func init() {
 func init() { proto.RegisterFile("stratos/sds/v1/query.proto", fileDescriptor_5b213ac8f144321e) }
 
 var fileDescriptor_5b213ac8f144321e = []byte{
-	// 366 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x92, 0x4f, 0x4b, 0xc3, 0x30,
-	0x18, 0xc6, 0xd7, 0x81, 0xc3, 0x45, 0xf0, 0x10, 0x65, 0x96, 0x2a, 0x45, 0x2a, 0x38, 0x3d, 0xd8,
-	0xb0, 0xc9, 0xbe, 0x80, 0xa0, 0xb8, 0xdb, 0x1c, 0x78, 0xf1, 0x22, 0xd9, 0x96, 0xad, 0x81, 0x2e,
-	0xe9, 0xfa, 0xa6, 0xc3, 0x21, 0x5e, 0xbc, 0x0a, 0x22, 0xf8, 0xa5, 0x3c, 0x0e, 0xbc, 0x78, 0x94,
-	0xcd, 0x0f, 0x22, 0x4d, 0x33, 0x61, 0x75, 0xe8, 0xad, 0xbc, 0x79, 0xfe, 0xfc, 0x78, 0x28, 0x72,
-	0x40, 0xc5, 0x54, 0x49, 0x20, 0xd0, 0x03, 0x32, 0xae, 0x91, 0x51, 0xc2, 0xe2, 0x89, 0x1f, 0xc5,
-	0x52, 0x49, 0xbc, 0x69, 0xde, 0x7c, 0xe8, 0x81, 0x3f, 0xae, 0x39, 0x7b, 0x03, 0x29, 0x07, 0x21,
-	0x23, 0x34, 0xe2, 0x84, 0x0a, 0x21, 0x15, 0x55, 0x5c, 0x0a, 0xc8, 0xd4, 0x8e, 0x9d, 0x4b, 0x4a,
-	0x4d, 0xfa, 0xc5, 0x6b, 0xa0, 0xca, 0x55, 0x1a, 0x7b, 0xc1, 0x43, 0x76, 0x1d, 0x85, 0x92, 0xf6,
-	0xda, 0x6c, 0x94, 0x30, 0x50, 0x78, 0x17, 0x95, 0xfb, 0x3c, 0x64, 0xb7, 0x01, 0x85, 0xc0, 0xb6,
-	0xf6, 0xad, 0xa3, 0x72, 0x7b, 0x3d, 0x3d, 0x5c, 0x52, 0x08, 0xbc, 0x16, 0xda, 0xf9, 0x65, 0x83,
-	0x48, 0x0a, 0x60, 0xb8, 0x61, 0x7c, 0x5c, 0xf4, 0xa5, 0xf6, 0x6d, 0xd4, 0x6d, 0x7f, 0x99, 0xd6,
-	0x4f, 0x6d, 0x4d, 0xd1, 0x97, 0x59, 0x62, 0xfa, 0xe5, 0x6d, 0x23, 0xac, 0x13, 0x5b, 0x34, 0xa6,
-	0x43, 0x30, 0x10, 0xde, 0x39, 0xda, 0x5a, 0xba, 0x9a, 0x0e, 0x1f, 0x95, 0x22, 0x7d, 0x31, 0x05,
-	0x95, 0x7c, 0x81, 0xd1, 0x1b, 0x55, 0xfd, 0xa9, 0x88, 0xd6, 0x74, 0x0e, 0x7e, 0xb6, 0x10, 0x4a,
-	0xdb, 0x13, 0x0d, 0x8d, 0x0f, 0xf3, 0xc6, 0xd5, 0x63, 0x38, 0xd5, 0x7f, 0x75, 0x19, 0x99, 0x47,
-	0x1e, 0xdf, 0xbf, 0x5e, 0x8b, 0xc7, 0xb8, 0x4a, 0x72, 0x93, 0xeb, 0x4d, 0xb2, 0x56, 0x72, 0xff,
-	0x33, 0xec, 0x03, 0x1e, 0xa1, 0x52, 0x06, 0x8b, 0xbd, 0x95, 0x1d, 0x4b, 0x7b, 0x38, 0x07, 0x7f,
-	0x6a, 0x0c, 0x83, 0xab, 0x19, 0x6c, 0x5c, 0xc9, 0x33, 0x64, 0x6b, 0x9c, 0x35, 0xdf, 0x66, 0xae,
-	0x35, 0x9d, 0xb9, 0xd6, 0xe7, 0xcc, 0xb5, 0x5e, 0xe6, 0x6e, 0x61, 0x3a, 0x77, 0x0b, 0x1f, 0x73,
-	0xb7, 0x70, 0x43, 0x06, 0x5c, 0x05, 0x49, 0xc7, 0xef, 0xca, 0xe1, 0xc2, 0x2b, 0x98, 0x5a, 0x7c,
-	0x9e, 0x74, 0x03, 0xca, 0x05, 0xb9, 0xd3, 0x71, 0x6a, 0x12, 0x31, 0xe8, 0x94, 0xf4, 0x5f, 0x74,
-	0xfa, 0x1d, 0x00, 0x00, 0xff, 0xff, 0xe1, 0x2e, 0x36, 0xb0, 0xab, 0x02, 0x00, 0x00,
+	// 750 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x94, 0x55, 0x4d, 0x4f, 0x13, 0x5b,
+	0x18, 0xee, 0x40, 0x68, 0xe8, 0xe1, 0xde, 0x9b, 0x9b, 0x73, 0xb9, 0xa5, 0x0e, 0x64, 0x06, 0x8f,
+	0xf2, 0x61, 0x0c, 0x73, 0x52, 0x0c, 0x1b, 0x97, 0x80, 0x1f, 0x6c, 0xb0, 0x96, 0xb0, 0x31, 0x31,
+	0xe4, 0xb4, 0x3d, 0xb4, 0x13, 0x3b, 0xe7, 0x0c, 0x3d, 0xd3, 0xc6, 0xd6, 0xe8, 0xc2, 0x98, 0xb8,
+	0x33, 0x26, 0xee, 0xfd, 0x01, 0xfe, 0x12, 0x96, 0x24, 0x6e, 0x8c, 0x8b, 0xd1, 0x80, 0x71, 0xc1,
+	0xb2, 0xbf, 0xc0, 0x9c, 0x8f, 0xb6, 0x74, 0x28, 0x22, 0xab, 0xce, 0xbc, 0x5f, 0xcf, 0xf3, 0xbc,
+	0x7d, 0x9f, 0x16, 0xd8, 0x22, 0x6a, 0x90, 0x88, 0x0b, 0x2c, 0x2a, 0x02, 0xb7, 0xf2, 0xf8, 0xa0,
+	0x49, 0x1b, 0x6d, 0x2f, 0x6c, 0xf0, 0x88, 0xc3, 0x7f, 0x4c, 0xce, 0x13, 0x15, 0xe1, 0xb5, 0xf2,
+	0xf6, 0x74, 0x95, 0x57, 0xb9, 0x4a, 0x61, 0xf9, 0xa4, 0xab, 0xec, 0xb9, 0x2a, 0xe7, 0xd5, 0x3a,
+	0xc5, 0x24, 0xf4, 0x31, 0x61, 0x8c, 0x47, 0x24, 0xf2, 0x39, 0x13, 0x26, 0xeb, 0x94, 0xb9, 0x08,
+	0xb8, 0xc0, 0x25, 0x22, 0x28, 0x6e, 0xe5, 0x4b, 0x34, 0x22, 0x79, 0x5c, 0xe6, 0x3e, 0x33, 0xf9,
+	0x5c, 0x02, 0x5f, 0x42, 0xa9, 0x0c, 0x5a, 0x03, 0xd9, 0xc7, 0x92, 0xcc, 0x7d, 0xbf, 0x4e, 0x77,
+	0xc3, 0x3a, 0x27, 0x95, 0x22, 0x3d, 0x68, 0x52, 0x11, 0xc1, 0x59, 0x90, 0xd9, 0xf7, 0xeb, 0x74,
+	0xaf, 0x46, 0x44, 0x2d, 0x67, 0xcd, 0x5b, 0xcb, 0x99, 0xe2, 0xa4, 0x0c, 0x3c, 0x24, 0xa2, 0x86,
+	0x0a, 0x60, 0xe6, 0x5c, 0x9b, 0x08, 0x39, 0x13, 0x14, 0xae, 0x99, 0x3e, 0x9f, 0xed, 0x73, 0xd5,
+	0x37, 0xb5, 0x9a, 0xf3, 0x86, 0x35, 0x7a, 0xb2, 0x6d, 0x8b, 0xed, 0x73, 0x3d, 0x51, 0x3e, 0xa1,
+	0x8f, 0x16, 0xf8, 0x5f, 0x8d, 0xdc, 0xf1, 0x83, 0x42, 0x83, 0x86, 0xa4, 0xdd, 0x23, 0xf2, 0xc6,
+	0x02, 0x69, 0x12, 0xf0, 0x26, 0x8b, 0x72, 0xd6, 0xfc, 0xf8, 0xf2, 0xd4, 0xea, 0x9c, 0xa7, 0xe5,
+	0x7a, 0x52, 0xae, 0x67, 0xe4, 0x7a, 0x9b, 0xb4, 0xbc, 0xc1, 0x7d, 0xb6, 0xbe, 0x7d, 0x18, 0xbb,
+	0xa9, 0xd3, 0xd8, 0x35, 0x3d, 0xdd, 0xd8, 0xfd, 0xbb, 0x4d, 0x82, 0xfa, 0x5d, 0xa4, 0xdf, 0xd1,
+	0xa7, 0x6f, 0xee, 0xed, 0xaa, 0x1f, 0xd5, 0x9a, 0x25, 0xaf, 0xcc, 0x03, 0x6c, 0x36, 0xa7, 0x3f,
+	0x56, 0x44, 0xe5, 0x19, 0x8e, 0xda, 0x21, 0x15, 0xbd, 0x71, 0xa2, 0x68, 0xe6, 0x20, 0x6e, 0x36,
+	0x75, 0x86, 0x9f, 0x51, 0xbc, 0x0b, 0xc6, 0x19, 0xef, 0xe8, 0x1d, 0xad, 0x6f, 0x48, 0xf8, 0xaf,
+	0xb1, 0xbb, 0xf8, 0x07, 0x18, 0x5b, 0x2c, 0x3a, 0x8d, 0x5d, 0xd9, 0xdc, 0x8d, 0x5d, 0xa0, 0x59,
+	0x32, 0xde, 0x41, 0x45, 0x19, 0x42, 0x59, 0x30, 0xad, 0x00, 0xb7, 0x79, 0xa7, 0xd0, 0xf0, 0xcb,
+	0xd4, 0xec, 0x03, 0xb5, 0xcc, 0xa2, 0x06, 0x71, 0xc3, 0xe3, 0x29, 0x98, 0x08, 0x65, 0xc0, 0x30,
+	0x79, 0x70, 0x05, 0x26, 0x9b, 0xb4, 0x7c, 0x1a, 0xbb, 0xba, 0xbd, 0x1b, 0xbb, 0x7f, 0x69, 0x2e,
+	0xea, 0x15, 0x15, 0x75, 0x18, 0xcd, 0x0c, 0x70, 0x77, 0x9a, 0x61, 0x58, 0xef, 0x7d, 0x41, 0xe8,
+	0xa7, 0x65, 0x56, 0x73, 0x26, 0x63, 0x28, 0x05, 0x20, 0xd3, 0xa0, 0x01, 0xf1, 0x99, 0xcf, 0xaa,
+	0x86, 0xd6, 0xa3, 0x2b, 0x2f, 0x68, 0x30, 0xa2, 0x1b, 0xbb, 0xff, 0x6a, 0x6a, 0xfd, 0x10, 0x2a,
+	0x0e, 0xd2, 0x72, 0x03, 0x11, 0x8f, 0x48, 0x3d, 0x37, 0x76, 0xe5, 0x0d, 0x68, 0x28, 0xdd, 0x3e,
+	0xd8, 0x80, 0x7a, 0x45, 0x45, 0x1d, 0x46, 0xd3, 0x00, 0x2a, 0x9d, 0x05, 0xd2, 0x20, 0x81, 0xe8,
+	0xc9, 0xbf, 0x07, 0xfe, 0x1b, 0x8a, 0x1a, 0xe9, 0x1e, 0x48, 0x87, 0x2a, 0x62, 0x4c, 0x90, 0x4d,
+	0x9a, 0xc0, 0xd4, 0x9b, 0xaa, 0xd5, 0xb7, 0x13, 0x60, 0x42, 0xcd, 0x81, 0xef, 0x2c, 0x00, 0xa4,
+	0x43, 0x9a, 0xca, 0x58, 0x70, 0x31, 0xd9, 0x38, 0xda, 0xb0, 0xf6, 0xd2, 0xa5, 0x75, 0x9a, 0x19,
+	0xc2, 0xaf, 0x3f, 0xff, 0xf8, 0x30, 0x76, 0x0b, 0x2e, 0xe1, 0xc4, 0xcf, 0x82, 0xf2, 0xad, 0x46,
+	0xc5, 0x2f, 0xfa, 0xe6, 0x7f, 0x09, 0x5f, 0x81, 0x4c, 0xff, 0xea, 0xe1, 0xc2, 0x48, 0x98, 0xa4,
+	0x6b, 0xed, 0xc5, 0xcb, 0xca, 0x0c, 0x19, 0xa4, 0xc8, 0xcc, 0x41, 0x3b, 0x49, 0x46, 0xf8, 0xc1,
+	0x5e, 0xa8, 0x21, 0x3b, 0x60, 0xb2, 0x77, 0xec, 0xf0, 0xe6, 0xc8, 0xb9, 0x09, 0x8f, 0xd8, 0x0b,
+	0x97, 0x54, 0x19, 0xf0, 0xeb, 0x0a, 0x7c, 0x16, 0x5e, 0x4b, 0x82, 0x33, 0xde, 0xd9, 0x53, 0x57,
+	0x2f, 0xb5, 0xf7, 0xcf, 0x1a, 0x5e, 0x38, 0x76, 0xc8, 0x10, 0x17, 0x68, 0x3f, 0xe7, 0x8e, 0x8b,
+	0xb5, 0x4b, 0x78, 0xa1, 0x21, 0x0f, 0x40, 0x5a, 0x1f, 0x0a, 0x44, 0x23, 0xa7, 0x0e, 0xdd, 0xa2,
+	0x7d, 0xe3, 0xb7, 0x35, 0x06, 0xd6, 0x51, 0xb0, 0x39, 0x98, 0x4d, 0xc2, 0xea, 0x4b, 0x5c, 0xdf,
+	0x3a, 0x3c, 0x76, 0xac, 0xa3, 0x63, 0xc7, 0xfa, 0x7e, 0xec, 0x58, 0xef, 0x4f, 0x9c, 0xd4, 0xd1,
+	0x89, 0x93, 0xfa, 0x72, 0xe2, 0xa4, 0x9e, 0xe0, 0x33, 0x46, 0x32, 0xbd, 0x8c, 0x46, 0xbd, 0xc7,
+	0x95, 0x72, 0x8d, 0xf8, 0x0c, 0x3f, 0x57, 0xe3, 0x94, 0xab, 0x4a, 0x69, 0xf5, 0x2f, 0x73, 0xe7,
+	0x57, 0x00, 0x00, 0x00, 0xff, 0xff, 0xe1, 0xf2, 0x67, 0x69, 0x01, 0x07, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -252,6 +513,9 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// Query uploaded file info by hash
 	Fileupload(ctx context.Context, in *QueryFileUploadRequest, opts ...grpc.CallOption) (*QueryFileUploadResponse, error)
+	SimPrepay(ctx context.Context, in *QuerySimPrepayRequest, opts ...grpc.CallOption) (*QuerySimPrepayResponse, error)
+	NozPrice(ctx context.Context, in *QueryNozPriceRequest, opts ...grpc.CallOption) (*QueryNozPriceResponse, error)
+	NozSupply(ctx context.Context, in *QueryNozSupplyRequest, opts ...grpc.CallOption) (*QueryNozSupplyResponse, error)
 	// Params queries SDS module Params info.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 }
@@ -273,6 +537,33 @@ func (c *queryClient) Fileupload(ctx context.Context, in *QueryFileUploadRequest
 	return out, nil
 }
 
+func (c *queryClient) SimPrepay(ctx context.Context, in *QuerySimPrepayRequest, opts ...grpc.CallOption) (*QuerySimPrepayResponse, error) {
+	out := new(QuerySimPrepayResponse)
+	err := c.cc.Invoke(ctx, "/stratos.sds.v1.Query/SimPrepay", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) NozPrice(ctx context.Context, in *QueryNozPriceRequest, opts ...grpc.CallOption) (*QueryNozPriceResponse, error) {
+	out := new(QueryNozPriceResponse)
+	err := c.cc.Invoke(ctx, "/stratos.sds.v1.Query/NozPrice", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) NozSupply(ctx context.Context, in *QueryNozSupplyRequest, opts ...grpc.CallOption) (*QueryNozSupplyResponse, error) {
+	out := new(QueryNozSupplyResponse)
+	err := c.cc.Invoke(ctx, "/stratos.sds.v1.Query/NozSupply", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error) {
 	out := new(QueryParamsResponse)
 	err := c.cc.Invoke(ctx, "/stratos.sds.v1.Query/Params", in, out, opts...)
@@ -286,6 +577,9 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 type QueryServer interface {
 	// Query uploaded file info by hash
 	Fileupload(context.Context, *QueryFileUploadRequest) (*QueryFileUploadResponse, error)
+	SimPrepay(context.Context, *QuerySimPrepayRequest) (*QuerySimPrepayResponse, error)
+	NozPrice(context.Context, *QueryNozPriceRequest) (*QueryNozPriceResponse, error)
+	NozSupply(context.Context, *QueryNozSupplyRequest) (*QueryNozSupplyResponse, error)
 	// Params queries SDS module Params info.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 }
@@ -296,6 +590,15 @@ type UnimplementedQueryServer struct {
 
 func (*UnimplementedQueryServer) Fileupload(ctx context.Context, req *QueryFileUploadRequest) (*QueryFileUploadResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Fileupload not implemented")
+}
+func (*UnimplementedQueryServer) SimPrepay(ctx context.Context, req *QuerySimPrepayRequest) (*QuerySimPrepayResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SimPrepay not implemented")
+}
+func (*UnimplementedQueryServer) NozPrice(ctx context.Context, req *QueryNozPriceRequest) (*QueryNozPriceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NozPrice not implemented")
+}
+func (*UnimplementedQueryServer) NozSupply(ctx context.Context, req *QueryNozSupplyRequest) (*QueryNozSupplyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NozSupply not implemented")
 }
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
@@ -319,6 +622,60 @@ func _Query_Fileupload_Handler(srv interface{}, ctx context.Context, dec func(in
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).Fileupload(ctx, req.(*QueryFileUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_SimPrepay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuerySimPrepayRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).SimPrepay(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/stratos.sds.v1.Query/SimPrepay",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).SimPrepay(ctx, req.(*QuerySimPrepayRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_NozPrice_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryNozPriceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NozPrice(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/stratos.sds.v1.Query/NozPrice",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NozPrice(ctx, req.(*QueryNozPriceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_NozSupply_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryNozSupplyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).NozSupply(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/stratos.sds.v1.Query/NozSupply",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).NozSupply(ctx, req.(*QueryNozSupplyRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -348,6 +705,18 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Fileupload",
 			Handler:    _Query_Fileupload_Handler,
+		},
+		{
+			MethodName: "SimPrepay",
+			Handler:    _Query_SimPrepay_Handler,
+		},
+		{
+			MethodName: "NozPrice",
+			Handler:    _Query_NozPrice_Handler,
+		},
+		{
+			MethodName: "NozSupply",
+			Handler:    _Query_NozSupply_Handler,
 		},
 		{
 			MethodName: "Params",
@@ -420,6 +789,198 @@ func (m *QueryFileUploadResponse) MarshalToSizedBuffer(dAtA []byte) (int, error)
 		i--
 		dAtA[i] = 0xa
 	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QuerySimPrepayRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QuerySimPrepayRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QuerySimPrepayRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Amount) > 0 {
+		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintQuery(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QuerySimPrepayResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QuerySimPrepayResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QuerySimPrepayResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.Noz.Size()
+		i -= size
+		if _, err := m.Noz.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNozPriceRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNozPriceRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNozPriceRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNozPriceResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNozPriceResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNozPriceResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.Price.Size()
+		i -= size
+		if _, err := m.Price.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNozSupplyRequest) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNozSupplyRequest) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNozSupplyRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryNozSupplyResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryNozSupplyResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryNozSupplyResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size := m.Total.Size()
+		i -= size
+		if _, err := m.Total.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	{
+		size := m.Remaining.Size()
+		i -= size
+		if _, err := m.Remaining.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -515,6 +1076,74 @@ func (m *QueryFileUploadResponse) Size() (n int) {
 		l = m.FileInfo.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
+	return n
+}
+
+func (m *QuerySimPrepayRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Amount) > 0 {
+		for _, e := range m.Amount {
+			l = e.Size()
+			n += 1 + l + sovQuery(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *QuerySimPrepayResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Noz.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryNozPriceRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryNozPriceResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Price.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	return n
+}
+
+func (m *QueryNozSupplyRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *QueryNozSupplyResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = m.Remaining.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.Total.Size()
+	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
@@ -690,6 +1319,476 @@ func (m *QueryFileUploadResponse) Unmarshal(dAtA []byte) error {
 				m.FileInfo = &FileInfo{}
 			}
 			if err := m.FileInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QuerySimPrepayRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QuerySimPrepayRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QuerySimPrepayRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Amount = append(m.Amount, types.DecCoin{})
+			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QuerySimPrepayResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QuerySimPrepayResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QuerySimPrepayResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Noz", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Noz.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNozPriceRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNozPriceRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNozPriceRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNozPriceResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNozPriceResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNozPriceResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Price", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Price.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNozSupplyRequest) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNozSupplyRequest: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNozSupplyRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryNozSupplyResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryNozSupplyResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryNozSupplyResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Remaining", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Remaining.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Total.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

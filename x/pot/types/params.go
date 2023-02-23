@@ -30,8 +30,6 @@ var (
 	DefaultCommunityTax = sdk.NewDecWithPrec(2, 2) // 2%
 )
 
-//var _ subspace.ParamSet = &Params{}
-
 // ParamKeyTable for pot module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})

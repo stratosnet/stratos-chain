@@ -147,3 +147,19 @@ message MsgSlashingResourceNode {
 }
 // MsgSlashingResourceNodeResponse defines the Msg/MsgSlashingResourceNode response type.
 message MsgSlashingResourceNodeResponse {}
+
+message BLSSignatureInfo {
+  repeated bytes  pub_keys = 1 [
+    (gogoproto.jsontag) = "pub_keys",
+    (gogoproto.moretags) = "yaml:\"pub_keys\""
+  ];
+  bytes           signature = 2 [
+    (gogoproto.jsontag) = "signature",
+    (gogoproto.moretags) = "yaml:\"signature\""
+  ];
+  bytes           txData = 3 [
+    (gogoproto.jsontag) = "tx_data",
+    (gogoproto.moretags) = "yaml:\"tx_data\""
+  ];
+}
+

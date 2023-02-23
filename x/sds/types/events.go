@@ -9,8 +9,7 @@ const (
 	AttributeKeyFileHash = "file_hash"
 	AttributeKeyUploader = "uploader"
 
-	AttributeKeyRecipient    = "recipient"
-	AttributeKeyCoins        = "coins"
+	AttributeKeyAmount       = "amount"
 	AttributeKeyPurchasedNoz = "purchased"
 
 	AttributeValueCategory = ModuleName

@@ -2,14 +2,8 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
-)
 
-const (
-	VolumeReportMsgType      = "volume_report"
-	WithdrawMsgType          = "withdraw"
-	LegacyWithdrawMsgType    = "legacy_withdraw"
-	FoundationDepositMsgType = "foundation_deposit"
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // verify interface at compile time
@@ -19,6 +13,14 @@ var (
 	_ sdk.Msg = &MsgLegacyWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
 	_ sdk.Msg = &MsgSlashingResourceNode{}
+)
+
+const (
+	TypeMsgVolumeReport         = "volume_report"
+	TypeMsgWithdraw             = "withdraw"
+	TypeMsgLegacyWithdraw       = "legacy_withdraw"
+	TypeMsgFoundationDeposit    = "foundation_deposit"
+	TypeMsgSlashingResourceNode = "slashing_resource_node"
 )
 
 // NewMsgVolumeReport creates a new MsgVolumeReport instance
@@ -40,22 +42,6 @@ func NewMsgVolumeReport(
 	}
 }
 
-type QueryVolumeReportRecord struct {
-	Reporter        sdk.AccAddress
-	ReportReference string
-	TxHash          string
-	walletVolumes   []SingleWalletVolume
-}
-
-func NewQueryVolumeReportRecord(reporter sdk.AccAddress, reportReference string, txHash string, walletVolumes []SingleWalletVolume) QueryVolumeReportRecord {
-	return QueryVolumeReportRecord{
-		Reporter:        reporter,
-		ReportReference: reportReference,
-		TxHash:          txHash,
-		walletVolumes:   walletVolumes,
-	}
-}
-
 // Route Implement
 func (msg MsgVolumeReport) Route() string { return RouterKey }
 
@@ -71,7 +57,7 @@ func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
 }
 
 // Type Implement
-func (msg MsgVolumeReport) Type() string { return VolumeReportMsgType }
+func (msg MsgVolumeReport) Type() string { return TypeMsgVolumeReport }
 
 // GetSignBytes gets the bytes for the message signer to sign on
 func (msg MsgVolumeReport) GetSignBytes() []byte {
@@ -146,7 +132,7 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 }
 
 // Type Implement
-func (msg MsgWithdraw) Type() string { return WithdrawMsgType }
+func (msg MsgWithdraw) Type() string { return TypeMsgWithdraw }
 
 // GetSignBytes gets the bytes for the message signer to sign on
 func (msg MsgWithdraw) GetSignBytes() []byte {
@@ -191,7 +177,7 @@ func (msg MsgLegacyWithdraw) GetSigners() []sdk.AccAddress {
 }
 
 // Type Implement
-func (msg MsgLegacyWithdraw) Type() string { return LegacyWithdrawMsgType }
+func (msg MsgLegacyWithdraw) Type() string { return TypeMsgLegacyWithdraw }
 
 // GetSignBytes gets the bytes for the message signer to sign on
 func (msg MsgLegacyWithdraw) GetSignBytes() []byte {
@@ -235,7 +221,7 @@ func (msg MsgFoundationDeposit) GetSigners() []sdk.AccAddress {
 }
 
 // Type Implement
-func (msg MsgFoundationDeposit) Type() string { return FoundationDepositMsgType }
+func (msg MsgFoundationDeposit) Type() string { return TypeMsgFoundationDeposit }
 
 // GetSignBytes gets the bytes for the message signer to sign on
 func (msg MsgFoundationDeposit) GetSignBytes() []byte {
@@ -281,7 +267,7 @@ func (m MsgSlashingResourceNode) Route() string {
 }
 
 func (m MsgSlashingResourceNode) Type() string {
-	return "slashing_resource_node"
+	return TypeMsgSlashingResourceNode
 }
 
 func (m MsgSlashingResourceNode) ValidateBasic() error {

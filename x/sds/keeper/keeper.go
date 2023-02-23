@@ -104,7 +104,9 @@ func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 	return purchased, nil
 }
 
-func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, amount sdk.Int) sdk.Int {
+func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, coins sdk.Coins) sdk.Int {
+	amount := coins.AmountOf(k.BondDenom(ctx))
+
 	St := k.registerKeeper.GetEffectiveTotalStake(ctx)
 	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)

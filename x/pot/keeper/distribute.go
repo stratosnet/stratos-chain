@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -483,6 +484,21 @@ func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 	}
 
 	return nil
+}
+
+// Iteration for sorting map to slice
+func sortDetailMapToSlice(rewardDetailMap map[string]types.Reward) (rewardDetailList []types.Reward) {
+	keys := make([]string, 0, len(rewardDetailMap))
+	for key := range rewardDetailMap {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		reward := rewardDetailMap[key]
+		rewardDetailList = append(rewardDetailList, reward)
+	}
+	return rewardDetailList
 }
 
 func (k Keeper) InitVariable(ctx sdk.Context) {

@@ -78,6 +78,60 @@ func (m *QueryVolumeReportRequest) GetEpoch() int64 {
 	return 0
 }
 
+// QueryVolumeReportResponse is response type for the Query/ResourceNode RPC method
+type QueryVolumeReportResponse struct {
+	// node defines the the volumeReport info.
+	ReportInfo *ReportInfo `protobuf:"bytes,1,opt,name=report_info,json=reportInfo,proto3" json:"report_info,omitempty"`
+	Height     int64       `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
+}
+
+func (m *QueryVolumeReportResponse) Reset()         { *m = QueryVolumeReportResponse{} }
+func (m *QueryVolumeReportResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryVolumeReportResponse) ProtoMessage()    {}
+func (*QueryVolumeReportResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c09bd09df76a68e0, []int{1}
+}
+func (m *QueryVolumeReportResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryVolumeReportResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryVolumeReportResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryVolumeReportResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryVolumeReportResponse.Merge(m, src)
+}
+func (m *QueryVolumeReportResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryVolumeReportResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryVolumeReportResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryVolumeReportResponse proto.InternalMessageInfo
+
+func (m *QueryVolumeReportResponse) GetReportInfo() *ReportInfo {
+	if m != nil {
+		return m.ReportInfo
+	}
+	return nil
+}
+
+func (m *QueryVolumeReportResponse) GetHeight() int64 {
+	if m != nil {
+		return m.Height
+	}
+	return 0
+}
+
 type ReportInfo struct {
 	Epoch     int64  `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
 	Reference string `protobuf:"bytes,2,opt,name=reference,proto3" json:"reference,omitempty"`
@@ -89,7 +143,7 @@ func (m *ReportInfo) Reset()         { *m = ReportInfo{} }
 func (m *ReportInfo) String() string { return proto.CompactTextString(m) }
 func (*ReportInfo) ProtoMessage()    {}
 func (*ReportInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c09bd09df76a68e0, []int{1}
+	return fileDescriptor_c09bd09df76a68e0, []int{2}
 }
 func (m *ReportInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -144,60 +198,6 @@ func (m *ReportInfo) GetReporter() string {
 		return m.Reporter
 	}
 	return ""
-}
-
-// QueryVolumeReportResponse is response type for the Query/ResourceNode RPC method
-type QueryVolumeReportResponse struct {
-	// node defines the the volumeReport info.
-	ReportInfo *ReportInfo `protobuf:"bytes,1,opt,name=report_info,json=reportInfo,proto3" json:"report_info,omitempty"`
-	Height     int64       `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-}
-
-func (m *QueryVolumeReportResponse) Reset()         { *m = QueryVolumeReportResponse{} }
-func (m *QueryVolumeReportResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryVolumeReportResponse) ProtoMessage()    {}
-func (*QueryVolumeReportResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c09bd09df76a68e0, []int{2}
-}
-func (m *QueryVolumeReportResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryVolumeReportResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryVolumeReportResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryVolumeReportResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryVolumeReportResponse.Merge(m, src)
-}
-func (m *QueryVolumeReportResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryVolumeReportResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryVolumeReportResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryVolumeReportResponse proto.InternalMessageInfo
-
-func (m *QueryVolumeReportResponse) GetReportInfo() *ReportInfo {
-	if m != nil {
-		return m.ReportInfo
-	}
-	return nil
-}
-
-func (m *QueryVolumeReportResponse) GetHeight() int64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
 }
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
@@ -283,25 +283,25 @@ func (m *QueryParamsResponse) GetParams() *Params {
 	return nil
 }
 
-// QueryPotRewardsByEpochRequest is request type for the Query/PotRewardsByEpoch by a given epoch RPC method
-type QueryPotRewardsByEpochRequest struct {
+// QueryRewardsByEpochRequest is request type for the Query/RewardsByEpoch by a given epoch RPC method
+type QueryRewardsByEpochRequest struct {
 	Epoch         int64              `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
 	WalletAddress string             `protobuf:"bytes,2,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
 	Pagination    *query.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryPotRewardsByEpochRequest) Reset()         { *m = QueryPotRewardsByEpochRequest{} }
-func (m *QueryPotRewardsByEpochRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryPotRewardsByEpochRequest) ProtoMessage()    {}
-func (*QueryPotRewardsByEpochRequest) Descriptor() ([]byte, []int) {
+func (m *QueryRewardsByEpochRequest) Reset()         { *m = QueryRewardsByEpochRequest{} }
+func (m *QueryRewardsByEpochRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryRewardsByEpochRequest) ProtoMessage()    {}
+func (*QueryRewardsByEpochRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c09bd09df76a68e0, []int{5}
 }
-func (m *QueryPotRewardsByEpochRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryRewardsByEpochRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryPotRewardsByEpochRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryRewardsByEpochRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryPotRewardsByEpochRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryRewardsByEpochRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -311,58 +311,58 @@ func (m *QueryPotRewardsByEpochRequest) XXX_Marshal(b []byte, deterministic bool
 		return b[:n], nil
 	}
 }
-func (m *QueryPotRewardsByEpochRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPotRewardsByEpochRequest.Merge(m, src)
+func (m *QueryRewardsByEpochRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRewardsByEpochRequest.Merge(m, src)
 }
-func (m *QueryPotRewardsByEpochRequest) XXX_Size() int {
+func (m *QueryRewardsByEpochRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryPotRewardsByEpochRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPotRewardsByEpochRequest.DiscardUnknown(m)
+func (m *QueryRewardsByEpochRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRewardsByEpochRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryPotRewardsByEpochRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryRewardsByEpochRequest proto.InternalMessageInfo
 
-func (m *QueryPotRewardsByEpochRequest) GetEpoch() int64 {
+func (m *QueryRewardsByEpochRequest) GetEpoch() int64 {
 	if m != nil {
 		return m.Epoch
 	}
 	return 0
 }
 
-func (m *QueryPotRewardsByEpochRequest) GetWalletAddress() string {
+func (m *QueryRewardsByEpochRequest) GetWalletAddress() string {
 	if m != nil {
 		return m.WalletAddress
 	}
 	return ""
 }
 
-func (m *QueryPotRewardsByEpochRequest) GetPagination() *query.PageRequest {
+func (m *QueryRewardsByEpochRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-// QueryVolumeReportResponse is response type for the Query/PotRewardsByEpoch RPC method
-type QueryPotRewardsByEpochResponse struct {
+// QueryRewardsByEpochResponse is response type for the Query/RewardsByEpoch RPC method
+type QueryRewardsByEpochResponse struct {
 	Rewards    []*Reward           `protobuf:"bytes,1,rep,name=rewards,proto3" json:"rewards,omitempty"`
 	Height     int64               `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
 	Pagination *query.PageResponse `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryPotRewardsByEpochResponse) Reset()         { *m = QueryPotRewardsByEpochResponse{} }
-func (m *QueryPotRewardsByEpochResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryPotRewardsByEpochResponse) ProtoMessage()    {}
-func (*QueryPotRewardsByEpochResponse) Descriptor() ([]byte, []int) {
+func (m *QueryRewardsByEpochResponse) Reset()         { *m = QueryRewardsByEpochResponse{} }
+func (m *QueryRewardsByEpochResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryRewardsByEpochResponse) ProtoMessage()    {}
+func (*QueryRewardsByEpochResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c09bd09df76a68e0, []int{6}
 }
-func (m *QueryPotRewardsByEpochResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryRewardsByEpochResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryPotRewardsByEpochResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryRewardsByEpochResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryPotRewardsByEpochResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryRewardsByEpochResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -372,57 +372,56 @@ func (m *QueryPotRewardsByEpochResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *QueryPotRewardsByEpochResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPotRewardsByEpochResponse.Merge(m, src)
+func (m *QueryRewardsByEpochResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRewardsByEpochResponse.Merge(m, src)
 }
-func (m *QueryPotRewardsByEpochResponse) XXX_Size() int {
+func (m *QueryRewardsByEpochResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryPotRewardsByEpochResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPotRewardsByEpochResponse.DiscardUnknown(m)
+func (m *QueryRewardsByEpochResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRewardsByEpochResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryPotRewardsByEpochResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryRewardsByEpochResponse proto.InternalMessageInfo
 
-func (m *QueryPotRewardsByEpochResponse) GetRewards() []*Reward {
+func (m *QueryRewardsByEpochResponse) GetRewards() []*Reward {
 	if m != nil {
 		return m.Rewards
 	}
 	return nil
 }
 
-func (m *QueryPotRewardsByEpochResponse) GetHeight() int64 {
+func (m *QueryRewardsByEpochResponse) GetHeight() int64 {
 	if m != nil {
 		return m.Height
 	}
 	return 0
 }
 
-func (m *QueryPotRewardsByEpochResponse) GetPagination() *query.PageResponse {
+func (m *QueryRewardsByEpochResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-type PotRewardByOwner struct {
-	WalletAddress       string                                   `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
-	MatureTotalReward   github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=MatureTotalReward,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"MatureTotalReward"`
-	ImmatureTotalReward github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=ImmatureTotalReward,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"ImmatureTotalReward"`
+// QueryRewardsByOwnerRequest is request type for the Query/RewardsByOwner by a given owner RPC method
+type QueryRewardsByOwnerRequest struct {
+	WalletAddress string `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
 }
 
-func (m *PotRewardByOwner) Reset()         { *m = PotRewardByOwner{} }
-func (m *PotRewardByOwner) String() string { return proto.CompactTextString(m) }
-func (*PotRewardByOwner) ProtoMessage()    {}
-func (*PotRewardByOwner) Descriptor() ([]byte, []int) {
+func (m *QueryRewardsByOwnerRequest) Reset()         { *m = QueryRewardsByOwnerRequest{} }
+func (m *QueryRewardsByOwnerRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryRewardsByOwnerRequest) ProtoMessage()    {}
+func (*QueryRewardsByOwnerRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c09bd09df76a68e0, []int{7}
 }
-func (m *PotRewardByOwner) XXX_Unmarshal(b []byte) error {
+func (m *QueryRewardsByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *PotRewardByOwner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryRewardsByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_PotRewardByOwner.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryRewardsByOwnerRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -432,154 +431,155 @@ func (m *PotRewardByOwner) XXX_Marshal(b []byte, deterministic bool) ([]byte, er
 		return b[:n], nil
 	}
 }
-func (m *PotRewardByOwner) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_PotRewardByOwner.Merge(m, src)
+func (m *QueryRewardsByOwnerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRewardsByOwnerRequest.Merge(m, src)
 }
-func (m *PotRewardByOwner) XXX_Size() int {
+func (m *QueryRewardsByOwnerRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *PotRewardByOwner) XXX_DiscardUnknown() {
-	xxx_messageInfo_PotRewardByOwner.DiscardUnknown(m)
+func (m *QueryRewardsByOwnerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRewardsByOwnerRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_PotRewardByOwner proto.InternalMessageInfo
+var xxx_messageInfo_QueryRewardsByOwnerRequest proto.InternalMessageInfo
 
-func (m *PotRewardByOwner) GetWalletAddress() string {
+func (m *QueryRewardsByOwnerRequest) GetWalletAddress() string {
 	if m != nil {
 		return m.WalletAddress
 	}
 	return ""
 }
 
-func (m *PotRewardByOwner) GetMatureTotalReward() github_com_cosmos_cosmos_sdk_types.Coins {
+// QueryRewardsByOwnerResponse is response type for the Query/RewardsByOwner RPC method
+type QueryRewardsByOwnerResponse struct {
+	Rewards *RewardByOwner `protobuf:"bytes,1,opt,name=rewards,proto3" json:"rewards,omitempty"`
+	Height  int64          `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
+}
+
+func (m *QueryRewardsByOwnerResponse) Reset()         { *m = QueryRewardsByOwnerResponse{} }
+func (m *QueryRewardsByOwnerResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryRewardsByOwnerResponse) ProtoMessage()    {}
+func (*QueryRewardsByOwnerResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c09bd09df76a68e0, []int{8}
+}
+func (m *QueryRewardsByOwnerResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *QueryRewardsByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_QueryRewardsByOwnerResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *QueryRewardsByOwnerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryRewardsByOwnerResponse.Merge(m, src)
+}
+func (m *QueryRewardsByOwnerResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *QueryRewardsByOwnerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryRewardsByOwnerResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_QueryRewardsByOwnerResponse proto.InternalMessageInfo
+
+func (m *QueryRewardsByOwnerResponse) GetRewards() *RewardByOwner {
+	if m != nil {
+		return m.Rewards
+	}
+	return nil
+}
+
+func (m *QueryRewardsByOwnerResponse) GetHeight() int64 {
+	if m != nil {
+		return m.Height
+	}
+	return 0
+}
+
+type RewardByOwner struct {
+	WalletAddress       string                                   `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
+	MatureTotalReward   github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=MatureTotalReward,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"MatureTotalReward"`
+	ImmatureTotalReward github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,3,rep,name=ImmatureTotalReward,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"ImmatureTotalReward"`
+}
+
+func (m *RewardByOwner) Reset()         { *m = RewardByOwner{} }
+func (m *RewardByOwner) String() string { return proto.CompactTextString(m) }
+func (*RewardByOwner) ProtoMessage()    {}
+func (*RewardByOwner) Descriptor() ([]byte, []int) {
+	return fileDescriptor_c09bd09df76a68e0, []int{9}
+}
+func (m *RewardByOwner) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *RewardByOwner) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_RewardByOwner.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *RewardByOwner) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RewardByOwner.Merge(m, src)
+}
+func (m *RewardByOwner) XXX_Size() int {
+	return m.Size()
+}
+func (m *RewardByOwner) XXX_DiscardUnknown() {
+	xxx_messageInfo_RewardByOwner.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RewardByOwner proto.InternalMessageInfo
+
+func (m *RewardByOwner) GetWalletAddress() string {
+	if m != nil {
+		return m.WalletAddress
+	}
+	return ""
+}
+
+func (m *RewardByOwner) GetMatureTotalReward() github_com_cosmos_cosmos_sdk_types.Coins {
 	if m != nil {
 		return m.MatureTotalReward
 	}
 	return nil
 }
 
-func (m *PotRewardByOwner) GetImmatureTotalReward() github_com_cosmos_cosmos_sdk_types.Coins {
+func (m *RewardByOwner) GetImmatureTotalReward() github_com_cosmos_cosmos_sdk_types.Coins {
 	if m != nil {
 		return m.ImmatureTotalReward
 	}
 	return nil
 }
 
-// QueryPotRewardsByOwnerRequest is request type for the Query/PotRewardsByOwner by a given owner RPC method
-type QueryPotRewardsByOwnerRequest struct {
+// QuerySlashingByOwnerRequest is request type for the Query/Slashing by a given owner RPC method
+type QuerySlashingByOwnerRequest struct {
 	WalletAddress string `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
 }
 
-func (m *QueryPotRewardsByOwnerRequest) Reset()         { *m = QueryPotRewardsByOwnerRequest{} }
-func (m *QueryPotRewardsByOwnerRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryPotRewardsByOwnerRequest) ProtoMessage()    {}
-func (*QueryPotRewardsByOwnerRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c09bd09df76a68e0, []int{8}
-}
-func (m *QueryPotRewardsByOwnerRequest) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryPotRewardsByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryPotRewardsByOwnerRequest.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryPotRewardsByOwnerRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPotRewardsByOwnerRequest.Merge(m, src)
-}
-func (m *QueryPotRewardsByOwnerRequest) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryPotRewardsByOwnerRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPotRewardsByOwnerRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryPotRewardsByOwnerRequest proto.InternalMessageInfo
-
-func (m *QueryPotRewardsByOwnerRequest) GetWalletAddress() string {
-	if m != nil {
-		return m.WalletAddress
-	}
-	return ""
-}
-
-// QueryPotRewardsByOwnerResponse is response type for the Query/PotRewardsByOwner RPC method
-type QueryPotRewardsByOwnerResponse struct {
-	Rewards *PotRewardByOwner `protobuf:"bytes,1,opt,name=rewards,proto3" json:"rewards,omitempty"`
-	Height  int64             `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-}
-
-func (m *QueryPotRewardsByOwnerResponse) Reset()         { *m = QueryPotRewardsByOwnerResponse{} }
-func (m *QueryPotRewardsByOwnerResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryPotRewardsByOwnerResponse) ProtoMessage()    {}
-func (*QueryPotRewardsByOwnerResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_c09bd09df76a68e0, []int{9}
-}
-func (m *QueryPotRewardsByOwnerResponse) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *QueryPotRewardsByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_QueryPotRewardsByOwnerResponse.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *QueryPotRewardsByOwnerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPotRewardsByOwnerResponse.Merge(m, src)
-}
-func (m *QueryPotRewardsByOwnerResponse) XXX_Size() int {
-	return m.Size()
-}
-func (m *QueryPotRewardsByOwnerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPotRewardsByOwnerResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_QueryPotRewardsByOwnerResponse proto.InternalMessageInfo
-
-func (m *QueryPotRewardsByOwnerResponse) GetRewards() *PotRewardByOwner {
-	if m != nil {
-		return m.Rewards
-	}
-	return nil
-}
-
-func (m *QueryPotRewardsByOwnerResponse) GetHeight() int64 {
-	if m != nil {
-		return m.Height
-	}
-	return 0
-}
-
-// QueryPotSlashingByOwnerRequest is request type for the Query/Slashing by a given owner RPC method
-type QueryPotSlashingByOwnerRequest struct {
-	WalletAddress string `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
-}
-
-func (m *QueryPotSlashingByOwnerRequest) Reset()         { *m = QueryPotSlashingByOwnerRequest{} }
-func (m *QueryPotSlashingByOwnerRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryPotSlashingByOwnerRequest) ProtoMessage()    {}
-func (*QueryPotSlashingByOwnerRequest) Descriptor() ([]byte, []int) {
+func (m *QuerySlashingByOwnerRequest) Reset()         { *m = QuerySlashingByOwnerRequest{} }
+func (m *QuerySlashingByOwnerRequest) String() string { return proto.CompactTextString(m) }
+func (*QuerySlashingByOwnerRequest) ProtoMessage()    {}
+func (*QuerySlashingByOwnerRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c09bd09df76a68e0, []int{10}
 }
-func (m *QueryPotSlashingByOwnerRequest) XXX_Unmarshal(b []byte) error {
+func (m *QuerySlashingByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryPotSlashingByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QuerySlashingByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryPotSlashingByOwnerRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QuerySlashingByOwnerRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -589,43 +589,43 @@ func (m *QueryPotSlashingByOwnerRequest) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *QueryPotSlashingByOwnerRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPotSlashingByOwnerRequest.Merge(m, src)
+func (m *QuerySlashingByOwnerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySlashingByOwnerRequest.Merge(m, src)
 }
-func (m *QueryPotSlashingByOwnerRequest) XXX_Size() int {
+func (m *QuerySlashingByOwnerRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryPotSlashingByOwnerRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPotSlashingByOwnerRequest.DiscardUnknown(m)
+func (m *QuerySlashingByOwnerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySlashingByOwnerRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryPotSlashingByOwnerRequest proto.InternalMessageInfo
+var xxx_messageInfo_QuerySlashingByOwnerRequest proto.InternalMessageInfo
 
-func (m *QueryPotSlashingByOwnerRequest) GetWalletAddress() string {
+func (m *QuerySlashingByOwnerRequest) GetWalletAddress() string {
 	if m != nil {
 		return m.WalletAddress
 	}
 	return ""
 }
 
-// QueryPotSlashingByOwnerResponse is response type for the Query/Slashing RPC method
-type QueryPotSlashingByOwnerResponse struct {
+// QuerySlashingByOwnerResponse is response type for the Query/Slashing RPC method
+type QuerySlashingByOwnerResponse struct {
 	Slashing string `protobuf:"bytes,1,opt,name=slashing,proto3" json:"slashing,omitempty"`
 	Height   int64  `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
 }
 
-func (m *QueryPotSlashingByOwnerResponse) Reset()         { *m = QueryPotSlashingByOwnerResponse{} }
-func (m *QueryPotSlashingByOwnerResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryPotSlashingByOwnerResponse) ProtoMessage()    {}
-func (*QueryPotSlashingByOwnerResponse) Descriptor() ([]byte, []int) {
+func (m *QuerySlashingByOwnerResponse) Reset()         { *m = QuerySlashingByOwnerResponse{} }
+func (m *QuerySlashingByOwnerResponse) String() string { return proto.CompactTextString(m) }
+func (*QuerySlashingByOwnerResponse) ProtoMessage()    {}
+func (*QuerySlashingByOwnerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_c09bd09df76a68e0, []int{11}
 }
-func (m *QueryPotSlashingByOwnerResponse) XXX_Unmarshal(b []byte) error {
+func (m *QuerySlashingByOwnerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryPotSlashingByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QuerySlashingByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryPotSlashingByOwnerResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QuerySlashingByOwnerResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -635,26 +635,26 @@ func (m *QueryPotSlashingByOwnerResponse) XXX_Marshal(b []byte, deterministic bo
 		return b[:n], nil
 	}
 }
-func (m *QueryPotSlashingByOwnerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryPotSlashingByOwnerResponse.Merge(m, src)
+func (m *QuerySlashingByOwnerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QuerySlashingByOwnerResponse.Merge(m, src)
 }
-func (m *QueryPotSlashingByOwnerResponse) XXX_Size() int {
+func (m *QuerySlashingByOwnerResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryPotSlashingByOwnerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryPotSlashingByOwnerResponse.DiscardUnknown(m)
+func (m *QuerySlashingByOwnerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QuerySlashingByOwnerResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryPotSlashingByOwnerResponse proto.InternalMessageInfo
+var xxx_messageInfo_QuerySlashingByOwnerResponse proto.InternalMessageInfo
 
-func (m *QueryPotSlashingByOwnerResponse) GetSlashing() string {
+func (m *QuerySlashingByOwnerResponse) GetSlashing() string {
 	if m != nil {
 		return m.Slashing
 	}
 	return ""
 }
 
-func (m *QueryPotSlashingByOwnerResponse) GetHeight() int64 {
+func (m *QuerySlashingByOwnerResponse) GetHeight() int64 {
 	if m != nil {
 		return m.Height
 	}
@@ -663,76 +663,76 @@ func (m *QueryPotSlashingByOwnerResponse) GetHeight() int64 {
 
 func init() {
 	proto.RegisterType((*QueryVolumeReportRequest)(nil), "stratos.pot.v1.QueryVolumeReportRequest")
-	proto.RegisterType((*ReportInfo)(nil), "stratos.pot.v1.ReportInfo")
 	proto.RegisterType((*QueryVolumeReportResponse)(nil), "stratos.pot.v1.QueryVolumeReportResponse")
+	proto.RegisterType((*ReportInfo)(nil), "stratos.pot.v1.ReportInfo")
 	proto.RegisterType((*QueryParamsRequest)(nil), "stratos.pot.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "stratos.pot.v1.QueryParamsResponse")
-	proto.RegisterType((*QueryPotRewardsByEpochRequest)(nil), "stratos.pot.v1.QueryPotRewardsByEpochRequest")
-	proto.RegisterType((*QueryPotRewardsByEpochResponse)(nil), "stratos.pot.v1.QueryPotRewardsByEpochResponse")
-	proto.RegisterType((*PotRewardByOwner)(nil), "stratos.pot.v1.PotRewardByOwner")
-	proto.RegisterType((*QueryPotRewardsByOwnerRequest)(nil), "stratos.pot.v1.QueryPotRewardsByOwnerRequest")
-	proto.RegisterType((*QueryPotRewardsByOwnerResponse)(nil), "stratos.pot.v1.QueryPotRewardsByOwnerResponse")
-	proto.RegisterType((*QueryPotSlashingByOwnerRequest)(nil), "stratos.pot.v1.QueryPotSlashingByOwnerRequest")
-	proto.RegisterType((*QueryPotSlashingByOwnerResponse)(nil), "stratos.pot.v1.QueryPotSlashingByOwnerResponse")
+	proto.RegisterType((*QueryRewardsByEpochRequest)(nil), "stratos.pot.v1.QueryRewardsByEpochRequest")
+	proto.RegisterType((*QueryRewardsByEpochResponse)(nil), "stratos.pot.v1.QueryRewardsByEpochResponse")
+	proto.RegisterType((*QueryRewardsByOwnerRequest)(nil), "stratos.pot.v1.QueryRewardsByOwnerRequest")
+	proto.RegisterType((*QueryRewardsByOwnerResponse)(nil), "stratos.pot.v1.QueryRewardsByOwnerResponse")
+	proto.RegisterType((*RewardByOwner)(nil), "stratos.pot.v1.RewardByOwner")
+	proto.RegisterType((*QuerySlashingByOwnerRequest)(nil), "stratos.pot.v1.QuerySlashingByOwnerRequest")
+	proto.RegisterType((*QuerySlashingByOwnerResponse)(nil), "stratos.pot.v1.QuerySlashingByOwnerResponse")
 }
 
 func init() { proto.RegisterFile("stratos/pot/v1/query.proto", fileDescriptor_c09bd09df76a68e0) }
 
 var fileDescriptor_c09bd09df76a68e0 = []byte{
-	// 847 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0xcf, 0x4f, 0x1b, 0x47,
-	0x14, 0xc7, 0xbd, 0x76, 0x31, 0x30, 0xb4, 0xa8, 0x0c, 0x88, 0x2e, 0x2b, 0xba, 0x58, 0x5b, 0x51,
-	0x4c, 0x2b, 0xef, 0x60, 0x7a, 0xa8, 0xd4, 0x9e, 0xea, 0x0a, 0x28, 0x87, 0xaa, 0x74, 0xfb, 0xe3,
-	0x90, 0x0b, 0x1a, 0xdb, 0xc3, 0xee, 0x2a, 0xf6, 0xce, 0xb2, 0x33, 0x36, 0x58, 0x88, 0x4b, 0xce,
-	0x39, 0x44, 0xc9, 0x5f, 0x10, 0x29, 0x87, 0x28, 0x39, 0xe6, 0x9f, 0xe0, 0x88, 0x94, 0x4b, 0x4e,
-	0x49, 0x04, 0xf9, 0x43, 0x22, 0xcf, 0x8c, 0x7f, 0xad, 0x77, 0xb1, 0x15, 0xe5, 0xe4, 0x9d, 0x79,
-	0x6f, 0xde, 0xfb, 0xcc, 0x9b, 0xef, 0xbc, 0x31, 0x30, 0x18, 0x8f, 0x30, 0xa7, 0x0c, 0x85, 0x94,
-	0xa3, 0x76, 0x19, 0x9d, 0xb6, 0x48, 0xd4, 0xb1, 0xc3, 0x88, 0x72, 0x0a, 0x17, 0x95, 0xcd, 0x0e,
-	0x29, 0xb7, 0xdb, 0x65, 0x63, 0xc5, 0xa5, 0x2e, 0x15, 0x26, 0xd4, 0xfd, 0x92, 0x5e, 0xc6, 0xba,
-	0x4b, 0xa9, 0xdb, 0x20, 0x08, 0x87, 0x3e, 0xc2, 0x41, 0x40, 0x39, 0xe6, 0x3e, 0x0d, 0x98, 0xb2,
-	0x9a, 0x35, 0xca, 0x9a, 0x94, 0xa1, 0x2a, 0x66, 0x04, 0xb5, 0xcb, 0x55, 0xc2, 0x71, 0x19, 0xd5,
-	0xa8, 0x1f, 0x28, 0xfb, 0x0f, 0xc3, 0x76, 0x91, 0xbc, 0xef, 0x15, 0x62, 0xd7, 0x0f, 0x44, 0x30,
-	0xe5, 0xab, 0xc7, 0x58, 0xbb, 0x58, 0xc2, 0x62, 0xed, 0x00, 0xfd, 0xef, 0xee, 0xda, 0xff, 0x69,
-	0xa3, 0xd5, 0x24, 0x0e, 0x09, 0x69, 0xc4, 0x1d, 0x72, 0xda, 0x22, 0x8c, 0xc3, 0x15, 0x30, 0x43,
-	0x42, 0x5a, 0xf3, 0x74, 0xad, 0xa0, 0x15, 0x73, 0x8e, 0x1c, 0x58, 0x2d, 0x00, 0xa4, 0xdb, 0x61,
-	0x70, 0x42, 0x93, 0x7d, 0xe0, 0x3a, 0x98, 0x8f, 0xc8, 0x09, 0x89, 0x48, 0x50, 0x23, 0x7a, 0xb6,
-	0xa0, 0x15, 0xe7, 0x9d, 0xc1, 0x04, 0xfc, 0x06, 0xcc, 0xf2, 0xf3, 0x63, 0x0f, 0x33, 0x4f, 0xcf,
-	0x09, 0x5b, 0x9e, 0x9f, 0xff, 0x81, 0x99, 0x07, 0x0d, 0x30, 0x17, 0x89, 0xd0, 0x24, 0xd2, 0xbf,
-	0x10, 0x96, 0xfe, 0xd8, 0x0a, 0xc1, 0x5a, 0x02, 0x28, 0x0b, 0x69, 0xc0, 0x08, 0xfc, 0x15, 0x2c,
-	0x48, 0xc7, 0x63, 0x3f, 0x38, 0xa1, 0x82, 0x65, 0x61, 0xd7, 0xb0, 0x47, 0x4f, 0xc1, 0x1e, 0x60,
-	0x3b, 0x20, 0x1a, 0x6c, 0x61, 0x15, 0xe4, 0x3d, 0xe2, 0xbb, 0x1e, 0x17, 0xa4, 0x39, 0x47, 0x8d,
-	0xac, 0x15, 0x00, 0x45, 0xc6, 0x23, 0x1c, 0xe1, 0x26, 0x53, 0x45, 0xb1, 0xf6, 0xc0, 0xf2, 0xc8,
-	0xac, 0x22, 0xb0, 0x41, 0x3e, 0x14, 0x33, 0x2a, 0xf9, 0x6a, 0x3c, 0xb9, 0xf2, 0x57, 0x5e, 0xd6,
-	0x33, 0x0d, 0x7c, 0x2b, 0xe3, 0x50, 0xee, 0x90, 0x33, 0x1c, 0xd5, 0x59, 0xa5, 0xb3, 0xd7, 0x2d,
-	0xde, 0x9d, 0xd5, 0x87, 0x9b, 0x60, 0xf1, 0x0c, 0x37, 0x1a, 0x84, 0x1f, 0xe3, 0x7a, 0x3d, 0x22,
-	0x8c, 0xa9, 0xf2, 0x7e, 0x25, 0x67, 0x7f, 0x93, 0x93, 0x70, 0x1f, 0x80, 0x81, 0x08, 0x44, 0x95,
-	0x17, 0x76, 0xbf, 0xb7, 0xa5, 0x62, 0xec, 0xae, 0x62, 0x6c, 0x29, 0x57, 0xa5, 0x18, 0xfb, 0x08,
-	0xbb, 0x44, 0x25, 0x76, 0x86, 0x56, 0x5a, 0xaf, 0x34, 0x60, 0xa6, 0x61, 0xaa, 0x9d, 0xef, 0x80,
-	0xd9, 0x48, 0x5a, 0x74, 0xad, 0x90, 0x4b, 0xda, 0xba, 0x5c, 0xe8, 0xf4, 0xdc, 0xd2, 0x0a, 0x0e,
-	0x0f, 0x12, 0xa0, 0xb7, 0x26, 0x42, 0x4b, 0x8c, 0x51, 0xea, 0x2c, 0xf8, 0xba, 0x0f, 0x5c, 0xe9,
-	0xfc, 0x75, 0x16, 0x90, 0x28, 0xa1, 0x72, 0x5a, 0x52, 0xe5, 0x3a, 0x60, 0xe9, 0x4f, 0xcc, 0x5b,
-	0x11, 0xf9, 0x97, 0x72, 0xdc, 0x90, 0x21, 0xf4, 0xac, 0xd8, 0xd8, 0xda, 0x08, 0x4b, 0x8f, 0xe2,
-	0x77, 0xea, 0x07, 0x95, 0x9d, 0xab, 0xb7, 0x1b, 0x99, 0x17, 0xef, 0x36, 0x8a, 0xae, 0xcf, 0xbd,
-	0x56, 0xd5, 0xae, 0xd1, 0x26, 0x52, 0xf7, 0x53, 0xfe, 0x94, 0x58, 0xfd, 0x3e, 0xe2, 0x9d, 0x90,
-	0x30, 0xb1, 0x80, 0x39, 0xe3, 0x59, 0xe0, 0x25, 0x58, 0x3e, 0x6c, 0x36, 0xc7, 0x92, 0xe7, 0x3e,
-	0x7f, 0xf2, 0xa4, 0x3c, 0xd6, 0x7e, 0x82, 0x22, 0x45, 0xe9, 0x7a, 0x8a, 0x9c, 0xae, 0x82, 0x16,
-	0x4f, 0x90, 0x8c, 0x8a, 0xa3, 0x24, 0xf3, 0xcb, 0xb0, 0x64, 0xba, 0xa7, 0x5c, 0x18, 0xbb, 0x2d,
-	0xb1, 0xd3, 0x9b, 0x28, 0x1e, 0xeb, 0x60, 0x90, 0xf5, 0x9f, 0x06, 0x66, 0x9e, 0x1f, 0xb8, 0x9f,
-	0x86, 0xff, 0x1f, 0xd8, 0x48, 0x0d, 0xa4, 0xf8, 0x0d, 0x30, 0xc7, 0x94, 0x49, 0xc5, 0xe8, 0x8f,
-	0xd3, 0xf8, 0x76, 0x1f, 0xe6, 0xc1, 0x8c, 0x88, 0x0b, 0x1f, 0x6b, 0xe0, 0xcb, 0xe1, 0x2e, 0x06,
-	0x8b, 0xf1, 0xdd, 0xa7, 0x75, 0x64, 0x63, 0x7b, 0x0a, 0x4f, 0xc9, 0x68, 0x95, 0x1e, 0xbc, 0xfe,
-	0xf0, 0x24, 0xbb, 0x05, 0x37, 0x51, 0xac, 0xf7, 0xb7, 0x85, 0x77, 0x49, 0x36, 0x40, 0x74, 0x21,
-	0xda, 0xca, 0x25, 0x7c, 0xaa, 0x81, 0xa5, 0xb1, 0x3b, 0x0e, 0x4b, 0x89, 0xf9, 0xd2, 0x5a, 0x96,
-	0x61, 0x4f, 0xeb, 0x3e, 0x89, 0x51, 0x1d, 0x36, 0x12, 0x70, 0x7d, 0xc6, 0x97, 0x31, 0x46, 0x79,
-	0xaf, 0x27, 0x33, 0x0e, 0xab, 0x60, 0x0a, 0xc6, 0x91, 0xb3, 0xb6, 0x7e, 0x16, 0x8c, 0x65, 0x88,
-	0xd2, 0x18, 0xa5, 0x7a, 0xd0, 0xc5, 0xa8, 0xb6, 0x2e, 0xe1, 0x73, 0x0d, 0xc0, 0x71, 0x0d, 0xc1,
-	0xd4, 0xfc, 0xc9, 0xaa, 0x35, 0xd0, 0xd4, 0xfe, 0x0a, 0xb8, 0x2c, 0x80, 0x7f, 0x84, 0xdb, 0x71,
-	0xe0, 0x9e, 0x44, 0xc7, 0x51, 0x4f, 0x41, 0x5e, 0x3e, 0x4f, 0xd0, 0x4a, 0xce, 0x36, 0xfc, 0x02,
-	0x1a, 0xdf, 0xdd, 0xe9, 0xa3, 0x28, 0x4c, 0x41, 0xa1, 0xc3, 0xd5, 0x38, 0x85, 0x7c, 0xff, 0x2a,
-	0x87, 0x57, 0x37, 0xa6, 0x76, 0x7d, 0x63, 0x6a, 0xef, 0x6f, 0x4c, 0xed, 0xd1, 0xad, 0x99, 0xb9,
-	0xbe, 0x35, 0x33, 0x6f, 0x6e, 0xcd, 0xcc, 0x3d, 0x34, 0xd4, 0xc5, 0xd4, 0xda, 0x80, 0xf0, 0xde,
-	0x67, 0xa9, 0xe6, 0x61, 0x3f, 0x40, 0xe7, 0x22, 0x9c, 0x68, 0x69, 0xd5, 0xbc, 0xf8, 0x27, 0xf3,
-	0xd3, 0xc7, 0x00, 0x00, 0x00, 0xff, 0xff, 0x2a, 0x93, 0x51, 0x62, 0x91, 0x09, 0x00, 0x00,
+	// 840 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x96, 0xcd, 0x4e, 0xdb, 0x48,
+	0x1c, 0xc0, 0xe3, 0x64, 0x09, 0x30, 0x2c, 0xac, 0x76, 0x40, 0xac, 0xf1, 0xb2, 0x06, 0x79, 0xc5,
+	0xf2, 0xb5, 0xf1, 0x10, 0xf6, 0xc0, 0x61, 0x4f, 0x0b, 0xcb, 0x6e, 0x39, 0x54, 0xa5, 0x6e, 0xd5,
+	0x43, 0x2f, 0x68, 0x92, 0x0c, 0xb6, 0xd5, 0xc4, 0x63, 0x3c, 0x93, 0x40, 0x84, 0xb8, 0xf4, 0x09,
+	0xaa, 0xf6, 0xd2, 0x5b, 0xd5, 0x1e, 0x7b, 0xe2, 0x31, 0x38, 0x22, 0xf5, 0xd2, 0x53, 0x5b, 0x41,
+	0x5f, 0xa0, 0x6f, 0x50, 0x65, 0x66, 0x12, 0x62, 0xc7, 0x21, 0x51, 0xd5, 0x53, 0xec, 0xf9, 0x7f,
+	0xfd, 0xfe, 0x1f, 0xf3, 0x77, 0x80, 0xc1, 0x78, 0x84, 0x39, 0x65, 0x28, 0xa4, 0x1c, 0x35, 0x8a,
+	0xe8, 0xa8, 0x4e, 0xa2, 0xa6, 0x1d, 0x46, 0x94, 0x53, 0x38, 0xa5, 0x64, 0x76, 0x48, 0xb9, 0xdd,
+	0x28, 0x1a, 0x33, 0x2e, 0x75, 0xa9, 0x10, 0xa1, 0xd6, 0x93, 0xd4, 0x32, 0xe6, 0x5d, 0x4a, 0xdd,
+	0x2a, 0x41, 0x38, 0xf4, 0x11, 0x0e, 0x02, 0xca, 0x31, 0xf7, 0x69, 0xc0, 0x94, 0xd4, 0x2c, 0x53,
+	0x56, 0xa3, 0x0c, 0x95, 0x30, 0x23, 0xa8, 0x51, 0x2c, 0x11, 0x8e, 0x8b, 0xa8, 0x4c, 0xfd, 0x40,
+	0xc9, 0xd7, 0xba, 0xe5, 0x22, 0x78, 0x47, 0x2b, 0xc4, 0xae, 0x1f, 0x08, 0x67, 0x4a, 0x57, 0x4f,
+	0xb0, 0xb6, 0xb0, 0x84, 0xc4, 0xda, 0x00, 0xfa, 0xfd, 0x96, 0xed, 0x23, 0x5a, 0xad, 0xd7, 0x88,
+	0x43, 0x42, 0x1a, 0x71, 0x87, 0x1c, 0xd5, 0x09, 0xe3, 0x70, 0x06, 0x8c, 0x90, 0x90, 0x96, 0x3d,
+	0x5d, 0x5b, 0xd4, 0x56, 0x72, 0x8e, 0x7c, 0xb1, 0x42, 0x30, 0x97, 0x62, 0xc1, 0x42, 0x1a, 0x30,
+	0x02, 0xff, 0x06, 0x13, 0x91, 0x38, 0x39, 0xf0, 0x83, 0x43, 0x2a, 0x0c, 0x27, 0x36, 0x0d, 0x3b,
+	0x5e, 0x0e, 0x5b, 0x1a, 0xed, 0x05, 0x87, 0xd4, 0x01, 0x51, 0xe7, 0x19, 0xce, 0x82, 0xbc, 0x47,
+	0x7c, 0xd7, 0xe3, 0x7a, 0x56, 0x04, 0x54, 0x6f, 0x56, 0x1d, 0x80, 0x1b, 0x8b, 0x74, 0x2a, 0x38,
+	0x0f, 0xc6, 0x23, 0x72, 0x48, 0x22, 0x12, 0x94, 0x89, 0x30, 0x1f, 0x77, 0x6e, 0x0e, 0xe0, 0x2f,
+	0x60, 0x94, 0x9f, 0x1c, 0x78, 0x98, 0x79, 0x7a, 0x4e, 0xc8, 0xf2, 0xfc, 0xe4, 0x0e, 0x66, 0x1e,
+	0x34, 0xc0, 0x98, 0x04, 0x20, 0x91, 0xfe, 0x83, 0x90, 0x74, 0xde, 0xad, 0x19, 0x00, 0x45, 0xa2,
+	0xfb, 0x38, 0xc2, 0x35, 0xa6, 0x8a, 0x62, 0xed, 0x82, 0xe9, 0xd8, 0xa9, 0x4a, 0xdc, 0x06, 0xf9,
+	0x50, 0x9c, 0xa8, 0x9c, 0x67, 0x93, 0x39, 0x2b, 0x7d, 0xa5, 0x65, 0xbd, 0xd6, 0x80, 0x21, 0xfc,
+	0x38, 0xe4, 0x18, 0x47, 0x15, 0xb6, 0xdd, 0xdc, 0x6d, 0xe5, 0x71, 0x6b, 0xe9, 0xe1, 0x12, 0x98,
+	0x3a, 0xc6, 0xd5, 0x2a, 0xe1, 0x07, 0xb8, 0x52, 0x89, 0x08, 0x63, 0x2a, 0xd3, 0x49, 0x79, 0xfa,
+	0x8f, 0x3c, 0x84, 0xff, 0x01, 0x70, 0x33, 0x01, 0x22, 0xe1, 0x89, 0xcd, 0x3f, 0x6c, 0x39, 0x2e,
+	0x76, 0x6b, 0x5c, 0x6c, 0x39, 0xab, 0x6a, 0x5c, 0xec, 0x7d, 0xec, 0x12, 0x15, 0xd8, 0xe9, 0xb2,
+	0xb4, 0xce, 0x35, 0xf0, 0x6b, 0x2a, 0xa3, 0xca, 0x79, 0x03, 0x8c, 0x46, 0x52, 0xa2, 0x6b, 0x8b,
+	0xb9, 0xb4, 0xa4, 0xa5, 0xa1, 0xd3, 0x56, 0xeb, 0xd7, 0x61, 0xf8, 0x7f, 0x0a, 0xf1, 0xf2, 0x40,
+	0x62, 0x89, 0x11, 0x43, 0xde, 0x49, 0x56, 0xf5, 0xde, 0x71, 0x40, 0xa2, 0x76, 0x55, 0x7b, 0xeb,
+	0xa7, 0xa5, 0xd4, 0xcf, 0x0a, 0x92, 0x69, 0x2b, 0x27, 0x2a, 0xed, 0xad, 0xee, 0xb4, 0x5b, 0xa4,
+	0xbf, 0xa5, 0xa7, 0xdd, 0xb6, 0x1b, 0x94, 0xbd, 0x75, 0x9e, 0x05, 0x93, 0x31, 0x93, 0x21, 0x41,
+	0x61, 0x13, 0xfc, 0x7c, 0x17, 0xf3, 0x7a, 0x44, 0x1e, 0x52, 0x8e, 0xab, 0xd2, 0x85, 0x9e, 0x15,
+	0xad, 0x98, 0x8b, 0x55, 0xaf, 0x5d, 0xb7, 0x1d, 0xea, 0x07, 0xdb, 0x1b, 0x17, 0x1f, 0x16, 0x32,
+	0x6f, 0x3f, 0x2e, 0xac, 0xb8, 0x3e, 0xf7, 0xea, 0x25, 0xbb, 0x4c, 0x6b, 0x48, 0xed, 0x12, 0xf9,
+	0x53, 0x60, 0x95, 0x27, 0x88, 0x37, 0x43, 0xc2, 0x84, 0x01, 0x73, 0x7a, 0xa3, 0xc0, 0x33, 0x30,
+	0xbd, 0x57, 0xab, 0xf5, 0x04, 0xcf, 0x7d, 0xff, 0xe0, 0x69, 0x71, 0xac, 0x7f, 0x55, 0x8b, 0x1e,
+	0x54, 0x31, 0xf3, 0xfc, 0xc0, 0xfd, 0xb6, 0x46, 0x3b, 0x60, 0x3e, 0xdd, 0x8b, 0xea, 0xb4, 0x01,
+	0xc6, 0x98, 0x12, 0x29, 0x07, 0x9d, 0xf7, 0x7e, 0xcd, 0xdc, 0xfc, 0x32, 0x02, 0x46, 0x84, 0x53,
+	0xf8, 0x5c, 0x03, 0x3f, 0x76, 0x2f, 0x49, 0xb8, 0x92, 0x9c, 0x93, 0x7e, 0x9b, 0xd7, 0x58, 0x1d,
+	0x42, 0x53, 0x32, 0x5a, 0x85, 0xa7, 0xef, 0x3e, 0xbf, 0xc8, 0x2e, 0xc3, 0x25, 0x94, 0xd8, 0xf1,
+	0x0d, 0xa1, 0x5d, 0x90, 0xeb, 0x0c, 0x9d, 0x8a, 0x0d, 0x72, 0x06, 0x5f, 0x6a, 0x60, 0x2a, 0x7e,
+	0x9d, 0xe1, 0x5a, 0x6a, 0xb0, 0xd4, 0xbd, 0x64, 0xac, 0x0f, 0xa5, 0x3b, 0x08, 0x4d, 0x5d, 0x08,
+	0x24, 0x98, 0x3a, 0x68, 0x6f, 0xba, 0xd1, 0xe4, 0x3d, 0x18, 0x80, 0xd6, 0xdd, 0xf3, 0x41, 0x68,
+	0xb1, 0xce, 0x5a, 0x5b, 0x02, 0xad, 0x08, 0x51, 0x3f, 0x34, 0x39, 0x28, 0xe8, 0x34, 0x3e, 0x46,
+	0x67, 0xf0, 0x95, 0x06, 0x7e, 0x4a, 0x8c, 0x0b, 0x4c, 0x8f, 0x9c, 0x3e, 0x9a, 0xc6, 0x9f, 0xc3,
+	0x29, 0x2b, 0xce, 0xa2, 0xe0, 0x5c, 0x87, 0xab, 0x49, 0xce, 0xf6, 0x1c, 0xf6, 0x12, 0x1e, 0x81,
+	0xbc, 0xfc, 0xd6, 0x40, 0x2b, 0x35, 0x54, 0xec, 0x73, 0x66, 0xfc, 0x7e, 0xab, 0x8e, 0xa2, 0x30,
+	0x05, 0x85, 0x0e, 0x67, 0x93, 0x14, 0xf2, 0x63, 0xb6, 0xbd, 0x77, 0x71, 0x65, 0x6a, 0x97, 0x57,
+	0xa6, 0xf6, 0xe9, 0xca, 0xd4, 0x9e, 0x5d, 0x9b, 0x99, 0xcb, 0x6b, 0x33, 0xf3, 0xfe, 0xda, 0xcc,
+	0x3c, 0x46, 0x5d, 0xd7, 0x5c, 0xd9, 0x06, 0x84, 0xb7, 0x1f, 0x0b, 0x65, 0x0f, 0xfb, 0x01, 0x3a,
+	0x11, 0xee, 0xc4, 0x9d, 0x2f, 0xe5, 0xc5, 0xdf, 0x92, 0xbf, 0xbe, 0x06, 0x00, 0x00, 0xff, 0xff,
+	0x53, 0x30, 0x78, 0x78, 0x5e, 0x09, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -749,12 +749,12 @@ const _ = grpc.SupportPackageIsVersion4
 type QueryClient interface {
 	// VolumeReport queries VolumeReport info for given epoch.
 	VolumeReport(ctx context.Context, in *QueryVolumeReportRequest, opts ...grpc.CallOption) (*QueryVolumeReportResponse, error)
-	// PotRewardsByEpoch queries Pot rewards by a given epoch.
-	PotRewardsByEpoch(ctx context.Context, in *QueryPotRewardsByEpochRequest, opts ...grpc.CallOption) (*QueryPotRewardsByEpochResponse, error)
-	// PotRewardsByOwner queries Pot rewards by a given owner wallet address.
-	PotRewardsByOwner(ctx context.Context, in *QueryPotRewardsByOwnerRequest, opts ...grpc.CallOption) (*QueryPotRewardsByOwnerResponse, error)
-	// PotSlashingByOwner queries Pot Pot slashingBy by owner wallet address.
-	PotSlashingByOwner(ctx context.Context, in *QueryPotSlashingByOwnerRequest, opts ...grpc.CallOption) (*QueryPotSlashingByOwnerResponse, error)
+	// RewardsByEpoch queries Pot rewards by a given epoch.
+	RewardsByEpoch(ctx context.Context, in *QueryRewardsByEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByEpochResponse, error)
+	// RewardsByOwner queries Pot rewards by a given owner wallet address.
+	RewardsByOwner(ctx context.Context, in *QueryRewardsByOwnerRequest, opts ...grpc.CallOption) (*QueryRewardsByOwnerResponse, error)
+	// SlashingByOwner queries Pot slashing by owner wallet address.
+	SlashingByOwner(ctx context.Context, in *QuerySlashingByOwnerRequest, opts ...grpc.CallOption) (*QuerySlashingByOwnerResponse, error)
 	// Params queries POT module Params info.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
 }
@@ -776,27 +776,27 @@ func (c *queryClient) VolumeReport(ctx context.Context, in *QueryVolumeReportReq
 	return out, nil
 }
 
-func (c *queryClient) PotRewardsByEpoch(ctx context.Context, in *QueryPotRewardsByEpochRequest, opts ...grpc.CallOption) (*QueryPotRewardsByEpochResponse, error) {
-	out := new(QueryPotRewardsByEpochResponse)
-	err := c.cc.Invoke(ctx, "/stratos.pot.v1.Query/PotRewardsByEpoch", in, out, opts...)
+func (c *queryClient) RewardsByEpoch(ctx context.Context, in *QueryRewardsByEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByEpochResponse, error) {
+	out := new(QueryRewardsByEpochResponse)
+	err := c.cc.Invoke(ctx, "/stratos.pot.v1.Query/RewardsByEpoch", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) PotRewardsByOwner(ctx context.Context, in *QueryPotRewardsByOwnerRequest, opts ...grpc.CallOption) (*QueryPotRewardsByOwnerResponse, error) {
-	out := new(QueryPotRewardsByOwnerResponse)
-	err := c.cc.Invoke(ctx, "/stratos.pot.v1.Query/PotRewardsByOwner", in, out, opts...)
+func (c *queryClient) RewardsByOwner(ctx context.Context, in *QueryRewardsByOwnerRequest, opts ...grpc.CallOption) (*QueryRewardsByOwnerResponse, error) {
+	out := new(QueryRewardsByOwnerResponse)
+	err := c.cc.Invoke(ctx, "/stratos.pot.v1.Query/RewardsByOwner", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) PotSlashingByOwner(ctx context.Context, in *QueryPotSlashingByOwnerRequest, opts ...grpc.CallOption) (*QueryPotSlashingByOwnerResponse, error) {
-	out := new(QueryPotSlashingByOwnerResponse)
-	err := c.cc.Invoke(ctx, "/stratos.pot.v1.Query/PotSlashingByOwner", in, out, opts...)
+func (c *queryClient) SlashingByOwner(ctx context.Context, in *QuerySlashingByOwnerRequest, opts ...grpc.CallOption) (*QuerySlashingByOwnerResponse, error) {
+	out := new(QuerySlashingByOwnerResponse)
+	err := c.cc.Invoke(ctx, "/stratos.pot.v1.Query/SlashingByOwner", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -816,12 +816,12 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 type QueryServer interface {
 	// VolumeReport queries VolumeReport info for given epoch.
 	VolumeReport(context.Context, *QueryVolumeReportRequest) (*QueryVolumeReportResponse, error)
-	// PotRewardsByEpoch queries Pot rewards by a given epoch.
-	PotRewardsByEpoch(context.Context, *QueryPotRewardsByEpochRequest) (*QueryPotRewardsByEpochResponse, error)
-	// PotRewardsByOwner queries Pot rewards by a given owner wallet address.
-	PotRewardsByOwner(context.Context, *QueryPotRewardsByOwnerRequest) (*QueryPotRewardsByOwnerResponse, error)
-	// PotSlashingByOwner queries Pot Pot slashingBy by owner wallet address.
-	PotSlashingByOwner(context.Context, *QueryPotSlashingByOwnerRequest) (*QueryPotSlashingByOwnerResponse, error)
+	// RewardsByEpoch queries Pot rewards by a given epoch.
+	RewardsByEpoch(context.Context, *QueryRewardsByEpochRequest) (*QueryRewardsByEpochResponse, error)
+	// RewardsByOwner queries Pot rewards by a given owner wallet address.
+	RewardsByOwner(context.Context, *QueryRewardsByOwnerRequest) (*QueryRewardsByOwnerResponse, error)
+	// SlashingByOwner queries Pot slashing by owner wallet address.
+	SlashingByOwner(context.Context, *QuerySlashingByOwnerRequest) (*QuerySlashingByOwnerResponse, error)
 	// Params queries POT module Params info.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
 }
@@ -833,14 +833,14 @@ type UnimplementedQueryServer struct {
 func (*UnimplementedQueryServer) VolumeReport(ctx context.Context, req *QueryVolumeReportRequest) (*QueryVolumeReportResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method VolumeReport not implemented")
 }
-func (*UnimplementedQueryServer) PotRewardsByEpoch(ctx context.Context, req *QueryPotRewardsByEpochRequest) (*QueryPotRewardsByEpochResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PotRewardsByEpoch not implemented")
+func (*UnimplementedQueryServer) RewardsByEpoch(ctx context.Context, req *QueryRewardsByEpochRequest) (*QueryRewardsByEpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RewardsByEpoch not implemented")
 }
-func (*UnimplementedQueryServer) PotRewardsByOwner(ctx context.Context, req *QueryPotRewardsByOwnerRequest) (*QueryPotRewardsByOwnerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PotRewardsByOwner not implemented")
+func (*UnimplementedQueryServer) RewardsByOwner(ctx context.Context, req *QueryRewardsByOwnerRequest) (*QueryRewardsByOwnerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RewardsByOwner not implemented")
 }
-func (*UnimplementedQueryServer) PotSlashingByOwner(ctx context.Context, req *QueryPotSlashingByOwnerRequest) (*QueryPotSlashingByOwnerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method PotSlashingByOwner not implemented")
+func (*UnimplementedQueryServer) SlashingByOwner(ctx context.Context, req *QuerySlashingByOwnerRequest) (*QuerySlashingByOwnerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SlashingByOwner not implemented")
 }
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
@@ -868,56 +868,56 @@ func _Query_VolumeReport_Handler(srv interface{}, ctx context.Context, dec func(
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_PotRewardsByEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryPotRewardsByEpochRequest)
+func _Query_RewardsByEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRewardsByEpochRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).PotRewardsByEpoch(ctx, in)
+		return srv.(QueryServer).RewardsByEpoch(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.pot.v1.Query/PotRewardsByEpoch",
+		FullMethod: "/stratos.pot.v1.Query/RewardsByEpoch",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PotRewardsByEpoch(ctx, req.(*QueryPotRewardsByEpochRequest))
+		return srv.(QueryServer).RewardsByEpoch(ctx, req.(*QueryRewardsByEpochRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_PotRewardsByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryPotRewardsByOwnerRequest)
+func _Query_RewardsByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRewardsByOwnerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).PotRewardsByOwner(ctx, in)
+		return srv.(QueryServer).RewardsByOwner(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.pot.v1.Query/PotRewardsByOwner",
+		FullMethod: "/stratos.pot.v1.Query/RewardsByOwner",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PotRewardsByOwner(ctx, req.(*QueryPotRewardsByOwnerRequest))
+		return srv.(QueryServer).RewardsByOwner(ctx, req.(*QueryRewardsByOwnerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_PotSlashingByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryPotSlashingByOwnerRequest)
+func _Query_SlashingByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QuerySlashingByOwnerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).PotSlashingByOwner(ctx, in)
+		return srv.(QueryServer).SlashingByOwner(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.pot.v1.Query/PotSlashingByOwner",
+		FullMethod: "/stratos.pot.v1.Query/SlashingByOwner",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).PotSlashingByOwner(ctx, req.(*QueryPotSlashingByOwnerRequest))
+		return srv.(QueryServer).SlashingByOwner(ctx, req.(*QuerySlashingByOwnerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -949,16 +949,16 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_VolumeReport_Handler,
 		},
 		{
-			MethodName: "PotRewardsByEpoch",
-			Handler:    _Query_PotRewardsByEpoch_Handler,
+			MethodName: "RewardsByEpoch",
+			Handler:    _Query_RewardsByEpoch_Handler,
 		},
 		{
-			MethodName: "PotRewardsByOwner",
-			Handler:    _Query_PotRewardsByOwner_Handler,
+			MethodName: "RewardsByOwner",
+			Handler:    _Query_RewardsByOwner_Handler,
 		},
 		{
-			MethodName: "PotSlashingByOwner",
-			Handler:    _Query_PotSlashingByOwner_Handler,
+			MethodName: "SlashingByOwner",
+			Handler:    _Query_SlashingByOwner_Handler,
 		},
 		{
 			MethodName: "Params",
@@ -993,6 +993,46 @@ func (m *QueryVolumeReportRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 		i = encodeVarintQuery(dAtA, i, uint64(m.Epoch))
 		i--
 		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryVolumeReportResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryVolumeReportResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryVolumeReportResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Height != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Height))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.ReportInfo != nil {
+		{
+			size, err := m.ReportInfo.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1042,46 +1082,6 @@ func (m *ReportInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintQuery(dAtA, i, uint64(m.Epoch))
 		i--
 		dAtA[i] = 0x8
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryVolumeReportResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryVolumeReportResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryVolumeReportResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Height != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.ReportInfo != nil {
-		{
-			size, err := m.ReportInfo.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1144,7 +1144,7 @@ func (m *QueryParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryPotRewardsByEpochRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryRewardsByEpochRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1154,12 +1154,12 @@ func (m *QueryPotRewardsByEpochRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryPotRewardsByEpochRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryRewardsByEpochRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryPotRewardsByEpochRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryRewardsByEpochRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1191,7 +1191,7 @@ func (m *QueryPotRewardsByEpochRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryPotRewardsByEpochResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryRewardsByEpochResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1201,12 +1201,12 @@ func (m *QueryPotRewardsByEpochResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryPotRewardsByEpochResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryRewardsByEpochResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryPotRewardsByEpochResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryRewardsByEpochResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1245,7 +1245,7 @@ func (m *QueryPotRewardsByEpochResponse) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
-func (m *PotRewardByOwner) Marshal() (dAtA []byte, err error) {
+func (m *QueryRewardsByOwnerRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1255,12 +1255,82 @@ func (m *PotRewardByOwner) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *PotRewardByOwner) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryRewardsByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *PotRewardByOwner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryRewardsByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.WalletAddress) > 0 {
+		i -= len(m.WalletAddress)
+		copy(dAtA[i:], m.WalletAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.WalletAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *QueryRewardsByOwnerResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *QueryRewardsByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *QueryRewardsByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if m.Height != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Height))
+		i--
+		dAtA[i] = 0x10
+	}
+	if m.Rewards != nil {
+		{
+			size, err := m.Rewards.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *RewardByOwner) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *RewardByOwner) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *RewardByOwner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1303,7 +1373,7 @@ func (m *PotRewardByOwner) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryPotRewardsByOwnerRequest) Marshal() (dAtA []byte, err error) {
+func (m *QuerySlashingByOwnerRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1313,12 +1383,12 @@ func (m *QueryPotRewardsByOwnerRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryPotRewardsByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QuerySlashingByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryPotRewardsByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QuerySlashingByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1333,7 +1403,7 @@ func (m *QueryPotRewardsByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryPotRewardsByOwnerResponse) Marshal() (dAtA []byte, err error) {
+func (m *QuerySlashingByOwnerResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1343,82 +1413,12 @@ func (m *QueryPotRewardsByOwnerResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryPotRewardsByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QuerySlashingByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryPotRewardsByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.Height != 0 {
-		i = encodeVarintQuery(dAtA, i, uint64(m.Height))
-		i--
-		dAtA[i] = 0x10
-	}
-	if m.Rewards != nil {
-		{
-			size, err := m.Rewards.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintQuery(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryPotSlashingByOwnerRequest) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryPotSlashingByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryPotSlashingByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.WalletAddress) > 0 {
-		i -= len(m.WalletAddress)
-		copy(dAtA[i:], m.WalletAddress)
-		i = encodeVarintQuery(dAtA, i, uint64(len(m.WalletAddress)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *QueryPotSlashingByOwnerResponse) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *QueryPotSlashingByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *QueryPotSlashingByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QuerySlashingByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1461,6 +1461,22 @@ func (m *QueryVolumeReportRequest) Size() (n int) {
 	return n
 }
 
+func (m *QueryVolumeReportResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.ReportInfo != nil {
+		l = m.ReportInfo.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Height != 0 {
+		n += 1 + sovQuery(uint64(m.Height))
+	}
+	return n
+}
+
 func (m *ReportInfo) Size() (n int) {
 	if m == nil {
 		return 0
@@ -1481,22 +1497,6 @@ func (m *ReportInfo) Size() (n int) {
 	l = len(m.Reporter)
 	if l > 0 {
 		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryVolumeReportResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.ReportInfo != nil {
-		l = m.ReportInfo.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.Height != 0 {
-		n += 1 + sovQuery(uint64(m.Height))
 	}
 	return n
 }
@@ -1523,7 +1523,7 @@ func (m *QueryParamsResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryPotRewardsByEpochRequest) Size() (n int) {
+func (m *QueryRewardsByEpochRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1543,7 +1543,7 @@ func (m *QueryPotRewardsByEpochRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryPotRewardsByEpochResponse) Size() (n int) {
+func (m *QueryRewardsByEpochResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1565,7 +1565,36 @@ func (m *QueryPotRewardsByEpochResponse) Size() (n int) {
 	return n
 }
 
-func (m *PotRewardByOwner) Size() (n int) {
+func (m *QueryRewardsByOwnerRequest) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.WalletAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	return n
+}
+
+func (m *QueryRewardsByOwnerResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Rewards != nil {
+		l = m.Rewards.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Height != 0 {
+		n += 1 + sovQuery(uint64(m.Height))
+	}
+	return n
+}
+
+func (m *RewardByOwner) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1590,7 +1619,7 @@ func (m *PotRewardByOwner) Size() (n int) {
 	return n
 }
 
-func (m *QueryPotRewardsByOwnerRequest) Size() (n int) {
+func (m *QuerySlashingByOwnerRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1603,36 +1632,7 @@ func (m *QueryPotRewardsByOwnerRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryPotRewardsByOwnerResponse) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if m.Rewards != nil {
-		l = m.Rewards.Size()
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	if m.Height != 0 {
-		n += 1 + sovQuery(uint64(m.Height))
-	}
-	return n
-}
-
-func (m *QueryPotSlashingByOwnerRequest) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.WalletAddress)
-	if l > 0 {
-		n += 1 + l + sovQuery(uint64(l))
-	}
-	return n
-}
-
-func (m *QueryPotSlashingByOwnerResponse) Size() (n int) {
+func (m *QuerySlashingByOwnerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1698,6 +1698,111 @@ func (m *QueryVolumeReportRequest) Unmarshal(dAtA []byte) error {
 				b := dAtA[iNdEx]
 				iNdEx++
 				m.Epoch |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryVolumeReportResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryVolumeReportResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryVolumeReportResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReportInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.ReportInfo == nil {
+				m.ReportInfo = &ReportInfo{}
+			}
+			if err := m.ReportInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			m.Height = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Height |= int64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
@@ -1888,111 +1993,6 @@ func (m *ReportInfo) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryVolumeReportResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryVolumeReportResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryVolumeReportResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ReportInfo", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.ReportInfo == nil {
-				m.ReportInfo = &ReportInfo{}
-			}
-			if err := m.ReportInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *QueryParamsRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -2129,7 +2129,7 @@ func (m *QueryParamsResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryPotRewardsByEpochRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryRewardsByEpochRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2152,10 +2152,10 @@ func (m *QueryPotRewardsByEpochRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPotRewardsByEpochRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryRewardsByEpochRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPotRewardsByEpochRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryRewardsByEpochRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2266,7 +2266,7 @@ func (m *QueryPotRewardsByEpochRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryPotRewardsByEpochResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryRewardsByEpochResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2289,10 +2289,10 @@ func (m *QueryPotRewardsByEpochResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPotRewardsByEpochResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryRewardsByEpochResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPotRewardsByEpochResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryRewardsByEpochResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2405,7 +2405,7 @@ func (m *QueryPotRewardsByEpochResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *PotRewardByOwner) Unmarshal(dAtA []byte) error {
+func (m *QueryRewardsByOwnerRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2428,10 +2428,197 @@ func (m *PotRewardByOwner) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: PotRewardByOwner: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryRewardsByOwnerRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: PotRewardByOwner: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryRewardsByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WalletAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *QueryRewardsByOwnerResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: QueryRewardsByOwnerResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: QueryRewardsByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Rewards", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Rewards == nil {
+				m.Rewards = &RewardByOwner{}
+			}
+			if err := m.Rewards.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			m.Height = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Height |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *RewardByOwner) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: RewardByOwner: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: RewardByOwner: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2555,7 +2742,7 @@ func (m *PotRewardByOwner) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryPotRewardsByOwnerRequest) Unmarshal(dAtA []byte) error {
+func (m *QuerySlashingByOwnerRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2578,10 +2765,10 @@ func (m *QueryPotRewardsByOwnerRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPotRewardsByOwnerRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QuerySlashingByOwnerRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPotRewardsByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QuerySlashingByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2637,7 +2824,7 @@ func (m *QueryPotRewardsByOwnerRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryPotRewardsByOwnerResponse) Unmarshal(dAtA []byte) error {
+func (m *QuerySlashingByOwnerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2660,197 +2847,10 @@ func (m *QueryPotRewardsByOwnerResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPotRewardsByOwnerResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QuerySlashingByOwnerResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPotRewardsByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Rewards", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.Rewards == nil {
-				m.Rewards = &PotRewardByOwner{}
-			}
-			if err := m.Rewards.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-			}
-			m.Height = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				m.Height |= int64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryPotSlashingByOwnerRequest) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPotSlashingByOwnerRequest: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPotSlashingByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowQuery
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthQuery
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.WalletAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipQuery(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthQuery
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *QueryPotSlashingByOwnerResponse) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowQuery
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: QueryPotSlashingByOwnerResponse: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryPotSlashingByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QuerySlashingByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:

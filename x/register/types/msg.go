@@ -22,7 +22,6 @@ var (
 
 // message type and route constants
 const (
-	// TypeMsgCreateResourceNodeTx defines the type string of an CreateResourceNodeTx transaction
 	TypeMsgCreateResourceNodeTx    = "create_resource_node"
 	TypeMsgRemoveResourceNodeTx    = "remove_resource_node"
 	TypeUpdateResourceNodeTx       = "update_resource_node"
@@ -36,7 +35,7 @@ const (
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType uint32,
+	value sdk.DecCoin, ownerAddr sdk.AccAddress, description *Description, nodeType uint32,
 ) (*MsgCreateResourceNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -126,7 +125,7 @@ func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 
 // NewMsgCreateMetaNode creates a new Msg<Action> instance
 func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description,
+	value sdk.DecCoin, ownerAddr sdk.AccAddress, description *Description,
 ) (*MsgCreateMetaNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -369,7 +368,7 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 }
 
 func NewMsgUpdateResourceNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateResourceNodeStake {
+	stakeDelta sdk.DecCoin, incrStake bool) *MsgUpdateResourceNodeStake {
 	return &MsgUpdateResourceNodeStake{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
@@ -417,7 +416,7 @@ func (msg MsgUpdateResourceNodeStake) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.StakeDelta.Amount.LTE(sdk.ZeroInt()) {
+	if msg.StakeDelta.Amount.LTE(sdk.ZeroDec()) {
 		return ErrInvalidStakeChange
 	}
 	return nil
@@ -480,7 +479,7 @@ func (msg MsgUpdateMetaNode) ValidateBasic() error {
 }
 
 func NewMsgUpdateMetaNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateMetaNodeStake {
+	stakeDelta sdk.DecCoin, incrStake bool) *MsgUpdateMetaNodeStake {
 	return &MsgUpdateMetaNodeStake{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
@@ -528,7 +527,7 @@ func (msg MsgUpdateMetaNodeStake) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.StakeDelta.Amount.LTE(sdk.ZeroInt()) {
+	if msg.StakeDelta.Amount.LTE(sdk.ZeroDec()) {
 		return ErrInvalidStakeChange
 	}
 	return nil

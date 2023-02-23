@@ -59,7 +59,7 @@ type (
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		NetworkAddr string            `json:"network_address" yaml:"network_address"`
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
-		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
+		Amount      sdk.DecCoin       `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
 		NodeType    uint32            `json:"node_type" yaml:"node_type"`
 	}
@@ -79,7 +79,7 @@ type (
 	UpdateResourceNodeStakeRequest struct {
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
-		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
+		StakeDelta     sdk.DecCoin  `json:"stake_delta" yaml:"stake_delta"`
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
@@ -87,7 +87,7 @@ type (
 		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
 		NetworkAddr string            `json:"network_address" yaml:"network_address"`
 		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
-		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
+		Amount      sdk.DecCoin       `json:"amount" yaml:"amount"`
 		Description types.Description `json:"description" yaml:"description"`
 	}
 
@@ -105,7 +105,7 @@ type (
 	UpdateMetaNodeStakeRequest struct {
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
-		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
+		StakeDelta     sdk.DecCoin  `json:"stake_delta" yaml:"stake_delta"`
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
@@ -345,7 +345,7 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -420,7 +420,7 @@ func postUpdateMetaNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

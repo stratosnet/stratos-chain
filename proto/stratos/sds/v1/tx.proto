@@ -3,9 +3,7 @@ package stratos.sds.v1;
 
 import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
-
 import "cosmos/base/v1beta1/coin.proto";
-
 
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
@@ -20,39 +18,39 @@ service Msg {
   };
 }
 
-
 message MsgFileUpload {
   string           file_hash = 1 [
-    (gogoproto.jsontag)  = "file_hash",
+    (gogoproto.jsontag) = "file_hash",
     (gogoproto.moretags) = "yaml:\"file_hash\""
   ];
   string          from = 2 [
-    (gogoproto.jsontag)  = "from",
+    (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
   string          reporter = 3 [
-    (gogoproto.jsontag)  = "reporter",
+    (gogoproto.jsontag) = "reporter",
     (gogoproto.moretags) = "yaml:\"reporter\""
   ];
   string          uploader = 4 [
-    (gogoproto.jsontag)  = "uploader",
+    (gogoproto.jsontag) = "uploader",
     (gogoproto.moretags) = "yaml:\"uploader\""
   ];
 }
 
+message MsgFileUploadResponse {}
+
 message MsgPrepay {
-  string           sender = 1 [
-    (gogoproto.jsontag)  = "sender",
+  string                                sender = 1 [
+    (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
 
-  repeated cosmos.base.v1beta1.Coin    coins = 2 [
-    (gogoproto.jsontag)  = "coins",
-    (gogoproto.moretags) = "yaml:\"coins\"",
+  repeated cosmos.base.v1beta1.DecCoin  amount = 2 [
+    (gogoproto.jsontag) = "amount",
+    (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
   ];
 }
 
-message MsgFileUploadResponse {}
 message MsgPrepayResponse {}

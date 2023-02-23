@@ -1,8 +1,6 @@
 syntax = "proto3";
 package stratos.pot.v1;
 
-
-
 import "gogoproto/gogo.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "stratos/pot/v1/pot.proto";
@@ -11,11 +9,42 @@ option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 
 // GenesisState defines the register module's genesis state.
 message GenesisState {
-  pot.v1.Params                params = 1 [ (gogoproto.moretags) = "yaml:\"params\"" ];
-  cosmos.base.v1beta1.Coin     total_mined_token = 2 [ (gogoproto.moretags) = "yaml:\"total_mined_token\"" ];
-  int64                        last_reported_epoch = 3 [ (gogoproto.moretags) = "yaml:\"last_reported_epoch\"" ];
-  repeated pot.v1.ImmatureTotal       immature_total_info = 4 [ (gogoproto.moretags) = "yaml:\"immature_total_info\""];
-  repeated pot.v1.MatureTotal  mature_total_info = 5 [ (gogoproto.moretags) = "yaml:\"mature_total_info\""];
-  repeated pot.v1.Reward       individual_reward_info = 6 [ (gogoproto.moretags) = "yaml:\"individual_reward_info\""];
+  Params                    params = 1 [
+    (gogoproto.moretags) = "yaml:\"params\""
+  ];
+  cosmos.base.v1beta1.Coin  total_mined_token = 2 [
+    (gogoproto.moretags) = "yaml:\"total_mined_token\""
+  ];
+  int64                     last_reported_epoch = 3 [
+    (gogoproto.moretags) = "yaml:\"last_reported_epoch\""
+  ];
+  repeated ImmatureTotal    immature_total_info = 4 [
+    (gogoproto.moretags) = "yaml:\"immature_total_info\""
+  ];
+  repeated MatureTotal      mature_total_info = 5 [
+    (gogoproto.moretags) = "yaml:\"mature_total_info\""
+  ];
+  repeated Reward           individual_reward_info = 6 [
+    (gogoproto.moretags) = "yaml:\"individual_reward_info\""
+  ];
 }
 
+message ImmatureTotal {
+  string                              wallet_address = 1 [
+    (gogoproto.jsontag) = "wallet_address",
+    (gogoproto.moretags) = "yaml:\"wallet_address\""
+  ];
+  repeated cosmos.base.v1beta1.Coin   value = 2 [
+    (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
+
+message MatureTotal {
+  string                              wallet_address = 1 [
+    (gogoproto.jsontag) = "wallet_address",
+    (gogoproto.moretags) = "yaml:\"wallet_address\""
+  ];
+  repeated cosmos.base.v1beta1.Coin   value = 2 [
+    (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}

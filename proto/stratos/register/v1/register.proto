@@ -5,81 +5,80 @@ import "gogoproto/gogo.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
-
 import "cosmos_proto/cosmos.proto";
-import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/staking/v1beta1/staking.proto";
-
 
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
 // Params defines the Register module parameters
 message Params {
-  string  bond_denom                = 1 [
-    (gogoproto.jsontag)  = "bond_denom",
+  string                    bond_denom = 1 [
+    (gogoproto.jsontag) = "bond_denom",
     (gogoproto.moretags) = "yaml:\"bond_denom\""
   ];
   google.protobuf.Duration  unbonding_threashold_time = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
-    (gogoproto.jsontag)  = "unbonding_threashold_time",
+    (gogoproto.jsontag) = "unbonding_threashold_time",
     (gogoproto.moretags) = "yaml:\"unbonding_threashold_time\""
   ];
   google.protobuf.Duration  unbonding_completion_time = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.stdduration) = true,
-    (gogoproto.jsontag)  = "unbonding_completion_time",
+    (gogoproto.jsontag) = "unbonding_completion_time",
     (gogoproto.moretags) = "yaml:\"unbonding_completion_time\""
   ];
-  uint32  max_entries               = 4 [
-    (gogoproto.jsontag)  = "max_entries",
+  uint32                    max_entries = 4 [
+    (gogoproto.jsontag) = "max_entries",
     (gogoproto.moretags) = "yaml:\"max_entries\",omitempty"
   ];
-  bool resource_node_reg_enabled = 5 [(gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""];
+  bool                      resource_node_reg_enabled = 5 [
+    (gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""
+  ];
 }
 
 message ResourceNode {
   option (gogoproto.equal)       = true;
   option (gogoproto.goproto_stringer) = true;
 
-  string                              network_address   = 1 [
-    (gogoproto.jsontag)  = "network_address",
+  string                              network_address = 1 [
+    (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  google.protobuf.Any                 pubkey        = 2 [
+  google.protobuf.Any                 pubkey = 2 [
     (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
-    (gogoproto.jsontag)  = "pubkey",
+    (gogoproto.jsontag) = "pubkey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ];
-  bool                                suspend       = 3 [
-    (gogoproto.jsontag)  = "suspend",
+  bool                                suspend = 3 [
+    (gogoproto.jsontag) = "suspend",
     (gogoproto.moretags) = "yaml:\"suspend\""
   ];
-  cosmos.staking.v1beta1.BondStatus   status        = 4 [
-    (gogoproto.jsontag)  = "status",
-    (gogoproto.moretags) = "yaml:\"status\"" ];
-  string                              tokens        = 5 [
+  cosmos.staking.v1beta1.BondStatus   status = 4 [
+    (gogoproto.jsontag) = "status",
+    (gogoproto.moretags) = "yaml:\"status\""];
+  string                              tokens = 5 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag)  = "tokens",
+    (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                              owner_address  = 6 [
-    (gogoproto.jsontag)  = "owner_address",
+  string                              owner_address = 6 [
+    (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  Description                         description   = 7 [
-    (gogoproto.jsontag)  = "description",
+  Description                         description = 7 [
+    (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
   google.protobuf.Timestamp           creation_time = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag)  = "creation_time",
+    (gogoproto.jsontag) = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
   ];
-  uint32                              node_type      = 9 [
-    (gogoproto.jsontag)  = "node_type",
+  uint32                              node_type = 9 [
+    (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];
 
@@ -89,61 +88,61 @@ message MetaNode {
   option (gogoproto.equal)       = true;
   option (gogoproto.goproto_stringer) = true;
 
-  string                              network_address   = 1 [
-    (gogoproto.jsontag)  = "network_address",
+  string                              network_address = 1 [
+    (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  google.protobuf.Any                 pubkey        = 2 [
+  google.protobuf.Any                 pubkey = 2 [
     (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
-    (gogoproto.jsontag)  = "pubkey",
+    (gogoproto.jsontag) = "pubkey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ];
-  bool                                suspend       = 3 [
-    (gogoproto.jsontag)  = "suspend",
+  bool                                suspend = 3 [
+    (gogoproto.jsontag) = "suspend",
     (gogoproto.moretags) = "yaml:\"suspend\""
   ];
-  cosmos.staking.v1beta1.BondStatus   status        = 4 [
-    (gogoproto.jsontag)  = "status",
-    (gogoproto.moretags) = "yaml:\"status\"" ];
-  string                              tokens        = 5 [
+  cosmos.staking.v1beta1.BondStatus   status = 4 [
+    (gogoproto.jsontag) = "status",
+    (gogoproto.moretags) = "yaml:\"status\""];
+  string                              tokens = 5 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag)  = "tokens",
+    (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                              owner_address  = 6 [
-    (gogoproto.jsontag)  = "owner_address",
+  string                              owner_address = 6 [
+    (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  Description                         description   = 7 [
-    (gogoproto.jsontag)  = "description",
+  Description                         description = 7 [
+    (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
   google.protobuf.Timestamp           creation_time = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag)  = "creation_time",
+    (gogoproto.jsontag) = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
   ];
 }
 
 message MetaNodeRegistrationVotePool {
-  string                      network_address   = 1 [
-    (gogoproto.jsontag)  = "network_address",
+  string                      network_address = 1 [
+    (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  repeated string             approve_list   = 2 [
-    (gogoproto.jsontag)  = "approve_list",
+  repeated string             approve_list = 2 [
+    (gogoproto.jsontag) = "approve_list",
     (gogoproto.moretags) = "yaml:\"approve_list\""
   ];
-  repeated string             reject_list   = 3 [
-    (gogoproto.jsontag)  = "reject_list",
+  repeated string             reject_list = 3 [
+    (gogoproto.jsontag) = "reject_list",
     (gogoproto.moretags) = "yaml:\"reject_list\""
   ];
   google.protobuf.Timestamp   expire_time = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag)  = "expire_time",
+    (gogoproto.jsontag) = "expire_time",
     (gogoproto.moretags) = "yaml:\"expire_time\""
   ];
 }
@@ -152,124 +151,39 @@ message Description {
   option (gogoproto.equal)       = true;
   option (gogoproto.goproto_stringer) = true;
 
-  string  moniker         = 1 [
-    (gogoproto.jsontag)  = "moniker",
+  string  moniker = 1 [
+    (gogoproto.jsontag) = "moniker",
     (gogoproto.moretags) = "yaml:\"moniker\""
   ];
-  string  identity        = 2 [
-    (gogoproto.jsontag)  = "identity",
+  string  identity = 2 [
+    (gogoproto.jsontag) = "identity",
     (gogoproto.moretags) = "yaml:\"identity\",omitempty"
   ];
-  string  website         = 3 [
-    (gogoproto.jsontag)  = "website",
+  string  website = 3 [
+    (gogoproto.jsontag) = "website",
     (gogoproto.moretags) = "yaml:\"website\",omitempty"
   ];
   string  security_contact = 4 [
-    (gogoproto.jsontag)  = "security_contact",
-    (gogoproto.moretags) = "yaml:\"security_contact\",omitempty" ];
-  string  details         = 5 [
-    (gogoproto.jsontag)  = "details",
-    (gogoproto.moretags) = "yaml:\"details\",omitempty" ];
-}
-
-message Slashing {
-  string  wallet_address = 1 [
-    (gogoproto.jsontag)  = "wallet_address",
-    (gogoproto.moretags) = "yaml:\"wallet_address\""
-  ];
-  int64   value         = 2 [
-    (gogoproto.jsontag)  = "value",
-    (gogoproto.moretags) = "yaml:\"value\""
-  ];
-}
-
-//message ResourceNodes {
-//  repeated ResourceNode   resource_nodes = 1;
-//}
-//
-//message MetaNodes {
-//  repeated MetaNode   meta_nodes = 1;
-//}
-
-message TotalStakesResponse {
-  cosmos.base.v1beta1.Coin resource_nodes_total_stake  = 1;
-  cosmos.base.v1beta1.Coin meta_nodes_total_stake  = 2;
-  cosmos.base.v1beta1.Coin total_bonded_stake          = 3;
-  cosmos.base.v1beta1.Coin total_unbonded_stake        = 4;
-  cosmos.base.v1beta1.Coin total_unbonding_stake       = 5;
-}
-
-message StakingInfo {
-  string                              network_address   = 1 [
-    (gogoproto.jsontag)  = "network_address",
-    (gogoproto.moretags) = "yaml:\"network_address\""
-  ];
-  google.protobuf.Any                 pubkey        = 2 [
-    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
-    (gogoproto.jsontag)  = "pubkey",
-    (gogoproto.moretags) = "yaml:\"pubkey\""
-  ];
-  bool                                suspend       = 3 [
-    (gogoproto.jsontag)  = "suspend",
-    (gogoproto.moretags) = "yaml:\"suspend\""
-  ];
-  cosmos.staking.v1beta1.BondStatus   status        = 4 [
-    (gogoproto.jsontag)  = "status",
-    (gogoproto.moretags) = "yaml:\"status\"" ];
-  string                              tokens        = 5 [
-    (gogoproto.jsontag)  = "tokens",
-    (gogoproto.moretags) = "yaml:\"tokens\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  string                              owner_address  = 6 [
-    (gogoproto.jsontag)  = "owner_address",
-    (gogoproto.moretags) = "yaml:\"owner_address\""
-  ];
-  Description                         description   = 7 [
-    (gogoproto.jsontag)  = "description",
-    (gogoproto.moretags) = "yaml:\"description\""
-  ];
-  google.protobuf.Timestamp           creation_time = 8 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true,
-    (gogoproto.jsontag)  = "creation_time",
-    (gogoproto.moretags) = "yaml:\"creation_time\""
-  ];
-  uint32                              node_type      = 9 [
-    (gogoproto.jsontag)  = "node_type",
-    (gogoproto.moretags) = "yaml:\"node_type\""
-  ];
-  cosmos.base.v1beta1.Coin            bonded_stake = 10 [
-    (gogoproto.nullable) = true,
-    (gogoproto.jsontag)  = "bonded_stake",
-    (gogoproto.moretags) = "yaml:\"bonded_stake\""
-  ];
-  cosmos.base.v1beta1.Coin            un_bonding_stake = 11 [
-    (gogoproto.nullable) = true,
-    (gogoproto.jsontag)  = "un_bonding_stake",
-    (gogoproto.moretags) = "yaml:\"un_bonding_stake\""
-  ];
-  cosmos.base.v1beta1.Coin            un_bonded_stake = 12 [
-    (gogoproto.nullable) = true,
-    (gogoproto.jsontag)  = "un_bonded_stake",
-    (gogoproto.moretags) = "yaml:\"un_bonded_stake\""
-  ];
-
+    (gogoproto.jsontag) = "security_contact",
+    (gogoproto.moretags) = "yaml:\"security_contact\",omitempty"];
+  string  details = 5 [
+    (gogoproto.jsontag) = "details",
+    (gogoproto.moretags) = "yaml:\"details\",omitempty"];
 }
 
 // UnbondingNode stores all of a single delegator's unbonding bonds
 // for a single unbonding node in a time-ordered list
 message UnbondingNode {
-  string                              network_addr     = 1 [
-    (gogoproto.jsontag)  = "network_addr",
+  string                              network_addr = 1 [
+    (gogoproto.jsontag) = "network_addr",
     (gogoproto.moretags) = "yaml:\"network_addr\""
   ];
   bool                                is_meta_node = 2 [
-    (gogoproto.jsontag)  = "is_meta_node",
+    (gogoproto.jsontag) = "is_meta_node",
     (gogoproto.moretags) = "yaml:\"is_meta_node\""
   ];
-  repeated UnbondingNodeEntry          entries          = 3 [
-    (gogoproto.jsontag)  = "entries",
+  repeated UnbondingNodeEntry          entries = 3 [
+    (gogoproto.jsontag) = "entries",
     (gogoproto.moretags) = "yaml:\"entries\""
   ];
 
@@ -283,43 +197,20 @@ message UnbondingNodeEntry {
   google.protobuf.Timestamp           completion_time = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.stdtime) = true,
-    (gogoproto.jsontag)  = "creation_time",
+    (gogoproto.jsontag) = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
   ];
-  string                              initial_balance  = 3 [
-    (gogoproto.jsontag)  = "initial_balance",
+  string                              initial_balance = 3 [
+    (gogoproto.jsontag) = "initial_balance",
     (gogoproto.moretags) = "yaml:\"initial_balance\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                              balance           = 4 [
-    (gogoproto.jsontag)  = "balance",
+  string                              balance = 4 [
+    (gogoproto.jsontag) = "balance",
     (gogoproto.moretags) = "yaml:\"balance\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
 
-message Staking {
-//  option (gogoproto.equal)            = false;
-//  option (gogoproto.goproto_getters)  = false;
-//  option (gogoproto.goproto_stringer) = false;
-
-  // network_address is the bech32-encoded address of the node.
-  string network_address = 1 [
-    (gogoproto.jsontag)  = "network_address",
-    (gogoproto.moretags) = "yaml:\"network_address\""
-  ];
-  // owner_address is the bech32-encoded address of owner of the node.
-  string owner_address = 2 [
-    (gogoproto.jsontag)  = "owner_address",
-    (gogoproto.moretags) = "yaml:\"owner_address\""
-  ];
-  // shares define the delegation shares received.
-  string value = 3 [
-    (gogoproto.jsontag)  = "value",
-    (gogoproto.moretags) = "yaml:\"value\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false
-  ];
-}
 
 

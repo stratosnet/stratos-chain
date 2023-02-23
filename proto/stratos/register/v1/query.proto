@@ -1,8 +1,14 @@
 syntax = "proto3";
 package stratos.register.v1;
 
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
 import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos/staking/v1beta1/staking.proto";
 
 import "stratos/register/v1/register.proto";
 
@@ -80,26 +86,18 @@ message QueryStakeByNodeRequest {
   // network_addr defines the node network address to query for.
   string network_addr     = 1;
   uint32  query_type   = 2;
-  // pagination defines an optional pagination for the request.
-//  cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
 // QueryStakeByNodeResponse is response type for the Query/StakeByNode RPC method
 message QueryStakeByNodeResponse {
   // staking_info defines the the staking_info info of the node.
   StakingInfo staking_info = 1;
-  // pagination defines an optional pagination for the request.
-//  cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }
 
 // QueryStakeByOwnerRequest is request type for the Query/StakeByOwner RPC method
 message QueryStakeByOwnerRequest {
   // owner_addr defines the owner address to query for.
-//  string              network_addr = 1;
-//  string              moniker = 2;
   string              owner_addr = 1;
-//  int64               page = 2;
-//  int64               limit = 3;
   // pagination defines an optional pagination for the request.
   cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
@@ -148,6 +146,67 @@ message QueryBondedMetaNodeCountResponse {
   uint64 number = 1;
 }
 
+message TotalStakesResponse {
+  cosmos.base.v1beta1.Coin resource_nodes_total_stake = 1;
+  cosmos.base.v1beta1.Coin meta_nodes_total_stake = 2;
+  cosmos.base.v1beta1.Coin total_bonded_stake = 3;
+  cosmos.base.v1beta1.Coin total_unbonded_stake = 4;
+  cosmos.base.v1beta1.Coin total_unbonding_stake = 5;
+}
 
-
-
+message StakingInfo {
+  string                              network_address = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  google.protobuf.Any                 pubkey = 2 [
+    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
+    (gogoproto.jsontag) = "pubkey",
+    (gogoproto.moretags) = "yaml:\"pubkey\""
+  ];
+  bool                                suspend = 3 [
+    (gogoproto.jsontag) = "suspend",
+    (gogoproto.moretags) = "yaml:\"suspend\""
+  ];
+  cosmos.staking.v1beta1.BondStatus   status = 4 [
+    (gogoproto.jsontag) = "status",
+    (gogoproto.moretags) = "yaml:\"status\""];
+  string                              tokens = 5 [
+    (gogoproto.jsontag) = "tokens",
+    (gogoproto.moretags) = "yaml:\"tokens\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                              owner_address = 6 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  Description                         description = 7 [
+    (gogoproto.jsontag) = "description",
+    (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  google.protobuf.Timestamp           creation_time = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.stdtime) = true,
+    (gogoproto.jsontag) = "creation_time",
+    (gogoproto.moretags) = "yaml:\"creation_time\""
+  ];
+  uint32                              node_type = 9 [
+    (gogoproto.jsontag) = "node_type",
+    (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
+  cosmos.base.v1beta1.Coin            bonded_stake = 10 [
+    (gogoproto.nullable) = true,
+    (gogoproto.jsontag) = "bonded_stake",
+    (gogoproto.moretags) = "yaml:\"bonded_stake\""
+  ];
+  cosmos.base.v1beta1.Coin            un_bonding_stake = 11 [
+    (gogoproto.nullable) = true,
+    (gogoproto.jsontag) = "un_bonding_stake",
+    (gogoproto.moretags) = "yaml:\"un_bonding_stake\""
+  ];
+  cosmos.base.v1beta1.Coin            un_bonded_stake = 12 [
+    (gogoproto.nullable) = true,
+    (gogoproto.jsontag) = "un_bonded_stake",
+    (gogoproto.moretags) = "yaml:\"un_bonded_stake\""
+  ];
+}

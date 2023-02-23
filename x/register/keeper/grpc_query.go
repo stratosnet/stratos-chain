@@ -3,13 +3,15 @@ package keeper
 import (
 	"context"
 
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
@@ -258,18 +260,7 @@ func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) 
 	totalUnbondedStakeOfResourceNodes := q.GetResourceNodeNotBondedToken(ctx).Amount
 	totalUnbondedStakeOfMetaNodes := q.GetMetaNodeNotBondedToken(ctx).Amount
 
-	//resourceNodeList := q.GetAllResourceNodes(ctx)
-	//totalStakeOfResourceNodes := sdk.ZeroInt()
-	//for _, node := range resourceNodeList {
-	//	totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
-	//}
 	totalStakeOfResourceNodes := totalBondedStakeOfResourceNodes.Add(totalUnbondedStakeOfResourceNodes)
-
-	//metaNodeList := q.GetAllMetaNodes(ctx)
-	//totalStakeOfMetaNodes := sdk.ZeroInt()
-	//for _, node := range metaNodeList {
-	//	totalStakeOfMetaNodes = totalStakeOfMetaNodes.Add(node.Tokens)
-	//}
 	totalStakeOfMetaNodes := totalBondedStakeOfMetaNodes.Add(totalUnbondedStakeOfMetaNodes)
 
 	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfMetaNodes)
