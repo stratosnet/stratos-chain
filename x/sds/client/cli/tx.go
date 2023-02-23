@@ -143,13 +143,14 @@ func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 
 // makes a new newBuildPrepayMsg
 func newBuildPrepayMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgPrepay, error) {
-	coin, err := sdk.ParseCoinNormalized(fs.Arg(1))
+	amount, err := sdk.ParseCoinNormalized(fs.Arg(1))
 	if err != nil {
 		return txf, nil, err
 	}
 
+	decAmount := sdk.NewDecCoinFromCoin(amount)
 	// build and sign the transaction, then broadcast to Tendermint
-	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), sdk.NewCoins(coin))
+	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), sdk.NewDecCoins(decAmount))
 
 	return txf, msg, nil
 }

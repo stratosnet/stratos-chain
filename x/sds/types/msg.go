@@ -83,10 +83,10 @@ func (msg MsgFileUpload) ValidateBasic() error {
 }
 
 // NewMsgPrepay NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgPrepay(sender string, coins sdk.Coins) *MsgPrepay {
+func NewMsgPrepay(sender string, amount sdk.DecCoins) *MsgPrepay {
 	return &MsgPrepay{
 		Sender: sender,
-		Coins:  coins,
+		Amount: amount,
 	}
 }
 
@@ -123,8 +123,8 @@ func (msg MsgPrepay) ValidateBasic() error {
 	if sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
-	if msg.Coins.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing coins to send")
+	if msg.Amount.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing amount to send")
 	}
 	return nil
 }
