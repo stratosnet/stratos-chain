@@ -42,19 +42,19 @@ message MiningRewardParam {
   cosmos.base.v1beta1.Coin  mining_reward = 3 [
     (gogoproto.moretags) = "yaml:\"mining_reward\""
   ];
-  string                    block_chain_percentage_in_ten_thousand = 4 [
-    (gogoproto.jsontag) = "block_chain_percentage_in_ten_thousand",
-    (gogoproto.moretags) = "yaml:\"block_chain_percentage_in_ten_thousand\"",
+  string                    block_chain_percentage_in_bp = 4 [
+    (gogoproto.jsontag) = "block_chain_percentage_in_bp",
+    (gogoproto.moretags) = "yaml:\"block_chain_percentage_in_bp\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                    resource_node_percentage_in_ten_thousand = 5 [
-    (gogoproto.jsontag) = "resource_node_percentage_in_ten_thousand",
-    (gogoproto.moretags) = "yaml:\"resource_node_percentage_in_ten_thousand\"",
+  string                    resource_node_percentage_in_bp = 5 [
+    (gogoproto.jsontag) = "resource_node_percentage_in_bp",
+    (gogoproto.moretags) = "yaml:\"resource_node_percentage_in_bp\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                    meta_node_percentage_in_ten_thousand = 6 [
-    (gogoproto.jsontag) = "meta_node_percentage_in_ten_thousand",
-    (gogoproto.moretags) = "yaml:\"meta_node_percentage_in_ten_thousand\"",
+  string                    meta_node_percentage_in_bp = 6 [
+    (gogoproto.jsontag) = "meta_node_percentage_in_bp",
+    (gogoproto.moretags) = "yaml:\"meta_node_percentage_in_bp\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }

@@ -91,13 +91,13 @@ func (k Keeper) CalcTrafficRewardInTotal(
 		return distributeGoal, err
 	}
 	stakeTrafficReward := totalTrafficReward.
-		Mul(miningParam.BlockChainPercentageInTenThousand.ToDec()).
+		Mul(miningParam.BlockChainPercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	trafficRewardToResourceNodes := totalTrafficReward.
-		Mul(miningParam.ResourceNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.ResourceNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	trafficRewardToMetaNodes := totalTrafficReward.
-		Mul(miningParam.MetaNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.MetaNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 
 	stakeRewardToValidators, stakeRewardToResourceNodes, stakeRewardToMetaNodes := k.splitRewardByStake(ctx, stakeTrafficReward)
@@ -150,13 +150,13 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 		return distributeGoal, err
 	}
 	stakeMiningReward := totalMiningReward.Amount.ToDec().
-		Mul(miningParam.BlockChainPercentageInTenThousand.ToDec()).
+		Mul(miningParam.BlockChainPercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	miningRewardToResourceNodes := totalMiningReward.Amount.ToDec().
-		Mul(miningParam.ResourceNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.ResourceNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	miningRewardToMetaNodes := totalMiningReward.Amount.ToDec().
-		Mul(miningParam.MetaNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.MetaNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 
 	stakeRewardToValidators, stakeRewardToResourceNodes, stakeRewardToMetaNodes := k.splitRewardByStake(ctx, stakeMiningReward)

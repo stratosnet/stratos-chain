@@ -17,14 +17,14 @@ func NewSingleWalletVolume(
 }
 
 func NewMiningRewardParam(totalMinedValveStart sdk.Coin, totalMinedValveEnd sdk.Coin, miningReward sdk.Coin,
-	resourceNodePercentageInTenThousand sdk.Int, metaNodePercentageInTenThousand sdk.Int, blockChainPercentageInTenThousand sdk.Int) *MiningRewardParam {
+	resourceNodePercentageInBp sdk.Int, metaNodePercentageInBp sdk.Int, blockChainPercentageInBp sdk.Int) *MiningRewardParam {
 	return &MiningRewardParam{
-		TotalMinedValveStart:                &totalMinedValveStart,
-		TotalMinedValveEnd:                  &totalMinedValveEnd,
-		MiningReward:                        &miningReward,
-		BlockChainPercentageInTenThousand:   &blockChainPercentageInTenThousand,
-		ResourceNodePercentageInTenThousand: &resourceNodePercentageInTenThousand,
-		MetaNodePercentageInTenThousand:     &metaNodePercentageInTenThousand,
+		TotalMinedValveStart:       &totalMinedValveStart,
+		TotalMinedValveEnd:         &totalMinedValveEnd,
+		MiningReward:               &miningReward,
+		BlockChainPercentageInBp:   &blockChainPercentageInBp,
+		ResourceNodePercentageInBp: &resourceNodePercentageInBp,
+		MetaNodePercentageInBp:     &metaNodePercentageInBp,
 	}
 }
 
