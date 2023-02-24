@@ -225,7 +225,6 @@ func (es *EventSystem) resubscribe(subscriber string, q tmpubsub.Query) tmtypes.
 // block is "latest". If the fromBlock > toBlock an error is returned.
 func (es *EventSystem) SubscribeLogs(crit filters.FilterCriteria) (*Subscription, context.CancelFunc, error) {
 	var from, to rpc.BlockNumber
-	es.logger.Debug("\x1b[32m------ SubscribeLogs crit: %+v\x1b[0m\n", crit)
 	if crit.FromBlock == nil {
 		from = rpc.LatestBlockNumber
 	} else {
@@ -286,7 +285,6 @@ func (es *EventSystem) subscribeLogs(crit filters.FilterCriteria) (*Subscription
 		installed: make(chan struct{}, 1),
 		err:       make(chan error, 1),
 	}
-	es.logger.Debug("\x1b[32m------ logs subscribe: %+v\x1b[0m\n", sub)
 	return es.subscribe(sub)
 }
 
@@ -338,8 +336,6 @@ type filterIndex map[filters.Type]map[rpc.ID]*Subscription
 
 func (es *EventSystem) handleLogs(ev coretypes.ResultEvent) {
 	data, _ := ev.Data.(tmtypes.EventDataTx)
-	es.logger.Debug("\x1b[32m------ logs data: %+v\x1b[0m\n", data)
-	// logReceipt := onetypes.GetTxEthLogs(&data.TxResult.Result, data.Index)
 	resultData, err := evmtypes.DecodeTransactionLogs(data.TxResult.Result.Data)
 	if err != nil {
 		return
@@ -428,16 +424,12 @@ func (es *EventSystem) eventLoop() {
 	for {
 		select {
 		case txEvent := <-es.txsSub.eventCh:
-			es.logger.Debug("\x1b[32m------ tx event trigger from event loop: %+v\x1b[0m\n", txEvent)
 			es.handleTxsEvent(txEvent)
 		case headerEv := <-es.chainSub.eventCh:
-			es.logger.Debug("\x1b[32m------ header event trigger from event loop: %+v\x1b[0m\n", headerEv)
 			es.handleChainEvent(headerEv)
 		case logsEv := <-es.logsSub.eventCh:
-			es.logger.Debug("\x1b[32m------ logs event trigger from event loop: %+v\x1b[0m\n", logsEv)
 			es.handleLogs(logsEv)
 		case logsEv := <-es.pendingLogsSub.eventCh:
-			es.logger.Debug("\x1b[32m------ pending logs event trigger from event loop: %+v\x1b[0m\n", logsEv)
 			es.handleLogs(logsEv)
 
 		case f := <-es.install:

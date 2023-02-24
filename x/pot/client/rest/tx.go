@@ -14,7 +14,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-//registerTxRoutes registers pot-related REST Tx handlers to a router
+// registerTxRoutes registers pot-related REST Tx handlers to a router
 func registerTxRoutes(cliCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/volume_report", volumeReportRequestHandlerFn(cliCtx)).Methods("POST")
 	r.HandleFunc("/pot/withdraw", withdrawPotRewardsHandlerFn(cliCtx)).Methods("POST")

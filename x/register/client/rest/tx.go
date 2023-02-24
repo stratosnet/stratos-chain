@@ -31,6 +31,10 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 		"/register/updateResourceNodeStake",
 		postUpdateResourceNodeStakeHandlerFn(cliCtx),
 	).Methods("POST")
+	r.HandleFunc(
+		"/register/updateEffectiveStake",
+		postUpdateEffectiveStakeHandlerFn(cliCtx),
+	).Methods("POST")
 
 	r.HandleFunc(
 		"/register/createMetaNode",
@@ -81,6 +85,16 @@ type (
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
 		StakeDelta     sdk.DecCoin  `json:"stake_delta" yaml:"stake_delta"`
 		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
+	}
+
+	UpdateEffectiveStakeRequest struct {
+		BaseReq         rest.BaseReq         `json:"base_req" yaml:"base_req"`
+		Reporters       []stratos.SdsAddress `json:"reporters" yaml:"reporters"`           // reporter(sp node) p2p address
+		ReporterOwner   []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"` // report(sp node) wallet address
+		NetworkAddress  string               `json:"network_address" yaml:"network_address"`
+		EffectiveTokens sdk.Int              `json:"effective_tokens" yaml:"effective_tokens"`
+		InitialTier     uint32               `json:"initial_tier" yaml:"initial_tier"`
+		OngoingTier     uint32               `json:"ongoing_tier" yaml:"ongoing_tier"`
 	}
 
 	CreateMetaNodeRequest struct {
@@ -346,6 +360,35 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 			return
 		}
 		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+	}
+}
+
+func postUpdateEffectiveStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateEffectiveStakeRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgUpdateEffectiveStake(req.Reporters, req.ReporterOwner, networkAddr, req.EffectiveTokens)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

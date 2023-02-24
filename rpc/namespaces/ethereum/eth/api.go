@@ -7,11 +7,9 @@ import (
 	"math"
 	"math/big"
 
-	abci "github.com/tendermint/tendermint/abci/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -39,7 +37,6 @@ import (
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	mempl "github.com/tendermint/tendermint/mempool"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
 
@@ -118,7 +115,7 @@ func (e *PublicAPI) ProtocolVersion() hexutil.Uint {
 // ChainId is the EIP-155 replay-protection chain id for the current ethereum chain config.
 func (e *PublicAPI) ChainId() (*hexutil.Big, error) { // nolint
 	e.logger.Debug("eth_chainId")
-	ctx := e.backend.GetSdkContext()
+	ctx := e.backend.GetEVMContext().GetSdkContext()
 	params := e.backend.GetEVMKeeper().GetParams(ctx)
 	return (*hexutil.Big)(params.ChainConfig.ChainID.BigInt()), nil
 }
@@ -262,7 +259,7 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -290,7 +287,7 @@ func (e *PublicAPI) GetStorageAt(address common.Address, key string, blockNrOrHa
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -378,7 +375,7 @@ func (e *PublicAPI) GetCode(address common.Address, blockNrOrHash rpctypes.Block
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -395,7 +392,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 	e.logger.Debug("eth_getTransactionLogs", "hash", txHash)
 
 	hexTx := txHash.Hex()
-	res, err := e.backend.GetTxByHash(txHash)
+	res, err := evmtypes.GetTmTxByHash(txHash)
 	if err != nil {
 		e.logger.Debug("tx not found", "hash", hexTx, "error", err.Error())
 		return nil, nil
@@ -500,67 +497,13 @@ func (e *PublicAPI) SendRawTransaction(data hexutil.Bytes) (common.Hash, error) 
 		return common.Hash{}, err
 	}
 
-	ethereumTx := &evmtypes.MsgEthereumTx{}
-	if err := ethereumTx.FromEthereumTx(tx); err != nil {
-		e.logger.Error("transaction converting failed", "error", err.Error())
-		return common.Hash{}, err
-	}
-
-	if err := ethereumTx.ValidateBasic(); err != nil {
-		e.logger.Debug("tx failed basic validation", "error", err.Error())
-		return common.Hash{}, err
-	}
-
-	sdkCtx := e.backend.GetSdkContext()
-	// Query params to use the EVM denomination
-	params := e.backend.GetEVMKeeper().GetParams(sdkCtx)
-
-	cosmosTx, err := ethereumTx.BuildTx(e.clientCtx.TxConfig.NewTxBuilder(), params.EvmDenom)
+	_, err := e.backend.GetTxPool().Add(tx)
 	if err != nil {
-		e.logger.Error("failed to build cosmos tx", "error", err.Error())
+		e.logger.Error("failed to add eth tx into tx evm pool", "error", err.Error())
 		return common.Hash{}, err
 	}
 
-	// Encode transaction by default Tx encoder
-	packet, err := e.clientCtx.TxConfig.TxEncoder()(cosmosTx)
-	if err != nil {
-		e.logger.Error("failed to encode eth tx using default encoder", "error", err.Error())
-		return common.Hash{}, err
-	}
-
-	ethTx := ethereumTx.AsTransaction()
-	if !ethTx.Protected() {
-		// Ensure only eip155 signed transactions are submitted.
-		return common.Hash{}, errors.New("legacy pre-eip-155 transactions not supported")
-	}
-	txHash := ethTx.Hash()
-
-	mempool := e.backend.GetMempool()
-	if e.clientCtx.BroadcastMode == "async" {
-		e.logger.Info("Use async mode to propagate tx", txHash)
-		err = mempool.CheckTx(packet, nil, mempl.TxInfo{})
-		if err != nil {
-			return common.Hash{}, err
-		}
-	} else {
-		e.logger.Info("Use sync mode to propagate tx", txHash)
-		resCh := make(chan *abci.Response, 1)
-		err = mempool.CheckTx(packet, func(res *abci.Response) {
-			resCh <- res
-		}, mempl.TxInfo{})
-		if err != nil {
-			e.logger.Error("failed to send eth tx packet to mempool", "error", err.Error())
-			return common.Hash{}, err
-		}
-		res := <-resCh
-		resBrodTx := res.GetCheckTx()
-		if resBrodTx.Code != 0 {
-			e.logger.Error("exec failed on check tx", "error", resBrodTx.Log)
-			return common.Hash{}, fmt.Errorf(resBrodTx.Log)
-		}
-	}
-
-	return txHash, nil
+	return tx.Hash(), nil
 }
 
 // checkTxFee is an internal function used to check whether the fee of
@@ -688,7 +631,7 @@ func (e *PublicAPI) doCall(
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -812,7 +755,7 @@ func (e *PublicAPI) GetTransactionByBlockNumberAndIndex(blockNum rpctypes.BlockN
 // GetTransactionReceipt returns the transaction receipt identified by hash.
 func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.TransactionReceipt, error) {
 	e.logger.Debug("eth_getTransactionReceipt", "hash", hash)
-	res, err := e.backend.GetTxByHash(hash)
+	res, err := evmtypes.GetTmTxByHash(hash)
 	if err != nil {
 		return nil, nil
 	}
@@ -990,7 +933,7 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}

@@ -50,7 +50,7 @@ func (msg MsgVolumeReport) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
 	reporterOwner, err := sdk.AccAddressFromBech32(msg.ReporterOwner)
 	if err != nil {
-		return addrs
+		panic(err)
 	}
 	addrs = append(addrs, reporterOwner)
 	return addrs
@@ -83,6 +83,11 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 	}
 	if len(msg.ReporterOwner) == 0 {
 		return ErrEmptyReporterOwnerAddr
+	}
+
+	_, err := sdk.AccAddressFromBech32(msg.GetReporterOwner())
+	if err != nil {
+		return ErrReporterAddress
 	}
 
 	for _, item := range msg.WalletVolumes {
@@ -125,7 +130,7 @@ func (msg MsgWithdraw) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
 	walletAddress, err := sdk.AccAddressFromBech32(msg.WalletAddress)
 	if err != nil {
-		return addrs
+		panic(err)
 	}
 	addrs = append(addrs, walletAddress)
 	return addrs
@@ -151,6 +156,10 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	if len(msg.TargetAddress) == 0 {
 		return ErrMissingTargetAddress
 	}
+	_, err := sdk.AccAddressFromBech32(msg.GetWalletAddress())
+	if err != nil {
+		return ErrInvalidAddress
+	}
 	return nil
 }
 
@@ -170,7 +179,7 @@ func (msg MsgLegacyWithdraw) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return addrs
+		panic(err)
 	}
 	addrs = append(addrs, from)
 	return addrs
@@ -196,6 +205,10 @@ func (msg MsgLegacyWithdraw) ValidateBasic() error {
 	if len(msg.TargetAddress) == 0 {
 		return ErrMissingTargetAddress
 	}
+	_, err := sdk.AccAddressFromBech32(msg.GetFrom())
+	if err != nil {
+		return ErrInvalidAddress
+	}
 	return nil
 }
 
@@ -214,7 +227,7 @@ func (msg MsgFoundationDeposit) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
 	from, err := sdk.AccAddressFromBech32(msg.From)
 	if err != nil {
-		return addrs
+		panic(err)
 	}
 	addrs = append(addrs, from)
 	return addrs
@@ -236,6 +249,10 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 	}
 	if len(msg.From) == 0 {
 		return ErrEmptyFromAddr
+	}
+	_, err := sdk.AccAddressFromBech32(msg.GetFrom())
+	if err != nil {
+		return ErrInvalidAddress
 	}
 	return nil
 }
@@ -283,6 +300,13 @@ func (m MsgSlashingResourceNode) ValidateBasic() error {
 		}
 	}
 
+	for _, owner := range m.ReporterOwner {
+		_, err := sdk.AccAddressFromBech32(owner)
+		if err != nil {
+			return ErrInvalidAddress
+		}
+	}
+
 	if m.Slashing.LT(sdk.ZeroInt()) {
 		return ErrInvalidAmount
 	}
@@ -299,7 +323,7 @@ func (m MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
 	for _, owner := range m.ReporterOwner {
 		reporterOwner, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
-			continue
+			panic(err)
 		}
 		addrs = append(addrs, reporterOwner)
 	}

@@ -80,15 +80,16 @@ func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 		return ResourceNode{}, err
 	}
 	return ResourceNode{
-		NetworkAddress: networkAddr.String(),
-		Pubkey:         pkAny,
-		Suspend:        true,
-		Status:         stakingtypes.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr.String(),
-		Description:    description,
-		NodeType:       uint32(nodeType),
-		CreationTime:   creationTime,
+		NetworkAddress:  networkAddr.String(),
+		Pubkey:          pkAny,
+		Suspend:         true,
+		Status:          stakingtypes.Unbonded,
+		Tokens:          sdk.ZeroInt(),
+		OwnerAddress:    ownerAddr.String(),
+		Description:     description,
+		NodeType:        uint32(nodeType),
+		CreationTime:    creationTime,
+		EffectiveTokens: sdk.ZeroInt(),
 	}, nil
 }
 

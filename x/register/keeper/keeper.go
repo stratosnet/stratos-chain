@@ -101,6 +101,13 @@ func (k Keeper) IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (oz
 
 	limitToAdd := stake.ToDec().Quo(stakeNozRate)
 	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Add(limitToAdd).TruncateInt())
+
+	//ctx.Logger().Debug("----- IncreaseOzoneLimitByAddStake, ",
+	//	"effectiveTotalStakeBefore=", effectiveTotalStakeBefore.String(),
+	//	"effectiveTotalStakeAfter=", effectiveTotalStakeAfter.String(),
+	//	"remainingBefore=", remainingBefore.String(),
+	//	"remainingAfter=", k.GetRemainingOzoneLimit(ctx).String(),
+	//)
 	return limitToAdd.TruncateInt()
 }
 
@@ -121,6 +128,13 @@ func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 	}
 	limitToSub := stake.ToDec().Quo(stakeNozRate)
 	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Sub(limitToSub).TruncateInt())
+
+	//ctx.Logger().Debug("----- DecreaseOzoneLimitBySubtractStake, ",
+	//	"effectiveTotalStakeBefore=", effectiveTotalStakeBefore.String(),
+	//	"effectiveTotalStakeAfter=", effectiveTotalStakeAfter.String(),
+	//	"remainingBefore=", remainingBefore.String(),
+	//	"remainingAfter=", k.GetRemainingOzoneLimit(ctx).String(),
+	//)
 	return limitToSub.TruncateInt()
 }
 
@@ -257,38 +271,40 @@ func (k Keeper) subtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 }
 
 func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
-) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
+) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
 	params := k.GetParams(ctx)
 	ctx.Logger().Info("Params of register module: " + params.String())
 
 	// transfer the node tokens to the not bonded pool
 	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
 	}
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
-		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
 	if resourceNode.Suspend {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
 	// check if node_token - unbonding_token > amt_to_unbond
 	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+
 	availableStake := resourceNode.Tokens.Sub(unbondingStake)
 	if availableStake.LT(amt) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
+	availableTokenAmtBefore = availableStake
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
@@ -297,8 +313,8 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
-		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
+		// not adjusting ozone limit since resourceNode.EffectiveTokens are not changed
+		//ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, amt)
 	}
 
 	// change node status to unbonding if unbonding all available tokens
@@ -321,8 +337,8 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
-
-	return ozoneLimitChange, unbondingMatureTime, nil
+	availableTokenAmtAfter = availableTokenAmtBefore.Sub(amt)
+	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
 }
 
 func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,

@@ -13,6 +13,7 @@ var (
 	_ sdk.Msg = &MsgRemoveResourceNode{}
 	_ sdk.Msg = &MsgUpdateResourceNode{}
 	_ sdk.Msg = &MsgUpdateResourceNodeStake{}
+	_ sdk.Msg = &MsgUpdateEffectiveStake{}
 	_ sdk.Msg = &MsgCreateMetaNode{}
 	_ sdk.Msg = &MsgRemoveMetaNode{}
 	_ sdk.Msg = &MsgUpdateMetaNode{}
@@ -26,6 +27,7 @@ const (
 	TypeMsgRemoveResourceNodeTx    = "remove_resource_node"
 	TypeUpdateResourceNodeTx       = "update_resource_node"
 	TypeUpdateResourceNodeStakeTx  = "update_resource_node_stake"
+	TypeUpdateEffectiveStakeTx     = "update_effective_stake"
 	TypeCreateMetaNodeTx           = "create_meta_node"
 	TypeRemoveMetaNodeTx           = "remove_meta_node"
 	TypeUpdateMetaNodeTx           = "update_meta_node"
@@ -196,7 +198,7 @@ func (msg MsgCreateMetaNode) GetSigners() []sdk.AccAddress {
 	// Owner pays the tx fees
 	addr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
-		return []sdk.AccAddress{}
+		panic(err)
 	}
 	return []sdk.AccAddress{addr.Bytes()}
 
@@ -599,4 +601,72 @@ func (msg MsgMetaNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{addr.Bytes()}
+}
+
+func NewMsgUpdateEffectiveStake(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
+	networkAddress stratos.SdsAddress, newEffectiveStake sdk.Int) *MsgUpdateEffectiveStake {
+
+	reporterStrSlice := make([]string, 0)
+	for _, reporter := range reporters {
+		reporterStrSlice = append(reporterStrSlice, reporter.String())
+	}
+
+	reporterOwnerStrSlice := make([]string, 0)
+	for _, reporterOwner := range reporterOwner {
+		reporterOwnerStrSlice = append(reporterOwnerStrSlice, reporterOwner.String())
+	}
+	return &MsgUpdateEffectiveStake{
+		Reporters:       reporterStrSlice,
+		ReporterOwner:   reporterOwnerStrSlice,
+		NetworkAddress:  networkAddress.String(),
+		EffectiveTokens: newEffectiveStake,
+	}
+}
+
+func (m MsgUpdateEffectiveStake) Route() string {
+	return RouterKey
+}
+
+func (m MsgUpdateEffectiveStake) Type() string {
+	return "update_effective_stake"
+}
+
+func (m MsgUpdateEffectiveStake) ValidateBasic() error {
+	if len(m.NetworkAddress) == 0 {
+		return ErrInvalidNetworkAddr
+	}
+	for _, r := range m.Reporters {
+		if len(r) == 0 {
+			return ErrReporterAddress
+		}
+	}
+
+	for _, owner := range m.ReporterOwner {
+		_, err := sdk.AccAddressFromBech32(owner)
+		if err != nil {
+			return ErrInvalidOwnerAddr
+		}
+	}
+
+	if m.EffectiveTokens.LT(sdk.ZeroInt()) {
+		return ErrInvalidAmount
+	}
+	return nil
+}
+
+func (m MsgUpdateEffectiveStake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(m)
+	return sdk.MustSortJSON(bz)
+}
+
+func (m MsgUpdateEffectiveStake) GetSigners() []sdk.AccAddress {
+	var addrs []sdk.AccAddress
+	for _, owner := range m.ReporterOwner {
+		reporterOwner, err := sdk.AccAddressFromBech32(owner)
+		if err != nil {
+			panic(err)
+		}
+		addrs = append(addrs, reporterOwner)
+	}
+	return addrs
 }

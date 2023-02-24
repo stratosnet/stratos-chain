@@ -15,7 +15,6 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -177,16 +176,9 @@ func (b *Backend) SetTxDefaults(args evmtypes.TransactionArgs) (evmtypes.Transac
 // txs in order to compute and return the pending tx sequence.
 // Todo: include the ability to specify a blockNumber
 func (b *Backend) getAccountNonce(address common.Address, height types.BlockNumber) (uint64, error) {
-	var (
-		pendingNonce uint64
-	)
 	if height == types.EthPendingBlockNumber {
-		pendingNonce = types.GetPendingTxCountByAddress(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), address)
+		return b.GetTxPool().Nonce(address), nil
 	}
-	req := evmtypes.QueryCosmosAccountRequest{
-		Address: address.Hex(),
-	}
-
 	block, err := b.GetTendermintBlockByNumber(height)
 	if err != nil {
 		return 0, err
@@ -195,16 +187,11 @@ func (b *Backend) getAccountNonce(address common.Address, height types.BlockNumb
 	if block.Block == nil {
 		return 0, fmt.Errorf("failed to get block for %d height", height)
 	}
-
-	sdkCtx, err := b.GetSdkContextWithHeader(&block.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&block.Block.Header)
 	if err != nil {
 		return 0, err
 	}
-	acc, err := b.GetEVMKeeper().CosmosAccount(sdk.WrapSDKContext(sdkCtx), &req)
-	if err != nil {
-		return pendingNonce, err
-	}
-	return acc.GetSequence() + pendingNonce, nil
+	return b.GetEVMKeeper().GetNonce(sdkCtx, address), nil
 }
 
 // output: targetOneFeeHistory

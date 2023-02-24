@@ -232,7 +232,7 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 					return
 				}
 				// override dynamicly miner address
-				sdkCtx, err := api.backend.GetSdkContextWithHeader(&data.Header)
+				sdkCtx, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
 				if err != nil {
 					headersSub.err <- err
 					return
@@ -296,7 +296,7 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					return
 				}
 				// override dynamicly miner address
-				sdkCtx, err := api.backend.GetSdkContextWithHeader(&data.Header)
+				sdkCtx, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
 				if err != nil {
 					headersSub.err <- err
 					return
@@ -349,7 +349,6 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 			select {
 			case ev := <-logsCh:
 				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
-				api.logger.Debug("\x1b[32m------ logs tx type is evm from sub: %t\x1b[0m\n", isMsgEthereumTx)
 				if !isMsgEthereumTx {
 					continue
 				}
@@ -361,18 +360,14 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 					logsSub.err <- err
 					return
 				}
-				api.logger.Debug("\x1b[32m------ logs tx dataTx: %+v\x1b[0m\n", dataTx)
 
 				txResponse, err := evmtypes.DecodeTxResponse(dataTx.TxResult.Result.Data)
 				if err != nil {
 					logsSub.err <- err
 					return
 				}
-				api.logger.Debug("\x1b[32m------ logs tx response: %+v\x1b[0m\n", txResponse)
-				api.logger.Debug("\x1b[32m------ logs crit: %+v\x1b[0m\n", crit)
 
 				matchedLogs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
-				api.logger.Debug("\x1b[32m------ logs matchedLogs: %+v\x1b[0m\n", matchedLogs)
 				for _, log := range matchedLogs {
 					err = notifier.Notify(rpcSub.ID, log)
 					if err != nil {

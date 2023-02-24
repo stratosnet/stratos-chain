@@ -349,6 +349,8 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 		node.Status = stakingtypes.Bonded
 		node.Suspend = false
 		k.SetMetaNode(ctx, node)
+		// increase ozone limit after vote is approved
+		_ = k.IncreaseOzoneLimitByAddStake(ctx, node.Tokens)
 		// increase mata node count
 		v := k.GetBondedMetaNodeCnt(ctx)
 		count := v.Add(sdk.NewInt(1))
@@ -458,4 +460,9 @@ func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
 	return iterator
+}
+
+func (k Keeper) IsMetaNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
+	_, found = k.GetMetaNode(ctx, p2pAddr)
+	return found
 }
