@@ -155,7 +155,7 @@ func validateMatureEpoch(i interface{}) error {
 }
 
 func validateMiningRewardParams(i interface{}) error {
-	v, ok := i.([]MiningRewardParam)
+	v, ok := i.([]*MiningRewardParam)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
