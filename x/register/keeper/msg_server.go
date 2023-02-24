@@ -356,7 +356,7 @@ func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *typ
 		if err != nil {
 			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 		}
-		if !(k.IsSPNode(ctx, reporterSdsAddr)) {
+		if !(k.IsMetaNode(ctx, reporterSdsAddr)) {
 			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "MsgUpdateEffectiveStake is not sent by a meta node")
 		}
 	}

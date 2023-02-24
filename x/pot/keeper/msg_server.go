@@ -33,7 +33,7 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	if err != nil {
 		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 	}
-	if !(k.IsSPNode(ctx, reporter)) {
+	if !(k.IsMetaNode(ctx, reporter)) {
 		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, "Volume report is not sent by a superior peer")
 	}
 
@@ -183,7 +183,7 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 		if err != nil {
 			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
 		}
-		if !(k.IsSPNode(ctx, reporterSdsAddr)) {
+		if !(k.IsMetaNode(ctx, reporterSdsAddr)) {
 			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "Slashing msg is not sent by a meta node")
 		}
 	}

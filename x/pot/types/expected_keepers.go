@@ -48,7 +48,7 @@ type RegisterKeeper interface {
 	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int
 
 	NozSupply(ctx sdk.Context) (remaining, total sdk.Int)
-	IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool)
+	IsMetaNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool)
 }
 
 type StakingKeeper interface {

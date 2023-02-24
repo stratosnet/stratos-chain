@@ -462,7 +462,7 @@ func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
 	return iterator
 }
 
-func (k Keeper) IsSPNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
+func (k Keeper) IsMetaNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
 	_, found = k.GetMetaNode(ctx, p2pAddr)
 	return found
 }
