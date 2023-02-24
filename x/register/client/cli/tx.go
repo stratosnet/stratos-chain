@@ -558,7 +558,7 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, &stakeDelta, incrStake)
+	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
 	return txf, msg, nil
 }
 
@@ -590,7 +590,7 @@ func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &stakeDelta, incrStake)
+	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
 	return txf, msg, nil
 }
 

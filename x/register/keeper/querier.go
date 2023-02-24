@@ -148,18 +148,7 @@ func getNodesStakingInfo(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQ
 	totalUnbondedStakeOfResourceNodes := k.GetResourceNodeNotBondedToken(ctx).Amount
 	totalUnbondedStakeOfMetaNodes := k.GetMetaNodeNotBondedToken(ctx).Amount
 
-	//resourceNodeList := k.GetAllResourceNodes(ctx)
-	//totalStakeOfResourceNodes := sdk.ZeroInt()
-	//for _, node := range resourceNodeList {
-	//	totalStakeOfResourceNodes = totalStakeOfResourceNodes.Add(node.Tokens)
-	//}
 	totalStakeOfResourceNodes := totalBondedStakeOfResourceNodes.Add(totalUnbondedStakeOfResourceNodes)
-
-	//metaNodeList := k.GetAllMetaNodes(ctx)
-	//totalStakeOfMetaNodes := sdk.ZeroInt()
-	//for _, node := range metaNodeList {
-	//	totalStakeOfMetaNodes = totalStakeOfMetaNodes.Add(node.Tokens)
-	//}
 	totalStakeOfMetaNodes := totalBondedStakeOfMetaNodes.Add(totalUnbondedStakeOfMetaNodes)
 
 	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfMetaNodes)

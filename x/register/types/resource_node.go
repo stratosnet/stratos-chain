@@ -220,26 +220,6 @@ func UnmarshalResourceNode(cdc codec.Codec, value []byte) (v ResourceNode, err e
 	return v, err
 }
 
-func (s *Staking) GetOwnerAddr() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(s.OwnerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return addr
-}
-func (s *Staking) GetShares() sdk.Dec { return s.Value }
-
-// Stakings is a collection of Staking
-type Stakings []Staking
-
-func (ss Stakings) String() (out string) {
-	for _, staking := range ss {
-		out += staking.String() + "\n"
-	}
-
-	return strings.TrimSpace(out)
-}
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v ResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pk cryptotypes.PubKey

@@ -23,7 +23,6 @@ var (
 
 // message type and route constants
 const (
-	// TypeMsgCreateResourceNodeTx defines the type string of an CreateResourceNodeTx transaction
 	TypeMsgCreateResourceNodeTx    = "create_resource_node"
 	TypeMsgRemoveResourceNodeTx    = "remove_resource_node"
 	TypeUpdateResourceNodeTx       = "update_resource_node"
@@ -371,7 +370,7 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 }
 
 func NewMsgUpdateResourceNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateResourceNodeStake {
+	stakeDelta sdk.Coin, incrStake bool) *MsgUpdateResourceNodeStake {
 	return &MsgUpdateResourceNodeStake{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
@@ -482,7 +481,7 @@ func (msg MsgUpdateMetaNode) ValidateBasic() error {
 }
 
 func NewMsgUpdateMetaNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta *sdk.Coin, incrStake bool) *MsgUpdateMetaNodeStake {
+	stakeDelta sdk.Coin, incrStake bool) *MsgUpdateMetaNodeStake {
 	return &MsgUpdateMetaNodeStake{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),

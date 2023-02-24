@@ -30,14 +30,11 @@ var (
 	DefaultCommunityTax = sdk.NewDecWithPrec(2, 2) // 2%
 )
 
-//var _ subspace.ParamSet = &Params{}
-
 // ParamKeyTable for pot module
 func ParamKeyTable() paramtypes.KeyTable {
 	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
 }
 
-//
 // NewParams creates a new Params object
 func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []*MiningRewardParam, communityTax sdk.Dec) Params {
 	return Params{
@@ -158,6 +155,17 @@ func validateMatureEpoch(i interface{}) error {
 }
 
 func validateMiningRewardParams(i interface{}) error {
+	v, ok := i.([]*MiningRewardParam)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	for _, p := range v {
+		sumOfPercentage := p.BlockChainPercentageInBp.Int64() + p.MetaNodePercentageInBp.Int64() + p.ResourceNodePercentageInBp.Int64()
+		if sumOfPercentage != 10000 {
+			return fmt.Errorf("sum of block_chain_percentage_in_bp, resource_node_percentage_in_bp, meta_node_percentage_in_bp must be 10000: %v", sumOfPercentage)
+		}
+	}
 	return nil
 }
 
@@ -189,6 +197,9 @@ func (p Params) ValidateBasic() error {
 	}
 	if err := validateMatureEpoch(p.MatureEpoch); err != nil {
 		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mature epoch")
+	}
+	if err := validateMiningRewardParams(p.MiningRewardParams); err != nil {
+		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mining reward params")
 	}
 	if err := validateCommunityTax(p.CommunityTax); err != nil {
 		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate community tax")

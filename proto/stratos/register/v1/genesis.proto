@@ -1,59 +1,77 @@
 syntax = "proto3";
 package stratos.register.v1;
 
-
-
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
-
 import "cosmos_proto/cosmos.proto";
 import "cosmos/staking/v1beta1/staking.proto";
-
 import "stratos/register/v1/register.proto";
 
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
 // GenesisState defines the register module's genesis state.
 message GenesisState {
-  register.v1.Params                params = 1 [ (gogoproto.moretags) = "yaml:\"params\"" ];
-
-  repeated register.v1.ResourceNode resource_nodes = 2 [
-    (gogoproto.nullable)     = false,
-    (gogoproto.castrepeated) = "ResourceNodes",
-//    (gogoproto.castrepeated) = "github.com/stratosnet/stratos-chain/x/register/types.ResourceNodes",
-    (gogoproto.moretags)     = "yaml:\"resource_nodes\""
+  Params                  params = 1 [
+    (gogoproto.moretags) = "yaml:\"params\""
   ];
-  repeated register.v1.MetaNode meta_nodes = 3 [
-    (gogoproto.nullable)     = false,
+  repeated ResourceNode   resource_nodes = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "ResourceNodes",
+    (gogoproto.moretags) = "yaml:\"resource_nodes\""
+  ];
+  repeated MetaNode       meta_nodes = 3 [
+    (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "MetaNodes",
-//    (gogoproto.castrepeated) = "github.com/stratosnet/stratos-chain/x/register/types.MetaNodes",
-    (gogoproto.moretags)     = "yaml:\"meta_nodes\""
-   ];
-  string                        remaining_noz_limit = 4 [
-   (gogoproto.nullable) = false,
-   (gogoproto.jsontag)  = "remaining_noz_limit",
-   (gogoproto.moretags) = "yaml:\"remaining_noz_limit\"",
-   (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+    (gogoproto.moretags) = "yaml:\"meta_nodes\""
+  ];
+  string                  remaining_noz_limit = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "remaining_noz_limit",
+    (gogoproto.moretags) = "yaml:\"remaining_noz_limit\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ]; // remaining noz limit
-  repeated register.v1.Slashing     slashing = 5 [ (gogoproto.moretags) = "yaml:\"slashing_info\"" ];
-  string                            stake_noz_rate = 6 [
+  repeated Slashing       slashing = 5 [
+    (gogoproto.moretags) = "yaml:\"slashing_info\""
+  ];
+  string                  stake_noz_rate = 6 [
     (gogoproto.moretags) = "yaml:\"stake_noz_rate\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable)   = false
+    (gogoproto.nullable) = false
   ]; //fixed rate of stake over noz
 }
 
 message GenesisMetaNode {
-  string                               network_address = 1 [ (gogoproto.moretags) = "yaml:\"network_address\"" ]; // network address of the meta node
-  google.protobuf.Any                  pubkey = 2 [
+  string                              network_address = 1 [
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ]; // network address of the meta node
+  google.protobuf.Any                 pubkey = 2 [
     (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ]; // the consensus public key of the meta node; bech encoded in JSON
-  bool                                suspend = 3 [ (gogoproto.moretags) = "yaml:\"suspend\"" ];  // has the meta node been suspended from bonded status?
-  cosmos.staking.v1beta1.BondStatus   status = 4 [ (gogoproto.moretags) = "yaml:\"status\""];   // meta node status (Unspecified/Bonded/Unbonding/Unbonded)
+  bool                                suspend = 3 [
+    (gogoproto.moretags) = "yaml:\"suspend\""
+  ];  // has the meta node been suspended from bonded status?
+  cosmos.staking.v1beta1.BondStatus   status = 4 [
+    (gogoproto.moretags) = "yaml:\"status\""
+  ];   // meta node status (Unspecified/Bonded/Unbonding/Unbonded)
   string                              tokens = 5 [
     (gogoproto.moretags) = "yaml:\"token\""
   ]; // delegated tokens
-  string                              owner_address = 6 [ (gogoproto.moretags) = "yaml:\"owner_address\"" ]; // owner address of the meta node
-  register.v1.Description             description = 7 [ (gogoproto.moretags) = "yaml:\"description\",omitempty" ];  // description terms for the meta node
+  string                              owner_address = 6 [
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ]; // owner address of the meta node
+  Description                         description = 7 [
+    (gogoproto.moretags) = "yaml:\"description\",omitempty"
+  ];  // description terms for the meta node
+}
+
+message Slashing {
+  string  wallet_address = 1 [
+    (gogoproto.jsontag) = "wallet_address",
+    (gogoproto.moretags) = "yaml:\"wallet_address\""
+  ];
+  int64   value = 2 [
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
+  ];
 }

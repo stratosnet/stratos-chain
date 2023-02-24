@@ -1,19 +1,24 @@
 package types
 
 import (
+	"github.com/ipfs/go-cid"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/ipfs/go-cid"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-const (
-	ConstFileUpload = "FileUploadTx"
-	ConstSdsPrepay  = "SdsPrepayTx"
+// verify interface at compile time
+var (
+	_ sdk.Msg = &MsgFileUpload{}
+	_ sdk.Msg = &MsgPrepay{}
 )
 
-// verify interface at compile time
-var _ sdk.Msg = &MsgFileUpload{}
+const (
+	TypeMsgFileUpload = "FileUploadTx"
+	TypeMsgPrepay     = "SdsPrepayTx"
+)
 
 // NewMsgUpload creates a new Msg<Action> instance
 func NewMsgUpload(fileHash string, from, reporter, uploader string) *MsgFileUpload {
@@ -26,8 +31,14 @@ func NewMsgUpload(fileHash string, from, reporter, uploader string) *MsgFileUplo
 }
 
 // nolint
-func (msg MsgFileUpload) Route() string { return RouterKey }
-func (msg MsgFileUpload) Type() string  { return ConstFileUpload }
+func (msg MsgFileUpload) Route() string {
+	return RouterKey
+}
+
+func (msg MsgFileUpload) Type() string {
+	return TypeMsgFileUpload
+}
+
 func (msg MsgFileUpload) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.GetFrom())
 	if err != nil {
@@ -79,21 +90,22 @@ func (msg MsgFileUpload) ValidateBasic() error {
 	return nil
 }
 
-// verify interface at compile time
-var _ sdk.Msg = &MsgPrepay{}
-
 // NewMsgPrepay NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgPrepay(sender string, coins sdk.Coins) *MsgPrepay {
-
+func NewMsgPrepay(sender string, amount sdk.Coins) *MsgPrepay {
 	return &MsgPrepay{
 		Sender: sender,
-		Coins:  coins,
+		Amount: amount,
 	}
 }
 
-// nolint
-func (msg MsgPrepay) Route() string { return RouterKey }
-func (msg MsgPrepay) Type() string  { return ConstSdsPrepay }
+func (msg MsgPrepay) Route() string {
+	return RouterKey
+}
+
+func (msg MsgPrepay) Type() string {
+	return TypeMsgPrepay
+}
+
 func (msg MsgPrepay) GetSigners() []sdk.AccAddress {
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
@@ -119,8 +131,8 @@ func (msg MsgPrepay) ValidateBasic() error {
 	if sender.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
 	}
-	if msg.Coins.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing coins to send")
+	if msg.Amount.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing amount to send")
 	}
 	return nil
 }

@@ -33,7 +33,6 @@ var (
 	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
 	DefaultStakeNozRate            = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
 	DefaultRemainingNozLimit       = sdk.NewInt(0)
-	//DefaultNozPrice                = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
 )
 
 // ParamKeyTable returns the parameter key table.

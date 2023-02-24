@@ -15,22 +15,10 @@ import (
 )
 
 func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc(
-		"/sds/simulatePrepay/{amtToPrepay}",
-		SimulatePrepayHandlerFn(clientCtx),
-	).Methods("GET")
-	r.HandleFunc(
-		"/sds/nozPrice",
-		NozPriceHandlerFn(clientCtx),
-	).Methods("GET")
-	r.HandleFunc(
-		"/sds/nozSupply",
-		NozSupplyHandlerFn(clientCtx),
-	).Methods("GET")
-	r.HandleFunc("/sds/params",
-		sdsParamsHandlerFn(clientCtx, types.QueryParams),
-	).Methods("GET")
-
+	r.HandleFunc("/sds/simulatePrepay/{amtToPrepay}", SimulatePrepayHandlerFn(clientCtx)).Methods("GET")
+	r.HandleFunc("/sds/nozPrice", NozPriceHandlerFn(clientCtx)).Methods("GET")
+	r.HandleFunc("/sds/nozSupply", NozSupplyHandlerFn(clientCtx)).Methods("GET")
+	r.HandleFunc("/sds/params", sdsParamsHandlerFn(clientCtx, types.QueryParams)).Methods("GET")
 }
 
 // GET request handler to query params of POT module

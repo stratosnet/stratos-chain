@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"errors"
+	"sort"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -90,13 +91,13 @@ func (k Keeper) CalcTrafficRewardInTotal(
 		return distributeGoal, err
 	}
 	stakeTrafficReward := totalTrafficReward.
-		Mul(miningParam.BlockChainPercentageInTenThousand.ToDec()).
+		Mul(miningParam.BlockChainPercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	trafficRewardToResourceNodes := totalTrafficReward.
-		Mul(miningParam.ResourceNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.ResourceNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	trafficRewardToMetaNodes := totalTrafficReward.
-		Mul(miningParam.MetaNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.MetaNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 
 	stakeRewardToValidators, stakeRewardToResourceNodes, stakeRewardToMetaNodes := k.splitRewardByStake(ctx, stakeTrafficReward)
@@ -149,13 +150,13 @@ func (k Keeper) CalcMiningRewardInTotal(ctx sdk.Context, distributeGoal types.Di
 		return distributeGoal, err
 	}
 	stakeMiningReward := totalMiningReward.Amount.ToDec().
-		Mul(miningParam.BlockChainPercentageInTenThousand.ToDec()).
+		Mul(miningParam.BlockChainPercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	miningRewardToResourceNodes := totalMiningReward.Amount.ToDec().
-		Mul(miningParam.ResourceNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.ResourceNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 	miningRewardToMetaNodes := totalMiningReward.Amount.ToDec().
-		Mul(miningParam.MetaNodePercentageInTenThousand.ToDec()).
+		Mul(miningParam.MetaNodePercentageInBp.ToDec()).
 		Quo(sdk.NewDec(10000)).TruncateInt()
 
 	stakeRewardToValidators, stakeRewardToResourceNodes, stakeRewardToMetaNodes := k.splitRewardByStake(ctx, stakeMiningReward)
@@ -483,6 +484,21 @@ func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 	}
 
 	return nil
+}
+
+// Iteration for sorting map to slice
+func sortDetailMapToSlice(rewardDetailMap map[string]types.Reward) (rewardDetailList []types.Reward) {
+	keys := make([]string, 0, len(rewardDetailMap))
+	for key := range rewardDetailMap {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+
+	for _, key := range keys {
+		reward := rewardDetailMap[key]
+		rewardDetailList = append(rewardDetailList, reward)
+	}
+	return rewardDetailList
 }
 
 func (k Keeper) InitVariable(ctx sdk.Context) {
