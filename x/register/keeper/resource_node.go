@@ -91,29 +91,31 @@ func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 
 // AddResourceNodeStake Update the tokens of an existing resource node
 func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin,
-) (ozoneLimitChange sdk.Int, err error) {
+) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, err error) {
 
 	needAddCount := true
 	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), types.ErrInvalidNetworkAddr
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInvalidNetworkAddr
 	}
 	nodeStored, found := k.GetResourceNode(ctx, networkAddr)
 	if found && nodeStored.IsBonded() {
 		needAddCount = false
 	}
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableTokenAmtBefore = resourceNode.Tokens.Sub(unbondingStake)
 
 	coins := sdk.NewCoins(tokenToAdd)
 
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), types.ErrInvalidOwnerAddr
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInvalidOwnerAddr
 	}
 
 	// sub coins from owner's wallet
 	hasCoin := k.bankKeeper.HasBalance(ctx, ownerAddr, tokenToAdd)
 	if !hasCoin {
-		return sdk.ZeroInt(), types.ErrInsufficientBalance
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
 	}
 
 	targetModuleAccName := ""
@@ -124,13 +126,13 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	case stakingtypes.Bonded:
 		targetModuleAccName = types.ResourceNodeBondedPool
 	case stakingtypes.Unbonding:
-		return sdk.ZeroInt(), types.ErrUnbondingNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrUnbondingNode
 	}
 
 	if len(targetModuleAccName) > 0 {
 		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, ownerAddr, targetModuleAccName, coins)
 		if err != nil {
-			return sdk.ZeroInt(), err
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), err
 		}
 	}
 
@@ -146,17 +148,17 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		nBondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPool)
 		if nBondedResourceAccountAddr == nil {
 			ctx.Logger().Error("not bonded account address for resource nodes does not exist.")
-			return sdk.ZeroInt(), types.ErrUnknownAccountAddress
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrUnknownAccountAddress
 		}
 
 		hasCoin := k.bankKeeper.HasBalance(ctx, nBondedResourceAccountAddr, tokenToTrasfer)
 		if !hasCoin {
-			return sdk.ZeroInt(), types.ErrInsufficientBalance
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
 		}
 
 		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPool, types.ResourceNodeBondedPool, sdk.NewCoins(tokenToTrasfer))
 		if err != nil {
-			return sdk.ZeroInt(), types.ErrInsufficientBalance
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
 		}
 	}
 
@@ -169,7 +171,8 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 		k.SetBondedResourceNodeCnt(ctx, count)
 	}
 
-	return sdk.ZeroInt(), nil
+	availableTokenAmtAfter = availableTokenAmtBefore.Add(tokenToAdd.Amount)
+	return sdk.ZeroInt(), availableTokenAmtBefore, availableTokenAmtAfter, nil
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {
@@ -282,7 +285,7 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 	if err != nil {
 		return ozoneLimitChange, err
 	}
-	ozoneLimitChange, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
+	ozoneLimitChange, _, _, err = k.AddResourceNodeStake(ctx, resourceNode, stake)
 	return ozoneLimitChange, err
 }
 
@@ -310,36 +313,37 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 }
 
 func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, resourcenode types.ResourceNode, err error) {
+	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int,
+	unbondingMatureTime time.Time, resourcenode types.ResourceNode, err error) {
 
 	blockTime := ctx.BlockHeader().Time
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), blockTime, node, types.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, types.ErrNoResourceNodeFound
 	}
 
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !bytes.Equal(ownerAddrNode, ownerAddr) {
-		return sdk.ZeroInt(), blockTime, node, types.ErrInvalidOwnerAddr
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, types.ErrInvalidOwnerAddr
 	}
 
 	if incrStake {
-		ozoneLimitChange, err := k.AddResourceNodeStake(ctx, node, stakeDelta)
+		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, err := k.AddResourceNodeStake(ctx, node, stakeDelta)
 		if err != nil {
-			return sdk.ZeroInt(), blockTime, node, err
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, err
 		}
-		return ozoneLimitChange, blockTime, node, nil
+		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, blockTime, node, nil
 	} else {
 		// if !incrStake
 		if node.GetStatus() == stakingtypes.Unbonding {
-			return sdk.ZeroInt(), blockTime, node, types.ErrUnbondingNode
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, types.ErrUnbondingNode
 		}
 
-		ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
+		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
 		if err != nil {
-			return sdk.ZeroInt(), blockTime, node, err
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, err
 		}
-		return ozoneLimitChange, completionTime, node, nil
+		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
 	}
 }
 

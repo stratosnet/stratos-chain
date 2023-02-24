@@ -32,6 +32,8 @@ const (
 	AttributeKeyOZoneLimitChanges    = "ozone_limit_changes"
 	AttributeKeyInitialStake         = "initial_stake"
 	AttributeKeyCurrentStake         = "current_stake"
+	AttributeKeyAvailableTokenBefore = "available_token_before"
+	AttributeKeyAvailableTokenAfter  = "available_token_after"
 	AttributeKeyStakeDelta           = "stake_delta"
 	AttributeKeyStakeToRemove        = "stake_to_remove"
 	AttributeKeyIncrStakeBool        = "incr_stake"
