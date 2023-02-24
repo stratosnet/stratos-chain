@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
+	"errors"
 	"strconv"
 	"time"
 

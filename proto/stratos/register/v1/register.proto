@@ -81,9 +81,9 @@ message ResourceNode {
     (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];
-  string                     effective_tokens        = 10 [
+  string                              effective_tokens = 10 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag)  = "effective_tokens",
+    (gogoproto.jsontag) = "effective_tokens",
     (gogoproto.moretags) = "yaml:\"effective_tokens\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];

@@ -217,21 +217,21 @@ message MsgUpdateResourceNodeStakeResponse {}
 message MsgUpdateEffectiveStake {
   option (gogoproto.goproto_getters) = false;
 
-  repeated string reporters = 1 [
+  repeated string           reporters = 1 [
     (gogoproto.jsontag) = "reporters",
     (gogoproto.moretags) = "yaml:\"reporters\""
   ];
-  repeated string reporter_owner = 2 [
+  repeated string           reporter_owner = 2 [
     (gogoproto.jsontag) = "reporter_owner",
     (gogoproto.moretags) = "yaml:\"reporter_owner\""
   ];
-  string                    network_address   = 3 [
+  string                    network_address = 3 [
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  string                     effective_tokens = 4 [
+  string                    effective_tokens = 4 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag)  = "effective_tokens",
+    (gogoproto.jsontag) = "effective_tokens",
     (gogoproto.moretags) = "yaml:\"effective_tokens\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];

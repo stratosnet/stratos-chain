@@ -41,10 +41,10 @@ message GenesisState {
 }
 
 message GenesisMetaNode {
-  string                               network_address = 1 [
+  string                              network_address = 1 [
     (gogoproto.moretags) = "yaml:\"network_address\""
   ]; // network address of the meta node
-  google.protobuf.Any                  pubkey = 2 [
+  google.protobuf.Any                 pubkey = 2 [
     (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ]; // the consensus public key of the meta node; bech encoded in JSON
