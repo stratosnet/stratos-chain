@@ -358,7 +358,6 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	if err != nil {
 		return txf, nil, err
 	}
-	decAmount := sdk.NewDecCoinFromCoin(amount)
 
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
@@ -404,7 +403,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	if t := nodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, decAmount, ownerAddr, description, nodeTypeVal)
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, nodeTypeVal)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -421,7 +420,6 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 	if err != nil {
 		return txf, nil, err
 	}
-	decAmount := sdk.NewDecCoinFromCoin(amount)
 
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
@@ -455,7 +453,7 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 		security,
 		details,
 	)
-	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, decAmount, ownerAddr, description)
+	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, description)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -542,7 +540,6 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 	if err != nil {
 		return txf, nil, err
 	}
-	decStakeDelta := sdk.NewDecCoinFromCoin(stakeDelta)
 
 	incrStakeStr, err := fs.GetString(FlagIncrStake)
 	if err != nil {
@@ -561,7 +558,7 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, decStakeDelta, incrStake)
+	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
 	return txf, msg, nil
 }
 
@@ -575,7 +572,6 @@ func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs
 	if err != nil {
 		return txf, nil, err
 	}
-	decStakeDelta := sdk.NewDecCoinFromCoin(stakeDelta)
 
 	incrStakeStr, err := fs.GetString(FlagIncrStake)
 	if err != nil {
@@ -594,7 +590,7 @@ func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, decStakeDelta, incrStake)
+	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
 	return txf, msg, nil
 }
 

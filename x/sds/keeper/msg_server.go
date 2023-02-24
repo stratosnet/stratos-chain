@@ -76,8 +76,7 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	amount := sdk.NormalizeCoins(msg.GetAmount())
-	purchased, err := k.Prepay(ctx, sender, amount)
+	purchased, err := k.Prepay(ctx, sender, msg.GetAmount())
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
@@ -86,7 +85,7 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		sdk.NewEvent(
 			types.EventTypePrepay,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
-			sdk.NewAttribute(types.AttributeKeyAmount, amount.String()),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.GetAmount().String()),
 			sdk.NewAttribute(types.AttributeKeyPurchasedNoz, purchased.String()),
 		),
 		sdk.NewEvent(

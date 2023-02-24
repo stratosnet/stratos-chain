@@ -45,11 +45,11 @@ message MsgPrepay {
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
 
-  repeated cosmos.base.v1beta1.DecCoin  amount = 2 [
+  repeated cosmos.base.v1beta1.Coin     amount = 2 [
     (gogoproto.jsontag) = "amount",
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
 

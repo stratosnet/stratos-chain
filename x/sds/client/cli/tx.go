@@ -148,9 +148,8 @@ func newBuildPrepayMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSe
 		return txf, nil, err
 	}
 
-	decAmount := sdk.NewDecCoinFromCoin(amount)
 	// build and sign the transaction, then broadcast to Tendermint
-	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), sdk.NewDecCoins(decAmount))
+	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), sdk.NewCoins(amount))
 
 	return txf, msg, nil
 }

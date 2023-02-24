@@ -60,7 +60,7 @@ message MsgCreateResourceNode {
     (gogoproto.jsontag) = "pubkey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ];
-  cosmos.base.v1beta1.DecCoin   value = 3 [
+  cosmos.base.v1beta1.Coin      value = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "value",
     (gogoproto.moretags) = "yaml:\"value\""
@@ -93,7 +93,7 @@ message MsgCreateMetaNode {
     (gogoproto.jsontag) = "pubkey",
     (gogoproto.moretags) = "yaml:\"pubkey\""
   ];
-  cosmos.base.v1beta1.DecCoin   value = 3 [
+  cosmos.base.v1beta1.Coin      value = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "value",
     (gogoproto.moretags) = "yaml:\"value\""
@@ -203,7 +203,7 @@ message MsgUpdateResourceNodeStake {
     (gogoproto.jsontag) = "incr_stake",
     (gogoproto.moretags) = "yaml:\"incr_stake\""
   ];
-  cosmos.base.v1beta1.DecCoin stake_delta = 4 [
+  cosmos.base.v1beta1.Coin    stake_delta = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "stake_delta",
     (gogoproto.moretags) = "yaml:\"stake_delta\""
@@ -255,7 +255,7 @@ message MsgUpdateMetaNodeStake {
     (gogoproto.jsontag) = "incr_stake",
     (gogoproto.moretags) = "yaml:\"incr_stake\""
   ];
-  cosmos.base.v1beta1.DecCoin stake_delta = 4 [
+  cosmos.base.v1beta1.Coin    stake_delta = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "stake_delta",
     (gogoproto.moretags) = "yaml:\"stake_delta\""

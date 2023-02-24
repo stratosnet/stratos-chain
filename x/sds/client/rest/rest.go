@@ -26,5 +26,5 @@ type FileUploadReq struct {
 // PrepayReq defines the properties of a prepay request's body.
 type PrepayReq struct {
 	BaseReq sdktrest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount  sdk.DecCoins     `json:"amount" yaml:"amount"`
+	Amount  sdk.Coins        `json:"amount" yaml:"amount"`
 }

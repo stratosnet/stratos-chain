@@ -91,7 +91,7 @@ func (msg MsgFileUpload) ValidateBasic() error {
 }
 
 // NewMsgPrepay NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgPrepay(sender string, amount sdk.DecCoins) *MsgPrepay {
+func NewMsgPrepay(sender string, amount sdk.Coins) *MsgPrepay {
 	return &MsgPrepay{
 		Sender: sender,
 		Amount: amount,
