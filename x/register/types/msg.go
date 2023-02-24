@@ -199,7 +199,7 @@ func (msg MsgCreateMetaNode) GetSigners() []sdk.AccAddress {
 	// Owner pays the tx fees
 	addr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
-		return []sdk.AccAddress{}
+		panic(err)
 	}
 	return []sdk.AccAddress{addr.Bytes()}
 
@@ -642,6 +642,13 @@ func (m MsgUpdateEffectiveStake) ValidateBasic() error {
 		}
 	}
 
+	for _, owner := range m.ReporterOwner {
+		_, err := sdk.AccAddressFromBech32(owner)
+		if err != nil {
+			return ErrInvalidOwnerAddr
+		}
+	}
+
 	if m.EffectiveTokens.LT(sdk.ZeroInt()) {
 		return ErrInvalidAmount
 	}
@@ -658,7 +665,7 @@ func (m MsgUpdateEffectiveStake) GetSigners() []sdk.AccAddress {
 	for _, owner := range m.ReporterOwner {
 		reporterOwner, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
-			continue
+			panic(err)
 		}
 		addrs = append(addrs, reporterOwner)
 	}

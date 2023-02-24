@@ -31,7 +31,7 @@ func (msg MsgFileUpload) Type() string  { return ConstFileUpload }
 func (msg MsgFileUpload) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(msg.GetFrom())
 	if err != nil {
-		return []sdk.AccAddress{}
+		panic(err)
 	}
 	return []sdk.AccAddress{accAddr.Bytes()}
 }
@@ -49,6 +49,11 @@ func (msg MsgFileUpload) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrInvalidFileHash, "failed to validate file hash")
 	}
 
+	from, err := sdk.AccAddressFromBech32(msg.GetFrom())
+	if err != nil {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to validate from address")
+	}
+
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse reporter address")
@@ -59,6 +64,9 @@ func (msg MsgFileUpload) ValidateBasic() error {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse uploader address")
 	}
 
+	if from.Empty() {
+		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx from")
+	}
 	if reporter.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx reporter")
 	}
