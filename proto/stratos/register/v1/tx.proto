@@ -27,6 +27,9 @@ service Msg {
   rpc HandleMsgUpdateResourceNodeStake(MsgUpdateResourceNodeStake) returns (MsgUpdateResourceNodeStakeResponse) {
     option (google.api.http).post = "/stratos/register/v1/update_resource_node_stake";
   };
+  rpc HandleMsgUpdateEffectiveStake(MsgUpdateEffectiveStake) returns (MsgUpdateEffectiveStakeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/update_effective_stake";
+  };
 
   rpc HandleMsgCreateMetaNode(MsgCreateMetaNode) returns (MsgCreateMetaNodeResponse) {
     option (google.api.http).post = "/stratos/register/v1/create_meta_node";
@@ -218,6 +221,33 @@ message MsgUpdateResourceNodeStake {
 
 // MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
 message MsgUpdateResourceNodeStakeResponse {}
+
+// MsgUpdateEffectiveStake defines a SDK message for updating the effective stake of an existing resource node.
+message MsgUpdateEffectiveStake {
+  option (gogoproto.goproto_getters) = false;
+
+  repeated string reporters = 1 [
+    (gogoproto.jsontag) = "reporters",
+    (gogoproto.moretags) = "yaml:\"reporters\""
+  ];
+  repeated string reporter_owner = 2 [
+    (gogoproto.jsontag) = "reporter_owner",
+    (gogoproto.moretags) = "yaml:\"reporter_owner\""
+  ];
+  string                    network_address   = 3 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ];
+  string                     effective_tokens = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag)  = "effective_tokens",
+    (gogoproto.moretags) = "yaml:\"effective_tokens\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+// MsgUpdateEffectiveStakeResponse defines the Msg/UpdateEffectiveStake response type.
+message MsgUpdateEffectiveStakeResponse {}
 
 
 // MsgUpdateMetaNodeStake defines a SDK message for updating the stake of an existing meta node.

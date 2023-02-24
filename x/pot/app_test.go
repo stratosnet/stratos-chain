@@ -43,7 +43,8 @@ var (
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
-	resNodeSlashingNOZAmt1 = sdk.NewInt(1000000000000000000)
+	resNodeSlashingNOZAmt1            = sdk.NewInt(1000000000000000000)
+	resNodeSlashingEffectiveTokenAmt1 = sdk.NewInt(1000000000000000000)
 
 	resourceNodeVolume1 = sdk.NewInt(500000)
 	resourceNodeVolume2 = sdk.NewInt(300000)

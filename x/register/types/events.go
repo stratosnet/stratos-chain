@@ -10,6 +10,7 @@ const (
 	EventTypeUnbondingResourceNode    = "unbonding_resource_node"
 	EventTypeUpdateResourceNode       = "update_resource_node"
 	EventTypeUpdateResourceNodeStake  = "update_resource_node_stake"
+	EventTypeUpdateEffectiveStake     = "update_effective_stake"
 	EventTypeCreateMetaNode           = "create_meta_node"
 	EventTypeRemoveMetaNode           = "remove_meta_node"
 	EventTypeUnbondingMetaNode        = "unbonding_Meta_node"
@@ -28,12 +29,17 @@ const (
 
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
 
-	AttributeKeyOZoneLimitChanges = "ozone_limit_changes"
-	AttributeKeyInitialStake      = "initial_stake"
-	AttributeKeyCurrentStake      = "current_stake"
-	AttributeKeyStakeDelta        = "stake_delta"
-	AttributeKeyStakeToRemove     = "stake_to_remove"
-	AttributeKeyIncrStakeBool     = "incr_stake"
+	AttributeKeyOZoneLimitChanges    = "ozone_limit_changes"
+	AttributeKeyInitialStake         = "initial_stake"
+	AttributeKeyCurrentStake         = "current_stake"
+	AttributeKeyAvailableTokenBefore = "available_token_before"
+	AttributeKeyAvailableTokenAfter  = "available_token_after"
+	AttributeKeyStakeDelta           = "stake_delta"
+	AttributeKeyStakeToRemove        = "stake_to_remove"
+	AttributeKeyIncrStakeBool        = "incr_stake"
+	AttributeKeyEffectiveStakeChange = "effective_stake_change"
+	AttributeKeyEffectiveStakeAfter  = "effective_stake_after"
+	AttributeKeyIsUnsuspended        = "is_unsuspended"
 
 	AttributeValueCategory = ModuleName
 )

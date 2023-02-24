@@ -60,6 +60,8 @@ const (
 	codeErrVoteMetaNode
 	codeErrResourceNodeRegDisabled
 	codeErrInvalidSuspensionStatForUnbondNode
+	codeErrReporterAddress
+	codeErrInvalidAmount
 )
 
 var (
@@ -118,4 +120,6 @@ var (
 	ErrVoteMetaNode                       = sdkerrors.Register(ModuleName, codeErrVoteMetaNode, "failed to vote meta node")
 	ErrResourceNodeRegDisabled            = sdkerrors.Register(ModuleName, codeErrResourceNodeRegDisabled, "resource node registration is disabled")
 	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")
+	ErrReporterAddress                    = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
+	ErrInvalidAmount                      = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
 )

@@ -147,7 +147,7 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 		return nil, types.ErrInsufficientBalance
 	}
 
-	ozoneLimitChange, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, availableStake)
+	ozoneLimitChange, _, _, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, availableStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUnbondResourceNode, err.Error())
 	}
@@ -158,7 +158,7 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
-			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), availableStake).String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -320,7 +320,8 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 		return &types.MsgUpdateResourceNodeStakeResponse{}, errors.New("invalid stake delta")
 	}
 
-	ozoneLimitChange, completionTime, node, err := k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, err :=
+		k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, *msg.StakeDelta, msg.IncrStake)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
 	}
@@ -333,6 +334,8 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 			sdk.NewAttribute(types.AttributeKeyIncrStakeBool, strconv.FormatBool(msg.IncrStake)),
 			sdk.NewAttribute(types.AttributeKeyStakeDelta, msg.StakeDelta.String()),
 			sdk.NewAttribute(types.AttributeKeyCurrentStake, sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyAvailableTokenBefore, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String()),
+			sdk.NewAttribute(types.AttributeKeyAvailableTokenAfter, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
@@ -343,6 +346,44 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 		),
 	})
 	return &types.MsgUpdateResourceNodeStakeResponse{}, nil
+}
+
+func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *types.MsgUpdateEffectiveStake) (*types.MsgUpdateEffectiveStakeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	for _, reporter := range msg.Reporters {
+		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
+		if err != nil {
+			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		}
+		if !(k.IsMetaNode(ctx, reporterSdsAddr)) {
+			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "MsgUpdateEffectiveStake is not sent by a meta node")
+		}
+	}
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
+	if err != nil {
+		return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+	}
+
+	if msg.EffectiveTokens.LTE(sdk.NewInt(0)) {
+		return &types.MsgUpdateEffectiveStakeResponse{}, errors.New("effective tokens should be greater than 0")
+	}
+
+	_, _, isUnsuspendedDuringUpdate, err := k.UpdateEffectiveStake(ctx, networkAddr, msg.EffectiveTokens)
+	if err != nil {
+		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeUpdateEffectiveStake,
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
+			sdk.NewAttribute(types.AttributeKeyEffectiveStakeAfter, msg.EffectiveTokens.String()),
+			sdk.NewAttribute(types.AttributeKeyIsUnsuspended, strconv.FormatBool(isUnsuspendedDuringUpdate)),
+		),
+	})
+	return &types.MsgUpdateEffectiveStakeResponse{}, nil
 }
 
 func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.MsgUpdateMetaNode) (*types.MsgUpdateMetaNodeResponse, error) {
