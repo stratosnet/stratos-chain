@@ -27,6 +27,7 @@ const (
 	TypeMsgRemoveResourceNode       = "remove_resource_node"
 	TypeMsgUpdateResourceNode       = "update_resource_node"
 	TypeMsgUpdateResourceNodeStake  = "update_resource_node_stake"
+	TypeMsgUpdateEffectiveStake     = "update_effective_stake"
 	TypeMsgCreateMetaNode           = "create_meta_node"
 	TypeMsgRemoveMetaNode           = "remove_meta_node"
 	TypeMsgUpdateMetaNode           = "update_meta_node"
