@@ -121,6 +121,7 @@ func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 		Extra:       common.Hex2Bytes(""),
 		MixDigest:   common.Hash{},
 		Nonce:       ethtypes.BlockNonce{},
+		BaseFee:     nil,
 		// TODO: Add size somehow for legacy subscription support as for a new Header type after London
 		// is not exist but still present in newBlockHeaders call on subscription
 	}, nil
@@ -171,6 +172,7 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 		Transactions:     transactions,
 		Uncles:           make([]common.Hash, 0),
 		ReceiptsRoot:     common.Hash{},
+		BaseFee:          nil,
 	}, nil
 }
 

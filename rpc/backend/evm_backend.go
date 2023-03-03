@@ -76,6 +76,12 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 	}
 	res.Miner = validator
 
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	res.BaseFee = feeResp.BaseFee.BigInt()
+
 	return res, nil
 }
 
@@ -111,6 +117,12 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 		return nil, err
 	}
 	res.Miner = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	res.BaseFee = feeResp.BaseFee.BigInt()
 
 	return res, nil
 }
@@ -234,6 +246,12 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, err
 		return nil, err
 	}
 	ethHeader.Coinbase = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	ethHeader.BaseFee = feeResp.BaseFee.BigInt()
 	return ethHeader, nil
 }
 
@@ -268,6 +286,12 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 		return nil, err
 	}
 	ethHeader.Coinbase = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	ethHeader.BaseFee = feeResp.BaseFee.BigInt()
 	return ethHeader, nil
 }
 
@@ -625,33 +649,37 @@ func (b *Backend) ChainConfig() *params.ChainConfig {
 // Although we don't support tx prioritization yet, but we return a positive value to help client to
 // mitigate the base fee changes.
 func (b *Backend) SuggestGasTipCap() (*big.Int, error) {
-	baseFee, err := b.BaseFee()
-	if err != nil {
-		// london hardfork not enabled or feemarket not enabled
-		return big.NewInt(0), nil
-	}
+	// baseFee, err := b.BaseFee()
+	// if err != nil {
+	// 	// london hardfork not enabled or feemarket not enabled
+	// 	return big.NewInt(0), nil
+	// }
 
-	sdkCtx := b.GetEVMContext().GetSdkContext()
-	params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	// calculate the maximum base fee delta in current block, assuming all block gas limit is consumed
-	// ```
-	// GasTarget = GasLimit / ElasticityMultiplier
-	// Delta = BaseFee * (GasUsed - GasTarget) / GasTarget / Denominator
-	// ```
-	// The delta is at maximum when `GasUsed` is equal to `GasLimit`, which is:
-	// ```
-	// MaxDelta = BaseFee * (GasLimit - GasLimit / ElasticityMultiplier) / (GasLimit / ElasticityMultiplier) / Denominator
-	//          = BaseFee * (ElasticityMultiplier - 1) / Denominator
-	// ```
-	maxDelta := baseFee.Int64() * (int64(params.Params.FeeMarketParams.ElasticityMultiplier) - 1) / int64(params.Params.FeeMarketParams.BaseFeeChangeDenominator)
-	if maxDelta < 0 {
-		// impossible if the parameter validation passed.
-		maxDelta = 0
-	}
-	return big.NewInt(maxDelta), nil
+	// sdkCtx := b.GetEVMContext().GetSdkContext()
+	// params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// // calculate the maximum base fee delta in current block, assuming all block gas limit is consumed
+	// // ```
+	// // GasTarget = GasLimit / ElasticityMultiplier
+	// // Delta = BaseFee * (GasUsed - GasTarget) / GasTarget / Denominator
+	// // ```
+	// // The delta is at maximum when `GasUsed` is equal to `GasLimit`, which is:
+	// // ```
+	// // MaxDelta = BaseFee * (GasLimit - GasLimit / ElasticityMultiplier) / (GasLimit / ElasticityMultiplier) / Denominator
+	// //          = BaseFee * (ElasticityMultiplier - 1) / Denominator
+	// // ```
+	// maxDelta := baseFee.Int64() * (int64(params.Params.FeeMarketParams.ElasticityMultiplier) - 1) / int64(params.Params.FeeMarketParams.BaseFeeChangeDenominator)
+	// if maxDelta < 0 {
+	// 	// impossible if the parameter validation passed.
+	// 	maxDelta = 0
+	// }
+	// return big.NewInt(maxDelta), nil
+
+	// NOTE: Commented as validators do not receive tips
+	// but I left a logic in case we want to have this in future
+	return big.NewInt(0), nil
 }
 
 // BaseFee returns the base fee tracked by the Fee Market module.
