@@ -91,10 +91,11 @@ func (msg MsgFileUpload) ValidateBasic() error {
 }
 
 // NewMsgPrepay NewMsg<Action> creates a new Msg<Action> instance
-func NewMsgPrepay(sender string, amount sdk.Coins) *MsgPrepay {
+func NewMsgPrepay(sender string, beneficiary string, amount sdk.Coins) *MsgPrepay {
 	return &MsgPrepay{
-		Sender: sender,
-		Amount: amount,
+		Sender:      sender,
+		Beneficiary: beneficiary,
+		Amount:      amount,
 	}
 }
 
@@ -123,16 +124,19 @@ func (msg MsgPrepay) GetSignBytes() []byte {
 
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgPrepay) ValidateBasic() error {
-	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
+	_, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "invalid sender address")
+		return ErrInvalidSenderAddr
 	}
 
-	if sender.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing sender address")
+	_, err = sdk.AccAddressFromBech32(msg.GetBeneficiary())
+	if err != nil {
+		return ErrInvalidBeneficiaryAddr
 	}
+
 	if msg.Amount.Empty() {
 		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing amount to send")
 	}
+
 	return nil
 }

@@ -121,15 +121,13 @@ func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, coins sdk.Coins) sdk.Int {
 
 // Prepay transfers coins from bank to sds (volumn) pool
 func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
-	for _, coin := range coins {
-		hasCoin := k.bankKeeper.HasBalance(ctx, sender, coin)
-		if !hasCoin {
-			return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "Insufficient balance in the acc %s", sender.String())
-		}
+	validPrepayAmt := coins.AmountOf(k.BondDenom(ctx))
+	hasCoin := k.bankKeeper.HasBalance(ctx, sender, sdk.NewCoin(k.BondDenom(ctx), validPrepayAmt))
+	if !hasCoin {
+		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "Insufficient balance in the acc %s", sender.String())
 	}
 
-	prepay := coins.AmountOf(k.BondDenom(ctx))
-	return k.purchaseNozAndSubCoins(ctx, sender, prepay)
+	return k.purchaseNozAndSubCoins(ctx, sender, validPrepayAmt)
 }
 
 // IterateFileUpload Iterate over all uploaded files.

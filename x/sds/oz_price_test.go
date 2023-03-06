@@ -7,8 +7,6 @@ import (
 	"testing"
 	"time"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -17,18 +15,20 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/stratosnet/stratos-chain/app"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -627,7 +627,7 @@ func setupPrepayMsg() *sdstypes.MsgPrepay {
 	sender := resOwner1
 	amount, _ := sdk.NewIntFromString("1" + StosToWeiSuffix)
 	coin := sdk.NewCoin(stratos.Wei, amount)
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(coin))
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
 }
 
@@ -635,7 +635,7 @@ func setupPrepayMsgWithResOwner(resOwner sdk.AccAddress) *sdstypes.MsgPrepay {
 	sender := resOwner
 	amount, _ := sdk.NewIntFromString("3" + StosToWeiSuffix)
 	coin := sdk.NewCoin(stratos.Wei, amount)
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(coin))
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
 }
 
@@ -654,7 +654,7 @@ func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNod
 	reporters = append(reporters, idxNodeNetworkId1)
 	reportOwner := make([]sdk.AccAddress, 0)
 	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, sdk.ZeroInt(), false, resNodeSlashingEffectiveTokenAmt1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, sdk.ZeroInt(), false)
 	return slashingMsg
 }
 
