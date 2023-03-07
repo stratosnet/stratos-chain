@@ -3,6 +3,9 @@ package keeper
 import (
 	gogotypes "github.com/gogo/protobuf/types"
 
+	db "github.com/tendermint/tm-db"
+
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -215,4 +218,20 @@ func (k Keeper) SetIsReadyToDistributeReward(ctx sdk.Context, isReady bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&gogotypes.BoolValue{Value: isReady})
 	store.Set(types.IsReadyToDistributeReward, b)
+}
+
+func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
+	if reverse {
+		var end []byte
+		if start != nil {
+			itr := prefixStore.Iterator(start, nil)
+			defer itr.Close()
+			if itr.Valid() {
+				itr.Next()
+				end = itr.Key()
+			}
+		}
+		return prefixStore.ReverseIterator(nil, end)
+	}
+	return prefixStore.Iterator(start, nil)
 }

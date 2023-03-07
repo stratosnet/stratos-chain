@@ -10,6 +10,7 @@ const (
 	QueryRewardsByWalletAddr            = "query_pot_rewards_by_wallet_address"
 	QuerySlashingByWalletAddr           = "query_pot_slashing_by_wallet_address"
 	QueryPotParams                      = "query_pot_params"
+	QueryTotalMinedToken                = "query_total_mined_token"
 	QueryDefaultLimit                   = 100
 )
 

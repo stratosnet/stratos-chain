@@ -7,8 +7,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	db "github.com/tendermint/tm-db"
-
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -103,10 +101,7 @@ func (q Querier) RewardsByEpoch(c context.Context, req *types.QueryRewardsByEpoc
 		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	height := ctx.BlockHeight()
-	//var rewards []*types.Reward
-	//for i, v := range res {
-	//	rewards[i] = &v
-	//}
+
 	return &types.QueryRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
 }
 
@@ -373,18 +368,9 @@ func Paginate(
 	return res, nil
 }
 
-func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
-	if reverse {
-		var end []byte
-		if start != nil {
-			itr := prefixStore.Iterator(start, nil)
-			defer itr.Close()
-			if itr.Valid() {
-				itr.Next()
-				end = itr.Key()
-			}
-		}
-		return prefixStore.ReverseIterator(nil, end)
-	}
-	return prefixStore.Iterator(start, nil)
+func (q Querier) TotalMinedToken(c context.Context, _ *types.QueryTotalMinedTokenRequest) (*types.QueryTotalMinedTokenResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	totalMinedToken := q.GetTotalMinedTokens(ctx)
+
+	return &types.QueryTotalMinedTokenResponse{TotalMinedToken: totalMinedToken}, nil
 }
