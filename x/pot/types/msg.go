@@ -96,7 +96,7 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		return ErrEmptyReportReference
 	}
 	if len(msg.ReporterOwner) == 0 {
-		return ErrEmptyReporterOwnerAddr
+		return ErrReporterOwnerAddr
 	}
 
 	for _, item := range msg.WalletVolumes {
