@@ -62,6 +62,7 @@ const (
 	codeErrInvalidSuspensionStatForUnbondNode
 	codeErrReporterAddress
 	codeErrInvalidAmount
+	codeErrReporterAddressOrOwner
 )
 
 var (
@@ -122,4 +123,5 @@ var (
 	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")
 	ErrReporterAddress                    = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
 	ErrInvalidAmount                      = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
+	ErrReporterAddressOrOwner             = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 )

@@ -82,7 +82,7 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		return ErrEmptyReportReference
 	}
 	if len(msg.ReporterOwner) == 0 {
-		return ErrEmptyReporterOwnerAddr
+		return ErrReporterOwnerAddr
 	}
 
 	_, err := sdk.AccAddressFromBech32(msg.GetReporterOwner())

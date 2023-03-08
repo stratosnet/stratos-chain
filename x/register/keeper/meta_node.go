@@ -8,6 +8,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -462,7 +463,14 @@ func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
 	return iterator
 }
 
-func (k Keeper) IsMetaNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
-	_, found = k.GetMetaNode(ctx, p2pAddr)
-	return found
+func (k Keeper) OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) bool {
+	metaNode, found := k.GetMetaNode(ctx, p2pAddr)
+	if !found {
+		return false
+	}
+
+	if metaNode.OwnerAddress != ownerAddr.String() {
+		return false
+	}
+	return true
 }
