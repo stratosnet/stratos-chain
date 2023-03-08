@@ -11,6 +11,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -353,13 +354,18 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *types.MsgUpdateEffectiveStake) (*types.MsgUpdateEffectiveStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	for _, reporter := range msg.Reporters {
+	reporterOwners := msg.ReporterOwner
+	for idx, reporter := range msg.Reporters {
 		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
 		if err != nil {
-			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrReporterAddress, err.Error())
 		}
-		if !(k.IsMetaNode(ctx, reporterSdsAddr)) {
-			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "MsgUpdateEffectiveStake is not sent by a meta node")
+		ownerAddr, err := sdk.AccAddressFromBech32(reporterOwners[idx])
+		if err != nil {
+			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		}
+		if !(k.OwnMetaNode(ctx, ownerAddr, reporterSdsAddr)) {
+			return &types.MsgUpdateEffectiveStakeResponse{}, types.ErrReporterAddressOrOwner
 		}
 	}
 

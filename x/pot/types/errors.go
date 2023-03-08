@@ -18,7 +18,7 @@ const (
 	codeErrEmptyWalletVolumes
 	codeErrEpochNotPositive
 	codeErrEmptyReportReference
-	codeErrEmptyReporterOwnerAddr
+	codeErrReporterOwnerAddr
 	codeErrNegativeVolume
 	codeErrFoundationDepositAmountInvalid
 	codeErrBLSSignatureInvalid
@@ -37,6 +37,7 @@ const (
 	codeErrVolumeReport
 	codeErrLegacyAddressNotMatch
 	codeErrLegacyWithdrawFailure
+	codeErrReporterAddressOrOwner
 )
 
 var (
@@ -53,7 +54,7 @@ var (
 	ErrEmptyWalletVolumes             = sdkerrors.Register(ModuleName, codeErrEmptyWalletVolumes, "wallet volumes list empty")
 	ErrEpochNotPositive               = sdkerrors.Register(ModuleName, codeErrEpochNotPositive, "report epoch is not positive")
 	ErrEmptyReportReference           = sdkerrors.Register(ModuleName, codeErrEmptyReportReference, "missing report reference")
-	ErrEmptyReporterOwnerAddr         = sdkerrors.Register(ModuleName, codeErrEmptyReporterOwnerAddr, "missing reporter owner address")
+	ErrReporterOwnerAddr              = sdkerrors.Register(ModuleName, codeErrReporterOwnerAddr, "invalid reporter owner address")
 	ErrNegativeVolume                 = sdkerrors.Register(ModuleName, codeErrNegativeVolume, "report volume is negative")
 	ErrFoundationDepositAmountInvalid = sdkerrors.Register(ModuleName, codeErrFoundationDepositAmountInvalid, "foundation deposit amount is invalid")
 	ErrBLSSignatureInvalid            = sdkerrors.Register(ModuleName, codeErrBLSSignatureInvalid, "BLS signature is invalid")
@@ -72,4 +73,5 @@ var (
 	ErrVolumeReport                   = sdkerrors.Register(ModuleName, codeErrVolumeReport, "volume report failed")
 	ErrLegacyAddressNotMatch          = sdkerrors.Register(ModuleName, codeErrLegacyAddressNotMatch, "public key does not mathe the legacy wallet address")
 	ErrLegacyWithdrawFailure          = sdkerrors.Register(ModuleName, codeErrLegacyWithdrawFailure, "failure during legacyWithdraw")
+	ErrReporterAddressOrOwner         = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 )
