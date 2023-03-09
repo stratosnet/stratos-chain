@@ -3,12 +3,13 @@ package keeper
 import (
 	"fmt"
 
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -67,10 +68,6 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes,
 	k.SetUnhandledReport(ctx, walletVolumes)
 
 	return nil
-}
-
-func (k Keeper) IsMetaNode(ctx sdk.Context, p2pAddr stratos.SdsAddress) (found bool) {
-	return k.registerKeeper.IsMetaNode(ctx, p2pAddr)
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {

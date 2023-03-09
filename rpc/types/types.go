@@ -108,11 +108,7 @@ type Header struct {
 	MixDigest   common.Hash         `json:"mixHash"`
 	Nonce       ethtypes.BlockNonce `json:"nonce"`
 	Size        uint64              `json:"size"`
-
-	// BaseFee was added by EIP-1559 and is ignored in legacy headers.
-	// TODO: Add support
-	// NOTE: Do we need this in real?
-	// BaseFee *big.Int `json:"baseFeePerGas" rlp:"optional"`
+	BaseFee     *big.Int            `json:"baseFeePerGas"`
 }
 
 // Block represents a block returned to RPC clients.
@@ -137,6 +133,7 @@ type Block struct {
 	Uncles           []common.Hash       `json:"uncles"`
 	ReceiptsRoot     common.Hash         `json:"receiptsRoot"`
 	Transactions     []interface{}       `json:"transactions"`
+	BaseFee          *big.Int            `json:"baseFeePerGas"`
 }
 
 // TransactionReceipt represents a mined transaction returned to RPC clients.
