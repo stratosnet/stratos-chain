@@ -6,13 +6,15 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/tendermint/tendermint/crypto/tmhash"
+
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
-	"github.com/tendermint/tendermint/crypto/tmhash"
 )
 
 type msgServer struct {
@@ -31,10 +33,15 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	reporter, err := stratos.SdsAddressFromBech32(msg.Reporter)
 	if err != nil {
-		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
+		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrReporterAddress, err.Error())
 	}
-	if !(k.IsSPNode(ctx, reporter)) {
-		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, "Volume report is not sent by a superior peer")
+	reporterOwner, err := sdk.AccAddressFromBech32(msg.ReporterOwner)
+	if err != nil {
+		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrReporterOwnerAddr, err.Error())
+	}
+
+	if !(k.RegisterKeeper.OwnMetaNode(ctx, reporterOwner, reporter)) {
+		return &types.MsgVolumeReportResponse{}, types.ErrReporterAddressOrOwner
 	}
 
 	// ensure epoch increment
@@ -176,13 +183,19 @@ func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.
 func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *types.MsgSlashingResourceNode) (*types.MsgSlashingResourceNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	for _, reporter := range msg.Reporters {
+	reporterOwners := msg.ReporterOwner
+	for idx, reporter := range msg.Reporters {
 		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
 		if err != nil {
-			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidAddress, err.Error())
+			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrReporterAddress, err.Error())
 		}
-		if !(k.IsSPNode(ctx, reporterSdsAddr)) {
-			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "Slashing msg is not sent by a meta node")
+		ownerAddr, err := sdk.AccAddressFromBech32(reporterOwners[idx])
+		if err != nil {
+			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrReporterOwnerAddr, err.Error())
+		}
+
+		if !(k.RegisterKeeper.OwnMetaNode(ctx, ownerAddr, reporterSdsAddr)) {
+			return &types.MsgSlashingResourceNodeResponse{}, types.ErrReporterAddressOrOwner
 		}
 	}
 	networkAddress, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)

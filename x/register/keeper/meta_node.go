@@ -8,6 +8,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -72,7 +73,7 @@ func (k Keeper) SetMetaNode(ctx sdk.Context, metaNode types.MetaNode) {
 }
 
 // GetAllMetaNodes get the set of all meta nodes with no limits, used during genesis dump
-//Iteration for all meta nodes
+// Iteration for all meta nodes
 func (k Keeper) GetAllMetaNodes(ctx sdk.Context) (metaNodes types.MetaNodes) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
@@ -475,6 +476,18 @@ func (k Keeper) GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
 	return iterator
+}
+
+func (k Keeper) OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) bool {
+	metaNode, found := k.GetMetaNode(ctx, p2pAddr)
+	if !found {
+		return false
+	}
+
+	if metaNode.OwnerAddress != ownerAddr.String() {
+		return false
+	}
+	return true
 }
 
 func (k Keeper) SendCoinsFromAccountToMetaNodeNotBondedPool(ctx sdk.Context, fromAcc sdk.AccAddress, amt sdk.Coin) error {
