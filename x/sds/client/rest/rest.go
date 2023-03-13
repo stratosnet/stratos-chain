@@ -1,11 +1,12 @@
 package rest
 
 import (
+	"github.com/gorilla/mux"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/rest"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdktrest "github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/gorilla/mux"
 )
 
 // RegisterHandlers registers register-related REST handlers to a router
@@ -25,6 +26,7 @@ type FileUploadReq struct {
 
 // PrepayReq defines the properties of a prepay request's body.
 type PrepayReq struct {
-	BaseReq sdktrest.BaseReq `json:"base_req" yaml:"base_req"`
-	Amount  sdk.Coins        `json:"amount" yaml:"amount"`
+	BaseReq     sdktrest.BaseReq `json:"base_req" yaml:"base_req"`
+	Beneficiary string           `json:"beneficiary" yaml:"beneficiary"`
+	Amount      sdk.Coins        `json:"amount" yaml:"amount"`
 }
