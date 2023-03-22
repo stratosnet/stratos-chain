@@ -10,12 +10,12 @@ const (
 	codeErrEmptyUploaderAddr
 	codeErrEmptyReporterAddr
 	codeErrEmptyFileHash
-	codeErrInvalidCoins
 	codeErrInvalidFileHash
 	codeErrInvalidDenom
 	codeErrPrepayFailure
 	codeErrInvalidSenderAddr
 	codeErrInvalidBeneficiaryAddr
+	codeErrReporterAddressOrOwner
 )
 
 var (
@@ -24,10 +24,10 @@ var (
 	ErrEmptyUploaderAddr      = sdkerrors.Register(ModuleName, codeErrEmptyUploaderAddr, "missing uploader address")
 	ErrEmptyReporterAddr      = sdkerrors.Register(ModuleName, codeErrEmptyReporterAddr, "missing reporter address")
 	ErrEmptyFileHash          = sdkerrors.Register(ModuleName, codeErrEmptyFileHash, "missing file hash")
-	ErrInvalidCoins           = sdkerrors.Register(ModuleName, codeErrInvalidCoins, "invalid coins")
 	ErrInvalidFileHash        = sdkerrors.Register(ModuleName, codeErrInvalidFileHash, "invalid file hash")
 	ErrInvalidDenom           = sdkerrors.Register(ModuleName, codeErrInvalidDenom, "invalid denomination")
 	ErrPrepayFailure          = sdkerrors.Register(ModuleName, codeErrPrepayFailure, "failure during prepay")
 	ErrInvalidSenderAddr      = sdkerrors.Register(ModuleName, codeErrInvalidSenderAddr, "invalid sender address")
 	ErrInvalidBeneficiaryAddr = sdkerrors.Register(ModuleName, codeErrInvalidBeneficiaryAddr, "invalid beneficiary address")
+	ErrReporterAddressOrOwner = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 )

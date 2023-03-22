@@ -31,6 +31,15 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
+	from, err := sdk.AccAddressFromBech32(msg.GetFrom())
+	if err != nil {
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	if !(k.registerKeeper.OwnMetaNode(ctx, from, reporter)) {
+		return &types.MsgFileUploadResponse{}, types.ErrReporterAddressOrOwner
+	}
+
 	if _, found := k.registerKeeper.GetMetaNode(ctx, reporter); found == false {
 		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.GetReporter())
 	}
