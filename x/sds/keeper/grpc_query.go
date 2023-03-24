@@ -33,13 +33,10 @@ func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest
 	if err != nil {
 		return &types.QueryFileUploadResponse{}, fmt.Errorf("invalid file hash, please specify a hash in hex format %w", err)
 	}
-	fileInfoBytes, err := q.GetFileInfoBytesByFileHash(ctx, []byte(req.GetFileHash()))
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, err
-	}
-	fileInfo, err := types.UnmarshalFileInfo(q.cdc, fileInfoBytes)
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, err
+
+	fileInfo, found := q.GetFileInfoByFileHash(ctx, []byte(req.GetFileHash()))
+	if !found {
+		return &types.QueryFileUploadResponse{}, types.ErrNoFileFound
 	}
 
 	return &types.QueryFileUploadResponse{FileInfo: &fileInfo}, nil

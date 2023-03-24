@@ -116,6 +116,8 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 
 		keeper.SetSlashing(ctx, walletAddress, sdk.NewInt(slashing.Value))
 	}
+
+	keeper.ReloadMetaNodeBitMapIdxCache(ctx)
 	return
 }
 

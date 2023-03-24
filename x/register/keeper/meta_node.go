@@ -2,6 +2,9 @@ package keeper
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -350,6 +353,9 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, nodeAddr stra
 		node.Status = stakingtypes.Bonded
 		node.Suspend = false
 		k.SetMetaNode(ctx, node)
+		// add new available meta node to cache
+		networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
+		k.AddMetaNodeToBitMapIdxCache(networkAddr)
 		// increase ozone limit after vote is approved
 		_ = k.IncreaseOzoneLimitByAddStake(ctx, node.Tokens)
 		// increase mata node count
@@ -473,4 +479,76 @@ func (k Keeper) OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr s
 		return false
 	}
 	return true
+}
+
+func (k Keeper) GetMetaNodeBitMapIndex(ctx sdk.Context, networkAddr stratos.SdsAddress) (index int, err error) {
+	k.UpdateMetaNodeBitMapIdxCache(ctx)
+
+	index, ok := k.metaNodeBitMapIndexCache[networkAddr.String()]
+	if !ok {
+		return index, errors.New(fmt.Sprintf("Can not find meta-node %v from cache", networkAddr.String()))
+	}
+	if index < 0 {
+		return index, errors.New(fmt.Sprintf("Can not find correct index of meta-node %v from cache", networkAddr.String()))
+	}
+
+	return index, nil
+}
+
+func (k Keeper) AddMetaNodeToBitMapIdxCache(networkAddr stratos.SdsAddress) {
+	k.metaNodeBitMapIndexCache[networkAddr.String()] = -1
+	k.metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+}
+
+func (k Keeper) RemoveMetaNodeFromBitMapIdxCache(networkAddr stratos.SdsAddress) {
+	delete(k.metaNodeBitMapIndexCache, networkAddr.String())
+	k.metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+}
+
+func (k Keeper) UpdateMetaNodeBitMapIdxCache(ctx sdk.Context) {
+	if k.metaNodeBitMapIndexCacheStatus == types.CACHE_NOT_DIRTY {
+		return
+	}
+	if len(k.metaNodeBitMapIndexCache) == 0 {
+		k.ReloadMetaNodeBitMapIdxCache(ctx)
+		return
+	}
+
+	keys := make([]string, 0)
+	for key, _ := range k.metaNodeBitMapIndexCache {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	for index, key := range keys {
+		k.metaNodeBitMapIndexCache[key] = index
+	}
+	k.metaNodeBitMapIndexCacheStatus = types.CACHE_NOT_DIRTY
+}
+
+func (k Keeper) ReloadMetaNodeBitMapIdxCache(ctx sdk.Context) {
+	if k.metaNodeBitMapIndexCacheStatus == types.CACHE_NOT_DIRTY {
+		return
+	}
+	keys := make([]string, 0)
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.MustUnmarshalMetaNode(k.cdc, iterator.Value())
+		if node.GetSuspend() || node.GetStatus() == stakingtypes.Unbonded {
+			continue
+		}
+		keys = append(keys, node.GetNetworkAddress())
+	}
+
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i] < keys[j]
+	})
+	for index, key := range keys {
+		k.metaNodeBitMapIndexCache[key] = index
+	}
+	k.metaNodeBitMapIndexCacheStatus = types.CACHE_NOT_DIRTY
 }

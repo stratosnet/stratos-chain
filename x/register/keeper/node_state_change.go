@@ -8,11 +8,10 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
-	abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // Called in each EndBlock
-func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpdate {
+func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 	// Remove all mature unbonding nodes from the ubd queue.
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
 	matureUBDs := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
@@ -42,7 +41,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) []abci.ValidatorUpd
 	}
 
 	// UpdateNode won't create UBD node
-	return []abci.ValidatorUpdate{}
+	return
 }
 
 // Node state transitions
@@ -135,6 +134,8 @@ func (k Keeper) completeUnbondingNode(ctx sdk.Context, node interface{}, isMetaN
 		temp := node.(types.MetaNode)
 		temp.Status = stakingtypes.Unbonded
 		k.SetMetaNode(ctx, temp)
+		networkAddr, _ := stratos.SdsAddressFromBech32(temp.GetNetworkAddress())
+		k.RemoveMetaNodeFromBitMapIdxCache(networkAddr)
 		return temp
 	} else {
 		temp := node.(types.ResourceNode)

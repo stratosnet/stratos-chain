@@ -31,29 +31,20 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	from, err := sdk.AccAddressFromBech32(msg.GetFrom())
+	reporterOwner, err := sdk.AccAddressFromBech32(msg.GetFrom())
 	if err != nil {
 		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	if !(k.registerKeeper.OwnMetaNode(ctx, from, reporter)) {
-		return &types.MsgFileUploadResponse{}, types.ErrReporterAddressOrOwner
-	}
-
-	if _, found := k.registerKeeper.GetMetaNode(ctx, reporter); found == false {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.GetReporter())
-	}
-	height := sdk.NewInt(ctx.BlockHeight())
-	heightByteArr, _ := height.MarshalJSON()
-	var heightReEncoded sdk.Int
-	err = heightReEncoded.UnmarshalJSON(heightByteArr)
+	uploader, err := sdk.AccAddressFromBech32(msg.Uploader)
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	fileInfo := types.NewFileInfo(&heightReEncoded, msg.Reporter, msg.Uploader)
-	fileHashByte := []byte(msg.FileHash)
-	k.SetFileHash(ctx, fileHashByte, fileInfo)
+	err = k.FileUpload(ctx, msg.GetFileHash(), reporter, reporterOwner, uploader)
+	if err != nil {
+		return &types.MsgFileUploadResponse{}, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
