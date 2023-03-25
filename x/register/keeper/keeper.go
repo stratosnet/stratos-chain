@@ -18,42 +18,43 @@ import (
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
+var (
+	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+)
+
 // Keeper of the register store
 type Keeper struct {
 	storeKey sdk.StoreKey
 	cdc      codec.Codec
 	// module specific parameter space that can be configured through governance
-	paramSpace                     paramtypes.Subspace
-	accountKeeper                  types.AccountKeeper
-	bankKeeper                     types.BankKeeper
-	distrKeeper                    types.DistrKeeper
-	hooks                          types.RegisterHooks
-	resourceNodeCache              map[string]cachedResourceNode
-	resourceNodeCacheList          *list.List
-	metaNodeCache                  map[string]cachedMetaNode
-	metaNodeCacheList              *list.List
-	metaNodeBitMapIndexCache       map[string]int
-	metaNodeBitMapIndexCacheStatus types.CacheStatus
+	paramSpace               paramtypes.Subspace
+	accountKeeper            types.AccountKeeper
+	bankKeeper               types.BankKeeper
+	distrKeeper              types.DistrKeeper
+	hooks                    types.RegisterHooks
+	resourceNodeCache        map[string]cachedResourceNode
+	resourceNodeCacheList    *list.List
+	metaNodeCache            map[string]cachedMetaNode
+	metaNodeCacheList        *list.List
+	metaNodeBitMapIndexCache map[string]int
 }
 
 // NewKeeper creates a register keeper
 func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
-
 	keeper := Keeper{
-		storeKey:                       key,
-		cdc:                            cdc,
-		paramSpace:                     paramSpace.WithKeyTable(types.ParamKeyTable()),
-		accountKeeper:                  accountKeeper,
-		bankKeeper:                     bankKeeper,
-		distrKeeper:                    distrKeeper,
-		hooks:                          nil,
-		resourceNodeCache:              make(map[string]cachedResourceNode, resourceNodeCacheSize),
-		resourceNodeCacheList:          list.New(),
-		metaNodeCache:                  make(map[string]cachedMetaNode, metaNodeCacheSize),
-		metaNodeCacheList:              list.New(),
-		metaNodeBitMapIndexCache:       make(map[string]int),
-		metaNodeBitMapIndexCacheStatus: types.CACHE_DIRTY,
+		storeKey:                 key,
+		cdc:                      cdc,
+		paramSpace:               paramSpace.WithKeyTable(types.ParamKeyTable()),
+		accountKeeper:            accountKeeper,
+		bankKeeper:               bankKeeper,
+		distrKeeper:              distrKeeper,
+		hooks:                    nil,
+		resourceNodeCache:        make(map[string]cachedResourceNode, resourceNodeCacheSize),
+		resourceNodeCacheList:    list.New(),
+		metaNodeCache:            make(map[string]cachedMetaNode, metaNodeCacheSize),
+		metaNodeCacheList:        list.New(),
+		metaNodeBitMapIndexCache: make(map[string]int),
 	}
 	return keeper
 }

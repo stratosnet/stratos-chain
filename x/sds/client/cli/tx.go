@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/hex"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -109,11 +108,6 @@ func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 	if err != nil {
 		return txf, nil, err
 	}
-	_, err = hex.DecodeString(fileHash)
-	if err != nil {
-		return txf, nil, err
-	}
-
 	flagReporterStr, err := fs.GetString(FlagReporter)
 	if err != nil {
 		return txf, nil, err

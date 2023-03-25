@@ -1,9 +1,11 @@
 package register
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	abci "github.com/tendermint/tendermint/abci/types"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/stratosnet/stratos-chain/x/register/keeper"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
