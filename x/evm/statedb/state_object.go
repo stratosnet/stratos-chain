@@ -141,7 +141,7 @@ func (s *stateObject) Code() []byte {
 	if bytes.Equal(s.CodeHash(), emptyCodeHash) {
 		return nil
 	}
-	code := s.db.keeper.GetCode(s.db.ctx, common.BytesToHash(s.CodeHash()))
+	code := s.db.keeper.GetCode(s.db.ctx, s.Address(), common.BytesToHash(s.CodeHash()))
 	s.code = code
 	return code
 }
