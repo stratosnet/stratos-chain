@@ -3,6 +3,7 @@ package register
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -116,6 +117,9 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 
 		keeper.SetSlashing(ctx, walletAddress, sdk.NewInt(slashing.Value))
 	}
+
+	keeper.ReloadMetaNodeBitMapIdxCache(ctx)
+
 	return
 }
 
