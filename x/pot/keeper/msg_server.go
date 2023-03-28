@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/stratosnet/stratos-chain/crypto/bls"
 	"github.com/tendermint/tendermint/crypto/tmhash"
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
@@ -56,7 +57,18 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 		return &types.MsgVolumeReportResponse{}, e
 	}
 
-	// TODO: verify BLS signature
+	blsSignature := msg.GetBLSSignature()
+	verified, err := bls.Verify(blsSignature.GetTxData(), blsSignature.GetSignature(), blsSignature.GetPubKeys()...)
+	if err != nil {
+		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrBLSVerifyFailed, err.Error())
+	}
+	if !verified {
+		return &types.MsgVolumeReportResponse{}, types.ErrBLSVerifyFailed
+	}
+
+	if !k.HasReachedThreshold(ctx, blsSignature.GetPubKeys()) {
+		return &types.MsgVolumeReportResponse{}, types.ErrBLSNotReachThreshold
+	}
 
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))

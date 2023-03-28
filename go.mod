@@ -3,6 +3,7 @@ module github.com/stratosnet/stratos-chain
 go 1.19
 
 require (
+	github.com/Nik-U/pbc v0.0.0-20181205041846-3e516ca0c5d6
 	github.com/btcsuite/btcd v0.23.4
 	github.com/btcsuite/btcd/btcutil v1.1.2
 	github.com/cosmos/cosmos-sdk v0.45.9
