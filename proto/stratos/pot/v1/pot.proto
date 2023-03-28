@@ -92,6 +92,7 @@ message SingleWalletVolume {
 
 message WalletVolumes {
   repeated SingleWalletVolume   volumes = 1 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "volumes",
     (gogoproto.moretags) = "yaml:\"volumes\""
   ];

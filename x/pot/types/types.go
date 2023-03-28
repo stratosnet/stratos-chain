@@ -9,8 +9,8 @@ import (
 func NewSingleWalletVolume(
 	walletAddress sdk.AccAddress,
 	volume sdk.Int,
-) *SingleWalletVolume {
-	return &SingleWalletVolume{
+) SingleWalletVolume {
+	return SingleWalletVolume{
 		WalletAddress: walletAddress.String(),
 		Volume:        &volume,
 	}
