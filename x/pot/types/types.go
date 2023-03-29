@@ -12,7 +12,7 @@ func NewSingleWalletVolume(
 ) SingleWalletVolume {
 	return SingleWalletVolume{
 		WalletAddress: walletAddress.String(),
-		Volume:        &volume,
+		Volume:        volume,
 	}
 }
 

@@ -84,6 +84,7 @@ message SingleWalletVolume {
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
   string                  volume = 2 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "volume",
     (gogoproto.moretags) = "yaml:\"volume\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
