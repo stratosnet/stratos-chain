@@ -1,12 +1,12 @@
 package keeper
 
 import (
-	"bytes"
 	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -281,6 +281,14 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
 	description types.Description, nodeType types.NodeType, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
+	if _, found := k.GetResourceNode(ctx, networkAddr); found {
+		ctx.Logger().Error("Resource node already exist")
+		return ozoneLimitChange, types.ErrResourceNodePubKeyExists
+	}
+	if stake.GetDenom() != k.BondDenom(ctx) {
+		return ozoneLimitChange, types.ErrBadDenom
+	}
+
 	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, &description, nodeType, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
@@ -298,7 +306,7 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	}
 
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
-	if !bytes.Equal(ownerAddrNode, ownerAddr) {
+	if !ownerAddrNode.Equals(ownerAddr) {
 		return types.ErrInvalidOwnerAddr
 	}
 
@@ -312,36 +320,34 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	return nil
 }
 
-func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int,
-	unbondingMatureTime time.Time, resourcenode types.ResourceNode, err error) {
+func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, stakeDelta sdk.Coin, incrStake bool) (
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, resourcenode types.ResourceNode, err error) {
 
-	blockTime := ctx.BlockHeader().Time
+	if stakeDelta.GetDenom() != k.BondDenom(ctx) {
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrBadDenom
+	}
+
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, types.ErrNoResourceNodeFound
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrNoResourceNodeFound
 	}
 
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
-	if !bytes.Equal(ownerAddrNode, ownerAddr) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, types.ErrInvalidOwnerAddr
+	if !ownerAddrNode.Equals(ownerAddr) {
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrInvalidOwnerAddr
 	}
 
 	if incrStake {
+		blockTime := ctx.BlockHeader().Time
 		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, err := k.AddResourceNodeStake(ctx, node, stakeDelta)
 		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, err
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
 		}
 		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, blockTime, node, nil
 	} else {
-		// if !incrStake
-		if node.GetStatus() == stakingtypes.Unbonding {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, types.ErrUnbondingNode
-		}
-
 		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
 		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), blockTime, node, err
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
 		}
 		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
 	}

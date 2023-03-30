@@ -272,17 +272,18 @@ func (k Keeper) subtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 
 func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
 ) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
-	params := k.GetParams(ctx)
-	ctx.Logger().Info("Params of register module: " + params.String())
+	if resourceNode.GetStatus() == stakingtypes.Unbonding {
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+	}
 
 	// transfer the node tokens to the not bonded pool
 	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
@@ -308,8 +309,7 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 	}
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
-	bondDenom := k.GetParams(ctx).BondDenom
-	coin := sdk.NewCoin(bondDenom, amt)
+	coin := sdk.NewCoin(k.BondDenom(ctx), amt)
 	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
@@ -343,14 +343,17 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 
 func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
+	if metaNode.GetStatus() == stakingtypes.Unbonding {
+		return sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+	}
 
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+		return sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+		return sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
