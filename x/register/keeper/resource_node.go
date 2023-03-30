@@ -376,7 +376,7 @@ func (k Keeper) UpdateEffectiveStake(ctx sdk.Context, networkAddr stratos.SdsAdd
 	node.Suspend = false
 	k.SetResourceNode(ctx, node)
 
-	if effectiveStakeChange.IsNegative() {
+	if effectiveStakeChange.IsNegative() && k.IsUnbondable(ctx, effectiveStakeChange.Abs()) {
 		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
 	}
 	if effectiveStakeChange.IsPositive() {

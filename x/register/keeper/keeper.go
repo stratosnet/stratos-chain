@@ -379,6 +379,10 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 	bondDenom := k.GetParams(ctx).BondDenom
 	coin := sdk.NewCoin(bondDenom, amt)
 	if metaNode.GetStatus() == stakingtypes.Bonded {
+		// to prevent remainingOzoneLimit from being negative value
+		if !k.IsUnbondable(ctx, amt) {
+			return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+		}
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
 		// adjust ozone limit
