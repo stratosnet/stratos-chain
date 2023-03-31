@@ -198,14 +198,16 @@ func (k Keeper) addNewIndividualAndUpdateImmatureTotal(ctx sdk.Context, account 
 
 // Iteration for mature rewards/slashing of all nodes
 func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int) (totalSlashed sdk.Coins) {
-
-	matureStartEpoch := k.GetLastReportedEpoch(ctx).Int64() + 1
-	matureEndEpoch := currentEpoch.Int64()
+	lastReportedEpoch := k.GetLastReportedEpoch(ctx)
+	matureStartEpochOffset := int64(1)
+	matureEndEpochOffset := currentEpoch.Sub(lastReportedEpoch).Int64()
 
 	totalSlashed = sdk.Coins{}
 
-	for i := matureStartEpoch; i <= matureEndEpoch; i++ {
-		k.IteratorIndividualReward(ctx, sdk.NewInt(i), func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
+	for i := matureStartEpochOffset; i <= matureEndEpochOffset; i++ {
+		processingEpoch := sdk.NewInt(i).Add(lastReportedEpoch)
+
+		k.IteratorIndividualReward(ctx, processingEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
 			oldMatureTotal := k.GetMatureTotalReward(ctx, walletAddress)
 			oldImmatureTotal := k.GetImmatureTotalReward(ctx, walletAddress)
 			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
