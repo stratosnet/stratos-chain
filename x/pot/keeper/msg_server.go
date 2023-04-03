@@ -13,6 +13,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/stratosnet/stratos-chain/crypto/bls"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -56,7 +57,18 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 		return &types.MsgVolumeReportResponse{}, e
 	}
 
-	// TODO: verify BLS signature
+	blsSignature := msg.GetBLSSignature()
+	verified, err := bls.Verify(blsSignature.GetTxData(), blsSignature.GetSignature(), blsSignature.GetPubKeys()...)
+	if err != nil {
+		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrBLSVerifyFailed, err.Error())
+	}
+	if !verified {
+		return &types.MsgVolumeReportResponse{}, types.ErrBLSVerifyFailed
+	}
+
+	if !k.HasReachedThreshold(ctx, blsSignature.GetPubKeys()) {
+		return &types.MsgVolumeReportResponse{}, types.ErrBLSNotReachThreshold
+	}
 
 	txBytes := ctx.TxBytes()
 	txhash := fmt.Sprintf("%X", tmhash.Sum(txBytes))

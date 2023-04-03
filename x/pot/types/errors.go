@@ -24,6 +24,8 @@ const (
 	codeErrBLSSignatureInvalid
 	codeErrBLSTxDataInvalid
 	codeErrBLSPubkeysInvalid
+	codeErrBLSVerifyFailed
+	codeErrBLSNotReachThreshold
 	codeErrReporterAddress
 	codeErrInvalidAmount
 	codeErrCannotFindReport
@@ -35,7 +37,6 @@ const (
 	codeErrSlashingResourceNodeFailure
 	codeErrRewardDistributionNotComplete
 	codeErrVolumeReport
-	codeErrLegacyAddressNotMatch
 	codeErrLegacyWithdrawFailure
 	codeErrReporterAddressOrOwner
 )
@@ -60,6 +61,8 @@ var (
 	ErrBLSSignatureInvalid            = sdkerrors.Register(ModuleName, codeErrBLSSignatureInvalid, "BLS signature is invalid")
 	ErrBLSTxDataInvalid               = sdkerrors.Register(ModuleName, codeErrBLSTxDataInvalid, "BLS signature txData is invalid")
 	ErrBLSPubkeysInvalid              = sdkerrors.Register(ModuleName, codeErrBLSPubkeysInvalid, "BLS signature pubkeys are invalid")
+	ErrBLSVerifyFailed                = sdkerrors.Register(ModuleName, codeErrBLSVerifyFailed, "BLS signature verify failed")
+	ErrBLSNotReachThreshold           = sdkerrors.Register(ModuleName, codeErrBLSNotReachThreshold, "BLS signed meta-nodes does not reach the threshold")
 	ErrReporterAddress                = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
 	ErrInvalidAmount                  = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
 	ErrCannotFindReport               = sdkerrors.Register(ModuleName, codeErrCannotFindReport, "Can not find report")
@@ -71,7 +74,6 @@ var (
 	ErrSlashingResourceNodeFailure    = sdkerrors.Register(ModuleName, codeErrSlashingResourceNodeFailure, "failure during slashing resource node")
 	ErrRewardDistributionNotComplete  = sdkerrors.Register(ModuleName, codeErrRewardDistributionNotComplete, "Reward distribution not completed")
 	ErrVolumeReport                   = sdkerrors.Register(ModuleName, codeErrVolumeReport, "volume report failed")
-	ErrLegacyAddressNotMatch          = sdkerrors.Register(ModuleName, codeErrLegacyAddressNotMatch, "public key does not mathe the legacy wallet address")
 	ErrLegacyWithdrawFailure          = sdkerrors.Register(ModuleName, codeErrLegacyWithdrawFailure, "failure during legacyWithdraw")
 	ErrReporterAddressOrOwner         = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 )

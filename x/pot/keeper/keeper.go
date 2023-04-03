@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -68,6 +69,15 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes,
 	k.SetUnhandledReport(ctx, walletVolumes)
 
 	return nil
+}
+
+func (k Keeper) HasReachedThreshold(ctx sdk.Context, pubKeys [][]byte) bool {
+	totalMetaNodes := k.registerKeeper.GetBondedMetaNodeCnt(ctx).Int64()
+	signedMetaNodes := len(pubKeys)
+
+	threshold := int(math.Max(1, math.Floor(float64(totalMetaNodes)*2/3)))
+
+	return signedMetaNodes >= threshold
 }
 
 func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.AccAddress) (err error) {
