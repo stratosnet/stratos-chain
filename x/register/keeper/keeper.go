@@ -4,7 +4,10 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"math"
 	"time"
+
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,7 +17,6 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 // Keeper of the register store
@@ -455,4 +457,12 @@ func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	St := k.GetEffectiveTotalStake(ctx)
 	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
+}
+
+func (k Keeper) HasReachedThreshold(ctx sdk.Context, validReporterCount int) bool {
+	totalMetaNodes := k.GetBondedMetaNodeCnt(ctx).Int64()
+
+	threshold := int(math.Max(1, math.Floor(float64(totalMetaNodes)*2/3)))
+
+	return validReporterCount >= threshold
 }

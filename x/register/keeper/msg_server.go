@@ -355,18 +355,24 @@ func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *typ
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	reporterOwners := msg.ReporterOwner
+	validReporterCount := 0
 	for idx, reporter := range msg.Reporters {
 		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
 		if err != nil {
-			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrReporterAddress, err.Error())
+			continue
 		}
 		ownerAddr, err := sdk.AccAddressFromBech32(reporterOwners[idx])
 		if err != nil {
-			return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+			continue
 		}
 		if !(k.OwnMetaNode(ctx, ownerAddr, reporterSdsAddr)) {
-			return &types.MsgUpdateEffectiveStakeResponse{}, types.ErrReporterAddressOrOwner
+			continue
 		}
+		validReporterCount++
+	}
+
+	if !k.HasReachedThreshold(ctx, validReporterCount) {
+		return &types.MsgUpdateEffectiveStakeResponse{}, types.ErrReporterNotReachThreshold
 	}
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)

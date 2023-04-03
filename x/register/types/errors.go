@@ -63,6 +63,7 @@ const (
 	codeErrReporterAddress
 	codeErrInvalidAmount
 	codeErrReporterAddressOrOwner
+	codeErrReporterNotReachThreshold
 )
 
 var (
@@ -124,4 +125,5 @@ var (
 	ErrReporterAddress                    = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
 	ErrInvalidAmount                      = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
 	ErrReporterAddressOrOwner             = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
+	ErrReporterNotReachThreshold          = sdkerrors.Register(ModuleName, codeErrReporterNotReachThreshold, "reporter meta-nodes does not reach the threshold")
 )
