@@ -126,8 +126,7 @@ func (k *Keeper) SetAccount(ctx sdk.Context, addr common.Address, account stated
 		}
 		k.accountKeeper.SetAccount(ctx, acct)
 	} else {
-		var baseAcc *authtypes.BaseAccount
-		baseAcc = acct.(*authtypes.BaseAccount)
+		baseAcc := acct.(*authtypes.BaseAccount)
 
 		if !bytes.Equal(codeHash.Bytes(), types.EmptyCodeHash) {
 			//if codeHash is not empty, and the acct is new created baseAccount, convert to ethAccount first
@@ -180,7 +179,7 @@ func (k *Keeper) SetCode(ctx sdk.Context, codeHash, code []byte) {
 	// store or delete code
 	action := "updated"
 	if len(code) == 0 {
-		store.Delete(codeHash)
+		// store.Delete(codeHash)
 		action = "deleted"
 	} else {
 		store.Set(codeHash, code)
