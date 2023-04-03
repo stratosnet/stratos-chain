@@ -182,6 +182,7 @@ func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNod
 // Iteration for dequeuing  all mature unbonding queue
 // TODO: Unused parameter: currTime
 func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []string) {
+	keysToDelete := make([][]byte, 0)
 	store := ctx.KVStore(k.storeKey)
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
 	unbondingTimesliceIterator := k.UnbondingNodeQueueIterator(ctx, ctx.BlockHeader().Time)
@@ -193,7 +194,11 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (m
 		k.cdc.MustUnmarshalLengthPrefixed(value, &timeSliceVal)
 		timeSlice := timeSliceVal.GetAddresses()
 		matureUnbonds = append(matureUnbonds, timeSlice...)
-		store.Delete(unbondingTimesliceIterator.Key())
+		keysToDelete = append(keysToDelete, unbondingTimesliceIterator.Key())
+	}
+	// safe removal
+	for _, key := range keysToDelete {
+		store.Delete(key)
 	}
 	ctx.Logger().Debug(fmt.Sprintf("DequeueAllMatureUBDQueue, %d matured unbonding nodes detected", len(matureUnbonds)))
 	return matureUnbonds
