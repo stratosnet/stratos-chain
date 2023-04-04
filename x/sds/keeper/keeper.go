@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -90,6 +91,9 @@ func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 			Add(amount)).ToDec()).
 		TruncateInt()
 
+	if purchased.GT(Lt) {
+		return sdk.ZeroInt(), errors.New("not enough remaining ozone limit to complete prepay")
+	}
 	// send coins to total unissued prepay pool
 	prepayAmt := sdk.NewCoin(k.BondDenom(ctx), amount)
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))

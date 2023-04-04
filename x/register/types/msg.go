@@ -635,6 +635,12 @@ func (m MsgUpdateEffectiveStake) ValidateBasic() error {
 	if len(m.NetworkAddress) == 0 {
 		return ErrInvalidNetworkAddr
 	}
+	if len(m.Reporters) == 0 {
+		return ErrReporterAddress
+	}
+	if len(m.ReporterOwner) == 0 || len(m.Reporters) != len(m.ReporterOwner) {
+		return ErrInvalidOwnerAddr
+	}
 	for _, r := range m.Reporters {
 		if len(r) == 0 {
 			return ErrReporterAddress
@@ -667,6 +673,9 @@ func (m MsgUpdateEffectiveStake) GetSigners() []sdk.AccAddress {
 			panic(err)
 		}
 		addrs = append(addrs, reporterOwner)
+	}
+	if len(addrs) == 0 {
+		panic("no valid signer for MsgUpdateEffectiveStake")
 	}
 	return addrs
 }
