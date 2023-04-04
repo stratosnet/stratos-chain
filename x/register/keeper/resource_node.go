@@ -345,11 +345,11 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 		}
 		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, blockTime, node, nil
 	} else {
-		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
+		availableTokenAmtBefore, availableTokenAmtAfter, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
 		if err != nil {
 			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
 		}
-		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
+		return sdk.ZeroInt(), availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
 	}
 }
 

@@ -278,28 +278,28 @@ func (k Keeper) subtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 }
 
 func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
-) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
+) (availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
 	if resourceNode.GetStatus() == stakingtypes.Unbonding {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
 	}
 
 	// transfer the node tokens to the not bonded pool
 	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
 	if resourceNode.Suspend {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
 	// check if node_token - unbonding_token > amt_to_unbond
@@ -307,12 +307,12 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 
 	availableStake := resourceNode.Tokens.Sub(unbondingStake)
 	if availableStake.LT(amt) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
 	availableTokenAmtBefore = availableStake
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
@@ -345,7 +345,7 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 	availableTokenAmtAfter = availableTokenAmtBefore.Sub(amt)
-	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
+	return availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
 }
 
 func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
