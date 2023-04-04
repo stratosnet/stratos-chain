@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"fmt"
@@ -13,6 +14,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
+	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -68,6 +70,12 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 
 	if !k.HasReachedThreshold(ctx, blsSignature.GetPubKeys()) {
 		return &types.MsgVolumeReportResponse{}, types.ErrBLSNotReachThreshold
+	}
+
+	signBytes := msg.GetSignBytes()
+	txDataHash := crypto.Keccak256(signBytes)
+	if !bytes.Equal(txDataHash, blsSignature.GetTxData()) {
+		return &types.MsgVolumeReportResponse{}, types.ErrBLSTxDataInvalid
 	}
 
 	txBytes := ctx.TxBytes()
