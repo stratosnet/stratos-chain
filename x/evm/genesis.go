@@ -56,7 +56,7 @@ func InitGenesis(
 			panic("code don't match codeHash")
 		}
 
-		k.SetCode(ctx, address, codeHash.Bytes(), code)
+		k.SetCode(ctx, codeHash.Bytes(), code)
 
 		for _, storage := range account.Storage {
 			k.SetState(ctx, address, common.HexToHash(storage.Key), common.HexToHash(storage.Value).Bytes())
@@ -82,7 +82,7 @@ func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *t
 
 		genAccount := types.GenesisAccount{
 			Address: addr.String(),
-			Code:    common.Bytes2Hex(k.GetCode(ctx, addr, ethAccount.GetCodeHash())),
+			Code:    common.Bytes2Hex(k.GetCode(ctx, ethAccount.GetCodeHash())),
 			Storage: storage,
 		}
 

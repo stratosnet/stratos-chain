@@ -8,10 +8,10 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params *Params, fileUploads []*FileUpload) GenesisState {
+func NewGenesisState(params *Params, files []GenesisFileInfo) GenesisState {
 	return GenesisState{
-		Params:      params,
-		FileUploads: fileUploads,
+		Params: params,
+		Files:  files,
 	}
 }
 
@@ -39,18 +39,18 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if len(data.FileUploads) > 0 {
-		for _, upload := range data.FileUploads {
-			if len(upload.FileHash) == 0 {
+	if len(data.GetFiles()) > 0 {
+		for _, file := range data.GetFiles() {
+			if len(file.FileHash) == 0 {
 				return ErrEmptyFileHash
 			}
-			if upload.FileInfo.Height.LT(sdk.ZeroInt()) {
+			if file.FileInfo.Height.LT(sdk.ZeroInt()) {
 				return ErrInvalidHeight
 			}
-			if len(upload.FileInfo.Reporter) == 0 {
-				return ErrEmptyReporterAddr
+			if len(file.FileInfo.Reporters) == 0 {
+				return ErrEmptyReporters
 			}
-			if len(upload.FileInfo.Uploader) == 0 {
+			if len(file.FileInfo.Uploader) == 0 {
 				return ErrEmptyUploaderAddr
 			}
 		}
