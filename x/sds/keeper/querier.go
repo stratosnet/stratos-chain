@@ -4,14 +4,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/stratosnet/stratos-chain/x/sds/types"
-
-	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // NewQuerier creates a new querier for sds clients.
@@ -45,13 +44,16 @@ func getSdsParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 }
 
 // queryFileHash fetch a file's hash for the supplied height.
-func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
-	fileInfo, err := k.GetFileInfoBytesByFileHash(ctx, req.Data)
+func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	fileInfo, found := k.GetFileInfoByFileHash(ctx, req.Data)
+	if !found {
+		return nil, types.ErrNoFileFound
+	}
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, fileInfo)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
-	return fileInfo, nil
+	return res, nil
 }
 
 // querySimulatePrepay fetch amt of noz with a simulated prepay of X wei.

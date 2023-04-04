@@ -4,7 +4,10 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"math"
 	"time"
+
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,23 +17,26 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/tendermint/libs/log"
+)
+
+var (
+	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
 )
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      codec.Codec
-	// module specific parameter space that can be configured through governance
-	paramSpace            paramtypes.Subspace
-	accountKeeper         types.AccountKeeper
-	bankKeeper            types.BankKeeper
-	distrKeeper           types.DistrKeeper
-	hooks                 types.RegisterHooks
-	resourceNodeCache     map[string]cachedResourceNode
-	resourceNodeCacheList *list.List
-	metaNodeCache         map[string]cachedMetaNode
-	metaNodeCacheList     *list.List
+	storeKey                 sdk.StoreKey
+	cdc                      codec.Codec
+	paramSpace               paramtypes.Subspace
+	accountKeeper            types.AccountKeeper
+	bankKeeper               types.BankKeeper
+	distrKeeper              types.DistrKeeper
+	hooks                    types.RegisterHooks
+	resourceNodeCache        map[string]cachedResourceNode
+	resourceNodeCacheList    *list.List
+	metaNodeCache            map[string]cachedMetaNode
+	metaNodeCacheList        *list.List
+	metaNodeBitMapIndexCache map[string]int
 }
 
 // NewKeeper creates a register keeper
@@ -38,17 +44,18 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
 
 	keeper := Keeper{
-		storeKey:              key,
-		cdc:                   cdc,
-		paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
-		accountKeeper:         accountKeeper,
-		bankKeeper:            bankKeeper,
-		distrKeeper:           distrKeeper,
-		hooks:                 nil,
-		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
-		resourceNodeCacheList: list.New(),
-		metaNodeCache:         make(map[string]cachedMetaNode, metaNodeCacheSize),
-		metaNodeCacheList:     list.New(),
+		storeKey:                 key,
+		cdc:                      cdc,
+		paramSpace:               paramSpace.WithKeyTable(types.ParamKeyTable()),
+		accountKeeper:            accountKeeper,
+		bankKeeper:               bankKeeper,
+		distrKeeper:              distrKeeper,
+		hooks:                    nil,
+		resourceNodeCache:        make(map[string]cachedResourceNode, resourceNodeCacheSize),
+		resourceNodeCacheList:    list.New(),
+		metaNodeCache:            make(map[string]cachedMetaNode, metaNodeCacheSize),
+		metaNodeCacheList:        list.New(),
+		metaNodeBitMapIndexCache: make(map[string]int),
 	}
 	return keeper
 }
@@ -458,4 +465,12 @@ func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	St := k.GetEffectiveTotalStake(ctx)
 	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
+}
+
+func (k Keeper) HasReachedThreshold(ctx sdk.Context, validReporterCount int) bool {
+	totalMetaNodes := k.GetBondedMetaNodeCnt(ctx).Int64()
+
+	threshold := int(math.Max(1, math.Floor(float64(totalMetaNodes)*2/3)))
+
+	return validReporterCount >= threshold
 }
