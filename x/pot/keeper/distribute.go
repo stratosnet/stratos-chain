@@ -21,28 +21,27 @@ var (
 	rewardDetailMap               map[string]types.Reward
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (
-	totalConsumedNoz sdk.Dec, err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (err error) {
 
 	k.InitVariable(ctx)
 
 	//1, calc traffic reward in total
-	totalConsumedNoz = k.GetTotalConsumedNoz(trafficList).ToDec()
+	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToDec()
 	remaining, total := k.registerKeeper.NozSupply(ctx)
 	if totalConsumedNoz.Add(remaining.ToDec()).GT(total.ToDec()) {
-		return totalConsumedNoz, errors.New("remaining+consumed Noz exceeds total Noz supply")
+		return errors.New("remaining+consumed Noz exceeds total Noz supply")
 	}
 
 	distributeGoal, err = k.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
 	if err != nil {
-		return totalConsumedNoz, err
+		return err
 	}
 	unissuedPrepayToFeeCollector = distributeGoal.StakeTrafficRewardToValidator
 
 	//2, calc mining reward in total
 	distributeGoal, err = k.CalcMiningRewardInTotal(ctx, distributeGoal)
 	if err != nil && err != types.ErrOutOfIssuance {
-		return totalConsumedNoz, err
+		return err
 	}
 	foundationToFeeCollector = distributeGoal.StakeMiningRewardToValidator
 
@@ -58,26 +57,20 @@ func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.Single
 	//6, record all rewards to resource & meta nodes
 	err = k.saveRewardInfo(ctx, rewardDetailList, epoch)
 	if err != nil {
-		return totalConsumedNoz, err
+		return err
 	}
 
-	//7, mature rewards for all nodes
-	totalSlashed := k.rewardMatureAndSubSlashing(ctx, epoch)
-
-	//8, save reported epoch
-	k.SetLastReportedEpoch(ctx, epoch)
-
-	//9, update remaining ozone limit
+	//7, update remaining ozone limit
 	remainingNozLimit := k.registerKeeper.GetRemainingOzoneLimit(ctx)
 	k.registerKeeper.SetRemainingOzoneLimit(ctx, remainingNozLimit.Add(totalConsumedNoz.TruncateInt()))
 
-	//10, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
-	err = k.transferTokens(ctx, totalSlashed)
+	//8, [TLC] transfer balance of miningReward&trafficReward pools to totalReward&totalSlashed pool, utilized for future Withdraw Tx
+	err = k.transferTokensForDistribution(ctx)
 	if err != nil {
-		return totalConsumedNoz, err
+		return err
 	}
 
-	return totalConsumedNoz, nil
+	return nil
 }
 
 func (k Keeper) CalcTrafficRewardInTotal(
@@ -184,6 +177,7 @@ func (k Keeper) saveRewardInfo(ctx sdk.Context, rewardDetailList []types.Reward,
 	oldTotalMinedToken := k.GetTotalMinedTokens(ctx)
 	newTotalMinedToken := oldTotalMinedToken.Add(newMinedTotal)
 	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
+	k.SetLastReportedEpoch(ctx, currentEpoch)
 	return nil
 }
 
@@ -194,37 +188,6 @@ func (k Keeper) addNewIndividualAndUpdateImmatureTotal(ctx sdk.Context, account 
 
 	k.SetIndividualReward(ctx, account, matureEpoch, newReward)
 	k.SetImmatureTotalReward(ctx, account, newImmatureTotal)
-}
-
-// Iteration for mature rewards/slashing of all nodes
-func (k Keeper) rewardMatureAndSubSlashing(ctx sdk.Context, currentEpoch sdk.Int) (totalSlashed sdk.Coins) {
-	lastReportedEpoch := k.GetLastReportedEpoch(ctx)
-	matureStartEpochOffset := int64(1)
-	matureEndEpochOffset := currentEpoch.Sub(lastReportedEpoch).Int64()
-
-	totalSlashed = sdk.Coins{}
-
-	for i := matureStartEpochOffset; i <= matureEndEpochOffset; i++ {
-		processingEpoch := sdk.NewInt(i).Add(lastReportedEpoch)
-
-		k.IteratorIndividualReward(ctx, processingEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-			oldMatureTotal := k.GetMatureTotalReward(ctx, walletAddress)
-			oldImmatureTotal := k.GetImmatureTotalReward(ctx, walletAddress)
-			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
-
-			//deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
-			remaining, deducted := k.registerKeeper.DeductSlashing(ctx, walletAddress, immatureToMature, k.RewardDenom(ctx))
-			totalSlashed = totalSlashed.Add(deducted...)
-
-			matureTotal := oldMatureTotal.Add(remaining...)
-			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
-
-			k.SetMatureTotalReward(ctx, walletAddress, matureTotal)
-			k.SetImmatureTotalReward(ctx, walletAddress, immatureTotal)
-			return false
-		})
-	}
-	return totalSlashed
 }
 
 // reward will mature 14 days since distribution. Each epoch interval is about 10 minutes.
@@ -446,7 +409,7 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 	return
 }
 
-func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
+func (k Keeper) transferTokensForDistribution(ctx sdk.Context) error {
 	// [TLC] [FoundationAccount -> feeCollectorPool] Transfer mining reward to fee_pool for validators
 	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.FoundationAccount, k.feeCollectorName, sdk.NewCoins(foundationToFeeCollector))
 	if err != nil {
@@ -466,13 +429,6 @@ func (k Keeper) transferTokens(ctx sdk.Context, totalSlashed sdk.Coins) error {
 
 	// [TLC] [TotalUnissuedPrepay -> TotalRewardPool] Transfer traffic reward to TotalRewardPool for sds nodes
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepay, types.TotalRewardPool, sdk.NewCoins(unissuedPrepayToReward))
-	if err != nil {
-		return err
-	}
-
-	// [TLC] [TotalRewardPool -> Distribution] Transfer slashed reward to FeePool.CommunityPool
-	totalRewardPoolAccAddr := k.accountKeeper.GetModuleAddress(types.TotalRewardPool)
-	err = k.distrKeeper.FundCommunityPool(ctx, totalSlashed, totalRewardPoolAccAddr)
 	if err != nil {
 		return err
 	}

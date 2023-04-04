@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	gogotypes "github.com/gogo/protobuf/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -160,59 +158,39 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) GetUnhandledReport(ctx sdk.Context) (volumes types.WalletVolumes, found bool) {
+func (k Keeper) GetMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.UnhandledReportKeyPrefix)
+	bz := store.Get(types.MaturedEpochKeyPrefix)
 	if bz == nil {
-		return volumes, false
-	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &volumes)
-
-	if volumes.Volumes == nil || len(volumes.Volumes) == 0 {
-		return volumes, false
-	}
-	found = true
-	return
-}
-
-func (k Keeper) SetUnhandledReport(ctx sdk.Context, volumes types.WalletVolumes) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&volumes)
-	store.Set(types.UnhandledReportKeyPrefix, b)
-}
-
-func (k Keeper) GetUnhandledEpoch(ctx sdk.Context) (epoch sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.UnhandledEpochKey)
-	if b == nil {
 		return sdk.ZeroInt()
 	}
 	intValue := stratos.Int{}
-	k.cdc.MustUnmarshalLengthPrefixed(b, &intValue)
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
 	epoch = *intValue.Value
 	return
 }
 
-func (k Keeper) SetUnhandledEpoch(ctx sdk.Context, epoch sdk.Int) {
+func (k Keeper) SetMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &epoch})
-	store.Set(types.UnhandledEpochKey, b)
+	store.Set(types.MaturedEpochKeyPrefix, b)
 }
 
-func (k Keeper) GetIsReadyToDistributeReward(ctx sdk.Context) (isReady bool) {
+func (k Keeper) GetNextMatureIndividualIndex(ctx sdk.Context) (idx sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.IsReadyToDistributeReward)
-	if b == nil {
-		return false
+	bz := store.Get(types.NextMatureIndividualIndexKeyPrefix)
+	if bz == nil {
+		return sdk.ZeroInt()
 	}
-	boolValue := gogotypes.BoolValue{}
-	k.cdc.MustUnmarshalLengthPrefixed(b, &boolValue)
-	isReady = boolValue.Value
+	intValue := stratos.Int{}
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
+	idx = *intValue.Value
 	return
+
 }
 
-func (k Keeper) SetIsReadyToDistributeReward(ctx sdk.Context, isReady bool) {
+func (k Keeper) SetNextMatureIndividualIndex(ctx sdk.Context, idx sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&gogotypes.BoolValue{Value: isReady})
-	store.Set(types.IsReadyToDistributeReward, b)
+	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &idx})
+	store.Set(types.NextMatureIndividualIndexKeyPrefix, b)
 }
