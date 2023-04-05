@@ -60,6 +60,15 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	}
 
 	blsSignature := msg.GetBLSSignature()
+
+	// verify txDataHash
+	signBytes := msg.GetSignBytes()
+	txDataHash := crypto.Keccak256(signBytes)
+	if !bytes.Equal(txDataHash, blsSignature.GetTxData()) {
+		return &types.MsgVolumeReportResponse{}, types.ErrBLSTxDataInvalid
+	}
+
+	// verify blsSignature
 	verified, err := bls.Verify(blsSignature.GetTxData(), blsSignature.GetSignature(), blsSignature.GetPubKeys()...)
 	if err != nil {
 		return &types.MsgVolumeReportResponse{}, sdkerrors.Wrap(types.ErrBLSVerifyFailed, err.Error())
@@ -70,12 +79,6 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 
 	if !k.HasReachedThreshold(ctx, blsSignature.GetPubKeys()) {
 		return &types.MsgVolumeReportResponse{}, types.ErrBLSNotReachThreshold
-	}
-
-	signBytes := msg.GetSignBytes()
-	txDataHash := crypto.Keccak256(signBytes)
-	if !bytes.Equal(txDataHash, blsSignature.GetTxData()) {
-		return &types.MsgVolumeReportResponse{}, types.ErrBLSTxDataInvalid
 	}
 
 	txBytes := ctx.TxBytes()
