@@ -412,11 +412,8 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 func (k Keeper) GetTotalConsumedNoz(trafficList []types.SingleWalletVolume) sdk.Int {
 	totalTraffic := sdk.ZeroInt()
 	for _, vol := range trafficList {
-		toAdd, ok := sdk.NewIntFromString(vol.Volume.String())
-		if !ok {
-			continue
-		}
-		totalTraffic = totalTraffic.Add(toAdd)
+		toAdd := vol.Volume
+		totalTraffic = totalTraffic.Add(*toAdd)
 	}
 	return totalTraffic
 }
