@@ -78,7 +78,7 @@ func volumeReportRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		reportReference := req.ReportReference
 		epoch := sdk.NewInt(req.Epoch)
 
-		var walletVolumes []*types.SingleWalletVolume
+		var walletVolumes []types.SingleWalletVolume
 		for _, v := range req.WalletVolumes {
 			walletAddr, err := sdk.AccAddressFromBech32(v.WalletAddress)
 			if err != nil {
