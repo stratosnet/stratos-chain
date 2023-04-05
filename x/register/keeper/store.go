@@ -45,12 +45,6 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdk.Int) bool {
-	remaining := k.GetRemainingOzoneLimit(ctx)
-	stakeNozRate := k.GetStakeNozRate(ctx)
-	return remaining.ToDec().GTE(unbondAmt.ToDec().Quo(stakeNozRate))
-}
-
 // SetUnbondingNode sets the unbonding MetaNode
 func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
