@@ -21,7 +21,7 @@ var (
 	rewardDetailMap               map[string]types.Reward
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []*types.SingleWalletVolume, epoch sdk.Int) (err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch sdk.Int) (err error) {
 
 	k.InitVariable(ctx)
 
@@ -199,7 +199,7 @@ func (k Keeper) getMatureEpochByCurrentEpoch(ctx sdk.Context, currentEpoch sdk.I
 }
 
 // Iteration for calculating reward of resource nodes
-func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedNoz sdk.Dec, trafficList []*types.SingleWalletVolume,
+func (k Keeper) CalcRewardForResourceNode(ctx sdk.Context, totalConsumedNoz sdk.Dec, trafficList []types.SingleWalletVolume,
 	distributeGoal types.DistributeGoal, rewardDetailMap map[string]types.Reward,
 ) map[string]types.Reward {
 
@@ -372,14 +372,11 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 }
 
 // Iteration for getting total consumed OZ from traffic
-func (k Keeper) GetTotalConsumedNoz(trafficList []*types.SingleWalletVolume) sdk.Int {
+func (k Keeper) GetTotalConsumedNoz(trafficList []types.SingleWalletVolume) sdk.Int {
 	totalTraffic := sdk.ZeroInt()
 	for _, vol := range trafficList {
-		toAdd, ok := sdk.NewIntFromString(vol.Volume.String())
-		if !ok {
-			continue
-		}
-		totalTraffic = totalTraffic.Add(toAdd)
+		toAdd := vol.Volume
+		totalTraffic = totalTraffic.Add(*toAdd)
 	}
 	return totalTraffic
 }

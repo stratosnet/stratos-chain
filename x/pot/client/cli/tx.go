@@ -249,7 +249,7 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 		return txf, nil, err
 	}
 
-	var walletVolumes = make([]*types.SingleWalletVolume, 0)
+	var walletVolumes = make([]types.SingleWalletVolume, 0)
 	for _, n := range walletVolumesStr {
 		walletAcc, err := sdk.AccAddressFromBech32(n.WalletAddress)
 		if err != nil {

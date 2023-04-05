@@ -1,8 +1,10 @@
 package keeper
 
 import (
-	"encoding/hex"
+	"errors"
 	"fmt"
+
+	"github.com/kelindar/bitmap"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -12,6 +14,7 @@ import (
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	stratos "github.com/stratosnet/stratos-chain/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -55,22 +58,28 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
 }
 
-// GetFileInfoBytesByFileHash Returns the hash of file
-func (k Keeper) GetFileInfoBytesByFileHash(ctx sdk.Context, key []byte) ([]byte, error) {
-	store := ctx.KVStore(k.key)
-	bz := store.Get(types.FileStoreKey(key))
-	if bz == nil {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "FileHash %s does not exist", hex.EncodeToString(types.FileStoreKey(key))[2:])
+func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.SdsAddress, reporterOwner, uploader sdk.AccAddress) (err error) {
+	if !(k.registerKeeper.OwnMetaNode(ctx, reporterOwner, reporter)) {
+		return types.ErrReporterAddressOrOwner
 	}
-	return bz, nil
-}
 
-// SetFileHash Sets sender-fileHash KV pair
-func (k Keeper) SetFileHash(ctx sdk.Context, fileHash []byte, fileInfo types.FileInfo) {
-	store := ctx.KVStore(k.key)
-	storeKey := types.FileStoreKey(fileHash)
-	bz := types.MustMarshalFileInfo(k.cdc, fileInfo)
-	store.Set(storeKey, bz)
+	var fileUploadReporters bitmap.Bitmap
+	// query exist fileInfo which sent by other meta node
+	fileInfo, found := k.GetFileInfoByFileHash(ctx, []byte(fileHash))
+	if !found {
+		fileUploadReporters = bitmap.Bitmap{}
+	} else {
+		fileUploadReporters = bitmap.FromBytes(fileInfo.GetReporters())
+	}
+	reporterIndex, err := k.registerKeeper.GetMetaNodeBitMapIndex(ctx, reporter)
+	fileUploadReporters.Set(uint32(reporterIndex))
+	height := sdk.NewInt(ctx.BlockHeight())
+
+	newFileInfo := types.NewFileInfo(height, fileUploadReporters.ToBytes(), uploader.String())
+
+	k.SetFileInfo(ctx, []byte(fileHash), newFileInfo)
+
+	return nil
 }
 
 // [S] is the initial genesis deposit by all Resource Nodes and Meta Nodes at t=0
@@ -90,6 +99,9 @@ func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 			Add(amount)).ToDec()).
 		TruncateInt()
 
+	if purchased.GT(Lt) {
+		return sdk.ZeroInt(), errors.New("not enough remaining ozone limit to complete prepay")
+	}
 	// send coins to total unissued prepay pool
 	prepayAmt := sdk.NewCoin(k.BondDenom(ctx), amount)
 	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))
@@ -130,20 +142,4 @@ func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) 
 
 	prepay := coins.AmountOf(k.BondDenom(ctx))
 	return k.purchaseNozAndSubCoins(ctx, sender, prepay)
-}
-
-// IterateFileUpload Iterate over all uploaded files.
-// Iteration for all uploaded files
-func (k Keeper) IterateFileUpload(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
-	store := ctx.KVStore(k.key)
-	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
-		var fileInfo types.FileInfo
-		k.cdc.MustUnmarshal(iter.Value(), &fileInfo)
-		if handler(fileHash, fileInfo) {
-			break
-		}
-	}
 }
