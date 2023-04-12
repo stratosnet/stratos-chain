@@ -4,7 +4,10 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"math"
 	"time"
+
+	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -14,23 +17,26 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
-	"github.com/tendermint/tendermint/libs/log"
+)
+
+var (
+	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
 )
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey sdk.StoreKey
-	cdc      codec.Codec
-	// module specific parameter space that can be configured through governance
-	paramSpace            paramtypes.Subspace
-	accountKeeper         types.AccountKeeper
-	bankKeeper            types.BankKeeper
-	distrKeeper           types.DistrKeeper
-	hooks                 types.RegisterHooks
-	resourceNodeCache     map[string]cachedResourceNode
-	resourceNodeCacheList *list.List
-	metaNodeCache         map[string]cachedMetaNode
-	metaNodeCacheList     *list.List
+	storeKey                 sdk.StoreKey
+	cdc                      codec.Codec
+	paramSpace               paramtypes.Subspace
+	accountKeeper            types.AccountKeeper
+	bankKeeper               types.BankKeeper
+	distrKeeper              types.DistrKeeper
+	hooks                    types.RegisterHooks
+	resourceNodeCache        map[string]cachedResourceNode
+	resourceNodeCacheList    *list.List
+	metaNodeCache            map[string]cachedMetaNode
+	metaNodeCacheList        *list.List
+	metaNodeBitMapIndexCache map[string]int
 }
 
 // NewKeeper creates a register keeper
@@ -38,17 +44,18 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
 
 	keeper := Keeper{
-		storeKey:              key,
-		cdc:                   cdc,
-		paramSpace:            paramSpace.WithKeyTable(types.ParamKeyTable()),
-		accountKeeper:         accountKeeper,
-		bankKeeper:            bankKeeper,
-		distrKeeper:           distrKeeper,
-		hooks:                 nil,
-		resourceNodeCache:     make(map[string]cachedResourceNode, resourceNodeCacheSize),
-		resourceNodeCacheList: list.New(),
-		metaNodeCache:         make(map[string]cachedMetaNode, metaNodeCacheSize),
-		metaNodeCacheList:     list.New(),
+		storeKey:                 key,
+		cdc:                      cdc,
+		paramSpace:               paramSpace.WithKeyTable(types.ParamKeyTable()),
+		accountKeeper:            accountKeeper,
+		bankKeeper:               bankKeeper,
+		distrKeeper:              distrKeeper,
+		hooks:                    nil,
+		resourceNodeCache:        make(map[string]cachedResourceNode, resourceNodeCacheSize),
+		resourceNodeCacheList:    list.New(),
+		metaNodeCache:            make(map[string]cachedMetaNode, metaNodeCacheSize),
+		metaNodeCacheList:        list.New(),
+		metaNodeBitMapIndexCache: make(map[string]int),
 	}
 	return keeper
 }
@@ -276,27 +283,28 @@ func (k Keeper) subtractUBDNodeStake(ctx sdk.Context, ubd types.UnbondingNode, t
 }
 
 func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, amt sdk.Int,
-) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
-	params := k.GetParams(ctx)
-	ctx.Logger().Info("Params of register module: " + params.String())
+) (availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
+	if resourceNode.GetStatus() == stakingtypes.Unbonding {
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+	}
 
 	// transfer the node tokens to the not bonded pool
 	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	// suspended node cannot be unbonded (avoid dup stake decrease with node suspension)
 	if resourceNode.Suspend {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
 	// check if node_token - unbonding_token > amt_to_unbond
@@ -304,17 +312,16 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 
 	availableStake := resourceNode.Tokens.Sub(unbondingStake)
 	if availableStake.LT(amt) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
 	availableTokenAmtBefore = availableStake
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
-	bondDenom := k.GetParams(ctx).BondDenom
-	coin := sdk.NewCoin(bondDenom, amt)
+	coin := sdk.NewCoin(k.BondDenom(ctx), amt)
 	if resourceNode.GetStatus() == stakingtypes.Bonded {
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, coin)
@@ -343,19 +350,22 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, resourceNode types.ResourceN
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 	availableTokenAmtAfter = availableTokenAmtBefore.Sub(amt)
-	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
+	return availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
 }
 
 func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
 ) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
+	if metaNode.GetStatus() == stakingtypes.Unbonding {
+		return sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+	}
 
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Now(), errors.New("invalid network address")
+		return sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Now(), errors.New("invalid wallet address")
+		return sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
@@ -464,4 +474,12 @@ func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
 	St := k.GetEffectiveTotalStake(ctx)
 	total = St.ToDec().Quo(stakeNozRate).TruncateInt()
 	return remaining, total
+}
+
+func (k Keeper) HasReachedThreshold(ctx sdk.Context, validReporterCount int) bool {
+	totalMetaNodes := k.GetBondedMetaNodeCnt(ctx).Int64()
+
+	threshold := int(math.Max(1, math.Floor(float64(totalMetaNodes)*2/3)))
+
+	return validReporterCount >= threshold
 }

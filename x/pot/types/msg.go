@@ -25,7 +25,7 @@ const (
 
 // NewMsgVolumeReport creates a new MsgVolumeReport instance
 func NewMsgVolumeReport(
-	walletVolumes []*SingleWalletVolume,
+	walletVolumes []SingleWalletVolume,
 	reporter stratos.SdsAddress,
 	epoch sdk.Int,
 	reportReference string,
@@ -35,10 +35,10 @@ func NewMsgVolumeReport(
 	return &MsgVolumeReport{
 		WalletVolumes:   walletVolumes,
 		Reporter:        reporter.String(),
-		Epoch:           &epoch,
+		Epoch:           epoch,
 		ReportReference: reportReference,
 		ReporterOwner:   reporterOwner.String(),
-		BLSSignature:    &blsSignature,
+		BLSSignature:    blsSignature,
 	}
 }
 

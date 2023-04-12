@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/hex"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -106,10 +105,6 @@ func PrepayTxCmd() *cobra.Command {
 // makes a new newBuildFileuploadMsg
 func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgFileUpload, error) {
 	fileHash, err := fs.GetString(FlagFileHash)
-	if err != nil {
-		return txf, nil, err
-	}
-	_, err = hex.DecodeString(fileHash)
 	if err != nil {
 		return txf, nil, err
 	}

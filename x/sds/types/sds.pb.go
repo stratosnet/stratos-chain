@@ -69,69 +69,17 @@ func (m *Params) GetBondDenom() string {
 	return ""
 }
 
-type FileUpload struct {
-	FileHash string    `protobuf:"bytes,1,opt,name=file_hash,json=fileHash,proto3" json:"file_hash" yaml:"file_hash"`
-	FileInfo *FileInfo `protobuf:"bytes,2,opt,name=file_info,json=fileInfo,proto3" json:"file_info" yaml:"file_info"`
-}
-
-func (m *FileUpload) Reset()         { *m = FileUpload{} }
-func (m *FileUpload) String() string { return proto.CompactTextString(m) }
-func (*FileUpload) ProtoMessage()    {}
-func (*FileUpload) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a89f3959b8649eb2, []int{1}
-}
-func (m *FileUpload) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *FileUpload) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_FileUpload.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *FileUpload) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_FileUpload.Merge(m, src)
-}
-func (m *FileUpload) XXX_Size() int {
-	return m.Size()
-}
-func (m *FileUpload) XXX_DiscardUnknown() {
-	xxx_messageInfo_FileUpload.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_FileUpload proto.InternalMessageInfo
-
-func (m *FileUpload) GetFileHash() string {
-	if m != nil {
-		return m.FileHash
-	}
-	return ""
-}
-
-func (m *FileUpload) GetFileInfo() *FileInfo {
-	if m != nil {
-		return m.FileInfo
-	}
-	return nil
-}
-
 type FileInfo struct {
-	Height   *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=height,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"height,omitempty"`
-	Reporter string                                  `protobuf:"bytes,2,opt,name=reporter,proto3" json:"reporter,omitempty"`
-	Uploader string                                  `protobuf:"bytes,3,opt,name=uploader,proto3" json:"uploader,omitempty"`
+	Height    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,1,opt,name=height,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"height" yaml:"height"`
+	Reporters []byte                                 `protobuf:"bytes,2,opt,name=reporters,proto3" json:"reporters" yaml:"reporters"`
+	Uploader  string                                 `protobuf:"bytes,3,opt,name=uploader,proto3" json:"uploader" yaml:"uploader"`
 }
 
 func (m *FileInfo) Reset()         { *m = FileInfo{} }
 func (m *FileInfo) String() string { return proto.CompactTextString(m) }
 func (*FileInfo) ProtoMessage()    {}
 func (*FileInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a89f3959b8649eb2, []int{2}
+	return fileDescriptor_a89f3959b8649eb2, []int{1}
 }
 func (m *FileInfo) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -160,11 +108,11 @@ func (m *FileInfo) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_FileInfo proto.InternalMessageInfo
 
-func (m *FileInfo) GetReporter() string {
+func (m *FileInfo) GetReporters() []byte {
 	if m != nil {
-		return m.Reporter
+		return m.Reporters
 	}
-	return ""
+	return nil
 }
 
 func (m *FileInfo) GetUploader() string {
@@ -176,37 +124,34 @@ func (m *FileInfo) GetUploader() string {
 
 func init() {
 	proto.RegisterType((*Params)(nil), "stratos.sds.v1.Params")
-	proto.RegisterType((*FileUpload)(nil), "stratos.sds.v1.FileUpload")
 	proto.RegisterType((*FileInfo)(nil), "stratos.sds.v1.FileInfo")
 }
 
 func init() { proto.RegisterFile("stratos/sds/v1/sds.proto", fileDescriptor_a89f3959b8649eb2) }
 
 var fileDescriptor_a89f3959b8649eb2 = []byte{
-	// 364 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x5c, 0x51, 0x4d, 0x4b, 0xeb, 0x40,
-	0x14, 0xed, 0xbc, 0x07, 0xa5, 0x99, 0x07, 0x8f, 0xf7, 0x82, 0x8b, 0xd0, 0x45, 0x52, 0x23, 0x48,
-	0x11, 0x9a, 0x50, 0xdd, 0xb9, 0x70, 0x11, 0x44, 0x2c, 0xb8, 0x90, 0x80, 0x20, 0x6e, 0xca, 0xb4,
-	0x99, 0x26, 0xc1, 0x24, 0x37, 0xcc, 0x4c, 0x8b, 0xfd, 0x03, 0xae, 0xfd, 0x15, 0xfe, 0x16, 0x97,
-	0x5d, 0x8a, 0x8b, 0x20, 0xed, 0xae, 0xcb, 0xfe, 0x02, 0x99, 0xe9, 0xf4, 0x43, 0x57, 0x73, 0xee,
-	0x39, 0xf7, 0x9e, 0x9c, 0x9b, 0x8b, 0x2d, 0x2e, 0x18, 0x11, 0xc0, 0x7d, 0x1e, 0x71, 0x7f, 0xd2,
-	0x95, 0x8f, 0x57, 0x32, 0x10, 0x60, 0xfe, 0xd5, 0x8a, 0x27, 0xa9, 0x49, 0xb7, 0x79, 0x10, 0x43,
-	0x0c, 0x4a, 0xf2, 0x25, 0x5a, 0x77, 0xb9, 0x37, 0xb8, 0x7e, 0x4b, 0x18, 0xc9, 0xb9, 0x19, 0x60,
-	0x3c, 0x80, 0x22, 0xea, 0x47, 0xb4, 0x80, 0xdc, 0x42, 0x2d, 0xd4, 0x36, 0x82, 0xa3, 0x65, 0xe5,
-	0xec, 0xb1, 0xab, 0xca, 0xf9, 0x3f, 0x25, 0x79, 0x76, 0xee, 0xee, 0x38, 0x37, 0x34, 0x64, 0x71,
-	0xa9, 0xf0, 0x2b, 0xc2, 0xf8, 0x2a, 0xcd, 0xe8, 0x5d, 0x99, 0x01, 0x89, 0xcc, 0x0b, 0x6c, 0x8c,
-	0xd2, 0x8c, 0xf6, 0x13, 0xc2, 0x13, 0xed, 0x78, 0xb8, 0xac, 0x9c, 0x1d, 0xb9, 0xaa, 0x9c, 0x7f,
-	0x6b, 0xc3, 0x2d, 0xe5, 0x86, 0x0d, 0x89, 0xaf, 0x09, 0x4f, 0xcc, 0x7b, 0x3d, 0x9f, 0x16, 0x23,
-	0xb0, 0x7e, 0xb5, 0x50, 0xfb, 0xcf, 0xa9, 0xe5, 0x7d, 0x5f, 0xcb, 0x93, 0x9f, 0xeb, 0x15, 0x23,
-	0xd8, 0x73, 0x96, 0xed, 0x3f, 0x9c, 0x25, 0xa5, 0x9d, 0x65, 0xb3, 0xfb, 0x8c, 0x70, 0x63, 0x33,
-	0x69, 0x06, 0xb8, 0x9e, 0xd0, 0x34, 0x4e, 0x84, 0xce, 0x78, 0xf2, 0x51, 0x39, 0xc7, 0x71, 0x2a,
-	0x92, 0xf1, 0xc0, 0x1b, 0x42, 0xee, 0x0f, 0x81, 0xe7, 0xc0, 0xf5, 0xd3, 0xe1, 0xd1, 0xa3, 0x2f,
-	0xa6, 0x25, 0xe5, 0x5e, 0xaf, 0x10, 0xa1, 0x9e, 0x34, 0x9b, 0xb8, 0xc1, 0x68, 0x09, 0x4c, 0x50,
-	0xa6, 0x92, 0x1a, 0xe1, 0xb6, 0x96, 0xda, 0x58, 0xfd, 0x10, 0xca, 0xac, 0xdf, 0x6b, 0x6d, 0x53,
-	0x07, 0xbd, 0xb7, 0xb9, 0x8d, 0x66, 0x73, 0x1b, 0x7d, 0xce, 0x6d, 0xf4, 0xb2, 0xb0, 0x6b, 0xb3,
-	0x85, 0x5d, 0x7b, 0x5f, 0xd8, 0xb5, 0x07, 0x7f, 0x2f, 0x81, 0xde, 0xb9, 0xa0, 0x62, 0x03, 0x3b,
-	0xc3, 0x84, 0xa4, 0x85, 0xff, 0xa4, 0xee, 0xae, 0xe2, 0x0c, 0xea, 0xea, 0xa2, 0x67, 0x5f, 0x01,
-	0x00, 0x00, 0xff, 0xff, 0x8e, 0xcc, 0x78, 0xb5, 0x13, 0x02, 0x00, 0x00,
+	// 334 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x4c, 0x91, 0x3d, 0x6b, 0xeb, 0x30,
+	0x14, 0x86, 0xad, 0x7b, 0x21, 0x24, 0xe2, 0xde, 0x7e, 0x98, 0x0e, 0xa6, 0x83, 0x95, 0xba, 0x50,
+	0xb2, 0xc4, 0x22, 0x74, 0x6b, 0x87, 0x82, 0x29, 0x05, 0x43, 0x87, 0xe2, 0xb1, 0x4b, 0x51, 0x62,
+	0xd5, 0x36, 0x8d, 0x7d, 0x8c, 0xa4, 0x84, 0xe6, 0x5f, 0xf4, 0x67, 0x65, 0xcc, 0x58, 0x3a, 0x88,
+	0x92, 0x6c, 0xee, 0xe6, 0x5f, 0x50, 0xfc, 0x91, 0x8f, 0xe9, 0x9c, 0xf3, 0xbc, 0x7a, 0x25, 0x1d,
+	0x5e, 0x6c, 0x49, 0x25, 0x98, 0x02, 0x49, 0x65, 0x28, 0xe9, 0x7c, 0x54, 0x15, 0x37, 0x17, 0xa0,
+	0xc0, 0x3c, 0x6a, 0x15, 0xb7, 0x42, 0xf3, 0xd1, 0xf9, 0x59, 0x04, 0x11, 0xd4, 0x12, 0xad, 0xba,
+	0xe6, 0x94, 0xf3, 0x88, 0x3b, 0x4f, 0x4c, 0xb0, 0x54, 0x9a, 0x1e, 0xc6, 0x63, 0xc8, 0xc2, 0x97,
+	0x90, 0x67, 0x90, 0x5a, 0xa8, 0x8f, 0x06, 0x3d, 0xef, 0xb2, 0xd0, 0xe4, 0x80, 0x96, 0x9a, 0x9c,
+	0x2e, 0x58, 0x3a, 0xbd, 0x71, 0xf6, 0xcc, 0x09, 0x7a, 0xd5, 0x70, 0x5f, 0xf7, 0x3f, 0x08, 0x77,
+	0x1f, 0x92, 0x29, 0xf7, 0xb3, 0x57, 0x30, 0x19, 0xee, 0xc4, 0x3c, 0x89, 0x62, 0xd5, 0x5e, 0xe6,
+	0x2f, 0x35, 0x31, 0xbe, 0x34, 0xb9, 0x8a, 0x12, 0x15, 0xcf, 0xc6, 0xee, 0x04, 0x52, 0x3a, 0x01,
+	0x99, 0x82, 0x6c, 0xcb, 0x50, 0x86, 0x6f, 0x54, 0x2d, 0x72, 0x2e, 0x5d, 0x3f, 0x53, 0x85, 0x26,
+	0xad, 0xbf, 0xd4, 0xe4, 0x7f, 0xf3, 0x6c, 0x33, 0x3b, 0x41, 0x2b, 0x98, 0x77, 0xb8, 0x27, 0x78,
+	0x0e, 0x42, 0x71, 0x21, 0xad, 0x3f, 0x7d, 0x34, 0xf8, 0xe7, 0x5d, 0x14, 0x9a, 0xec, 0x61, 0xa9,
+	0xc9, 0x49, 0x63, 0xdd, 0x21, 0x27, 0xd8, 0xcb, 0xe6, 0x2d, 0xee, 0xce, 0xf2, 0x29, 0xb0, 0x90,
+	0x0b, 0xeb, 0x6f, 0xfd, 0x4b, 0x52, 0x68, 0xb2, 0x63, 0xa5, 0x26, 0xc7, 0x8d, 0x7d, 0x4b, 0x9c,
+	0x60, 0x27, 0x7a, 0xfe, 0x72, 0x6d, 0xa3, 0xd5, 0xda, 0x46, 0xdf, 0x6b, 0x1b, 0x7d, 0x6c, 0x6c,
+	0x63, 0xb5, 0xb1, 0x8d, 0xcf, 0x8d, 0x6d, 0x3c, 0xd3, 0x83, 0x15, 0xdb, 0x18, 0x32, 0xae, 0xb6,
+	0xed, 0x70, 0x12, 0xb3, 0x24, 0xa3, 0xef, 0x75, 0x66, 0xf5, 0xbe, 0xe3, 0x4e, 0x9d, 0xc6, 0xf5,
+	0x6f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd6, 0xc6, 0x4f, 0x7b, 0xcf, 0x01, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -233,48 +178,6 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i -= len(m.BondDenom)
 		copy(dAtA[i:], m.BondDenom)
 		i = encodeVarintSds(dAtA, i, uint64(len(m.BondDenom)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *FileUpload) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *FileUpload) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *FileUpload) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if m.FileInfo != nil {
-		{
-			size, err := m.FileInfo.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintSds(dAtA, i, uint64(size))
-		}
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.FileHash) > 0 {
-		i -= len(m.FileHash)
-		copy(dAtA[i:], m.FileHash)
-		i = encodeVarintSds(dAtA, i, uint64(len(m.FileHash)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -308,25 +211,23 @@ func (m *FileInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.Reporter) > 0 {
-		i -= len(m.Reporter)
-		copy(dAtA[i:], m.Reporter)
-		i = encodeVarintSds(dAtA, i, uint64(len(m.Reporter)))
+	if len(m.Reporters) > 0 {
+		i -= len(m.Reporters)
+		copy(dAtA[i:], m.Reporters)
+		i = encodeVarintSds(dAtA, i, uint64(len(m.Reporters)))
 		i--
 		dAtA[i] = 0x12
 	}
-	if m.Height != nil {
-		{
-			size := m.Height.Size()
-			i -= size
-			if _, err := m.Height.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintSds(dAtA, i, uint64(size))
+	{
+		size := m.Height.Size()
+		i -= size
+		if _, err := m.Height.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0xa
+		i = encodeVarintSds(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -354,34 +255,15 @@ func (m *Params) Size() (n int) {
 	return n
 }
 
-func (m *FileUpload) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.FileHash)
-	if l > 0 {
-		n += 1 + l + sovSds(uint64(l))
-	}
-	if m.FileInfo != nil {
-		l = m.FileInfo.Size()
-		n += 1 + l + sovSds(uint64(l))
-	}
-	return n
-}
-
 func (m *FileInfo) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.Height != nil {
-		l = m.Height.Size()
-		n += 1 + l + sovSds(uint64(l))
-	}
-	l = len(m.Reporter)
+	l = m.Height.Size()
+	n += 1 + l + sovSds(uint64(l))
+	l = len(m.Reporters)
 	if l > 0 {
 		n += 1 + l + sovSds(uint64(l))
 	}
@@ -480,124 +362,6 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *FileUpload) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowSds
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: FileUpload: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: FileUpload: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileHash", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSds
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthSds
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthSds
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.FileHash = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileInfo", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowSds
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthSds
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthSds
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			if m.FileInfo == nil {
-				m.FileInfo = &FileInfo{}
-			}
-			if err := m.FileInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipSds(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthSds
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
 func (m *FileInfo) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
@@ -657,17 +421,15 @@ func (m *FileInfo) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
-			m.Height = &v
 			if err := m.Height.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Reporter", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Reporters", wireType)
 			}
-			var stringLen uint64
+			var byteLen int
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowSds
@@ -677,23 +439,25 @@ func (m *FileInfo) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
+				byteLen |= int(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
+			if byteLen < 0 {
 				return ErrInvalidLengthSds
 			}
-			postIndex := iNdEx + intStringLen
+			postIndex := iNdEx + byteLen
 			if postIndex < 0 {
 				return ErrInvalidLengthSds
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Reporter = string(dAtA[iNdEx:postIndex])
+			m.Reporters = append(m.Reporters[:0], dAtA[iNdEx:postIndex]...)
+			if m.Reporters == nil {
+				m.Reporters = []byte{}
+			}
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {

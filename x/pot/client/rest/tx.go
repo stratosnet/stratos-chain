@@ -40,6 +40,7 @@ type (
 		Reporter        string                     `json:"reporter" yaml:"reporter"`                 // volume reporter
 		Epoch           int64                      `json:"epoch" yaml:"epoch"`                       // volume report epoch
 		ReportReference string                     `json:"report_reference" yaml:"report_reference"` // volume report reference
+		BLSSignature    types.BaseBLSSignatureInfo `json:"bls_signature" yaml:"bls_signature"`       // bls signature
 	}
 
 	slashingResourceNodeReq struct {
@@ -77,7 +78,7 @@ func volumeReportRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		reportReference := req.ReportReference
 		epoch := sdk.NewInt(req.Epoch)
 
-		var walletVolumes []*types.SingleWalletVolume
+		var walletVolumes []types.SingleWalletVolume
 		for _, v := range req.WalletVolumes {
 			walletAddr, err := sdk.AccAddressFromBech32(v.WalletAddress)
 			if err != nil {
@@ -100,7 +101,15 @@ func volumeReportRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner, types.BLSSignatureInfo{})
+		sig := req.BLSSignature
+
+		pubKeys := make([][]byte, len(sig.PubKeys))
+		for i, v := range sig.PubKeys {
+			pubKeys[i] = []byte(v)
+		}
+		blsSignature := types.NewBLSSignatureInfo(pubKeys, []byte(sig.Signature), []byte(sig.TxData))
+
+		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner, blsSignature)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

@@ -2,13 +2,15 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/sds/types"
+	"github.com/ipfs/go-cid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 var _ types.QueryServer = Querier{}
@@ -27,19 +29,16 @@ func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest
 		return &types.QueryFileUploadResponse{}, status.Error(codes.InvalidArgument, " Network address cannot be empty")
 	}
 
+	_, err := cid.Decode(req.GetFileHash())
+	if err != nil {
+		return &types.QueryFileUploadResponse{}, fmt.Errorf("invalid file hash %w", err)
+	}
+
 	ctx := sdk.UnwrapSDKContext(c)
 
-	_, err := hex.DecodeString(req.GetFileHash())
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, fmt.Errorf("invalid file hash, please specify a hash in hex format %w", err)
-	}
-	fileInfoBytes, err := q.GetFileInfoBytesByFileHash(ctx, []byte(req.GetFileHash()))
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, err
-	}
-	fileInfo, err := types.UnmarshalFileInfo(q.cdc, fileInfoBytes)
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, err
+	fileInfo, found := q.GetFileInfoByFileHash(ctx, []byte(req.GetFileHash()))
+	if !found {
+		return &types.QueryFileUploadResponse{}, types.ErrNoFileFound
 	}
 
 	return &types.QueryFileUploadResponse{FileInfo: &fileInfo}, nil
