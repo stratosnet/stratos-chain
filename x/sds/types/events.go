@@ -10,7 +10,8 @@ const (
 	AttributeKeyUploader = "uploader"
 
 	AttributeKeyAmount       = "amount"
-	AttributeKeyPurchasedNoz = "purchased"
+	AttributeKeyPurchasedNoz = "purchased_noz"
+	AttributeKeyBeneficiary  = "beneficiary"
 
 	AttributeValueCategory = ModuleName
 )

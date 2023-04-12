@@ -70,7 +70,12 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(types.ErrInvalidSenderAddr, err.Error())
+	}
+
+	_, err = sdk.AccAddressFromBech32(msg.GetBeneficiary())
+	if err != nil {
+		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
 	}
 
 	purchased, err := k.Prepay(ctx, sender, msg.GetAmount())
@@ -82,6 +87,7 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		sdk.NewEvent(
 			types.EventTypePrepay,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.GetBeneficiary()),
 			sdk.NewAttribute(types.AttributeKeyAmount, msg.GetAmount().String()),
 			sdk.NewAttribute(types.AttributeKeyPurchasedNoz, purchased.String()),
 		),
