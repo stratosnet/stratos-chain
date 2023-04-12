@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	gogotypes "github.com/gogo/protobuf/types"
-
 	db "github.com/tendermint/tm-db"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
