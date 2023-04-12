@@ -25,8 +25,8 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the register module's genesis state.
 type GenesisState struct {
-	Params      *Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params" yaml:"params"`
-	FileUploads []*FileUpload `protobuf:"bytes,2,rep,name=file_uploads,json=fileUploads,proto3" json:"file_uploads" yaml:"file_uploads"`
+	Params *Params           `protobuf:"bytes,1,opt,name=params,proto3" json:"params" yaml:"params"`
+	Files  []GenesisFileInfo `protobuf:"bytes,2,rep,name=files,proto3" json:"files" yaml:"files"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -69,38 +69,96 @@ func (m *GenesisState) GetParams() *Params {
 	return nil
 }
 
-func (m *GenesisState) GetFileUploads() []*FileUpload {
+func (m *GenesisState) GetFiles() []GenesisFileInfo {
 	if m != nil {
-		return m.FileUploads
+		return m.Files
 	}
 	return nil
 }
 
+type GenesisFileInfo struct {
+	FileHash string   `protobuf:"bytes,1,opt,name=file_hash,json=fileHash,proto3" json:"file_hash" yaml:"file_hash"`
+	FileInfo FileInfo `protobuf:"bytes,2,opt,name=file_info,json=fileInfo,proto3" json:"file_info" yaml:"file_info"`
+}
+
+func (m *GenesisFileInfo) Reset()         { *m = GenesisFileInfo{} }
+func (m *GenesisFileInfo) String() string { return proto.CompactTextString(m) }
+func (*GenesisFileInfo) ProtoMessage()    {}
+func (*GenesisFileInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a3396301dd7676d6, []int{1}
+}
+func (m *GenesisFileInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *GenesisFileInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_GenesisFileInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *GenesisFileInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GenesisFileInfo.Merge(m, src)
+}
+func (m *GenesisFileInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *GenesisFileInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_GenesisFileInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GenesisFileInfo proto.InternalMessageInfo
+
+func (m *GenesisFileInfo) GetFileHash() string {
+	if m != nil {
+		return m.FileHash
+	}
+	return ""
+}
+
+func (m *GenesisFileInfo) GetFileInfo() FileInfo {
+	if m != nil {
+		return m.FileInfo
+	}
+	return FileInfo{}
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "stratos.sds.v1.GenesisState")
+	proto.RegisterType((*GenesisFileInfo)(nil), "stratos.sds.v1.GenesisFileInfo")
 }
 
 func init() { proto.RegisterFile("stratos/sds/v1/genesis.proto", fileDescriptor_a3396301dd7676d6) }
 
 var fileDescriptor_a3396301dd7676d6 = []byte{
-	// 271 bytes of a gzipped FileDescriptorProto
+	// 344 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0x92, 0x29, 0x2e, 0x29, 0x4a,
 	0x2c, 0xc9, 0x2f, 0xd6, 0x2f, 0x4e, 0x29, 0xd6, 0x2f, 0x33, 0xd4, 0x4f, 0x4f, 0xcd, 0x4b, 0x2d,
 	0xce, 0x2c, 0xd6, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0xe2, 0x83, 0xca, 0xea, 0x15, 0xa7, 0x14,
 	0xeb, 0x95, 0x19, 0x4a, 0x89, 0xa4, 0xe7, 0xa7, 0xe7, 0x83, 0xa5, 0xf4, 0x41, 0x2c, 0x88, 0x2a,
-	0x29, 0x09, 0x34, 0x33, 0x40, 0x8a, 0xc1, 0x32, 0x4a, 0x87, 0x19, 0xb9, 0x78, 0xdc, 0x21, 0x26,
+	0x29, 0x09, 0x34, 0x33, 0x40, 0x8a, 0xc1, 0x32, 0x4a, 0x1b, 0x19, 0xb9, 0x78, 0xdc, 0x21, 0x26,
 	0x06, 0x97, 0x24, 0x96, 0xa4, 0x0a, 0x79, 0x73, 0xb1, 0x15, 0x24, 0x16, 0x25, 0xe6, 0x16, 0x4b,
 	0x30, 0x2a, 0x30, 0x6a, 0x70, 0x1b, 0x89, 0xe9, 0xa1, 0xda, 0xa0, 0x17, 0x00, 0x96, 0x75, 0x92,
 	0x7e, 0x75, 0x4f, 0x1e, 0xaa, 0xf2, 0xd3, 0x3d, 0x79, 0xde, 0xca, 0xc4, 0xdc, 0x1c, 0x2b, 0x25,
-	0x08, 0x5f, 0x29, 0x08, 0x2a, 0x21, 0x94, 0xc6, 0xc5, 0x93, 0x96, 0x99, 0x93, 0x1a, 0x5f, 0x5a,
-	0x90, 0x93, 0x9f, 0x98, 0x52, 0x2c, 0xc1, 0xa4, 0xc0, 0xac, 0xc1, 0x6d, 0x24, 0x85, 0x6e, 0xa4,
-	0x5b, 0x66, 0x4e, 0x6a, 0x28, 0x58, 0x89, 0x93, 0xfa, 0xab, 0x7b, 0xf2, 0x28, 0x7a, 0x3e, 0xdd,
-	0x93, 0x17, 0x86, 0x18, 0x8e, 0x2c, 0xaa, 0x14, 0xc4, 0x9d, 0x06, 0xd7, 0x54, 0xec, 0xe4, 0x79,
-	0xe2, 0x91, 0x1c, 0xe3, 0x85, 0x47, 0x72, 0x8c, 0x0f, 0x1e, 0xc9, 0x31, 0x4e, 0x78, 0x2c, 0xc7,
-	0x70, 0xe1, 0xb1, 0x1c, 0xc3, 0x8d, 0xc7, 0x72, 0x0c, 0x51, 0xfa, 0xe9, 0x99, 0x25, 0x19, 0xa5,
-	0x49, 0x7a, 0xc9, 0xf9, 0xb9, 0xfa, 0x50, 0x5b, 0xf3, 0x52, 0x4b, 0x60, 0x4c, 0xdd, 0xe4, 0x8c,
-	0xc4, 0xcc, 0x3c, 0xfd, 0x0a, 0x70, 0xb8, 0x94, 0x54, 0x16, 0xa4, 0x16, 0x27, 0xb1, 0x81, 0xc3,
-	0xc5, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0xf1, 0x88, 0xde, 0x54, 0x77, 0x01, 0x00, 0x00,
+	0x08, 0x5f, 0x29, 0x08, 0x2a, 0x21, 0x14, 0xc2, 0xc5, 0x9a, 0x96, 0x99, 0x93, 0x5a, 0x2c, 0xc1,
+	0xa4, 0xc0, 0xac, 0xc1, 0x6d, 0x24, 0x8f, 0x6e, 0x16, 0xd4, 0x66, 0xb7, 0xcc, 0x9c, 0x54, 0xcf,
+	0xbc, 0xb4, 0x7c, 0x27, 0xd9, 0x13, 0xf7, 0xe4, 0x19, 0x5e, 0xdd, 0x93, 0x87, 0xe8, 0xfa, 0x74,
+	0x4f, 0x9e, 0x07, 0x62, 0x2e, 0x98, 0xab, 0x14, 0x04, 0x11, 0x56, 0x5a, 0xcf, 0xc8, 0xc5, 0x8f,
+	0xa6, 0x53, 0xc8, 0x8e, 0x8b, 0x13, 0x24, 0x19, 0x9f, 0x91, 0x58, 0x9c, 0x01, 0x76, 0x39, 0xa7,
+	0x93, 0xe2, 0xab, 0x7b, 0xf2, 0x08, 0xc1, 0x4f, 0xf7, 0xe4, 0x05, 0x10, 0x86, 0x81, 0x85, 0x94,
+	0x82, 0x38, 0x40, 0x6c, 0x8f, 0xc4, 0xe2, 0x0c, 0xa1, 0x18, 0xa8, 0xfe, 0xcc, 0xbc, 0xb4, 0x7c,
+	0x09, 0x26, 0xb0, 0xcf, 0x25, 0xd0, 0x5d, 0x0b, 0x77, 0xa6, 0x2a, 0xd4, 0x99, 0x08, 0x2d, 0x68,
+	0xa6, 0x83, 0x84, 0xa0, 0xa6, 0x83, 0x35, 0x78, 0x9e, 0x78, 0x24, 0xc7, 0x78, 0xe1, 0x91, 0x1c,
+	0xe3, 0x83, 0x47, 0x72, 0x8c, 0x13, 0x1e, 0xcb, 0x31, 0x5c, 0x78, 0x2c, 0xc7, 0x70, 0xe3, 0xb1,
+	0x1c, 0x43, 0x94, 0x7e, 0x7a, 0x66, 0x49, 0x46, 0x69, 0x92, 0x5e, 0x72, 0x7e, 0xae, 0x3e, 0xd4,
+	0xba, 0xbc, 0xd4, 0x12, 0x18, 0x53, 0x37, 0x39, 0x23, 0x31, 0x33, 0x4f, 0xbf, 0x02, 0x1c, 0x6f,
+	0x25, 0x95, 0x05, 0xa9, 0xc5, 0x49, 0x6c, 0xe0, 0x78, 0x33, 0x06, 0x04, 0x00, 0x00, 0xff, 0xff,
+	0x10, 0x41, 0x42, 0x04, 0x17, 0x02, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -123,10 +181,10 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.FileUploads) > 0 {
-		for iNdEx := len(m.FileUploads) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.Files) > 0 {
+		for iNdEx := len(m.Files) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.FileUploads[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.Files[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -146,6 +204,46 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			i -= size
 			i = encodeVarintGenesis(dAtA, i, uint64(size))
 		}
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *GenesisFileInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *GenesisFileInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *GenesisFileInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.FileInfo.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.FileHash) > 0 {
+		i -= len(m.FileHash)
+		copy(dAtA[i:], m.FileHash)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.FileHash)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -173,12 +271,27 @@ func (m *GenesisState) Size() (n int) {
 		l = m.Params.Size()
 		n += 1 + l + sovGenesis(uint64(l))
 	}
-	if len(m.FileUploads) > 0 {
-		for _, e := range m.FileUploads {
+	if len(m.Files) > 0 {
+		for _, e := range m.Files {
 			l = e.Size()
 			n += 1 + l + sovGenesis(uint64(l))
 		}
 	}
+	return n
+}
+
+func (m *GenesisFileInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FileHash)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	l = m.FileInfo.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	return n
 }
 
@@ -255,7 +368,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field FileUploads", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Files", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -282,8 +395,123 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.FileUploads = append(m.FileUploads, &FileUpload{})
-			if err := m.FileUploads[len(m.FileUploads)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.Files = append(m.Files, GenesisFileInfo{})
+			if err := m.Files[len(m.Files)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *GenesisFileInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: GenesisFileInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: GenesisFileInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FileHash", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FileHash = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FileInfo", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.FileInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

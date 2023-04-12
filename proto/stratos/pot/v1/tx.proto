@@ -31,6 +31,7 @@ service Msg {
 // MsgVolumeReport encapsulates an VolumeReport transaction as an SDK message.
 message MsgVolumeReport {
   repeated SingleWalletVolume wallet_volumes = 1 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "wallet_volumes",
     (gogoproto.moretags) = "yaml:\"wallet_volumes\""
   ];
@@ -39,7 +40,8 @@ message MsgVolumeReport {
     (gogoproto.moretags) = "yaml:\"reporter\""
   ];
   string                   epoch        = 3 [
-    (gogoproto.jsontag)  = "epoch",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "epoch",
     (gogoproto.moretags) = "yaml:\"epoch\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
@@ -52,6 +54,7 @@ message MsgVolumeReport {
     (gogoproto.moretags) = "yaml:\"reporter_owner\""
   ];
   BLSSignatureInfo         BLS_signature = 6 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "bls_signature",
     (gogoproto.moretags) = "yaml:\"bls_signature\""
   ];

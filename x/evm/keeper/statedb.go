@@ -46,9 +46,9 @@ func (k *Keeper) GetState(ctx sdk.Context, addr common.Address, key common.Hash)
 }
 
 // GetCode loads contract code from database, implements `statedb.Keeper` interface.
-func (k *Keeper) GetCode(ctx sdk.Context, addr common.Address, codeHash common.Hash) []byte {
+func (k *Keeper) GetCode(ctx sdk.Context, codeHash common.Hash) []byte {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCode)
-	return store.Get(append(addr.Bytes(), codeHash.Bytes()...))
+	return store.Get(codeHash.Bytes())
 }
 
 // ForEachStorage iterate contract storage, callback return false to break early
@@ -173,22 +173,19 @@ func (k *Keeper) SetState(ctx sdk.Context, addr common.Address, key common.Hash,
 }
 
 // SetCode set contract code, delete if code is empty.
-func (k *Keeper) SetCode(ctx sdk.Context, addr common.Address, codeHash, code []byte) {
+func (k *Keeper) SetCode(ctx sdk.Context, codeHash, code []byte) {
 	store := prefix.NewStore(ctx.KVStore(k.storeKey), types.KeyPrefixCode)
-
-	key := append(addr.Bytes(), codeHash...)
 
 	// store or delete code
 	action := "updated"
 	if len(code) == 0 {
-		store.Delete(key)
+		// store.Delete(codeHash)
 		action = "deleted"
 	} else {
-		store.Set(key, code)
+		store.Set(codeHash, code)
 	}
 	k.Logger(ctx).Debug(
 		fmt.Sprintf("code %s", action),
-		"addr", common.BytesToHash(addr.Bytes()).Hex(),
 		"code-hash", common.BytesToHash(codeHash).Hex(),
 	)
 }
@@ -219,7 +216,7 @@ func (k *Keeper) DeleteAccount(ctx sdk.Context, addr common.Address) error {
 	// remove code
 	codeHashBz := ethAcct.GetCodeHash().Bytes()
 	if !bytes.Equal(codeHashBz, types.EmptyCodeHash) {
-		k.SetCode(ctx, addr, codeHashBz, nil)
+		k.SetCode(ctx, codeHashBz, nil)
 	}
 
 	// clear storage

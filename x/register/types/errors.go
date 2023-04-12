@@ -27,11 +27,12 @@ const (
 	codeErrEmptyVoterOwnerAddr
 	codeErrInvalidCandidateNetworkAddr
 	codeErrInvalidCandidateOwnerAddr
+	codeErrNoCandidateMetaNodeFound
 	codeErrInvalidVoterNetworkAddr
 	codeErrInvalidVoterOwnerAddr
+	codeErrNoVoterMetaNodeFound
 	codeErrSameAddr
 	codeErrInvalidOwnerAddr
-	codeErrInvalidVoterAddr
 	codeErrInvalidVoterStatus
 	codeEcoderrNoRegistrationVotePoolFound
 	codeErrDuplicateVoting
@@ -63,6 +64,7 @@ const (
 	codeErrReporterAddress
 	codeErrInvalidAmount
 	codeErrReporterAddressOrOwner
+	codeErrReporterNotReachThreshold
 )
 
 var (
@@ -88,11 +90,12 @@ var (
 	ErrEmptyVoterOwnerAddr                = sdkerrors.Register(ModuleName, codeErrEmptyVoterOwnerAddr, "missing voter owner address")
 	ErrInvalidCandidateNetworkAddr        = sdkerrors.Register(ModuleName, codeErrInvalidCandidateNetworkAddr, "invalid candidate network address")
 	ErrInvalidCandidateOwnerAddr          = sdkerrors.Register(ModuleName, codeErrInvalidCandidateOwnerAddr, "invalid candidate owner address")
+	ErrNoCandidateMetaNodeFound           = sdkerrors.Register(ModuleName, codeErrNoCandidateMetaNodeFound, "candidate meta node does not exist")
 	ErrInvalidVoterNetworkAddr            = sdkerrors.Register(ModuleName, codeErrInvalidVoterNetworkAddr, "invalid voter network address")
 	ErrInvalidVoterOwnerAddr              = sdkerrors.Register(ModuleName, codeErrInvalidVoterOwnerAddr, "invalid voter owner address")
+	ErrNoVoterMetaNodeFound               = sdkerrors.Register(ModuleName, codeErrNoVoterMetaNodeFound, "voter meta node does not exist")
 	ErrSameAddr                           = sdkerrors.Register(ModuleName, codeErrSameAddr, "node address should not same as the voter address")
 	ErrInvalidOwnerAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
-	ErrInvalidVoterAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidVoterAddr, "invalid voter address")
 	ErrInvalidVoterStatus                 = sdkerrors.Register(ModuleName, codeErrInvalidVoterStatus, "invalid voter status")
 	ErrNoRegistrationVotePoolFound        = sdkerrors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
 	ErrDuplicateVoting                    = sdkerrors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")
@@ -124,4 +127,5 @@ var (
 	ErrReporterAddress                    = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
 	ErrInvalidAmount                      = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
 	ErrReporterAddressOrOwner             = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
+	ErrReporterNotReachThreshold          = sdkerrors.Register(ModuleName, codeErrReporterNotReachThreshold, "reporter meta-nodes does not reach the threshold")
 )

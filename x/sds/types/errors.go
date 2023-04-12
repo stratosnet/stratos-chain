@@ -9,21 +9,29 @@ const (
 	codeErrInvalidHeight
 	codeErrEmptyUploaderAddr
 	codeErrEmptyReporterAddr
+	codeErrEmptyReporters
 	codeErrEmptyFileHash
-	codeErrInvalidCoins
 	codeErrInvalidFileHash
+	codeErrNoFileFound
 	codeErrInvalidDenom
 	codeErrPrepayFailure
+  codeErrReporterAddressOrOwner
+	codeErrInvalidSenderAddr
+	codeErrInvalidBeneficiaryAddr
 )
 
 var (
-	ErrInvalid           = sdkerrors.Register(ModuleName, codeErrInvalid, "error invalid")
-	ErrInvalidHeight     = sdkerrors.Register(ModuleName, codeErrInvalidHeight, "invalid height")
-	ErrEmptyUploaderAddr = sdkerrors.Register(ModuleName, codeErrEmptyUploaderAddr, "missing uploader address")
-	ErrEmptyReporterAddr = sdkerrors.Register(ModuleName, codeErrEmptyReporterAddr, "missing reporter address")
-	ErrEmptyFileHash     = sdkerrors.Register(ModuleName, codeErrEmptyFileHash, "missing file hash")
-	ErrInvalidCoins      = sdkerrors.Register(ModuleName, codeErrInvalidCoins, "invalid coins")
-	ErrInvalidFileHash   = sdkerrors.Register(ModuleName, codeErrInvalidFileHash, "invalid file hash")
-	ErrInvalidDenom      = sdkerrors.Register(ModuleName, codeErrInvalidDenom, "invalid denomination")
-	ErrPrepayFailure     = sdkerrors.Register(ModuleName, codeErrPrepayFailure, "failure during prepay")
+	ErrInvalid                = sdkerrors.Register(ModuleName, codeErrInvalid, "error invalid")
+	ErrInvalidHeight          = sdkerrors.Register(ModuleName, codeErrInvalidHeight, "invalid height")
+	ErrEmptyUploaderAddr      = sdkerrors.Register(ModuleName, codeErrEmptyUploaderAddr, "missing uploader address")
+	ErrEmptyReporterAddr      = sdkerrors.Register(ModuleName, codeErrEmptyReporterAddr, "missing reporter address")
+  ErrEmptyReporters         = sdkerrors.Register(ModuleName, codeErrEmptyReporters, "missing reporters")
+	ErrEmptyFileHash          = sdkerrors.Register(ModuleName, codeErrEmptyFileHash, "missing file hash")
+	ErrInvalidFileHash        = sdkerrors.Register(ModuleName, codeErrInvalidFileHash, "invalid file hash")
+	ErrNoFileFound            = sdkerrors.Register(ModuleName, codeErrNoFileFound, "file does not exist")
+	ErrInvalidDenom           = sdkerrors.Register(ModuleName, codeErrInvalidDenom, "invalid denomination")
+	ErrPrepayFailure          = sdkerrors.Register(ModuleName, codeErrPrepayFailure, "failure during prepay")
+	ErrReporterAddressOrOwner = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
+  ErrInvalidSenderAddr      = sdkerrors.Register(ModuleName, codeErrInvalidSenderAddr, "invalid sender address")
+	ErrInvalidBeneficiaryAddr = sdkerrors.Register(ModuleName, codeErrInvalidBeneficiaryAddr, "invalid beneficiary address")
 )
