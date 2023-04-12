@@ -5,10 +5,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/gorilla/mux"
+
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -18,6 +20,7 @@ func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getRewardsByWalletAddrHandlerFn(clientCtx, types.QueryRewardsByWalletAddr)).Methods("GET")
 	r.HandleFunc("/pot/slashing/{walletAddress}", getSlashingByWalletAddressHandlerFn(clientCtx, types.QuerySlashingByWalletAddr)).Methods("GET")
 	r.HandleFunc("/pot/params", potParamsHandlerFn(clientCtx, types.QueryPotParams)).Methods("GET")
+	r.HandleFunc("/pot/total-mined-token", getTotalMinedTokenHandlerFn(clientCtx, types.QueryTotalMinedToken)).Methods("GET")
 }
 
 // GET request handler to query params of POT module
@@ -183,6 +186,24 @@ func getSlashingByWalletAddressHandlerFn(clientCtx client.Context, queryPath str
 			return
 		}
 
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getTotalMinedTokenHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}

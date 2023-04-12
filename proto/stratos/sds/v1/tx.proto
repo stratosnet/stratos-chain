@@ -44,8 +44,11 @@ message MsgPrepay {
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
-
-  repeated cosmos.base.v1beta1.Coin     amount = 2 [
+  string                                beneficiary = 2 [
+    (gogoproto.jsontag) = "beneficiary",
+    (gogoproto.moretags) = "yaml:\"beneficiary\""
+  ];
+  repeated cosmos.base.v1beta1.Coin     amount = 3 [
     (gogoproto.jsontag) = "amount",
     (gogoproto.moretags) = "yaml:\"amount\"",
     (gogoproto.nullable) = false,

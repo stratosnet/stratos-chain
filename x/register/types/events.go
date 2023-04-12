@@ -32,8 +32,7 @@ const (
 	AttributeKeyAvailableTokenAfter  = "available_token_after"
 	AttributeKeyStakeDelta           = "stake_delta"
 	AttributeKeyStakeToRemove        = "stake_to_remove"
-	AttributeKeyIncrStakeBool        = "incr_stake"
-	AttributeKeyEffectiveStakeChange = "effective_stake_change"
+	AttributeKeyIncrStake            = "incr_stake"
 	AttributeKeyEffectiveStakeAfter  = "effective_stake_after"
 	AttributeKeyIsUnsuspended        = "is_unsuspended"
 

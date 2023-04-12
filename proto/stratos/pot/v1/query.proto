@@ -35,6 +35,10 @@ service Query {
   rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
     option (google.api.http).get = "/stratos/pot/v1/params";
   }
+
+  rpc TotalMinedToken(QueryTotalMinedTokenRequest) returns (QueryTotalMinedTokenResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/total-mined-token";
+  }
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
@@ -116,6 +120,15 @@ message QuerySlashingByOwnerResponse {
 }
 
 
+message QueryTotalMinedTokenRequest{}
+
+message QueryTotalMinedTokenResponse{
+  cosmos.base.v1beta1.Coin            total_mined_token = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_mined_token",
+    (gogoproto.moretags) = "yaml:\"total_mined_token\""
+  ];
+}
 
 
 
