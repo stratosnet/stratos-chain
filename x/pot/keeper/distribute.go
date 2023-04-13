@@ -407,11 +407,13 @@ func (k Keeper) splitRewardByStake(ctx sdk.Context, totalReward sdk.Int,
 }
 
 func (k Keeper) transferTokensForDistribution(ctx sdk.Context) error {
+
 	// [TLC] [FoundationAccount -> feeCollectorPool] Transfer mining reward to fee_pool for validators
 	err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.FoundationAccount, k.feeCollectorName, sdk.NewCoins(foundationToFeeCollector))
 	if err != nil {
 		return err
 	}
+
 	// [TLC] [TotalUnissuedPrepay -> feeCollectorPool] Transfer traffic reward to fee_pool for validators
 	err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, regtypes.TotalUnissuedPrepay, k.feeCollectorName, sdk.NewCoins(unissuedPrepayToFeeCollector))
 	if err != nil {
