@@ -376,7 +376,7 @@ func (k Keeper) GetTotalConsumedNoz(trafficList []types.SingleWalletVolume) sdk.
 	totalTraffic := sdk.ZeroInt()
 	for _, vol := range trafficList {
 		toAdd := vol.Volume
-		totalTraffic = totalTraffic.Add(*toAdd)
+		totalTraffic = totalTraffic.Add(toAdd)
 	}
 	return totalTraffic
 }

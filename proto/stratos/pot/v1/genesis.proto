@@ -10,22 +10,47 @@ option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 // GenesisState defines the register module's genesis state.
 message GenesisState {
   Params                    params = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "params",
     (gogoproto.moretags) = "yaml:\"params\""
   ];
   cosmos.base.v1beta1.Coin  total_mined_token = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_mined_token",
     (gogoproto.moretags) = "yaml:\"total_mined_token\""
   ];
-  int64                     last_reported_epoch = 3 [
-    (gogoproto.moretags) = "yaml:\"last_reported_epoch\""
+  string                    last_reported_epoch = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "last_reported_epoch",
+    (gogoproto.moretags) = "yaml:\"last_reported_epoch\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   repeated ImmatureTotal    immature_total_info = 4 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "immature_total_info",
     (gogoproto.moretags) = "yaml:\"immature_total_info\""
   ];
   repeated MatureTotal      mature_total_info = 5 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "mature_total_info",
     (gogoproto.moretags) = "yaml:\"mature_total_info\""
   ];
   repeated Reward           individual_reward_info = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "individual_reward_info",
     (gogoproto.moretags) = "yaml:\"individual_reward_info\""
+  ];
+  string                    matured_epoch = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "matured_epoch",
+    (gogoproto.moretags) = "yaml:\"matured_epoch\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                    next_mature_individual_index = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "next_mature_individual_index",
+    (gogoproto.moretags) = "yaml:\"next_mature_individual_index\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
 
@@ -35,7 +60,8 @@ message ImmatureTotal {
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
   repeated cosmos.base.v1beta1.Coin   value = 2 [
-    (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
 
@@ -45,6 +71,7 @@ message MatureTotal {
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
   repeated cosmos.base.v1beta1.Coin   value = 2 [
-    (gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }

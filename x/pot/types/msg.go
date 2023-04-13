@@ -65,6 +65,27 @@ func (msg MsgVolumeReport) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
+func (msg MsgVolumeReport) GetBLSSignBytes() []byte {
+	reporter, err := stratos.SdsAddressFromBech32(msg.Reporter)
+	if err != nil {
+		panic(err)
+	}
+	reporterOwner, err := sdk.AccAddressFromBech32(msg.ReporterOwner)
+	if err != nil {
+		panic(err)
+	}
+
+	newMsg := NewMsgVolumeReport(msg.WalletVolumes,
+		reporter,
+		msg.Epoch,
+		msg.ReportReference,
+		reporterOwner,
+		NewBLSSignatureInfo(nil, nil, nil),
+	)
+	bz := ModuleCdc.MustMarshalJSON(newMsg)
+	return sdk.MustSortJSON(bz)
+}
+
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgVolumeReport) ValidateBasic() error {
 	if len(msg.Reporter) == 0 {

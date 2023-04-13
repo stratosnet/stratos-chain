@@ -62,7 +62,7 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	blsSignature := msg.GetBLSSignature()
 
 	// verify txDataHash
-	signBytes := msg.GetSignBytes()
+	signBytes := msg.GetBLSSignBytes()
 	txDataHash := crypto.Keccak256(signBytes)
 	if !bytes.Equal(txDataHash, blsSignature.GetTxData()) {
 		return &types.MsgVolumeReportResponse{}, types.ErrBLSTxDataInvalid

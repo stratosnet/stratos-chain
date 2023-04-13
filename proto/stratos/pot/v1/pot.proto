@@ -21,38 +21,48 @@ message Params {
     (gogoproto.moretags) = "yaml:\"mature_epoch\""
   ];
   repeated MiningRewardParam  mining_reward_params = 4 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "mining_reward_params",
     (gogoproto.moretags) = "yaml:\"mining_reward_params\""
   ];
   string                      community_tax = 5 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "community_tax",
     (gogoproto.moretags) = "yaml:\"community_tax\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
-    (gogoproto.nullable) = false
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
   ];
 }
 
 message MiningRewardParam {
   cosmos.base.v1beta1.Coin  total_mined_valve_start = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_mined_valve_start",
     (gogoproto.moretags) = "yaml:\"total_mined_valve_start\""
   ];
   cosmos.base.v1beta1.Coin  total_mined_valve_end = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_mined_valve_end",
     (gogoproto.moretags) = "yaml:\"total_mined_valve_end\""
   ];
   cosmos.base.v1beta1.Coin  mining_reward = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "mining_reward",
     (gogoproto.moretags) = "yaml:\"mining_reward\""
   ];
   string                    block_chain_percentage_in_bp = 4 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "block_chain_percentage_in_bp",
     (gogoproto.moretags) = "yaml:\"block_chain_percentage_in_bp\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                    resource_node_percentage_in_bp = 5 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "resource_node_percentage_in_bp",
     (gogoproto.moretags) = "yaml:\"resource_node_percentage_in_bp\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                    meta_node_percentage_in_bp = 6 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "meta_node_percentage_in_bp",
     (gogoproto.moretags) = "yaml:\"meta_node_percentage_in_bp\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
