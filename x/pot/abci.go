@@ -19,6 +19,12 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 
 	logger := k.Logger(ctx)
 
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Error("Recovered from panic. ", "ErrMsg", r)
+		}
+	}()
+
 	err := k.RewardMatureAndSubSlashing(ctx)
 	if err != nil {
 		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())

@@ -1,15 +1,10 @@
 package pot_test
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
 
-	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
-	"github.com/stratosnet/stratos-chain/crypto"
-	"github.com/stratosnet/stratos-chain/crypto/bls"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -23,14 +18,18 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/stratosnet/stratos-chain/app"
+	"github.com/stratosnet/stratos-chain/crypto"
+	"github.com/stratosnet/stratos-chain/crypto/bls"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 const (
@@ -266,6 +265,10 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		/********************* test slashing msg when i==2 *********************/
 		if i == 2 {
 			t.Log("********************************* Deliver Slashing Tx START ********************************************")
+
+			totalConsumedNoz := resNodeSlashingNOZAmt1.ToDec()
+			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
+
 			slashingMsg := setupSlashingMsg()
 			/********************* deliver tx *********************/
 
@@ -282,9 +285,6 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 			slashingAmtSetup = registerKeeper.GetSlashing(ctx, resOwner1)
 
-			totalConsumedNoz := resNodeSlashingNOZAmt1.ToDec()
-
-			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
 			t.Log("slashingAmtSetup = " + slashingAmtSetup.String())
 			require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
@@ -382,11 +382,11 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		feePoolAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 		require.NotNil(t, feePoolAccAddr)
-		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 
 		t.Log("--------------------------- deliver volumeReportMsg")
 		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
+		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
 
 		/********************* commit & check result *********************/
 		// reward distribution start at height = height + 1 where volume report tx executed
@@ -394,7 +394,6 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
 		stApp.Commit()
-
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
@@ -445,7 +444,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	lastCommunityPool sdk.Coins,
 	lastMatureTotalOfResNode1 sdk.Coins,
 	initialSlashingAmt sdk.Int,
-	feeCollectorToFeePoolAtBeginBlock sdk.Coin) {
+	feeCollectorToFeePoolAtBeginBlock sdk.Coins) {
 
 	// print individual reward
 	individualRewardTotal := sdk.Coins{}
@@ -480,9 +479,9 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	t.Log("resource node 1 immatureTotal              = " + immatureTotal.String())
 
 	// distribution module will send all tokens from "fee_collector" to "distribution" account in the BeginBlocker() method
-	feeCollectorValChange := bankKeeper.GetAllBalances(ctx, feeCollectorAccAddr)
-	t.Log("reward for validator send to fee_collector = " + feeCollectorValChange.String())
-	communityTaxChange := newCommunityPool.Sub(lastCommunityPool).Sub(sdk.NewCoins(feeCollectorToFeePoolAtBeginBlock))
+	t.Log("reward for validator send to fee_collector = " + feeCollectorToFeePoolAtBeginBlock.String())
+	stakeRewardFromFeeCollectorToFeePool := sdk.NewCoin(k.BondDenom(ctx), feeCollectorToFeePoolAtBeginBlock.AmountOf(k.BondDenom(ctx)))
+	communityTaxChange := newCommunityPool.Sub(lastCommunityPool).Sub(sdk.NewCoins(stakeRewardFromFeeCollectorToFeePool))
 	t.Log("community tax change in community_pool     = " + communityTaxChange.String())
 	t.Log("community_pool amount of wei               = " + newCommunityPool.String())
 
@@ -491,14 +490,9 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
 
-	fmt.Println("################# lastFoundationAccBalance = ", lastFoundationAccBalance)
-	fmt.Println("################# newFoundationAccBalance  = ", newFoundationAccBalance)
-	fmt.Println("################# lastUnissuedPrepay       = ", lastUnissuedPrepay)
-	fmt.Println("################# newUnissuedPrepay        = ", newUnissuedPrepay)
-
 	t.Log("rewardSrcChange                            = " + rewardSrcChange.String())
 
-	rewardDestChange := feeCollectorValChange.
+	rewardDestChange := feeCollectorToFeePoolAtBeginBlock.
 		Add(individualRewardTotal...).
 		Add(communityTaxChange...)
 
