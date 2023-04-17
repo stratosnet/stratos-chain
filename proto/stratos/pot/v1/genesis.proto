@@ -46,12 +46,6 @@ message GenesisState {
     (gogoproto.moretags) = "yaml:\"matured_epoch\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string                    next_mature_individual_index = 8 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "next_mature_individual_index",
-    (gogoproto.moretags) = "yaml:\"next_mature_individual_index\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
 }
 
 message ImmatureTotal {

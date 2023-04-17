@@ -39,7 +39,6 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	}
 
 	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)
-	keeper.SetNextMatureIndividualIndex(ctx, data.NextMatureIndividualIndex)
 }
 
 // ExportGenesis writes the current store values
@@ -76,8 +75,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	})
 
 	maturedEpoch := keeper.GetMaturedEpoch(ctx)
-	nextMatureIndividualIndex := keeper.GetNextMatureIndividualIndex(ctx)
 
 	return types.NewGenesisState(params, totalMinedToken, lastReportedEpoch, immatureTotalInfo, matureTotalInfo,
-		individualRewardInfo, maturedEpoch, nextMatureIndividualIndex)
+		individualRewardInfo, maturedEpoch)
 }

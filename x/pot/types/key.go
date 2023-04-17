@@ -19,14 +19,13 @@ const (
 )
 
 var (
-	TotalMinedTokensKey                = []byte{0x01}
-	LastReportedEpochKey               = []byte{0x02}
-	IndividualRewardKeyPrefix          = []byte{0x03} // key: prefix{address}_{epoch}, the amount that is matured at {epoch}
-	MatureTotalRewardKeyPrefix         = []byte{0x04} // key: prefix{address}
-	ImmatureTotalRewardKeyPrefix       = []byte{0x05} // key: prefix{address}
-	VolumeReportStoreKeyPrefix         = []byte{0x06} // VolumeReportStoreKeyPrefix prefix for volumeReport store
-	MaturedEpochKeyPrefix              = []byte{0x07}
-	NextMatureIndividualIndexKeyPrefix = []byte{0x08}
+	TotalMinedTokensKey          = []byte{0x01}
+	LastReportedEpochKey         = []byte{0x02}
+	IndividualRewardKeyPrefix    = []byte{0x03} // key: prefix{address}_{epoch}, the amount that is matured at {epoch}
+	MatureTotalRewardKeyPrefix   = []byte{0x04} // key: prefix{address}
+	ImmatureTotalRewardKeyPrefix = []byte{0x05} // key: prefix{address}
+	VolumeReportStoreKeyPrefix   = []byte{0x06} // VolumeReportStoreKeyPrefix prefix for volumeReport store
+	MaturedEpochKeyPrefix        = []byte{0x07}
 )
 
 func VolumeReportStoreKey(epoch sdk.Int) []byte {

@@ -374,7 +374,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
 		lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 		lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
-
+		lastIndividualRewardOfResNode1, individualRewardOfResNode1Found := potKeeper.GetIndividualReward(ctx, resOwner1, epoch)
 		/********************* deliver tx *********************/
 		idxOwnerAcc1 := accountKeeper.GetAccount(ctx, metaOwner1)
 		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
@@ -386,6 +386,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		t.Log("--------------------------- deliver volumeReportMsg")
 		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
+
 		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
 
 		/********************* commit & check result *********************/
@@ -417,6 +418,8 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			lastMatureTotalOfResNode1,
 			slashingAmtSetup,
 			feeCollectorToFeePoolAtBeginBlock,
+			lastIndividualRewardOfResNode1,
+			individualRewardOfResNode1Found,
 		)
 
 		i++
@@ -448,7 +451,10 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	lastCommunityPool sdk.Coins,
 	lastMatureTotalOfResNode1 sdk.Coins,
 	initialSlashingAmt sdk.Int,
-	feeCollectorToFeePoolAtBeginBlock sdk.Coins) {
+	feeCollectorToFeePoolAtBeginBlock sdk.Coins,
+	individualRewardOfResNode1 types.Reward,
+	individualRewardOfResNode1Found bool,
+) {
 
 	// print individual reward
 	individualRewardTotal := sdk.Coins{}
@@ -508,9 +514,9 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	t.Log("slashing change                            = " + slashingDeducted.String())
 
 	upcomingMaturedIndividual := sdk.Coins{}
-	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
-	if found {
-		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
+
+	if individualRewardOfResNode1Found {
+		tmp := individualRewardOfResNode1.RewardFromTrafficPool.Add(individualRewardOfResNode1.RewardFromMiningPool...)
 		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingDeducted)
 	}
 	t.Log("upcomingMaturedIndividual                  = " + upcomingMaturedIndividual.String())

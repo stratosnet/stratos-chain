@@ -8,18 +8,17 @@ import (
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch sdk.Int,
 	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
-	maturedEpoch sdk.Int, nextMatureIndividualIndex sdk.Int,
+	maturedEpoch sdk.Int,
 ) *GenesisState {
 
 	return &GenesisState{
-		Params:                    params,
-		TotalMinedToken:           totalMinedToken,
-		LastReportedEpoch:         lastReportedEpoch,
-		ImmatureTotalInfo:         immatureTotalInfo,
-		MatureTotalInfo:           matureTotalInfo,
-		IndividualRewardInfo:      individualRewardInfo,
-		MaturedEpoch:              maturedEpoch,
-		NextMatureIndividualIndex: nextMatureIndividualIndex,
+		Params:               params,
+		TotalMinedToken:      totalMinedToken,
+		LastReportedEpoch:    lastReportedEpoch,
+		ImmatureTotalInfo:    immatureTotalInfo,
+		MatureTotalInfo:      matureTotalInfo,
+		IndividualRewardInfo: individualRewardInfo,
+		MaturedEpoch:         maturedEpoch,
 	}
 }
 
@@ -28,14 +27,13 @@ func DefaultGenesisState() *GenesisState {
 	params := DefaultParams()
 	coin := sdk.NewCoin(DefaultRewardDenom, sdk.ZeroInt())
 	return &GenesisState{
-		Params:                    params,
-		TotalMinedToken:           coin,
-		LastReportedEpoch:         sdk.ZeroInt(),
-		ImmatureTotalInfo:         make([]ImmatureTotal, 0),
-		MatureTotalInfo:           make([]MatureTotal, 0),
-		IndividualRewardInfo:      make([]Reward, 0),
-		MaturedEpoch:              sdk.ZeroInt(),
-		NextMatureIndividualIndex: sdk.ZeroInt(),
+		Params:               params,
+		TotalMinedToken:      coin,
+		LastReportedEpoch:    sdk.ZeroInt(),
+		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
+		MatureTotalInfo:      make([]MatureTotal, 0),
+		IndividualRewardInfo: make([]Reward, 0),
+		MaturedEpoch:         sdk.ZeroInt(),
 	}
 }
 

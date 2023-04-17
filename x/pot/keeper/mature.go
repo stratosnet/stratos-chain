@@ -24,6 +24,8 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 		return nil
 	}
 
+	maturedIndividualKeys := make([][]byte, 0)
+
 	matureStartEpochOffset := int64(1)
 	matureEndEpochOffset := lastReportedEpoch.Sub(maturedEpoch).Int64()
 
@@ -32,18 +34,8 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 		processingEpoch := sdk.NewInt(i).Add(maturedEpoch)
 		totalSlashed := sdk.Coins{}
 
-		individualIndex := sdk.ZeroInt()
-		individualStartMature := k.GetNextMatureIndividualIndex(ctx)
-
 		isBreak := true
 		k.IteratorIndividualReward(ctx, processingEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
-
-			// The value of the current index has been processed before, skip to the next one
-			if individualIndex.LT(individualStartMature) {
-				individualIndex = individualIndex.Add(sdk.OneInt())
-				isBreak = false
-				return false
-			}
 
 			// Stop iteration when executed wallet reaches MatureCountPerBlock && no new volume report is received
 			if processCount > MatureCountPerBlock &&
@@ -64,13 +56,11 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			matureTotal := oldMatureTotal.Add(remaining...)
 			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
 
-			// Update index and counter
-			individualIndex = individualIndex.Add(sdk.OneInt())
 			processCount++
 
 			k.SetMatureTotalReward(ctx, walletAddress, matureTotal)
 			k.SetImmatureTotalReward(ctx, walletAddress, immatureTotal)
-			k.SetNextMatureIndividualIndex(ctx, individualIndex)
+			maturedIndividualKeys = append(maturedIndividualKeys, types.GetIndividualRewardKey(walletAddress, processingEpoch))
 			isBreak = false
 			return false
 		})
@@ -81,12 +71,15 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			return err
 		}
 
-		// when isBreak == false, means reward mature for processingEpoch is completed,
-		// reset NextMatureIndividualIndex and update MaturedEpoch
+		// when isBreak == false, means reward mature for processingEpoch is completed, update MaturedEpoch
 		if !isBreak {
-			k.SetNextMatureIndividualIndex(ctx, sdk.ZeroInt())
 			k.SetMaturedEpoch(ctx, processingEpoch)
 		}
+	}
+
+	// remove matured individual reward records
+	for _, key := range maturedIndividualKeys {
+		k.RemoveIndividualReward(ctx, key)
 	}
 
 	return nil

@@ -60,6 +60,11 @@ func (k Keeper) GetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddres
 	return value, true
 }
 
+func (k Keeper) RemoveIndividualReward(ctx sdk.Context, individualRewardKey []byte) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(individualRewardKey)
+}
+
 // Iteration for getting individule reward of each owner at a specific epoch
 func (k Keeper) IteratorIndividualReward(ctx sdk.Context, epoch sdk.Int, handler func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
@@ -177,25 +182,6 @@ func (k Keeper) SetMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &epoch})
 	store.Set(types.MaturedEpochKeyPrefix, b)
-}
-
-func (k Keeper) GetNextMatureIndividualIndex(ctx sdk.Context) (idx sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.NextMatureIndividualIndexKeyPrefix)
-	if bz == nil {
-		return sdk.ZeroInt()
-	}
-	intValue := stratos.Int{}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
-	idx = *intValue.Value
-	return
-
-}
-
-func (k Keeper) SetNextMatureIndividualIndex(ctx sdk.Context, idx sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &idx})
-	store.Set(types.NextMatureIndividualIndexKeyPrefix, b)
 }
 
 func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
