@@ -166,7 +166,7 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
+		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description,
 			req.NodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -206,7 +206,7 @@ func postCreateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
+		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
