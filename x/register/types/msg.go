@@ -37,7 +37,7 @@ const (
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description, nodeType uint32,
+	value sdk.Coin, ownerAddr sdk.AccAddress, description Description, nodeType uint32,
 ) (*MsgCreateResourceNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -93,7 +93,7 @@ func (msg MsgCreateResourceNode) ValidateBasic() error {
 		return ErrEmptyMoniker
 	}
 
-	if *msg.GetDescription() == (Description{}) {
+	if msg.GetDescription() == (Description{}) {
 		return ErrEmptyDescription
 	}
 
@@ -127,7 +127,7 @@ func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 
 // NewMsgCreateMetaNode creates a new Msg<Action> instance
 func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description *Description,
+	value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
 ) (*MsgCreateMetaNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -182,7 +182,7 @@ func (msg MsgCreateMetaNode) ValidateBasic() error {
 		return ErrEmptyMoniker
 	}
 
-	if *msg.GetDescription() == (Description{}) {
+	if msg.GetDescription() == (Description{}) {
 		return ErrEmptyDescription
 	}
 

@@ -70,6 +70,7 @@ message MsgCreateResourceNode {
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
   Description                   description = 5 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
@@ -103,6 +104,7 @@ message MsgCreateMetaNode {
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
   Description                   description = 5 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
