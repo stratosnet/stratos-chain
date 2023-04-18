@@ -33,6 +33,7 @@ var (
 	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
 	DefaultStakeNozRate            = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
 	DefaultRemainingNozLimit       = sdk.NewInt(0)
+	DefaultResourceNodeMinStaking  = sdk.NewCoin(DefaultBondDenom, sdk.NewInt(1e9))
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -41,13 +42,16 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint32, resourceNodeRegEnabled bool) Params {
+func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint32,
+	resourceNodeRegEnabled bool, resourceNodeMinStaking sdk.Coin) Params {
+
 	return Params{
 		BondDenom:               bondDenom,
 		UnbondingThreasholdTime: threashold,
 		UnbondingCompletionTime: completion,
 		MaxEntries:              maxEntries,
 		ResourceNodeRegEnabled:  resourceNodeRegEnabled,
+		ResourceNodeMinStaking:  resourceNodeMinStaking,
 	}
 }
 
@@ -78,13 +82,22 @@ func (p Params) Validate() error {
 	if err := validateResourceNodeRegEnabled(p.ResourceNodeRegEnabled); err != nil {
 		return err
 	}
+	if err := validateResourceNodeMinStaking(p.ResourceNodeMinStaking); err != nil {
+		return err
+	}
 	return nil
 }
 
 // DefaultParams defines the parameters for this module
-func DefaultParams() *Params {
-	p := NewParams(DefaultBondDenom, DefaultUnbondingThreasholdTime, DefaultUnbondingCompletionTime, DefaultMaxEntries, DefaultResourceNodeRegEnabled)
-	return &p
+func DefaultParams() Params {
+	return NewParams(
+		DefaultBondDenom,
+		DefaultUnbondingThreasholdTime,
+		DefaultUnbondingCompletionTime,
+		DefaultMaxEntries,
+		DefaultResourceNodeRegEnabled,
+		DefaultResourceNodeMinStaking,
+	)
 }
 
 func validateBondDenom(i interface{}) error {
@@ -144,6 +157,15 @@ func validateMaxEntries(i interface{}) error {
 
 func validateResourceNodeRegEnabled(i interface{}) error {
 	_, ok := i.(bool)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	return nil
+}
+
+func validateResourceNodeMinStaking(i interface{}) error {
+	_, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

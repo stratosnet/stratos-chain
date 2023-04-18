@@ -81,14 +81,14 @@ func NewStakingInfoByResourceNodeAddr(
 		Pubkey:         resourceNode.GetPubkey(),
 		Suspend:        resourceNode.GetSuspend(),
 		Status:         resourceNode.GetStatus(),
-		Tokens:         &resourceNode.Tokens,
+		Tokens:         resourceNode.Tokens,
 		OwnerAddress:   resourceNode.GetOwnerAddress(),
 		Description:    resourceNode.GetDescription(),
 		NodeType:       resourceNode.GetNodeType(),
 		CreationTime:   resourceNode.GetCreationTime(),
-		UnBondingStake: &unBondingValue,
-		UnBondedStake:  &unBondedValue,
-		BondedStake:    &bonedValue,
+		UnBondingStake: unBondingValue,
+		UnBondedStake:  unBondedValue,
+		BondedStake:    bonedValue,
 	}
 }
 
@@ -107,14 +107,14 @@ func NewStakingInfoByMetaNodeAddr(
 		Pubkey:         metaNode.GetPubkey(),
 		Suspend:        metaNode.Suspend,
 		Status:         metaNode.Status,
-		Tokens:         &metaNode.Tokens,
+		Tokens:         metaNode.Tokens,
 		OwnerAddress:   metaNode.GetOwnerAddress(),
 		Description:    metaNode.Description,
 		NodeType:       uint32(0),
 		CreationTime:   metaNode.CreationTime,
-		UnBondingStake: &unBondingValue,
-		UnBondedStake:  &unBondedValue,
-		BondedStake:    &bonedValue,
+		UnBondingStake: unBondingValue,
+		UnBondedStake:  unBondedValue,
+		BondedStake:    bonedValue,
 	}
 }
 

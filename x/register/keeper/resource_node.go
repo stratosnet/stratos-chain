@@ -289,7 +289,7 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 		return ozoneLimitChange, types.ErrBadDenom
 	}
 
-	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, &description, nodeType, ctx.BlockHeader().Time)
+	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -310,7 +310,7 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.Description = &description
+	node.Description = description
 	if nodeType != 0 {
 		node.NodeType = uint32(nodeType)
 	}

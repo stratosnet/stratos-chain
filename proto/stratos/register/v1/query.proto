@@ -172,6 +172,7 @@ message StakingInfo {
     (gogoproto.jsontag) = "status",
     (gogoproto.moretags) = "yaml:\"status\""];
   string                              tokens = 5 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
@@ -181,6 +182,7 @@ message StakingInfo {
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
   Description                         description = 7 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
@@ -195,17 +197,17 @@ message StakingInfo {
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];
   cosmos.base.v1beta1.Coin            bonded_stake = 10 [
-    (gogoproto.nullable) = true,
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "bonded_stake",
     (gogoproto.moretags) = "yaml:\"bonded_stake\""
   ];
   cosmos.base.v1beta1.Coin            un_bonding_stake = 11 [
-    (gogoproto.nullable) = true,
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "un_bonding_stake",
     (gogoproto.moretags) = "yaml:\"un_bonding_stake\""
   ];
   cosmos.base.v1beta1.Coin            un_bonded_stake = 12 [
-    (gogoproto.nullable) = true,
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "un_bonded_stake",
     (gogoproto.moretags) = "yaml:\"un_bonded_stake\""
   ];
