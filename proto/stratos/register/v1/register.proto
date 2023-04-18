@@ -6,6 +6,7 @@ import "google/protobuf/any.proto";
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/duration.proto";
 import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
@@ -33,7 +34,13 @@ message Params {
     (gogoproto.moretags) = "yaml:\"max_entries\",omitempty"
   ];
   bool                      resource_node_reg_enabled = 5 [
+    (gogoproto.jsontag) = "resource_node_reg_enabled",
     (gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""
+  ];
+  cosmos.base.v1beta1.Coin  resource_node_min_staking = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "resource_node_min_staking",
+    (gogoproto.moretags) = "yaml:\"resource_node_min_staking\""
   ];
 }
 
@@ -68,6 +75,7 @@ message ResourceNode {
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
   Description                         description = 7 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
@@ -120,6 +128,7 @@ message MetaNode {
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
   Description                         description = 7 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
