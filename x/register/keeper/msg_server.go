@@ -26,7 +26,9 @@ func NewMsgServerImpl(keeper Keeper) types.MsgServer {
 
 var _ types.MsgServer = msgServer{}
 
-func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types.MsgCreateResourceNode) (*types.MsgCreateResourceNodeResponse, error) {
+func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types.MsgCreateResourceNode) (
+	*types.MsgCreateResourceNodeResponse, error) {
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	if !k.ResourceNodeRegEnabled(ctx) {
@@ -110,27 +112,21 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 	return &types.MsgCreateMetaNodeResponse{}, nil
 }
 
-func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types.MsgRemoveResourceNode) (*types.MsgRemoveResourceNodeResponse, error) {
+func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types.MsgRemoveResourceNode) (
+	*types.MsgRemoveResourceNodeResponse, error) {
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
-	p2pAddress, err := stratos.SdsAddressFromBech32(msg.ResourceNodeAddress)
+	p2pAddress, err := stratos.SdsAddressFromBech32(msg.GetResourceNodeAddress())
 	if err != nil {
 		return &types.MsgRemoveResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
-	resourceNode, found := k.GetResourceNode(ctx, p2pAddress)
-	if !found {
-		return &types.MsgRemoveResourceNodeResponse{}, types.ErrNoResourceNodeFound
-	}
-	if msg.GetOwnerAddress() != resourceNode.GetOwnerAddress() {
-		return &types.MsgRemoveResourceNodeResponse{}, types.ErrInvalidOwnerAddr
+
+	ownerAddress, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		return &types.MsgRemoveResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, p2pAddress)
-	availableStake := resourceNode.Tokens.Sub(unbondingStake)
-	if availableStake.LTE(sdk.ZeroInt()) {
-		return &types.MsgRemoveResourceNodeResponse{}, types.ErrInsufficientBalance
-	}
-
-	_, _, completionTime, err := k.UnbondResourceNode(ctx, resourceNode, availableStake)
+	stakeToRemove, completionTime, err := k.UnbondResourceNode(ctx, p2pAddress, ownerAddress)
 	if err != nil {
 		return &types.MsgRemoveResourceNodeResponse{}, sdkerrors.Wrap(types.ErrUnbondResourceNode, err.Error())
 	}
@@ -140,7 +136,7 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 			types.EventTypeUnbondingResourceNode,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress),
-			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), availableStake).String()),
+			sdk.NewAttribute(types.AttributeKeyStakeToRemove, sdk.NewCoin(k.BondDenom(ctx), stakeToRemove).String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -271,7 +267,9 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 	return &types.MsgUpdateResourceNodeResponse{}, nil
 }
 
-func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *types.MsgUpdateResourceNodeStake) (*types.MsgUpdateResourceNodeStakeResponse, error) {
+func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *types.MsgUpdateResourceNodeStake) (
+	*types.MsgUpdateResourceNodeStakeResponse, error) {
+
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
@@ -285,7 +283,7 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 	}
 
 	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, err :=
-		k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, msg.GetStakeDelta(), msg.IncrStake)
+		k.UpdateResourceNodeStake(ctx, networkAddr, ownerAddress, msg.GetStakeDelta())
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeStake, err.Error())
 	}
@@ -295,7 +293,6 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 			types.EventTypeUpdateResourceNodeStake,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyIncrStake, strconv.FormatBool(msg.IncrStake)),
 			sdk.NewAttribute(types.AttributeKeyStakeDelta, msg.StakeDelta.String()),
 			sdk.NewAttribute(types.AttributeKeyCurrentStake, sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String()),
 			sdk.NewAttribute(types.AttributeKeyAvailableTokenBefore, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String()),

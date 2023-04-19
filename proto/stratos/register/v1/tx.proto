@@ -201,10 +201,6 @@ message MsgUpdateResourceNodeStake {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  bool                        incr_stake = 3 [
-    (gogoproto.jsontag) = "incr_stake",
-    (gogoproto.moretags) = "yaml:\"incr_stake\""
-  ];
   cosmos.base.v1beta1.Coin    stake_delta = 4 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "stake_delta",

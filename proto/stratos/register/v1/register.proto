@@ -37,10 +37,10 @@ message Params {
     (gogoproto.jsontag) = "resource_node_reg_enabled",
     (gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""
   ];
-  cosmos.base.v1beta1.Coin  resource_node_min_staking = 6 [
+  cosmos.base.v1beta1.Coin  resource_node_min_stake = 6 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "resource_node_min_staking",
-    (gogoproto.moretags) = "yaml:\"resource_node_min_staking\""
+    (gogoproto.jsontag) = "resource_node_min_stake",
+    (gogoproto.moretags) = "yaml:\"resource_node_min_stake\""
   ];
 }
 

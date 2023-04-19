@@ -28,12 +28,13 @@ var (
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("MaxEntries")
 	KeyResourceNodeRegEnabled  = []byte("ResourceNodeRegEnabled")
+	KeyResourceNodeMinStake    = []byte("ResourceNodeMinStake")
 
 	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
 	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
 	DefaultStakeNozRate            = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
 	DefaultRemainingNozLimit       = sdk.NewInt(0)
-	DefaultResourceNodeMinStaking  = sdk.NewCoin(DefaultBondDenom, sdk.NewInt(1e9))
+	DefaultResourceNodeMinStake    = sdk.NewCoin(DefaultBondDenom, sdk.NewInt(1e18))
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -43,7 +44,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params object
 func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint32,
-	resourceNodeRegEnabled bool, resourceNodeMinStaking sdk.Coin) Params {
+	resourceNodeRegEnabled bool, resourceNodeMinStake sdk.Coin) Params {
 
 	return Params{
 		BondDenom:               bondDenom,
@@ -51,7 +52,7 @@ func NewParams(bondDenom string, threashold, completion time.Duration, maxEntrie
 		UnbondingCompletionTime: completion,
 		MaxEntries:              maxEntries,
 		ResourceNodeRegEnabled:  resourceNodeRegEnabled,
-		ResourceNodeMinStaking:  resourceNodeMinStaking,
+		ResourceNodeMinStake:    resourceNodeMinStake,
 	}
 }
 
@@ -63,6 +64,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
 		paramtypes.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
 		paramtypes.NewParamSetPair(KeyResourceNodeRegEnabled, &p.ResourceNodeRegEnabled, validateResourceNodeRegEnabled),
+		paramtypes.NewParamSetPair(KeyResourceNodeMinStake, &p.ResourceNodeMinStake, validateResourceNodeMinStake),
 	}
 }
 
@@ -82,7 +84,7 @@ func (p Params) Validate() error {
 	if err := validateResourceNodeRegEnabled(p.ResourceNodeRegEnabled); err != nil {
 		return err
 	}
-	if err := validateResourceNodeMinStaking(p.ResourceNodeMinStaking); err != nil {
+	if err := validateResourceNodeMinStake(p.ResourceNodeMinStake); err != nil {
 		return err
 	}
 	return nil
@@ -96,7 +98,7 @@ func DefaultParams() Params {
 		DefaultUnbondingCompletionTime,
 		DefaultMaxEntries,
 		DefaultResourceNodeRegEnabled,
-		DefaultResourceNodeMinStaking,
+		DefaultResourceNodeMinStake,
 	)
 }
 
@@ -164,7 +166,7 @@ func validateResourceNodeRegEnabled(i interface{}) error {
 	return nil
 }
 
-func validateResourceNodeMinStaking(i interface{}) error {
+func validateResourceNodeMinStake(i interface{}) error {
 	_, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
