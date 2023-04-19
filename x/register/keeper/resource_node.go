@@ -288,6 +288,9 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 	if stake.GetDenom() != k.BondDenom(ctx) {
 		return ozoneLimitChange, types.ErrBadDenom
 	}
+	if stake.IsLT(k.ResourceNodeMinStake(ctx)) {
+		return ozoneLimitChange, types.ErrInsufficientStake
+	}
 
 	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
 	if err != nil {
@@ -320,8 +323,9 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	return nil
 }
 
-func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, stakeDelta sdk.Coin, incrStake bool) (
-	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, resourcenode types.ResourceNode, err error) {
+// Add stake only
+func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, stakeDelta sdk.Coin) (
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, completionTime time.Time, resourcenode types.ResourceNode, err error) {
 
 	if stakeDelta.GetDenom() != k.BondDenom(ctx) {
 		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrBadDenom
@@ -337,20 +341,12 @@ func (k Keeper) UpdateResourceNodeStake(ctx sdk.Context, networkAddr stratos.Sds
 		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrInvalidOwnerAddr
 	}
 
-	if incrStake {
-		blockTime := ctx.BlockHeader().Time
-		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, err := k.AddResourceNodeStake(ctx, node, stakeDelta)
-		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
-		}
-		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, blockTime, node, nil
-	} else {
-		availableTokenAmtBefore, availableTokenAmtAfter, completionTime, err := k.UnbondResourceNode(ctx, node, stakeDelta.Amount)
-		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
-		}
-		return sdk.ZeroInt(), availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
+	completionTime = ctx.BlockHeader().Time
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, err = k.AddResourceNodeStake(ctx, node, stakeDelta)
+	if err != nil {
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
 	}
+	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
 }
 
 func (k Keeper) UpdateEffectiveStake(ctx sdk.Context, networkAddr stratos.SdsAddress, effectiveStakeAfter sdk.Int) (

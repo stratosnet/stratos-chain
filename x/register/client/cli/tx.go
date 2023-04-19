@@ -274,7 +274,6 @@ func UpdateResourceNodeStakeCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagStakeDelta)
-	_ = cmd.MarkFlagRequired(FlagIncrStake)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	return cmd
 }
@@ -541,15 +540,6 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 		return txf, nil, err
 	}
 
-	incrStakeStr, err := fs.GetString(FlagIncrStake)
-	if err != nil {
-		return txf, nil, err
-	}
-	incrStake, err := strconv.ParseBool(incrStakeStr)
-	if err != nil {
-		return txf, nil, err
-	}
-
 	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
@@ -558,7 +548,7 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
+	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta)
 	return txf, msg, nil
 }
 

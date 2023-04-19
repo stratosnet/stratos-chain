@@ -370,12 +370,11 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 }
 
 func NewMsgUpdateResourceNodeStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	stakeDelta sdk.Coin, incrStake bool) *MsgUpdateResourceNodeStake {
+	stakeDelta sdk.Coin) *MsgUpdateResourceNodeStake {
 	return &MsgUpdateResourceNodeStake{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
 		StakeDelta:     stakeDelta,
-		IncrStake:      incrStake,
 	}
 }
 
