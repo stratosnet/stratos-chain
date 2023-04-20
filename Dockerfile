@@ -1,41 +1,53 @@
-# Simple usage with a mounted data directory:
-# > docker build -t stratos-chain .
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.stratos-chain:/stratos-chain/.stratos-chain stratos-chain stratos-chain init
-# > docker run -it -p 46657:46657 -p 46656:46656 -v ~/.stratos-chain:/stratos-chain/.stratos-chain stratos-chain stratos-chain start
-FROM golang:1.15-alpine AS build-env
+FROM golang:1.19-alpine AS build-env
 
 # Set up dependencies
-ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
+ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3 \
+    gmp-dev flex bison
+
+# Install minimum necessary dependencies
+RUN apk add --no-cache $PACKAGES
+# Install pdc
+RUN wget https://crypto.stanford.edu/pbc/files/pbc-0.5.14.tar.gz \
+    && tar -xf pbc-0.5.14.tar.gz \
+    && cd pbc-0.5.14/ \
+    && ./configure \
+    && make \
+    && make install \
+    && ldconfig / \
+    && cd .. && rm -rf pbc-0.5.14/ pbc-0.5.14.tar.gz
 
 # Set working directory for the build
 WORKDIR /go/src/github.com/stratosnet/stratos-chain
 
 # Add source files
 COPY . .
+RUN make install
 
-RUN go version
-
-# Install minimum necessary dependencies, build Cosmos SDK, remove packages
-RUN apk add --no-cache $PACKAGES && \
-    make install
 
 # Final image
 FROM alpine:edge
 
-ENV STRATOS /stchaind
+ENV WORK_DIR /stchaind
+ENV RUN_AS_USER stratos
 
 # Install ca-certificates
-RUN apk add --update ca-certificates
+RUN apk add --update ca-certificates gmp-dev
 
-RUN addgroup stratos && \
-    adduser -S -G stratos stratos -h "$STRATOS"
+ARG uid=2048
+ARG gid=2048
 
-USER stratos
+RUN addgroup --gid $gid "$RUN_AS_USER" && \
+    adduser -S -G "$RUN_AS_USER" --uid $uid "$RUN_AS_USER" -h "$WORK_DIR"
 
-WORKDIR $STRATOS
+WORKDIR $WORK_DIR
 
 # Copy over binaries from the build-env
 COPY --from=build-env /go/bin/stchaind /usr/bin/stchaind
+COPY --from=build-env /usr/local/lib/libpbc.so.1.0.0 /usr/local/lib/libpbc.so.1.0.0
 
-# Run stchaind by default, omit entrypoint to ease using container with stchaincli
-CMD ["stchaind"]
+RUN cd /usr/local/lib && { ln -s -f libpbc.so.1.0.0 libpbc.so.1 || { rm -f libpbc.so.1 && ln -s libpbc.so.1.0.0 libpbc.so.1; }; } \
+  && cd /usr/local/lib && { ln -s -f libpbc.so.1.0.0 libpbc.so || { rm -f libpbc.so && ln -s libpbc.so.1.0.0 libpbc.so; }; }
+
+COPY entrypoint.sh /usr/bin/entrypoint.sh
+RUN chmod +x /usr/bin/entrypoint.sh
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
