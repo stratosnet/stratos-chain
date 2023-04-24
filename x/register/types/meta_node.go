@@ -22,7 +22,7 @@ const (
 )
 
 // NewMetaNode - initialize a new meta node
-func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description *Description, creationTime time.Time) (MetaNode, error) {
+func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return MetaNode{}, err
