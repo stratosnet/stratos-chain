@@ -55,7 +55,7 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes,
 	epoch sdk.Int, reportReference string, txHash string) (err error) {
 
 	// tx fail when unhandled epoch > 0
-	if k.GetUnhandledEpoch(ctx).GT(sdk.ZeroInt()) {
+	if k.GetUnDistributedEpoch(ctx).GT(sdk.ZeroInt()) {
 		return types.ErrRewardDistributionNotComplete
 	}
 
@@ -64,9 +64,9 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes,
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 
 	// save for reward distribution in the EndBlock at height + 1
-	k.SetIsReadyToDistributeReward(ctx, false)
-	k.SetUnhandledEpoch(ctx, epoch)
-	k.SetUnhandledReport(ctx, walletVolumes)
+	k.SetIsReadyToDistribute(ctx, false)
+	k.SetUnDistributedEpoch(ctx, epoch)
+	k.SetUnDistributedReport(ctx, walletVolumes)
 
 	return nil
 }
