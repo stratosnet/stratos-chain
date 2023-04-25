@@ -51,7 +51,7 @@ func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdk.Int) bool {
 	return remaining.ToDec().GTE(unbondAmt.ToDec().Quo(stakeNozRate))
 }
 
-// SetUnbondingNode sets the unbonding MetaNode
+// SetUnbondingNode sets the unbonding node
 func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&ubd)
@@ -63,14 +63,14 @@ func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	store.Set(key, bz)
 }
 
-// RemoveUnbondingNode removes the unbonding MetaNode object
+// RemoveUnbondingNode removes the unbonding node object
 func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetUBDNodeKey(networkAddr)
 	store.Delete(key)
 }
 
-// GetUnbondingNode return a unbonding UnbondingMetaNode
+// GetUnbondingNode return a unbonding node
 func (k Keeper) GetUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress) (ubd types.UnbondingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetUBDNodeKey(networkAddr)

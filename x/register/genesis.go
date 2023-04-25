@@ -11,7 +11,7 @@ import (
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
-	keeper.SetParams(ctx, *data.Params)
+	keeper.SetParams(ctx, data.Params)
 
 	freshStart := keeper.GetResourceNodeNotBondedToken(ctx).IsZero() &&
 		keeper.GetResourceNodeBondedToken(ctx).IsZero() &&
@@ -134,7 +134,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	remainingNozLimit := keeper.GetRemainingOzoneLimit(ctx)
 	stakeNozRate := keeper.GetStakeNozRate(ctx)
 
-	var slashingInfo []*types.Slashing
+	var slashingInfo []types.Slashing
 	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
 		if val.GT(sdk.ZeroInt()) {
 			slashing := types.NewSlashing(walletAddress, val)
@@ -143,12 +143,5 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		return false
 	})
 
-	return &types.GenesisState{
-		Params:            &params,
-		ResourceNodes:     resourceNodes,
-		MetaNodes:         metaNodes,
-		RemainingNozLimit: remainingNozLimit,
-		Slashing:          slashingInfo,
-		StakeNozRate:      stakeNozRate,
-	}
+	return types.NewGenesisState(params, resourceNodes, metaNodes, remainingNozLimit, slashingInfo, stakeNozRate)
 }

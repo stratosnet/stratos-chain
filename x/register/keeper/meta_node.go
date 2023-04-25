@@ -114,7 +114,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 		return ozoneLimitChange, types.ErrBadDenom
 	}
 
-	metaNode, err := types.NewMetaNode(networkAddr, pubKey, ownerAddr, &description, ctx.BlockHeader().Time)
+	metaNode, err := types.NewMetaNode(networkAddr, pubKey, ownerAddr, description, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -416,7 +416,7 @@ func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
 		return types.ErrInvalidOwnerAddr
 	}
 
-	node.Description = &description
+	node.Description = description
 
 	k.SetMetaNode(ctx, node)
 

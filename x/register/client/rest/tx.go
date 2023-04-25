@@ -84,7 +84,6 @@ type (
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
 		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
-		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
 	}
 
 	UpdateEffectiveStakeRequest struct {
@@ -166,7 +165,7 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
+		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description,
 			req.NodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -206,7 +205,7 @@ func postCreateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
+		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -354,12 +353,7 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 			return
 		}
 
-		incrStake, err := strconv.ParseBool(req.IncrStake)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, req.StakeDelta)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -74,7 +74,7 @@ func (v ResourceNodes) Validate() error {
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description *Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
+	description Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return ResourceNode{}, err
