@@ -329,10 +329,6 @@ func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *typ
 		validReporterCount++
 	}
 
-	if !k.HasReachedThreshold(ctx, validReporterCount) {
-		return &types.MsgUpdateEffectiveStakeResponse{}, types.ErrReporterNotReachThreshold
-	}
-
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
 		return &types.MsgUpdateEffectiveStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
