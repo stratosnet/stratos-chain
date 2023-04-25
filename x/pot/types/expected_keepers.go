@@ -20,6 +20,8 @@ type BankKeeper interface {
 	SendCoinsFromAccountToModule(ctx sdk.Context, senderAddr sdk.AccAddress, recipientModule string, amt sdk.Coins) error
 	SendCoinsFromModuleToAccount(ctx sdk.Context, senderModule string, recipientAddr sdk.AccAddress, amt sdk.Coins) error
 	SendCoinsFromModuleToModule(ctx sdk.Context, senderPool, recipientPool string, amt sdk.Coins) error
+	GetSupply(ctx sdk.Context, denom string) sdk.Coin
+	MintCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
 }
 
 type RegisterKeeper interface {
