@@ -387,14 +387,13 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
 
-		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
-
 		/********************* commit & check result *********************/
 		// reward distribution start at height = height + 1 where volume report tx executed
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
 		stApp.Commit()
+		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)

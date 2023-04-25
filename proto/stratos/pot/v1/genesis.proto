@@ -19,10 +19,10 @@ message GenesisState {
     (gogoproto.jsontag) = "total_mined_token",
     (gogoproto.moretags) = "yaml:\"total_mined_token\""
   ];
-  string                    last_reported_epoch = 3 [
+  string                    last_distributed_epoch = 3 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "last_reported_epoch",
-    (gogoproto.moretags) = "yaml:\"last_reported_epoch\"",
+    (gogoproto.jsontag) = "last_distributed_epoch",
+    (gogoproto.moretags) = "yaml:\"last_distributed_epoch\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   repeated ImmatureTotal    immature_total_info = 4 [
@@ -40,7 +40,22 @@ message GenesisState {
     (gogoproto.jsontag) = "individual_reward_info",
     (gogoproto.moretags) = "yaml:\"individual_reward_info\""
   ];
-  string                    matured_epoch = 7 [
+  WalletVolumes             undistributed_report = 7 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "undistributed_report",
+    (gogoproto.moretags) = "yaml:\"undistributed_report\""
+  ];
+  string                    undistributed_epoch = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "undistributed_epoch",
+    (gogoproto.moretags) = "yaml:\"undistributed_epoch\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  bool                      is_ready_to_distribute = 9 [
+    (gogoproto.jsontag) = "is_ready_to_distribute",
+    (gogoproto.moretags) = "yaml:\"is_ready_to_distribute\""
+  ];
+  string                    matured_epoch = 10 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "matured_epoch",
     (gogoproto.moretags) = "yaml:\"matured_epoch\"",

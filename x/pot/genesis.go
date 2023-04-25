@@ -10,9 +10,8 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
-	//keeper.SetTotalMinedTokens(ctx, *data.TotalMinedToken)
 	keeper.SetTotalMinedTokens(ctx, sdk.NewCoin(keeper.RewardDenom(ctx), sdk.NewInt(0)))
-	keeper.SetLastReportedEpoch(ctx, data.LastReportedEpoch)
+	keeper.SetLastDistributedEpoch(ctx, data.LastDistributedEpoch)
 
 	for _, immatureTotal := range data.ImmatureTotalInfo {
 		walletAddr, err := sdk.AccAddressFromBech32(immatureTotal.WalletAddress)
@@ -35,9 +34,12 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetIndividualReward(ctx, walletAddr, data.LastReportedEpoch.Add(sdk.NewInt(data.Params.MatureEpoch)), individual)
+		keeper.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdk.NewInt(data.Params.MatureEpoch)), individual)
 	}
 
+	keeper.SetUnDistributedReport(ctx, data.UndistributedReport)
+	keeper.SetUnDistributedEpoch(ctx, data.UndistributedEpoch)
+	keeper.SetIsReadyToDistribute(ctx, data.IsReadyToDistribute)
 	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)
 }
 
@@ -47,7 +49,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisState) {
 	params := keeper.GetParams(ctx)
 	totalMinedToken := keeper.GetTotalMinedTokens(ctx)
-	lastReportedEpoch := keeper.GetLastReportedEpoch(ctx)
+	lastDistributedEpoch := keeper.GetLastDistributedEpoch(ctx)
 
 	var individualRewardInfo []types.Reward
 	var immatureTotalInfo []types.ImmatureTotal
@@ -74,8 +76,24 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		return false
 	})
 
+	unDistributedReport, found := keeper.GetUnDistributedReport(ctx)
+	if !found {
+		unDistributedReport = types.WalletVolumes{}
+	}
+	unDistributedEpoch := keeper.GetUnDistributedEpoch(ctx)
+	isReadyToDistribute := keeper.GetIsReadyToDistribute(ctx)
+
 	maturedEpoch := keeper.GetMaturedEpoch(ctx)
 
-	return types.NewGenesisState(params, totalMinedToken, lastReportedEpoch, immatureTotalInfo, matureTotalInfo,
-		individualRewardInfo, maturedEpoch)
+	return types.NewGenesisState(
+		params,
+		totalMinedToken,
+		lastDistributedEpoch,
+		immatureTotalInfo,
+		matureTotalInfo,
+		individualRewardInfo,
+		unDistributedReport,
+		unDistributedEpoch,
+		isReadyToDistribute,
+		maturedEpoch)
 }

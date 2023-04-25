@@ -64,7 +64,7 @@ func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes,
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 
 	// save for reward distribution in the EndBlock at height + 1
-	k.SetIsReadyToDistributeReward(ctx, false)
+	k.SetIsReadyToDistribute(ctx, false)
 	k.SetUnDistributedEpoch(ctx, epoch)
 	k.SetUnDistributedReport(ctx, walletVolumes)
 

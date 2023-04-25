@@ -12,7 +12,7 @@ const (
 
 // RewardMatureAndSubSlashing mature rewards and deduct slashing for all nodes
 func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
-	lastReportedEpoch := k.GetLastReportedEpoch(ctx)
+	lastDistributedEpoch := k.GetLastDistributedEpoch(ctx)
 	maturedEpoch := k.GetMaturedEpoch(ctx)
 	// The first batch of reward is matured from the value of mature_epoch(param) + 1
 	if maturedEpoch.IsZero() {
@@ -20,14 +20,14 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 		k.SetMaturedEpoch(ctx, maturedEpoch)
 	}
 
-	if lastReportedEpoch.LTE(maturedEpoch) {
+	if lastDistributedEpoch.LTE(maturedEpoch) {
 		return nil
 	}
 
 	maturedIndividualKeys := make([][]byte, 0)
 
 	matureStartEpochOffset := int64(1)
-	matureEndEpochOffset := lastReportedEpoch.Sub(maturedEpoch).Int64()
+	matureEndEpochOffset := lastDistributedEpoch.Sub(maturedEpoch).Int64()
 
 	processCount := 1
 	for i := matureStartEpochOffset; i <= matureEndEpochOffset; i++ {
@@ -39,7 +39,7 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 
 			// Stop iteration when executed wallet reaches MatureCountPerBlock && no new volume report is received
 			if processCount > MatureCountPerBlock &&
-				lastReportedEpoch.Equal(processingEpoch) {
+				lastDistributedEpoch.Equal(processingEpoch) {
 				isBreak = true
 				return true
 			}

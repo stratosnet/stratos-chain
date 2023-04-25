@@ -6,18 +6,22 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch sdk.Int,
+func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpoch sdk.Int,
 	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
+	undistributedReport WalletVolumes, undistributedEpoch sdk.Int, isReadyToDistribute bool,
 	maturedEpoch sdk.Int,
 ) *GenesisState {
 
 	return &GenesisState{
 		Params:               params,
 		TotalMinedToken:      totalMinedToken,
-		LastReportedEpoch:    lastReportedEpoch,
+		LastDistributedEpoch: lastDistributedEpoch,
 		ImmatureTotalInfo:    immatureTotalInfo,
 		MatureTotalInfo:      matureTotalInfo,
 		IndividualRewardInfo: individualRewardInfo,
+		UndistributedReport:  undistributedReport,
+		UndistributedEpoch:   undistributedEpoch,
+		IsReadyToDistribute:  isReadyToDistribute,
 		MaturedEpoch:         maturedEpoch,
 	}
 }
@@ -29,10 +33,13 @@ func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
 		Params:               params,
 		TotalMinedToken:      coin,
-		LastReportedEpoch:    sdk.ZeroInt(),
+		LastDistributedEpoch: sdk.ZeroInt(),
 		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
 		MatureTotalInfo:      make([]MatureTotal, 0),
 		IndividualRewardInfo: make([]Reward, 0),
+		UndistributedReport:  WalletVolumes{},
+		UndistributedEpoch:   sdk.ZeroInt(),
+		IsReadyToDistribute:  false,
 		MaturedEpoch:         sdk.ZeroInt(),
 	}
 }
