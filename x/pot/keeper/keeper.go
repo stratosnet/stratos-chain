@@ -54,14 +54,19 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (err error) {
 
+	// tx fail when unhandled epoch > 0
+	if k.GetUnDistributedEpoch(ctx).GT(sdk.ZeroInt()) {
+		return types.ErrRewardDistributionNotComplete
+	}
+
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 
-	err = k.DistributePotReward(ctx, walletVolumes.GetVolumes(), epoch)
-	if err != nil {
-		return err
-	}
+	// save for reward distribution in the EndBlock at height + 1
+	k.SetIsReadyToDistributeReward(ctx, false)
+	k.SetUnDistributedEpoch(ctx, epoch)
+	k.SetUnDistributedReport(ctx, walletVolumes)
 
 	return nil
 }

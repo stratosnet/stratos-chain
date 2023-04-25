@@ -6,6 +6,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
+	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
@@ -25,7 +26,29 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 		}
 	}()
 
-	err := k.RewardMatureAndSubSlashing(ctx)
+	// Do not distribute rewards until the next block
+	if !k.GetIsReadyToDistributeReward(ctx) && k.GetUnDistributedEpoch(ctx).GT(sdk.ZeroInt()) {
+		k.SetIsReadyToDistributeReward(ctx, true)
+		return []abci.ValidatorUpdate{}
+	}
+
+	walletVolumes, found := k.GetUnDistributedReport(ctx)
+	if !found {
+		return []abci.ValidatorUpdate{}
+	}
+	epoch := k.GetUnDistributedEpoch(ctx)
+
+	//distribute POT reward
+	err := k.DistributePotReward(ctx, walletVolumes.Volumes, epoch)
+	if err != nil {
+		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
+	}
+
+	k.SetUnDistributedReport(ctx, types.WalletVolumes{})
+	k.SetUnDistributedEpoch(ctx, sdk.ZeroInt())
+
+	// mature reward
+	err = k.RewardMatureAndSubSlashing(ctx)
 	if err != nil {
 		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
 	}
