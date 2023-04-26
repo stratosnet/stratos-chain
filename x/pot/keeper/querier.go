@@ -55,7 +55,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQ
 	if reportRecord.TxHash == "" {
 		e := sdkerrors.Wrapf(types.ErrCannotFindReport,
 			fmt.Sprintf("no volume report found at epoch %d. Current epoch is %s",
-				epoch, k.GetLastReportedEpoch(ctx).String()))
+				epoch, k.GetLastDistributedEpoch(ctx).String()))
 		return []byte{}, e
 	}
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, reportRecord)

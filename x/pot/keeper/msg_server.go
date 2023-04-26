@@ -52,17 +52,17 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	if !ok {
 		return &types.MsgVolumeReportResponse{}, types.ErrInvalid
 	}
-	lastEpoch := k.GetLastReportedEpoch(ctx)
-	if msg.Epoch.LTE(lastEpoch) {
+	lastDistributedEpoch := k.GetLastDistributedEpoch(ctx)
+	if msg.Epoch.LTE(lastDistributedEpoch) {
 		e := sdkerrors.Wrapf(types.ErrMatureEpoch, "expected epoch should be greater than %s, got %s",
-			lastEpoch.String(), msg.Epoch.String())
+			lastDistributedEpoch.String(), msg.Epoch.String())
 		return &types.MsgVolumeReportResponse{}, e
 	}
 
 	blsSignature := msg.GetBLSSignature()
 
 	// verify txDataHash
-	signBytes := msg.GetSignBytes()
+	signBytes := msg.GetBLSSignBytes()
 	txDataHash := crypto.Keccak256(signBytes)
 	if !bytes.Equal(txDataHash, blsSignature.GetTxData()) {
 		return &types.MsgVolumeReportResponse{}, types.ErrBLSTxDataInvalid

@@ -274,7 +274,6 @@ func UpdateResourceNodeStakeCmd() *cobra.Command {
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagStakeDelta)
-	_ = cmd.MarkFlagRequired(FlagIncrStake)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	return cmd
 }
@@ -496,7 +495,7 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	if t := nodeType.Type(); t == "UNKNOWN" {
 		return txf, nil, types.ErrNodeType
 	}
-	msg := types.NewMsgUpdateResourceNode(*description, nodeTypeVal, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
@@ -526,7 +525,7 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 		details,
 	)
 
-	msg := types.NewMsgUpdateMetaNode(*description, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr)
 	return txf, msg, nil
 }
 
@@ -541,15 +540,6 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 		return txf, nil, err
 	}
 
-	incrStakeStr, err := fs.GetString(FlagIncrStake)
-	if err != nil {
-		return txf, nil, err
-	}
-	incrStake, err := strconv.ParseBool(incrStakeStr)
-	if err != nil {
-		return txf, nil, err
-	}
-
 	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
@@ -558,7 +548,7 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
+	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta)
 	return txf, msg, nil
 }
 

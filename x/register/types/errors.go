@@ -14,6 +14,7 @@ const (
 	codeErrEmptyResourceNodeAddr
 	codeErrEmptyMetaNodeAddr
 	codeErrBadDenom
+	codeErrInsufficientStake
 	codeErrResourceNodePubKeyExists
 	codeErrMetaNodePubKeyExists
 	codeErrNoResourceNodeFound
@@ -63,7 +64,6 @@ const (
 	codeErrInvalidSuspensionStatForUnbondNode
 	codeErrReporterAddress
 	codeErrInvalidAmount
-	codeErrReporterAddressOrOwner
 	codeErrReporterNotReachThreshold
 )
 
@@ -77,6 +77,7 @@ var (
 	ErrEmptyResourceNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyResourceNodeAddr, "missing resource node address")
 	ErrEmptyMetaNodeAddr                  = sdkerrors.Register(ModuleName, codeErrEmptyMetaNodeAddr, "missing Meta node address")
 	ErrBadDenom                           = sdkerrors.Register(ModuleName, codeErrBadDenom, "invalid coin denomination")
+	ErrInsufficientStake                  = sdkerrors.Register(ModuleName, codeErrInsufficientStake, "insufficient stake")
 	ErrResourceNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrResourceNodePubKeyExists, "resource node already exist for this pubkey; must use new resource node pubkey")
 	ErrMetaNodePubKeyExists               = sdkerrors.Register(ModuleName, codeErrMetaNodePubKeyExists, "meta node already exist for this pubkey; must use new meta node pubkey")
 	ErrNoResourceNodeFound                = sdkerrors.Register(ModuleName, codeErrNoResourceNodeFound, "resource node does not exist")
@@ -126,6 +127,5 @@ var (
 	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")
 	ErrReporterAddress                    = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
 	ErrInvalidAmount                      = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
-	ErrReporterAddressOrOwner             = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 	ErrReporterNotReachThreshold          = sdkerrors.Register(ModuleName, codeErrReporterNotReachThreshold, "reporter meta-nodes does not reach the threshold")
 )

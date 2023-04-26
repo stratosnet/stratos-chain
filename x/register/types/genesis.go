@@ -12,11 +12,11 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params *Params,
+func NewGenesisState(params Params,
 	resourceNodes ResourceNodes,
 	metaNodes MetaNodes,
 	remainingNozLimit sdk.Int,
-	slashingInfo []*Slashing,
+	slashingInfo []Slashing,
 	stakeNozRate sdk.Dec,
 ) *GenesisState {
 	return &GenesisState{
@@ -36,7 +36,7 @@ func DefaultGenesisState() *GenesisState {
 		ResourceNodes:     ResourceNodes{},
 		MetaNodes:         MetaNodes{},
 		RemainingNozLimit: DefaultRemainingNozLimit,
-		Slashing:          make([]*Slashing, 0),
+		Slashing:          make([]Slashing, 0),
 		StakeNozRate:      DefaultStakeNozRate,
 	}
 }
@@ -102,8 +102,8 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	}, nil
 }
 
-func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) *Slashing {
-	return &Slashing{
+func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) Slashing {
+	return Slashing{
 		WalletAddress: walletAddress.String(),
 		Value:         value.Int64(),
 	}

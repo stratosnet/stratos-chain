@@ -15,12 +15,12 @@ import (
 func (k Keeper) SetTotalMinedTokens(ctx sdk.Context, totalMinedToken sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&totalMinedToken)
-	store.Set(types.TotalMinedTokensKey, b)
+	store.Set(types.TotalMinedTokensKeyPrefix, b)
 }
 
 func (k Keeper) GetTotalMinedTokens(ctx sdk.Context) (totalMinedToken sdk.Coin) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.TotalMinedTokensKey)
+	b := store.Get(types.TotalMinedTokensKeyPrefix)
 	if b == nil {
 		return sdk.NewCoin(k.RewardDenom(ctx), sdk.ZeroInt())
 	}
@@ -28,15 +28,15 @@ func (k Keeper) GetTotalMinedTokens(ctx sdk.Context) (totalMinedToken sdk.Coin) 
 	return
 }
 
-func (k Keeper) SetLastReportedEpoch(ctx sdk.Context, epoch sdk.Int) {
+func (k Keeper) SetLastDistributedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &epoch})
-	store.Set(types.LastReportedEpochKey, b)
+	store.Set(types.LastDistributedEpochKeyPrefix, b)
 }
 
-func (k Keeper) GetLastReportedEpoch(ctx sdk.Context) (epoch sdk.Int) {
+func (k Keeper) GetLastDistributedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.LastReportedEpochKey)
+	b := store.Get(types.LastDistributedEpochKeyPrefix)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
@@ -46,20 +46,25 @@ func (k Keeper) GetLastReportedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	return
 }
 
-func (k Keeper) SetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddress, epoch sdk.Int, value types.Reward) {
+func (k Keeper) SetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddress, matureEpoch sdk.Int, value types.Reward) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&value)
-	store.Set(types.GetIndividualRewardKey(walletAddress, epoch), b)
+	store.Set(types.GetIndividualRewardKey(walletAddress, matureEpoch), b)
 }
 
-func (k Keeper) GetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddress, epoch sdk.Int) (value types.Reward, found bool) {
+func (k Keeper) GetIndividualReward(ctx sdk.Context, walletAddress sdk.AccAddress, matureEpoch sdk.Int) (value types.Reward, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.GetIndividualRewardKey(walletAddress, epoch))
+	b := store.Get(types.GetIndividualRewardKey(walletAddress, matureEpoch))
 	if b == nil {
 		return value, false
 	}
 	k.cdc.MustUnmarshalLengthPrefixed(b, &value)
 	return value, true
+}
+
+func (k Keeper) RemoveIndividualReward(ctx sdk.Context, individualRewardKey []byte) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(individualRewardKey)
 }
 
 // Iteration for getting individule reward of each owner at a specific epoch
@@ -163,9 +168,9 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) GetUnhandledReport(ctx sdk.Context) (volumes types.WalletVolumes, found bool) {
+func (k Keeper) GetUnDistributedReport(ctx sdk.Context) (volumes types.WalletVolumes, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.UnhandledReportKeyPrefix)
+	bz := store.Get(types.UnDistributedReportKeyPrefix)
 	if bz == nil {
 		return volumes, false
 	}
@@ -178,15 +183,15 @@ func (k Keeper) GetUnhandledReport(ctx sdk.Context) (volumes types.WalletVolumes
 	return
 }
 
-func (k Keeper) SetUnhandledReport(ctx sdk.Context, volumes types.WalletVolumes) {
+func (k Keeper) SetUnDistributedReport(ctx sdk.Context, volumes types.WalletVolumes) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&volumes)
-	store.Set(types.UnhandledReportKeyPrefix, b)
+	store.Set(types.UnDistributedReportKeyPrefix, b)
 }
 
-func (k Keeper) GetUnhandledEpoch(ctx sdk.Context) (epoch sdk.Int) {
+func (k Keeper) GetUnDistributedEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.UnhandledEpochKey)
+	b := store.Get(types.UnDistributedEpochKeyPrefix)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
@@ -196,15 +201,15 @@ func (k Keeper) GetUnhandledEpoch(ctx sdk.Context) (epoch sdk.Int) {
 	return
 }
 
-func (k Keeper) SetUnhandledEpoch(ctx sdk.Context, epoch sdk.Int) {
+func (k Keeper) SetUnDistributedEpoch(ctx sdk.Context, epoch sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &epoch})
-	store.Set(types.UnhandledEpochKey, b)
+	store.Set(types.UnDistributedEpochKeyPrefix, b)
 }
 
-func (k Keeper) GetIsReadyToDistributeReward(ctx sdk.Context) (isReady bool) {
+func (k Keeper) GetIsReadyToDistribute(ctx sdk.Context) (isReady bool) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.IsReadyToDistributeReward)
+	b := store.Get(types.IsReadyToDistributeKeyPrefix)
 	if b == nil {
 		return false
 	}
@@ -214,10 +219,28 @@ func (k Keeper) GetIsReadyToDistributeReward(ctx sdk.Context) (isReady bool) {
 	return
 }
 
-func (k Keeper) SetIsReadyToDistributeReward(ctx sdk.Context, isReady bool) {
+func (k Keeper) SetIsReadyToDistribute(ctx sdk.Context, isReady bool) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&gogotypes.BoolValue{Value: isReady})
-	store.Set(types.IsReadyToDistributeReward, b)
+	store.Set(types.IsReadyToDistributeKeyPrefix, b)
+}
+
+func (k Keeper) GetMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.MaturedEpochKeyPrefix)
+	if bz == nil {
+		return sdk.ZeroInt()
+	}
+	intValue := stratos.Int{}
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
+	epoch = *intValue.Value
+	return
+}
+
+func (k Keeper) SetMaturedEpoch(ctx sdk.Context, epoch sdk.Int) {
+	store := ctx.KVStore(k.storeKey)
+	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &epoch})
+	store.Set(types.MaturedEpochKeyPrefix, b)
 }
 
 func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {

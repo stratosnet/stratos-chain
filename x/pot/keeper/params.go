@@ -32,15 +32,15 @@ func (k Keeper) MatureEpoch(ctx sdk.Context) (res int64) {
 	return
 }
 
-func (k Keeper) MiningRewardParams(ctx sdk.Context) (res []*types.MiningRewardParam) {
+func (k Keeper) MiningRewardParams(ctx sdk.Context) (res []types.MiningRewardParam) {
 	k.paramSpace.Get(ctx, types.KeyMiningRewardParams, &res)
 	return
 }
 
-func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk.Coin) (*types.MiningRewardParam, error) {
+func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk.Coin) (types.MiningRewardParam, error) {
 	miningRewardParams := k.MiningRewardParams(ctx)
 	for _, param := range miningRewardParams {
-		if minedToken.IsGTE(*param.TotalMinedValveStart) && minedToken.IsLT(*param.TotalMinedValveEnd) {
+		if minedToken.IsGTE(param.TotalMinedValveStart) && minedToken.IsLT(param.TotalMinedValveEnd) {
 			return param, nil
 		}
 	}
