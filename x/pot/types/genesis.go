@@ -6,17 +6,23 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastReportedEpoch int64,
-	immatureTotalInfo []*ImmatureTotal, matureTotalInfo []*MatureTotal, individualRewardInfo []*Reward,
+func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpoch sdk.Int,
+	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
+	undistributedReport WalletVolumes, undistributedEpoch sdk.Int, isReadyToDistribute bool,
+	maturedEpoch sdk.Int,
 ) *GenesisState {
 
 	return &GenesisState{
-		Params:               &params,
-		TotalMinedToken:      &totalMinedToken,
-		LastReportedEpoch:    lastReportedEpoch,
+		Params:               params,
+		TotalMinedToken:      totalMinedToken,
+		LastDistributedEpoch: lastDistributedEpoch,
 		ImmatureTotalInfo:    immatureTotalInfo,
 		MatureTotalInfo:      matureTotalInfo,
 		IndividualRewardInfo: individualRewardInfo,
+		UndistributedReport:  undistributedReport,
+		UndistributedEpoch:   undistributedEpoch,
+		IsReadyToDistribute:  isReadyToDistribute,
+		MaturedEpoch:         maturedEpoch,
 	}
 }
 
@@ -25,17 +31,21 @@ func DefaultGenesisState() *GenesisState {
 	params := DefaultParams()
 	coin := sdk.NewCoin(DefaultRewardDenom, sdk.ZeroInt())
 	return &GenesisState{
-		Params:               &params,
-		TotalMinedToken:      &coin,
-		LastReportedEpoch:    0,
-		ImmatureTotalInfo:    make([]*ImmatureTotal, 0),
-		MatureTotalInfo:      make([]*MatureTotal, 0),
-		IndividualRewardInfo: make([]*Reward, 0),
+		Params:               params,
+		TotalMinedToken:      coin,
+		LastDistributedEpoch: sdk.ZeroInt(),
+		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
+		MatureTotalInfo:      make([]MatureTotal, 0),
+		IndividualRewardInfo: make([]Reward, 0),
+		UndistributedReport:  WalletVolumes{},
+		UndistributedEpoch:   sdk.ZeroInt(),
+		IsReadyToDistribute:  false,
+		MaturedEpoch:         sdk.ZeroInt(),
 	}
 }
 
 // ValidateGenesis validates the pot genesis parameters
-func ValidateGenesis(data GenesisState) error {
+func ValidateGenesis(data *GenesisState) error {
 	return nil
 }
 

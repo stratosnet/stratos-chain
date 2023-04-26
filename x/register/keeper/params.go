@@ -48,3 +48,8 @@ func (k Keeper) ResourceNodeRegEnabled(ctx sdk.Context) (res bool) {
 	k.paramSpace.Get(ctx, types.KeyResourceNodeRegEnabled, &res)
 	return
 }
+
+func (k Keeper) ResourceNodeMinStake(ctx sdk.Context) (res sdk.Coin) {
+	k.paramSpace.Get(ctx, types.KeyResourceNodeMinStake, &res)
+	return
+}

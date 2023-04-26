@@ -19,16 +19,16 @@ const (
 )
 
 var (
-	TotalMinedTokensKey          = []byte{0x01}
-	LastReportedEpochKey         = []byte{0x02}
-	IndividualRewardKeyPrefix    = []byte{0x03} // key: prefix{address}_{epoch}, the amount that is matured at {epoch}
-	MatureTotalRewardKeyPrefix   = []byte{0x04} // key: prefix{address}
-	ImmatureTotalRewardKeyPrefix = []byte{0x05} // key: prefix{address}
-	VolumeReportStoreKeyPrefix   = []byte{0x06} // VolumeReportStoreKeyPrefix prefix for volumeReport store
-
-	UnhandledReportKeyPrefix  = []byte{0x11} // prefix for report need to be handled, after reward distribution, clear data
-	UnhandledEpochKey         = []byte{0x12} // prefix for epoch need to be handled, after reward distribution, clear data
-	IsReadyToDistributeReward = []byte{0x13}
+	TotalMinedTokensKeyPrefix     = []byte{0x01}
+	LastDistributedEpochKeyPrefix = []byte{0x02}
+	IndividualRewardKeyPrefix     = []byte{0x03} // key: prefix{address}_{epoch}, the amount that is matured at {epoch}
+	MatureTotalRewardKeyPrefix    = []byte{0x04} // key: prefix{address}
+	ImmatureTotalRewardKeyPrefix  = []byte{0x05} // key: prefix{address}
+	VolumeReportStoreKeyPrefix    = []byte{0x06} // VolumeReportStoreKeyPrefix prefix for volumeReport store
+	UnDistributedReportKeyPrefix  = []byte{0x07} // prefix for report need to be handled, after reward distribution, clear data
+	UnDistributedEpochKeyPrefix   = []byte{0x08} // prefix for epoch need to be handled, after reward distribution, clear data
+	IsReadyToDistributeKeyPrefix  = []byte{0x09}
+	MaturedEpochKeyPrefix         = []byte{0x10}
 )
 
 func VolumeReportStoreKey(epoch sdk.Int) []byte {

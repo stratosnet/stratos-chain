@@ -10,15 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/simapp"
-	"github.com/cosmos/cosmos-sdk/types/simulation"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	stratos "github.com/stratosnet/stratos-chain/types"
-	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 	"github.com/stretchr/testify/require"
+
 	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
@@ -31,14 +24,23 @@ import (
 	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
+	"github.com/cosmos/cosmos-sdk/simapp"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/simulation"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsign "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	minttypes "github.com/cosmos/cosmos-sdk/x/mint/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
+	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
+	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 const (
@@ -109,7 +111,6 @@ func SetupWithGenesisNodeSet(t *testing.T,
 	metaNodes []registertypes.MetaNode,
 	resourceNodes []registertypes.ResourceNode,
 	genAccs []authtypes.GenesisAccount,
-	totalUnissuedPrepay sdk.Coin,
 	chainId string,
 	balances ...banktypes.Balance) *NewApp {
 
@@ -121,7 +122,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 	validators := make([]stakingtypes.Validator, 0, len(valSet.Validators))
 	delegations := make([]stakingtypes.Delegation, 0, len(valSet.Validators))
 
-	bondedAmt := sdk.ZeroInt()
+	validatorBondedAmt := sdk.ZeroInt()
 	bondAmt := sdk.NewInt(1000000)
 
 	for _, val := range valSet.Validators {
@@ -144,7 +145,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		}
 		validators = append(validators, validator)
 		delegations = append(delegations, stakingtypes.NewDelegation(genAccs[0].GetAddress(), val.Address.Bytes(), sdk.OneDec()))
-		bondedAmt = bondedAmt.Add(bondAmt)
+		validatorBondedAmt = validatorBondedAmt.Add(bondAmt)
 	}
 	// set validators and delegations
 	stakingGenesis := stakingtypes.NewGenesisState(
@@ -158,11 +159,12 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		delegations)
 	genesisState[stakingtypes.ModuleName] = app.AppCodec().MustMarshalJSON(stakingGenesis)
 
+	initRemainingOzoneLimit := sdk.ZeroInt()
 	if !freshStart {
 		// add bonded amount to bonded pool module account
 		balances = append(balances, banktypes.Balance{
 			Address: authtypes.NewModuleAddress(stakingtypes.BondedPoolName).String(),
-			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, bondedAmt)},
+			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, validatorBondedAmt)},
 		})
 
 		// add bonded amount of resource nodes to module account
@@ -185,16 +187,15 @@ func SetupWithGenesisNodeSet(t *testing.T,
 			Coins:   sdk.Coins{sdk.NewCoin(stratos.Wei, metaNodeBondedAmt)},
 		})
 
-		balances = append(balances, banktypes.Balance{
-			Address: authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay).String(),
-			Coins:   sdk.Coins{totalUnissuedPrepay},
-		})
+		initRemainingOzoneLimit = resNodeBondedAmt.ToDec().
+			Quo(registertypes.DefaultStakeNozRate).
+			TruncateInt()
 	}
 
 	totalSupply := sdk.NewCoins()
 	for _, b := range balances {
 		// add genesis acc tokens and delegated tokens to total supply
-		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(stratos.Wei, bondedAmt))...)
+		totalSupply = totalSupply.Add(b.Coins.Add(sdk.NewCoin(stratos.Wei, validatorBondedAmt))...)
 	}
 
 	// update total supply
@@ -206,13 +207,14 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		registertypes.DefaultParams(),
 		resourceNodes,
 		metaNodes,
-		registertypes.DefaultRemainingNozLimit,
-		make([]*registertypes.Slashing, 0),
+		initRemainingOzoneLimit,
+		make([]registertypes.Slashing, 0),
 		registertypes.DefaultStakeNozRate,
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
 
 	potGenesis := pottypes.DefaultGenesisState()
+	potGenesis.Params.MatureEpoch = 1
 	genesisState[pottypes.ModuleName] = app.AppCodec().MustMarshalJSON(potGenesis)
 
 	sdsGenesis := sdstypes.DefaultGenesisState()
