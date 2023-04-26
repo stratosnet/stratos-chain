@@ -36,7 +36,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []*MiningRewardParam, communityTax sdk.Dec) Params {
+func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam, communityTax sdk.Dec) Params {
 	return Params{
 		BondDenom:          bondDenom,
 		RewardDenom:        rewardDenom,
@@ -48,7 +48,7 @@ func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRe
 
 // DefaultParams returns the default distribution parameters
 func DefaultParams() Params {
-	var miningRewardParams []*MiningRewardParam
+	var miningRewardParams []MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(0)),
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200000000000)),
@@ -155,7 +155,7 @@ func validateMatureEpoch(i interface{}) error {
 }
 
 func validateMiningRewardParams(i interface{}) error {
-	v, ok := i.([]*MiningRewardParam)
+	v, ok := i.([]MiningRewardParam)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

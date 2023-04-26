@@ -65,6 +65,12 @@ func (msg MsgVolumeReport) GetSignBytes() []byte {
 	return sdk.MustSortJSON(bz)
 }
 
+func (msg MsgVolumeReport) GetBLSSignBytes() []byte {
+	msg.BLSSignature = NewBLSSignatureInfo(nil, nil, nil)
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
+}
+
 // ValidateBasic validity check for the AnteHandler
 func (msg MsgVolumeReport) ValidateBasic() error {
 	if len(msg.Reporter) == 0 {
