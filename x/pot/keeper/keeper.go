@@ -1,9 +1,11 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -86,4 +88,57 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 		return err
 	}
 	return nil
+}
+
+// Restore total supply to 100M stos
+func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minter sdk.AccAddress, mintCoins sdk.Coins) {
+	// reset total supply to 100M stos
+	events := ctx.EventManager().Events()
+	attrKeyAmtBytes := []byte(sdk.AttributeKeyAmount)
+
+	totalBurnedCoins := sdk.Coins{}
+	for _, event := range events {
+		if event.Type == banktypes.EventTypeCoinBurn {
+			attributes := event.Attributes
+			for _, attr := range attributes {
+				if bytes.Equal(attr.Key, attrKeyAmtBytes) {
+					amount, err := sdk.ParseCoinsNormalized(string(attr.Value))
+					if err != nil {
+						ctx.Logger().Error("An error occurred while parsing burned amount. ", "ErrMsg", err.Error())
+						break
+					}
+					totalBurnedCoins = totalBurnedCoins.Add(amount...)
+				}
+			}
+		}
+	}
+
+	MaxTotalSupply := sdk.NewInt(types.DefaultTotalSupply)
+	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
+	totalBurned := totalBurnedCoins.AmountOf(k.BondDenom(ctx))
+
+	if totalBurned.Add(currentTotalSupply).GT(MaxTotalSupply) {
+		mintCoins = sdk.NewCoins(
+			sdk.NewCoin(k.BondDenom(ctx), MaxTotalSupply.Sub(currentTotalSupply)),
+		)
+	} else {
+		mintCoins = totalBurnedCoins
+	}
+
+	// mint coins
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, mintCoins)
+	if err != nil {
+		ctx.Logger().Error("Restore total supply failed:", err.Error())
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
+
+	// send new mint coins to community pool
+	senderAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
+	err = k.distrKeeper.FundCommunityPool(ctx, mintCoins, senderAddr)
+	if err != nil {
+		ctx.Logger().Error("Restore total supply failed:", err.Error())
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
+
+	return
 }

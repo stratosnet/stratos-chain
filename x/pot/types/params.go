@@ -17,6 +17,7 @@ const (
 	DefaultBondDenom   = stratos.Wei
 	DefaultRewardDenom = stratos.Utros
 	DefaultMatureEpoch = 2016
+	DefaultTotalSupply = 1e8 //100,000,000 stos
 )
 
 // Parameter store keys
