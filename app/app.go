@@ -171,6 +171,7 @@ var (
 		registertypes.MetaNodeNotBondedPool:     {authtypes.Minter},
 		registertypes.TotalUnissuedPrepay:       {authtypes.Minter},
 
+		pottypes.ModuleName:        {authtypes.Minter},
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
 		pottypes.TotalRewardPool:   nil,
 		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},

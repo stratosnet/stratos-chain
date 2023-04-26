@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"math"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -113,13 +113,17 @@ func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minter sdk.AccAddress, mint
 		}
 	}
 
-	MaxTotalSupply := sdk.NewInt(types.DefaultTotalSupply)
-	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
 	totalBurned := totalBurnedCoins.AmountOf(k.BondDenom(ctx))
+	if totalBurned.IsZero() {
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
 
-	if totalBurned.Add(currentTotalSupply).GT(MaxTotalSupply) {
+	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
+	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
+
+	if totalBurned.Add(currentTotalSupply).GT(InitialTotalSupply) {
 		mintCoins = sdk.NewCoins(
-			sdk.NewCoin(k.BondDenom(ctx), MaxTotalSupply.Sub(currentTotalSupply)),
+			sdk.NewCoin(k.BondDenom(ctx), InitialTotalSupply.Sub(currentTotalSupply)),
 		)
 	} else {
 		mintCoins = totalBurnedCoins
