@@ -9,9 +9,11 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // Keeper of the pot store
@@ -86,4 +88,35 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 		return err
 	}
 	return nil
+}
+
+func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coins) {
+	// total supply  - validator staking - resource node staking -  mining pool - prepay
+	totalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
+
+	validatorBondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.BondedPoolName)
+	validatorStaking := k.bankKeeper.GetBalance(ctx, validatorBondedPoolAcc, k.BondDenom(ctx))
+
+	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.ResourceNodeBondedPool)
+	resourceNodeStaking := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
+
+	metaNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.MetaNodeNotBondedPool)
+	metaNodeStaking := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
+
+	miningPoolAcc := k.accountKeeper.GetModuleAddress(types.FoundationAccount)
+	miningPool := k.bankKeeper.GetBalance(ctx, miningPoolAcc, k.BondDenom(ctx))
+
+	unissuedPrepayAcc := k.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
+	unissuedPrepay := k.bankKeeper.GetBalance(ctx, unissuedPrepayAcc, k.BondDenom(ctx))
+
+	circulationSupplyStos := totalSupply.
+		Sub(validatorStaking).
+		Sub(resourceNodeStaking).
+		Sub(metaNodeStaking).
+		Sub(miningPool).
+		Sub(unissuedPrepay)
+
+	circulationSupply = sdk.NewCoins(circulationSupplyStos)
+
+	return
 }

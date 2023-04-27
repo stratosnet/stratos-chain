@@ -31,9 +31,38 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryVolumeReport(),
 		GetCmdQueryParams(),
 		GetCmdQueryTotalMinedTokens(),
+		GetCmdQueryCirculationSupply(),
 	)
 
 	return potQueryCmd
+}
+
+func GetCmdQueryCirculationSupply() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "circulation-supply",
+		Args:  cobra.NoArgs,
+		Short: "Query the circulation supply",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the circulation supply.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.CirculationSupply(cmd.Context(), &types.QueryCirculationSupplyRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 func GetCmdQueryTotalMinedTokens() *cobra.Command {

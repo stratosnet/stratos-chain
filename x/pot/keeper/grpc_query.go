@@ -374,3 +374,10 @@ func (q Querier) TotalMinedToken(c context.Context, _ *types.QueryTotalMinedToke
 
 	return &types.QueryTotalMinedTokenResponse{TotalMinedToken: totalMinedToken}, nil
 }
+
+func (q Querier) CirculationSupply(c context.Context, _ *types.QueryCirculationSupplyRequest) (*types.QueryCirculationSupplyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	circulationSupply := q.GetCirculationSupply(ctx)
+
+	return &types.QueryCirculationSupplyResponse{CirculationSupply: circulationSupply}, nil
+}

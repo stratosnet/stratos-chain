@@ -11,6 +11,7 @@ const (
 	QuerySlashingByWalletAddr           = "query_pot_slashing_by_wallet_address"
 	QueryPotParams                      = "query_pot_params"
 	QueryTotalMinedToken                = "query_total_mined_token"
+	QueryCirculationSupply              = "query_circulation_supply"
 	QueryDefaultLimit                   = 100
 )
 
