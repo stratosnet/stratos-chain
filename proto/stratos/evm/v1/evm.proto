@@ -28,6 +28,10 @@ message Params {
     (gogoproto.moretags) = "yaml:\"fee_market_params\"",
     (gogoproto.nullable) = false
   ];
+  ProxyProposalParams proxy_proposal_params = 7 [
+    (gogoproto.moretags) = "yaml:\"proxy_proposal_params\"",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
@@ -261,4 +265,14 @@ message FeeMarketParams {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+}
+
+// Params defines default proxy addresses for futur gov contracts update
+message ProxyProposalParams {
+  // consensus address as msg.sender, used to define admin authority, could be simply zero address or custom
+  string consensus_deployer_address = 1;
+  // admin proxy address
+  string proxy_admin_address = 2;
+  // proxy contract for sds module
+  string sds_proxy_address = 3;
 }

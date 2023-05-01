@@ -1,0 +1,21 @@
+syntax = "proto3";
+package stratos.evm.v1;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/stratosnet/stratos-chain/x/evm/types";
+
+// UpdateImplmentationProposal used to update implemntation for genesis proxies
+message UpdateImplmentationProposal {
+  // proxy address where data will be executed
+  string proxy_address = 1;
+  // implmentation address as API for a storage
+  string implementation_address = 2;
+  // data for execution
+  bytes data = 3;
+  // value for proxy func call
+  string value = 4 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customname) = "Amount"
+  ];
+}

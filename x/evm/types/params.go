@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 
@@ -40,6 +41,11 @@ var (
 	ParamStoreKeyElasticityMultiplier     = []byte("ElasticityMultiplier")
 	ParamStoreKeyBaseFee                  = []byte("BaseFee")
 	ParamStoreKeyEnableHeight             = []byte("EnableHeight")
+
+	// proposal proxy
+	ParamStoreKeyConsensusDeployerAddress = []byte("ConsensusDeployerAddress")
+	ParamStoreKeyProxyAdminAddress        = []byte("ProxyAdminAddress")
+	ParamStoreKeySdsProxyAddress          = []byte("SdsProxyAddress")
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -48,14 +54,15 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params instance
-func NewParams(evmDenom string, enableCreate, enableCall bool, config ChainConfig, feeMarketParams FeeMarketParams, extraEIPs ...int64) Params {
+func NewParams(evmDenom string, enableCreate, enableCall bool, config ChainConfig, feeMarketParams FeeMarketParams, proxyProposalParams ProxyProposalParams, extraEIPs ...int64) Params {
 	return Params{
-		EvmDenom:        evmDenom,
-		EnableCreate:    enableCreate,
-		EnableCall:      enableCall,
-		ExtraEIPs:       extraEIPs,
-		ChainConfig:     config,
-		FeeMarketParams: feeMarketParams,
+		EvmDenom:            evmDenom,
+		EnableCreate:        enableCreate,
+		EnableCall:          enableCall,
+		ExtraEIPs:           extraEIPs,
+		ChainConfig:         config,
+		FeeMarketParams:     feeMarketParams,
+		ProxyProposalParams: proxyProposalParams,
 	}
 }
 
@@ -63,12 +70,13 @@ func NewParams(evmDenom string, enableCreate, enableCall bool, config ChainConfi
 // ExtraEIPs is empty to prevent overriding the latest hard fork instruction set
 func DefaultParams() Params {
 	return Params{
-		EvmDenom:        DefaultEVMDenom,
-		EnableCreate:    true,
-		EnableCall:      true,
-		ChainConfig:     DefaultChainConfig(),
-		ExtraEIPs:       nil,
-		FeeMarketParams: DefaultFeeMarketParams(),
+		EvmDenom:            DefaultEVMDenom,
+		EnableCreate:        true,
+		EnableCall:          true,
+		ChainConfig:         DefaultChainConfig(),
+		ExtraEIPs:           nil,
+		FeeMarketParams:     DefaultFeeMarketParams(),
+		ProxyProposalParams: DefaultProxyProposalParams(),
 	}
 }
 
@@ -86,6 +94,10 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreKeyElasticityMultiplier, &p.FeeMarketParams.ElasticityMultiplier, validateElasticityMultiplier),
 		paramtypes.NewParamSetPair(ParamStoreKeyBaseFee, &p.FeeMarketParams.BaseFee, validateBaseFee),
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableHeight, &p.FeeMarketParams.EnableHeight, validateEnableHeight),
+		//proposal proxy
+		paramtypes.NewParamSetPair(ParamStoreKeyConsensusDeployerAddress, &p.ProxyProposalParams.ConsensusDeployerAddress, validateAddress),
+		paramtypes.NewParamSetPair(ParamStoreKeyProxyAdminAddress, &p.ProxyProposalParams.ProxyAdminAddress, validateAddress),
+		paramtypes.NewParamSetPair(ParamStoreKeySdsProxyAddress, &p.ProxyProposalParams.SdsProxyAddress, validateAddress),
 	}
 }
 
@@ -246,6 +258,37 @@ func validateEnableHeight(i interface{}) error {
 
 	if value < 0 {
 		return fmt.Errorf("enable height cannot be negative: %d", value)
+	}
+
+	return nil
+}
+
+// creates a new ProxyProposalParams instance
+func NewProxyProposalParams(consensusDeployerAddress, proxyAdminAddress, sdsProxyAddress common.Address) ProxyProposalParams {
+	return ProxyProposalParams{
+		ConsensusDeployerAddress: consensusDeployerAddress.Hex(),
+		ProxyAdminAddress:        proxyAdminAddress.Hex(),
+		SdsProxyAddress:          sdsProxyAddress.Hex(),
+	}
+}
+
+// ProxyProposalParams returns default proxy parameters
+func DefaultProxyProposalParams() ProxyProposalParams {
+	return NewProxyProposalParams(
+		common.HexToAddress("0x0000000000000000000000000000000000000000"),
+		common.HexToAddress("0x0000000000000000000000000000000000010101"),
+		common.HexToAddress("0x0000000000000000000000000000000000000001"),
+	)
+}
+
+func validateAddress(i interface{}) error {
+	value, ok := i.(string)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+
+	if !common.IsHexAddress(value) {
+		return fmt.Errorf("address is not a hex")
 	}
 
 	return nil
