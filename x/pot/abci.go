@@ -4,6 +4,7 @@ import (
 	abci "github.com/tendermint/tendermint/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -52,6 +53,16 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 	if err != nil {
 		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
 	}
+
+	// reset total supply to 100M stos
+	minter, amount := k.RestoreTotalSupply(ctx)
+	if minter.Empty() || amount.Empty() {
+		return []abci.ValidatorUpdate{}
+	}
+
+	ctx.EventManager().EmitEvent(
+		banktypes.NewCoinMintEvent(minter, amount),
+	)
 
 	return []abci.ValidatorUpdate{}
 }

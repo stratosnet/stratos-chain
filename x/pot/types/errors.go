@@ -13,6 +13,9 @@ const (
 	codeErrMissingTargetAddress
 	codeErrInsufficientMatureTotal
 	codeErrMatureEpoch
+	codeErrMiningRewardParams
+	codeErrCommunityTax
+	codeErrInitialTotalSupply
 	codeErrEmptyFromAddr
 	codeErrEmptyReporterAddr
 	codeErrEmptyWalletVolumes
@@ -50,6 +53,9 @@ var (
 	ErrMissingTargetAddress           = sdkerrors.Register(ModuleName, codeErrMissingTargetAddress, "missing target address")
 	ErrInsufficientMatureTotal        = sdkerrors.Register(ModuleName, codeErrInsufficientMatureTotal, "insufficient mature total")
 	ErrMatureEpoch                    = sdkerrors.Register(ModuleName, codeErrMatureEpoch, "the value of epoch must be positive and greater than its previous one")
+	ErrMiningRewardParams             = sdkerrors.Register(ModuleName, codeErrMiningRewardParams, "invalid mining reward param")
+	ErrCommunityTax                   = sdkerrors.Register(ModuleName, codeErrCommunityTax, "invalid community tax param")
+	ErrInitialTotalSupply             = sdkerrors.Register(ModuleName, codeErrInitialTotalSupply, "invalid initial total supply param")
 	ErrEmptyFromAddr                  = sdkerrors.Register(ModuleName, codeErrEmptyFromAddr, "missing from address")
 	ErrEmptyReporterAddr              = sdkerrors.Register(ModuleName, codeErrEmptyReporterAddr, "missing reporter address")
 	ErrEmptyWalletVolumes             = sdkerrors.Register(ModuleName, codeErrEmptyWalletVolumes, "wallet volumes list empty")

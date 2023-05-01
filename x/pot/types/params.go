@@ -26,8 +26,12 @@ var (
 	KeyMatureEpoch        = []byte("MatureEpoch")
 	KeyMiningRewardParams = []byte("MiningRewardParams")
 	KeyCommunityTax       = []byte("CommunityTax")
+	KeyInitialTotalSupply = []byte("InitialTotalSupply")
 
-	DefaultCommunityTax = sdk.NewDecWithPrec(2, 2) // 2%
+	DefaultCommunityTax       = sdk.NewDecWithPrec(2, 2) // 2%
+	DefaultInitialTotalSupply = sdk.NewCoin(DefaultBondDenom,
+		sdk.NewInt(1e8).Mul(sdk.NewInt(stratos.StosToWei)),
+	) //100,000,000 stos
 )
 
 // ParamKeyTable for pot module
@@ -36,13 +40,16 @@ func ParamKeyTable() paramtypes.KeyTable {
 }
 
 // NewParams creates a new Params object
-func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam, communityTax sdk.Dec) Params {
+func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam,
+	communityTax sdk.Dec, initialTotalSupply sdk.Coin) Params {
+
 	return Params{
 		BondDenom:          bondDenom,
 		RewardDenom:        rewardDenom,
 		MatureEpoch:        matureEpoch,
 		MiningRewardParams: miningRewardParams,
 		CommunityTax:       communityTax,
+		InitialTotalSupply: initialTotalSupply,
 	}
 }
 
@@ -85,17 +92,26 @@ func DefaultParams() Params {
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(2500000000)),
 		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
 
-	return NewParams(DefaultBondDenom, DefaultRewardDenom, DefaultMatureEpoch, miningRewardParams, DefaultCommunityTax)
+	return NewParams(
+		DefaultBondDenom,
+		DefaultRewardDenom,
+		DefaultMatureEpoch,
+		miningRewardParams,
+		DefaultCommunityTax,
+		DefaultInitialTotalSupply,
+	)
 }
 
 // HrpString implements the stringer interface for Params
 func (p Params) HrpString() string {
 	return fmt.Sprintf(`Params:
-	BondDenom:			%s
-   RewardDenom:	%s
-	MatureEpoch:        %d
- 	MiningRewardParams:	%s`,
-		p.BondDenom, p.RewardDenom, p.MatureEpoch, p.MiningRewardParams)
+    BondDenom:          %s
+    RewardDenom:        %s
+    MatureEpoch:        %d
+    MiningRewardParams: %s
+    CommunitiyTax:      %v
+    InitialTotalSupply: %v`,
+		p.BondDenom, p.RewardDenom, p.MatureEpoch, p.MiningRewardParams, p.CommunityTax, p.InitialTotalSupply)
 }
 
 // ParamSetPairs - Implements params.ParamSet
@@ -106,6 +122,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyMatureEpoch, &p.MatureEpoch, validateMatureEpoch),
 		paramtypes.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
 		paramtypes.NewParamSetPair(KeyCommunityTax, &p.CommunityTax, validateCommunityTax),
+		paramtypes.NewParamSetPair(KeyInitialTotalSupply, &p.InitialTotalSupply, validateInitialTotalSupply),
 	}
 }
 
@@ -188,6 +205,20 @@ func validateCommunityTax(i interface{}) error {
 	return nil
 }
 
+func validateInitialTotalSupply(i interface{}) error {
+	v, ok := i.(sdk.Coin)
+	if !ok {
+		return fmt.Errorf("invalid parameter type: %T", i)
+	}
+	if v.IsNil() {
+		return fmt.Errorf("total supply must be not nil")
+	}
+	if v.IsNegative() {
+		return fmt.Errorf("total supply must be positive: %s", v)
+	}
+	return nil
+}
+
 func (p Params) ValidateBasic() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
 		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
@@ -199,10 +230,13 @@ func (p Params) ValidateBasic() error {
 		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mature epoch")
 	}
 	if err := validateMiningRewardParams(p.MiningRewardParams); err != nil {
-		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mining reward params")
+		return sdkerrors.Wrap(ErrMiningRewardParams, "failed to validate mining reward params")
 	}
 	if err := validateCommunityTax(p.CommunityTax); err != nil {
-		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate community tax")
+		return sdkerrors.Wrap(ErrCommunityTax, "failed to validate community tax")
+	}
+	if err := validateInitialTotalSupply(p.InitialTotalSupply); err != nil {
+		return sdkerrors.Wrap(ErrInitialTotalSupply, err.Error())
 	}
 	return nil
 }

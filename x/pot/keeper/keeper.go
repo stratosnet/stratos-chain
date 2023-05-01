@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 
@@ -8,6 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -86,4 +88,61 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 		return err
 	}
 	return nil
+}
+
+// Restore total supply to 100M stos
+func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minter sdk.AccAddress, mintCoins sdk.Coins) {
+	// reset total supply to 100M stos
+	events := ctx.EventManager().Events()
+	attrKeyAmtBytes := []byte(sdk.AttributeKeyAmount)
+
+	totalBurnedCoins := sdk.Coins{}
+	for _, event := range events {
+		if event.Type == banktypes.EventTypeCoinBurn {
+			attributes := event.Attributes
+			for _, attr := range attributes {
+				if bytes.Equal(attr.Key, attrKeyAmtBytes) {
+					amount, err := sdk.ParseCoinsNormalized(string(attr.Value))
+					if err != nil {
+						ctx.Logger().Error("An error occurred while parsing burned amount. ", "ErrMsg", err.Error())
+						break
+					}
+					totalBurnedCoins = totalBurnedCoins.Add(amount...)
+				}
+			}
+		}
+	}
+
+	totalBurned := totalBurnedCoins.AmountOf(k.BondDenom(ctx))
+	if totalBurned.IsZero() {
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
+
+	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
+	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
+
+	if totalBurned.Add(currentTotalSupply).GT(InitialTotalSupply) {
+		mintCoins = sdk.NewCoins(
+			sdk.NewCoin(k.BondDenom(ctx), InitialTotalSupply.Sub(currentTotalSupply)),
+		)
+	} else {
+		mintCoins = totalBurnedCoins
+	}
+
+	// mint coins
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, mintCoins)
+	if err != nil {
+		ctx.Logger().Error("Restore total supply failed:", err.Error())
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
+
+	// send new mint coins to community pool
+	senderAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
+	err = k.distrKeeper.FundCommunityPool(ctx, mintCoins, senderAddr)
+	if err != nil {
+		ctx.Logger().Error("Restore total supply failed:", err.Error())
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
+
+	return
 }
