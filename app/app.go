@@ -171,6 +171,7 @@ var (
 		registertypes.MetaNodeNotBondedPool:     {authtypes.Minter},
 		registertypes.TotalUnissuedPrepay:       {authtypes.Minter},
 
+		pottypes.ModuleName:        {authtypes.Minter},
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
 		pottypes.TotalRewardPool:   nil,
 		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},
@@ -509,7 +510,6 @@ func NewInitApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		registertypes.ModuleName,
-		pottypes.ModuleName,
 		sdstypes.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
@@ -525,6 +525,7 @@ func NewInitApp(
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
+		pottypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,

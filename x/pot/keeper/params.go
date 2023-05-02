@@ -2,6 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -49,5 +50,10 @@ func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk
 
 func (k Keeper) GetCommunityTax(ctx sdk.Context) (res sdk.Dec) {
 	k.paramSpace.Get(ctx, types.KeyCommunityTax, &res)
+	return
+}
+
+func (k Keeper) InitialTotalSupply(ctx sdk.Context) (res sdk.Coin) {
+	k.paramSpace.Get(ctx, types.KeyInitialTotalSupply, &res)
 	return
 }

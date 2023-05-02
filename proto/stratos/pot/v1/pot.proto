@@ -31,6 +31,11 @@ message Params {
     (gogoproto.moretags) = "yaml:\"community_tax\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
   ];
+  cosmos.base.v1beta1.Coin    initial_total_supply = 6 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "initial_total_supply",
+    (gogoproto.moretags) = "yaml:\"initial_total_supply\""
+  ];
 }
 
 message MiningRewardParam {
