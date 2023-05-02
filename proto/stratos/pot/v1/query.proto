@@ -39,6 +39,10 @@ service Query {
   rpc TotalMinedToken(QueryTotalMinedTokenRequest) returns (QueryTotalMinedTokenResponse) {
     option (google.api.http).get = "/stratos/pot/v1/total-mined-token";
   }
+
+  rpc CirculationSupply(QueryCirculationSupplyRequest) returns (QueryCirculationSupplyResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/circulation-supply";
+  }
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
@@ -98,11 +102,11 @@ message QueryRewardsByOwnerResponse {
 
 message RewardByOwner {
   string                              wallet_address = 1;
-  repeated cosmos.base.v1beta1.Coin   MatureTotalReward = 2 [
+  repeated cosmos.base.v1beta1.Coin   mature_total_reward = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
-  repeated cosmos.base.v1beta1.Coin   ImmatureTotalReward = 3 [
+  repeated cosmos.base.v1beta1.Coin   immature_total_reward = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
@@ -119,7 +123,6 @@ message QuerySlashingByOwnerResponse {
   int64     height = 2;
 }
 
-
 message QueryTotalMinedTokenRequest{}
 
 message QueryTotalMinedTokenResponse{
@@ -130,6 +133,13 @@ message QueryTotalMinedTokenResponse{
   ];
 }
 
+message QueryCirculationSupplyRequest{}
 
+message QueryCirculationSupplyResponse{
+  repeated cosmos.base.v1beta1.Coin   circulation_supply = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
 
 

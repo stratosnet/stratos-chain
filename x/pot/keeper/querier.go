@@ -28,6 +28,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return querySlashingByWalletAddress(ctx, req, k, legacyQuerierCdc)
 		case types.QueryPotParams:
 			return getPotParams(ctx, req, k, legacyQuerierCdc)
+		case types.QueryCirculationSupply:
+			return getCirculationSupply(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -154,4 +156,13 @@ func querySlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keep
 	}
 
 	return []byte(k.registerKeeper.GetSlashing(ctx, addr).String()), nil
+}
+
+func getCirculationSupply(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	circulationSupply := k.GetCirculationSupply(ctx)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, circulationSupply)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
 }
