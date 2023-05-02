@@ -12,9 +12,14 @@ import (
 // NewEVMChangeProposal defines the evm changes proposals
 func NewEVMChangeProposal(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
+		pc, err := keeper.NewProposalCounsil(k, ctx)
+		if err != nil {
+			return err
+		}
+
 		switch c := content.(type) {
 		case *types.UpdateImplmentationProposal:
-			return k.UpdateProxyImplementation(ctx, c)
+			return pc.UpdateProxyImplementation(c)
 
 		default:
 			return sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized proxy proposal content type: %T", c)

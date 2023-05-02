@@ -63,31 +63,6 @@ func InitGenesis(
 		}
 	}
 
-	// TODO: PROXY: Remove later, just for testing
-	implAddr, err := k.TestDeployERC20Mock(ctx)
-	if err != nil {
-		panic(err)
-	}
-	upgradeData, err := types.EncodeContractFunc(
-		types.TransparentUpgradableProxyABI,
-		"upgradeTo",
-		*implAddr,
-	)
-	if err != nil {
-		panic(err)
-	}
-	amount := sdk.NewInt(0)
-	c := types.NewUpdateImplmentationProposal(
-		common.HexToAddress(data.Params.ProxyProposalParams.SdsProxyAddress),
-		*implAddr,
-		upgradeData,
-		&amount,
-	)
-	err = k.UpdateProxyImplementation(ctx, c.(*types.UpdateImplmentationProposal))
-	if err != nil {
-		panic(err)
-	}
-
 	return []abci.ValidatorUpdate{}
 }
 
