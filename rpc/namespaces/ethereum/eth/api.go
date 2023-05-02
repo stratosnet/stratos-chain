@@ -603,6 +603,11 @@ func (e *PublicAPI) Call(args evmtypes.TransactionArgs, blockNrOrHash rpctypes.B
 		return []byte{}, err
 	}
 
+	fmt.Println(data)
+	fmt.Printf("data: %+v\n", data)
+	fmt.Printf("data.Ret: %s\n", data.Ret)
+	fmt.Printf("data.Ret hex: %s\n", common.Bytes2Hex(data.Ret))
+
 	return (hexutil.Bytes)(data.Ret), nil
 }
 
