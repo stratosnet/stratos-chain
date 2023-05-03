@@ -61,7 +61,7 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 	fmt.Println(req.Height)
 
 	// TODO: PROXY: Remove later, just for testing
-	if req.Height == 2 {
+	if req.Height == 1 {
 		fmt.Println("THEFUCK")
 		pc, err := NewProposalCounsil(*k, ctx)
 		if err != nil {
@@ -72,14 +72,7 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 			panic(err)
 		}
 		fmt.Printf("addr implAddr: %s\n", implAddr)
-		// upgradeData, err := types.EncodeContractFunc(
-		// 	types.TransparentUpgradableProxyABI,
-		// 	"upgradeTo",
-		// 	*implAddr,
-		// )
-		// if err != nil {
-		// 	panic(err)
-		// }
+
 		amount := sdk.NewInt(0)
 		params := k.GetParams(ctx)
 

@@ -9,8 +9,8 @@ import (
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
-// NewEVMChangeProposal defines the evm changes proposals
-func NewEVMChangeProposal(k keeper.Keeper) govtypes.Handler {
+// NewEVMChangeProposalHandler defines the evm changes proposals
+func NewEVMChangeProposalHandler(k keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		pc, err := keeper.NewProposalCounsil(k, ctx)
 		if err != nil {

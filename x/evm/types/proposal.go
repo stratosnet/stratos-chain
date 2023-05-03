@@ -1,6 +1,7 @@
 package types
 
 import (
+	"bytes"
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -37,7 +38,10 @@ func (epd *UpdateImplmentationProposal) GetTitle() string {
 
 // GetDescription returns the description of a new proxy update proposal.
 func (epd *UpdateImplmentationProposal) GetDescription() string {
-	return ""
+	return fmt.Sprintf(
+		"This is upgrade for proxy '%s' address with a new implementation '%s'",
+		epd.ProxyAddress, epd.ImplementationAddress,
+	)
 }
 
 // ProposalRoute returns the routing key of a new proxy update proposal.
@@ -61,6 +65,10 @@ func (epd *UpdateImplmentationProposal) ValidateBasic() error {
 
 	if !common.IsHexAddress(epd.ImplementationAddress) {
 		return fmt.Errorf("address '%s' is not valid", epd.ImplementationAddress)
+	}
+
+	if bytes.Equal(common.HexToAddress(epd.ImplementationAddress).Bytes(), common.Address{}.Bytes()) {
+		return fmt.Errorf("implementation address could not be zero address")
 	}
 
 	if epd.Amount == nil {

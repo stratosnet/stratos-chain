@@ -96,6 +96,7 @@ import (
 	srvflags "github.com/stratosnet/stratos-chain/server/flags"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm"
+	evmclient "github.com/stratosnet/stratos-chain/x/evm/client"
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -136,6 +137,7 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
+			evmclient.EVMChangeProxyImplementationHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -371,7 +373,7 @@ func NewInitApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(evmtypes.RouterKey, evm.NewEVMChangeProposal(*app.evmKeeper))
+		AddRoute(evmtypes.RouterKey, evm.NewEVMChangeProposalHandler(*app.evmKeeper))
 
 	govKeeper := govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.accountKeeper, app.bankKeeper,
