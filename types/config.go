@@ -91,7 +91,8 @@ func (config *Config) SetBech32PrefixForAccount(addressPrefix, pubKeyPrefix stri
 }
 
 // SetBech32PrefixForValidator builds the Config with Bech32 addressPrefix and publKeyPrefix for validators
-//  and returns the config instance
+//
+//	and returns the config instance
 func (config *Config) SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix string) {
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix)

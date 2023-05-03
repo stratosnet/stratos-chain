@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"math"
@@ -20,32 +21,36 @@ import (
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
-var emptyCodeHash = crypto.Keccak256Hash(nil)
+var (
+	emptyCodeHash = crypto.Keccak256Hash(nil)
+)
 
 type ProposalCounsil struct {
-	keeper     *Keeper
-	ctx        sdk.Context
-	stateDB    *statedb.StateDB
-	evm        *vm.EVM
-	sender     common.Address
-	proxyAdmin common.Address
+	keeper            *Keeper
+	ctx               sdk.Context
+	stateDB           *statedb.StateDB
+	evm               *vm.EVM
+	sender            common.Address
+	proxyAdmin        common.Address
+	verifiedAddresses map[string]bool
 }
 
 func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	params := k.GetParams(ctx)
 
 	pc := &ProposalCounsil{
-		keeper:     &k,
-		ctx:        ctx,
-		sender:     common.HexToAddress(params.ProxyProposalParams.ConsensusDeployerAddress),
-		proxyAdmin: common.HexToAddress(params.ProxyProposalParams.ProxyAdminAddress),
+		keeper:            &k,
+		ctx:               ctx,
+		sender:            common.HexToAddress(params.ProxyProposalParams.ConsensusDeployerAddress),
+		proxyAdmin:        common.HexToAddress(params.ProxyProposalParams.ProxyAdminAddress),
+		verifiedAddresses: make(map[string]bool),
 	}
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to load evm config")
 	}
 
-	defer pc.prepare()
+	defer pc.prepare(params)
 
 	blockCtx := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
@@ -73,9 +78,13 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	return pc, nil
 }
 
-func (pc *ProposalCounsil) prepare() {
+func (pc *ProposalCounsil) prepare(params types.Params) {
 	nonce := pc.keeper.GetNonce(pc.ctx, pc.sender)
 	pc.stateDB.SetNonce(pc.sender, nonce)
+
+	// NOTE: Add verified addresses where code could be invoked
+	// TODO: PROXY: Create in gnesis config directly with mapping
+	pc.addTrustedAddress(params.ProxyProposalParams.SdsProxyAddress)
 }
 
 func (pc *ProposalCounsil) finalize() error {
@@ -85,8 +94,17 @@ func (pc *ProposalCounsil) finalize() error {
 	return nil
 }
 
+func (pc *ProposalCounsil) addTrustedAddress(addr string) {
+	pc.verifiedAddresses[addr] = true
+}
+
+func (pc *ProposalCounsil) isTrustedAddress(addr string) bool {
+	return pc.verifiedAddresses[addr]
+}
+
 func (pc *ProposalCounsil) create(contractAddress common.Address, data []byte, value *big.Int) (*common.Address, error) {
 	nonce := pc.stateDB.GetNonce(pc.sender)
+	// we do not care about gas during consil execution
 	gas := uint64(math.MaxUint64)
 
 	// for safety
@@ -170,11 +188,23 @@ func (pc *ProposalCounsil) getOrCreateContract(contractAddress common.Address, d
 	return &contractAddress, nil
 }
 
-// ExecuteProxyFunc execute provided function to a proxy contract
+// UpdateProxyImplementation execute provided function to a proxy contract for impl upgrade
 func (pc *ProposalCounsil) UpdateProxyImplementation(p *types.UpdateImplmentationProposal) error {
-	// TODO: PROXY: Add validation for this address
+	if !pc.isTrustedAddress(p.ProxyAddress) {
+		return fmt.Errorf("proxy '%s' has not been verified", p.ProxyAddress)
+	}
+
 	proxyAddress := common.HexToAddress(p.ProxyAddress)
 	implAddress := common.HexToAddress(p.ImplementationAddress)
+
+	implCode := pc.stateDB.GetCode(implAddress)
+	if implCode == nil {
+		return fmt.Errorf("implementation '%s' not found", implAddress)
+	}
+
+	if bytes.Equal(implCode, emptyCodeHash[:]) {
+		return fmt.Errorf("implementation '%s' is EOA", implAddress)
+	}
 
 	proxyAdminConstructorData := common.FromHex(types.ProxyAdminBin)
 	_, err := pc.getOrCreateContract(pc.proxyAdmin, proxyAdminConstructorData)
