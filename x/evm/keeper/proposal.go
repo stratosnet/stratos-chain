@@ -11,14 +11,13 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 var (
@@ -53,8 +52,8 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	defer pc.prepare(params)
 
 	blockCtx := vm.BlockContext{
-		CanTransfer: core.CanTransfer,
-		Transfer:    core.Transfer,
+		CanTransfer: vm.CanTransfer,
+		Transfer:    vm.Transfer,
 		GetHash:     k.GetHashFn(ctx),
 		Coinbase:    cfg.CoinBase,
 		GasLimit:    stratos.BlockGasLimit(ctx),

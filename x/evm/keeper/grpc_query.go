@@ -17,14 +17,15 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/eth/tracers"
-	"github.com/ethereum/go-ethereum/eth/tracers/logger"
+
 	ethparams "github.com/ethereum/go-ethereum/params"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -387,7 +388,8 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
-		rsp, err := k.ApplyMessageWithConfig(ctx, msg, types.NewNoOpTracer(), true, cfg, txConfig)
+		tracer := types.NewNoOpTracer()
+		rsp, err := k.ApplyMessageWithConfig(ctx, msg, tracer, true, cfg, txConfig)
 		if err != nil {
 			continue
 		}
