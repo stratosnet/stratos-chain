@@ -43,7 +43,7 @@ contract Prepay is Version0, OwnableUpgradeable {
 
         assembly {
             // TODO: PROXY: Implement!!!
-            if iszero(call(not(0), 0xf1, 0x0, input, 0x80, output, 0x20)) {
+            if iszero(call(not(0), 0xf1, 0x0, input, 0x20, output, 0x20)) {
                 revert(0x0, 0x0)
             }
         }

@@ -46,7 +46,7 @@ var (
 
 	// proposal proxy
 	ParamStoreKeyConsensusAddress  = []byte("ProposalConsensusAddress")
-	ParamStoreKeyProxyAdminAddress = []byte("ProxyAdminAddress")
+	ParamStoreKeyProxyOwnerAddress = []byte("ProxyOwnerAddress")
 	ParamStoreKeyContracts         = []byte("ProposalContracts")
 )
 
@@ -98,7 +98,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(ParamStoreKeyEnableHeight, &p.FeeMarketParams.EnableHeight, validateEnableHeight),
 		//proposal proxy
 		paramtypes.NewParamSetPair(ParamStoreKeyConsensusAddress, &p.ProxyProposalParams.ConsensusAddress, validateAddress),
-		paramtypes.NewParamSetPair(ParamStoreKeyProxyAdminAddress, &p.ProxyProposalParams.ProxyAdminAddress, validateAddress),
+		paramtypes.NewParamSetPair(ParamStoreKeyProxyOwnerAddress, &p.ProxyProposalParams.ProxyOwnerAddress, validateAddress),
 		paramtypes.NewParamSetPair(ParamStoreKeyContracts, &p.ProxyProposalParams.Contracts, validateContracts),
 	}
 }
@@ -266,10 +266,10 @@ func validateEnableHeight(i interface{}) error {
 }
 
 // creates a new ProxyProposalParams instance
-func NewProxyProposalParams(consensusAddress, proxyAdminAddress common.Address) ProxyProposalParams {
+func NewProxyProposalParams(consensusAddress, proxyOwnerAddress common.Address) ProxyProposalParams {
 	return ProxyProposalParams{
 		ConsensusAddress:  consensusAddress.Hex(),
-		ProxyAdminAddress: proxyAdminAddress.Hex(),
+		ProxyOwnerAddress: proxyOwnerAddress.Hex(),
 		Contracts:         make(map[string]*ProxyContractInitState),
 	}
 }
