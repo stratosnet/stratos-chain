@@ -6,7 +6,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	abci "github.com/tendermint/tendermint/abci/types"
 
-	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	"github.com/stratosnet/stratos-chain/x/evm/types"
@@ -57,35 +56,13 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 	bloom := ethtypes.BytesToBloom(k.GetBlockBloomTransient(infCtx).Bytes())
 	k.EmitBlockBloomEvent(infCtx, bloom)
 
-	fmt.Println("height")
-	fmt.Println(req.Height)
+	pc, err := NewProposalCounsil(*k, ctx)
+	if err != nil {
+		panic(err)
+	}
 
-	// TODO: PROXY: Remove later, just for testing
-	if req.Height == 1 {
-		fmt.Println("THEFUCK")
-		pc, err := NewProposalCounsil(*k, ctx)
-		if err != nil {
-			panic(err)
-		}
-		implAddr, err := pc.TestDeployERC20Mock()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Printf("addr implAddr: %s\n", implAddr)
-
-		amount := sdk.NewInt(0)
-		params := k.GetParams(ctx)
-
-		c := types.NewUpdateImplmentationProposal(
-			common.HexToAddress(params.ProxyProposalParams.SdsProxyAddress),
-			*implAddr,
-			[]byte{},
-			&amount,
-		)
-		err = pc.UpdateProxyImplementation(c.(*types.UpdateImplmentationProposal))
-		if err != nil {
-			panic(err)
-		}
+	if err := pc.ApplyGenesisState(uint64(req.Height)); err != nil {
+		panic(err)
 	}
 
 	return []abci.ValidatorUpdate{}

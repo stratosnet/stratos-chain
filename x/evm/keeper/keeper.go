@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"fmt"
 	"math/big"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -252,13 +251,6 @@ func (k *Keeper) GetNonce(ctx sdk.Context, addr common.Address) uint64 {
 	if acct == nil {
 		return 0
 	}
-
-	fmt.Printf("addr: %s\n", addr)
-	fmt.Printf("acct: %+v\n", acct)
-
-	acct2 := k.GetAccount(ctx, addr)
-
-	fmt.Printf("acct2: %+v\n", acct2)
 
 	return acct.GetSequence()
 }
