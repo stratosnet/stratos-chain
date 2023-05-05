@@ -156,10 +156,16 @@ func NewEVMProxyImplmentationUpgrade() *cobra.Command {
 			}
 			implAddr := common.HexToAddress(implAddrStr)
 
-			data, err := cmd.Flags().GetBytesHex(FlagData)
+			dataStr, err := cmd.Flags().GetString(FlagData)
 			if err != nil {
 				return err
 			}
+			data, err := hexutil.Decode(dataStr)
+			if err != nil {
+				return err
+			}
+
+			fmt.Println("data", data)
 
 			valueStr, err := cmd.Flags().GetString(FlagValue)
 			if err != nil {
@@ -196,7 +202,7 @@ func NewEVMProxyImplmentationUpgrade() *cobra.Command {
 
 	cmd.Flags().String(FlagProxyAddress, "", "proxy address of the contract")
 	cmd.Flags().String(FlagImplementationAddress, "", "implementation address which should be used for proxy upgrade")
-	cmd.Flags().BytesHex(FlagData, []byte{}, "addition smart contract data for proxy execution (optional)")
+	cmd.Flags().String(FlagData, "0x", "addition smart contract data for proxy execution (optional)")
 	cmd.Flags().String(FlagValue, "0wei", "value of tokens should be used in data execution with payable modifier (optional)")
 	cmd.Flags().String(govcli.FlagDeposit, "", "deposit of proposal (optional)")
 	cmd.MarkFlagRequired(FlagProxyAddress)

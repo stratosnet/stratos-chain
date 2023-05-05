@@ -267,12 +267,24 @@ message FeeMarketParams {
   ];
 }
 
+message ProxyContractInitState {
+  // height where it should be applied
+  uint64 height = 1;
+  // address of proxy contract
+  string address = 2;
+  // solidity compiled code
+  string bin = 3;
+  // initializer method data
+  string init = 4;
+}
+
 // Params defines default proxy addresses for futur gov contracts update
 message ProxyProposalParams {
   // consensus address as msg.sender, used to define admin authority, could be simply zero address or custom
-  string consensus_deployer_address = 1;
-  // admin proxy address
+  // basically it is an owner of evrything. resposible to add proxies and update proxies implementations
+  string consensus_address = 1;
+  // proxy admin who basically the owner of proxy contract
   string proxy_admin_address = 2;
-  // proxy contract for sds module
-  string sds_proxy_address = 3;
+  // proxy contracts name per address reservations
+  map<string, ProxyContractInitState> contracts = 3;
 }
