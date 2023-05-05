@@ -283,8 +283,8 @@ message ProxyProposalParams {
   // consensus address as msg.sender, used to define admin authority, could be simply zero address or custom
   // basically it is an owner of evrything. resposible to add proxies and update proxies implementations
   string consensus_address = 1;
-  // proxy admin who basically the owner of proxy contract
-  string proxy_admin_address = 2;
+  // proxy owner who basically the owner of proxy contract (for Ownable purpose, not admin)
+  string proxy_owner_address = 2;
   // proxy contracts name per address reservations
   map<string, ProxyContractInitState> contracts = 3;
 }

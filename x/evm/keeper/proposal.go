@@ -26,24 +26,24 @@ var (
 )
 
 type ProposalCounsil struct {
-	keeper     *Keeper
-	ctx        sdk.Context
-	stateDB    *statedb.StateDB
-	evm        *vm.EVM
-	sender     common.Address
-	proxyAdmin common.Address
-	verifier   *ProposalVerifier
+	keeper         *Keeper
+	ctx            sdk.Context
+	stateDB        *statedb.StateDB
+	evm            *vm.EVM
+	consensusOwner common.Address
+	proxyOwner     common.Address
+	verifier       *ProposalVerifier
 }
 
 func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	params := k.GetParams(ctx)
 
 	pc := &ProposalCounsil{
-		keeper:     &k,
-		ctx:        ctx,
-		sender:     common.HexToAddress(params.ProxyProposalParams.ConsensusAddress),
-		proxyAdmin: common.HexToAddress(params.ProxyProposalParams.ProxyAdminAddress),
-		verifier:   NewProposalVerifier(),
+		keeper:         &k,
+		ctx:            ctx,
+		consensusOwner: common.HexToAddress(params.ProxyProposalParams.ConsensusAddress),
+		proxyOwner:     common.HexToAddress(params.ProxyProposalParams.ProxyOwnerAddress),
+		verifier:       NewProposalVerifier(),
 	}
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
@@ -65,7 +65,7 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	}
 
 	txCtx := vm.TxContext{
-		Origin:   pc.sender,
+		Origin:   pc.consensusOwner,
 		GasPrice: big.NewInt(0),
 	}
 	tracer := types.NewNoOpTracer()
@@ -79,9 +79,6 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 }
 
 func (pc *ProposalCounsil) prepare(params types.Params) {
-	nonce := pc.keeper.GetNonce(pc.ctx, pc.sender)
-	pc.stateDB.SetNonce(pc.sender, nonce)
-
 	pc.verifier.ApplyParamsState(params)
 }
 
@@ -92,8 +89,41 @@ func (pc *ProposalCounsil) finalize() error {
 	return nil
 }
 
-func (pc *ProposalCounsil) create(contractAddress common.Address, data []byte, value *big.Int) (*common.Address, error) {
-	nonce := pc.stateDB.GetNonce(pc.sender)
+func (pc *ProposalCounsil) call(sender, contractAddress common.Address, data []byte, value *big.Int) error {
+	// required
+	txCtx := vm.TxContext{
+		Origin:   sender,
+		GasPrice: big.NewInt(0),
+	}
+	pc.evm.Reset(txCtx, pc.stateDB)
+
+	nonce := pc.stateDB.GetNonce(sender)
+	// we do not care about gas during consil execution
+	gas := uint64(math.MaxUint64)
+	// for safety
+	if value == nil {
+		value = big.NewInt(0)
+	}
+
+	{
+		pc.stateDB.SetNonce(sender, nonce+1)
+	}
+
+	if _, _, vmErr := pc.evm.Call(vm.AccountRef(sender), contractAddress, data, gas, value); vmErr != nil {
+		return vmErr
+	}
+	return nil
+}
+
+func (pc *ProposalCounsil) create(sender, contractAddress common.Address, data []byte, value *big.Int) (*common.Address, error) {
+	// required
+	txCtx := vm.TxContext{
+		Origin:   sender,
+		GasPrice: big.NewInt(0),
+	}
+	pc.evm.Reset(txCtx, pc.stateDB)
+
+	nonce := pc.stateDB.GetNonce(sender)
 	// we do not care about gas during consil execution
 	gas := uint64(math.MaxUint64)
 
@@ -104,10 +134,10 @@ func (pc *ProposalCounsil) create(contractAddress common.Address, data []byte, v
 
 	interpreter := vm.NewEVMInterpreter(pc.evm, pc.evm.Config)
 
-	sender := vm.AccountRef(pc.sender)
+	accRef := vm.AccountRef(sender)
 
 	{
-		pc.stateDB.SetNonce(sender.Address(), nonce+1)
+		pc.stateDB.SetNonce(accRef.Address(), nonce+1)
 	}
 
 	contractHash := pc.evm.StateDB.GetCodeHash(contractAddress)
@@ -119,9 +149,9 @@ func (pc *ProposalCounsil) create(contractAddress common.Address, data []byte, v
 
 	pc.evm.StateDB.CreateAccount(contractAddress)
 	pc.evm.StateDB.SetNonce(contractAddress, 1)
-	pc.evm.Context.Transfer(pc.evm.StateDB, pc.sender, contractAddress, value)
+	pc.evm.Context.Transfer(pc.evm.StateDB, sender, contractAddress, value)
 
-	contract := vm.NewContract(sender, vm.AccountRef(contractAddress), value, gas)
+	contract := vm.NewContract(accRef, vm.AccountRef(contractAddress), value, gas)
 	contract.SetCallCode(&contractAddress, common.Hash{}, data)
 
 	ret, err := interpreter.Run(contract, nil, false)
@@ -165,50 +195,43 @@ func (pc *ProposalCounsil) create(contractAddress common.Address, data []byte, v
 	return &contractAddress, nil
 }
 
-func (pc *ProposalCounsil) getOrCreateContract(contractAddress common.Address, data []byte) (*common.Address, error) {
-	code := pc.stateDB.GetCode(contractAddress)
-	if code != nil {
-		return &contractAddress, nil
-	}
-
-	if _, err := pc.create(contractAddress, data, big.NewInt(0)); err != nil {
-		return nil, err
-	}
-	return &contractAddress, nil
-}
-
 func (pc *ProposalCounsil) ApplyGenesisState(height uint64) error {
 	states := pc.verifier.GetStates(height)
 
 	for _, state := range states {
-		addr := crypto.CreateAddress(pc.sender, pc.stateDB.GetNonce(pc.sender))
-
+		implAddr := crypto.CreateAddress(pc.consensusOwner, pc.stateDB.GetNonce(pc.consensusOwner))
 		proxyAddr := common.HexToAddress(state.Address)
+
 		bin, err := hexutil.Decode(state.Bin)
 		if err != nil {
 			return err
 		}
 
-		implAddr, err := pc.getOrCreateContract(addr, bin)
-		if err != nil {
-			return sdkerrors.Wrapf(err, "failed to get or create address on '%s'", addr)
-		}
-
-		amount := sdk.NewInt(0)
 		data, err := hexutil.Decode(state.Init)
 		if err != nil {
 			return err
 		}
 
+		implCode := pc.stateDB.GetCode(implAddr)
+		if implCode == nil {
+			if _, err := pc.create(pc.proxyOwner, implAddr, bin, nil); err != nil {
+				return sdkerrors.Wrapf(err, "failed to get or create address on '%s'", implAddr)
+			}
+		}
+
+		value := sdk.NewInt(0)
 		c := types.NewUpdateImplmentationProposal(
 			proxyAddr,
-			*implAddr,
+			implAddr,
 			data,
-			&amount,
+			&value,
 		)
 
-		err = pc.updateProxyImplementation(c.(*types.UpdateImplmentationProposal), false)
-		if err != nil {
+		if err := c.ValidateBasic(); err != nil {
+			return err
+		}
+
+		if err = pc.updateProxyImplementation(c.(*types.UpdateImplmentationProposal), false); err != nil {
 			return err
 		}
 	}
@@ -242,55 +265,38 @@ func (pc *ProposalCounsil) updateProxyImplementation(p *types.UpdateImplmentatio
 		return fmt.Errorf("implementation '%s' is EOA", implAddress)
 	}
 
-	proxyAdminConstructorData, err := hexutil.Decode(types.ProxyAdminBin)
-	if err != nil {
-		return err
-	}
+	proxyCode := pc.stateDB.GetCode(proxyAddress)
+	if proxyCode != nil {
+		upgradeData, err := types.EncodeContractFunc(
+			types.TransparentUpgradableProxyABI,
+			"upgradeToAndCall",
+			implAddress,
+			p.Data,
+		)
+		if err != nil {
+			return err
+		}
 
-	_, err = pc.getOrCreateContract(pc.proxyAdmin, proxyAdminConstructorData)
-	if err != nil {
-		return err
-	}
+		if err := pc.call(pc.consensusOwner, proxyAddress, upgradeData, p.Amount.BigInt()); err != nil {
+			return err
+		}
+	} else {
+		proxyConstructorData, err := types.EncodeContractFunc(
+			types.TransparentUpgradableProxyABI,
+			"",
+			implAddress,
+			pc.consensusOwner,
+			p.Data,
+		)
+		if err != nil {
+			return err
+		}
 
-	proxyConstructorData, err := types.EncodeContractFunc(
-		types.TransparentUpgradableProxyABI,
-		"",
-		implAddress,
-		pc.proxyAdmin,
-		[]byte{},
-	)
-	if err != nil {
-		return err
-	}
+		proxyConstructorData = append(common.FromHex(types.TransparentUpgradableProxyBin), proxyConstructorData...)
 
-	proxyConstructorData = append(common.FromHex(types.TransparentUpgradableProxyBin), proxyConstructorData...)
-
-	_, err = pc.getOrCreateContract(proxyAddress, proxyConstructorData)
-	if err != nil {
-		return err
-	}
-
-	upgradeData, err := types.EncodeContractFunc(
-		types.ProxyAdminABI,
-		"upgradeAndCall",
-		proxyAddress,
-		implAddress,
-		p.Data,
-	)
-	if err != nil {
-		return err
-	}
-
-	nonce := pc.stateDB.GetNonce(pc.sender)
-	gas := uint64(math.MaxUint64)
-	value := p.Amount.BigInt()
-
-	{
-		pc.stateDB.SetNonce(pc.sender, nonce+1)
-	}
-
-	if _, _, vmErr := pc.evm.Call(vm.AccountRef(pc.sender), pc.proxyAdmin, upgradeData, gas, value); vmErr != nil {
-		return vmErr
+		if _, err := pc.create(pc.proxyOwner, proxyAddress, proxyConstructorData, p.Amount.BigInt()); err != nil {
+			return err
+		}
 	}
 
 	if commit {
