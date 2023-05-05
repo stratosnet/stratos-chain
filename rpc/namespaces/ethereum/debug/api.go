@@ -16,10 +16,7 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/ethereum/go-ethereum/eth/tracers"
 	stderrors "github.com/pkg/errors"
-
-	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
@@ -36,7 +33,9 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	jstracers "github.com/stratosnet/stratos-chain/x/evm/tracers/js"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 	nativetracers "github.com/stratosnet/stratos-chain/x/evm/tracers/native"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	tmrpccore "github.com/tendermint/tendermint/rpc/core"

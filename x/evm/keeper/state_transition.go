@@ -15,13 +15,14 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+	ethvm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // GasToRefund calculates the amount of gas the state machine should refund to the sender. It is
@@ -74,11 +75,11 @@ func (k *Keeper) NewEVM(
 	msg core.Message,
 	cfg *types.EVMConfig,
 	tracer vm.EVMLogger,
-	stateDB vm.StateDB,
+	stateDB ethvm.StateDB,
 ) *vm.EVM {
 	blockCtx := vm.BlockContext{
-		CanTransfer: core.CanTransfer,
-		Transfer:    core.Transfer,
+		CanTransfer: vm.CanTransfer,
+		Transfer:    vm.Transfer,
 		GetHash:     k.GetHashFn(ctx),
 		Coinbase:    cfg.CoinBase,
 		GasLimit:    stratos.BlockGasLimit(ctx),
@@ -88,7 +89,7 @@ func (k *Keeper) NewEVM(
 		BaseFee:     cfg.BaseFee,
 	}
 
-	txCtx := core.NewEVMTxContext(msg)
+	txCtx := vm.NewEVMTxContext(msg)
 	if tracer == nil {
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
@@ -105,7 +106,8 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 	}
 
 	var debug bool
-	if _, ok := tracer.(types.NoOpTracer); !ok {
+
+	if _, ok := tracer.(vm.EVMLogger).(types.NoOpTracer); !ok {
 		debug = true
 		noBaseFee = true
 	}
