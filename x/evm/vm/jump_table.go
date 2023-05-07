@@ -1043,3 +1043,21 @@ func newFrontierInstructionSet() JumpTable {
 
 	return validate(tbl)
 }
+
+// newKeeperInstructionSet returns an updated instructions with modified "call" call for
+// custom stratos execution
+// NOTE: Maybe we should make on our specific update, instead of apply on go-ethereum update
+// see a top lines with instructions sets
+func newKeeperInstructionSet(instructionSet JumpTable) JumpTable {
+	instructionSet[PREPAY] = &operation{
+		execute:     opPrepay,
+		constantGas: CallGasPrepay,
+		dynamicGas:  gasCall,
+		minStack:    minStack(6, 1),
+		maxStack:    maxStack(6, 1),
+		memorySize:  memoryCall,
+	}
+	instructionSet[CALL].execute = wrapWithKeeperCall(opCall)
+
+	return validate(instructionSet)
+}

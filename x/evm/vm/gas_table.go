@@ -18,6 +18,7 @@ package vm
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -162,19 +163,19 @@ func gasSStore(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySi
 	return params.NetSstoreDirtyGas, nil
 }
 
-// 0. If *gasleft* is less than or equal to 2300, fail the current call.
-// 1. If current value equals new value (this is a no-op), SLOAD_GAS is deducted.
-// 2. If current value does not equal new value:
-//   2.1. If original value equals current value (this storage slot has not been changed by the current execution context):
+//  0. If *gasleft* is less than or equal to 2300, fail the current call.
+//  1. If current value equals new value (this is a no-op), SLOAD_GAS is deducted.
+//  2. If current value does not equal new value:
+//     2.1. If original value equals current value (this storage slot has not been changed by the current execution context):
 //     2.1.1. If original value is 0, SSTORE_SET_GAS (20K) gas is deducted.
 //     2.1.2. Otherwise, SSTORE_RESET_GAS gas is deducted. If new value is 0, add SSTORE_CLEARS_SCHEDULE to refund counter.
-//   2.2. If original value does not equal current value (this storage slot is dirty), SLOAD_GAS gas is deducted. Apply both of the following clauses:
+//     2.2. If original value does not equal current value (this storage slot is dirty), SLOAD_GAS gas is deducted. Apply both of the following clauses:
 //     2.2.1. If original value is not 0:
-//       2.2.1.1. If current value is 0 (also means that new value is not 0), subtract SSTORE_CLEARS_SCHEDULE gas from refund counter.
-//       2.2.1.2. If new value is 0 (also means that current value is not 0), add SSTORE_CLEARS_SCHEDULE gas to refund counter.
+//     2.2.1.1. If current value is 0 (also means that new value is not 0), subtract SSTORE_CLEARS_SCHEDULE gas from refund counter.
+//     2.2.1.2. If new value is 0 (also means that current value is not 0), add SSTORE_CLEARS_SCHEDULE gas to refund counter.
 //     2.2.2. If original value equals new value (this storage slot is reset):
-//       2.2.2.1. If original value is 0, add SSTORE_SET_GAS - SLOAD_GAS to refund counter.
-//       2.2.2.2. Otherwise, add SSTORE_RESET_GAS - SLOAD_GAS gas to refund counter.
+//     2.2.2.1. If original value is 0, add SSTORE_SET_GAS - SLOAD_GAS to refund counter.
+//     2.2.2.2. Otherwise, add SSTORE_RESET_GAS - SLOAD_GAS gas to refund counter.
 func gasSStoreEIP2200(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
 	// If we fail the minimum gas availability invariant, fail (0)
 	if contract.Gas <= params.SstoreSentryGasEIP2200 {
@@ -326,11 +327,19 @@ func gasExpEIP158(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memor
 }
 
 func gasCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+	fmt.Println("CALL gasCall")
 	var (
 		gas            uint64
 		transfersValue = !stack.Back(2).IsZero()
 		address        = common.Address(stack.Back(1).Bytes20())
 	)
+
+	// fmt.Printf("contract: %+v\n", contract)
+	fmt.Printf("CALL gasCall - toAddr: %s\n", address)
+	fmt.Printf("CALL gasCall - transfersValue: %t\n", transfersValue)
+	fmt.Printf("CALL gasCall - gas: %d\n", gas)
+	fmt.Printf("CALL gasCall - data: %s\n", common.Bytes2Hex(mem.Data()))
+
 	if evm.chainRules.IsEIP158 {
 		if transfersValue && evm.StateDB.Empty(address) {
 			gas += params.CallNewAccountGas
@@ -341,22 +350,33 @@ func gasCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize
 	if transfersValue {
 		gas += params.CallValueTransferGas
 	}
+	fmt.Printf("CALL gasCall - gas init value: %d\n", gas)
 	memoryGas, err := memoryGasCost(mem, memorySize)
+	fmt.Printf("CALL gasCall - memoryGasCost call value: %d\n", memoryGas)
 	if err != nil {
+		fmt.Printf("CALL gasCall - memoryGasCost err: %s\n", err)
 		return 0, err
 	}
+	fmt.Println("CALL gasCall - SafeAdd memoryGas call")
 	var overflow bool
 	if gas, overflow = math.SafeAdd(gas, memoryGas); overflow {
+		fmt.Printf("CALL gasCall - SafeAdd memoryGas err: %t\n", overflow)
 		return 0, ErrGasUintOverflow
 	}
+	fmt.Printf("CALL gasCall - gas init after memory: %d\n", gas)
 
 	evm.callGasTemp, err = callGas(evm.chainRules.IsEIP150, contract.Gas, gas, stack.Back(0))
+	fmt.Printf("CALL gasCall - callGas call value: %d\n", evm.callGasTemp)
 	if err != nil {
+		fmt.Printf("CALL gasCall - callGas err: %s\n", err)
 		return 0, err
 	}
+	fmt.Println("CALL gasCall - SafeAdd callGasTemp call")
 	if gas, overflow = math.SafeAdd(gas, evm.callGasTemp); overflow {
+		fmt.Printf("CALL gasCall - SafeAdd callGasTemp err: %t\n", overflow)
 		return 0, ErrGasUintOverflow
 	}
+	fmt.Printf("CALL gasCall - gas init after callGasTemp: %d\n", gas)
 	return gas, nil
 }
 

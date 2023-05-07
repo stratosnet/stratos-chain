@@ -207,6 +207,11 @@ const (
 	LOG4
 )
 
+// 0xdc range - closures. Stratos chain only
+const (
+	PREPAY OpCode = 0xdc
+)
+
 // 0xf0 range - closures.
 const (
 	CREATE       OpCode = 0xf0
@@ -376,6 +381,9 @@ var opCodeToString = map[OpCode]string{
 	LOG3:   "LOG3",
 	LOG4:   "LOG4",
 
+	// 0xdc range.
+	PREPAY: "PREPAY",
+
 	// 0xf0 range.
 	CREATE:       "CREATE",
 	CALL:         "CALL",
@@ -543,6 +551,9 @@ var stringToOp = map[string]OpCode{
 	"REVERT":         REVERT,
 	"INVALID":        INVALID,
 	"SELFDESTRUCT":   SELFDESTRUCT,
+
+	// new
+	"PREPAY": PREPAY,
 }
 
 // StringToOp finds the opcode whose name is stored in `str`.

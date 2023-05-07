@@ -81,6 +81,7 @@ func (k *Keeper) NewEVM(
 		CanTransfer: vm.CanTransfer,
 		Transfer:    vm.Transfer,
 		GetHash:     k.GetHashFn(ctx),
+		Prepay:      k.PrepayFn(ctx),
 		Coinbase:    cfg.CoinBase,
 		GasLimit:    stratos.BlockGasLimit(ctx),
 		BlockNumber: big.NewInt(ctx.BlockHeight()),
@@ -107,7 +108,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 
 	var debug bool
 
-	if _, ok := tracer.(vm.EVMLogger).(types.NoOpTracer); !ok {
+	if _, ok := tracer.(types.NoOpTracer); !ok {
 		debug = true
 		noBaseFee = true
 	}
@@ -117,6 +118,13 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 		Tracer:    tracer,
 		NoBaseFee: noBaseFee,
 		ExtraEips: cfg.Params.EIPs(),
+	}
+}
+
+// TODO: PROXY: IMplmnt this
+func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
+	return func(from common.Address, amount *big.Int) (*big.Int, error) {
+		return big.NewInt(123), nil
 	}
 }
 

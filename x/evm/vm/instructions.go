@@ -17,6 +17,8 @@
 package vm
 
 import (
+	"fmt"
+	"math/big"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -137,10 +139,13 @@ func opEq(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte,
 }
 
 func opIszero(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
+	fmt.Println("CALL opIszero")
 	x := scope.Stack.peek()
 	if x.IsZero() {
+		fmt.Printf("CALL opIszero - ZERO")
 		x.SetOne()
 	} else {
+		fmt.Printf("CALL opIszero - NOT ZERO")
 		x.Clear()
 	}
 	return nil, nil
@@ -671,6 +676,8 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]
 	return nil, nil
 }
 
+var PrepayCode = uint256.NewInt(0xf1)
+
 func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
 	stack := scope.Stack
 	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
@@ -679,6 +686,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	gas := interpreter.evm.callGasTemp
 	// Pop other call parameters.
 	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
+
 	toAddr := common.Address(addr.Bytes20())
 	// Get the arguments from the memory.
 	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
@@ -686,6 +694,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	if interpreter.readOnly && !value.IsZero() {
 		return nil, ErrWriteProtection
 	}
+
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
 	// By using big0 here, we save an alloc for the most common case (non-ether-transferring contract calls),
@@ -696,7 +705,6 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	}
 
 	ret, returnGas, err := interpreter.evm.Call(scope.Contract, toAddr, args, gas, bigVal)
-
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -930,4 +938,67 @@ func makeSwap(size int64) executionFunc {
 		scope.Stack.swap(int(size))
 		return nil, nil
 	}
+}
+
+func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
+	fmt.Println("CALL opPrepay")
+	stack := scope.Stack
+	contract := scope.Contract
+	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
+	// We can use this as a temporary value
+	temp := stack.pop()
+	// Pop other call parameters.
+	value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
+
+	var bigVal = big0
+	if !value.IsZero() {
+		bigVal = value.ToBig()
+	}
+
+	// TODO: Implement when beneficiary will be ready, do we need it really?
+	// Get the arguments from the memory.
+	_ = scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
+
+	// deducting balance of caller as he responsible for submission
+	interpreter.evm.StateDB.SubBalance(contract.caller.Address(), bigVal)
+	// return back money on origin to process prepay
+	interpreter.evm.StateDB.AddBalance(interpreter.evm.Origin, bigVal)
+
+	// NOTE: Current implementation not safe as we do not have revert mechanics in case of stored value
+	// possible to simulate in cachedCtx?
+	outBig, err := interpreter.evm.Context.Prepay(interpreter.evm.Origin, bigVal)
+	if err != nil {
+		temp.Clear()
+	} else {
+		temp.SetOne()
+	}
+
+	// safe check
+	if outBig == nil {
+		outBig = big.NewInt(0)
+	}
+
+	ret := uint256.NewInt(0).Bytes32()
+
+	stack.push(&temp)
+
+	if err == nil {
+		// NOTE: Possible to revert in case of overflow?
+		// possible that prepay has a bug
+		if outU, overflow := uint256.FromBig(outBig); !overflow {
+			outB := outU.Bytes32()
+			scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), outB[:])
+			ret = uint256.NewInt(1).Bytes32()
+		}
+	}
+
+	interpreter.returnData = ret[:]
+
+	fmt.Println("CALL opPrepay caller", contract.caller.Address())
+	fmt.Println("CALL opPrepay ret", common.Bytes2Hex(ret[:]))
+	fmt.Println("CALL opPrepay value", common.BigToHash(value.ToBig()))
+	fmt.Println("CALL opPrepay err", err)
+	fmt.Println("CALL opPrepay set data", common.Bytes2Hex(scope.Memory.GetPtr(int64(retOffset.Uint64()), int64(retSize.Uint64()))))
+
+	return interpreter.returnData, nil
 }

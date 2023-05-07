@@ -39,6 +39,11 @@ type StakingKeeper interface {
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
 }
 
+// SdsKeper defines functionality related for ozone purchase
+type SdsKeeper interface {
+	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error)
+}
+
 // Event Hooks
 // These can be utilized to customize evm transaction processing.
 

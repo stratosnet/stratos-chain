@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -43,6 +44,10 @@ type (
 	// GetHashFunc returns the n'th block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
+
+	// custom
+	// PrepayFunc execute prepay with provided data in PREPAY OpCode
+	PrepayFunc func(from common.Address, amount *big.Int) (*big.Int, error)
 )
 
 func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
@@ -71,6 +76,8 @@ type BlockContext struct {
 	Transfer TransferFunc
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc
+	// Prepay execute prepay with given context
+	Prepay PrepayFunc
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
@@ -229,6 +236,7 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			// The depth-check is already done, and precompiles handled above
 			contract := NewContract(caller, AccountRef(addrCopy), value, gas)
 			contract.SetCallCode(&addrCopy, evm.StateDB.GetCodeHash(addrCopy), code)
+			fmt.Println("!!!!EXEC CALL CODE!!!!")
 			ret, err = evm.interpreter.Run(contract, input, false)
 			gas = contract.Gas
 		}
