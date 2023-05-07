@@ -45,6 +45,8 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
+	// access for sds functionality with related keper
+	sdsKeeper types.SdsKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
@@ -58,6 +60,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
+	sdsKeeper types.SdsKeeper,
 	tracer string,
 ) *Keeper {
 	// ensure evm module account is set
@@ -77,6 +80,7 @@ func NewKeeper(
 		accountKeeper: ak,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: sk,
+		sdsKeeper:     sdsKeeper,
 		storeKey:      storeKey,
 		transientKey:  transientKey,
 		tracer:        tracer,

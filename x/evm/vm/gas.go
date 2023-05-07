@@ -30,6 +30,11 @@ const (
 	GasExtStep     uint64 = 20
 )
 
+// Stos keeper gas costs
+const (
+	CallGasPrepay uint64 = 30
+)
+
 // callGas returns the actual gas cost of the call.
 //
 // The cost of gas was changed during the homestead price change HF.

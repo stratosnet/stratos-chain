@@ -17,6 +17,7 @@
 package vm
 
 import (
+	"fmt"
 	"hash"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -70,24 +71,34 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 	if cfg.JumpTable == nil {
 		switch {
 		case evm.chainRules.IsMerge:
+			fmt.Println("IsMerge")
 			cfg.JumpTable = &mergeInstructionSet
 		case evm.chainRules.IsLondon:
+			fmt.Println("IsLondon")
 			cfg.JumpTable = &londonInstructionSet
 		case evm.chainRules.IsBerlin:
+			fmt.Println("IsBerlin")
 			cfg.JumpTable = &berlinInstructionSet
 		case evm.chainRules.IsIstanbul:
+			fmt.Println("IsIstanbul")
 			cfg.JumpTable = &istanbulInstructionSet
 		case evm.chainRules.IsConstantinople:
+			fmt.Println("IsConstantinople")
 			cfg.JumpTable = &constantinopleInstructionSet
 		case evm.chainRules.IsByzantium:
+			fmt.Println("IsByzantium")
 			cfg.JumpTable = &byzantiumInstructionSet
 		case evm.chainRules.IsEIP158:
+			fmt.Println("IsEIP158")
 			cfg.JumpTable = &spuriousDragonInstructionSet
 		case evm.chainRules.IsEIP150:
+			fmt.Println("IsEIP150")
 			cfg.JumpTable = &tangerineWhistleInstructionSet
 		case evm.chainRules.IsHomestead:
+			fmt.Println("IsHomestead")
 			cfg.JumpTable = &homesteadInstructionSet
 		default:
+			fmt.Println("IsFrontier")
 			cfg.JumpTable = &frontierInstructionSet
 		}
 		for i, eip := range cfg.ExtraEips {
@@ -100,6 +111,10 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 			cfg.JumpTable = &copy
 		}
 	}
+
+	// stratos keeper jump table update
+	jt := newKeeperInstructionSet(*cfg.JumpTable)
+	cfg.JumpTable = &jt
 
 	return &EVMInterpreter{
 		evm: evm,
@@ -185,7 +200,7 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 		// Get the operation from the jump table and validate the stack to ensure there are
 		// enough stack items available to perform the operation.
 		op = contract.GetOp(pc)
-		operation := in.cfg.JumpTable[op]
+		operation := in.getOperation(op)
 		cost = operation.constantGas // For tracing
 		// Validate stack
 		if sLen := stack.len(); sLen < operation.minStack {
@@ -247,4 +262,8 @@ func (in *EVMInterpreter) Run(contract *Contract, input []byte, readOnly bool) (
 	}
 
 	return res, err
+}
+
+func (in *EVMInterpreter) getOperation(opCode OpCode) *operation {
+	return in.cfg.JumpTable[opCode]
 }
