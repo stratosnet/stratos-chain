@@ -28,6 +28,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return querySlashingByWalletAddress(ctx, req, k, legacyQuerierCdc)
 		case types.QueryPotParams:
 			return getPotParams(ctx, req, k, legacyQuerierCdc)
+		case types.QueryTotalMinedToken:
+			return getTotalMinedToken(ctx, req, k, legacyQuerierCdc)
 		case types.QueryCirculationSupply:
 			return getCirculationSupply(ctx, req, k, legacyQuerierCdc)
 		default:
@@ -156,6 +158,15 @@ func querySlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keep
 	}
 
 	return []byte(k.registerKeeper.GetSlashing(ctx, addr).String()), nil
+}
+
+func getTotalMinedToken(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	totalMinedToken := k.GetTotalMinedTokens(ctx)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, totalMinedToken)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
 }
 
 func getCirculationSupply(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
