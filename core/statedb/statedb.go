@@ -1,6 +1,9 @@
 package statedb
 
 import (
+	"fmt"
+	"sort"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -21,7 +24,7 @@ type KeestateDB struct {
 	validRevisions []revision
 	nextRevisionID int
 
-	stateObjects map[StorageKey]*stateObject
+	stateObjects map[sdk.StoreKey]map[StorageKey]*stateObject
 }
 
 // New creates a new state from a given trie.
@@ -29,20 +32,20 @@ func New(ctx sdk.Context) *KeestateDB {
 	return &KeestateDB{
 		ctx:          ctx,
 		journal:      newJournal(),
-		stateObjects: make(map[StorageKey]*stateObject),
+		stateObjects: make(map[sdk.StoreKey]map[StorageKey]*stateObject),
 	}
 }
 
 func (ks *KeestateDB) getStateObject(storeKey sdk.StoreKey, key []byte) *stateObject {
 	skey := BytesToStorageKey(key)
 	// Prefer live objects if any is available
-	if obj := ks.stateObjects[skey]; obj != nil {
+	if obj := ks.stateObjects[storeKey][skey]; obj != nil {
 		return obj
 	}
 
 	// Insert into the live set
 	obj := newObject(ks, storeKey, skey)
-	if obj.value == nil {
+	if obj.value.IsNil() {
 		// if not, means issue with db, return nil obj
 		return nil
 	}
@@ -59,7 +62,10 @@ func (ks *KeestateDB) getOrNewStateObject(storeKey sdk.StoreKey, key []byte) *st
 }
 
 func (ks *KeestateDB) setStateObject(object *stateObject) {
-	ks.stateObjects[object.key] = object
+	if _, ok := ks.stateObjects[object.storeKey]; !ok {
+		ks.stateObjects[object.storeKey] = make(map[StorageKey]*stateObject)
+	}
+	ks.stateObjects[object.storeKey][object.key] = object
 }
 
 func (ks *KeestateDB) createObject(storeKey sdk.StoreKey, key []byte) (newobj, prev *stateObject) {
@@ -92,7 +98,7 @@ func (ks *KeestateDB) GetState(storeKey sdk.StoreKey, key []byte) []byte {
 	stateObject := ks.getStateObject(storeKey, key)
 	if stateObject != nil {
 		stateValue := stateObject.GetState()
-		if stateValue != nil {
+		if !stateValue.IsNil() {
 			return stateValue.Result()
 		}
 	}
@@ -104,9 +110,51 @@ func (ks *KeestateDB) GetCommittedState(storeKey sdk.StoreKey, key []byte) []byt
 	stateObject := ks.getStateObject(storeKey, key)
 	if stateObject != nil {
 		stateValue := stateObject.GetCommittedState()
-		if stateValue != nil {
+		if !stateValue.IsNil() {
 			return stateValue.Result()
 		}
 	}
 	return nil
+}
+
+// Commit all changes to a storage trie
+func (ks *KeestateDB) Commit() error {
+	for _, dirtyObj := range ks.journal.sortedDirties() {
+		obj := ks.stateObjects[dirtyObj.storeKey][dirtyObj.key]
+		for _, key := range obj.dirtyStorage.SortedKeys() {
+			value := obj.dirtyStorage[key]
+			origin := obj.originStorage[key]
+			// Skip noop changes, persist actual changes
+			if value.Eq(origin.Result()) {
+				continue
+			}
+			obj.store(value)
+		}
+	}
+	// no need to clean up as it will be always on fresh ctx
+	return nil
+}
+
+// Snapshot returns an identifier for the current revision of the state.
+func (ks *KeestateDB) Snapshot() int {
+	id := ks.nextRevisionID
+	ks.nextRevisionID++
+	ks.validRevisions = append(ks.validRevisions, revision{id, ks.journal.length()})
+	return id
+}
+
+// RevertToSnapshot reverts all state changes made since the given revision.
+func (ks *KeestateDB) RevertToSnapshot(revid int) {
+	// Find the snapshot in the stack of valid snapshots.
+	idx := sort.Search(len(ks.validRevisions), func(i int) bool {
+		return ks.validRevisions[i].id >= revid
+	})
+	if idx == len(ks.validRevisions) || ks.validRevisions[idx].id != revid {
+		panic(fmt.Errorf("revision id %v cannot be reverted", revid))
+	}
+	snapshot := ks.validRevisions[idx].journalIndex
+
+	// Replay the journal to undo changes and remove invalidated snapshots
+	ks.journal.revert(ks, snapshot)
+	ks.validRevisions = ks.validRevisions[:idx]
 }

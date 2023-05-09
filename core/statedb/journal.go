@@ -64,6 +64,9 @@ func (j *journal) sortedDirties() []*dirtyObj {
 func (j *journal) append(entry journalEntry) {
 	j.entries = append(j.entries, entry)
 	if dirty := entry.dirtied(); dirty != nil {
+		if _, ok := j.dirties[dirty.storeKey]; !ok {
+			j.dirties[dirty.storeKey] = make(map[StorageKey]int)
+		}
 		j.dirties[dirty.storeKey][dirty.key]++
 	}
 }
@@ -94,7 +97,7 @@ type (
 	storageChange struct {
 		storeKey sdk.StoreKey
 		key      StorageKey
-		prevalue []byte
+		prevalue StorageValue
 	}
 	createObjectChange struct {
 		storeKey sdk.StoreKey
@@ -106,7 +109,7 @@ type (
 )
 
 func (ch storageChange) revert(s *KeestateDB) {
-	s.GetStateObject(ch.storeKey, ch.key[:]).SetState(ch.key, ch.prevalue)
+	s.getStateObject(ch.storeKey, ch.key[:]).SetState(ch.prevalue.Result())
 }
 
 func (ch storageChange) dirtied() *dirtyObj {
@@ -114,7 +117,7 @@ func (ch storageChange) dirtied() *dirtyObj {
 }
 
 func (ch createObjectChange) revert(s *KeestateDB) {
-	delete(s.stateObjects, ch.key)
+	delete(s.stateObjects[ch.storeKey], ch.key)
 }
 
 func (ch createObjectChange) dirtied() *dirtyObj {
