@@ -1052,12 +1052,11 @@ func newKeeperInstructionSet(instructionSet JumpTable) JumpTable {
 	instructionSet[PREPAY] = &operation{
 		execute:     opPrepay,
 		constantGas: CallGasPrepay,
-		dynamicGas:  gasCall,
+		dynamicGas:  gasPrepay,
 		minStack:    minStack(6, 1),
 		maxStack:    maxStack(6, 1),
-		memorySize:  memoryCall,
+		memorySize:  memoryPrepay,
 	}
-	instructionSet[CALL].execute = wrapWithKeeperCall(opCall)
 
 	return validate(instructionSet)
 }

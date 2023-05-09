@@ -358,8 +358,7 @@ func NewInitApp(
 	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tKeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
-		app.accountKeeper, app.bankKeeper, app.stakingKeeper, app.sdsKeeper,
-		tracer,
+		app.accountKeeper, app.bankKeeper, app.stakingKeeper, nil, tracer,
 	)
 
 	// Create IBC Keeper
@@ -438,6 +437,11 @@ func NewInitApp(
 		app.registerKeeper,
 		app.potKeeper,
 	)
+
+	// required because of weird order(
+	// possible solution is to make all keepers as pointers, hovewer this could break something
+	app.evmKeeper.SetRegisterKeeper(&app.registerKeeper)
+	app.evmKeeper.SetSdsKeeper(&app.sdsKeeper)
 
 	/****  Module Options ****/
 

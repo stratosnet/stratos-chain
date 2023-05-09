@@ -21,8 +21,10 @@ import (
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // GasToRefund calculates the amount of gas the state machine should refund to the sender. It is
@@ -95,7 +97,7 @@ func (k *Keeper) NewEVM(
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
 	vmConfig := k.VMConfig(ctx, cfg, tracer)
-	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig)
+	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig, k.verifier)
 }
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
@@ -108,7 +110,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 
 	var debug bool
 
-	if _, ok := tracer.(types.NoOpTracer); !ok {
+	if _, ok := tracer.(tracers.NoOpTracer); !ok {
 		debug = true
 		noBaseFee = true
 	}
@@ -121,10 +123,35 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 	}
 }
 
-// TODO: PROXY: IMplmnt this
 func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
-	return func(from common.Address, amount *big.Int) (*big.Int, error) {
-		return big.NewInt(123), nil
+	return func(evm *vm.EVM, from, beneficiary common.Address, amount *big.Int, gas uint64) (*big.Int, uint64, error) {
+		if amount.Sign() == 0 {
+			return nil, gas, vm.ErrExecutionReverted
+		}
+		if gas < vm.ReturnGasPrepay {
+			return nil, gas, vm.ErrGasUintOverflow
+		}
+		// NOTE: Required to return correct left gas amount to solidity
+		returnGas := gas - vm.ReturnGasPrepay
+
+		purchased, _, err := k.registerKeeper.CalculatePurchaseAmount(ctx, sdk.NewIntFromBigInt(amount))
+		if err != nil {
+			return nil, returnGas, vm.ErrExecutionReverted
+		}
+
+		// k.registerKeeper.SetRemainingOzoneLimit(ctx, sdk.NewInt(123))
+
+		to := common.BytesToAddress(authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay))
+
+		if !evm.StateDB.Exist(to) {
+			evm.StateDB.CreateAccount(to)
+		}
+
+		evm.Context.Transfer(evm.StateDB, from, to, purchased.BigInt())
+
+		return nil, returnGas, vm.ErrExecutionReverted
+
+		// return purchased.BigInt(), returnGas, nil
 	}
 }
 

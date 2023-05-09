@@ -16,6 +16,7 @@ import (
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
@@ -31,7 +32,7 @@ type ProposalCounsil struct {
 	evm            *vm.EVM
 	consensusOwner common.Address
 	proxyOwner     common.Address
-	verifier       *ProposalVerifier
+	verifier       *vm.GenesisContractVerifier
 }
 
 func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
@@ -42,14 +43,12 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 		ctx:            ctx,
 		consensusOwner: common.HexToAddress(params.ProxyProposalParams.ConsensusAddress),
 		proxyOwner:     common.HexToAddress(params.ProxyProposalParams.ProxyOwnerAddress),
-		verifier:       NewProposalVerifier(),
+		verifier:       k.verifier,
 	}
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to load evm config")
 	}
-
-	defer pc.prepare(params)
 
 	blockCtx := vm.BlockContext{
 		CanTransfer: vm.CanTransfer,
@@ -67,18 +66,14 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 		Origin:   pc.consensusOwner,
 		GasPrice: big.NewInt(0),
 	}
-	tracer := types.NewNoOpTracer()
+	tracer := tracers.NewNoOpTracer()
 	vmConfig := k.VMConfig(ctx, cfg, tracer)
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 	pc.stateDB = statedb.New(ctx, pc.keeper, txConfig)
-	pc.evm = vm.NewEVM(blockCtx, txCtx, pc.stateDB, cfg.ChainConfig, vmConfig)
+	pc.evm = vm.NewEVM(blockCtx, txCtx, pc.stateDB, cfg.ChainConfig, vmConfig, pc.verifier)
 
 	return pc, nil
-}
-
-func (pc *ProposalCounsil) prepare(params types.Params) {
-	pc.verifier.ApplyParamsState(params)
 }
 
 func (pc *ProposalCounsil) finalize() error {
@@ -195,18 +190,22 @@ func (pc *ProposalCounsil) create(sender, contractAddress common.Address, data [
 }
 
 func (pc *ProposalCounsil) ApplyGenesisState(height uint64) error {
-	states := pc.verifier.GetStates(height)
+	contracts := pc.verifier.GetContracts(height)
 
-	for _, state := range states {
+	if len(contracts) == 0 {
+		return nil
+	}
+
+	for _, contract := range contracts {
 		implAddr := crypto.CreateAddress(pc.consensusOwner, pc.stateDB.GetNonce(pc.consensusOwner))
-		proxyAddr := common.HexToAddress(state.Address)
+		proxyAddr := common.HexToAddress(contract.GetAddress())
 
-		bin, err := hexutil.Decode(state.Bin)
+		bin, err := hexutil.Decode(contract.GetBin())
 		if err != nil {
 			return err
 		}
 
-		data, err := hexutil.Decode(state.Init)
+		data, err := hexutil.Decode(contract.GetInit())
 		if err != nil {
 			return err
 		}
@@ -234,10 +233,8 @@ func (pc *ProposalCounsil) ApplyGenesisState(height uint64) error {
 			return err
 		}
 	}
-	if len(states) > 0 {
-		if err := pc.finalize(); err != nil {
-			return err
-		}
+	if err := pc.finalize(); err != nil {
+		return err
 	}
 	return nil
 }
