@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	//feemarkettypes "github.com/stratosnet/stratos-chain/x/feemarket/types"
+	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
 )
 
 // AccountKeeper defines the expected account keeper interface
@@ -41,8 +41,8 @@ type StakingKeeper interface {
 
 // RegisterKeeper defines functionality related for meta and resource node
 type RegisterKeeper interface {
-	CalculatePurchaseAmount(ctx sdk.Context, amount sdk.Int) (sdk.Int, sdk.Int, error)
-	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
+	KeeCalculatePurchaseAmount(keestatedb *keestatedb.KeestateDB, amount sdk.Int) (sdk.Int, sdk.Int, error)
+	KeeSetRemainingOzoneLimit(keestatedb *keestatedb.KeestateDB, value sdk.Int)
 }
 
 // SdsKeper defines functionality related for ozone purchase

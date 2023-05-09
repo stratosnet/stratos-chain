@@ -19,6 +19,7 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 
+	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	"github.com/stratosnet/stratos-chain/x/evm/tracers"
@@ -97,7 +98,8 @@ func (k *Keeper) NewEVM(
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
 	vmConfig := k.VMConfig(ctx, cfg, tracer)
-	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig, k.verifier)
+	keestatedb := keestatedb.New(ctx)
+	return vm.NewEVM(blockCtx, txCtx, stateDB, keestatedb, cfg.ChainConfig, vmConfig, k.verifier)
 }
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
@@ -134,12 +136,14 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 		// NOTE: Required to return correct left gas amount to solidity
 		returnGas := gas - vm.ReturnGasPrepay
 
-		purchased, _, err := k.registerKeeper.CalculatePurchaseAmount(ctx, sdk.NewIntFromBigInt(amount))
+		kSnapshot := evm.KeestateDB.Snapshot()
+
+		purchased, remaining, err := k.registerKeeper.KeeCalculatePurchaseAmount(evm.KeestateDB, sdk.NewIntFromBigInt(amount))
 		if err != nil {
+			evm.KeestateDB.RevertToSnapshot(kSnapshot)
+
 			return nil, returnGas, vm.ErrExecutionReverted
 		}
-
-		// k.registerKeeper.SetRemainingOzoneLimit(ctx, sdk.NewInt(123))
 
 		to := common.BytesToAddress(authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay))
 
@@ -149,9 +153,9 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 
 		evm.Context.Transfer(evm.StateDB, from, to, purchased.BigInt())
 
-		return nil, returnGas, vm.ErrExecutionReverted
+		k.registerKeeper.KeeSetRemainingOzoneLimit(evm.KeestateDB, remaining)
 
-		// return purchased.BigInt(), returnGas, nil
+		return purchased.BigInt(), returnGas, vm.ErrExecutionReverted
 	}
 }
 
@@ -459,6 +463,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	if commit {
 		if err := stateDB.Commit(); err != nil {
 			return nil, sdkerrors.Wrap(err, "failed to commit stateDB")
+		}
+		if err := evm.KeestateDB.Commit(); err != nil {
+			return nil, sdkerrors.Wrap(err, "failed to commit keestateDB")
 		}
 	}
 

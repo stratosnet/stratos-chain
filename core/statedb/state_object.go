@@ -11,7 +11,7 @@ type stateObject struct {
 
 	storeKey sdk.StoreKey
 	key      StorageKey
-	value    *StorageValue
+	value    StorageValue
 
 	// state storage
 	originStorage Storage
@@ -28,36 +28,45 @@ func newObject(db *KeestateDB, storeKey sdk.StoreKey, key StorageKey) *stateObje
 		originStorage: make(Storage),
 		dirtyStorage:  make(Storage),
 	}
-	if value := so.read(key); value != nil {
+	if value := so.read(); value.Result() != nil {
 		so.value = value
 	}
 	return so
 }
 
-func (s *stateObject) read(key StorageKey) *StorageValue {
-	value := s.ctx.KVStore(s.storeKey).Get(key[:])
+func (s stateObject) read() StorageValue {
+	value := s.ctx.KVStore(s.storeKey).Get(s.key[:])
 	if value != nil {
 		return NewStorageValue(value)
 	}
-	return nil
+	return StorageValue{}
+}
+
+func (s stateObject) store(value StorageValue) {
+	store := s.ctx.KVStore(s.storeKey)
+	if value.IsNil() {
+		store.Delete(s.key[:])
+	} else {
+		store.Set(s.key[:], value.Result())
+	}
 }
 
 // GetCommittedState query the committed state
-func (s *stateObject) GetCommittedState() *StorageValue {
+func (s *stateObject) GetCommittedState() StorageValue {
 	if value, cached := s.originStorage[s.key]; cached {
 		return value
 	}
 	// If no live objects are available, load it from indexdb
-	value := s.read(s.key)
-	if value == nil {
-		return nil
+	value := s.read()
+	if value.IsNil() {
+		return StorageValue{}
 	}
 	s.originStorage[s.key] = value
 	return value
 }
 
 // GetState query the current state (including dirty state)
-func (s *stateObject) GetState() *StorageValue {
+func (s *stateObject) GetState() StorageValue {
 	if value, dirty := s.dirtyStorage[s.key]; dirty {
 		return value
 	}
@@ -75,7 +84,7 @@ func (s *stateObject) SetState(value []byte) {
 	s.db.journal.append(storageChange{
 		storeKey: s.storeKey,
 		key:      s.key,
-		prevalue: prev.Result(),
+		prevalue: prev,
 	})
 	s.setState(value)
 }

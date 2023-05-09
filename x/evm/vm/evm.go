@@ -29,6 +29,8 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
+
+	"github.com/stratosnet/stratos-chain/core/statedb"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -111,6 +113,8 @@ type EVM struct {
 	TxContext
 	// StateDB gives access to the underlying state
 	StateDB ethvm.StateDB
+	// StateDB gives access to the cosmos underlying state
+	KeestateDB *statedb.KeestateDB
 	// Depth is the current call stack
 	depth int
 
@@ -137,11 +141,12 @@ type EVM struct {
 
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
 // only ever be used *once*.
-func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb ethvm.StateDB, chainConfig *params.ChainConfig, config Config, genesisContractVerifier *GenesisContractVerifier) *EVM {
+func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb ethvm.StateDB, kstatedb *statedb.KeestateDB, chainConfig *params.ChainConfig, config Config, genesisContractVerifier *GenesisContractVerifier) *EVM {
 	evm := &EVM{
 		Context:                 blockCtx,
 		TxContext:               txCtx,
 		StateDB:                 statedb,
+		KeestateDB:              kstatedb,
 		Config:                  config,
 		chainConfig:             chainConfig,
 		chainRules:              chainConfig.Rules(blockCtx.BlockNumber, blockCtx.Random != nil),
