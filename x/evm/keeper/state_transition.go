@@ -155,7 +155,7 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 
 		k.registerKeeper.KeeSetRemainingOzoneLimit(evm.KeestateDB, remaining)
 
-		return purchased.BigInt(), returnGas, vm.ErrExecutionReverted
+		return purchased.BigInt(), returnGas, nil
 	}
 }
 
