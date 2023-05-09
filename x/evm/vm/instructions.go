@@ -142,10 +142,10 @@ func opIszero(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 	fmt.Println("CALL opIszero")
 	x := scope.Stack.peek()
 	if x.IsZero() {
-		fmt.Printf("CALL opIszero - ZERO")
+		fmt.Println("CALL opIszero - ZERO")
 		x.SetOne()
 	} else {
-		fmt.Printf("CALL opIszero - NOT ZERO")
+		fmt.Println("CALL opIszero - NOT ZERO")
 		x.Clear()
 	}
 	return nil, nil
@@ -940,47 +940,74 @@ func makeSwap(size int64) executionFunc {
 	}
 }
 
+var (
+	slot1 = uint256.NewInt(0x20)
+	slot4 = new(uint256.Int).Mul(slot1, uint256.NewInt(0x04))
+)
+
 func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
 	fmt.Println("CALL opPrepay")
 	stack := scope.Stack
 	contract := scope.Contract
+	evm := interpreter.evm
 	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
 	// We can use this as a temporary value
 	temp := stack.pop()
-	// Pop other call parameters.
+	gas := interpreter.evm.callGasTemp
+	// Pop other prepay parameters.
 	value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
+	addr := contract.caller.Address()
+	ret := uint256.NewInt(0).Bytes32()
+
+	// Fail if we're trying to execute above the call depth limit
+	fmt.Println("CALL opPrepay depth", evm.depth)
+	if evm.depth > int(params.CallCreateDepth) {
+		temp.Clear()
+		stack.push(&temp)
+		interpreter.returnData = ret[:]
+		scope.Contract.Gas += gas
+		return interpreter.returnData, ErrDepth
+	}
+
+	if !interpreter.evm.genesisContractVerifier.IsTrustedAddress(addr.Hex()) {
+		temp.Clear()
+		stack.push(&temp)
+		interpreter.returnData = ret[:]
+		scope.Contract.Gas += gas
+		return interpreter.returnData, fmt.Errorf("caller is not verified")
+	}
+
+	if !inOffset.Eq(slot4) || !inSize.Eq(slot1) || !retOffset.Eq(new(uint256.Int).Add(slot4, slot1)) || !retSize.Eq(slot1) {
+		temp.Clear()
+		stack.push(&temp)
+		interpreter.returnData = ret[:]
+		scope.Contract.Gas += gas
+		return interpreter.returnData, fmt.Errorf("wrong order")
+	}
 
 	var bigVal = big0
 	if !value.IsZero() {
 		bigVal = value.ToBig()
 	}
 
-	// TODO: Implement when beneficiary will be ready, do we need it really?
-	// Get the arguments from the memory.
-	_ = scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
+	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
-	// deducting balance of caller as he responsible for submission
-	interpreter.evm.StateDB.SubBalance(contract.caller.Address(), bigVal)
-	// return back money on origin to process prepay
-	interpreter.evm.StateDB.AddBalance(interpreter.evm.Origin, bigVal)
+	beneficiary := common.BytesToAddress(args)
 
 	// NOTE: Current implementation not safe as we do not have revert mechanics in case of stored value
-	// possible to simulate in cachedCtx?
-	outBig, err := interpreter.evm.Context.Prepay(interpreter.evm.Origin, bigVal)
+	// in case of out of gas in the next ops
+	outBig, returnGas, err := interpreter.evm.Context.Prepay(interpreter.evm, contract.caller.Address(), beneficiary, bigVal, gas)
 	if err != nil {
 		temp.Clear()
 	} else {
 		temp.SetOne()
 	}
+	stack.push(&temp)
 
-	// safe check
+	// |-<>-| guard
 	if outBig == nil {
 		outBig = big.NewInt(0)
 	}
-
-	ret := uint256.NewInt(0).Bytes32()
-
-	stack.push(&temp)
 
 	if err == nil {
 		// NOTE: Possible to revert in case of overflow?
@@ -994,11 +1021,14 @@ func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 
 	interpreter.returnData = ret[:]
 
+	scope.Contract.Gas += returnGas
+
+	fmt.Println("CALL opPrepay args", args)
 	fmt.Println("CALL opPrepay caller", contract.caller.Address())
 	fmt.Println("CALL opPrepay ret", common.Bytes2Hex(ret[:]))
 	fmt.Println("CALL opPrepay value", common.BigToHash(value.ToBig()))
 	fmt.Println("CALL opPrepay err", err)
-	fmt.Println("CALL opPrepay set data", common.Bytes2Hex(scope.Memory.GetPtr(int64(retOffset.Uint64()), int64(retSize.Uint64()))))
+	fmt.Println("CALL opPrepay out", outBig)
 
-	return interpreter.returnData, nil
+	return interpreter.returnData, err
 }

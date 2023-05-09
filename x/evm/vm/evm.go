@@ -17,7 +17,6 @@
 package vm
 
 import (
-	"fmt"
 	"math/big"
 	"sync/atomic"
 	"time"
@@ -47,7 +46,7 @@ type (
 
 	// custom
 	// PrepayFunc execute prepay with provided data in PREPAY OpCode
-	PrepayFunc func(from common.Address, amount *big.Int) (*big.Int, error)
+	PrepayFunc func(evm *EVM, from, beneficiary common.Address, amount *big.Int, gas uint64) (*big.Int, uint64, error)
 )
 
 func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
@@ -132,18 +131,21 @@ type EVM struct {
 	// available gas is calculated in gasCall* according to the 63/64 rule and later
 	// applied in opCall*.
 	callGasTemp uint64
+	// genesisContractVerifier verifies is contract is trusted in order to allow curtain opcodes
+	genesisContractVerifier *GenesisContractVerifier
 }
 
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
 // only ever be used *once*.
-func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb ethvm.StateDB, chainConfig *params.ChainConfig, config Config) *EVM {
+func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb ethvm.StateDB, chainConfig *params.ChainConfig, config Config, genesisContractVerifier *GenesisContractVerifier) *EVM {
 	evm := &EVM{
-		Context:     blockCtx,
-		TxContext:   txCtx,
-		StateDB:     statedb,
-		Config:      config,
-		chainConfig: chainConfig,
-		chainRules:  chainConfig.Rules(blockCtx.BlockNumber, blockCtx.Random != nil),
+		Context:                 blockCtx,
+		TxContext:               txCtx,
+		StateDB:                 statedb,
+		Config:                  config,
+		chainConfig:             chainConfig,
+		chainRules:              chainConfig.Rules(blockCtx.BlockNumber, blockCtx.Random != nil),
+		genesisContractVerifier: genesisContractVerifier,
 	}
 	evm.interpreter = NewEVMInterpreter(evm, config)
 	return evm
@@ -236,7 +238,6 @@ func (evm *EVM) Call(caller ContractRef, addr common.Address, input []byte, gas 
 			// The depth-check is already done, and precompiles handled above
 			contract := NewContract(caller, AccountRef(addrCopy), value, gas)
 			contract.SetCallCode(&addrCopy, evm.StateDB.GetCodeHash(addrCopy), code)
-			fmt.Println("!!!!EXEC CALL CODE!!!!")
 			ret, err = evm.interpreter.Run(contract, input, false)
 			gas = contract.Gas
 		}

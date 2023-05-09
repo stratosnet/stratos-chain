@@ -39,6 +39,12 @@ type StakingKeeper interface {
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
 }
 
+// RegisterKeeper defines functionality related for meta and resource node
+type RegisterKeeper interface {
+	CalculatePurchaseAmount(ctx sdk.Context, amount sdk.Int) (sdk.Int, sdk.Int, error)
+	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
+}
+
 // SdsKeper defines functionality related for ozone purchase
 type SdsKeeper interface {
 	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error)

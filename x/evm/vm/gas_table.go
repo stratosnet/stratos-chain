@@ -18,7 +18,6 @@ package vm
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
@@ -327,18 +326,11 @@ func gasExpEIP158(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memor
 }
 
 func gasCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
-	fmt.Println("CALL gasCall")
 	var (
 		gas            uint64
 		transfersValue = !stack.Back(2).IsZero()
 		address        = common.Address(stack.Back(1).Bytes20())
 	)
-
-	// fmt.Printf("contract: %+v\n", contract)
-	fmt.Printf("CALL gasCall - toAddr: %s\n", address)
-	fmt.Printf("CALL gasCall - transfersValue: %t\n", transfersValue)
-	fmt.Printf("CALL gasCall - gas: %d\n", gas)
-	fmt.Printf("CALL gasCall - data: %s\n", common.Bytes2Hex(mem.Data()))
 
 	if evm.chainRules.IsEIP158 {
 		if transfersValue && evm.StateDB.Empty(address) {
@@ -350,33 +342,22 @@ func gasCall(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize
 	if transfersValue {
 		gas += params.CallValueTransferGas
 	}
-	fmt.Printf("CALL gasCall - gas init value: %d\n", gas)
 	memoryGas, err := memoryGasCost(mem, memorySize)
-	fmt.Printf("CALL gasCall - memoryGasCost call value: %d\n", memoryGas)
 	if err != nil {
-		fmt.Printf("CALL gasCall - memoryGasCost err: %s\n", err)
 		return 0, err
 	}
-	fmt.Println("CALL gasCall - SafeAdd memoryGas call")
 	var overflow bool
 	if gas, overflow = math.SafeAdd(gas, memoryGas); overflow {
-		fmt.Printf("CALL gasCall - SafeAdd memoryGas err: %t\n", overflow)
 		return 0, ErrGasUintOverflow
 	}
-	fmt.Printf("CALL gasCall - gas init after memory: %d\n", gas)
 
 	evm.callGasTemp, err = callGas(evm.chainRules.IsEIP150, contract.Gas, gas, stack.Back(0))
-	fmt.Printf("CALL gasCall - callGas call value: %d\n", evm.callGasTemp)
 	if err != nil {
-		fmt.Printf("CALL gasCall - callGas err: %s\n", err)
 		return 0, err
 	}
-	fmt.Println("CALL gasCall - SafeAdd callGasTemp call")
 	if gas, overflow = math.SafeAdd(gas, evm.callGasTemp); overflow {
-		fmt.Printf("CALL gasCall - SafeAdd callGasTemp err: %t\n", overflow)
 		return 0, ErrGasUintOverflow
 	}
-	fmt.Printf("CALL gasCall - gas init after callGasTemp: %d\n", gas)
 	return gas, nil
 }
 
@@ -456,6 +437,22 @@ func gasSelfdestruct(evm *EVM, contract *Contract, stack *Stack, mem *Memory, me
 
 	if !evm.StateDB.HasSuicided(contract.Address()) {
 		evm.StateDB.AddRefund(params.SelfdestructRefundGas)
+	}
+	return gas, nil
+}
+
+func gasPrepay(evm *EVM, contract *Contract, stack *Stack, mem *Memory, memorySize uint64) (uint64, error) {
+	gas, err := memoryGasCost(mem, memorySize)
+	if err != nil {
+		return 0, err
+	}
+	evm.callGasTemp, err = callGas(evm.chainRules.IsEIP150, contract.Gas, gas, stack.Back(0))
+	if err != nil {
+		return 0, err
+	}
+	var overflow bool
+	if gas, overflow = math.SafeAdd(gas, evm.callGasTemp); overflow {
+		return 0, ErrGasUintOverflow
 	}
 	return gas, nil
 }

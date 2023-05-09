@@ -22,6 +22,8 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 
 	k.SetBaseFeeParam(ctx, baseFee)
 
+	k.AddGenesisVerifier(ctx)
+
 	// Store current base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(

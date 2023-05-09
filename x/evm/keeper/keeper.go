@@ -2,6 +2,7 @@ package keeper
 
 import (
 	"math/big"
+	"sort"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -19,6 +20,7 @@ import (
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
@@ -45,11 +47,16 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
-	// access for sds functionality with related keper
+	// access for registry functionality with related keeper
+	registerKeeper types.RegisterKeeper
+	// access for sds functionality with related keeper
 	sdsKeeper types.SdsKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
+
+	// genesisContractVerifier verifies is contract is trusted in order to allow curtain opcodes
+	verifier *vm.GenesisContractVerifier
 
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
@@ -90,6 +97,35 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", types.ModuleName)
+}
+
+func (k *Keeper) SetRegisterKeeper(rk types.RegisterKeeper) {
+	k.registerKeeper = rk
+}
+
+func (k *Keeper) SetSdsKeeper(sdsk types.SdsKeeper) {
+	k.sdsKeeper = sdsk
+}
+
+// AddVerifier adding verifier with initial contracts
+func (k *Keeper) AddGenesisVerifier(ctx sdk.Context) {
+	// could be as cached
+	if k.verifier != nil {
+		return
+	}
+
+	k.verifier = vm.NewGenesisContractVerifier()
+
+	params := k.GetParams(ctx)
+	keys := make([]string, 0)
+	for k := range params.ProxyProposalParams.Contracts {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, key := range keys {
+		contract := params.ProxyProposalParams.Contracts[key]
+		k.verifier.AddContract(contract, true)
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -211,8 +247,7 @@ func (k *Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *et
 
 // Tracer return a default vm.Tracer based on current keeper state
 func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *params.ChainConfig) vm.EVMLogger {
-	tracer := types.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
-	return tracer.(vm.EVMLogger)
+	return tracers.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
 }
 
 // GetAccountWithoutBalance load nonce and codehash without balance,

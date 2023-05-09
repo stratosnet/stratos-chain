@@ -20,10 +20,10 @@ import (
 
 	ethparams "github.com/ethereum/go-ethereum/params"
 	"github.com/stratosnet/stratos-chain/x/evm/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
-	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
@@ -388,7 +388,7 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
-		tracer := types.NewNoOpTracer()
+		tracer := tracers.NewNoOpTracer()
 		rsp, err := k.ApplyMessageWithConfig(ctx, msg, tracer, true, cfg, txConfig)
 		if err != nil {
 			continue
@@ -445,11 +445,11 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	}
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 	txsLength := len(req.Txs)
-	results := make([]*types.TxTraceResult, 0, txsLength)
+	results := make([]*tracers.TxTraceResult, 0, txsLength)
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
 	for i, tx := range req.Txs {
-		result := types.TxTraceResult{}
+		result := tracers.TxTraceResult{}
 		ethTx := tx.AsTransaction()
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
@@ -545,7 +545,7 @@ func (k *Keeper) traceTx(
 		}
 		tracer = logger.NewStructLogger(&logConfig)
 	default:
-		tracer = types.NewTracer(types.TracerStruct, msg, cfg.ChainConfig, ctx.BlockHeight())
+		tracer = tracers.NewTracer(tracers.TracerStruct, msg, cfg.ChainConfig, ctx.BlockHeight())
 	}
 
 	res, err := k.ApplyMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
@@ -565,11 +565,11 @@ func (k *Keeper) traceTx(
 		} else {
 			returnVal = fmt.Sprintf("%x", res.Return())
 		}
-		result = types.ExecutionResult{
+		result = tracers.ExecutionResult{
 			Gas:         res.GasUsed,
 			Failed:      res.Failed(),
 			ReturnValue: returnVal,
-			StructLogs:  types.FormatLogs(tracer.StructLogs()),
+			StructLogs:  tracers.FormatLogs(tracer.StructLogs()),
 		}
 	case tracers.Tracer:
 		result, err = tracer.GetResult()

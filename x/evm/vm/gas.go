@@ -32,7 +32,8 @@ const (
 
 // Stos keeper gas costs
 const (
-	CallGasPrepay uint64 = 30
+	CallGasPrepay   uint64 = 30
+	ReturnGasPrepay uint64 = 10_000
 )
 
 // callGas returns the actual gas cost of the call.
