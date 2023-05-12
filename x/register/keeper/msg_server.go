@@ -212,7 +212,7 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrInvalidVoterOwnerAddr, err.Error())
 	}
 
-	nodeStatus, err := k.HandleVoteForMetaNodeRegistration(
+	nodeStatus, isPassingVote, err := k.HandleVoteForMetaNodeRegistration(
 		ctx, candidateNetworkAddress, candidateOwnerAddress, types.VoteOpinion(msg.Opinion), voterNetworkAddress, voterOwnerAddress)
 	if err != nil {
 		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrVoteMetaNode, err.Error())
@@ -225,6 +225,7 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 			sdk.NewAttribute(types.AttributeKeyVoterNetworkAddress, msg.VoterNetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyCandidateNetworkAddress, msg.CandidateNetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyCandidateStatus, nodeStatus.String()),
+			sdk.NewAttribute(types.AttributeKeyIsPassingVote, strconv.FormatBool(isPassingVote)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
@@ -234,6 +235,40 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 	})
 
 	return &types.MsgMetaNodeRegistrationVoteResponse{}, nil
+}
+
+func (k msgServer) HandleMsgWithdrawMetaNodeRegistrationStake(goCtx context.Context, msg *types.MsgWithdrawMetaNodeRegistrationStake) (*types.MsgWithdrawMetaNodeRegistrationStakeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
+	if err != nil {
+		return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+	}
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, types.ErrInvalidOwnerAddr
+	}
+
+	completionTime, err := k.WithdrawMetaNodeRegistrationStake(ctx, networkAddr, ownerAddr)
+	if err != nil {
+		return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawMetaNodeRegistrationStake,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
+		),
+	})
+
+	return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, nil
 }
 
 func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types.MsgUpdateResourceNode) (*types.MsgUpdateResourceNodeResponse, error) {
