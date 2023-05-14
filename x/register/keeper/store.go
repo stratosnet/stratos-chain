@@ -59,21 +59,21 @@ func (k Keeper) SetUnbondingNode(ctx sdk.Context, ubd types.UnbondingNode) {
 	if err != nil {
 		return
 	}
-	key := types.GetUBDNodeKey(networkAddr)
+	key := types.GetUBDNodeKey(networkAddr, ubd.GetIsMetaNode())
 	store.Set(key, bz)
 }
 
 // RemoveUnbondingNode removes the unbonding node object
-func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress) {
+func (k Keeper) RemoveUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDNodeKey(networkAddr)
+	key := types.GetUBDNodeKey(networkAddr, isMetaNode)
 	store.Delete(key)
 }
 
 // GetUnbondingNode return a unbonding node
-func (k Keeper) GetUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress) (ubd types.UnbondingNode, found bool) {
+func (k Keeper) GetUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool) (ubd types.UnbondingNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDNodeKey(networkAddr)
+	key := types.GetUBDNodeKey(networkAddr, isMetaNode)
 	value := store.Get(key)
 	if value == nil {
 		return ubd, false
@@ -83,25 +83,22 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 }
 
 // SetUnbondingNodeQueueTimeSlice sets a specific unbonding queue timeslice.
-func (k Keeper) SetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time, networkAddrs []string) {
+func (k Keeper) SetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time, unbondingTimeSliceInfos types.UnbondingTimeSliceInfos) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.SdsAddresses{Addresses: networkAddrs})
+	bz := k.cdc.MustMarshalLengthPrefixed(&unbondingTimeSliceInfos)
 	store.Set(types.GetUBDTimeKey(timestamp), bz)
 }
 
 // GetUnbondingNodeQueueTimeSlice gets a specific unbonding queue timeslice. A timeslice is a slice of DVPairs
 // corresponding to unbonding delegations that expire at a certain time.
-func (k Keeper) GetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (networkAddrs []string) {
+func (k Keeper) GetUnbondingNodeQueueTimeSlice(ctx sdk.Context, timestamp time.Time) (unbondingTimeSliceInfos types.UnbondingTimeSliceInfos) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetUBDTimeKey(timestamp))
 	if bz == nil {
-		return make([]string, 0)
+		return types.UnbondingTimeSliceInfos{}
 	}
-
-	addrValue := stratos.SdsAddresses{}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &addrValue)
-	networkAddrs = addrValue.GetAddresses()
-	return networkAddrs
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &unbondingTimeSliceInfos)
+	return
 }
 
 // UnbondingNodeQueueIterator returns all the unbonding queue timeslices from time 0 until endTime

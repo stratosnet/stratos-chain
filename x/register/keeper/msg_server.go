@@ -163,7 +163,7 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgRemoveMetaNodeResponse{}, types.ErrInvalidOwnerAddr
 	}
 
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, p2pAddress)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, p2pAddress, true)
 	availableStake := metaNode.Tokens.Sub(unbondingStake)
 	if availableStake.LTE(sdk.ZeroInt()) {
 		return &types.MsgRemoveMetaNodeResponse{}, types.ErrInsufficientBalance

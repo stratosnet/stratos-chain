@@ -1,6 +1,7 @@
 package types
 
 import (
+	"strconv"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -66,8 +67,8 @@ func GetMetaNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
 }
 
 // GetURNKey gets the key for the unbonding Node with address
-func GetUBDNodeKey(nodeAddr stratos.SdsAddress) []byte {
-	return append(UBDNodeKey, nodeAddr.Bytes()...)
+func GetUBDNodeKey(nodeAddr stratos.SdsAddress, isMetaNode bool) []byte {
+	return strconv.AppendBool(append(UBDNodeKey, nodeAddr.Bytes()...), isMetaNode)
 }
 
 // gets the prefix for all unbonding Node

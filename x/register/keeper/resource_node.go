@@ -102,7 +102,7 @@ func (k Keeper) AddResourceNodeStake(ctx sdk.Context, resourceNode types.Resourc
 	if found && nodeStored.IsBonded() {
 		needAddCount = false
 	}
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr, false)
 	availableTokenAmtBefore = resourceNode.Tokens.Sub(unbondingStake)
 
 	coins := sdk.NewCoins(tokenToAdd)
@@ -358,7 +358,7 @@ func (k Keeper) UpdateEffectiveStake(ctx sdk.Context, networkAddr stratos.SdsAdd
 	}
 
 	// before calc ozone limit change, get unbonding stake and calc effective stake to trigger ozLimit change
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr, false)
 	// no effective stake after subtracting unbonding stake
 	if node.Tokens.LTE(unbondingStake) {
 		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrInsufficientBalance

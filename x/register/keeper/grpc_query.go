@@ -115,6 +115,7 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 				metaNode.GetStatus(),
 				networkAddr,
 				metaNode.Tokens,
+				true,
 			)
 			if err != nil {
 				return &types.QueryStakeByNodeResponse{}, err
@@ -144,6 +145,7 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 				resourceNode.GetStatus(),
 				networkAddr,
 				resourceNode.Tokens,
+				false,
 			)
 			if err != nil {
 				return nil, err

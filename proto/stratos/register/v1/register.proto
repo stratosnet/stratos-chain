@@ -226,5 +226,23 @@ message UnbondingNodeEntry {
   ];
 }
 
+message UnbondingTimeSliceInfos {
+  repeated UnbondingTimeSliceInfo          entries = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "entries",
+    (gogoproto.moretags) = "yaml:\"entries\""
+  ];
+}
+
+message UnbondingTimeSliceInfo {
+  string                              network_addr = 1 [
+    (gogoproto.jsontag) = "network_addr",
+    (gogoproto.moretags) = "yaml:\"network_addr\""
+  ];
+  bool                                is_meta_node = 2 [
+    (gogoproto.jsontag) = "is_meta_node",
+    (gogoproto.moretags) = "yaml:\"is_meta_node\""
+  ];
+}
 
 

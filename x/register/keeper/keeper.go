@@ -145,8 +145,8 @@ func (k Keeper) DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int
 }
 
 // HasMaxUnbondingNodeEntries - check if unbonding node has maximum number of entries
-func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress) bool {
-	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
+func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool) bool {
+	ubd, found := k.GetUnbondingNode(ctx, networkAddr, isMetaNode)
 	if !found {
 		return false
 	}
@@ -158,7 +158,7 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool,
 	creationHeight int64, minTime time.Time, balance sdk.Int) types.UnbondingNode {
 
-	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
+	ubd, found := k.GetUnbondingNode(ctx, networkAddr, isMetaNode)
 	if found {
 		ubd.AddEntry(creationHeight, minTime, balance)
 	} else {
@@ -172,22 +172,17 @@ func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAd
 
 // InsertUnbondingNodeQueue inserts an unbonding delegation to the appropriate timeslice in the unbonding queue
 func (k Keeper) InsertUnbondingNodeQueue(ctx sdk.Context, ubd types.UnbondingNode, completionTime time.Time) {
+	timeSliceInfo := types.UnbondingTimeSliceInfo{NetworkAddr: ubd.GetNetworkAddr(), IsMetaNode: ubd.GetIsMetaNode()}
 	timeSlice := k.GetUnbondingNodeQueueTimeSlice(ctx, completionTime)
-	networkAddr := ubd.GetNetworkAddr()
-
-	if len(timeSlice) == 0 {
-		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, []string{networkAddr})
-	} else {
-		timeSlice = append(timeSlice, networkAddr)
-		k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, timeSlice)
-	}
+	timeSlice.Entries = append(timeSlice.Entries, timeSliceInfo)
+	k.SetUnbondingNodeQueueTimeSlice(ctx, completionTime, timeSlice)
 }
 
 // DequeueAllMatureUBDQueue returns a concatenated list of all the timeslices inclusively previous to
 // currTime, and deletes the timeslices from the queue
 // Iteration for dequeuing  all mature unbonding queue
 // TODO: Unused parameter: currTime
-func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []string) {
+func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (matureUnbonds []types.UnbondingTimeSliceInfo) {
 	keysToDelete := make([][]byte, 0)
 	store := ctx.KVStore(k.storeKey)
 	// gets an iterator for all timeslices from time 0 until the current Blockheader time
@@ -195,11 +190,11 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (m
 	defer unbondingTimesliceIterator.Close()
 
 	for ; unbondingTimesliceIterator.Valid(); unbondingTimesliceIterator.Next() {
-		timeSliceVal := stratos.SdsAddresses{} //[]stratos.SdsAddress{}
+		timeSliceVal := types.UnbondingTimeSliceInfos{} //stratos.SdsAddresses{}
 		value := unbondingTimesliceIterator.Value()
 		k.cdc.MustUnmarshalLengthPrefixed(value, &timeSliceVal)
-		timeSlice := timeSliceVal.GetAddresses()
-		matureUnbonds = append(matureUnbonds, timeSlice...)
+		timeSlices := timeSliceVal.Entries
+		matureUnbonds = append(matureUnbonds, timeSlices...)
 		keysToDelete = append(keysToDelete, unbondingTimesliceIterator.Key())
 	}
 	// safe removal
@@ -213,14 +208,14 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (m
 // CompleteUnbondingWithAmount completes the unbonding of all mature entries in
 // the retrieved unbonding delegation object and returns the total unbonding
 // balance or an error upon failure.
-func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddrBech32 string) (sdk.Coins, bool, error) {
+func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddrBech32 string, isMetaNode bool) (sdk.Coins, bool, error) {
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrBech32)
 	if err != nil {
 		ctx.Logger().Error(fmt.Sprintf("NetworAddr: %s is invalid", networkAddrBech32))
 		return nil, false, types.ErrInvalidNetworkAddr
 	}
 
-	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
+	ubd, found := k.GetUnbondingNode(ctx, networkAddr, isMetaNode)
 	if !found {
 		ctx.Logger().Info(fmt.Sprintf("NetworAddr: %s not found while completing UnbondingWithAmount", networkAddr))
 		return nil, false, types.ErrNoUnbondingNode
@@ -252,7 +247,7 @@ func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddrBech32 s
 
 	// set the unbonding node or remove it if there are no more entries
 	if len(ubd.Entries) == 0 {
-		k.RemoveUnbondingNode(ctx, networkAddr)
+		k.RemoveUnbondingNode(ctx, networkAddr, isMetaNode)
 	} else {
 		k.SetUnbondingNode(ctx, ubd)
 	}
@@ -300,12 +295,12 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddre
 	if resourceNode.GetSuspend() {
 		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
-	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
+	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr, false) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
 	// check if node_token - unbonding_token > 0
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr, false)
 	stakeToRemove = resourceNode.Tokens.Sub(unbondingStake)
 	if stakeToRemove.LTE(sdk.ZeroInt()) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
@@ -362,13 +357,13 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 	}
 
 	// check if node_token - unbonding_token > amt_to_unbond
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr, true)
 	availableStake := metaNode.Tokens.Sub(unbondingStake)
 	if availableStake.LT(amt) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
 
-	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
+	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr, true) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
@@ -423,11 +418,11 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 }
 
 // GetUnbondingNodeBalance returns an unbonding balance and an UnbondingNode
-func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int {
+func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool) sdk.Int {
 	balance := sdk.ZeroInt()
 
 	store := ctx.KVStore(k.storeKey)
-	key := types.GetUBDNodeKey(networkAddr)
+	key := types.GetUBDNodeKey(networkAddr, isMetaNode)
 	value := store.Get(key)
 	if value == nil {
 		return balance

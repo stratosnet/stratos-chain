@@ -74,7 +74,7 @@ func PrepayTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "prepay [from_address] [beneficiary_address] [coins]",
 		Short: "Create and sign a prepay tx",
-		Args:  cobra.ExactArgs(2),
+		Args:  cobra.ExactArgs(3),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			cliCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {

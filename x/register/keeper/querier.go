@@ -170,7 +170,6 @@ func getNodesStakingInfo(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQ
 	return bz, nil
 }
 
-//
 func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var (
 		bz          []byte
@@ -195,6 +194,7 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 				metaNode.GetStatus(),
 				networkAddr,
 				metaNode.Tokens,
+				true,
 			)
 			if err != nil {
 				return nil, err
@@ -225,6 +225,7 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 				resourceNode.GetStatus(),
 				networkAddr,
 				resourceNode.Tokens,
+				false,
 			)
 			if err != nil {
 				return nil, err
@@ -356,14 +357,16 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	return result, nil
 }
 
-func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int, isMetaNode bool) (
+	unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
+
 	unbondingStake = sdk.NewInt(0)
 	unbondedStake = sdk.NewInt(0)
 	bondedStake = sdk.NewInt(0)
 
 	switch bondStatus {
 	case stakingtypes.Unbonding:
-		unbondingStake = k.GetUnbondingNodeBalance(ctx, nodeAddress)
+		unbondingStake = k.GetUnbondingNodeBalance(ctx, nodeAddress, isMetaNode)
 	case stakingtypes.Unbonded:
 		unbondedStake = tokens
 	case stakingtypes.Bonded:
@@ -633,6 +636,7 @@ func StakingInfoToStakingInfoResourceNode(ctx sdk.Context, k Keeper, node types.
 		node.GetStatus(),
 		networkAddr,
 		node.Tokens,
+		false,
 	)
 	if er != nil {
 		return stakingInfo, er
@@ -657,6 +661,7 @@ func StakingInfoToStakingInfoMetaNode(ctx sdk.Context, k Keeper, node types.Meta
 		node.GetStatus(),
 		networkAddr,
 		node.Tokens,
+		true,
 	)
 	if er != nil {
 		return stakingInfo, er

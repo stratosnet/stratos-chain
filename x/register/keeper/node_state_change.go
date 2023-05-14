@@ -16,8 +16,8 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 	// Remove all mature unbonding nodes from the ubd queue.
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
 	matureUBDs := k.DequeueAllMatureUBDQueue(ctx, ctx.BlockHeader().Time)
-	for _, networkAddr := range matureUBDs {
-		balances, isMetaNode, err := k.CompleteUnbondingWithAmount(ctx, networkAddr)
+	for _, matureUBDInfo := range matureUBDs {
+		balances, isMetaNode, err := k.CompleteUnbondingWithAmount(ctx, matureUBDInfo.GetNetworkAddr(), matureUBDInfo.GetIsMetaNode())
 		if err != nil {
 			continue
 		}
@@ -26,7 +26,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingMetaNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, matureUBDInfo.GetNetworkAddr()),
 				),
 			)
 		} else {
@@ -34,7 +34,7 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 				sdk.NewEvent(
 					types.EventTypeCompleteUnbondingResourceNode,
 					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
+					sdk.NewAttribute(types.AttributeKeyNetworkAddress, matureUBDInfo.GetNetworkAddr()),
 				),
 			)
 		}
