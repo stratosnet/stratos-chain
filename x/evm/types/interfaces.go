@@ -41,8 +41,9 @@ type StakingKeeper interface {
 
 // RegisterKeeper defines functionality related for meta and resource node
 type RegisterKeeper interface {
-	KeeCalculatePurchaseAmount(keestatedb *keestatedb.KeestateDB, amount sdk.Int) (sdk.Int, sdk.Int, error)
-	KeeSetRemainingOzoneLimit(keestatedb *keestatedb.KeestateDB, value sdk.Int)
+	KeeGetEffectiveTotalStake(kdb *keestatedb.KeestateDB) sdk.Int
+	KeeGetRemainingOzoneLimit(kdb *keestatedb.KeestateDB) sdk.Int
+	KeeSetRemainingOzoneLimit(kdb *keestatedb.KeestateDB, value sdk.Int)
 }
 
 // SdsKeper defines functionality related for ozone purchase

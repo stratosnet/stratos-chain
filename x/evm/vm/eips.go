@@ -130,7 +130,6 @@ func enable2929(jt *JumpTable) {
 	jt[BALANCE].constantGas = params.WarmStorageReadCostEIP2929
 	jt[BALANCE].dynamicGas = gasEip2929AccountCheck
 
-	fmt.Println("Enable CALL with 2929")
 	jt[CALL].constantGas = params.WarmStorageReadCostEIP2929
 	jt[CALL].dynamicGas = gasCallEIP2929
 

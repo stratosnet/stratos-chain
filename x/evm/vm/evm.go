@@ -25,12 +25,9 @@ import (
 	"github.com/ethereum/go-ethereum/consensus"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
-	ethvm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/holiman/uint256"
-
-	"github.com/stratosnet/stratos-chain/core/statedb"
 )
 
 // emptyCodeHash is used by create to ensure deployment is disallowed to already
@@ -39,9 +36,9 @@ var emptyCodeHash = crypto.Keccak256Hash(nil)
 
 type (
 	// CanTransferFunc is the signature of a transfer guard function
-	CanTransferFunc func(ethvm.StateDB, common.Address, *big.Int) bool
+	CanTransferFunc func(StateDB, common.Address, *big.Int) bool
 	// TransferFunc is the signature of a transfer function
-	TransferFunc func(ethvm.StateDB, common.Address, common.Address, *big.Int)
+	TransferFunc func(StateDB, common.Address, common.Address, *big.Int)
 	// GetHashFunc returns the n'th block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
@@ -112,9 +109,7 @@ type EVM struct {
 	Context BlockContext
 	TxContext
 	// StateDB gives access to the underlying state
-	StateDB ethvm.StateDB
-	// StateDB gives access to the cosmos underlying state
-	KeestateDB *statedb.KeestateDB
+	StateDB StateDB
 	// Depth is the current call stack
 	depth int
 
@@ -141,12 +136,11 @@ type EVM struct {
 
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
 // only ever be used *once*.
-func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb ethvm.StateDB, kstatedb *statedb.KeestateDB, chainConfig *params.ChainConfig, config Config, genesisContractVerifier *GenesisContractVerifier) *EVM {
+func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb StateDB, chainConfig *params.ChainConfig, config Config, genesisContractVerifier *GenesisContractVerifier) *EVM {
 	evm := &EVM{
 		Context:                 blockCtx,
 		TxContext:               txCtx,
 		StateDB:                 statedb,
-		KeestateDB:              kstatedb,
 		Config:                  config,
 		chainConfig:             chainConfig,
 		chainRules:              chainConfig.Rules(blockCtx.BlockNumber, blockCtx.Random != nil),
@@ -158,7 +152,7 @@ func NewEVM(blockCtx BlockContext, txCtx TxContext, statedb ethvm.StateDB, kstat
 
 // Reset resets the EVM with a new transaction context.Reset
 // This is not threadsafe and should only be done very cautiously.
-func (evm *EVM) Reset(txCtx TxContext, statedb ethvm.StateDB) {
+func (evm *EVM) Reset(txCtx TxContext, statedb StateDB) {
 	evm.TxContext = txCtx
 	evm.StateDB = statedb
 }
@@ -625,12 +619,12 @@ func GetHashFn(ref *types.Header, chain ChainContext) func(n uint64) common.Hash
 
 // CanTransfer checks whether there are enough funds in the address' account to make a transfer.
 // This does not take the necessary gas in to account to make the transfer valid.
-func CanTransfer(db ethvm.StateDB, addr common.Address, amount *big.Int) bool {
+func CanTransfer(db StateDB, addr common.Address, amount *big.Int) bool {
 	return db.GetBalance(addr).Cmp(amount) >= 0
 }
 
 // Transfer subtracts amount from sender and adds amount to recipient using the given Db
-func Transfer(db ethvm.StateDB, sender, recipient common.Address, amount *big.Int) {
+func Transfer(db StateDB, sender, recipient common.Address, amount *big.Int) {
 	db.SubBalance(sender, amount)
 	db.AddBalance(recipient, amount)
 }

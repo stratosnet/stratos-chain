@@ -17,7 +17,6 @@
 package vm
 
 import (
-	"fmt"
 	"hash"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -71,34 +70,24 @@ func NewEVMInterpreter(evm *EVM, cfg Config) *EVMInterpreter {
 	if cfg.JumpTable == nil {
 		switch {
 		case evm.chainRules.IsMerge:
-			fmt.Println("IsMerge")
 			cfg.JumpTable = &mergeInstructionSet
 		case evm.chainRules.IsLondon:
-			fmt.Println("IsLondon")
 			cfg.JumpTable = &londonInstructionSet
 		case evm.chainRules.IsBerlin:
-			fmt.Println("IsBerlin")
 			cfg.JumpTable = &berlinInstructionSet
 		case evm.chainRules.IsIstanbul:
-			fmt.Println("IsIstanbul")
 			cfg.JumpTable = &istanbulInstructionSet
 		case evm.chainRules.IsConstantinople:
-			fmt.Println("IsConstantinople")
 			cfg.JumpTable = &constantinopleInstructionSet
 		case evm.chainRules.IsByzantium:
-			fmt.Println("IsByzantium")
 			cfg.JumpTable = &byzantiumInstructionSet
 		case evm.chainRules.IsEIP158:
-			fmt.Println("IsEIP158")
 			cfg.JumpTable = &spuriousDragonInstructionSet
 		case evm.chainRules.IsEIP150:
-			fmt.Println("IsEIP150")
 			cfg.JumpTable = &tangerineWhistleInstructionSet
 		case evm.chainRules.IsHomestead:
-			fmt.Println("IsHomestead")
 			cfg.JumpTable = &homesteadInstructionSet
 		default:
-			fmt.Println("IsFrontier")
 			cfg.JumpTable = &frontierInstructionSet
 		}
 		for i, eip := range cfg.ExtraEips {
