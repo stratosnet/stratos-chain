@@ -60,6 +60,9 @@ type Keeper struct {
 
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
+
+	// cosmos events to execute when all execution passed
+	events sdk.Events
 }
 
 // NewKeeper generates new evm module keeper
@@ -91,6 +94,7 @@ func NewKeeper(
 		storeKey:      storeKey,
 		transientKey:  transientKey,
 		tracer:        tracer,
+		events:        make(sdk.Events, 0, 12),
 	}
 }
 
@@ -105,6 +109,18 @@ func (k *Keeper) SetRegisterKeeper(rk types.RegisterKeeper) {
 
 func (k *Keeper) SetSdsKeeper(sdsk types.SdsKeeper) {
 	k.sdsKeeper = sdsk
+}
+
+// cosmos events
+func (k *Keeper) AddEvents(events sdk.Events) {
+	k.events = append(k.events, events...)
+}
+
+func (k *Keeper) ApplyEvents(ctx sdk.Context, isVmError bool) {
+	if len(k.events) > 0 && !isVmError {
+		ctx.EventManager().EmitEvents(k.events)
+	}
+	k.events = k.events[:0] // clear prvious events to avoid conflicts
 }
 
 // AddVerifier adding verifier with initial contracts

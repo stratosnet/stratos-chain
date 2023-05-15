@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 
-	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	"github.com/stratosnet/stratos-chain/x/evm/tracers"
@@ -72,8 +71,7 @@ func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 	pc.stateDB = statedb.New(ctx, pc.keeper, txConfig)
-	kstatedb := keestatedb.New(ctx)
-	pc.evm = vm.NewEVM(blockCtx, txCtx, pc.stateDB, kstatedb, cfg.ChainConfig, vmConfig, pc.verifier)
+	pc.evm = vm.NewEVM(blockCtx, txCtx, pc.stateDB, cfg.ChainConfig, vmConfig, pc.verifier)
 
 	return pc, nil
 }

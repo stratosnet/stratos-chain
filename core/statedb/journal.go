@@ -47,10 +47,10 @@ func (j *journal) sortedDirties() []*dirtyObj {
 	t := 0
 	for i := range j.dirties {
 		for k := range j.dirties[i] {
-			keys[t] = &dirtyObj{
+			keys = append(keys, &dirtyObj{
 				storeKey: i,
 				key:      k,
-			}
+			})
 			t++
 		}
 	}

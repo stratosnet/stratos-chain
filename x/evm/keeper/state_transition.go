@@ -15,17 +15,16 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	ethvm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 
-	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // GasToRefund calculates the amount of gas the state machine should refund to the sender. It is
@@ -78,7 +77,7 @@ func (k *Keeper) NewEVM(
 	msg core.Message,
 	cfg *types.EVMConfig,
 	tracer vm.EVMLogger,
-	stateDB ethvm.StateDB,
+	stateDB vm.StateDB,
 ) *vm.EVM {
 	blockCtx := vm.BlockContext{
 		CanTransfer: vm.CanTransfer,
@@ -98,8 +97,7 @@ func (k *Keeper) NewEVM(
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
 	vmConfig := k.VMConfig(ctx, cfg, tracer)
-	keestatedb := keestatedb.New(ctx)
-	return vm.NewEVM(blockCtx, txCtx, stateDB, keestatedb, cfg.ChainConfig, vmConfig, k.verifier)
+	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig, k.verifier)
 }
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
@@ -136,11 +134,15 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 		// NOTE: Required to return correct left gas amount to solidity
 		returnGas := gas - vm.ReturnGasPrepay
 
-		kSnapshot := evm.KeestateDB.Snapshot()
+		kdb := evm.StateDB.GetKeestateDB()
+		kSnapshot := evm.StateDB.KeeSnapshot()
 
-		purchased, remaining, err := k.registerKeeper.KeeCalculatePurchaseAmount(evm.KeestateDB, sdk.NewIntFromBigInt(amount))
+		accFrom := sdk.AccAddress(from.Bytes())
+		accBeneficiary := sdk.AccAddress(beneficiary.Bytes())
+
+		purchased, remaining, err := k.KeeCalculatePrepayPurchaseAmount(evm.StateDB, sdk.NewIntFromBigInt(amount))
 		if err != nil {
-			evm.KeestateDB.RevertToSnapshot(kSnapshot)
+			evm.StateDB.RevertToKeeSnapshot(kSnapshot)
 
 			return nil, returnGas, vm.ErrExecutionReverted
 		}
@@ -153,7 +155,22 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 
 		evm.Context.Transfer(evm.StateDB, from, to, purchased.BigInt())
 
-		k.registerKeeper.KeeSetRemainingOzoneLimit(evm.KeestateDB, remaining)
+		k.registerKeeper.KeeSetRemainingOzoneLimit(kdb, remaining)
+
+		k.AddEvents(sdk.Events{
+			sdk.NewEvent(
+				sdstypes.EventTypePrepay,
+				sdk.NewAttribute(sdk.AttributeKeySender, accFrom.String()),
+				sdk.NewAttribute(sdstypes.AttributeKeyBeneficiary, accBeneficiary.String()),
+				sdk.NewAttribute(sdstypes.AttributeKeyAmount, sdk.NewIntFromBigInt(amount).String()),
+				sdk.NewAttribute(sdstypes.AttributeKeyPurchasedNoz, purchased.String()),
+			),
+			sdk.NewEvent(
+				sdk.EventTypeMessage,
+				sdk.NewAttribute(sdk.AttributeKeyModule, sdstypes.AttributeValueCategory),
+				sdk.NewAttribute(sdk.AttributeKeySender, accFrom.String()),
+			),
+		})
 
 		return purchased.BigInt(), returnGas, nil
 	}
@@ -464,10 +481,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		if err := stateDB.Commit(); err != nil {
 			return nil, sdkerrors.Wrap(err, "failed to commit stateDB")
 		}
-		if err := evm.KeestateDB.Commit(); err != nil {
-			return nil, sdkerrors.Wrap(err, "failed to commit keestateDB")
-		}
 	}
+
+	k.ApplyEvents(ctx, vmErr != nil)
 
 	return &types.MsgEthereumTxResponse{
 		GasUsed: gasUsed,

@@ -158,3 +158,8 @@ func (ks *KeestateDB) RevertToSnapshot(revid int) {
 	ks.journal.revert(ks, snapshot)
 	ks.validRevisions = ks.validRevisions[:idx]
 }
+
+// GetSdkCtx returns current cosmos sdk context
+func (ks *KeestateDB) GetSdkCtx() sdk.Context {
+	return ks.ctx
+}

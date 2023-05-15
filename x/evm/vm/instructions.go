@@ -139,13 +139,10 @@ func opEq(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte,
 }
 
 func opIszero(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-	fmt.Println("CALL opIszero")
 	x := scope.Stack.peek()
 	if x.IsZero() {
-		fmt.Println("CALL opIszero - ZERO")
 		x.SetOne()
 	} else {
-		fmt.Println("CALL opIszero - NOT ZERO")
 		x.Clear()
 	}
 	return nil, nil
@@ -946,7 +943,6 @@ var (
 )
 
 func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-	fmt.Println("CALL opPrepay")
 	stack := scope.Stack
 	contract := scope.Contract
 	evm := interpreter.evm
@@ -960,7 +956,6 @@ func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 	ret := uint256.NewInt(0).Bytes32()
 
 	// Fail if we're trying to execute above the call depth limit
-	fmt.Println("CALL opPrepay depth", evm.depth)
 	if evm.depth > int(params.CallCreateDepth) {
 		temp.Clear()
 		stack.push(&temp)
@@ -1010,25 +1005,15 @@ func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 	}
 
 	if err == nil {
-		// NOTE: Possible to revert in case of overflow?
-		// possible that prepay has a bug
-		if outU, overflow := uint256.FromBig(outBig); !overflow {
-			outB := outU.Bytes32()
-			scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), outB[:])
-			ret = uint256.NewInt(1).Bytes32()
-		}
+		outU, _ := uint256.FromBig(outBig)
+		outB := outU.Bytes32()
+		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), outB[:])
+		ret = uint256.NewInt(1).Bytes32()
 	}
 
 	interpreter.returnData = ret[:]
 
 	scope.Contract.Gas += returnGas
-
-	fmt.Println("CALL opPrepay args", args)
-	fmt.Println("CALL opPrepay caller", contract.caller.Address())
-	fmt.Println("CALL opPrepay ret", common.Bytes2Hex(ret[:]))
-	fmt.Println("CALL opPrepay value", common.BigToHash(value.ToBig()))
-	fmt.Println("CALL opPrepay err", err)
-	fmt.Println("CALL opPrepay out", outBig)
 
 	return interpreter.returnData, err
 }

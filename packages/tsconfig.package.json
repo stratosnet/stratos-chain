@@ -2,7 +2,7 @@
   "exclude": [
     "**/dist/**",
     "**/node_modules/**",
-    "**/tests/**"
+    "**/test/**"
   ],
   "compilerOptions": {
     "composite": true,
