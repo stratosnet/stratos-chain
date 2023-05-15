@@ -208,6 +208,10 @@ func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.
 func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *types.MsgSlashingResourceNode) (*types.MsgSlashingResourceNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if len(msg.Reporters) == 0 || len(msg.ReporterOwner) == 0 {
+		return &types.MsgSlashingResourceNodeResponse{}, types.ErrReporterAddressOrOwner
+	}
+
 	reporterOwners := msg.ReporterOwner
 	for idx, reporter := range msg.Reporters {
 		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)
