@@ -312,6 +312,10 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *types.MsgUpdateEffectiveStake) (*types.MsgUpdateEffectiveStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
+	if len(msg.Reporters) == 0 || len(msg.ReporterOwner) == 0 {
+		return &types.MsgUpdateEffectiveStakeResponse{}, types.ErrReporterAddressOrOwner
+	}
+
 	reporterOwners := msg.ReporterOwner
 	validReporterCount := 0
 	for idx, reporter := range msg.Reporters {
