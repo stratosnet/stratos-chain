@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,6 +21,7 @@ import (
 
 var (
 	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+	cacheMutex                     sync.RWMutex
 )
 
 // Keeper of the register store
