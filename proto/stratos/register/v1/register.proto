@@ -42,6 +42,12 @@ message Params {
     (gogoproto.jsontag) = "resource_node_min_stake",
     (gogoproto.moretags) = "yaml:\"resource_node_min_stake\""
   ];
+  google.protobuf.Duration  voting_validity_period = 7 [
+   (gogoproto.nullable) = false,
+   (gogoproto.stdduration) = true,
+   (gogoproto.jsontag) = "voting_validity_period",
+   (gogoproto.moretags) = "yaml:\"voting_validity_period\""
+  ];
 }
 
 message ResourceNode {
@@ -158,6 +164,10 @@ message MetaNodeRegistrationVotePool {
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "expire_time",
     (gogoproto.moretags) = "yaml:\"expire_time\""
+  ];
+  bool                     is_vote_passed = 5 [
+   (gogoproto.jsontag) = "is_vote_passed",
+   (gogoproto.moretags) = "yaml:\"is_vote_passed\""
   ];
 }
 

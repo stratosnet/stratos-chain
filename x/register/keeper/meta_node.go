@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	metaNodeCacheSize            = 500
-	votingValidityPeriodInSecond = 7 * 24 * 60 * 60 // 7 days
+	metaNodeCacheSize = 500
 )
 
 // Cache the proto decoding of meta nodes, as it can be the case that repeated slashing calls
@@ -125,7 +124,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 
 	var approveList = make([]stratos.SdsAddress, 0)
 	var rejectList = make([]stratos.SdsAddress, 0)
-	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
+	votingValidityPeriod := k.VotingValidityPeriod(ctx)
 	expireTime := ctx.BlockHeader().Time.Add(votingValidityPeriod)
 
 	votePool := types.NewRegistrationVotePool(networkAddr, approveList, rejectList, expireTime)
@@ -316,40 +315,88 @@ func (k Keeper) GetMetaNodeListByMoniker(ctx sdk.Context, moniker string) (resou
 	return resourceNodes, nil
 }
 
-func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetworkAddr stratos.SdsAddress, candidateOwnerAddr sdk.AccAddress,
-	opinion types.VoteOpinion, voterNetworkAddr stratos.SdsAddress, voterOwnerAddr sdk.AccAddress) (nodeStatus stakingtypes.BondStatus, err error) {
+func (k Keeper) WithdrawMetaNodeRegistrationStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) (
+	unbondingMatureTime time.Time, err error) {
 
+	node, found := k.GetMetaNode(ctx, networkAddr)
+	if !found {
+		return time.Time{}, types.ErrNoMetaNodeFound
+	}
+	if node.GetOwnerAddress() != ownerAddr.String() {
+		return time.Time{}, types.ErrInvalidOwnerAddr
+	}
+	votePool, exist := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr)
+	if !exist {
+		return time.Time{}, types.ErrNoRegistrationVotePoolFound
+	}
+	// to be qualified to withdraw, meta node must be unbonded && suspended && of non-passed vote
+	if node.Status != stakingtypes.Unbonded || !node.Suspend || votePool.IsVotePassed {
+		return time.Time{}, types.ErrInvalidNodeStat
+	}
+	// check available_stake (node_token - unbonding_token > amt_to_withdraw)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := node.Tokens.Sub(unbondingStake)
+	if availableStake.LTE(sdk.ZeroInt()) {
+		return time.Time{}, types.ErrInsufficientBalance
+	}
+	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
+		return time.Time{}, types.ErrMaxUnbondingNodeEntries
+	}
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, node.Status, node.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+
+	// Set the unbonding mature time and completion height appropriately
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, availableStake)
+	// Add to unbonding node queue
+	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
+	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
+
+	// all stake is being unbonded, update status to Unbonding
+	node.Status = stakingtypes.Unbonding
+	k.SetMetaNode(ctx, node)
+
+	// remove from cache just in case
+	k.RemoveMetaNodeFromBitMapIdxCache(networkAddr)
+	// delete vote pool after withdraw is done
+	k.DeleteMetaNodeRegistrationVotePool(ctx, networkAddr)
+
+	return unbondingMatureTime, nil
+}
+
+func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetworkAddr stratos.SdsAddress, candidateOwnerAddr sdk.AccAddress,
+	opinion types.VoteOpinion, voterNetworkAddr stratos.SdsAddress, voterOwnerAddr sdk.AccAddress) (nodeStatus stakingtypes.BondStatus, isPassingVote bool, err error) {
+
+	isPassingVote = false
 	// voter validation
 	voterNode, found := k.GetMetaNode(ctx, voterNetworkAddr)
 	if !found {
-		return stakingtypes.Unbonded, types.ErrNoVoterMetaNodeFound
+		return stakingtypes.Unbonded, isPassingVote, types.ErrNoVoterMetaNodeFound
 	}
 	if voterNode.GetOwnerAddress() != voterOwnerAddr.String() {
-		return stakingtypes.Unbonded, types.ErrInvalidVoterOwnerAddr
+		return stakingtypes.Unbonded, isPassingVote, types.ErrInvalidVoterOwnerAddr
 	}
 	if voterNode.Status != stakingtypes.Bonded || voterNode.Suspend {
-		return stakingtypes.Unbonded, types.ErrInvalidVoterStatus
+		return stakingtypes.Unbonded, isPassingVote, types.ErrInvalidVoterStatus
 	}
 
 	// candidate validation
 	candidateNode, found := k.GetMetaNode(ctx, candidateNetworkAddr)
 	if !found {
-		return stakingtypes.Unbonded, types.ErrNoCandidateMetaNodeFound
+		return stakingtypes.Unbonded, isPassingVote, types.ErrNoCandidateMetaNodeFound
 	}
 	if candidateNode.GetOwnerAddress() != candidateOwnerAddr.String() {
-		return candidateNode.Status, types.ErrInvalidCandidateOwnerAddr
+		return candidateNode.Status, isPassingVote, types.ErrInvalidCandidateOwnerAddr
 	}
 
 	// vote validation and handle voting
 	votePool, found := k.GetMetaNodeRegistrationVotePool(ctx, candidateNetworkAddr)
 	if !found {
-		return stakingtypes.Unbonded, types.ErrNoRegistrationVotePoolFound
+		return stakingtypes.Unbonded, isPassingVote, types.ErrNoRegistrationVotePoolFound
 	}
 	if votePool.ExpireTime.Before(ctx.BlockHeader().Time) {
-		return stakingtypes.Unbonded, types.ErrVoteExpired
+		return stakingtypes.Unbonded, isPassingVote, types.ErrVoteExpired
 	}
 	if hasStringValue(votePool.ApproveList, voterNetworkAddr.String()) || hasStringValue(votePool.RejectList, voterNetworkAddr.String()) {
-		return stakingtypes.Unbonded, types.ErrDuplicateVoting
+		return stakingtypes.Unbonded, isPassingVote, types.ErrDuplicateVoting
 	}
 
 	if opinion.Equal(types.Approve) {
@@ -359,10 +406,12 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 	}
 	k.SetMetaNodeRegistrationVotePool(ctx, votePool)
 
-	if candidateNode.Status == stakingtypes.Bonded {
-		return candidateNode.Status, nil
+	// if vote had already passed before
+	if votePool.IsVotePassed {
+		return candidateNode.Status, isPassingVote, nil
 	}
 
+	//if vote is yet to pass
 	totalSpCount := len(k.GetAllValidMetaNodes(ctx))
 	voteCountRequiredToPass := totalSpCount*2/3 + 1
 	//unbounded to bounded
@@ -381,26 +430,30 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 		k.SetBondedMetaNodeCnt(ctx, count)
 		// move stake from not bonded pool to bonded pool
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), candidateNode.Tokens)
-
 		// sub coins from not bonded pool
 		nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
 		if nBondedMetaAccountAddr == nil {
 			ctx.Logger().Error("not bonded account address for meta nodes does not exist.")
-			return candidateNode.Status, types.ErrUnknownAccountAddress
+			return candidateNode.Status, isPassingVote, types.ErrUnknownAccountAddress
 		}
 
 		hasCoin := k.bankKeeper.HasBalance(ctx, nBondedMetaAccountAddr, tokenToBond)
 		if !hasCoin {
-			return candidateNode.Status, types.ErrInsufficientBalance
+			return candidateNode.Status, isPassingVote, types.ErrInsufficientBalance
 		}
 
 		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPool, types.MetaNodeBondedPool, sdk.NewCoins(tokenToBond))
 		if err != nil {
-			return candidateNode.Status, err
+			return candidateNode.Status, isPassingVote, err
 		}
+
+		votePool.IsVotePassed = true
+		k.SetMetaNodeRegistrationVotePool(ctx, votePool)
+		// mark this vote as passing vote
+		isPassingVote = true
 	}
 
-	return candidateNode.Status, nil
+	return candidateNode.Status, isPassingVote, nil
 }
 
 func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
