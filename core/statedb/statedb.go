@@ -37,7 +37,7 @@ func New(ctx sdk.Context) *KeestateDB {
 }
 
 func (ks *KeestateDB) getStateObject(storeKey sdk.StoreKey, key []byte) *stateObject {
-	skey := BytesToStorageKey(key)
+	skey := StorageKey(key)
 	// Prefer live objects if any is available
 	if obj := ks.stateObjects[storeKey][skey]; obj != nil {
 		return obj
@@ -71,10 +71,10 @@ func (ks *KeestateDB) setStateObject(object *stateObject) {
 func (ks *KeestateDB) createObject(storeKey sdk.StoreKey, key []byte) (newobj, prev *stateObject) {
 	prev = ks.getStateObject(storeKey, key)
 
-	skey := BytesToStorageKey(key)
+	skey := StorageKey(key)
 	newobj = newObject(ks, storeKey, skey)
 	if prev == nil {
-		ks.journal.append(createObjectChange{storeKey, BytesToStorageKey(key)})
+		ks.journal.append(createObjectChange{storeKey, skey})
 	} else {
 		ks.journal.append(resetObjectChange{prev: prev})
 	}

@@ -3,28 +3,13 @@ package statedb
 import (
 	"bytes"
 	"sort"
+	"strings"
 )
 
-const StorageKeyLength = 256
+type StorageKey string
 
-type StorageKey [StorageKeyLength]byte
-
-// SetBytes sets the hash to the value of b.
-// If b is larger than len(h), b will be cropped from the left.
-func (sk *StorageKey) SetBytes(b []byte) {
-	if len(b) > len(sk) {
-		b = b[len(b)-StorageKeyLength:]
-	}
-
-	copy(sk[StorageKeyLength-len(b):], b)
-}
-
-// BytesToStorageKey sets b to StorageKey.
-// If b is larger than len(h), b will be cropped from the left.
-func BytesToStorageKey(b []byte) StorageKey {
-	var sk StorageKey
-	sk.SetBytes(b)
-	return sk
+func (sk StorageKey) Len() int {
+	return len(sk)
 }
 
 type StorageValue struct {
@@ -68,7 +53,7 @@ func (s Storage) SortedKeys() []StorageKey {
 		i++
 	}
 	sort.Slice(keys, func(i, j int) bool {
-		return bytes.Compare(keys[i][:], keys[j][:]) < 0
+		return strings.Compare(string(keys[i]), string(keys[j])) < 0
 	})
 	return keys
 }

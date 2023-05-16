@@ -35,7 +35,7 @@ func newObject(db *KeestateDB, storeKey sdk.StoreKey, key StorageKey) *stateObje
 }
 
 func (s stateObject) read() StorageValue {
-	value := s.ctx.KVStore(s.storeKey).Get(s.key[:])
+	value := s.ctx.KVStore(s.storeKey).Get([]byte(s.key))
 	if value != nil {
 		return NewStorageValue(value)
 	}
@@ -45,9 +45,9 @@ func (s stateObject) read() StorageValue {
 func (s stateObject) store(value StorageValue) {
 	store := s.ctx.KVStore(s.storeKey)
 	if value.IsNil() {
-		store.Delete(s.key[:])
+		store.Delete([]byte(s.key))
 	} else {
-		store.Set(s.key[:], value.Result())
+		store.Set([]byte(s.key), value.Result())
 	}
 }
 
