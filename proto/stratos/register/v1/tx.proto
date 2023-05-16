@@ -46,6 +46,9 @@ service Msg {
   rpc HandleMsgMetaNodeRegistrationVote(MsgMetaNodeRegistrationVote) returns (MsgMetaNodeRegistrationVoteResponse) {
     option (google.api.http).post = "/stratos/register/v1/meta_node_registration_vote";
   };
+  rpc HandleMsgWithdrawMetaNodeRegistrationStake(MsgWithdrawMetaNodeRegistrationStake) returns (MsgWithdrawMetaNodeRegistrationStakeResponse) {
+    option (google.api.http).post = "/stratos/register/v1/withdraw_meta_node_registration_stake";
+  };
 
 }
 
@@ -287,5 +290,20 @@ message MsgMetaNodeRegistrationVote {
   ];  // address of owner of the voter (other existed meta node)
 }
 
-// MsgUpdateResourceNodeStakeResponse defines the Msg/MetaNodeRegistrationVote response type.
+// MsgMetaNodeRegistrationVoteResponse defines the Msg/MetaNodeRegistrationVote response type.
 message MsgMetaNodeRegistrationVoteResponse {}
+
+// MsgWithdrawMetaNodeRegistrationStake defines a SDK message for withdrawing registration stake of meta node.
+message MsgWithdrawMetaNodeRegistrationStake {
+  string           network_address   = 1 [
+    (gogoproto.jsontag) = "network_address",
+    (gogoproto.moretags) = "yaml:\"network_address\""
+  ]; // node address of meta node
+  string           owner_address     = 2 [
+    (gogoproto.jsontag) = "owner_address",
+    (gogoproto.moretags) = "yaml:\"owner_address\""
+  ]; // owner address of meta node
+}
+
+// MsgWithdrawMetaNodeRegistrationStakeResponse defines the Msg/WithdrawMetaNodeRegistrationStake response type.
+message MsgWithdrawMetaNodeRegistrationStakeResponse {}

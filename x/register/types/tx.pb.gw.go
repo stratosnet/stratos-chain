@@ -391,6 +391,42 @@ func local_request_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx context.Context, 
 
 }
 
+var (
+	filter_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgWithdrawMetaNodeRegistrationStake
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.HandleMsgWithdrawMetaNodeRegistrationStake(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgWithdrawMetaNodeRegistrationStake
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.HandleMsgWithdrawMetaNodeRegistrationStake(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterMsgHandlerServer registers the http handlers for service Msg to "mux".
 // UnaryRPC     :call MsgServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -594,6 +630,26 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 		}
 
 		forward_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -838,6 +894,26 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 
 	})
 
+	mux.Handle("POST", pattern_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -861,6 +937,8 @@ var (
 	pattern_Msg_HandleMsgUpdateMetaNodeStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_meta_node_stake"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Msg_HandleMsgMetaNodeRegistrationVote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "meta_node_registration_vote"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "withdraw_meta_node_registration_stake"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -883,4 +961,6 @@ var (
 	forward_Msg_HandleMsgUpdateMetaNodeStake_0 = runtime.ForwardResponseMessage
 
 	forward_Msg_HandleMsgMetaNodeRegistrationVote_0 = runtime.ForwardResponseMessage
+
+	forward_Msg_HandleMsgWithdrawMetaNodeRegistrationStake_0 = runtime.ForwardResponseMessage
 )

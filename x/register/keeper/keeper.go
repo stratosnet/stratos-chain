@@ -395,6 +395,11 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 		k.SetBondedMetaNodeCnt(ctx, count)
 		// set meta node
 		k.SetMetaNode(ctx, metaNode)
+		// remove record from vote pool
+		if _, found := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr); found {
+			ctx.Logger().Info("DeleteMetaNodeRegistrationVotePool of meta node " + networkAddr.String())
+			k.DeleteMetaNodeRegistrationVotePool(ctx, networkAddr)
+		}
 	}
 
 	// Set the unbonding mature time and completion height appropriately
