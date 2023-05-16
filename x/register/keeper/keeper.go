@@ -396,8 +396,8 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 		// set meta node
 		k.SetMetaNode(ctx, metaNode)
 		// remove record from vote pool
-		votePool, found := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr)
-		if found && votePool.IsVotePassed == true {
+		if _, found := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr); found {
+			ctx.Logger().Info("DeleteMetaNodeRegistrationVotePool of meta node " + networkAddr.String())
 			k.DeleteMetaNodeRegistrationVotePool(ctx, networkAddr)
 		}
 	}
