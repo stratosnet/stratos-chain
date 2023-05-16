@@ -109,7 +109,7 @@ type (
 )
 
 func (ch storageChange) revert(s *KeestateDB) {
-	s.getStateObject(ch.storeKey, ch.key[:]).SetState(ch.prevalue.Result())
+	s.getStateObject(ch.storeKey, []byte(ch.key)).SetState(ch.prevalue.Result())
 }
 
 func (ch storageChange) dirtied() *dirtyObj {

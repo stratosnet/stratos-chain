@@ -35,6 +35,7 @@ func (k *Keeper) KeeCalculatePrepayPurchaseAmount(statedb vm.StateDB, amount sdk
 	if purchase.GT(Lt) {
 		return sdk.NewInt(0), sdk.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
 	}
+
 	remaining := Lt.Sub(purchase)
 
 	return purchase, remaining, nil

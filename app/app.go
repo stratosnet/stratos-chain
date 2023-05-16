@@ -191,6 +191,8 @@ var (
 	allowedReceivingModAcc = map[string]bool{
 		distrtypes.ModuleName:      true,
 		authtypes.FeeCollectorName: true,
+		// NOTE: PROXY
+		registertypes.TotalUnissuedPrepay: true,
 		//pot.FoundationAccount: true,
 	}
 )
