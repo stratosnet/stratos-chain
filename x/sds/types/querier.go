@@ -1,23 +1,21 @@
 package types
 
-import "github.com/cosmos/cosmos-sdk/types"
-
 // querier keys
 const (
 	QueryParams         = "params"
-	QueryUploadedFile   = "uploaded_file"
+	QueryFileUpload     = "file_upload"
 	QuerySimulatePrepay = "simulate_prepay"
 	QueryCurrNozPrice   = "curr_noz_price"
 	QueryNozSupply      = "noz_supply"
 )
 
-type QueryUploadedFileParams struct {
-	Sender types.AccAddress `json:"sender" yaml:"sender"`
+type QueryFileUploadParams struct {
+	FileHash string `json:"file_hash" yaml:"file_hash"`
 }
 
 // NewQueryUploadedFileParams creates a new instance of QueryValidatorSlashesParams
-func NewQueryUploadedFileParams(sender types.AccAddress) QueryUploadedFileParams {
-	return QueryUploadedFileParams{
-		Sender: sender,
+func NewQueryFileUploadParams(fileHash string) QueryFileUploadParams {
+	return QueryFileUploadParams{
+		FileHash: fileHash,
 	}
 }
