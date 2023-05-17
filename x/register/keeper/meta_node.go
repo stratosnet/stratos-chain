@@ -124,7 +124,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 
 	var approveList = make([]stratos.SdsAddress, 0)
 	var rejectList = make([]stratos.SdsAddress, 0)
-	votingValidityPeriod := k.VotingValidityPeriod(ctx)
+	votingValidityPeriod := k.VotingPeriod(ctx)
 	expireTime := ctx.BlockHeader().Time.Add(votingValidityPeriod)
 
 	votePool := types.NewRegistrationVotePool(networkAddr, approveList, rejectList, expireTime)
