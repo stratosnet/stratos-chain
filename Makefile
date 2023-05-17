@@ -1,3 +1,5 @@
+#!/usr/bin/make -f
+
 BUILDDIR ?= $(CURDIR)/build
 
 APP_VER := v0.10.0
@@ -5,7 +7,7 @@ COMMIT := $(GIT_COMMIT_HASH)
 TEST_DOCKER_REPO=stratos-chain-e2e
 
 ifeq ($(COMMIT),)
-    VERSION := $(APP_VER)
+	VERSION := $(APP_VER)
 else
 	VERSION := $(APP_VER)-$(COMMIT)
 endif
@@ -63,6 +65,11 @@ localnet-stop:
 
 build-docker-e2e:
 	@docker build -f tests/e2e/Dockerfile -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) --build-arg uid=$(shell id -u) --build-arg gid=$(shell id -g) .
+	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
+	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
+
+build-docker:
+	@docker build -f Dockerfile -t ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) --build-arg uid=$(shell id -u) --build-arg gid=$(shell id -g) .
 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
 
