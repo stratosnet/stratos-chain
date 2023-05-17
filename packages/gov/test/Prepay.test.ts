@@ -8,23 +8,14 @@ describe("Prepay local test", () => {
   const prepayContractAddress = '0x1000000000000000000000000000000000010101';
   const totalUnissuedPrepayAddress = '0xa2776119cb0503aaa30f11b6d3fb1b6ba539c61d';
 
-  const sendValue = ethers.utils.parseUnits('1', 'wei');
   const prepayValue = ethers.utils.parseUnits('1', 'gwei');
   const purchased = ethers.utils.parseUnits('999', 'wei')
 
   it("should prepay be executed", async () => {
     const signer = await ethers.getNamedSigner("tester");
 
-    console.group('1. Send to unissued address if it is empty')
+    console.group('1. Unissued address check')
     const balanceBefore = await ethers.provider.getBalance(totalUnissuedPrepayAddress);
-    if (balanceBefore.lt(sendValue)) {
-      console.log(`Sending "${sendValue.toString()}" ETH to the address "${totalUnissuedPrepayAddress}"...`)
-      const sendTx = await signer.sendTransaction({ value: sendValue, to: totalUnissuedPrepayAddress }).then((tx) => tx.wait());
-      console.log(`Completed, result: "${sendTx.transactionHash}"`);
-      balanceBefore = await ethers.provider.getBalance(totalUnissuedPrepayAddress);
-    } else {
-      console.log('No need of send, skipping');
-    }
     console.log("Checking balance before next step for unissued address:", balanceBefore.toString());
     console.groupEnd();
 

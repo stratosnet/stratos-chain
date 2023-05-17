@@ -189,9 +189,8 @@ var (
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
-		distrtypes.ModuleName:      true,
-		authtypes.FeeCollectorName: true,
-		// NOTE: PROXY
+		distrtypes.ModuleName:             true,
+		authtypes.FeeCollectorName:        true,
 		registertypes.TotalUnissuedPrepay: true,
 		//pot.FoundationAccount: true,
 	}
@@ -375,7 +374,7 @@ func NewInitApp(
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
 		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
-		AddRoute(evmtypes.RouterKey, evm.NewEVMChangeProposalHandler(*app.evmKeeper))
+		AddRoute(evmtypes.RouterKey, evm.NewEVMChangeProposalHandler(app.evmKeeper))
 
 	govKeeper := govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.accountKeeper, app.bankKeeper,

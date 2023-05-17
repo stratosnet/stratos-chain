@@ -10,7 +10,7 @@ import (
 )
 
 // NewEVMChangeProposalHandler defines the evm changes proposals
-func NewEVMChangeProposalHandler(k keeper.Keeper) govtypes.Handler {
+func NewEVMChangeProposalHandler(k *keeper.Keeper) govtypes.Handler {
 	return func(ctx sdk.Context, content govtypes.Content) error {
 		pc, err := keeper.NewProposalCounsil(k, ctx)
 		if err != nil {

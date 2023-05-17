@@ -35,11 +35,11 @@ type ProposalCounsil struct {
 	verifier       *vm.GenesisContractVerifier
 }
 
-func NewProposalCounsil(k Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
+func NewProposalCounsil(k *Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	params := k.GetParams(ctx)
 
 	pc := &ProposalCounsil{
-		keeper:         &k,
+		keeper:         k,
 		ctx:            ctx,
 		consensusOwner: common.HexToAddress(params.ProxyProposalParams.ConsensusAddress),
 		proxyOwner:     common.HexToAddress(params.ProxyProposalParams.ProxyOwnerAddress),

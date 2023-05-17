@@ -58,7 +58,7 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 	bloom := ethtypes.BytesToBloom(k.GetBlockBloomTransient(infCtx).Bytes())
 	k.EmitBlockBloomEvent(infCtx, bloom)
 
-	pc, err := NewProposalCounsil(*k, ctx)
+	pc, err := NewProposalCounsil(k, ctx)
 	if err != nil {
 		panic(err)
 	}
