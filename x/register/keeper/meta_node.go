@@ -368,40 +368,39 @@ func (k Keeper) WithdrawMetaNodeRegistrationStake(ctx sdk.Context, networkAddr s
 }
 
 func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetworkAddr stratos.SdsAddress, candidateOwnerAddr sdk.AccAddress,
-	opinion types.VoteOpinion, voterNetworkAddr stratos.SdsAddress, voterOwnerAddr sdk.AccAddress) (nodeStatus stakingtypes.BondStatus, isPassingVote bool, err error) {
+	opinion types.VoteOpinion, voterNetworkAddr stratos.SdsAddress, voterOwnerAddr sdk.AccAddress) (nodeStatus stakingtypes.BondStatus, err error) {
 
-	isPassingVote = false
 	// voter validation
 	voterNode, found := k.GetMetaNode(ctx, voterNetworkAddr)
 	if !found {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrNoVoterMetaNodeFound
+		return stakingtypes.Unbonded, types.ErrNoVoterMetaNodeFound
 	}
 	if voterNode.GetOwnerAddress() != voterOwnerAddr.String() {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrInvalidVoterOwnerAddr
+		return stakingtypes.Unbonded, types.ErrInvalidVoterOwnerAddr
 	}
 	if voterNode.Status != stakingtypes.Bonded || voterNode.Suspend {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrInvalidVoterStatus
+		return stakingtypes.Unbonded, types.ErrInvalidVoterStatus
 	}
 
 	// candidate validation
 	candidateNode, found := k.GetMetaNode(ctx, candidateNetworkAddr)
 	if !found {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrNoCandidateMetaNodeFound
+		return stakingtypes.Unbonded, types.ErrNoCandidateMetaNodeFound
 	}
 	if candidateNode.GetOwnerAddress() != candidateOwnerAddr.String() {
-		return candidateNode.Status, isPassingVote, types.ErrInvalidCandidateOwnerAddr
+		return candidateNode.Status, types.ErrInvalidCandidateOwnerAddr
 	}
 
 	// vote validation and handle voting
 	votePool, found := k.GetMetaNodeRegistrationVotePool(ctx, candidateNetworkAddr)
 	if !found {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrNoRegistrationVotePoolFound
+		return stakingtypes.Unbonded, types.ErrNoRegistrationVotePoolFound
 	}
 	if votePool.ExpireTime.Before(ctx.BlockHeader().Time) {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrVoteExpired
+		return stakingtypes.Unbonded, types.ErrVoteExpired
 	}
 	if hasStringValue(votePool.ApproveList, voterNetworkAddr.String()) || hasStringValue(votePool.RejectList, voterNetworkAddr.String()) {
-		return stakingtypes.Unbonded, isPassingVote, types.ErrDuplicateVoting
+		return stakingtypes.Unbonded, types.ErrDuplicateVoting
 	}
 
 	if opinion.Equal(types.Approve) {
@@ -413,7 +412,7 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 
 	// if vote had already passed before
 	if votePool.IsVotePassed {
-		return candidateNode.Status, isPassingVote, nil
+		return candidateNode.Status, nil
 	}
 
 	//if vote is yet to pass
@@ -439,26 +438,24 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 		nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
 		if nBondedMetaAccountAddr == nil {
 			ctx.Logger().Error("not bonded account address for meta nodes does not exist.")
-			return candidateNode.Status, isPassingVote, types.ErrUnknownAccountAddress
+			return candidateNode.Status, types.ErrUnknownAccountAddress
 		}
 
 		hasCoin := k.bankKeeper.HasBalance(ctx, nBondedMetaAccountAddr, tokenToBond)
 		if !hasCoin {
-			return candidateNode.Status, isPassingVote, types.ErrInsufficientBalance
+			return candidateNode.Status, types.ErrInsufficientBalance
 		}
 
 		err = k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.MetaNodeNotBondedPool, types.MetaNodeBondedPool, sdk.NewCoins(tokenToBond))
 		if err != nil {
-			return candidateNode.Status, isPassingVote, err
+			return candidateNode.Status, err
 		}
 
 		votePool.IsVotePassed = true
 		k.SetMetaNodeRegistrationVotePool(ctx, votePool)
-		// mark this vote as passing vote
-		isPassingVote = true
 	}
 
-	return candidateNode.Status, isPassingVote, nil
+	return candidateNode.Status, nil
 }
 
 func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
