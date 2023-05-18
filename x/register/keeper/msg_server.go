@@ -212,7 +212,7 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrInvalidVoterOwnerAddr, err.Error())
 	}
 
-	nodeStatus, isPassingVote, err := k.HandleVoteForMetaNodeRegistration(
+	nodeStatus, err := k.HandleVoteForMetaNodeRegistration(
 		ctx, candidateNetworkAddress, candidateOwnerAddress, types.VoteOpinion(msg.Opinion), voterNetworkAddress, voterOwnerAddress)
 	if err != nil {
 		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrVoteMetaNode, err.Error())
@@ -225,7 +225,6 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 			sdk.NewAttribute(types.AttributeKeyVoterNetworkAddress, msg.VoterNetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyCandidateNetworkAddress, msg.CandidateNetworkAddress),
 			sdk.NewAttribute(types.AttributeKeyCandidateStatus, nodeStatus.String()),
-			sdk.NewAttribute(types.AttributeKeyIsPassingVote, strconv.FormatBool(isPassingVote)),
 		),
 		sdk.NewEvent(
 			sdk.EventTypeMessage,
