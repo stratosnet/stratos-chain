@@ -23,7 +23,6 @@ const (
 	AttributeKeyCandidateNetworkAddress = "candidate_network_address"
 	AttributeKeyVoterNetworkAddress     = "voter_network_address"
 	AttributeKeyCandidateStatus         = "candidate_status"
-	AttributeKeyIsPassingVote           = "is_passing_vote"
 
 	AttributeKeyUnbondingMatureTime = "unbonding_mature_time"
 
