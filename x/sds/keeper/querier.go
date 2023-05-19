@@ -17,7 +17,7 @@ import (
 func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case types.QueryUploadedFile:
+		case types.QueryFileUpload:
 			return queryUploadedFileByHash(ctx, req, k, legacyQuerierCdc)
 		case types.QuerySimulatePrepay:
 			return querySimulatePrepay(ctx, req, k, legacyQuerierCdc)
@@ -45,7 +45,13 @@ func getSdsParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 
 // queryFileHash fetch a file's hash for the supplied height.
 func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
-	fileInfo, found := k.GetFileInfoByFileHash(ctx, req.Data)
+	var params types.QueryFileUploadParams
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	fileInfo, found := k.GetFileInfoByFileHash(ctx, []byte(params.FileHash))
 	if !found {
 		return nil, types.ErrNoFileFound
 	}
