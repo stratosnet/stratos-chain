@@ -236,6 +236,40 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 	return &types.MsgMetaNodeRegistrationVoteResponse{}, nil
 }
 
+func (k msgServer) HandleMsgWithdrawMetaNodeRegistrationStake(goCtx context.Context, msg *types.MsgWithdrawMetaNodeRegistrationStake) (*types.MsgWithdrawMetaNodeRegistrationStakeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	networkAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
+	if err != nil {
+		return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+	}
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
+	if err != nil {
+		return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, types.ErrInvalidOwnerAddr
+	}
+
+	completionTime, err := k.WithdrawMetaNodeRegistrationStake(ctx, networkAddr, ownerAddr)
+	if err != nil {
+		return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
+	}
+
+	ctx.EventManager().EmitEvents(sdk.Events{
+		sdk.NewEvent(
+			types.EventTypeWithdrawMetaNodeRegistrationStake,
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
+			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
+			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
+		),
+		sdk.NewEvent(
+			sdk.EventTypeMessage,
+			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
+			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
+		),
+	})
+
+	return &types.MsgWithdrawMetaNodeRegistrationStakeResponse{}, nil
+}
+
 func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types.MsgUpdateResourceNode) (*types.MsgUpdateResourceNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
@@ -311,6 +345,10 @@ func (k msgServer) HandleMsgUpdateResourceNodeStake(goCtx context.Context, msg *
 
 func (k msgServer) HandleMsgUpdateEffectiveStake(goCtx context.Context, msg *types.MsgUpdateEffectiveStake) (*types.MsgUpdateEffectiveStakeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
+
+	if len(msg.Reporters) == 0 || len(msg.ReporterOwner) == 0 {
+		return &types.MsgUpdateEffectiveStakeResponse{}, types.ErrReporterAddressOrOwner
+	}
 
 	reporterOwners := msg.ReporterOwner
 	validReporterCount := 0

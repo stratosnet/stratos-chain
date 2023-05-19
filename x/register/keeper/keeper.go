@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,6 +21,7 @@ import (
 
 var (
 	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+	cacheMutex                     sync.RWMutex
 )
 
 // Keeper of the register store
@@ -395,6 +397,11 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 		k.SetBondedMetaNodeCnt(ctx, count)
 		// set meta node
 		k.SetMetaNode(ctx, metaNode)
+		// remove record from vote pool
+		if _, found := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr); found {
+			ctx.Logger().Info("DeleteMetaNodeRegistrationVotePool of meta node " + networkAddr.String())
+			k.DeleteMetaNodeRegistrationVotePool(ctx, networkAddr)
+		}
 	}
 
 	// Set the unbonding mature time and completion height appropriately

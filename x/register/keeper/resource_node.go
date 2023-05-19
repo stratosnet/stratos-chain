@@ -285,6 +285,11 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 		ctx.Logger().Error("Resource node already exist")
 		return ozoneLimitChange, types.ErrResourceNodePubKeyExists
 	}
+	if _, found := k.GetMetaNode(ctx, networkAddr); found {
+		ctx.Logger().Error("Meta node with same network address already exist")
+		return ozoneLimitChange, types.ErrMetaNodePubKeyExists
+	}
+
 	if stake.GetDenom() != k.BondDenom(ctx) {
 		return ozoneLimitChange, types.ErrBadDenom
 	}

@@ -16,8 +16,7 @@ import (
 )
 
 const (
-	metaNodeCacheSize            = 500
-	votingValidityPeriodInSecond = 7 * 24 * 60 * 60 // 7 days
+	metaNodeCacheSize = 500
 )
 
 // Cache the proto decoding of meta nodes, as it can be the case that repeated slashing calls
@@ -110,6 +109,11 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 		ctx.Logger().Error("Meta node already exist")
 		return ozoneLimitChange, types.ErrMetaNodePubKeyExists
 	}
+	if _, found := k.GetResourceNode(ctx, networkAddr); found {
+		ctx.Logger().Error("Resource node with same network address already exist")
+		return ozoneLimitChange, types.ErrResourceNodePubKeyExists
+	}
+
 	if stake.GetDenom() != k.BondDenom(ctx) {
 		return ozoneLimitChange, types.ErrBadDenom
 	}
@@ -125,7 +129,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 
 	var approveList = make([]stratos.SdsAddress, 0)
 	var rejectList = make([]stratos.SdsAddress, 0)
-	votingValidityPeriod := votingValidityPeriodInSecond * time.Second
+	votingValidityPeriod := k.VotingPeriod(ctx)
 	expireTime := ctx.BlockHeader().Time.Add(votingValidityPeriod)
 
 	votePool := types.NewRegistrationVotePool(networkAddr, approveList, rejectList, expireTime)
@@ -316,6 +320,53 @@ func (k Keeper) GetMetaNodeListByMoniker(ctx sdk.Context, moniker string) (resou
 	return resourceNodes, nil
 }
 
+func (k Keeper) WithdrawMetaNodeRegistrationStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) (
+	unbondingMatureTime time.Time, err error) {
+
+	node, found := k.GetMetaNode(ctx, networkAddr)
+	if !found {
+		return time.Time{}, types.ErrNoMetaNodeFound
+	}
+	if node.GetOwnerAddress() != ownerAddr.String() {
+		return time.Time{}, types.ErrInvalidOwnerAddr
+	}
+	votePool, exist := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr)
+	if !exist {
+		return time.Time{}, types.ErrNoRegistrationVotePoolFound
+	}
+	// to be qualified to withdraw, meta node must be unbonded && suspended && of non-passed vote
+	if node.Status != stakingtypes.Unbonded || !node.Suspend || votePool.IsVotePassed {
+		return time.Time{}, types.ErrInvalidNodeStat
+	}
+	// check available_stake (node_token - unbonding_token > amt_to_withdraw)
+	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableStake := node.Tokens.Sub(unbondingStake)
+	if availableStake.LTE(sdk.ZeroInt()) {
+		return time.Time{}, types.ErrInsufficientBalance
+	}
+	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
+		return time.Time{}, types.ErrMaxUnbondingNodeEntries
+	}
+	unbondingMatureTime = calcUnbondingMatureTime(ctx, node.Status, node.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
+
+	// Set the unbonding mature time and completion height appropriately
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, availableStake)
+	// Add to unbonding node queue
+	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
+	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
+
+	// all stake is being unbonded, update status to Unbonding
+	node.Status = stakingtypes.Unbonding
+	k.SetMetaNode(ctx, node)
+
+	// remove from cache just in case
+	k.RemoveMetaNodeFromBitMapIdxCache(networkAddr)
+	// delete vote pool after withdraw is done
+	k.DeleteMetaNodeRegistrationVotePool(ctx, networkAddr)
+
+	return unbondingMatureTime, nil
+}
+
 func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetworkAddr stratos.SdsAddress, candidateOwnerAddr sdk.AccAddress,
 	opinion types.VoteOpinion, voterNetworkAddr stratos.SdsAddress, voterOwnerAddr sdk.AccAddress) (nodeStatus stakingtypes.BondStatus, err error) {
 
@@ -359,10 +410,12 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 	}
 	k.SetMetaNodeRegistrationVotePool(ctx, votePool)
 
-	if candidateNode.Status == stakingtypes.Bonded {
+	// if vote had already passed before
+	if votePool.IsVotePassed {
 		return candidateNode.Status, nil
 	}
 
+	//if vote is yet to pass
 	totalSpCount := len(k.GetAllValidMetaNodes(ctx))
 	voteCountRequiredToPass := totalSpCount*2/3 + 1
 	//unbounded to bounded
@@ -381,7 +434,6 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 		k.SetBondedMetaNodeCnt(ctx, count)
 		// move stake from not bonded pool to bonded pool
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), candidateNode.Tokens)
-
 		// sub coins from not bonded pool
 		nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
 		if nBondedMetaAccountAddr == nil {
@@ -398,6 +450,9 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 		if err != nil {
 			return candidateNode.Status, err
 		}
+
+		votePool.IsVotePassed = true
+		k.SetMetaNodeRegistrationVotePool(ctx, votePool)
 	}
 
 	return candidateNode.Status, nil
@@ -501,6 +556,9 @@ func (k Keeper) OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr s
 func (k Keeper) GetMetaNodeBitMapIndex(ctx sdk.Context, networkAddr stratos.SdsAddress) (index int, err error) {
 	k.UpdateMetaNodeBitMapIdxCache(ctx)
 
+	cacheMutex.RLock()
+	defer cacheMutex.RUnlock()
+
 	index, ok := k.metaNodeBitMapIndexCache[networkAddr.String()]
 	if !ok {
 		return index, errors.New(fmt.Sprintf("Can not find meta-node %v from cache", networkAddr.String()))
@@ -513,16 +571,25 @@ func (k Keeper) GetMetaNodeBitMapIndex(ctx sdk.Context, networkAddr stratos.SdsA
 }
 
 func (k Keeper) AddMetaNodeToBitMapIdxCache(networkAddr stratos.SdsAddress) {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
 	k.metaNodeBitMapIndexCache[networkAddr.String()] = -1
 	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
 }
 
 func (k Keeper) RemoveMetaNodeFromBitMapIdxCache(networkAddr stratos.SdsAddress) {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
 	delete(k.metaNodeBitMapIndexCache, networkAddr.String())
 	metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
 }
 
 func (k Keeper) UpdateMetaNodeBitMapIdxCache(ctx sdk.Context) {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
 	if metaNodeBitMapIndexCacheStatus == types.CACHE_NOT_DIRTY {
 		return
 	}
@@ -545,6 +612,9 @@ func (k Keeper) UpdateMetaNodeBitMapIdxCache(ctx sdk.Context) {
 }
 
 func (k Keeper) ReloadMetaNodeBitMapIdxCache(ctx sdk.Context) {
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
+
 	if metaNodeBitMapIndexCacheStatus == types.CACHE_NOT_DIRTY {
 		return
 	}

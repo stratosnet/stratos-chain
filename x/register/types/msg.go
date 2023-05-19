@@ -23,16 +23,17 @@ var (
 
 // message type and route constants
 const (
-	TypeMsgCreateResourceNode       = "create_resource_node"
-	TypeMsgRemoveResourceNode       = "remove_resource_node"
-	TypeMsgUpdateResourceNode       = "update_resource_node"
-	TypeMsgUpdateResourceNodeStake  = "update_resource_node_stake"
-	TypeMsgUpdateEffectiveStake     = "update_effective_stake"
-	TypeMsgCreateMetaNode           = "create_meta_node"
-	TypeMsgRemoveMetaNode           = "remove_meta_node"
-	TypeMsgUpdateMetaNode           = "update_meta_node"
-	TypeMsgUpdateMetaNodeStake      = "update_meta_node_stake"
-	TypeMsgMetaNodeRegistrationVote = "meta_node_registration_vote"
+	TypeMsgCreateResourceNode                = "create_resource_node"
+	TypeMsgRemoveResourceNode                = "remove_resource_node"
+	TypeMsgUpdateResourceNode                = "update_resource_node"
+	TypeMsgUpdateResourceNodeStake           = "update_resource_node_stake"
+	TypeMsgUpdateEffectiveStake              = "update_effective_stake"
+	TypeMsgCreateMetaNode                    = "create_meta_node"
+	TypeMsgRemoveMetaNode                    = "remove_meta_node"
+	TypeMsgUpdateMetaNode                    = "update_meta_node"
+	TypeMsgUpdateMetaNodeStake               = "update_meta_node_stake"
+	TypeMsgMetaNodeRegistrationVote          = "meta_node_registration_vote"
+	TypeMsgWithdrawMetaNodeRegistrationStake = "withdraw_meta_node_registration_stake"
 )
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
@@ -677,4 +678,41 @@ func (m MsgUpdateEffectiveStake) GetSigners() []sdk.AccAddress {
 		panic("no valid signer for MsgUpdateEffectiveStake")
 	}
 	return addrs
+}
+
+func NewMsgWithdrawMetaNodeRegistrationStake(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgWithdrawMetaNodeRegistrationStake {
+	return &MsgWithdrawMetaNodeRegistrationStake{
+		NetworkAddress: networkAddress.String(),
+		OwnerAddress:   ownerAddress.String(),
+	}
+}
+
+func (mmsg MsgWithdrawMetaNodeRegistrationStake) Route() string { return RouterKey }
+
+func (msg MsgWithdrawMetaNodeRegistrationStake) Type() string {
+	return TypeMsgWithdrawMetaNodeRegistrationStake
+}
+
+func (msg MsgWithdrawMetaNodeRegistrationStake) ValidateBasic() error {
+	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		return ErrInvalidOwnerAddr
+	}
+	if ownerAddr.Empty() {
+		return ErrEmptyOwnerAddr
+	}
+	return nil
+}
+
+func (msg MsgWithdrawMetaNodeRegistrationStake) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(&msg)
+	return sdk.MustSortJSON(bz)
+}
+
+func (msg MsgWithdrawMetaNodeRegistrationStake) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
 }

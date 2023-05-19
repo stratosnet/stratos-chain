@@ -146,6 +146,11 @@ func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 	return
 }
 
+func (k Keeper) DeleteMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr stratos.SdsAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetMetaNodeRegistrationVotesKey(nodeAddr))
+}
+
 func (k Keeper) SetMetaNodeRegistrationVotePool(ctx sdk.Context, votePool types.MetaNodeRegistrationVotePool) {
 	nodeAddr := votePool.GetNetworkAddress()
 	store := ctx.KVStore(k.storeKey)
