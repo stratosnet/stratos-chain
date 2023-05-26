@@ -575,6 +575,8 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 		//idxNodeAcc1,
 	}
 
+	feeAmt, _ := sdk.NewIntFromString("50000000000000000000")
+
 	balances := []banktypes.Balance{
 		{
 			Address: resOwner1.String(),
@@ -618,7 +620,7 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 		//},
 		{
 			Address: foundationDepositorAccAddr.String(),
-			Coins:   foundationDeposit,
+			Coins:   foundationDeposit.Add(sdk.NewCoin(stratos.Wei, feeAmt)),
 		},
 	}
 	return accs, balances
