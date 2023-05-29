@@ -38,7 +38,6 @@ const (
 	codeErrWithdrawFailure
 	codeErrFoundationDepositFailure
 	codeErrSlashingResourceNodeFailure
-	codeErrRewardDistributionNotComplete
 	codeErrVolumeReport
 	codeErrLegacyWithdrawFailure
 	codeErrReporterAddressOrOwner
@@ -78,7 +77,6 @@ var (
 	ErrWithdrawFailure                = sdkerrors.Register(ModuleName, codeErrWithdrawFailure, "failure during withdraw")
 	ErrFoundationDepositFailure       = sdkerrors.Register(ModuleName, codeErrFoundationDepositFailure, "failure during foundation deposit")
 	ErrSlashingResourceNodeFailure    = sdkerrors.Register(ModuleName, codeErrSlashingResourceNodeFailure, "failure during slashing resource node")
-	ErrRewardDistributionNotComplete  = sdkerrors.Register(ModuleName, codeErrRewardDistributionNotComplete, "Reward distribution not completed")
 	ErrVolumeReport                   = sdkerrors.Register(ModuleName, codeErrVolumeReport, "volume report failed")
 	ErrLegacyWithdrawFailure          = sdkerrors.Register(ModuleName, codeErrLegacyWithdrawFailure, "failure during legacyWithdraw")
 	ErrReporterAddressOrOwner         = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")

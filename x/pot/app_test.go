@@ -388,12 +388,13 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		require.NoError(t, err)
 
 		/********************* commit & check result *********************/
-		// reward distribution start at height = height + 1 where volume report tx executed
+		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
+
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
 		stApp.Commit()
-		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
+
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
@@ -575,6 +576,8 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 		//idxNodeAcc1,
 	}
 
+	feeAmt, _ := sdk.NewIntFromString("50000000000000000000")
+
 	balances := []banktypes.Balance{
 		{
 			Address: resOwner1.String(),
@@ -618,7 +621,7 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 		//},
 		{
 			Address: foundationDepositorAccAddr.String(),
-			Coins:   foundationDeposit,
+			Coins:   foundationDeposit.Add(sdk.NewCoin(stratos.Wei, feeAmt)),
 		},
 	}
 	return accs, balances
