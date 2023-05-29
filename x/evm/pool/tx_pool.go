@@ -57,7 +57,6 @@ type TxPool struct {
 	signer    types.Signer
 	mempool   mempl.Mempool
 	mu        sync.RWMutex
-	isReady   bool // show the status for workload of the pool
 
 	evmkeeper     *evmkeeper.Keeper // Active keeper to get current state
 	pendingNonces *txNoncer         // Pending state tracking virtual nonces
@@ -72,7 +71,7 @@ type TxPool struct {
 
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
 // transactions from the network.
-func NewTxPool(config core.TxPoolConfig, srvCfg config.Config, clientCtx client.Context, mempool mempl.Mempool, evmkeeper *evmkeeper.Keeper, evmCtx *evm.Context) *TxPool {
+func NewTxPool(config core.TxPoolConfig, srvCfg config.Config, clientCtx client.Context, mempool mempl.Mempool, evmkeeper *evmkeeper.Keeper, evmCtx *evm.Context) (*TxPool, error) {
 	sdkCtx := evmCtx.GetSdkContext()
 	params := evmkeeper.GetParams(sdkCtx)
 	pool := &TxPool{
@@ -89,43 +88,16 @@ func NewTxPool(config core.TxPoolConfig, srvCfg config.Config, clientCtx client.
 		all:       newTxLookup(),
 	}
 	pool.pendingNonces = newTxNoncer(pool.evmCtx, pool.evmkeeper)
-	go pool.prepare()
+
+	gasLimit, err := evmtypes.BlockMaxGasFromConsensusParams(nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get tx pool current max gas: %w (possible DB not started?)", err)
+	}
+	pool.currentMaxGas = uint64(gasLimit)
+
 	go pool.eventLoop()
 
-	return pool
-}
-
-// prepare executed only once and only for some dynamic initializations
-func (pool *TxPool) prepare() {
-	if pool.isReady {
-		return
-	}
-
-	var (
-		init   = time.NewTicker(initInterval)
-		result = make(chan int64, 1)
-	)
-	defer init.Stop()
-
-	for {
-		select {
-		case gasLimit := <-result:
-			// setting pool dynamic vars
-			pool.currentMaxGas = uint64(gasLimit)
-			pool.isReady = true
-			log.Debug("Tx pool ready")
-			return
-
-		// Handle init prepare
-		case <-init.C:
-			gasLimit, err := evmtypes.BlockMaxGasFromConsensusParams(nil)
-			if err != nil {
-				log.Error(err.Error())
-				break
-			}
-			result <- gasLimit
-		}
-	}
+	return pool, nil
 }
 
 // eventLoop starting a main logic of tx pool, orchaestrator of queues
@@ -342,10 +314,6 @@ func (pool *TxPool) broadcastTx(tx *types.Transaction) error {
 // pending promotion and execution. If the transaction is a replacement for an already
 // pending or queued one, it overwrites the previous transaction if its price is higher.
 func (pool *TxPool) Add(tx *types.Transaction) (replaced bool, err error) {
-	if !pool.isReady {
-		return false, fmt.Errorf("Tx pool is not loaded yet")
-	}
-
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
