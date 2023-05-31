@@ -3,30 +3,30 @@ package keeper
 import (
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/cosmos/cosmos-sdk/store/prefix"
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/register/types"
-	db "github.com/tendermint/tm-db"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
+	db "github.com/tendermint/tm-db"
 
+	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
+	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 const (
 	QueryResourceNodeByNetworkAddr = "resource-node"
 	QueryMetaNodeByNetworkAddr     = "meta_node"
-	QueryNodesTotalStakes          = "nodes_total_stakes"
-	QueryNodeStakeByNodeAddr       = "node_stakes"
-	QueryNodeStakeByOwner          = "node_stakes_by_owner"
+	QueryNodesDepositTotal         = "nodes_deposit_total"
+	QueryNodeDepositByNodeAddr     = "node_deposit_by_addr"
+	QueryNodeDepositByOwner        = "node_deposit_by_owner"
 	QueryRegisterParams            = "register_params"
 	QueryResourceNodesCount        = "resource_nodes_count"
 	QueryMetaNodesCount            = "meta_nodes_count"
@@ -40,12 +40,12 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return getResourceNodeByNetworkAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryMetaNodeByNetworkAddr:
 			return getMetaNodeNetworkAddr(ctx, req, k, legacyQuerierCdc)
-		case QueryNodesTotalStakes:
-			return getNodesStakingInfo(ctx, req, k, legacyQuerierCdc)
-		case QueryNodeStakeByNodeAddr:
-			return getStakingInfoByNodeAddr(ctx, req, k, legacyQuerierCdc)
-		case QueryNodeStakeByOwner:
-			return getStakingInfoByOwnerAddr(ctx, req, k, legacyQuerierCdc)
+		case QueryNodesDepositTotal:
+			return getNodesDepositTotalInfo(ctx, req, k, legacyQuerierCdc)
+		case QueryNodeDepositByNodeAddr:
+			return getDepositInfoByNodeAddr(ctx, req, k, legacyQuerierCdc)
+		case QueryNodeDepositByOwner:
+			return getDepositInfoByOwnerAddr(ctx, req, k, legacyQuerierCdc)
 		case QueryRegisterParams:
 			return getRegisterParams(ctx, req, k, legacyQuerierCdc)
 		case QueryResourceNodesCount:
@@ -139,28 +139,29 @@ func getMetaNodeNetworkAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, le
 	return bz, nil
 }
 
-// Iteration for querying total stakes of resource/meta nodes
-func getNodesStakingInfo(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+// Query total deposit of all resource/meta nodes
+func getNodesDepositTotalInfo(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 
-	totalBondedStakeOfResourceNodes := k.GetResourceNodeBondedToken(ctx).Amount
-	totalBondedStakeOfMetaNodes := k.GetMetaNodeBondedToken(ctx).Amount
+	totalBondedDepositOfResourceNodes := k.GetResourceNodeBondedToken(ctx).Amount
+	totalBondedDepositOfMetaNodes := k.GetMetaNodeBondedToken(ctx).Amount
 
-	totalUnbondedStakeOfResourceNodes := k.GetResourceNodeNotBondedToken(ctx).Amount
-	totalUnbondedStakeOfMetaNodes := k.GetMetaNodeNotBondedToken(ctx).Amount
+	totalUnbondedDepositOfResourceNodes := k.GetResourceNodeNotBondedToken(ctx).Amount
+	totalUnbondedDepositOfMetaNodes := k.GetMetaNodeNotBondedToken(ctx).Amount
 
-	totalStakeOfResourceNodes := totalBondedStakeOfResourceNodes.Add(totalUnbondedStakeOfResourceNodes)
-	totalStakeOfMetaNodes := totalBondedStakeOfMetaNodes.Add(totalUnbondedStakeOfMetaNodes)
+	totalDepositOfResourceNodes := totalBondedDepositOfResourceNodes.Add(totalUnbondedDepositOfResourceNodes)
+	totalDepositOfMetaNodes := totalBondedDepositOfMetaNodes.Add(totalUnbondedDepositOfMetaNodes)
 
-	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfMetaNodes)
-	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfMetaNodes)
-	totalUnbondingStake := k.GetAllUnbondingNodesTotalBalance(ctx)
-	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
-	res := types.NewQueryNodesStakingInfo(
-		totalStakeOfResourceNodes,
-		totalStakeOfMetaNodes,
-		totalBondedStake,
-		totalUnbondedStake,
-		totalUnbondingStake,
+	totalBondedDeposit := totalBondedDepositOfResourceNodes.Add(totalBondedDepositOfMetaNodes)
+	totalUnbondedDeposit := totalUnbondedDepositOfResourceNodes.Add(totalUnbondedDepositOfMetaNodes)
+	totalUnbondingDeposit := k.GetAllUnbondingNodesTotalBalance(ctx)
+	totalUnbondedDeposit = totalUnbondedDeposit.Sub(totalUnbondingDeposit)
+	res := types.NewQueryDepositTotalInfo(
+		k.BondDenom(ctx),
+		totalDepositOfResourceNodes,
+		totalDepositOfMetaNodes,
+		totalBondedDeposit,
+		totalUnbondedDeposit,
+		totalUnbondingDeposit,
 	)
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, res)
 	if err != nil {
@@ -170,12 +171,11 @@ func getNodesStakingInfo(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQ
 	return bz, nil
 }
 
-//
-func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+func getDepositInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
 	var (
 		bz          []byte
-		params      types.QueryNodeStakingParams
-		stakingInfo types.StakingInfo
+		params      types.QueryNodeDepositParams
+		depositInfo types.DepositInfo
 	)
 
 	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
@@ -188,9 +188,9 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
 		metaNode, found := k.GetMetaNode(ctx, params.AccAddr)
 		if found {
-			// Adding meta node staking info
+			// Adding meta node deposit info
 			networkAddr, _ := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
-			unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
+			unBondingDeposit, unBondedDeposit, bondedDeposit, err := k.getNodeDeposit(
 				ctx,
 				metaNode.GetStatus(),
 				networkAddr,
@@ -200,13 +200,13 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 				return nil, err
 			}
 			if !metaNode.Equal(types.MetaNode{}) {
-				stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+				depositInfo = types.NewDepositInfoByMetaNodeAddr(
 					metaNode,
-					unBondingStake,
-					unBondedStake,
-					bondedStake,
+					unBondingDeposit,
+					unBondedDeposit,
+					bondedDeposit,
 				)
-				bzMeta, err := codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfo)
+				bzMeta, err := codec.MarshalJSONIndent(legacyQuerierCdc, depositInfo)
 				if err != nil {
 					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 				}
@@ -218,9 +218,9 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
 		resourceNode, found := k.GetResourceNode(ctx, params.AccAddr)
 		if found {
-			// Adding resource node staking info
+			// Adding resource node deposit info
 			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
-			unBondingStake, unBondedStake, bondedStake, err := k.getNodeStakes(
+			unBondingDeposit, unBondedDeposit, bondedDeposit, err := k.getNodeDeposit(
 				ctx,
 				resourceNode.GetStatus(),
 				networkAddr,
@@ -230,13 +230,13 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 				return nil, err
 			}
 			if !resourceNode.Equal(types.ResourceNode{}) {
-				stakingInfo = types.NewStakingInfoByResourceNodeAddr(
+				depositInfo = types.NewDepositInfoByResourceNodeAddr(
 					resourceNode,
-					unBondingStake,
-					unBondedStake,
-					bondedStake,
+					unBondingDeposit,
+					unBondedDeposit,
+					bondedDeposit,
 				)
-				bzResource, err := codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfo)
+				bzResource, err := codec.MarshalJSONIndent(legacyQuerierCdc, depositInfo)
 				if err != nil {
 					return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 				}
@@ -248,11 +248,12 @@ func getStakingInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 	return bz, nil
 }
 
-func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (result []byte, err error) {
+func getDepositInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) (
+	result []byte, err error) {
+
 	var (
-		params types.QueryNodesParams
-		//stakingInfo  types.StakingInfo
-		stakingInfoResponses types.StakingInfos
+		params               types.QueryNodesParams
+		depositInfoResponses types.DepositInfos
 	)
 
 	if req.Data == nil {
@@ -299,22 +300,22 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
-	stakingInfoResponses, err = StakingInfosResourceNodes(ctx, k, resourceNodes)
+	depositInfoResponses, err = DepositInfosResourceNodes(ctx, k, resourceNodes)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// Continue to get meta nodes
 	if PageRequest.Limit < resourceNodesPageRes.Total {
-		resourceNodesPageRes.Total = uint64(len(stakingInfoResponses))
-		result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfoResponses)
+		resourceNodesPageRes.Total = uint64(len(depositInfoResponses))
+		result, err = codec.MarshalJSONIndent(legacyQuerierCdc, depositInfoResponses)
 		if err != nil {
 			return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 		}
 		return result, nil
 	}
 
-	metaNodesPageLimit := limit - uint64(len(stakingInfoResponses))
+	metaNodesPageLimit := limit - uint64(len(depositInfoResponses))
 
 	metaNodesPageOffset := uint64(0)
 	if offset > resourceNodesPageRes.Total {
@@ -341,39 +342,41 @@ func getStakingInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	metaNodesStakingInfoResponses, err := StakingInfosMetaNodes(ctx, k, metaNodes)
+	metaNodesDepositInfoResponses, err := DepositInfosMetaNodes(ctx, k, metaNodes)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	stakingInfoResponses = append(stakingInfoResponses, metaNodesStakingInfoResponses...)
+	depositInfoResponses = append(depositInfoResponses, metaNodesDepositInfoResponses...)
 	PageRes := resourceNodesPageRes
-	PageRes.Total = uint64(len(stakingInfoResponses))
-	result, err = codec.MarshalJSONIndent(legacyQuerierCdc, stakingInfoResponses)
+	PageRes.Total = uint64(len(depositInfoResponses))
+	result, err = codec.MarshalJSONIndent(legacyQuerierCdc, depositInfoResponses)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return result, nil
 }
 
-func (k Keeper) getNodeStakes(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (unbondingStake, unbondedStake, bondedStake sdk.Int, err error) {
-	unbondingStake = sdk.NewInt(0)
-	unbondedStake = sdk.NewInt(0)
-	bondedStake = sdk.NewInt(0)
+func (k Keeper) getNodeDeposit(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (
+	unbondingDeposit, unbondedDeposit, bondedDeposit sdk.Int, err error) {
+
+	unbondingDeposit = sdk.NewInt(0)
+	unbondedDeposit = sdk.NewInt(0)
+	bondedDeposit = sdk.NewInt(0)
 
 	switch bondStatus {
 	case stakingtypes.Unbonding:
-		unbondingStake = k.GetUnbondingNodeBalance(ctx, nodeAddress)
+		unbondingDeposit = k.GetUnbondingNodeBalance(ctx, nodeAddress)
 	case stakingtypes.Unbonded:
-		unbondedStake = tokens
+		unbondedDeposit = tokens
 	case stakingtypes.Bonded:
-		bondedStake = tokens
+		bondedDeposit = tokens
 	default:
 		err := fmt.Sprintf("Invalid status of node %s, expected Bonded, Unbonded, or Unbonding, got %s",
 			nodeAddress.String(), bondStatus)
 		return sdk.Int{}, sdk.Int{}, sdk.Int{}, sdkerrors.Wrap(sdkerrors.ErrPanic, err)
 	}
-	return unbondingStake, unbondedStake, bondedStake, nil
+	return unbondingDeposit, unbondedDeposit, bondedDeposit, nil
 }
 
 func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
@@ -392,7 +395,6 @@ func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.
 	return prefixStore.Iterator(start, nil)
 }
 
-// Iteration for querying total stakes of resource/meta nodes
 func FilteredPaginate(cdc codec.Codec,
 	prefixStore storetypes.KVStore,
 	queryOwnerAddr sdk.AccAddress,
@@ -547,128 +549,128 @@ func FilteredPaginate(cdc codec.Codec,
 	return res, nil
 }
 
-// StakingInfosResourceNodes Iteration for querying StakingInfos of resource nodes by owner(cmd and rest)
-func StakingInfosResourceNodes(
+// DepositInfosResourceNodes Iteration for querying DepositInfos of resource nodes by owner(cmd and rest)
+func DepositInfosResourceNodes(
 	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
-) (types.StakingInfos, error) {
-	res := types.StakingInfos{}
-	resp := make([]*types.StakingInfo, len(resourceNodes))
+) (types.DepositInfos, error) {
+	res := types.DepositInfos{}
+	resp := make([]*types.DepositInfo, len(resourceNodes))
 
 	for i, resourceNode := range resourceNodes {
-		stakingInfoResp, err := StakingInfoToStakingInfoResourceNode(ctx, k, resourceNode)
+		depositInfo, err := GetDepositInfoByResourceNode(ctx, k, resourceNode)
 		if err != nil {
 			return nil, err
 		}
 
-		resp[i] = &stakingInfoResp
+		resp[i] = &depositInfo
 		res = append(res, *resp[i])
 	}
 
 	return res, nil
 }
 
-// StakingInfosMetaNodes Iteration for querying StakingInfos of meta nodes by owner(cmd and rest)
-func StakingInfosMetaNodes(
+// DepositInfosMetaNodes Iteration for querying DepositInfos of meta nodes by owner(cmd and rest)
+func DepositInfosMetaNodes(
 	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
-) (types.StakingInfos, error) {
-	res := types.StakingInfos{}
-	resp := make([]*types.StakingInfo, len(metaNodes))
+) (types.DepositInfos, error) {
+	res := types.DepositInfos{}
+	resp := make([]*types.DepositInfo, len(metaNodes))
 
 	for i, metaNode := range metaNodes {
-		stakingInfoResp, err := StakingInfoToStakingInfoMetaNode(ctx, k, metaNode)
+		depositInfo, err := GetDepositInfoByMetaNode(ctx, k, metaNode)
 		if err != nil {
 			return nil, err
 		}
 
-		resp[i] = &stakingInfoResp
+		resp[i] = &depositInfo
 		res = append(res, *resp[i])
 	}
 
 	return res, nil
 }
 
-// StakingInfosToStakingResourceNodes Iteration for querying StakingInfos of resource nodes by owner(grpc)
-func StakingInfosToStakingResourceNodes(
+// GetDepositInfosByResourceNodes Iteration for querying DepositInfos of resource nodes by owner(grpc)
+func GetDepositInfosByResourceNodes(
 	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
-) ([]*types.StakingInfo, error) {
-	resp := make([]*types.StakingInfo, len(resourceNodes))
+) ([]*types.DepositInfo, error) {
+	resp := make([]*types.DepositInfo, len(resourceNodes))
 
 	for i, resourceNode := range resourceNodes {
-		stakingInfoResp, err := StakingInfoToStakingInfoResourceNode(ctx, k, resourceNode)
+		depositInfo, err := GetDepositInfoByResourceNode(ctx, k, resourceNode)
 		if err != nil {
 			return nil, err
 		}
 
-		resp[i] = &stakingInfoResp
+		resp[i] = &depositInfo
 	}
 
 	return resp, nil
 }
 
-// StakingInfosToStakingMetaNodes Iteration for querying StakingInfos of meta nodes by owner(grpc)
-func StakingInfosToStakingMetaNodes(
+// GetDepositInfosByMetaNodes Iteration for querying DepositInfos of meta nodes by owner(grpc)
+func GetDepositInfosByMetaNodes(
 	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
-) ([]*types.StakingInfo, error) {
+) ([]*types.DepositInfo, error) {
 
-	resp := make([]*types.StakingInfo, len(metaNodes))
+	resp := make([]*types.DepositInfo, len(metaNodes))
 
 	for i, metaNode := range metaNodes {
-		stakingInfoResp, err := StakingInfoToStakingInfoMetaNode(ctx, k, metaNode)
+		depositInfo, err := GetDepositInfoByMetaNode(ctx, k, metaNode)
 		if err != nil {
 			return nil, err
 		}
 
-		resp[i] = &stakingInfoResp
+		resp[i] = &depositInfo
 
 	}
 
 	return resp, nil
 }
 
-func StakingInfoToStakingInfoResourceNode(ctx sdk.Context, k Keeper, node types.ResourceNode) (types.StakingInfo, error) {
+func GetDepositInfoByResourceNode(ctx sdk.Context, k Keeper, node types.ResourceNode) (types.DepositInfo, error) {
 	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
-	stakingInfo := types.StakingInfo{}
-	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+	depositInfo := types.DepositInfo{}
+	unBondingDeposit, unBondedDeposit, bondedDeposit, er := k.getNodeDeposit(
 		ctx,
 		node.GetStatus(),
 		networkAddr,
 		node.Tokens,
 	)
 	if er != nil {
-		return stakingInfo, er
+		return depositInfo, er
 	}
 
 	if !node.Equal(types.ResourceNode{}) {
-		stakingInfo = types.NewStakingInfoByResourceNodeAddr(
+		depositInfo = types.NewDepositInfoByResourceNodeAddr(
 			node,
-			unBondingStake,
-			unBondedStake,
-			bondedStake,
+			unBondingDeposit,
+			unBondedDeposit,
+			bondedDeposit,
 		)
 	}
-	return stakingInfo, nil
+	return depositInfo, nil
 }
 
-func StakingInfoToStakingInfoMetaNode(ctx sdk.Context, k Keeper, node types.MetaNode) (types.StakingInfo, error) {
+func GetDepositInfoByMetaNode(ctx sdk.Context, k Keeper, node types.MetaNode) (types.DepositInfo, error) {
 	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
-	stakingInfo := types.StakingInfo{}
-	unBondingStake, unBondedStake, bondedStake, er := k.getNodeStakes(
+	depositInfo := types.DepositInfo{}
+	unBondingDeposit, unBondedDeposit, bondedDeposit, er := k.getNodeDeposit(
 		ctx,
 		node.GetStatus(),
 		networkAddr,
 		node.Tokens,
 	)
 	if er != nil {
-		return stakingInfo, er
+		return depositInfo, er
 	}
 
 	if !node.Equal(types.MetaNode{}) {
-		stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+		depositInfo = types.NewDepositInfoByMetaNodeAddr(
 			node,
-			unBondingStake,
-			unBondedStake,
-			bondedStake,
+			unBondingDeposit,
+			unBondedDeposit,
+			bondedDeposit,
 		)
 	}
-	return stakingInfo, nil
+	return depositInfo, nil
 }

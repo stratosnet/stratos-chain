@@ -82,7 +82,7 @@ package sds
 //	ctx := mApp.BaseApp.NewContext(true, header)
 //
 //	initialStakeTotal := sdk.NewInt(43000000000000)
-//	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+//	registerKeeper.SetInitialGenesisDepositTotal(ctx, initialStakeTotal)
 //
 //	// setup resource nodes
 //	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
@@ -105,7 +105,7 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeDeposit(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
 //		randomPurchase := sdk.NewInt(int64(rand.Float64() * 100 * 1000000000))
@@ -125,7 +125,7 @@ package sds
 //	ctx := mApp.BaseApp.NewContext(true, header)
 //
 //	initialStakeTotal := sdk.NewInt(43000000000000)
-//	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+//	registerKeeper.SetInitialGenesisDepositTotal(ctx, initialStakeTotal)
 //
 //	// setup resource nodes
 //	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
@@ -148,7 +148,7 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeDeposit(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
 //		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", sdk.NewInt(10000000000))))
@@ -166,7 +166,7 @@ package sds
 //	ctx := mApp.BaseApp.NewContext(true, header)
 //
 //	initialStakeTotal := sdk.NewInt(43000000000000)
-//	registerKeeper.SetInitialGenesisStakeTotal(ctx, initialStakeTotal)
+//	registerKeeper.SetInitialGenesisDepositTotal(ctx, initialStakeTotal)
 //
 //	// setup resource nodes
 //	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
@@ -190,7 +190,7 @@ package sds
 //		tmpResourceNode.Tokens = val
 //		tmpResourceNode.Status = sdk.Bonded
 //		tmpResourceNode.OwnerAddress = accs[i%5].GetAddress()
-//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeStake(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
+//		ozoneLimitChange, _ := registerKeeper.AddResourceNodeDeposit(ctx, tmpResourceNode, sdk.NewCoin("wei", val))
 //		log.Printf("Add resourceNode #%v(stake=%v), ozone limit increases by %v, remaining ozone limit is %v", i, resourceNodeStake, ozoneLimitChange, registerKeeper.GetRemainingOzoneLimit(ctx))
 //		// doPrepay
 //		purchased, _ := k.Prepay(ctx, accs[i%5].GetAddress(), sdk.NewCoins(sdk.NewCoin("wei", sdk.NewInt(10000000000))))
@@ -232,11 +232,11 @@ package sds
 //	initLt := sdk.NewInt(43000)
 //	initPt := sdk.NewCoin(keeper.BondDenom(ctx), sdk.ZeroInt())
 //
-//	keeper.registerKeeper.SetInitialGenesisStakeTotal(ctx, initS)
+//	keeper.registerKeeper.SetInitialGenesisDepositTotal(ctx, initS)
 //	keeper.registerKeeper.SetTotalUnissuedPrepay(ctx, initPt)
 //	keeper.registerKeeper.SetRemainingOzoneLimit(ctx, initLt)
 //
-//	log.Printf("==== init stake total is %v", keeper.registerKeeper.GetInitialGenesisStakeTotal(ctx))
+//	log.Printf("==== init stake total is %v", keeper.registerKeeper.GetInitialGenesisDepositTotal(ctx))
 //	log.Printf("==== init prepay is %v", keeper.registerKeeper.GetTotalUnissuedPrepay(ctx))
 //	log.Printf("==== ozone limit is %v\n\n", keeper.registerKeeper.GetRemainingOzoneLimit(ctx))
 //
@@ -247,7 +247,7 @@ package sds
 //	}
 //
 //	for i, val := range prepaySeq {
-//		S := keeper.registerKeeper.GetInitialGenesisStakeTotal(ctx)
+//		S := keeper.registerKeeper.GetInitialGenesisDepositTotal(ctx)
 //		Pt := keeper.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
 //		Lt := keeper.registerKeeper.GetRemainingOzoneLimit(ctx)
 //

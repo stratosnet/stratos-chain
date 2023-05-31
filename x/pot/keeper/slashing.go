@@ -42,7 +42,7 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 	if toBeSuspended {
 		effectiveStakeChange := sdk.ZeroInt().Sub(node.EffectiveTokens)
 		node.EffectiveTokens = sdk.ZeroInt()
-		k.registerKeeper.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
+		k.registerKeeper.DecreaseOzoneLimitBySubtractDeposit(ctx, effectiveStakeChange.Abs())
 	}
 
 	k.registerKeeper.SetResourceNode(ctx, node)

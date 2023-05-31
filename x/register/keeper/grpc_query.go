@@ -88,43 +88,43 @@ func (q Querier) BondedMetaNodeCount(c context.Context, _ *types.QueryBondedMeta
 	return &types.QueryBondedMetaNodeCountResponse{Number: uint64(number)}, nil
 }
 
-func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeRequest) (*types.QueryStakeByNodeResponse, error) {
+func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeRequest) (*types.QueryDepositByNodeResponse, error) {
 	if req == nil {
-		return &types.QueryStakeByNodeResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+		return &types.QueryDepositByNodeResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	if req.GetNetworkAddr() == "" {
-		return &types.QueryStakeByNodeResponse{}, status.Error(codes.InvalidArgument, "node network address cannot be empty")
+		return &types.QueryDepositByNodeResponse{}, status.Error(codes.InvalidArgument, "node network address cannot be empty")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
 	queryType := req.GetQueryType()
 	networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 	if err != nil {
-		return &types.QueryStakeByNodeResponse{}, err
+		return &types.QueryDepositByNodeResponse{}, err
 	}
-	stakingInfo := types.StakingInfo{}
+	depositInfo := types.DepositInfo{}
 
 	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
 		metaNode, found := q.GetMetaNode(ctx, networkAddr)
 		if found {
-			// Adding meta node staking info
+			// Adding meta node deposit info
 			networkAddr, _ := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
-			unBondingStake, unBondedStake, bondedStake, err := q.getNodeStakes(
+			unBondingDeposit, unBondedDeposit, bondedDeposit, err := q.getNodeDeposit(
 				ctx,
 				metaNode.GetStatus(),
 				networkAddr,
 				metaNode.Tokens,
 			)
 			if err != nil {
-				return &types.QueryStakeByNodeResponse{}, err
+				return &types.QueryDepositByNodeResponse{}, err
 			}
 			if !metaNode.Equal(types.MetaNode{}) {
-				stakingInfo = types.NewStakingInfoByMetaNodeAddr(
+				depositInfo = types.NewDepositInfoByMetaNodeAddr(
 					metaNode,
-					unBondingStake,
-					unBondedStake,
-					bondedStake,
+					unBondingDeposit,
+					unBondedDeposit,
+					bondedDeposit,
 				)
 			}
 		}
@@ -133,13 +133,13 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
 		networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 		if err != nil {
-			return &types.QueryStakeByNodeResponse{}, err
+			return &types.QueryDepositByNodeResponse{}, err
 		}
 		resourceNode, found := q.GetResourceNode(ctx, networkAddr)
 		if found {
-			// Adding resource node staking info
+			// Adding resource node deposit info
 			networkAddr, _ := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
-			unBondingStake, unBondedStake, bondedStake, err := q.getNodeStakes(
+			unBondingDeposit, unBondedDeposit, bondedDeposit, err := q.getNodeDeposit(
 				ctx,
 				resourceNode.GetStatus(),
 				networkAddr,
@@ -149,36 +149,36 @@ func (q Querier) StakeByNode(c context.Context, req *types.QueryStakeByNodeReque
 				return nil, err
 			}
 			if !resourceNode.Equal(types.ResourceNode{}) {
-				stakingInfo = types.NewStakingInfoByResourceNodeAddr(
+				depositInfo = types.NewDepositInfoByResourceNodeAddr(
 					resourceNode,
-					unBondingStake,
-					unBondedStake,
-					bondedStake,
+					unBondingDeposit,
+					unBondedDeposit,
+					bondedDeposit,
 				)
 			}
 		}
 	}
-	return &types.QueryStakeByNodeResponse{StakingInfo: &stakingInfo}, nil
+	return &types.QueryDepositByNodeResponse{DepositInfo: &depositInfo}, nil
 
 }
 
-func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerRequest) (*types.QueryStakeByOwnerResponse, error) {
+func (q Querier) DepositByOwner(c context.Context, req *types.QueryDepositByOwnerRequest) (*types.QueryDepositByOwnerResponse, error) {
 	if req == nil {
-		return &types.QueryStakeByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+		return &types.QueryDepositByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	if req.GetOwnerAddr() == "" {
-		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.InvalidArgument, "owner address cannot be empty")
+		return &types.QueryDepositByOwnerResponse{}, status.Error(codes.InvalidArgument, "owner address cannot be empty")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
 	ownerAddr, er := sdk.AccAddressFromBech32(req.GetOwnerAddr())
 	if er != nil {
-		return &types.QueryStakeByOwnerResponse{}, er
+		return &types.QueryDepositByOwnerResponse{}, er
 	}
 
 	store := ctx.KVStore(q.storeKey)
-	var stakingInfoResponses []*types.StakingInfo
+	var depositInfoResponses []*types.DepositInfo
 
 	// get resource nodes
 	var resourceNodes types.ResourceNodes
@@ -198,17 +198,17 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	})
 
 	if err != nil {
-		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
+		return &types.QueryDepositByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
-	stakingInfoResponses, err = StakingInfosToStakingResourceNodes(ctx, q.Keeper, resourceNodes)
+	depositInfoResponses, err = GetDepositInfosByResourceNodes(ctx, q.Keeper, resourceNodes)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
 	// Continue to get meta nodes
 	if req.Pagination.Limit < resourceNodesPageRes.Total {
-		resourceNodesPageRes.Total = uint64(len(stakingInfoResponses))
-		return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfoResponses, Pagination: resourceNodesPageRes}, nil
+		resourceNodesPageRes.Total = uint64(len(depositInfoResponses))
+		return &types.QueryDepositByOwnerResponse{DepositInfos: depositInfoResponses, Pagination: resourceNodesPageRes}, nil
 
 	}
 
@@ -237,43 +237,44 @@ func (q Querier) StakeByOwner(c context.Context, req *types.QueryStakeByOwnerReq
 	})
 
 	if err != nil {
-		return &types.QueryStakeByOwnerResponse{}, status.Error(codes.Internal, err.Error())
+		return &types.QueryDepositByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	metaNodesStakingInfoResponses, err := StakingInfosToStakingMetaNodes(ctx, q.Keeper, metaNodes)
+	metaNodesDepositInfoResponses, err := GetDepositInfosByMetaNodes(ctx, q.Keeper, metaNodes)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
-	stakingInfoResponses = append(stakingInfoResponses, metaNodesStakingInfoResponses...)
+	depositInfoResponses = append(depositInfoResponses, metaNodesDepositInfoResponses...)
 	PageRes := resourceNodesPageRes
-	PageRes.Total = uint64(len(stakingInfoResponses))
-	return &types.QueryStakeByOwnerResponse{StakingInfos: stakingInfoResponses, Pagination: PageRes}, nil
+	PageRes.Total = uint64(len(depositInfoResponses))
+	return &types.QueryDepositByOwnerResponse{DepositInfos: depositInfoResponses, Pagination: PageRes}, nil
 }
 
-func (q Querier) StakeTotal(c context.Context, _ *types.QueryTotalStakeRequest) (*types.QueryTotalStakeResponse, error) {
+func (q Querier) DepositTotal(c context.Context, _ *types.QueryDepositTotalRequest) (*types.QueryDepositTotalResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	totalBondedStakeOfResourceNodes := q.GetResourceNodeBondedToken(ctx).Amount
-	totalBondedStakeOfMetaNodes := q.GetMetaNodeBondedToken(ctx).Amount
+	totalBondedDepositOfResourceNodes := q.GetResourceNodeBondedToken(ctx).Amount
+	totalBondedDepositOfMetaNodes := q.GetMetaNodeBondedToken(ctx).Amount
 
-	totalUnbondedStakeOfResourceNodes := q.GetResourceNodeNotBondedToken(ctx).Amount
-	totalUnbondedStakeOfMetaNodes := q.GetMetaNodeNotBondedToken(ctx).Amount
+	totalUnbondedDepositOfResourceNodes := q.GetResourceNodeNotBondedToken(ctx).Amount
+	totalUnbondedDepositOfMetaNodes := q.GetMetaNodeNotBondedToken(ctx).Amount
 
-	totalStakeOfResourceNodes := totalBondedStakeOfResourceNodes.Add(totalUnbondedStakeOfResourceNodes)
-	totalStakeOfMetaNodes := totalBondedStakeOfMetaNodes.Add(totalUnbondedStakeOfMetaNodes)
+	totalDepositOfResourceNodes := totalBondedDepositOfResourceNodes.Add(totalUnbondedDepositOfResourceNodes)
+	totalDepositOfMetaNodes := totalBondedDepositOfMetaNodes.Add(totalUnbondedDepositOfMetaNodes)
 
-	totalBondedStake := totalBondedStakeOfResourceNodes.Add(totalBondedStakeOfMetaNodes)
-	totalUnbondedStake := totalUnbondedStakeOfResourceNodes.Add(totalUnbondedStakeOfMetaNodes)
-	totalUnbondingStake := q.GetAllUnbondingNodesTotalBalance(ctx)
-	totalUnbondedStake = totalUnbondedStake.Sub(totalUnbondingStake)
-	res := types.NewQueryNodesStakingInfo(
-		totalStakeOfResourceNodes,
-		totalStakeOfMetaNodes,
-		totalBondedStake,
-		totalUnbondedStake,
-		totalUnbondingStake,
+	totalBondedDeposit := totalBondedDepositOfResourceNodes.Add(totalBondedDepositOfMetaNodes)
+	totalUnbondedDeposit := totalUnbondedDepositOfResourceNodes.Add(totalUnbondedDepositOfMetaNodes)
+	totalUnbondingDeposit := q.GetAllUnbondingNodesTotalBalance(ctx)
+	totalUnbondedDeposit = totalUnbondedDeposit.Sub(totalUnbondingDeposit)
+	res := types.NewQueryDepositTotalInfo(
+		q.BondDenom(ctx),
+		totalDepositOfResourceNodes,
+		totalDepositOfMetaNodes,
+		totalBondedDeposit,
+		totalUnbondedDeposit,
+		totalUnbondingDeposit,
 	)
 
-	return &types.QueryTotalStakeResponse{TotalStakes: res}, nil
+	return res, nil
 }

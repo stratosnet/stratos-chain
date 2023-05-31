@@ -312,7 +312,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		/********************* print info *********************/
 		t.Log("epoch " + volumeReportMsg.Epoch.String())
-		S := registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+		S := registerKeeper.GetInitialGenesisDepositTotal(ctx).ToDec()
 		Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 		Y := totalConsumedNoz
 		Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()

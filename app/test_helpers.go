@@ -188,7 +188,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		})
 
 		initRemainingOzoneLimit = resNodeBondedAmt.ToDec().
-			Quo(registertypes.DefaultStakeNozRate).
+			Quo(registertypes.DefaultDepositNozRate).
 			TruncateInt()
 	}
 
@@ -209,7 +209,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		metaNodes,
 		initRemainingOzoneLimit,
 		make([]registertypes.Slashing, 0),
-		registertypes.DefaultStakeNozRate,
+		registertypes.DefaultDepositNozRate,
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
 

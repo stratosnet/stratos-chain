@@ -39,12 +39,12 @@ message GenesisState {
     (gogoproto.jsontag) = "slashing",
     (gogoproto.moretags) = "yaml:\"slashing_info\""
   ];
-  string                  stake_noz_rate = 6 [
+  string                  deposit_noz_rate = 6 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "stake_noz_rate",
-    (gogoproto.moretags) = "yaml:\"stake_noz_rate\"",
+    (gogoproto.jsontag) = "deposit_noz_rate",
+    (gogoproto.moretags) = "yaml:\"deposit_noz_rate\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
-  ]; //fixed rate of stake over noz
+  ]; //fixed rate of deposit over noz
 }
 
 message GenesisMetaNode {
