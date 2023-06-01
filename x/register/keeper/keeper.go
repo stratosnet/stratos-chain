@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"container/list"
 	"errors"
 	"fmt"
 	"sync"
@@ -28,10 +27,6 @@ type Keeper struct {
 	bankKeeper                     types.BankKeeper
 	distrKeeper                    types.DistrKeeper
 	hooks                          types.RegisterHooks
-	resourceNodeCache              map[string]cachedResourceNode
-	resourceNodeCacheList          *list.List
-	metaNodeCache                  map[string]cachedMetaNode
-	metaNodeCacheList              *list.List
 	metaNodeBitMapIndexCache       map[string]int
 	metaNodeBitMapIndexCacheStatus types.CacheStatus
 	cacheMutex                     sync.RWMutex
@@ -49,10 +44,6 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 		bankKeeper:                     bankKeeper,
 		distrKeeper:                    distrKeeper,
 		hooks:                          nil,
-		resourceNodeCache:              make(map[string]cachedResourceNode, resourceNodeCacheSize),
-		resourceNodeCacheList:          list.New(),
-		metaNodeCache:                  make(map[string]cachedMetaNode, metaNodeCacheSize),
-		metaNodeCacheList:              list.New(),
 		metaNodeBitMapIndexCache:       make(map[string]int),
 		metaNodeBitMapIndexCacheStatus: types.CACHE_DIRTY,
 		cacheMutex:                     sync.RWMutex{},

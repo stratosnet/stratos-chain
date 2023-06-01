@@ -11,52 +11,13 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-const resourceNodeCacheSize = 500
-
-// Cache the proto decoding of resource nodes, as it can be the case that repeated slashing calls
-// cause many calls to GetResourceNode, which were shown to throttle the state machine in our
-// simulation. Note this is quite biased though, as the simulator does more slashes than a
-// live chain should, however we require the slashing to be fast as no one pays gas for it.
-type cachedResourceNode struct {
-	resourceNode types.ResourceNode
-	marshalled   string // marshalled proto bytes for the ResourceNode object (not address)
-}
-
-func newCachedResourceNode(resourceNode types.ResourceNode, marshalled string) cachedResourceNode {
-	return cachedResourceNode{
-		resourceNode: resourceNode,
-		marshalled:   marshalled,
-	}
-}
-
 // GetResourceNode get a single resource node
 func (k Keeper) GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (resourceNode types.ResourceNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetResourceNodeKey(p2pAddress))
-
 	if value == nil {
 		return resourceNode, false
 	}
-
-	// If these proto encoded bytes are in the cache, return the cached resource node
-	strValue := string(value)
-	if val, ok := k.resourceNodeCache[strValue]; ok {
-		valToReturn := val.resourceNode
-		return valToReturn, true
-	}
-
-	// proto bytes weren't found in cache, so proto unmarshal and add it to the cache
-	resourceNode = types.MustUnmarshalResourceNode(k.cdc, value)
-	cachedVal := newCachedResourceNode(resourceNode, strValue)
-	k.resourceNodeCache[strValue] = newCachedResourceNode(resourceNode, strValue)
-	k.resourceNodeCacheList.PushBack(cachedVal)
-
-	// if the cache is too big, pop off the last element from it
-	if k.resourceNodeCacheList.Len() > resourceNodeCacheSize {
-		valToRemove := k.resourceNodeCacheList.Remove(k.resourceNodeCacheList.Front()).(cachedResourceNode)
-		delete(k.resourceNodeCache, valToRemove.marshalled)
-	}
-
 	resourceNode = types.MustUnmarshalResourceNode(k.cdc, value)
 	return resourceNode, true
 }
