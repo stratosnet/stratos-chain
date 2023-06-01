@@ -397,7 +397,7 @@ func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	if resourceNodeBondedAccAddr == nil {
 		ctx.Logger().Error("account address for resource node bonded pool does not exist.")
 		return sdk.Coin{
-			Denom:  types.DefaultBondDenom,
+			Denom:  k.BondDenom(ctx),
 			Amount: sdk.ZeroInt(),
 		}
 	}
@@ -409,7 +409,7 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 	if resourceNodeNotBondedAccAddr == nil {
 		ctx.Logger().Error("account address for resource node Not bonded pool does not exist.")
 		return sdk.Coin{
-			Denom:  types.DefaultBondDenom,
+			Denom:  k.BondDenom(ctx),
 			Amount: sdk.ZeroInt(),
 		}
 	}

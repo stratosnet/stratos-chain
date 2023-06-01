@@ -201,6 +201,7 @@ func getDepositInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 			}
 			if !metaNode.Equal(types.MetaNode{}) {
 				depositInfo = types.NewDepositInfoByMetaNodeAddr(
+					k.BondDenom(ctx),
 					metaNode,
 					unBondingDeposit,
 					unBondedDeposit,
@@ -231,6 +232,7 @@ func getDepositInfoByNodeAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper, 
 			}
 			if !resourceNode.Equal(types.ResourceNode{}) {
 				depositInfo = types.NewDepositInfoByResourceNodeAddr(
+					k.BondDenom(ctx),
 					resourceNode,
 					unBondingDeposit,
 					unBondedDeposit,
@@ -642,6 +644,7 @@ func GetDepositInfoByResourceNode(ctx sdk.Context, k Keeper, node types.Resource
 
 	if !node.Equal(types.ResourceNode{}) {
 		depositInfo = types.NewDepositInfoByResourceNodeAddr(
+			k.BondDenom(ctx),
 			node,
 			unBondingDeposit,
 			unBondedDeposit,
@@ -666,6 +669,7 @@ func GetDepositInfoByMetaNode(ctx sdk.Context, k Keeper, node types.MetaNode) (t
 
 	if !node.Equal(types.MetaNode{}) {
 		depositInfo = types.NewDepositInfoByMetaNodeAddr(
+			k.BondDenom(ctx),
 			node,
 			unBondingDeposit,
 			unBondedDeposit,

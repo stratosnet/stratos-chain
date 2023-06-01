@@ -68,15 +68,16 @@ func NewQueryDepositTotalInfo(bondDenom string, ResourceNodeTotalDeposit, MetaNo
 
 // NewDepositInfoByResourceNodeAddr creates a new instance of DepositInfoByNodeAddr
 func NewDepositInfoByResourceNodeAddr(
+	bondDenom string,
 	resourceNode ResourceNode,
 	unBondingDeposit sdk.Int,
 	unBondedDeposit sdk.Int,
 	bondedDeposit sdk.Int,
 
 ) DepositInfo {
-	bonedValue := sdk.NewCoin(DefaultBondDenom, bondedDeposit)
-	unBondedValue := sdk.NewCoin(DefaultBondDenom, unBondedDeposit)
-	unBondingValue := sdk.NewCoin(DefaultBondDenom, unBondingDeposit)
+	bonedValue := sdk.NewCoin(bondDenom, bondedDeposit)
+	unBondedValue := sdk.NewCoin(bondDenom, unBondedDeposit)
+	unBondingValue := sdk.NewCoin(bondDenom, unBondingDeposit)
 
 	return DepositInfo{
 		NetworkAddress:   resourceNode.GetNetworkAddress(),
@@ -96,14 +97,15 @@ func NewDepositInfoByResourceNodeAddr(
 
 // NewDepositInfoByMetaNodeAddr creates a new instance of DepositInfoByNodeAddr
 func NewDepositInfoByMetaNodeAddr(
+	bondDenom string,
 	metaNode MetaNode,
 	unBondingDeposit sdk.Int,
 	unBondedDeposit sdk.Int,
 	bondedDeposit sdk.Int,
 ) DepositInfo {
-	bonedValue := sdk.NewCoin(DefaultBondDenom, bondedDeposit)
-	unBondedValue := sdk.NewCoin(DefaultBondDenom, unBondedDeposit)
-	unBondingValue := sdk.NewCoin(DefaultBondDenom, unBondingDeposit)
+	bonedValue := sdk.NewCoin(bondDenom, bondedDeposit)
+	unBondedValue := sdk.NewCoin(bondDenom, unBondedDeposit)
+	unBondingValue := sdk.NewCoin(bondDenom, unBondingDeposit)
 	return DepositInfo{
 		NetworkAddress:   metaNode.GetNetworkAddress(),
 		Pubkey:           metaNode.GetPubkey(),

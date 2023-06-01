@@ -121,6 +121,7 @@ func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeR
 			}
 			if !metaNode.Equal(types.MetaNode{}) {
 				depositInfo = types.NewDepositInfoByMetaNodeAddr(
+					q.BondDenom(ctx),
 					metaNode,
 					unBondingDeposit,
 					unBondedDeposit,
@@ -150,6 +151,7 @@ func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeR
 			}
 			if !resourceNode.Equal(types.ResourceNode{}) {
 				depositInfo = types.NewDepositInfoByResourceNodeAddr(
+					q.BondDenom(ctx),
 					resourceNode,
 					unBondingDeposit,
 					unBondedDeposit,
