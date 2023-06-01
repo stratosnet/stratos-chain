@@ -83,7 +83,7 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 	if totalUnissuedPrepayAccAddr == nil {
 		ctx.Logger().Error("account address for total unissued prepay does not exist.")
 		return sdk.Coin{
-			Denom:  types.DefaultBondDenom,
+			Denom:  k.BondDenom(ctx),
 			Amount: sdk.ZeroInt(),
 		}
 	}

@@ -516,7 +516,7 @@ func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	if metaNodeBondedAccAddr == nil {
 		ctx.Logger().Error("account address for meta node bonded pool does not exist.")
 		return sdk.Coin{
-			Denom:  types.DefaultBondDenom,
+			Denom:  k.BondDenom(ctx),
 			Amount: sdk.ZeroInt(),
 		}
 	}
@@ -528,7 +528,7 @@ func (k Keeper) GetMetaNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
 	if metaNodeNotBondedAccAddr == nil {
 		ctx.Logger().Error("account address for meta node Not bonded pool does not exist.")
 		return sdk.Coin{
-			Denom:  types.DefaultBondDenom,
+			Denom:  k.BondDenom(ctx),
 			Amount: sdk.ZeroInt(),
 		}
 	}
