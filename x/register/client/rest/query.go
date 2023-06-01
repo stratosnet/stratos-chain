@@ -5,11 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/gorilla/mux"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -18,9 +20,9 @@ import (
 func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/register/resource-node/{nodeAddress}", nodesWithParamsFn(clientCtx, keeper.QueryResourceNodeByNetworkAddr)).Methods("GET")
 	r.HandleFunc("/register/meta-node/{nodeAddress}", nodesWithParamsFn(clientCtx, keeper.QueryMetaNodeByNetworkAddr)).Methods("GET")
-	r.HandleFunc("/register/staking", nodeStakingHandlerFn(clientCtx, keeper.QueryNodesTotalStakes)).Methods("GET")
-	r.HandleFunc("/register/staking/address/{nodeAddress}", nodeStakingByNodeAddressFn(clientCtx, keeper.QueryNodeStakeByNodeAddr)).Methods("GET")
-	r.HandleFunc("/register/staking/owner/{ownerAddress}", nodeStakingByOwnerFn(clientCtx, keeper.QueryNodeStakeByOwner)).Methods("GET")
+	r.HandleFunc("/register/deposit", nodeDepositHandlerFn(clientCtx, keeper.QueryNodesDepositTotal)).Methods("GET")
+	r.HandleFunc("/register/deposit/address/{nodeAddress}", nodeDepositByNodeAddressFn(clientCtx, keeper.QueryNodeDepositByNodeAddr)).Methods("GET")
+	r.HandleFunc("/register/deposit/owner/{ownerAddress}", nodeDepositByOwnerFn(clientCtx, keeper.QueryNodeDepositByOwner)).Methods("GET")
 	r.HandleFunc("/register/params", registerParamsHandlerFn(clientCtx, keeper.QueryRegisterParams)).Methods("GET")
 	r.HandleFunc("/register/resource-count", resourceNodesCountFn(clientCtx, keeper.QueryResourceNodesCount)).Methods("GET")
 	r.HandleFunc("/register/meta-count", metaNodesCountFn(clientCtx, keeper.QueryMetaNodesCount)).Methods("GET")
@@ -145,8 +147,8 @@ func nodesWithParamsFn(clientCtx client.Context, queryPath string) http.HandlerF
 	}
 }
 
-// GET request handler to query nodes total staking info
-func nodeStakingHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+// GET request handler to query nodes total deposit info
+func nodeDepositHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
@@ -165,8 +167,8 @@ func nodeStakingHandlerFn(clientCtx client.Context, queryPath string) http.Handl
 	}
 }
 
-// GET request handler to query node staking info
-func nodeStakingByNodeAddressFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
+// GET request handler to query node deposit info
+func nodeDepositByNodeAddressFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		NodeAddrStr := mux.Vars(r)["nodeAddress"]
@@ -194,7 +196,7 @@ func nodeStakingByNodeAddressFn(cliCtx client.Context, queryPath string) http.Ha
 			queryType = 0
 		}
 
-		params := types.NewQueryNodeStakingParams(nodeAddress, queryType)
+		params := types.NewQueryNodeDepositParams(nodeAddress, queryType)
 		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
 		if rest.CheckBadRequestError(w, err) {
 			return
@@ -214,8 +216,8 @@ func nodeStakingByNodeAddressFn(cliCtx client.Context, queryPath string) http.Ha
 	}
 }
 
-// GET request handler to query nodes staking info by Node wallet address
-func nodeStakingByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
+// GET request handler to query nodes deposit info by Node wallet address
+func nodeDepositByOwnerFn(cliCtx client.Context, queryPath string) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		ownerAddressStr := mux.Vars(r)["ownerAddress"]

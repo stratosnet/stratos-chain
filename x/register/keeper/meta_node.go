@@ -103,7 +103,7 @@ func (k Keeper) GetAllValidMetaNodes(ctx sdk.Context) (metaNodes []types.MetaNod
 }
 
 func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, stake sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
+	description types.Description, deposit sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
 
 	if _, found := k.GetMetaNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Meta node already exist")
@@ -114,7 +114,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 		return ozoneLimitChange, types.ErrResourceNodePubKeyExists
 	}
 
-	if stake.GetDenom() != k.BondDenom(ctx) {
+	if deposit.GetDenom() != k.BondDenom(ctx) {
 		return ozoneLimitChange, types.ErrBadDenom
 	}
 
@@ -122,7 +122,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 	if err != nil {
 		return ozoneLimitChange, err
 	}
-	ozoneLimitChange, err = k.AddMetaNodeStake(ctx, metaNode, stake)
+	ozoneLimitChange, err = k.AddMetaNodeDeposit(ctx, metaNode, deposit)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -138,8 +138,8 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 	return ozoneLimitChange, nil
 }
 
-// AddMetaNodeStake Update the tokens of an existing meta node
-func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, tokenToAdd sdk.Coin,
+// AddMetaNodeDeposit Update the tokens of an existing meta node
+func (k Keeper) AddMetaNodeDeposit(ctx sdk.Context, metaNode types.MetaNode, tokenToAdd sdk.Coin,
 ) (ozoneLimitChange sdk.Int, err error) {
 
 	coins := sdk.NewCoins(tokenToAdd)
@@ -175,7 +175,7 @@ func (k Keeper) AddMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, token
 	k.SetMetaNode(ctx, metaNode)
 
 	if !metaNode.Suspend {
-		ozoneLimitChange = k.IncreaseOzoneLimitByAddStake(ctx, tokenToAdd.Amount)
+		ozoneLimitChange = k.IncreaseOzoneLimitByAddDeposit(ctx, tokenToAdd.Amount)
 	} else {
 		// if node is currently suspended, ozone limit will be increased upon unsuspension instead of NOW
 		ozoneLimitChange = sdk.ZeroInt()
@@ -204,8 +204,8 @@ func (k Keeper) RemoveTokenFromPoolWhileUnbondingMetaNode(ctx sdk.Context, metaN
 	return nil
 }
 
-// SubtractMetaNodeStake Update the tokens of an existing meta node
-func (k Keeper) SubtractMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, tokenToSub sdk.Coin) error {
+// SubtractMetaNodeDeposit Update the tokens of an existing meta node
+func (k Keeper) SubtractMetaNodeDeposit(ctx sdk.Context, metaNode types.MetaNode, tokenToSub sdk.Coin) error {
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
 		return types.ErrInvalidNetworkAddr
@@ -256,11 +256,11 @@ func (k Keeper) SubtractMetaNodeStake(ctx sdk.Context, metaNode types.MetaNode, 
 	}
 
 	metaNode = metaNode.SubToken(tokenToSub.Amount)
-	newStake := metaNode.Tokens
+	newDeposit := metaNode.Tokens
 
 	k.SetMetaNode(ctx, metaNode)
 
-	if newStake.IsZero() {
+	if newDeposit.IsZero() {
 		err = k.removeMetaNode(ctx, networkAddr)
 		if err != nil {
 			return err
@@ -320,7 +320,7 @@ func (k Keeper) GetMetaNodeListByMoniker(ctx sdk.Context, moniker string) (resou
 	return resourceNodes, nil
 }
 
-func (k Keeper) WithdrawMetaNodeRegistrationStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) (
+func (k Keeper) WithdrawMetaNodeRegistrationDeposit(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) (
 	unbondingMatureTime time.Time, err error) {
 
 	node, found := k.GetMetaNode(ctx, networkAddr)
@@ -338,10 +338,10 @@ func (k Keeper) WithdrawMetaNodeRegistrationStake(ctx sdk.Context, networkAddr s
 	if node.Status != stakingtypes.Unbonded || !node.Suspend || votePool.IsVotePassed {
 		return time.Time{}, types.ErrInvalidNodeStat
 	}
-	// check available_stake (node_token - unbonding_token > amt_to_withdraw)
-	unbondingStake := k.GetUnbondingNodeBalance(ctx, networkAddr)
-	availableStake := node.Tokens.Sub(unbondingStake)
-	if availableStake.LTE(sdk.ZeroInt()) {
+	// check available_deposit (node_token - unbonding_token > amt_to_withdraw)
+	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableDeposit := node.Tokens.Sub(unbondingDeposit)
+	if availableDeposit.LTE(sdk.ZeroInt()) {
 		return time.Time{}, types.ErrInsufficientBalance
 	}
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
@@ -350,12 +350,12 @@ func (k Keeper) WithdrawMetaNodeRegistrationStake(ctx sdk.Context, networkAddr s
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, node.Status, node.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
 
 	// Set the unbonding mature time and completion height appropriately
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, availableStake)
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, availableDeposit)
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
 
-	// all stake is being unbonded, update status to Unbonding
+	// all deposit is being unbonded, update status to Unbonding
 	node.Status = stakingtypes.Unbonding
 	k.SetMetaNode(ctx, node)
 
@@ -427,12 +427,12 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 		networkAddr, _ := stratos.SdsAddressFromBech32(candidateNode.GetNetworkAddress())
 		k.AddMetaNodeToBitMapIdxCache(networkAddr)
 		// increase ozone limit after vote is approved
-		_ = k.IncreaseOzoneLimitByAddStake(ctx, candidateNode.Tokens)
+		_ = k.IncreaseOzoneLimitByAddDeposit(ctx, candidateNode.Tokens)
 		// increase mata node count
 		v := k.GetBondedMetaNodeCnt(ctx)
 		count := v.Add(sdk.NewInt(1))
 		k.SetBondedMetaNodeCnt(ctx, count)
-		// move stake from not bonded pool to bonded pool
+		// move deposit from not bonded pool to bonded pool
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), candidateNode.Tokens)
 		// sub coins from not bonded pool
 		nBondedMetaAccountAddr := k.accountKeeper.GetModuleAddress(types.MetaNodeNotBondedPool)
@@ -478,10 +478,10 @@ func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
 	return nil
 }
 
-func (k Keeper) UpdateMetaNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, stakeDelta sdk.Coin, incrStake bool) (
+func (k Keeper) UpdateMetaNodeDeposit(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, depositDelta sdk.Coin, incrDeposit bool) (
 	ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
 
-	if stakeDelta.GetDenom() != k.BondDenom(ctx) {
+	if depositDelta.GetDenom() != k.BondDenom(ctx) {
 		return sdk.ZeroInt(), time.Time{}, types.ErrBadDenom
 	}
 
@@ -495,15 +495,15 @@ func (k Keeper) UpdateMetaNodeStake(ctx sdk.Context, networkAddr stratos.SdsAddr
 		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidOwnerAddr
 	}
 
-	if incrStake {
+	if incrDeposit {
 		blockTime := ctx.BlockHeader().Time
-		ozoneLimitChange, err = k.AddMetaNodeStake(ctx, node, stakeDelta)
+		ozoneLimitChange, err = k.AddMetaNodeDeposit(ctx, node, depositDelta)
 		if err != nil {
 			return sdk.ZeroInt(), time.Time{}, err
 		}
 		return ozoneLimitChange, blockTime, nil
 	} else {
-		ozoneLimitChange, completionTime, err := k.UnbondMetaNode(ctx, node, stakeDelta.Amount)
+		ozoneLimitChange, completionTime, err := k.UnbondMetaNode(ctx, node, depositDelta.Amount)
 		if err != nil {
 			return sdk.ZeroInt(), time.Time{}, err
 		}

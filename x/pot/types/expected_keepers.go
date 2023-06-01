@@ -41,14 +41,14 @@ type RegisterKeeper interface {
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 
-	GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int)
+	GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdk.Int)
 
 	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 	GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator
 	GetBondedMetaNodeCnt(ctx sdk.Context) sdk.Int
 
-	DecreaseOzoneLimitBySubtractStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
-	IncreaseOzoneLimitByAddStake(ctx sdk.Context, stake sdk.Int) (ozoneLimitChange sdk.Int)
+	DecreaseOzoneLimitBySubtractDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int)
+	IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int)
 	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int
 
 	NozSupply(ctx sdk.Context) (remaining, total sdk.Int)

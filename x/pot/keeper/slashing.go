@@ -12,8 +12,8 @@ This function only record slashing amount.
 
 Deduct slashing amount when:
 1, calculate upcoming mature reward, deduct from mature_total & upcoming mature reward.
-2, unstaking meta node.
-3, unstaking resource node.
+2, meta node decrease deposit .
+3, resource node decrease deposit .
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
 	nozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
@@ -40,9 +40,9 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 
 	// directly change oz limit while node being suspended
 	if toBeSuspended {
-		effectiveStakeChange := sdk.ZeroInt().Sub(node.EffectiveTokens)
+		effectiveDepositChange := sdk.ZeroInt().Sub(node.EffectiveTokens)
 		node.EffectiveTokens = sdk.ZeroInt()
-		k.registerKeeper.DecreaseOzoneLimitBySubtractStake(ctx, effectiveStakeChange.Abs())
+		k.registerKeeper.DecreaseOzoneLimitBySubtractDeposit(ctx, effectiveDepositChange.Abs())
 	}
 
 	k.registerKeeper.SetResourceNode(ctx, node)
