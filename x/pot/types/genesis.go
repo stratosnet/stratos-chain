@@ -2,13 +2,11 @@ package types
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	//stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpoch sdk.Int,
 	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
-	undistributedReport WalletVolumes, undistributedEpoch sdk.Int, isReadyToDistribute bool,
 	maturedEpoch sdk.Int,
 ) *GenesisState {
 
@@ -19,9 +17,6 @@ func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpo
 		ImmatureTotalInfo:    immatureTotalInfo,
 		MatureTotalInfo:      matureTotalInfo,
 		IndividualRewardInfo: individualRewardInfo,
-		UndistributedReport:  undistributedReport,
-		UndistributedEpoch:   undistributedEpoch,
-		IsReadyToDistribute:  isReadyToDistribute,
 		MaturedEpoch:         maturedEpoch,
 	}
 }
@@ -37,9 +32,6 @@ func DefaultGenesisState() *GenesisState {
 		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
 		MatureTotalInfo:      make([]MatureTotal, 0),
 		IndividualRewardInfo: make([]Reward, 0),
-		UndistributedReport:  WalletVolumes{},
-		UndistributedEpoch:   sdk.ZeroInt(),
-		IsReadyToDistribute:  false,
 		MaturedEpoch:         sdk.ZeroInt(),
 	}
 }

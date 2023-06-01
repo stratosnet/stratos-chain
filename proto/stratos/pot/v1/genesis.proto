@@ -40,22 +40,7 @@ message GenesisState {
     (gogoproto.jsontag) = "individual_reward_info",
     (gogoproto.moretags) = "yaml:\"individual_reward_info\""
   ];
-  WalletVolumes             undistributed_report = 7 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "undistributed_report",
-    (gogoproto.moretags) = "yaml:\"undistributed_report\""
-  ];
-  string                    undistributed_epoch = 8 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "undistributed_epoch",
-    (gogoproto.moretags) = "yaml:\"undistributed_epoch\"",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  bool                      is_ready_to_distribute = 9 [
-    (gogoproto.jsontag) = "is_ready_to_distribute",
-    (gogoproto.moretags) = "yaml:\"is_ready_to_distribute\""
-  ];
-  string                    matured_epoch = 10 [
+  string                    matured_epoch = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "matured_epoch",
     (gogoproto.moretags) = "yaml:\"matured_epoch\"",
