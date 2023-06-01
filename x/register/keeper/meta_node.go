@@ -15,51 +15,12 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-const (
-	metaNodeCacheSize = 500
-)
-
-// Cache the proto decoding of meta nodes, as it can be the case that repeated slashing calls
-// cause many calls to getMetaNode, which were shown to throttle the state machine in our
-// simulation. Note this is quite biased though, as the simulator does more slashes than a
-// live chain should, however we require the slashing to be fast as no one pays gas for it.
-type cachedMetaNode struct {
-	metaNode   types.MetaNode
-	marshalled string // marshalled proto bytes for the MetaNode object (not address)
-}
-
-func newCachedMetaNode(metaNode types.MetaNode, marshalled string) cachedMetaNode {
-	return cachedMetaNode{
-		metaNode:   metaNode,
-		marshalled: marshalled,
-	}
-}
-
 // getMetaNode get a single meta node
 func (k Keeper) GetMetaNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (metaNode types.MetaNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetMetaNodeKey(p2pAddress))
 	if value == nil {
 		return metaNode, false
-	}
-
-	// If these proto encoded bytes are in the cache, return the cached meta node
-	strValue := string(value)
-	if val, ok := k.metaNodeCache[strValue]; ok {
-		valToReturn := val.metaNode
-		return valToReturn, true
-	}
-
-	// proto bytes weren't found in cache, so unmarshal and add it to the cache
-	metaNode = types.MustUnmarshalMetaNode(k.cdc, value)
-	cachedVal := newCachedMetaNode(metaNode, strValue)
-	k.metaNodeCache[strValue] = newCachedMetaNode(metaNode, strValue)
-	k.metaNodeCacheList.PushBack(cachedVal)
-
-	// if the cache is too big, pop off the last element from it
-	if k.metaNodeCacheList.Len() > metaNodeCacheSize {
-		valToRemove := k.metaNodeCacheList.Remove(k.metaNodeCacheList.Front()).(cachedMetaNode)
-		delete(k.metaNodeCache, valToRemove.marshalled)
 	}
 	metaNode = types.MustUnmarshalMetaNode(k.cdc, value)
 	return metaNode, true
