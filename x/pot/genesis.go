@@ -2,6 +2,7 @@ package pot
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -37,9 +38,6 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		keeper.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdk.NewInt(data.Params.MatureEpoch)), individual)
 	}
 
-	keeper.SetUnDistributedReport(ctx, data.UndistributedReport)
-	keeper.SetUnDistributedEpoch(ctx, data.UndistributedEpoch)
-	keeper.SetIsReadyToDistribute(ctx, data.IsReadyToDistribute)
 	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)
 }
 
@@ -76,13 +74,6 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		return false
 	})
 
-	unDistributedReport, found := keeper.GetUnDistributedReport(ctx)
-	if !found {
-		unDistributedReport = types.WalletVolumes{}
-	}
-	unDistributedEpoch := keeper.GetUnDistributedEpoch(ctx)
-	isReadyToDistribute := keeper.GetIsReadyToDistribute(ctx)
-
 	maturedEpoch := keeper.GetMaturedEpoch(ctx)
 
 	return types.NewGenesisState(
@@ -92,8 +83,5 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		immatureTotalInfo,
 		matureTotalInfo,
 		individualRewardInfo,
-		unDistributedReport,
-		unDistributedEpoch,
-		isReadyToDistribute,
 		maturedEpoch)
 }
