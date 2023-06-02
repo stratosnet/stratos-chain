@@ -989,8 +989,6 @@ func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 
 	beneficiary := common.BytesToAddress(args)
 
-	// NOTE: Current implementation not safe as we do not have revert mechanics in case of stored value
-	// in case of out of gas in the next ops
 	outBig, returnGas, err := interpreter.evm.Context.Prepay(interpreter.evm, contract.caller.Address(), beneficiary, bigVal, gas)
 	if err != nil {
 		temp.Clear()
