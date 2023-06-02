@@ -14,11 +14,14 @@ import (
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
+	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
+
+var _ evmtypes.SdsKeeper = &Keeper{}
 
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
