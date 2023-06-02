@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/kelindar/bitmap"
@@ -88,29 +87,18 @@ func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.Sd
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
 func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) (sdk.Int, error) {
-	St := k.registerKeeper.GetEffectiveTotalDeposit(ctx)
-	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)
-
-	purchased := Lt.ToDec().
-		Mul(amount.ToDec()).
-		Quo((St.
-			Add(Pt).
-			Add(amount)).ToDec()).
-		TruncateInt()
-
-	if purchased.GT(Lt) {
-		return sdk.ZeroInt(), errors.New("not enough remaining ozone limit to complete prepay")
+	purchased, newRemainingOzoneLimit, err := k.registerKeeper.CalculatePurchaseAmount(ctx, amount)
+	if err != nil {
+		return sdk.ZeroInt(), err
 	}
 	// send coins to total unissued prepay pool
 	prepayAmt := sdk.NewCoin(k.BondDenom(ctx), amount)
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
 
 	// update remaining noz limit
-	newRemainingOzoneLimit := Lt.Sub(purchased)
 	k.registerKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
 
 	return purchased, nil

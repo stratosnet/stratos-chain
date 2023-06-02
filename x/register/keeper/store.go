@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -43,6 +44,25 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	k.cdc.MustUnmarshalLengthPrefixed(b, &intVal)
 	value = *intVal.Value
 	return
+}
+
+func (k *Keeper) CalculatePurchaseAmount(ctx sdk.Context, amount sdk.Int) (sdk.Int, sdk.Int, error) {
+	St := k.GetEffectiveTotalDeposit(ctx)
+	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
+	Lt := k.GetRemainingOzoneLimit(ctx)
+
+	purchase := Lt.ToDec().
+		Mul(amount.ToDec()).
+		Quo((St.
+			Add(Pt).
+			Add(amount)).ToDec()).
+		TruncateInt()
+	if purchase.GT(Lt) {
+		return sdk.NewInt(0), sdk.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
+	}
+	remaining := Lt.Sub(purchase)
+
+	return purchase, remaining, nil
 }
 
 func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdk.Int) bool {
