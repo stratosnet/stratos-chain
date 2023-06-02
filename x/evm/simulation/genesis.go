@@ -41,7 +41,7 @@ func GenEnableCall(r *rand.Rand) bool {
 // RandomizedGenState generates a random GenesisState for the EVM module
 func RandomizedGenState(simState *module.SimulationState) {
 	feeMarketParams := types.NewFeeMarketParams(simState.Rand.Uint32()%2 == 0, simState.Rand.Uint32(), simState.Rand.Uint32(), simState.Rand.Uint64(), simState.Rand.Int63())
-
+	proxyParams := types.DefaultProxyProposalParams()
 	// evm params
 	var extraEIPs []int64
 
@@ -50,7 +50,7 @@ func RandomizedGenState(simState *module.SimulationState) {
 		func(r *rand.Rand) { extraEIPs = GenExtraEIPs(r) },
 	)
 
-	params := types.NewParams(types.DefaultEVMDenom, true, true, types.DefaultChainConfig(), feeMarketParams, extraEIPs...)
+	params := types.NewParams(types.DefaultEVMDenom, true, true, types.DefaultChainConfig(), feeMarketParams, proxyParams, extraEIPs...)
 	evmGenesis := types.NewGenesisState(params, []types.GenesisAccount{})
 
 	bz, err := json.MarshalIndent(evmGenesis, "", " ")

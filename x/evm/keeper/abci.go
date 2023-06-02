@@ -22,6 +22,8 @@ func (k *Keeper) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
 
 	k.SetBaseFeeParam(ctx, baseFee)
 
+	k.AddGenesisVerifier(ctx)
+
 	// Store current base fee in event
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -55,6 +57,15 @@ func (k *Keeper) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.Vali
 
 	bloom := ethtypes.BytesToBloom(k.GetBlockBloomTransient(infCtx).Bytes())
 	k.EmitBlockBloomEvent(infCtx, bloom)
+
+	pc, err := NewProposalCounsil(k, ctx)
+	if err != nil {
+		panic(err)
+	}
+
+	if err := pc.ApplyGenesisState(uint64(req.Height)); err != nil {
+		panic(err)
+	}
 
 	return []abci.ValidatorUpdate{}
 }

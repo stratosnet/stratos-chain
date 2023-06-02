@@ -629,7 +629,7 @@ func (e *PublicAPI) doCall(
 
 	// return if requested block height is greater than the current one or chain not synced
 	if resBlock == nil || resBlock.Block == nil {
-		return nil, nil
+		return nil, fmt.Errorf("block not found '%d'", blockNr.Int64())
 	}
 
 	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)

@@ -14,6 +14,7 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -312,7 +313,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			BaseFee:     baseFee,
 		}
 		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes())))
-		evm := ctd.evmKeeper.NewEVM(ctx, coreMsg, cfg, evmtypes.NewNoOpTracer(), stateDB)
+		evm := ctd.evmKeeper.NewEVM(ctx, coreMsg, cfg, tracers.NewNoOpTracer(), stateDB)
 
 		// check that caller has enough balance to cover asset transfer for **topmost** call
 		// NOTE: here the gas consumed is from the context with the infinite gas meter
