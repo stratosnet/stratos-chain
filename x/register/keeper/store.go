@@ -47,7 +47,7 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 }
 
 func (k *Keeper) CalculatePurchaseAmount(ctx sdk.Context, amount sdk.Int) (sdk.Int, sdk.Int, error) {
-	St := k.GetEffectiveTotalStake(ctx)
+	St := k.GetEffectiveTotalDeposit(ctx)
 	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.GetRemainingOzoneLimit(ctx)
 
