@@ -27,9 +27,11 @@ Aside from implementing the tracer, it also needs to register itself, using the
 Example:
 
 ```golang
-func init() {
-	register("noopTracerNative", newNoopTracer)
-}
+
+	func init() {
+		register("noopTracerNative", newNoopTracer)
+	}
+
 ```
 */
 package native
@@ -38,7 +40,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 )
 
 // InitTracer retrieves the Go transaction tracers included in go-ethereum.

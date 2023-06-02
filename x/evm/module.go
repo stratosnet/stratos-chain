@@ -24,7 +24,10 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
+	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
+	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
 
+	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	modulev1 "github.com/stratosnet/stratos-chain/api/stratos/evm/module/v1"
 	"github.com/stratosnet/stratos-chain/x/evm/client/cli"
 	"github.com/stratosnet/stratos-chain/x/evm/keeper"
@@ -224,12 +227,14 @@ func init() {
 type ModuleInputs struct {
 	depinject.In
 
-	Config        *modulev1.Module
-	Cdc           codec.Codec
-	Key           *storetypes.KVStoreKey
-	AccountKeeper authkeeper.AccountKeeper
-	BankKeeper    bankkeeper.Keeper
-	StakingKeeper *stakingkeeper.Keeper
+	Config         *modulev1.Module
+	Cdc            codec.Codec
+	Key            *storetypes.KVStoreKey
+	AccountKeeper  authkeeper.AccountKeeper
+	BankKeeper     bankkeeper.Keeper
+	StakingKeeper  *stakingkeeper.Keeper
+	RegisterKeeper registerkeeper.Keeper
+	SdsKeeper      sdskeeper.Keeper
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace types.ParamsSubspace `optional:"true"`
@@ -238,8 +243,9 @@ type ModuleInputs struct {
 type ModuleOutputs struct {
 	depinject.Out
 
-	EvmKeeper *keeper.Keeper
-	Module    appmodule.AppModule
+	EvmKeeper  *keeper.Keeper
+	Module     appmodule.AppModule
+	EvmHandler govv1beta1.HandlerRoute
 }
 
 func ProvideModule(in ModuleInputs) ModuleOutputs {
@@ -252,9 +258,11 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 	k := keeper.NewKeeper(
 		in.Cdc,
 		in.Key,
-		in.AccountKeeper,
+		&in.AccountKeeper,
 		in.BankKeeper,
 		in.StakingKeeper,
+		&in.RegisterKeeper,
+		&in.SdsKeeper,
 		authority.String(),
 	)
 
@@ -267,5 +275,6 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.LegacySubspace,
 	)
 
-	return ModuleOutputs{EvmKeeper: k, Module: m}
+	hr := govv1beta1.HandlerRoute{Handler: NewEVMChangeProposalHandler(k), RouteKey: types.RouterKey}
+	return ModuleOutputs{EvmKeeper: k, Module: m, EvmHandler: hr}
 }

@@ -248,7 +248,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Cdc,
 		in.Key,
 		in.BankKeeper,
-		in.RegisterKeeper,
+		&in.RegisterKeeper,
 		in.PotKeeper,
 		authority.String(),
 	)
@@ -257,7 +257,7 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		in.Cdc,
 		k,
 		in.BankKeeper,
-		in.RegisterKeeper,
+		&in.RegisterKeeper,
 		in.PotKeeper,
 		in.LegacySubspace,
 	)

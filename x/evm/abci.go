@@ -37,7 +37,7 @@ func BeginBlocker(ctx sdk.Context, _ abci.RequestBeginBlock, k *keeper.Keeper) {
 // EndBlocker also retrieves the bloom filter value from the transient store and commits it to the
 // KVStore. The EVM end block logic doesn't update the validator set, thus it returns
 // an empty slice.
-func EndBlocker(ctx sdk.Context, _ abci.RequestEndBlock, k *keeper.Keeper) []abci.ValidatorUpdate {
+func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k *keeper.Keeper) []abci.ValidatorUpdate {
 	if ctx.BlockGasMeter() == nil {
 		k.Logger(ctx).Error("block gas meter is nil when setting block gas used")
 		panic("block gas meter is nil when setting block gas used")
