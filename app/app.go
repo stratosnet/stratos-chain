@@ -360,7 +360,7 @@ func NewInitApp(
 	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tKeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
-		app.accountKeeper, app.bankKeeper, app.stakingKeeper, app.potKeeper, nil, tracer,
+		app.accountKeeper, app.bankKeeper, app.stakingKeeper, nil, tracer,
 	)
 
 	// Create IBC Keeper
