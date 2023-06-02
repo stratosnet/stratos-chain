@@ -7,8 +7,8 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k *Keeper) KeeGetEffectiveTotalStake(kstatedb *statedb.KeestateDB) (stake sdk.Int) {
-	bz := kstatedb.GetState(k.storeKey, types.EffectiveGenesisStakeTotalKey)
+func (k *Keeper) KeeGetEffectiveTotalDeposit(kstatedb *statedb.KeestateDB) (stake sdk.Int) {
+	bz := kstatedb.GetState(k.storeKey, types.EffectiveGenesisDepositTotalKey)
 	if bz == nil {
 		return sdk.ZeroInt()
 	}

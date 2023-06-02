@@ -22,7 +22,7 @@ func (k Keeper) KeeGetTotalUnissuedPrepay(statedb vm.StateDB) (value sdk.Int) {
 
 func (k *Keeper) KeeCalculatePrepayPurchaseAmount(statedb vm.StateDB, amount sdk.Int) (sdk.Int, sdk.Int, error) {
 	kdb := statedb.GetKeestateDB()
-	St := k.registerKeeper.KeeGetEffectiveTotalStake(kdb)
+	St := k.registerKeeper.KeeGetEffectiveTotalDeposit(kdb)
 	Pt := k.KeeGetTotalUnissuedPrepay(statedb)
 	Lt := k.registerKeeper.KeeGetRemainingOzoneLimit(kdb)
 
