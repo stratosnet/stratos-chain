@@ -71,7 +71,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
-	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper, potKeeper types.PotKeeper,
+	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
 	sdsKeeper types.SdsKeeper,
 	tracer string,
 ) *Keeper {
