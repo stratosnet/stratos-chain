@@ -53,14 +53,6 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 	}
 
 	// reset total supply to 100M stos
-	//minter, amount := k.RestoreTotalSupply(ctx)
-	//if minter.Empty() || amount.Empty() {
-	//	return []abci.ValidatorUpdate{}
-	//}
-	//
-	//ctx.EventManager().EmitEvent(
-	//	banktypes.NewCoinMintEvent(minter, amount),
-	//)
-
+	k.RestoreTotalSupply(ctx)
 	return []abci.ValidatorUpdate{}
 }

@@ -1,6 +1,8 @@
 package pot
 
 import (
+	"fmt"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -41,6 +43,13 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	keeper.SetUnDistributedEpoch(ctx, data.UndistributedEpoch)
 	keeper.SetIsReadyToDistribute(ctx, data.IsReadyToDistribute)
 	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)
+	// ensure total supply of bank module is LT InitialTotalSupply
+	totalSupply := keeper.GetSupply(ctx)
+	if keeper.GetParams(ctx).InitialTotalSupply.IsLT(totalSupply) {
+		errMsg := fmt.Sprintf("total supply[%v] is greater than total supply limit[%v]",
+			totalSupply.String(), keeper.GetParams(ctx).InitialTotalSupply.String())
+		panic(errMsg)
+	}
 }
 
 // ExportGenesis writes the current store values
