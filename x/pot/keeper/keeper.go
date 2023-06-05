@@ -139,22 +139,21 @@ func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minter sdk.AccAddress, mint
 	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
 	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
 
-	totalSupplyChange := totalMinted.Add(currentTotalSupply).Sub(totalBurned).Sub(InitialTotalSupply)
+	if InitialTotalSupply.LT(currentTotalSupply) {
+		errMsg := fmt.Sprintf("current supply[%v] exceeds total supply limit[%v], further mint won't be executed",
+			currentTotalSupply.String(), InitialTotalSupply.String())
+		ctx.Logger().Info(errMsg)
+		return sdk.AccAddress{}, sdk.Coins{}
+	}
+	//totalSupplyChange := totalMinted.Add(currentTotalSupply).Sub(totalBurned).Sub(InitialTotalSupply)
 
+	totalSupplyChange := totalMinted.Sub(totalBurned)
 	if totalSupplyChange.Equal(sdk.ZeroInt()) {
 		return sdk.AccAddress{}, sdk.Coins{}
 	}
 
-	//ctx.Logger().Info("------currentTotalSupply is " + currentTotalSupply.String())
-	//ctx.Logger().Info("------InitialTotalSupply is " + InitialTotalSupply.String())
-	if totalSupplyChange.GT(sdk.ZeroInt()) {
-		// TODO whether to burn and from which account
-		infoMsg := fmt.Sprintf("current supply[%v] exceeds total supply limit[%v]",
-			currentTotalSupply.String(), InitialTotalSupply.String())
-		ctx.Logger().Info(infoMsg)
-	}
-
 	if totalSupplyChange.LT(sdk.ZeroInt()) {
+		// ensure current supply won't decrease
 		coinToMint := sdk.NewCoin(k.BondDenom(ctx), totalSupplyChange.Abs())
 		coinsToMint := sdk.NewCoins(coinToMint)
 		// mint slack
