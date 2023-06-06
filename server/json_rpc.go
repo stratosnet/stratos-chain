@@ -28,12 +28,18 @@ func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.K
 		return nil
 	}))
 
-	apis := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, ms, clientCtx, config.JSONRPC.API)
-	web3Srv := rpc.NewWeb3Server(config, logger)
-	err := web3Srv.StartHTTP(apis)
+	apis, err := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, ms, clientCtx, config.JSONRPC.API)
 	if err != nil {
 		return err
 	}
+
+	web3Srv := rpc.NewWeb3Server(config, logger)
+
+	err = web3Srv.StartHTTP(apis)
+	if err != nil {
+		return err
+	}
+
 	err = web3Srv.StartWS(apis)
 	if err != nil {
 		return err

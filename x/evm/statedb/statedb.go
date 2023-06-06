@@ -9,8 +9,9 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // revision is the identifier of a version of state.
@@ -50,6 +51,9 @@ type StateDB struct {
 
 	// Per-transaction access list
 	accessList *accessList
+
+	// core keestatedb for basic keeper commit state changes
+	keestatedb *keestatedb.KeestateDB
 }
 
 // New creates a new state from a given trie.
@@ -62,6 +66,7 @@ func New(ctx sdk.Context, keeper Keeper, txConfig TxConfig) *StateDB {
 		accessList:   newAccessList(),
 		logs:         make([]*ethtypes.Log, 0),
 		txConfig:     txConfig,
+		keestatedb:   keestatedb.New(ctx),
 	}
 }
 
@@ -250,8 +255,8 @@ func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) 
 // CreateAccount is called during the EVM CREATE operation. The situation might arise that
 // a contract does the following:
 //
-//   1. sends funds to sha(account ++ (nonce + 1))
-//   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
+//  1. sends funds to sha(account ++ (nonce + 1))
+//  2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
 //
 // Carrying over the balance ensures that Ether doesn't disappear.
 func (s *StateDB) CreateAccount(addr common.Address) {
@@ -459,5 +464,30 @@ func (s *StateDB) Commit() error {
 			}
 		}
 	}
+	if err := s.keestatedb.Commit(); err != nil {
+		return err
+	}
 	return nil
+}
+
+// proxy methods to keestatedb
+
+func (s *StateDB) GetKeestateDB() *keestatedb.KeestateDB {
+	return s.keestatedb
+}
+
+func (s *StateDB) GetKeeState(storeKey sdk.StoreKey, key []byte) []byte {
+	return s.keestatedb.GetState(storeKey, key)
+}
+
+func (s *StateDB) SetKeeState(storeKey sdk.StoreKey, key, value []byte) {
+	s.keestatedb.SetState(storeKey, key, value)
+}
+
+func (s *StateDB) RevertToKeeSnapshot(revid int) {
+	s.keestatedb.RevertToSnapshot(revid)
+}
+
+func (s *StateDB) KeeSnapshot() int {
+	return s.keestatedb.Snapshot()
 }

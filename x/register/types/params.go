@@ -28,15 +28,15 @@ var (
 	KeyUnbondingCompletionTime = []byte("UnbondingCompletionTime")
 	KeyMaxEntries              = []byte("MaxEntries")
 	KeyResourceNodeRegEnabled  = []byte("ResourceNodeRegEnabled")
-	KeyResourceNodeMinStake    = []byte("ResourceNodeMinStake")
+	KeyResourceNodeMinDeposit  = []byte("ResourceNodeMinDeposit")
 	KeyVotingPeriod            = []byte("VotingPeriod")
 
 	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
 	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
 	DefaultVotingPeriod            = 7 * 24 * time.Hour   // expiration time of registration voting - by default 7 days
-	DefaultStakeNozRate            = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
+	DefaultDepositNozRate          = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
 	DefaultRemainingNozLimit       = sdk.NewInt(0)
-	DefaultResourceNodeMinStake    = sdk.NewCoin(DefaultBondDenom, sdk.NewInt(1e18))
+	DefaultResourceNodeMinDeposit  = sdk.NewCoin(DefaultBondDenom, sdk.NewInt(1e18))
 )
 
 // ParamKeyTable returns the parameter key table.
@@ -46,7 +46,7 @@ func ParamKeyTable() paramtypes.KeyTable {
 
 // NewParams creates a new Params object
 func NewParams(bondDenom string, threashold, completion time.Duration, maxEntries uint32,
-	resourceNodeRegEnabled bool, resourceNodeMinStake sdk.Coin, votingPeriod time.Duration) Params {
+	resourceNodeRegEnabled bool, resourceNodeMinDeposit sdk.Coin, votingPeriod time.Duration) Params {
 
 	return Params{
 		BondDenom:               bondDenom,
@@ -54,7 +54,7 @@ func NewParams(bondDenom string, threashold, completion time.Duration, maxEntrie
 		UnbondingCompletionTime: completion,
 		MaxEntries:              maxEntries,
 		ResourceNodeRegEnabled:  resourceNodeRegEnabled,
-		ResourceNodeMinStake:    resourceNodeMinStake,
+		ResourceNodeMinDeposit:  resourceNodeMinDeposit,
 		VotingPeriod:            votingPeriod,
 	}
 }
@@ -67,7 +67,7 @@ func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
 		paramtypes.NewParamSetPair(KeyUnbondingCompletionTime, &p.UnbondingCompletionTime, validateUnbondingCompletionTime),
 		paramtypes.NewParamSetPair(KeyMaxEntries, &p.MaxEntries, validateMaxEntries),
 		paramtypes.NewParamSetPair(KeyResourceNodeRegEnabled, &p.ResourceNodeRegEnabled, validateResourceNodeRegEnabled),
-		paramtypes.NewParamSetPair(KeyResourceNodeMinStake, &p.ResourceNodeMinStake, validateResourceNodeMinStake),
+		paramtypes.NewParamSetPair(KeyResourceNodeMinDeposit, &p.ResourceNodeMinDeposit, validateResourceNodeMinDeposit),
 		paramtypes.NewParamSetPair(KeyVotingPeriod, &p.VotingPeriod, validateVotingPeriod),
 	}
 }
@@ -88,7 +88,7 @@ func (p Params) Validate() error {
 	if err := validateResourceNodeRegEnabled(p.ResourceNodeRegEnabled); err != nil {
 		return err
 	}
-	if err := validateResourceNodeMinStake(p.ResourceNodeMinStake); err != nil {
+	if err := validateResourceNodeMinDeposit(p.ResourceNodeMinDeposit); err != nil {
 		return err
 	}
 	if err := validateVotingPeriod(p.VotingPeriod); err != nil {
@@ -105,7 +105,7 @@ func DefaultParams() Params {
 		DefaultUnbondingCompletionTime,
 		DefaultMaxEntries,
 		DefaultResourceNodeRegEnabled,
-		DefaultResourceNodeMinStake,
+		DefaultResourceNodeMinDeposit,
 		DefaultVotingPeriod,
 	)
 }
@@ -174,7 +174,7 @@ func validateResourceNodeRegEnabled(i interface{}) error {
 	return nil
 }
 
-func validateResourceNodeMinStake(i interface{}) error {
+func validateResourceNodeMinDeposit(i interface{}) error {
 	_, ok := i.(sdk.Coin)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)

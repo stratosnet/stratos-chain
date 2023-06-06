@@ -14,7 +14,7 @@ const (
 	codeErrEmptyResourceNodeAddr
 	codeErrEmptyMetaNodeAddr
 	codeErrBadDenom
-	codeErrInsufficientStake
+	codeErrInsufficientDeposit
 	codeErrResourceNodePubKeyExists
 	codeErrMetaNodePubKeyExists
 	codeErrNoResourceNodeFound
@@ -44,9 +44,9 @@ const (
 	codeErrNoUnbondingNode
 	codeErrMaxUnbondingNodeEntries
 	codeErrUnbondingNode
-	codeErrStakeNozRate
+	codeErrDepositNozRate
 	codeErrRemainingNozLimit
-	codeErrInvalidStakeChange
+	codeErrInvalidDepositChange
 	codeErrInvalidNodeType
 	codeErrUnknownAccountAddress
 	codeErrUnknownPubKey
@@ -57,8 +57,8 @@ const (
 	codeErrUnbondMetaNode
 	codeErrUpdateResourceNode
 	codeErrUpdateMetaNode
-	codeErrUpdateResourceNodeStake
-	codeErrUpdateMetaNodeStake
+	codeErrUpdateResourceNodeDeposit
+	codeErrUpdateMetaNodeDeposit
 	codeErrVoteMetaNode
 	codeErrResourceNodeRegDisabled
 	codeErrInvalidSuspensionStatForUnbondNode
@@ -77,7 +77,7 @@ var (
 	ErrEmptyResourceNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyResourceNodeAddr, "missing resource node address")
 	ErrEmptyMetaNodeAddr                  = sdkerrors.Register(ModuleName, codeErrEmptyMetaNodeAddr, "missing Meta node address")
 	ErrBadDenom                           = sdkerrors.Register(ModuleName, codeErrBadDenom, "invalid coin denomination")
-	ErrInsufficientStake                  = sdkerrors.Register(ModuleName, codeErrInsufficientStake, "insufficient stake")
+	ErrInsufficientDeposit                = sdkerrors.Register(ModuleName, codeErrInsufficientDeposit, "insufficient deposit")
 	ErrResourceNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrResourceNodePubKeyExists, "resource node already exist for this pubkey; must use new resource node pubkey")
 	ErrMetaNodePubKeyExists               = sdkerrors.Register(ModuleName, codeErrMetaNodePubKeyExists, "meta node already exist for this pubkey; must use new meta node pubkey")
 	ErrNoResourceNodeFound                = sdkerrors.Register(ModuleName, codeErrNoResourceNodeFound, "resource node does not exist")
@@ -107,9 +107,9 @@ var (
 	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, codeErrNoUnbondingNode, "no unbonding node found")
 	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, codeErrMaxUnbondingNodeEntries, "too many unbonding node entries for networkAddr tuple")
 	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, codeErrUnbondingNode, "changes cannot be made to an unbonding node")
-	ErrStakeNozRate                       = sdkerrors.Register(ModuleName, codeErrStakeNozRate, "stake noz rate must be positive")
+	ErrDepositNozRate                     = sdkerrors.Register(ModuleName, codeErrDepositNozRate, "deposit noz rate must be positive")
 	ErrRemainingNozLimit                  = sdkerrors.Register(ModuleName, codeErrRemainingNozLimit, "remaining Noz Limit must be non-negative")
-	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, codeErrInvalidStakeChange, "invalid change for stake")
+	ErrInvalidDepositChange               = sdkerrors.Register(ModuleName, codeErrInvalidDepositChange, "invalid change for deposit")
 	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeType, "invalid node type")
 	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
 	ErrUnknownPubKey                      = sdkerrors.Register(ModuleName, codeErrUnknownPubKey, "unknown pubKey ")
@@ -120,8 +120,8 @@ var (
 	ErrUnbondMetaNode                     = sdkerrors.Register(ModuleName, codeErrUnbondMetaNode, "failed to unbond meta node")
 	ErrUpdateResourceNode                 = sdkerrors.Register(ModuleName, codeErrUpdateResourceNode, "failed to update resource node")
 	ErrUpdateMetaNode                     = sdkerrors.Register(ModuleName, codeErrUpdateMetaNode, "failed to update meta node")
-	ErrUpdateResourceNodeStake            = sdkerrors.Register(ModuleName, codeErrUpdateResourceNodeStake, "failed to update stake for resource node")
-	ErrUpdateMetaNodeStake                = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeStake, "failed to update stake for meta node")
+	ErrUpdateResourceNodeDeposit          = sdkerrors.Register(ModuleName, codeErrUpdateResourceNodeDeposit, "failed to update deposit for resource node")
+	ErrUpdateMetaNodeDeposit              = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeDeposit, "failed to update deposit for meta node")
 	ErrVoteMetaNode                       = sdkerrors.Register(ModuleName, codeErrVoteMetaNode, "failed to vote meta node")
 	ErrResourceNodeRegDisabled            = sdkerrors.Register(ModuleName, codeErrResourceNodeRegDisabled, "resource node registration is disabled")
 	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")

@@ -14,7 +14,7 @@ type ResourceNodeI interface {
 	GetStatus() stakingtypes.BondStatus // status of the node
 	GetPubKey() cryptotypes.PubKey      // pubkey of the node
 	GetNetworkAddr() stratos.SdsAddress // network address of the node
-	GetTokens() sdk.Int                 // staking tokens of the node
+	GetTokens() sdk.Int                 // deposit tokens of the node
 	GetOwnerAddr() sdk.AccAddress       // owner address of the node
 	GetNodeType() string                // node type
 }
@@ -26,6 +26,6 @@ type MetaNodeI interface {
 	GetStatus() stakingtypes.BondStatus // status of the node
 	GetPubKey() cryptotypes.PubKey      // pubkey of the node
 	GetNetworkAddr() stratos.SdsAddress // network address of the node
-	GetTokens() sdk.Int                 // staking tokens of the node
+	GetTokens() sdk.Int                 // deposit tokens of the node
 	GetOwnerAddr() sdk.AccAddress       // owner address of the node
 }

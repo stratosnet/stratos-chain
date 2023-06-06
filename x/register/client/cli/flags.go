@@ -5,11 +5,11 @@ import (
 )
 
 const (
-	FlagPubKey     = "pubkey"
-	FlagAmount     = "amount"
-	FlagStakeDelta = "stake-delta"
-	FlagIncrStake  = "incr-stake"
-	FlagNodeType   = "node-type"
+	FlagPubKey       = "pubkey"
+	FlagAmount       = "amount"
+	FlagDepositDelta = "deposit-delta"
+	FlagIncrDeposit  = "incr-deposit"
+	FlagNodeType     = "node-type"
 
 	FlagMoniker         = "moniker"
 	FlagIdentity        = "identity"
@@ -64,11 +64,11 @@ func flagSetNodeType() *flag.FlagSet {
 	return fs
 }
 
-func flagSetStakeUpdate() *flag.FlagSet {
+func flagSetDepositUpdate() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagStakeDelta, "", "Stake change of coins to be made (always positive like 100000wei)")
-	fs.String(FlagIncrStake, "", "Boolean indicator of increase/decrease of stake delta, true for increase and false for decrease")
+	fs.String(FlagDepositDelta, "", "Deposit change of coins to be made (always positive like 100000wei)")
+	fs.String(FlagIncrDeposit, "", "Boolean indicator of increase/decrease of deposit delta, true for increase and false for decrease")
 
 	return fs
 }

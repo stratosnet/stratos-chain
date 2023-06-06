@@ -96,6 +96,7 @@ import (
 	srvflags "github.com/stratosnet/stratos-chain/server/flags"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm"
+	evmclient "github.com/stratosnet/stratos-chain/x/evm/client"
 	evmrest "github.com/stratosnet/stratos-chain/x/evm/client/rest"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -136,6 +137,7 @@ var (
 			upgradeclient.CancelProposalHandler,
 			ibcclientclient.UpdateClientProposalHandler,
 			ibcclientclient.UpgradeProposalHandler,
+			evmclient.EVMChangeProxyImplementationHandler,
 		),
 		params.AppModuleBasic{},
 		crisis.AppModuleBasic{},
@@ -187,13 +189,14 @@ var (
 
 	// module accounts that are allowed to receive tokens
 	allowedReceivingModAcc = map[string]bool{
-		distrtypes.ModuleName:      true,
-		authtypes.FeeCollectorName: true,
+		distrtypes.ModuleName:             true,
+		authtypes.FeeCollectorName:        true,
+		registertypes.TotalUnissuedPrepay: true,
 		//pot.FoundationAccount: true,
 	}
 )
 
-type EVMLKeeperApp interface {
+type EVMKeeperApp interface {
 	GetEVMKeeper() *evmkeeper.Keeper
 }
 
@@ -357,8 +360,7 @@ func NewInitApp(
 	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tKeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
-		app.accountKeeper, app.bankKeeper, app.stakingKeeper, app.potKeeper,
-		tracer,
+		app.accountKeeper, app.bankKeeper, app.stakingKeeper, app.potKeeper, nil, tracer,
 	)
 
 	// Create IBC Keeper
@@ -371,7 +373,8 @@ func NewInitApp(
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)).
 		AddRoute(distrtypes.RouterKey, distr.NewCommunityPoolSpendProposalHandler(app.distrKeeper)).
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper))
+		AddRoute(ibchost.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(evmtypes.RouterKey, evm.NewEVMChangeProposalHandler(app.evmKeeper))
 
 	govKeeper := govkeeper.NewKeeper(
 		appCodec, keys[govtypes.StoreKey], app.GetSubspace(govtypes.ModuleName), app.accountKeeper, app.bankKeeper,
@@ -436,6 +439,11 @@ func NewInitApp(
 		app.registerKeeper,
 		app.potKeeper,
 	)
+
+	// required because of weird order(
+	// possible solution is to make all keepers as pointers, hovewer this could break something
+	app.evmKeeper.SetRegisterKeeper(&app.registerKeeper)
+	app.evmKeeper.SetSdsKeeper(&app.sdsKeeper)
 
 	/****  Module Options ****/
 

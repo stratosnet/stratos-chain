@@ -58,19 +58,14 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes, reporter stratos.SdsAddress,
 	epoch sdk.Int, reportReference string, txHash string) (err error) {
 
-	// tx fail when unhandled epoch > 0
-	if k.GetUnDistributedEpoch(ctx).GT(sdk.ZeroInt()) {
-		return types.ErrRewardDistributionNotComplete
-	}
-
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 
-	// save for reward distribution in the EndBlock at height + 1
-	k.SetIsReadyToDistribute(ctx, false)
-	k.SetUnDistributedEpoch(ctx, epoch)
-	k.SetUnDistributedReport(ctx, walletVolumes)
+	err = k.DistributePotReward(ctx, walletVolumes.GetVolumes(), epoch)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -180,17 +175,17 @@ func (k Keeper) GetSupply(ctx sdk.Context) (totalSupply sdk.Coin) {
 }
 
 func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coins) {
-	// total supply  - validator staking - resource node staking -  mining pool - prepay
+	// total supply  - validator deposit - resource node deposit -  mining pool - prepay
 	totalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
 
 	validatorBondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.BondedPoolName)
 	validatorStaking := k.bankKeeper.GetBalance(ctx, validatorBondedPoolAcc, k.BondDenom(ctx))
 
 	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.ResourceNodeBondedPool)
-	resourceNodeStaking := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
+	resourceNodeDeposit := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
 
 	metaNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.MetaNodeNotBondedPool)
-	metaNodeStaking := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
+	metaNodeDeposit := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
 
 	miningPoolAcc := k.accountKeeper.GetModuleAddress(types.FoundationAccount)
 	miningPool := k.bankKeeper.GetBalance(ctx, miningPoolAcc, k.BondDenom(ctx))
@@ -200,8 +195,8 @@ func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coi
 
 	circulationSupplyStos := totalSupply.
 		Sub(validatorStaking).
-		Sub(resourceNodeStaking).
-		Sub(metaNodeStaking).
+		Sub(resourceNodeDeposit).
+		Sub(metaNodeDeposit).
 		Sub(miningPool).
 		Sub(unissuedPrepay)
 

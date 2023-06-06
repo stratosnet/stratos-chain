@@ -17,7 +17,7 @@ func NewGenesisState(params Params,
 	metaNodes MetaNodes,
 	remainingNozLimit sdk.Int,
 	slashingInfo []Slashing,
-	stakeNozRate sdk.Dec,
+	depositNozRate sdk.Dec,
 ) *GenesisState {
 	return &GenesisState{
 		Params:            params,
@@ -25,7 +25,7 @@ func NewGenesisState(params Params,
 		MetaNodes:         metaNodes,
 		RemainingNozLimit: remainingNozLimit,
 		Slashing:          slashingInfo,
-		StakeNozRate:      stakeNozRate,
+		DepositNozRate:    depositNozRate,
 	}
 }
 
@@ -37,7 +37,7 @@ func DefaultGenesisState() *GenesisState {
 		MetaNodes:         MetaNodes{},
 		RemainingNozLimit: DefaultRemainingNozLimit,
 		Slashing:          make([]Slashing, 0),
-		StakeNozRate:      DefaultStakeNozRate,
+		DepositNozRate:    DefaultDepositNozRate,
 	}
 }
 
@@ -68,8 +68,8 @@ func ValidateGenesis(data GenesisState) error {
 		return ErrRemainingNozLimit
 	}
 
-	if (data.StakeNozRate).LTE(sdk.ZeroDec()) {
-		return ErrStakeNozRate
+	if (data.DepositNozRate).LTE(sdk.ZeroDec()) {
+		return ErrDepositNozRate
 	}
 	return nil
 }

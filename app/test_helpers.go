@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stratosnet/stratos-chain/server/config"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -44,7 +45,7 @@ import (
 )
 
 const (
-	DefaultGenTxGas = 5000000
+	DefaultGenTxGas = 50000000000
 	//SimAppChainID   = "simulation-app"
 )
 
@@ -53,7 +54,7 @@ const (
 var DefaultConsensusParams = &abci.ConsensusParams{
 	Block: &abci.BlockParams{
 		MaxBytes: 200000,
-		MaxGas:   2000000,
+		MaxGas:   -1,
 	},
 	Evidence: &tmproto.EvidenceParams{
 		MaxAgeNumBlocks: 302400,
@@ -188,7 +189,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		})
 
 		initRemainingOzoneLimit = resNodeBondedAmt.ToDec().
-			Quo(registertypes.DefaultStakeNozRate).
+			Quo(registertypes.DefaultDepositNozRate).
 			TruncateInt()
 	}
 
@@ -209,7 +210,7 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		metaNodes,
 		initRemainingOzoneLimit,
 		make([]registertypes.Slashing, 0),
-		registertypes.DefaultStakeNozRate,
+		registertypes.DefaultDepositNozRate,
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
 
@@ -453,6 +454,61 @@ func SignCheckDeliver(
 
 	app.EndBlock(abci.RequestEndBlock{})
 	app.Commit()
+
+	return gInfo, res, err
+}
+
+func SignCheckDeliverWithFee(
+	t *testing.T, txCfg client.TxConfig, app *bam.BaseApp, header tmproto.Header, msgs []sdk.Msg,
+	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
+) (sdk.GasInfo, *sdk.Result, error) {
+
+	feeAmount := sdk.NewInt(int64(config.DefaultMinGasPrices)).Mul(sdk.NewInt(DefaultGenTxGas))
+
+	tx, err := GenTx(
+		txCfg,
+		msgs,
+		sdk.Coins{sdk.NewCoin(stratos.Wei, feeAmount)},
+		DefaultGenTxGas,
+		chainID,
+		accNums,
+		accSeqs,
+		priv...,
+	)
+	require.NoError(t, err)
+	txBytes, err := txCfg.TxEncoder()(tx)
+	require.Nil(t, err)
+
+	// Must simulate now as CheckTx doesn't run Msgs anymore
+	_, res, err := app.Simulate(txBytes)
+
+	if expSimPass {
+		require.NoError(t, err)
+		require.NotNil(t, res)
+	} else {
+		require.Error(t, err)
+		require.Nil(t, res)
+	}
+
+	beginTime := time.Now()
+
+	// Simulate a sending a transaction and committing a block
+	app.BeginBlock(abci.RequestBeginBlock{Header: header})
+	gInfo, res, err := app.Deliver(txCfg.TxEncoder(), tx)
+
+	if expPass {
+		require.NoError(t, err)
+		require.NotNil(t, res)
+	} else {
+		require.Error(t, err)
+		require.Nil(t, res)
+	}
+
+	app.EndBlock(abci.RequestEndBlock{})
+	app.Commit()
+
+	endTime := time.Since(beginTime)
+	fmt.Println("##### time cost:", endTime)
 
 	return gInfo, res, err
 }

@@ -28,6 +28,10 @@ message Params {
     (gogoproto.moretags) = "yaml:\"fee_market_params\"",
     (gogoproto.nullable) = false
   ];
+  ProxyProposalParams proxy_proposal_params = 7 [
+    (gogoproto.moretags) = "yaml:\"proxy_proposal_params\"",
+    (gogoproto.nullable) = false
+  ];
 }
 
 // ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
@@ -261,4 +265,26 @@ message FeeMarketParams {
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];
+}
+
+message ProxyContractInitState {
+  // height where it should be applied
+  uint64 height = 1;
+  // address of proxy contract
+  string address = 2;
+  // solidity compiled code
+  string bin = 3;
+  // initializer method data
+  string init = 4;
+}
+
+// Params defines default proxy addresses for futur gov contracts update
+message ProxyProposalParams {
+  // consensus address as msg.sender, used to define admin authority, could be simply zero address or custom
+  // basically it is an owner of evrything. resposible to add proxies and update proxies implementations
+  string consensus_address = 1;
+  // proxy owner who basically the owner of proxy contract (for Ownable purpose, not admin)
+  string proxy_owner_address = 2;
+  // proxy contracts name per address reservations
+  map<string, ProxyContractInitState> contracts = 3;
 }

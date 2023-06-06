@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -39,9 +40,6 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		keeper.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdk.NewInt(data.Params.MatureEpoch)), individual)
 	}
 
-	keeper.SetUnDistributedReport(ctx, data.UndistributedReport)
-	keeper.SetUnDistributedEpoch(ctx, data.UndistributedEpoch)
-	keeper.SetIsReadyToDistribute(ctx, data.IsReadyToDistribute)
 	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)
 	// ensure total supply of bank module is LT InitialTotalSupply
 	totalSupply := keeper.GetSupply(ctx)
@@ -67,8 +65,8 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 			immatureTotal := types.NewImmatureTotal(walletAddress, reward)
 			immatureTotalInfo = append(immatureTotalInfo, immatureTotal)
 
-			miningReward := sdk.NewCoins(sdk.NewCoin(types.DefaultRewardDenom, reward.AmountOf(types.DefaultRewardDenom)))
-			trafficReward := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, reward.AmountOf(types.DefaultBondDenom)))
+			miningReward := sdk.NewCoins(sdk.NewCoin(keeper.RewardDenom(ctx), reward.AmountOf(keeper.RewardDenom(ctx))))
+			trafficReward := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), reward.AmountOf(keeper.BondDenom(ctx))))
 			individualReward := types.NewReward(walletAddress, miningReward, trafficReward)
 			individualRewardInfo = append(individualRewardInfo, individualReward)
 
@@ -85,13 +83,6 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		return false
 	})
 
-	unDistributedReport, found := keeper.GetUnDistributedReport(ctx)
-	if !found {
-		unDistributedReport = types.WalletVolumes{}
-	}
-	unDistributedEpoch := keeper.GetUnDistributedEpoch(ctx)
-	isReadyToDistribute := keeper.GetIsReadyToDistribute(ctx)
-
 	maturedEpoch := keeper.GetMaturedEpoch(ctx)
 
 	return types.NewGenesisState(
@@ -101,8 +92,5 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		immatureTotalInfo,
 		matureTotalInfo,
 		individualRewardInfo,
-		unDistributedReport,
-		unDistributedEpoch,
-		isReadyToDistribute,
 		maturedEpoch)
 }

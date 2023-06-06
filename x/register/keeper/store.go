@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -9,21 +10,21 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k Keeper) SetInitialGenesisStakeTotal(ctx sdk.Context, stake sdk.Int) {
+func (k Keeper) SetInitialGenesisDepositTotal(ctx sdk.Context, deposit sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &stake})
-	store.Set(types.InitialGenesisStakeTotalKey, b)
+	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})
+	store.Set(types.InitialGenesisDepositTotalKey, b)
 }
 
-func (k Keeper) GetInitialGenesisStakeTotal(ctx sdk.Context) (stake sdk.Int) {
+func (k Keeper) GetInitialGenesisDepositTotal(ctx sdk.Context) (deposit sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.InitialGenesisStakeTotalKey)
+	b := store.Get(types.InitialGenesisDepositTotalKey)
 	if b == nil {
 		return sdk.ZeroInt()
 	}
 	value := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(b, &value)
-	stake = *value.Value
+	deposit = *value.Value
 	return
 }
 
@@ -45,10 +46,29 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
+func (k *Keeper) CalculatePurchaseAmount(ctx sdk.Context, amount sdk.Int) (sdk.Int, sdk.Int, error) {
+	St := k.GetEffectiveTotalDeposit(ctx)
+	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
+	Lt := k.GetRemainingOzoneLimit(ctx)
+
+	purchase := Lt.ToDec().
+		Mul(amount.ToDec()).
+		Quo((St.
+			Add(Pt).
+			Add(amount)).ToDec()).
+		TruncateInt()
+	if purchase.GT(Lt) {
+		return sdk.NewInt(0), sdk.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
+	}
+	remaining := Lt.Sub(purchase)
+
+	return purchase, remaining, nil
+}
+
 func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdk.Int) bool {
 	remaining := k.GetRemainingOzoneLimit(ctx)
-	stakeNozRate := k.GetStakeNozRate(ctx)
-	return remaining.ToDec().GTE(unbondAmt.ToDec().Quo(stakeNozRate))
+	depositNozRate := k.GetDepositNozRate(ctx)
+	return remaining.ToDec().GTE(unbondAmt.ToDec().Quo(depositNozRate))
 }
 
 // SetUnbondingNode sets the unbonding node
@@ -168,39 +188,39 @@ func (k Keeper) GetMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr strato
 	return votePool, true
 }
 
-func (k Keeper) SetEffectiveTotalStake(ctx sdk.Context, stake sdk.Int) {
+func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &stake})
-	store.Set(types.EffectiveGenesisStakeTotalKey, bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})
+	store.Set(types.EffectiveGenesisDepositTotalKey, bz)
 }
 
-func (k Keeper) GetEffectiveTotalStake(ctx sdk.Context) (stake sdk.Int) {
+func (k Keeper) GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdk.Int) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.EffectiveGenesisStakeTotalKey)
+	bz := store.Get(types.EffectiveGenesisDepositTotalKey)
 	if bz == nil {
 		return sdk.ZeroInt()
 	}
 	intValue := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
-	stake = *intValue.Value
+	deposit = *intValue.Value
 	return
 }
 
-func (k Keeper) SetStakeNozRate(ctx sdk.Context, stakeNozRate sdk.Dec) {
+func (k Keeper) SetDepositNozRate(ctx sdk.Context, depositNozRate sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Dec{Value: &stakeNozRate})
-	store.Set(types.StakeNozRateKey, bz)
+	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Dec{Value: &depositNozRate})
+	store.Set(types.DepositNozRateKey, bz)
 }
 
-func (k Keeper) GetStakeNozRate(ctx sdk.Context) (stakeNozRate sdk.Dec) {
+func (k Keeper) GetDepositNozRate(ctx sdk.Context) (depositNozRate sdk.Dec) {
 	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.StakeNozRateKey)
+	bz := store.Get(types.DepositNozRateKey)
 	if bz == nil {
-		panic("Stored stake noz rate should not be nil")
+		panic("Stored deposit noz rate should not be nil")
 	}
 	decValue := stratos.Dec{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &decValue)
-	stakeNozRate = *decValue.Value
+	depositNozRate = *decValue.Value
 	return
 }
 

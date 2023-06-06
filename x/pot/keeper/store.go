@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	gogotypes "github.com/gogo/protobuf/types"
-
 	db "github.com/tendermint/tm-db"
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -166,63 +164,6 @@ func (k Keeper) SetVolumeReport(ctx sdk.Context, epoch sdk.Int, reportRecord typ
 	storeKey := types.VolumeReportStoreKey(epoch)
 	bz := k.cdc.MustMarshalLengthPrefixed(&reportRecord)
 	store.Set(storeKey, bz)
-}
-
-func (k Keeper) GetUnDistributedReport(ctx sdk.Context) (volumes types.WalletVolumes, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.UnDistributedReportKeyPrefix)
-	if bz == nil {
-		return volumes, false
-	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &volumes)
-
-	if volumes.Volumes == nil || len(volumes.Volumes) == 0 {
-		return volumes, false
-	}
-	found = true
-	return
-}
-
-func (k Keeper) SetUnDistributedReport(ctx sdk.Context, volumes types.WalletVolumes) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&volumes)
-	store.Set(types.UnDistributedReportKeyPrefix, b)
-}
-
-func (k Keeper) GetUnDistributedEpoch(ctx sdk.Context) (epoch sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.UnDistributedEpochKeyPrefix)
-	if b == nil {
-		return sdk.ZeroInt()
-	}
-	intValue := stratos.Int{}
-	k.cdc.MustUnmarshalLengthPrefixed(b, &intValue)
-	epoch = *intValue.Value
-	return
-}
-
-func (k Keeper) SetUnDistributedEpoch(ctx sdk.Context, epoch sdk.Int) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &epoch})
-	store.Set(types.UnDistributedEpochKeyPrefix, b)
-}
-
-func (k Keeper) GetIsReadyToDistribute(ctx sdk.Context) (isReady bool) {
-	store := ctx.KVStore(k.storeKey)
-	b := store.Get(types.IsReadyToDistributeKeyPrefix)
-	if b == nil {
-		return false
-	}
-	boolValue := gogotypes.BoolValue{}
-	k.cdc.MustUnmarshalLengthPrefixed(b, &boolValue)
-	isReady = boolValue.Value
-	return
-}
-
-func (k Keeper) SetIsReadyToDistribute(ctx sdk.Context, isReady bool) {
-	store := ctx.KVStore(k.storeKey)
-	b := k.cdc.MustMarshalLengthPrefixed(&gogotypes.BoolValue{Value: isReady})
-	store.Set(types.IsReadyToDistributeKeyPrefix, b)
 }
 
 func (k Keeper) GetMaturedEpoch(ctx sdk.Context) (epoch sdk.Int) {

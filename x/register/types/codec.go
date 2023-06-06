@@ -14,12 +14,12 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgCreateResourceNode{}, "register/CreateResourceNodeTx", nil)
 	cdc.RegisterConcrete(MsgRemoveResourceNode{}, "register/RemoveResourceNodeTx", nil)
 	cdc.RegisterConcrete(MsgUpdateResourceNode{}, "register/UpdateResourceNodeTx", nil)
-	cdc.RegisterConcrete(MsgUpdateResourceNodeStake{}, "register/UpdateResourceNodeStakeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateResourceNodeDeposit{}, "register/UpdateResourceNodeDepositTx", nil)
 
 	cdc.RegisterConcrete(MsgCreateMetaNode{}, "register/CreateMetaNodeTx", nil)
 	cdc.RegisterConcrete(MsgRemoveMetaNode{}, "register/RemoveMetaNodeTx", nil)
 	cdc.RegisterConcrete(MsgUpdateMetaNode{}, "register/UpdateMetaNodeTx", nil)
-	cdc.RegisterConcrete(MsgUpdateMetaNodeStake{}, "register/UpdateMetaNodeStakeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateMetaNodeDeposit{}, "register/UpdateMetaNodeDepositTx", nil)
 	cdc.RegisterConcrete(MsgMetaNodeRegistrationVote{}, "register/MsgMetaNodeRegistrationVote", nil)
 }
 
@@ -29,11 +29,11 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgCreateResourceNode{},
 		&MsgRemoveResourceNode{},
 		&MsgUpdateResourceNode{},
-		&MsgUpdateResourceNodeStake{},
+		&MsgUpdateResourceNodeDeposit{},
 		&MsgCreateMetaNode{},
 		&MsgRemoveResourceNode{},
 		&MsgUpdateMetaNode{},
-		&MsgUpdateMetaNodeStake{},
+		&MsgUpdateMetaNodeDeposit{},
 		&MsgMetaNodeRegistrationVote{},
 	)
 	registry.RegisterImplementations(
