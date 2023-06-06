@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -17,13 +18,12 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-
 	ethparams "github.com/ethereum/go-ethereum/params"
-	"github.com/stratosnet/stratos-chain/x/evm/tracers"
-	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
@@ -40,7 +40,7 @@ func (k Keeper) Account(c context.Context, req *types.QueryAccountRequest) (*typ
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := stratos.ValidateAddress(req.Address); err != nil {
+	if err := stratos.ValidateHexAddress(req.Address); err != nil {
 		return nil, status.Error(
 			codes.InvalidArgument, err.Error(),
 		)
@@ -63,7 +63,7 @@ func (k Keeper) CosmosAccount(c context.Context, req *types.QueryCosmosAccountRe
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := stratos.ValidateAddress(req.Address); err != nil {
+	if err := stratos.ValidateHexAddress(req.Address); err != nil {
 		return nil, status.Error(
 			codes.InvalidArgument, err.Error(),
 		)
@@ -127,7 +127,7 @@ func (k Keeper) Balance(c context.Context, req *types.QueryBalanceRequest) (*typ
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := stratos.ValidateAddress(req.Address); err != nil {
+	if err := stratos.ValidateHexAddress(req.Address); err != nil {
 		return nil, status.Error(
 			codes.InvalidArgument,
 			types.ErrZeroAddress.Error(),
@@ -149,7 +149,7 @@ func (k Keeper) Storage(c context.Context, req *types.QueryStorageRequest) (*typ
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := stratos.ValidateAddress(req.Address); err != nil {
+	if err := stratos.ValidateHexAddress(req.Address); err != nil {
 		return nil, status.Error(
 			codes.InvalidArgument,
 			types.ErrZeroAddress.Error(),
@@ -175,7 +175,7 @@ func (k Keeper) Code(c context.Context, req *types.QueryCodeRequest) (*types.Que
 		return nil, status.Error(codes.InvalidArgument, "empty request")
 	}
 
-	if err := stratos.ValidateAddress(req.Address); err != nil {
+	if err := stratos.ValidateHexAddress(req.Address); err != nil {
 		return nil, status.Error(
 			codes.InvalidArgument,
 			types.ErrZeroAddress.Error(),
@@ -624,4 +624,42 @@ func (k Keeper) BlockGas(c context.Context, _ *types.QueryBlockGasRequest) (*typ
 	return &types.QueryBlockGasResponse{
 		Gas: int64(gas),
 	}, nil
+}
+
+func (k Keeper) AddressConvert(_ context.Context, req *types.QueryAddressConvertRequest) (*types.QueryAddressConvertResponse, error) {
+	if req == nil {
+		return nil, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	bech32AccAddrPrefix := stratos.GetConfig().GetBech32AccountAddrPrefix()
+
+	var addrBytes []byte
+	var err error
+
+	if strings.HasPrefix(req.Address, bech32AccAddrPrefix) {
+		addrBytes, err = sdk.GetFromBech32(req.Address, bech32AccAddrPrefix)
+		if err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+	} else {
+		if err = stratos.ValidateHexAddress(req.Address); err != nil {
+			return nil, status.Error(codes.InvalidArgument, err.Error())
+		}
+		addrBytes = common.HexToAddress(req.Address).Bytes()
+	}
+
+	err = sdk.VerifyAddressFormat(addrBytes)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+
+	hexAddr := common.BytesToAddress(addrBytes).String()
+	bech32Addr := sdk.AccAddress(addrBytes).String()
+
+	res := &types.QueryAddressConvertResponse{
+		HexAddress:    hexAddr,
+		Bech32Address: bech32Addr,
+	}
+
+	return res, nil
 }
