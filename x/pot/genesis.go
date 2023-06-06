@@ -44,7 +44,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 	// ensure total supply of bank module is LT InitialTotalSupply
 	totalSupply := keeper.GetSupply(ctx)
 	if keeper.GetParams(ctx).InitialTotalSupply.IsLT(totalSupply) {
-		errMsg := fmt.Sprintf("total supply[%v] is greater than total supply limit[%v]",
+		errMsg := fmt.Sprintf("current total supply[%v] is greater than total supply limit[%v]",
 			totalSupply.String(), keeper.GetParams(ctx).InitialTotalSupply.String())
 		panic(errMsg)
 	}
