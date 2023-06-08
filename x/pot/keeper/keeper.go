@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"math"
@@ -10,7 +9,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -90,101 +89,62 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 
 func (k Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
 	denom := k.BondDenom(ctx)
-	currentTotalSupply := k.bankKeeper.GetSupply(ctx, denom).Amount
-	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
-	if amt.AmountOf(denom).Add(currentTotalSupply).GT(InitialTotalSupply) {
+	communityPollBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
+	availableCoinsCommunity := communityPollBalance.AmountOf(denom)
+	if amt.AmountOf(denom).ToDec().GT(availableCoinsCommunity) {
 		return errors.New("minting not completed because total supply cap is hit")
 	}
 	return k.bankKeeper.MintCoins(ctx, moduleName, amt)
 }
 
+func (k Keeper) safeBurnCoinsFromCommunityPool(ctx sdk.Context, coins sdk.Coins) error {
+	communityPollBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
+	//ctx.Logger().Info("------communityPollBalance is " + communityPollBalance.String())
+	if communityPollBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToDec()) {
+		k.bankKeeper.BurnCoins(ctx, distrtypes.ModuleName, coins)
+		return nil
+	}
+	return errors.New("burning not completed as a result of insufficient balance in community pool")
+}
+
 // Restore total supply to 100M stos
-func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minter sdk.AccAddress, mintCoins sdk.Coins) {
-	// reset total supply to 100M stos
-	events := ctx.EventManager().Events()
-	attrKeyAmtBytes := []byte(sdk.AttributeKeyAmount)
-
-	totalBurnedCoins := sdk.Coins{}
-	for _, event := range events {
-		if event.Type == banktypes.EventTypeCoinBurn {
-			attributes := event.Attributes
-			for _, attr := range attributes {
-				if bytes.Equal(attr.Key, attrKeyAmtBytes) {
-					amount, err := sdk.ParseCoinsNormalized(string(attr.Value))
-					if err != nil {
-						ctx.Logger().Error("An error occurred while parsing burned amount. ", "ErrMsg", err.Error())
-						break
-					}
-					totalBurnedCoins = totalBurnedCoins.Add(amount...)
-				}
-			}
-		}
-	}
-
-	totalMintedCoins := sdk.Coins{}
-	for _, event := range events {
-		if event.Type == banktypes.EventTypeCoinMint {
-			attributes := event.Attributes
-			for _, attr := range attributes {
-				if bytes.Equal(attr.Key, attrKeyAmtBytes) {
-					amount, err := sdk.ParseCoinsNormalized(string(attr.Value))
-					if err != nil {
-						ctx.Logger().Error("An error occurred while parsing minted amount. ", "ErrMsg", err.Error())
-						break
-					}
-					totalMintedCoins = totalMintedCoins.Add(amount...)
-				}
-			}
-		}
-	}
-
-	totalBurned := totalBurnedCoins.AmountOf(k.BondDenom(ctx))
-	totalMinted := totalMintedCoins.AmountOf(k.BondDenom(ctx))
-	//ctx.Logger().Debug("-----totalBurnedCoins is " + totalBurnedCoins.String() + ", totalMintedCoins is " + totalMintedCoins.String())
-
+func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minted, burned sdk.Coins) {
 	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
 	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
-	//ctx.Logger().Debug("------currentTotalSupply is " + currentTotalSupply.String())
-	//ctx.Logger().Debug("------InitialTotalSupply is " + InitialTotalSupply.String())
-	if InitialTotalSupply.LT(currentTotalSupply) {
-		errMsg := fmt.Sprintf("current supply[%v] exceeds total supply limit[%v], further mint won't be executed",
-			currentTotalSupply.String(), InitialTotalSupply.String())
-		ctx.Logger().Info(errMsg)
-		return sdk.AccAddress{}, sdk.Coins{}
+	//ctx.Logger().Info("------currentTotalSupply is " + currentTotalSupply.String())
+	if InitialTotalSupply.Equal(currentTotalSupply) {
+		//ctx.Logger().Info("------no need to restore")
+		return sdk.Coins{}, sdk.Coins{}
 	}
-	//totalSupplyChange := totalMinted.Add(currentTotalSupply).Sub(totalBurned).Sub(InitialTotalSupply)
-
-	totalSupplyChange := totalMinted.Sub(totalBurned)
-	if totalSupplyChange.Equal(sdk.ZeroInt()) {
-		//ctx.Logger().Debug("------totalSupplyChange is 0")
-		return sdk.AccAddress{}, sdk.Coins{}
-	}
-
-	// ensure current supply won't decrease
-	if totalSupplyChange.LT(sdk.ZeroInt()) {
-		// ensure (coinToMint + currentTotalSupply <= InitialTotalSupply) even after later mint
-		if totalSupplyChange.Abs().Add(currentTotalSupply).GT(InitialTotalSupply) {
-			totalSupplyChange = InitialTotalSupply.Sub(currentTotalSupply)
-		}
-		coinToMint := sdk.NewCoin(k.BondDenom(ctx), totalSupplyChange.Abs())
-		coinsToMint := sdk.NewCoins(coinToMint)
-		//ctx.Logger().Debug("------totalSupplyChange < 0, tokens to mint is " + totalSupplyChange.Abs().String())
-		// mint slack
-		err := k.SafeMintCoins(ctx, types.ModuleName, coinsToMint)
+	supplyDiff := currentTotalSupply.Sub(InitialTotalSupply)
+	if supplyDiff.GT(sdk.ZeroInt()) {
+		// burn surplus if currentTotalSupply > InitialTotalSupply
+		amtToBurn := supplyDiff
+		coinToBurn := sdk.NewCoin(k.BondDenom(ctx), amtToBurn)
+		coinsToBurn := sdk.NewCoins(coinToBurn)
+		err := k.safeBurnCoinsFromCommunityPool(ctx, coinsToBurn)
 		if err != nil {
-			ctx.Logger().Error("Restore total supply failed:", err.Error())
-			return sdk.AccAddress{}, sdk.Coins{}
+			return sdk.Coins{}, sdk.Coins{}
 		}
-		mintCoins = coinsToMint
-		// send new mint coins to community pool
-		senderAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
-		err = k.distrKeeper.FundCommunityPool(ctx, mintCoins, senderAddr)
-		if err != nil {
-			ctx.Logger().Error("Restore total supply failed:", err.Error())
-			return sdk.AccAddress{}, sdk.Coins{}
-		}
+		return sdk.Coins{}, coinsToBurn
 	}
-	return
+	// mint slack
+	amtToMint := supplyDiff.Abs()
+	coinToMint := sdk.NewCoin(k.BondDenom(ctx), amtToMint)
+	coinsToMint := sdk.NewCoins(coinToMint)
+	err := k.bankKeeper.MintCoins(ctx, types.ModuleName, coinsToMint) // do not use SafeMintCoins here
+	if err != nil {
+		ctx.Logger().Error("Restore total supply failed:", err.Error())
+		return sdk.Coins{}, sdk.Coins{}
+	}
+	// send new mint coins to community pool
+	senderAddr := k.accountKeeper.GetModuleAddress(types.ModuleName)
+	err = k.distrKeeper.FundCommunityPool(ctx, coinsToMint, senderAddr)
+	if err != nil {
+		ctx.Logger().Error("Restore total supply failed:", err.Error())
+		return sdk.Coins{}, sdk.Coins{}
+	}
+	return coinsToMint, sdk.Coins{}
 }
 
 func (k Keeper) GetSupply(ctx sdk.Context) (totalSupply sdk.Coin) {
