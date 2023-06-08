@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"math/big"
 
@@ -71,16 +70,6 @@ func (k *Keeper) ForEachStorage(ctx sdk.Context, addr common.Address, cb func(ke
 	}
 }
 
-func (k *Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
-	denom := k.potKeeper.BondDenom(ctx)
-	currentTotalSupply := k.bankKeeper.GetSupply(ctx, denom).Amount
-	InitialTotalSupply := k.potKeeper.InitialTotalSupply(ctx).Amount
-	if amt.AmountOf(denom).Add(currentTotalSupply).GT(InitialTotalSupply) {
-		return errors.New("minting not completed because total supply cap is hit")
-	}
-	return k.bankKeeper.MintCoins(ctx, moduleName, amt)
-}
-
 // SetBalance update account's balance, compare with current balance first, then decide to mint or burn.
 func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *big.Int) error {
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
@@ -93,7 +82,7 @@ func (k *Keeper) SetBalance(ctx sdk.Context, addr common.Address, amount *big.In
 	case 1:
 		// mint
 		coins := sdk.NewCoins(sdk.NewCoin(params.EvmDenom, sdk.NewIntFromBigInt(delta)))
-		if err := k.SafeMintCoins(ctx, types.ModuleName, coins); err != nil {
+		if err := k.potKeeper.SafeMintCoins(ctx, types.ModuleName, coins); err != nil {
 			return err
 		}
 		if err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, types.ModuleName, cosmosAddr, coins); err != nil {

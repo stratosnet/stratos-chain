@@ -88,7 +88,7 @@ func (k Keeper) FoundationDeposit(ctx sdk.Context, amount sdk.Coins, from sdk.Ac
 	return nil
 }
 
-func (k *Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
+func (k Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error {
 	denom := k.BondDenom(ctx)
 	currentTotalSupply := k.bankKeeper.GetSupply(ctx, denom).Amount
 	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
