@@ -8,7 +8,7 @@ import (
 
 // Validate performs a basic validation of a GenesisAccount fields.
 func (ga GenesisAccount) Validate() error {
-	if err := stratos.ValidateAddress(ga.Address); err != nil {
+	if err := stratos.ValidateHexAddress(ga.Address); err != nil {
 		return err
 	}
 	return ga.Storage.Validate()
