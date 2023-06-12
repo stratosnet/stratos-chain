@@ -47,6 +47,8 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
+	// access for pot functionality with related keeper
+	potKeeper types.PotKeeper
 	// access for registry functionality with related keeper
 	registerKeeper types.RegisterKeeper
 	// access for sds functionality with related keeper
@@ -69,7 +71,7 @@ type Keeper struct {
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
-	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
+	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper, potKeeper types.PotKeeper,
 	sdsKeeper types.SdsKeeper,
 	tracer string,
 ) *Keeper {
