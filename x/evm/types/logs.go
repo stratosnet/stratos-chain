@@ -53,7 +53,7 @@ func (tx TransactionLogs) EthLogs() []*ethtypes.Log {
 
 // Validate performs a basic validation of an ethereum Log fields.
 func (log *Log) Validate() error {
-	if err := stratos.ValidateAddress(log.Address); err != nil {
+	if err := stratos.ValidateHexAddress(log.Address); err != nil {
 		return fmt.Errorf("invalid log address %w", err)
 	}
 	if stratos.IsEmptyHash(log.BlockHash) {

@@ -87,6 +87,10 @@ service Query {
   rpc BlockGas(QueryBlockGasRequest) returns (QueryBlockGasResponse) {
     option (google.api.http).get = "/stratos/evm/v1/block_gas";
   }
+
+  rpc AddressConvert(QueryAddressConvertRequest) returns (QueryAddressConvertResponse) {
+    option (google.api.http).get = "/stratos/evm/v1/address_convert";
+  }
 }
 
 // QueryAccountRequest is the request type for the Query/Account RPC method.
@@ -292,7 +296,7 @@ message QueryBaseFeeRequest {}
 // BaseFeeResponse returns the EIP1559 base fee.
 message QueryBaseFeeResponse {
   string base_fee = 1
-    [ (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int" ];
+  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
 }
 
 // QueryBlockGasRequest defines the request type for querying the EIP1559 base
@@ -300,4 +304,19 @@ message QueryBaseFeeResponse {
 message QueryBlockGasRequest {}
 
 // QueryBlockGasResponse returns block gas used for a given height.
-message QueryBlockGasResponse { int64 gas = 1; }
+message QueryBlockGasResponse {int64 gas = 1;}
+
+// QueryAddressConvertRequest defines AddressConvert request
+message QueryAddressConvertRequest {
+  option (gogoproto.equal) = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // hex address or bech32 address
+  string address = 1;
+}
+
+// QueryAddressConvertResponse returns address check result and hex/bech32 address
+message QueryAddressConvertResponse {
+  string hex_address = 1;
+  string bech32_address = 2;
+}
