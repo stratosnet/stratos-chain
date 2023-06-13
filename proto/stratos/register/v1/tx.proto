@@ -252,11 +252,7 @@ message MsgUpdateMetaNodeDeposit {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  bool                        incr_deposit = 3 [
-    (gogoproto.jsontag) = "incr_deposit",
-    (gogoproto.moretags) = "yaml:\"incr_deposit\""
-  ];
-  cosmos.base.v1beta1.Coin    deposit_delta = 4 [
+  cosmos.base.v1beta1.Coin    deposit_delta = 3 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "deposit_delta",
     (gogoproto.moretags) = "yaml:\"deposit_delta\""

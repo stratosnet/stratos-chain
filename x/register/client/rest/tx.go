@@ -2,7 +2,6 @@ package rest
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -452,12 +451,7 @@ func postUpdateMetaNodeDepositHandlerFn(cliCtx client.Context) http.HandlerFunc 
 			return
 		}
 
-		incrDeposit, err := strconv.ParseBool(req.IncrDeposit)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, req.DepositDelta, incrDeposit)
+		msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, req.DepositDelta)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -170,7 +170,7 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgRemoveMetaNodeResponse{}, types.ErrInsufficientBalance
 	}
 
-	ozoneLimitChange, completionTime, err := k.UnbondMetaNode(ctx, metaNode, availableDeposit)
+	ozoneLimitChange, _, _, completionTime, err := k.UnbondMetaNode(ctx, metaNode, availableDeposit)
 	if err != nil {
 		return &types.MsgRemoveMetaNodeResponse{}, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}
@@ -181,6 +181,7 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyMetaNode, msg.MetaNodeAddress),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
+			sdk.NewAttribute(types.AttributeKeyDepositToRemove, sdk.NewCoin(k.BondDenom(ctx), availableDeposit).String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
 		sdk.NewEvent(
@@ -442,7 +443,11 @@ func (k msgServer) HandleMsgUpdateMetaNodeDeposit(goCtx context.Context, msg *ty
 		return &types.MsgUpdateMetaNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	ozoneLimitChange, completionTime, err := k.UpdateMetaNodeDeposit(ctx, networkAddr, ownerAddress, msg.GetDepositDelta(), msg.IncrDeposit)
+	if msg.DepositDelta.Amount.IsNegative() {
+		return &types.MsgUpdateMetaNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidDepositChange, err.Error())
+	}
+
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, err := k.UpdateMetaNodeDeposit(ctx, networkAddr, ownerAddress, msg.GetDepositDelta())
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateMetaNodeDeposit, err.Error())
 	}
@@ -452,7 +457,10 @@ func (k msgServer) HandleMsgUpdateMetaNodeDeposit(goCtx context.Context, msg *ty
 			types.EventTypeUpdateMetaNodeDeposit,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
 			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyIncrDeposit, strconv.FormatBool(msg.IncrDeposit)),
+			sdk.NewAttribute(types.AttributeKeyDepositDelta, msg.DepositDelta.String()),
+			sdk.NewAttribute(types.AttributeKeyCurrentDeposit, sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String()),
+			sdk.NewAttribute(types.AttributeKeyAvailableTokenBefore, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String()),
+			sdk.NewAttribute(types.AttributeKeyAvailableTokenAfter, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String()),
 			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
 			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
 		),
