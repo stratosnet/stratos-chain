@@ -98,9 +98,9 @@ func (k Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins)
 }
 
 func (k Keeper) safeBurnCoinsFromCommunityPool(ctx sdk.Context, coins sdk.Coins) error {
-	communityPollBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
-	//ctx.Logger().Info("------communityPollBalance is " + communityPollBalance.String())
-	if communityPollBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToDec()) {
+	communityPoolBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
+	//ctx.Logger().Info("------communityPoolBalance is " + communityPoolBalance.String())
+	if communityPoolBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToDec()) {
 		k.bankKeeper.BurnCoins(ctx, distrtypes.ModuleName, coins)
 		return nil
 	}
