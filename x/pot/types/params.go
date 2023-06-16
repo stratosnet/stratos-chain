@@ -15,7 +15,7 @@ import (
 // DefaultParamSpace Default parameter namespace
 const (
 	DefaultBondDenom   = stratos.Wei
-	DefaultRewardDenom = stratos.Utros
+	DefaultRewardDenom = stratos.Wei
 	DefaultMatureEpoch = 2016
 )
 
@@ -58,38 +58,38 @@ func DefaultParams() Params {
 	var miningRewardParams []MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
 		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(0)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(80000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(80).MulRaw(stratos.StosToWei)),
 		sdk.NewInt(6000), sdk.NewInt(2000), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40).MulRaw(stratos.StosToWei)),
 		sdk.NewInt(6200), sdk.NewInt(1800), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(20000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(20).MulRaw(stratos.StosToWei)),
 		sdk.NewInt(6400), sdk.NewInt(1600), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(10000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(10).MulRaw(stratos.StosToWei)),
 		sdk.NewInt(6600), sdk.NewInt(1400), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(5000000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(5).MulRaw(stratos.StosToWei)),
 		sdk.NewInt(6800), sdk.NewInt(1200), sdk.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000000000000)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(2500000000)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25).MulRaw(1e17)),
 		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
 
 	return NewParams(
