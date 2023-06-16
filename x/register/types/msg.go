@@ -482,12 +482,11 @@ func (msg MsgUpdateMetaNode) ValidateBasic() error {
 }
 
 func NewMsgUpdateMetaNodeDeposit(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-	depositDelta sdk.Coin, incrDeposit bool) *MsgUpdateMetaNodeDeposit {
+	depositDelta sdk.Coin) *MsgUpdateMetaNodeDeposit {
 	return &MsgUpdateMetaNodeDeposit{
 		NetworkAddress: networkAddress.String(),
 		OwnerAddress:   ownerAddress.String(),
 		DepositDelta:   depositDelta,
-		IncrDeposit:    incrDeposit,
 	}
 }
 

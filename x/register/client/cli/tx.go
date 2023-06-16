@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -565,15 +563,6 @@ func newBuildUpdateMetaNodeDepositMsg(clientCtx client.Context, txf tx.Factory, 
 		return txf, nil, err
 	}
 
-	incrDepositStr, err := fs.GetString(FlagIncrDeposit)
-	if err != nil {
-		return txf, nil, err
-	}
-	incrDeposit, err := strconv.ParseBool(incrDepositStr)
-	if err != nil {
-		return txf, nil, err
-	}
-
 	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
@@ -582,7 +571,7 @@ func newBuildUpdateMetaNodeDepositMsg(clientCtx client.Context, txf tx.Factory, 
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, depositDelta, incrDeposit)
+	msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, depositDelta)
 	return txf, msg, nil
 }
 

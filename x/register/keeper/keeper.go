@@ -329,39 +329,39 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddre
 }
 
 func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
-) (ozoneLimitChange sdk.Int, unbondingMatureTime time.Time, err error) {
+) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
 	if metaNode.GetStatus() == stakingtypes.Unbonding {
-		return sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
 	}
 
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
-		return sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	// suspended node cannot be unbonded (avoid dup deposit decrease with node suspension)
 	if metaNode.Suspend {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
 	// check if node_token - unbonding_token > amt_to_unbond
 	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
-	availableDeposit := metaNode.Tokens.Sub(unbondingDeposit)
-	if availableDeposit.LT(amt) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	availableTokenAmtBefore = metaNode.Tokens.Sub(unbondingDeposit)
+	if availableTokenAmtBefore.LT(amt) {
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, metaNode.Status, metaNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
@@ -371,15 +371,16 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 	if metaNode.GetStatus() == stakingtypes.Bonded {
 		// to prevent remainingOzoneLimit from being negative value
 		if !k.IsUnbondable(ctx, amt) {
-			return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 		}
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
+		availableTokenAmtAfter = availableTokenAmtBefore.Sub(amt)
 		// adjust ozone limit
 		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractDeposit(ctx, amt)
 	}
 	// change node status to unbonding if unbonding all available tokens
-	if amt.Equal(availableDeposit) {
+	if amt.Equal(availableTokenAmtBefore) {
 		metaNode.Status = stakingtypes.Unbonding
 		// decrease meta node count
 		v := k.GetBondedMetaNodeCnt(ctx)
@@ -399,7 +400,7 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 	// Add to unbonding node queue
 	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
 	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
-	return ozoneLimitChange, unbondingMatureTime, nil
+	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
 }
 
 // GetAllUnbondingNodesTotalBalance Iteration for getting the total balance of all unbonding nodes
