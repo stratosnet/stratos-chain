@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"fmt"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
@@ -26,17 +24,10 @@ func (k *Keeper) KeeCalculatePrepayPurchaseAmount(statedb vm.StateDB, amount sdk
 	Pt := k.KeeGetTotalUnissuedPrepay(statedb)
 	Lt := k.registerKeeper.KeeGetRemainingOzoneLimit(kdb)
 
-	purchase := Lt.ToDec().
-		Mul(amount.ToDec()).
-		Quo((St.
-			Add(Pt).
-			Add(amount)).ToDec()).
-		TruncateInt()
-	if purchase.GT(Lt) {
-		return sdk.NewInt(0), sdk.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
+	purchasedNoz, remainingNoz, err := k.potKeeper.GetPrepayAmount(Lt, amount, St, Pt)
+	if err != nil {
+		return sdk.ZeroInt(), sdk.ZeroInt(), err
 	}
 
-	remaining := Lt.Sub(purchase)
-
-	return purchase, remaining, nil
+	return purchasedNoz, remainingNoz, nil
 }

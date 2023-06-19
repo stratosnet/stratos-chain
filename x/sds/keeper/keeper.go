@@ -90,7 +90,8 @@ func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.Sd
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
 func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) (sdk.Int, error) {
-	purchased, newRemainingOzoneLimit, err := k.registerKeeper.CalculatePurchaseAmount(ctx, amount)
+	St, Pt, Lt := k.registerKeeper.GetPrepayParams(ctx)
+	purchasedNoz, newRemainingOzoneLimit, err := k.potKeeper.GetPrepayAmount(Lt, amount, St, Pt)
 	if err != nil {
 		return sdk.ZeroInt(), err
 	}
@@ -104,21 +105,14 @@ func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amo
 	// update remaining noz limit
 	k.registerKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
 
-	return purchased, nil
+	return purchasedNoz, nil
 }
 
 func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, coins sdk.Coins) sdk.Int {
 	amount := coins.AmountOf(k.BondDenom(ctx))
+	St, Pt, Lt := k.registerKeeper.GetPrepayParams(ctx)
+	purchased, _, _ := k.potKeeper.GetPrepayAmount(Lt, amount, St, Pt)
 
-	St := k.registerKeeper.GetEffectiveTotalDeposit(ctx)
-	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)
-	purchased := Lt.ToDec().
-		Mul(amount.ToDec()).
-		Quo((St.
-			Add(Pt).
-			Add(amount)).ToDec()).
-		TruncateInt()
 	return purchased
 }
 
