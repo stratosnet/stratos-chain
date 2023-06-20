@@ -7,6 +7,8 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 )
 
+const CHECK_TOTAL_SUPPLY_INTERVAL = 10000
+
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
 func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
@@ -24,15 +26,10 @@ func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []ab
 		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
 	}
 
-	// reset total supply to 100M stos
-	//minter, amount := k.RestoreTotalSupply(ctx)
-	//if minter.Empty() || amount.Empty() {
-	//	return []abci.ValidatorUpdate{}
-	//}
-	//
-	//ctx.EventManager().EmitEvent(
-	//	banktypes.NewCoinMintEvent(minter, amount),
-	//)
-
+	// reset total supply to 100M stos every 10k blocks
+	if ctx.BlockHeight()%CHECK_TOTAL_SUPPLY_INTERVAL == 1 {
+		logger.Info("start RestoreTotalSupply")
+		k.RestoreTotalSupply(ctx)
+	}
 	return []abci.ValidatorUpdate{}
 }

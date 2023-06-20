@@ -23,6 +23,7 @@ type BankKeeper interface {
 	GetBalance(ctx sdk.Context, addr sdk.AccAddress, denom string) sdk.Coin
 	GetSupply(ctx sdk.Context, denom string) sdk.Coin
 	MintCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
+	BurnCoins(ctx sdk.Context, moduleName string, amounts sdk.Coins) error
 }
 
 type RegisterKeeper interface {
