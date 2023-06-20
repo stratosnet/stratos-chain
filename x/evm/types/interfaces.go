@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
+	//feemarkettypes "github.com/stratosnet/stratos-chain/x/feemarket/types"
 )
 
 // AccountKeeper defines the expected account keeper interface
@@ -37,18 +37,6 @@ type BankKeeper interface {
 type StakingKeeper interface {
 	GetHistoricalInfo(ctx sdk.Context, height int64) (stakingtypes.HistoricalInfo, bool)
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
-}
-
-// RegisterKeeper defines functionality related for meta and resource node
-type RegisterKeeper interface {
-	KeeGetEffectiveTotalStake(kdb *keestatedb.KeestateDB) sdk.Int
-	KeeGetRemainingOzoneLimit(kdb *keestatedb.KeestateDB) sdk.Int
-	KeeSetRemainingOzoneLimit(kdb *keestatedb.KeestateDB, value sdk.Int)
-}
-
-// SdsKeper defines functionality related for ozone purchase
-type SdsKeeper interface {
-	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error)
 }
 
 // Event Hooks
