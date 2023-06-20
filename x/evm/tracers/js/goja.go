@@ -27,11 +27,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethvm "github.com/ethereum/go-ethereum/core/vm"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/stratosnet/stratos-chain/x/evm/tracers"
-	"github.com/stratosnet/stratos-chain/x/evm/vm"
-
+	"github.com/ethereum/go-ethereum/eth/tracers"
 	jsassets "github.com/stratosnet/stratos-chain/x/evm/tracers/js/internal/tracers"
 )
 
@@ -643,7 +641,7 @@ func (s *stackObj) setupObject() *goja.Object {
 }
 
 type dbObj struct {
-	db      ethvm.StateDB
+	db      vm.StateDB
 	vm      *goja.Runtime
 	toBig   toBigFn
 	toBuf   toBufFn
