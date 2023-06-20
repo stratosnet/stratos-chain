@@ -2,7 +2,6 @@ package keeper
 
 import (
 	"math/big"
-	"sort"
 
 	"github.com/tendermint/tendermint/libs/log"
 
@@ -15,14 +14,12 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
-	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
-	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
@@ -47,22 +44,12 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
-	// access for registry functionality with related keeper
-	registerKeeper types.RegisterKeeper
-	// access for sds functionality with related keeper
-	sdsKeeper types.SdsKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
 
-	// genesisContractVerifier verifies is contract is trusted in order to allow curtain opcodes
-	verifier *vm.GenesisContractVerifier
-
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
-
-	// cosmos events to execute when all execution passed
-	events sdk.Events
 }
 
 // NewKeeper generates new evm module keeper
@@ -70,7 +57,6 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
 	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
-	sdsKeeper types.SdsKeeper,
 	tracer string,
 ) *Keeper {
 	// ensure evm module account is set
@@ -90,58 +76,15 @@ func NewKeeper(
 		accountKeeper: ak,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: sk,
-		sdsKeeper:     sdsKeeper,
 		storeKey:      storeKey,
 		transientKey:  transientKey,
 		tracer:        tracer,
-		events:        make(sdk.Events, 0, 12),
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", types.ModuleName)
-}
-
-func (k *Keeper) SetRegisterKeeper(rk types.RegisterKeeper) {
-	k.registerKeeper = rk
-}
-
-func (k *Keeper) SetSdsKeeper(sdsk types.SdsKeeper) {
-	k.sdsKeeper = sdsk
-}
-
-// cosmos events
-func (k *Keeper) AddEvents(events sdk.Events) {
-	k.events = append(k.events, events...)
-}
-
-func (k *Keeper) ApplyEvents(ctx sdk.Context, isVmError bool) {
-	if len(k.events) > 0 && !isVmError {
-		ctx.EventManager().EmitEvents(k.events)
-	}
-	k.events = k.events[:0] // clear prvious events to avoid conflicts
-}
-
-// AddVerifier adding verifier with initial contracts
-func (k *Keeper) AddGenesisVerifier(ctx sdk.Context) {
-	// could be as cached
-	if k.verifier != nil {
-		return
-	}
-
-	k.verifier = vm.NewGenesisContractVerifier()
-
-	params := k.GetParams(ctx)
-	keys := make([]string, 0)
-	for k := range params.ProxyProposalParams.Contracts {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, key := range keys {
-		contract := params.ProxyProposalParams.Contracts[key]
-		k.verifier.AddContract(contract, true)
-	}
 }
 
 // ----------------------------------------------------------------------------
@@ -263,7 +206,7 @@ func (k *Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *et
 
 // Tracer return a default vm.Tracer based on current keeper state
 func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *params.ChainConfig) vm.EVMLogger {
-	return tracers.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
+	return types.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
 }
 
 // GetAccountWithoutBalance load nonce and codehash without balance,
