@@ -39,27 +39,12 @@ type StakingKeeper interface {
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
 }
 
-<<<<<<< HEAD
-// RegisterKeeper defines functionality related for meta and resource node
-type RegisterKeeper interface {
-	KeeGetEffectiveTotalDeposit(kdb *keestatedb.KeestateDB) sdk.Int
-	KeeGetRemainingOzoneLimit(kdb *keestatedb.KeestateDB) sdk.Int
-	KeeSetRemainingOzoneLimit(kdb *keestatedb.KeestateDB, value sdk.Int)
-}
-
-// SdsKeper defines functionality related for ozone purchase
-type SdsKeeper interface {
-	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error)
-}
-
 type PotKeeper interface {
 	InitialTotalSupply(ctx sdk.Context) sdk.Coin
 	BondDenom(ctx sdk.Context) string
 	SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 }
 
-=======
->>>>>>> Revert "Qb 1816 - implement proxy, add prepay (#265)" (#285)
 // Event Hooks
 // These can be utilized to customize evm transaction processing.
 

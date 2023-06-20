@@ -89,6 +89,10 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", types.ModuleName)
 }
 
+func (k *Keeper) SetPotKeeper(potk types.PotKeeper) {
+	k.potKeeper = potk
+}
+
 // ----------------------------------------------------------------------------
 // Block Bloom
 // Required by Web3 API.

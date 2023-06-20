@@ -98,9 +98,15 @@ func (k Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins)
 }
 
 func (k Keeper) safeBurnCoinsFromCommunityPool(ctx sdk.Context, coins sdk.Coins) error {
+<<<<<<< HEAD
 	communityPoolBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
 	//ctx.Logger().Info("------communityPoolBalance is " + communityPoolBalance.String())
 	if communityPoolBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToDec()) {
+=======
+	communityPollBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
+	//ctx.Logger().Info("------communityPollBalance is " + communityPollBalance.String())
+	if communityPollBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToDec()) {
+>>>>>>> cherry-pick fix/qb1866: fix token supply
 		k.bankKeeper.BurnCoins(ctx, distrtypes.ModuleName, coins)
 		return nil
 	}
