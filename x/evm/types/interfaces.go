@@ -7,7 +7,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
+	//feemarkettypes "github.com/stratosnet/stratos-chain/x/feemarket/types"
 )
 
 // AccountKeeper defines the expected account keeper interface
@@ -39,6 +39,7 @@ type StakingKeeper interface {
 	GetValidatorByConsAddr(ctx sdk.Context, consAddr sdk.ConsAddress) (validator stakingtypes.Validator, found bool)
 }
 
+<<<<<<< HEAD
 // RegisterKeeper defines functionality related for meta and resource node
 type RegisterKeeper interface {
 	KeeGetEffectiveTotalDeposit(kdb *keestatedb.KeestateDB) sdk.Int
@@ -57,6 +58,8 @@ type PotKeeper interface {
 	SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
 }
 
+=======
+>>>>>>> Revert "Qb 1816 - implement proxy, add prepay (#265)" (#285)
 // Event Hooks
 // These can be utilized to customize evm transaction processing.
 
