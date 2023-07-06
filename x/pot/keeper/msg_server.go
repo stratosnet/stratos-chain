@@ -222,7 +222,6 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 		if err != nil {
 			return &types.MsgSlashingResourceNodeResponse{}, sdkerrors.Wrap(types.ErrReporterOwnerAddr, err.Error())
 		}
-
 		if !(k.registerKeeper.OwnMetaNode(ctx, ownerAddr, reporterSdsAddr)) {
 			return &types.MsgSlashingResourceNodeResponse{}, types.ErrReporterAddressOrOwner
 		}
