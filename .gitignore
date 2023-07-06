@@ -8,4 +8,3 @@ playground.go
 /tmp-swagger-gen/
 /github.com/
 .DS_Store
-node_modules/
