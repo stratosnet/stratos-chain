@@ -163,7 +163,7 @@ func (AppModule) EndBlock(_ sdk.Context, _ abci.RequestEndBlock) []abci.Validato
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // LegacyQuerierHandler returns the sds module sdk.Querier.
 func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
@@ -176,8 +176,8 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	querier := keeper.Querier{Keeper: am.keeper}
 	types.RegisterQueryServer(cfg.QueryServer(), querier)
 
-	m := keeper.NewMigrator(am.keeper)
-	_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	//m := keeper.NewMigrator(am.keeper)
+	//_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }
 
 // ProposalContents doesn't return any content functions for governance proposals.

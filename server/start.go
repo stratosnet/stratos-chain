@@ -413,10 +413,14 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 	}
 
 	if config.JSONRPC.Enable {
-		evmApp := app.(stosapp.EVMLKeeperApp)
-
-		err = StartJSONRPC(ctx, tmNode, evmApp.GetEVMKeeper(), app.CommitMultiStore(), clientCtx, config)
-		if err != nil {
+		if err := StartJSONRPC(
+			ctx,
+			tmNode,
+			app.(stosapp.EVMKeeperApp).GetEVMKeeper(),
+			app.CommitMultiStore(),
+			clientCtx,
+			config,
+		); err != nil {
 			return err
 		}
 	}

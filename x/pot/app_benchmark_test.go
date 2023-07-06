@@ -78,7 +78,7 @@ var (
 	accInitBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
 	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Utros, sdk.NewInt(40000000000000000)))
 
-	nodeInitStake    = sdk.NewInt(1 * stratos.StosToWei)
+	nodeInitDeposit  = sdk.NewInt(1 * stratos.StosToWei)
 	prepayAmt        = sdk.NewCoins(stratos.NewCoin(sdk.NewInt(20).Mul(sdk.NewInt(stratos.StosToWei))))
 	valP2PAddrBech32 string
 )
@@ -210,7 +210,7 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 			createValidatorMsg, _ = stakingtypes.NewMsgCreateValidator(
 				sdk.ValAddress(keyInfo.OwnerAddress()),
 				keyInfo.P2PPubKey(),
-				stratos.NewCoin(nodeInitStake),
+				stratos.NewCoin(nodeInitDeposit),
 				description,
 				commission,
 				sdk.OneInt(),
@@ -224,7 +224,7 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 				registertypes.NewDescription(keyInfo.P2PAddressBech32(), "", "", "", ""),
 				time,
 			)
-			metaNode = metaNode.AddToken(nodeInitStake)
+			metaNode = metaNode.AddToken(nodeInitDeposit)
 			metaNode.Status = stakingtypes.Bonded
 			metaNode.Suspend = false
 
@@ -238,8 +238,8 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 				nodeType,
 				time,
 			)
-			resourceNode = resourceNode.AddToken(nodeInitStake)
-			resourceNode.EffectiveTokens = nodeInitStake
+			resourceNode = resourceNode.AddToken(nodeInitDeposit)
+			resourceNode.EffectiveTokens = nodeInitDeposit
 			resourceNode.Status = stakingtypes.Bonded
 			resourceNode.Suspend = false
 

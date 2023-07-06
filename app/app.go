@@ -193,7 +193,7 @@ var (
 	}
 )
 
-type EVMLKeeperApp interface {
+type EVMKeeperApp interface {
 	GetEVMKeeper() *evmkeeper.Keeper
 }
 

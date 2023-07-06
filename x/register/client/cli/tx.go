@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"strconv"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -27,12 +25,12 @@ func NewTxCmd() *cobra.Command {
 		CreateResourceNodeCmd(),
 		RemoveResourceNodeCmd(),
 		UpdateResourceNodeCmd(),
-		UpdateResourceNodeStakeCmd(),
+		UpdateResourceNodeDepositCmd(),
 
 		CreateMetaNodeCmd(),
 		RemoveMetaNodeCmd(),
 		UpdateMetaNodeCmd(),
-		UpdateMetaNodeStakeCmd(),
+		UpdateMetaNodeDepositCmd(),
 		MetaNodeRegistrationVoteCmd(),
 	)
 
@@ -245,11 +243,11 @@ func UpdateMetaNodeCmd() *cobra.Command {
 	return cmd
 }
 
-// UpdateResourceNodeStakeCmd will add/subtract resource node's stake.
-func UpdateResourceNodeStakeCmd() *cobra.Command {
+// UpdateResourceNodeDepositCmd will add/subtract resource node's deposit.
+func UpdateResourceNodeDepositCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-resource-node-stake [flags]",
-		Short: "update resource node's stake",
+		Use:   "update-resource-node-deposit [flags]",
+		Short: "update resource node's deposit",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -258,7 +256,7 @@ func UpdateResourceNodeStakeCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateResourceNodeStakeMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildUpdateResourceNodeDepositMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -268,21 +266,21 @@ func UpdateResourceNodeStakeCmd() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
-	cmd.Flags().AddFlagSet(flagSetStakeUpdate())
+	cmd.Flags().AddFlagSet(flagSetDepositUpdate())
 
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagStakeDelta)
+	_ = cmd.MarkFlagRequired(FlagDepositDelta)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	return cmd
 }
 
-// UpdateMetaNodeStakeCmd will add/subtract meta node's stake.
-func UpdateMetaNodeStakeCmd() *cobra.Command {
+// UpdateMetaNodeDepositCmd will add/subtract meta node's deposit.
+func UpdateMetaNodeDepositCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "update-meta-node-stake [flags]",
-		Short: "update meta node's stake",
+		Use:   "update-meta-node-deposit [flags]",
+		Short: "update meta node's deposit",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
 			if err != nil {
@@ -291,7 +289,7 @@ func UpdateMetaNodeStakeCmd() *cobra.Command {
 
 			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
 				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateMetaNodeStakeMsg(clientCtx, txf, cmd.Flags())
+			txf, msg, err := newBuildUpdateMetaNodeDepositMsg(clientCtx, txf, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -301,13 +299,13 @@ func UpdateMetaNodeStakeCmd() *cobra.Command {
 	}
 
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
-	cmd.Flags().AddFlagSet(flagSetStakeUpdate())
+	cmd.Flags().AddFlagSet(flagSetDepositUpdate())
 
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-	_ = cmd.MarkFlagRequired(FlagStakeDelta)
-	_ = cmd.MarkFlagRequired(FlagIncrStake)
+	_ = cmd.MarkFlagRequired(FlagDepositDelta)
+	_ = cmd.MarkFlagRequired(FlagIncrDeposit)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	return cmd
 }
@@ -529,13 +527,15 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 	return txf, msg, nil
 }
 
-// newBuildUpdateResourceNodeStakeMsg makes a new UpdateResourceNodeStakeMsg.
-func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNodeStake, error) {
-	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
+// newBuildUpdateResourceNodeDepositMsg makes a new MsgUpdateResourceNodeDeposit.
+func newBuildUpdateResourceNodeDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (
+	tx.Factory, *types.MsgUpdateResourceNodeDeposit, error) {
+
+	depositDeltaStr, err := fs.GetString(FlagDepositDelta)
 	if err != nil {
 		return txf, nil, err
 	}
-	stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
+	depositDelta, err := sdk.ParseCoinNormalized(depositDeltaStr)
 	if err != nil {
 		return txf, nil, err
 	}
@@ -548,26 +548,17 @@ func newBuildUpdateResourceNodeStakeMsg(clientCtx client.Context, txf tx.Factory
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, stakeDelta)
+	msg := types.NewMsgUpdateResourceNodeDeposit(networkAddr, ownerAddr, depositDelta)
 	return txf, msg, nil
 }
 
-// newBuildUpdateMetaNodeStakeMsg makes a new UpdateMetaNodeStakeMsg.
-func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNodeStake, error) {
-	stakeDeltaStr, err := fs.GetString(FlagStakeDelta)
+// newBuildUpdateMetaNodeDepositMsg makes a new MsgUpdateMetaNodeDeposit.
+func newBuildUpdateMetaNodeDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNodeDeposit, error) {
+	depositDeltaStr, err := fs.GetString(FlagDepositDelta)
 	if err != nil {
 		return txf, nil, err
 	}
-	stakeDelta, err := sdk.ParseCoinNormalized(stakeDeltaStr)
-	if err != nil {
-		return txf, nil, err
-	}
-
-	incrStakeStr, err := fs.GetString(FlagIncrStake)
-	if err != nil {
-		return txf, nil, err
-	}
-	incrStake, err := strconv.ParseBool(incrStakeStr)
+	depositDelta, err := sdk.ParseCoinNormalized(depositDeltaStr)
 	if err != nil {
 		return txf, nil, err
 	}
@@ -580,7 +571,7 @@ func newBuildUpdateMetaNodeStakeMsg(clientCtx client.Context, txf tx.Factory, fs
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, stakeDelta, incrStake)
+	msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, depositDelta)
 	return txf, msg, nil
 }
 

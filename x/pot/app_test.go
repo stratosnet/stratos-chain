@@ -59,8 +59,8 @@ var (
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
 	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(rewardDenom, sdk.NewInt(40000000000000000)))
 
-	nodeInitialStake = sdk.NewInt(1 * stratos.StosToWei)
-	initBalance      = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
+	nodeInitialDeposit = sdk.NewInt(1 * stratos.StosToWei)
+	initBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
 
 	// wallet private keys
 	resOwnerPrivKey1  = secp256k1.GenPrivKey()
@@ -227,7 +227,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	commission := stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(nodeInitialStake), description, commission, sdk.OneInt())
+	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(nodeInitialDeposit), description, commission, sdk.OneInt())
 
 	senderAcc = accountKeeper.GetAccount(ctx, valOpAccAddr1)
 	accNum = senderAcc.GetAccountNumber()
@@ -253,7 +253,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdk.IntEq(t, nodeInitialStake, validator.BondedTokens()))
+	require.True(sdk.IntEq(t, nodeInitialDeposit, validator.BondedTokens()))
 
 	/********************** loop sending volume report **********************/
 	var i int64
@@ -312,7 +312,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		/********************* print info *********************/
 		t.Log("epoch " + volumeReportMsg.Epoch.String())
-		S := registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+		S := registerKeeper.GetInitialGenesisDepositTotal(ctx).ToDec()
 		Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 		Y := totalConsumedNoz
 		Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
@@ -637,17 +637,17 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, registertypes.NewDescription("resourceNode4", "", "", "", ""), nodeType, time)
 	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, registertypes.NewDescription("resourceNode5", "", "", "", ""), nodeType, time)
 
-	resourceNode1 = resourceNode1.AddToken(nodeInitialStake)
-	resourceNode2 = resourceNode2.AddToken(nodeInitialStake)
-	resourceNode3 = resourceNode3.AddToken(nodeInitialStake)
-	resourceNode4 = resourceNode4.AddToken(nodeInitialStake)
-	resourceNode5 = resourceNode5.AddToken(nodeInitialStake)
+	resourceNode1 = resourceNode1.AddToken(nodeInitialDeposit)
+	resourceNode2 = resourceNode2.AddToken(nodeInitialDeposit)
+	resourceNode3 = resourceNode3.AddToken(nodeInitialDeposit)
+	resourceNode4 = resourceNode4.AddToken(nodeInitialDeposit)
+	resourceNode5 = resourceNode5.AddToken(nodeInitialDeposit)
 
-	resourceNode1.EffectiveTokens = nodeInitialStake
-	resourceNode2.EffectiveTokens = nodeInitialStake
-	resourceNode3.EffectiveTokens = nodeInitialStake
-	resourceNode4.EffectiveTokens = nodeInitialStake
-	resourceNode5.EffectiveTokens = nodeInitialStake
+	resourceNode1.EffectiveTokens = nodeInitialDeposit
+	resourceNode2.EffectiveTokens = nodeInitialDeposit
+	resourceNode3.EffectiveTokens = nodeInitialDeposit
+	resourceNode4.EffectiveTokens = nodeInitialDeposit
+	resourceNode5.EffectiveTokens = nodeInitialDeposit
 
 	resourceNode1.Status = stakingtypes.Bonded
 	resourceNode2.Status = stakingtypes.Bonded
@@ -678,9 +678,9 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 	indexingNode2, _ := registertypes.NewMetaNode(metaNodeP2PAddr2, metaNodeP2PPubKey2, metaOwner2, registertypes.NewDescription("indexingNode2", "", "", "", ""), time)
 	indexingNode3, _ := registertypes.NewMetaNode(metaNodeP2PAddr3, metaNodeP2PPubKey3, metaOwner3, registertypes.NewDescription("indexingNode3", "", "", "", ""), time)
 
-	indexingNode1 = indexingNode1.AddToken(nodeInitialStake)
-	indexingNode2 = indexingNode2.AddToken(nodeInitialStake)
-	indexingNode3 = indexingNode3.AddToken(nodeInitialStake)
+	indexingNode1 = indexingNode1.AddToken(nodeInitialDeposit)
+	indexingNode2 = indexingNode2.AddToken(nodeInitialDeposit)
+	indexingNode3 = indexingNode3.AddToken(nodeInitialDeposit)
 
 	indexingNode1.Status = stakingtypes.Bonded
 	indexingNode2.Status = stakingtypes.Bonded

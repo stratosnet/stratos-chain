@@ -37,16 +37,16 @@ message Params {
     (gogoproto.jsontag) = "resource_node_reg_enabled",
     (gogoproto.moretags) = "yaml:\"resource_node_reg_enabled\""
   ];
-  cosmos.base.v1beta1.Coin  resource_node_min_stake = 6 [
+  cosmos.base.v1beta1.Coin  resource_node_min_deposit = 6 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "resource_node_min_stake",
-    (gogoproto.moretags) = "yaml:\"resource_node_min_stake\""
+    (gogoproto.jsontag) = "resource_node_min_deposit",
+    (gogoproto.moretags) = "yaml:\"resource_node_min_deposit\""
   ];
   google.protobuf.Duration  voting_period = 7 [
-   (gogoproto.nullable) = false,
-   (gogoproto.stdduration) = true,
-   (gogoproto.jsontag) = "voting_period",
-   (gogoproto.moretags) = "yaml:\"voting_period\""
+    (gogoproto.nullable) = false,
+    (gogoproto.stdduration) = true,
+    (gogoproto.jsontag) = "voting_period",
+    (gogoproto.moretags) = "yaml:\"voting_period\""
   ];
 }
 

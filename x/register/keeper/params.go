@@ -49,8 +49,8 @@ func (k Keeper) ResourceNodeRegEnabled(ctx sdk.Context) (res bool) {
 	return
 }
 
-func (k Keeper) ResourceNodeMinStake(ctx sdk.Context) (res sdk.Coin) {
-	k.paramSpace.Get(ctx, types.KeyResourceNodeMinStake, &res)
+func (k Keeper) ResourceNodeMinDeposit(ctx sdk.Context) (res sdk.Coin) {
+	k.paramSpace.Get(ctx, types.KeyResourceNodeMinDeposit, &res)
 	return
 }
 

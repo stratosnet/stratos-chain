@@ -65,8 +65,8 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 			immatureTotal := types.NewImmatureTotal(walletAddress, reward)
 			immatureTotalInfo = append(immatureTotalInfo, immatureTotal)
 
-			miningReward := sdk.NewCoins(sdk.NewCoin(types.DefaultRewardDenom, reward.AmountOf(types.DefaultRewardDenom)))
-			trafficReward := sdk.NewCoins(sdk.NewCoin(types.DefaultBondDenom, reward.AmountOf(types.DefaultBondDenom)))
+			miningReward := sdk.NewCoins(sdk.NewCoin(keeper.RewardDenom(ctx), reward.AmountOf(keeper.RewardDenom(ctx))))
+			trafficReward := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), reward.AmountOf(keeper.BondDenom(ctx))))
 			individualReward := types.NewReward(walletAddress, miningReward, trafficReward)
 			individualRewardInfo = append(individualRewardInfo, individualReward)
 
