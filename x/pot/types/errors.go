@@ -13,6 +13,9 @@ const (
 	codeErrMissingTargetAddress
 	codeErrInsufficientMatureTotal
 	codeErrMatureEpoch
+	codeErrMiningRewardParams
+	codeErrCommunityTax
+	codeErrInitialTotalSupply
 	codeErrEmptyFromAddr
 	codeErrEmptyReporterAddr
 	codeErrEmptyWalletVolumes
@@ -24,6 +27,8 @@ const (
 	codeErrBLSSignatureInvalid
 	codeErrBLSTxDataInvalid
 	codeErrBLSPubkeysInvalid
+	codeErrBLSVerifyFailed
+	codeErrBLSNotReachThreshold
 	codeErrReporterAddress
 	codeErrInvalidAmount
 	codeErrCannotFindReport
@@ -33,9 +38,7 @@ const (
 	codeErrWithdrawFailure
 	codeErrFoundationDepositFailure
 	codeErrSlashingResourceNodeFailure
-	codeErrRewardDistributionNotComplete
 	codeErrVolumeReport
-	codeErrLegacyAddressNotMatch
 	codeErrLegacyWithdrawFailure
 	codeErrReporterAddressOrOwner
 )
@@ -49,6 +52,9 @@ var (
 	ErrMissingTargetAddress           = sdkerrors.Register(ModuleName, codeErrMissingTargetAddress, "missing target address")
 	ErrInsufficientMatureTotal        = sdkerrors.Register(ModuleName, codeErrInsufficientMatureTotal, "insufficient mature total")
 	ErrMatureEpoch                    = sdkerrors.Register(ModuleName, codeErrMatureEpoch, "the value of epoch must be positive and greater than its previous one")
+	ErrMiningRewardParams             = sdkerrors.Register(ModuleName, codeErrMiningRewardParams, "invalid mining reward param")
+	ErrCommunityTax                   = sdkerrors.Register(ModuleName, codeErrCommunityTax, "invalid community tax param")
+	ErrInitialTotalSupply             = sdkerrors.Register(ModuleName, codeErrInitialTotalSupply, "invalid initial total supply param")
 	ErrEmptyFromAddr                  = sdkerrors.Register(ModuleName, codeErrEmptyFromAddr, "missing from address")
 	ErrEmptyReporterAddr              = sdkerrors.Register(ModuleName, codeErrEmptyReporterAddr, "missing reporter address")
 	ErrEmptyWalletVolumes             = sdkerrors.Register(ModuleName, codeErrEmptyWalletVolumes, "wallet volumes list empty")
@@ -60,6 +66,8 @@ var (
 	ErrBLSSignatureInvalid            = sdkerrors.Register(ModuleName, codeErrBLSSignatureInvalid, "BLS signature is invalid")
 	ErrBLSTxDataInvalid               = sdkerrors.Register(ModuleName, codeErrBLSTxDataInvalid, "BLS signature txData is invalid")
 	ErrBLSPubkeysInvalid              = sdkerrors.Register(ModuleName, codeErrBLSPubkeysInvalid, "BLS signature pubkeys are invalid")
+	ErrBLSVerifyFailed                = sdkerrors.Register(ModuleName, codeErrBLSVerifyFailed, "BLS signature verify failed")
+	ErrBLSNotReachThreshold           = sdkerrors.Register(ModuleName, codeErrBLSNotReachThreshold, "BLS signed meta-nodes does not reach the threshold")
 	ErrReporterAddress                = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
 	ErrInvalidAmount                  = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
 	ErrCannotFindReport               = sdkerrors.Register(ModuleName, codeErrCannotFindReport, "Can not find report")
@@ -69,9 +77,7 @@ var (
 	ErrWithdrawFailure                = sdkerrors.Register(ModuleName, codeErrWithdrawFailure, "failure during withdraw")
 	ErrFoundationDepositFailure       = sdkerrors.Register(ModuleName, codeErrFoundationDepositFailure, "failure during foundation deposit")
 	ErrSlashingResourceNodeFailure    = sdkerrors.Register(ModuleName, codeErrSlashingResourceNodeFailure, "failure during slashing resource node")
-	ErrRewardDistributionNotComplete  = sdkerrors.Register(ModuleName, codeErrRewardDistributionNotComplete, "Reward distribution not completed")
 	ErrVolumeReport                   = sdkerrors.Register(ModuleName, codeErrVolumeReport, "volume report failed")
-	ErrLegacyAddressNotMatch          = sdkerrors.Register(ModuleName, codeErrLegacyAddressNotMatch, "public key does not mathe the legacy wallet address")
 	ErrLegacyWithdrawFailure          = sdkerrors.Register(ModuleName, codeErrLegacyWithdrawFailure, "failure during legacyWithdraw")
 	ErrReporterAddressOrOwner         = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 )

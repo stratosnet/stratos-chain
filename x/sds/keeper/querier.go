@@ -4,21 +4,20 @@ import (
 	"encoding/hex"
 	"encoding/json"
 
-	"github.com/cosmos/cosmos-sdk/codec"
-	"github.com/stratosnet/stratos-chain/x/sds/types"
-
-	// this line is used by starport scaffolding # 1
 	abci "github.com/tendermint/tendermint/abci/types"
 
+	"github.com/cosmos/cosmos-sdk/codec"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // NewQuerier creates a new querier for sds clients.
 func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case types.QueryUploadedFile:
+		case types.QueryFileUpload:
 			return queryUploadedFileByHash(ctx, req, k, legacyQuerierCdc)
 		case types.QuerySimulatePrepay:
 			return querySimulatePrepay(ctx, req, k, legacyQuerierCdc)
@@ -45,13 +44,22 @@ func getSdsParams(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerie
 }
 
 // queryFileHash fetch a file's hash for the supplied height.
-func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
-	fileInfo, err := k.GetFileInfoBytesByFileHash(ctx, req.Data)
+func queryUploadedFileByHash(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	var params types.QueryFileUploadParams
+	err := legacyQuerierCdc.UnmarshalJSON(req.Data, &params)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+	}
+
+	fileInfo, found := k.GetFileInfoByFileHash(ctx, []byte(params.FileHash))
+	if !found {
+		return nil, types.ErrNoFileFound
+	}
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, fileInfo)
 	if err != nil {
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-
-	return fileInfo, nil
+	return res, nil
 }
 
 // querySimulatePrepay fetch amt of noz with a simulated prepay of X wei.
@@ -61,14 +69,16 @@ func querySimulatePrepay(ctx sdk.Context, req abci.RequestQuery, k Keeper, _ *co
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
-	nozAmt := k.simulatePurchaseNoz(ctx, amtToPrepay)
+	// temporary solution, avoid to modify Rest api. After upgrade to cosmos sdk v0.46.x, legacy Rest API will be removed
+	coins := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), amtToPrepay))
+	nozAmt := k.simulatePurchaseNoz(ctx, coins)
 	nozAmtByte, _ := nozAmt.MarshalJSON()
 	return nozAmtByte, nil
 }
 
 // queryCurrNozPrice fetch current noz price.
 func queryCurrNozPrice(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.LegacyAmino) ([]byte, error) {
-	nozPrice := k.RegisterKeeper.CurrNozPrice(ctx)
+	nozPrice := k.registerKeeper.CurrNozPrice(ctx)
 	nozPriceByte, _ := nozPrice.MarshalJSON()
 	return nozPriceByte, nil
 }
@@ -80,7 +90,7 @@ func queryNozSupply(ctx sdk.Context, _ abci.RequestQuery, k Keeper, _ *codec.Leg
 		Total     sdk.Int
 	}
 	var nozSupply Supply
-	nozSupply.Remaining, nozSupply.Total = k.RegisterKeeper.NozSupply(ctx)
+	nozSupply.Remaining, nozSupply.Total = k.registerKeeper.NozSupply(ctx)
 	nozSupplyByte, _ := json.Marshal(nozSupply)
 	return nozSupplyByte, nil
 }

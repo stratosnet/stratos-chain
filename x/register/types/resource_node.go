@@ -10,6 +10,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -73,21 +74,22 @@ func (v ResourceNodes) Validate() error {
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description *Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
+	description Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return ResourceNode{}, err
 	}
 	return ResourceNode{
-		NetworkAddress: networkAddr.String(),
-		Pubkey:         pkAny,
-		Suspend:        true,
-		Status:         stakingtypes.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr.String(),
-		Description:    description,
-		NodeType:       uint32(nodeType),
-		CreationTime:   creationTime,
+		NetworkAddress:  networkAddr.String(),
+		Pubkey:          pkAny,
+		Suspend:         true,
+		Status:          stakingtypes.Unbonded,
+		Tokens:          sdk.ZeroInt(),
+		OwnerAddress:    ownerAddr.String(),
+		Description:     description,
+		NodeType:        uint32(nodeType),
+		CreationTime:    creationTime,
+		EffectiveTokens: sdk.ZeroInt(),
 	}, nil
 }
 
@@ -97,7 +99,10 @@ func (v ResourceNode) ConvertToString() string {
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
-	pubKey, err := stratos.SdsPubKeyFromBech32(pkAny.String())
+	cachedPubkey := pkAny.GetCachedValue()
+	pk := cachedPubkey.(cryptotypes.PubKey)
+
+	pubKey, err := stratos.SdsPubKeyToBech32(pk)
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
@@ -196,12 +201,12 @@ func (v ResourceNode) IsUnBonding() bool {
 }
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
-func MustMarshalResourceNode(cdc codec.BinaryCodec, resourceNode ResourceNode) []byte {
+func MustMarshalResourceNode(cdc codec.Codec, resourceNode ResourceNode) []byte {
 	return cdc.MustMarshal(&resourceNode)
 }
 
 // MustUnmarshalResourceNode unmarshal a resourceNode from a store value. Panics if fails
-func MustUnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) ResourceNode {
+func MustUnmarshalResourceNode(cdc codec.Codec, value []byte) ResourceNode {
 	resourceNode, err := UnmarshalResourceNode(cdc, value)
 	if err != nil {
 		panic(err)
@@ -210,56 +215,9 @@ func MustUnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) ResourceNode
 }
 
 // UnmarshalResourceNode unmarshal a resourceNode from a store value
-func UnmarshalResourceNode(cdc codec.BinaryCodec, value []byte) (v ResourceNode, err error) {
+func UnmarshalResourceNode(cdc codec.Codec, value []byte) (v ResourceNode, err error) {
 	err = cdc.Unmarshal(value, &v)
 	return v, err
-}
-
-//func (v1 ResourceNode) Equal(v2 ResourceNode) bool {
-//	bz1 := types.ModuleCdc.MustMarshalLengthPrefixed(&v1)
-//	bz2 := types.ModuleCdc.MustMarshalLengthPrefixed(&v2)
-//	return bytes.Equal(bz1, bz2)
-//}
-
-// GetOwnerAddr
-//func (s *Staking) GetNetworkAddress() stratos.SdsAddress {
-//	networkAddr, err := stratos.SdsAddressFromBech32(s.NetworkAddress)
-//	if err != nil {
-//		panic(err)
-//	}
-//	return networkAddr
-//}
-
-func (s *Staking) GetOwnerAddr() sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(s.OwnerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return addr
-}
-func (s *Staking) GetShares() sdk.Dec { return s.Value }
-
-// String returns a human readable string representation of a node.
-//func (s *Staking) String() string {
-//	out, _ := yaml.Marshal(s)
-//	return string(out)
-//}
-
-// Stakings is a collection of Staking
-type Stakings []Staking
-
-func (ss Stakings) String() (out string) {
-	for _, staking := range ss {
-		out += staking.String() + "\n"
-	}
-
-	return strings.TrimSpace(out)
-}
-
-// UnmarshalStaking returns the resource node staking
-func UnmarshalStaking(cdc codec.BinaryCodec, value []byte) (staking Staking, err error) {
-	err = cdc.Unmarshal(value, &staking)
-	return staking, err
 }
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces

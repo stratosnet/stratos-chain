@@ -161,7 +161,7 @@ func (msg MsgEthereumTx) Type() string { return TypeMsgEthereumTx }
 // checks of a Transaction. If returns an error if validation fails.
 func (msg MsgEthereumTx) ValidateBasic() error {
 	if msg.From != "" {
-		if err := types.ValidateAddress(msg.From); err != nil {
+		if err := types.ValidateHexAddress(msg.From); err != nil {
 			return sdkerrors.Wrap(err, "invalid from address")
 		}
 	}

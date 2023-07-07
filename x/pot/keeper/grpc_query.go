@@ -3,19 +3,19 @@ package keeper
 import (
 	"context"
 	"fmt"
-	//"github.com/cosmos/cosmos-sdk/client"
-	//"github.com/cosmos/cosmos-sdk/client"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
+
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	db "github.com/tendermint/tm-db"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
@@ -60,20 +60,20 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 	}, nil
 }
 
-func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewardsByEpochRequest) (*types.QueryPotRewardsByEpochResponse, error) {
+func (q Querier) RewardsByEpoch(c context.Context, req *types.QueryRewardsByEpochRequest) (*types.QueryRewardsByEpochResponse, error) {
 	if req == nil {
-		return &types.QueryPotRewardsByEpochResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+		return &types.QueryRewardsByEpochResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	queryEpoch := sdk.NewInt(req.GetEpoch())
 
 	if queryEpoch.LTE(sdk.ZeroInt()) {
-		return &types.QueryPotRewardsByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be equal to or lower than 0")
+		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be equal to or lower than 0")
 	}
 
 	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
 	if err != nil {
-		return &types.QueryPotRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
+		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	ctx := sdk.UnwrapSDKContext(c)
@@ -98,17 +98,14 @@ func (q Querier) PotRewardsByEpoch(c context.Context, req *types.QueryPotRewards
 		return true, nil
 	})
 	if err != nil {
-		return &types.QueryPotRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
+		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
 	}
 	height := ctx.BlockHeight()
-	//var rewards []*types.Reward
-	//for i, v := range res {
-	//	rewards[i] = &v
-	//}
-	return &types.QueryPotRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
+
+	return &types.QueryRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
 }
 
-func UnmarshalIndividualReward(cdc codec.BinaryCodec, value []byte) (v types.Reward, err error) {
+func UnmarshalIndividualReward(cdc codec.Codec, value []byte) (v types.Reward, err error) {
 	err = cdc.UnmarshalLengthPrefixed(value, &v)
 	return v, err
 }
@@ -231,47 +228,47 @@ func FilteredPaginate(cdc codec.Codec,
 	return res, nil
 }
 
-func (q Querier) PotRewardsByOwner(c context.Context, req *types.QueryPotRewardsByOwnerRequest) (*types.QueryPotRewardsByOwnerResponse, error) {
+func (q Querier) RewardsByOwner(c context.Context, req *types.QueryRewardsByOwnerRequest) (*types.QueryRewardsByOwnerResponse, error) {
 	if req == nil {
-		return &types.QueryPotRewardsByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+		return &types.QueryRewardsByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	if req.GetWalletAddress() == "" {
-		return &types.QueryPotRewardsByOwnerResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
+		return &types.QueryRewardsByOwnerResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	height := ctx.BlockHeight()
 
 	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
 	if err != nil {
-		return &types.QueryPotRewardsByOwnerResponse{}, err
+		return &types.QueryRewardsByOwnerResponse{}, err
 	}
 
 	immatureTotalReward := q.GetImmatureTotalReward(ctx, walletAddr)
 	matureTotalReward := q.GetMatureTotalReward(ctx, walletAddr)
-	reward := types.NewPotRewardInfo(walletAddr, matureTotalReward, immatureTotalReward)
-	return &types.QueryPotRewardsByOwnerResponse{Rewards: &reward, Height: height}, nil
+	reward := types.NewRewardInfo(walletAddr, matureTotalReward, immatureTotalReward)
+	return &types.QueryRewardsByOwnerResponse{Rewards: &reward, Height: height}, nil
 
 }
 
-func (q Querier) PotSlashingByOwner(c context.Context, req *types.QueryPotSlashingByOwnerRequest) (*types.QueryPotSlashingByOwnerResponse, error) {
+func (q Querier) SlashingByOwner(c context.Context, req *types.QuerySlashingByOwnerRequest) (*types.QuerySlashingByOwnerResponse, error) {
 	if req == nil {
-		return &types.QueryPotSlashingByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+		return &types.QuerySlashingByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	if req.GetWalletAddress() == "" {
-		return &types.QueryPotSlashingByOwnerResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
+		return &types.QuerySlashingByOwnerResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 	height := ctx.BlockHeight()
 
 	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
 	if err != nil {
-		return &types.QueryPotSlashingByOwnerResponse{}, err
+		return &types.QuerySlashingByOwnerResponse{}, err
 	}
 
-	slashing := q.RegisterKeeper.GetSlashing(ctx, walletAddr).String()
-	return &types.QueryPotSlashingByOwnerResponse{Slashing: slashing, Height: height}, nil
+	slashing := q.registerKeeper.GetSlashing(ctx, walletAddr).String()
+	return &types.QuerySlashingByOwnerResponse{Slashing: slashing, Height: height}, nil
 
 }
 
@@ -297,7 +294,7 @@ func Paginate(
 	}
 
 	if limit == 0 {
-		limit = QueryDefaultLimit
+		limit = types.QueryDefaultLimit
 
 		// count total results when the limit is zero/not supplied
 		countTotal = true
@@ -371,18 +368,16 @@ func Paginate(
 	return res, nil
 }
 
-func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.Iterator {
-	if reverse {
-		var end []byte
-		if start != nil {
-			itr := prefixStore.Iterator(start, nil)
-			defer itr.Close()
-			if itr.Valid() {
-				itr.Next()
-				end = itr.Key()
-			}
-		}
-		return prefixStore.ReverseIterator(nil, end)
-	}
-	return prefixStore.Iterator(start, nil)
+func (q Querier) TotalMinedToken(c context.Context, _ *types.QueryTotalMinedTokenRequest) (*types.QueryTotalMinedTokenResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	totalMinedToken := q.GetTotalMinedTokens(ctx)
+
+	return &types.QueryTotalMinedTokenResponse{TotalMinedToken: totalMinedToken}, nil
+}
+
+func (q Querier) CirculationSupply(c context.Context, _ *types.QueryCirculationSupplyRequest) (*types.QueryCirculationSupplyResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	circulationSupply := q.GetCirculationSupply(ctx)
+
+	return &types.QueryCirculationSupplyResponse{CirculationSupply: circulationSupply}, nil
 }

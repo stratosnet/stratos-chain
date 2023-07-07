@@ -4,13 +4,24 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// NewPotRewardInfo creates a new instance of PotRewardInfo
-func NewPotRewardInfo(
+const (
+	QueryVolumeReport                   = "query_volume_report"
+	QueryIndividualRewardsByReportEpoch = "query_pot_individual_rewards_by_report_epoch"
+	QueryRewardsByWalletAddr            = "query_pot_rewards_by_wallet_address"
+	QuerySlashingByWalletAddr           = "query_pot_slashing_by_wallet_address"
+	QueryPotParams                      = "query_pot_params"
+	QueryTotalMinedToken                = "query_total_mined_token"
+	QueryCirculationSupply              = "query_circulation_supply"
+	QueryDefaultLimit                   = 100
+)
+
+// NewRewardInfo creates a new instance of PotRewardInfo
+func NewRewardInfo(
 	walletAddress sdk.AccAddress,
 	matureTotal sdk.Coins,
 	immatureTotal sdk.Coins,
-) PotRewardByOwner {
-	return PotRewardByOwner{
+) RewardByOwner {
+	return RewardByOwner{
 		WalletAddress:       walletAddress.String(),
 		MatureTotalReward:   matureTotal,
 		ImmatureTotalReward: immatureTotal,

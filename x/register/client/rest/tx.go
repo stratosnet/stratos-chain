@@ -2,7 +2,6 @@ package rest
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -28,8 +27,12 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 		postUpdateResourceNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/updateResourceNodeStake",
-		postUpdateResourceNodeStakeHandlerFn(cliCtx),
+		"/register/updateResourceNodeDeposit",
+		postUpdateResourceNodeDepositHandlerFn(cliCtx),
+	).Methods("POST")
+	r.HandleFunc(
+		"/register/updateEffectiveDeposit",
+		postUpdateEffectiveDepositHandlerFn(cliCtx),
 	).Methods("POST")
 
 	r.HandleFunc(
@@ -45,8 +48,8 @@ func registerTxHandlers(cliCtx client.Context, r *mux.Router) {
 		postUpdateMetaNodeHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
-		"/register/updateMetaNodeStake",
-		postUpdateMetaNodeStakeHandlerFn(cliCtx),
+		"/register/updateMetaNodeDeposit",
+		postUpdateMetaNodeDepositHandlerFn(cliCtx),
 	).Methods("POST")
 	r.HandleFunc(
 		"/register/metaNodeRegVote",
@@ -76,11 +79,20 @@ type (
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
-	UpdateResourceNodeStakeRequest struct {
+	UpdateResourceNodeDepositRequest struct {
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
-		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
-		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
+		DepositDelta   sdk.Coin     `json:"deposit_delta" yaml:"deposit_delta"`
+	}
+
+	UpdateEffectiveDepositRequest struct {
+		BaseReq         rest.BaseReq         `json:"base_req" yaml:"base_req"`
+		Reporters       []stratos.SdsAddress `json:"reporters" yaml:"reporters"`           // reporter(sp node) p2p address
+		ReporterOwner   []sdk.AccAddress     `json:"reporter_owner" yaml:"reporter_owner"` // report(sp node) wallet address
+		NetworkAddress  string               `json:"network_address" yaml:"network_address"`
+		EffectiveTokens sdk.Int              `json:"effective_tokens" yaml:"effective_tokens"`
+		InitialTier     uint32               `json:"initial_tier" yaml:"initial_tier"`
+		OngoingTier     uint32               `json:"ongoing_tier" yaml:"ongoing_tier"`
 	}
 
 	CreateMetaNodeRequest struct {
@@ -102,11 +114,11 @@ type (
 		NetworkAddress string            `json:"network_address" yaml:"network_address"`
 	}
 
-	UpdateMetaNodeStakeRequest struct {
+	UpdateMetaNodeDepositRequest struct {
 		BaseReq        rest.BaseReq `json:"base_req" yaml:"base_req"`
 		NetworkAddress string       `json:"network_address" yaml:"network_address"`
-		StakeDelta     sdk.Coin     `json:"stake_delta" yaml:"stake_delta"`
-		IncrStake      string       `json:"incr_stake" yaml:"incr_stake"`
+		DepositDelta   sdk.Coin     `json:"deposit_delta" yaml:"deposit_delta"`
+		IncrDeposit    string       `json:"incr_deposit" yaml:"incr_deposit"`
 	}
 
 	MetaNodeRegVoteRequest struct {
@@ -152,7 +164,7 @@ func postCreateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description,
+		msg, err := types.NewMsgCreateResourceNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description,
 			req.NodeType)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
@@ -192,7 +204,7 @@ func postCreateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, &req.Description)
+		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -315,9 +327,9 @@ func postUpdateResourceNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postUpdateResourceNodeDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req UpdateResourceNodeStakeRequest
+		var req UpdateResourceNodeDepositRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -340,12 +352,36 @@ func postUpdateResourceNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFun
 			return
 		}
 
-		incrStake, err := strconv.ParseBool(req.IncrStake)
+		msg := types.NewMsgUpdateResourceNodeDeposit(networkAddr, ownerAddr, req.DepositDelta)
+		if err := msg.ValidateBasic(); err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
+	}
+}
+
+func postUpdateEffectiveDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req UpdateEffectiveDepositRequest
+
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
+			return
+		}
+
+		req.BaseReq = req.BaseReq.Sanitize()
+		if !req.BaseReq.ValidateBasic(w) {
+			return
+		}
+
+		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddress)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg := types.NewMsgUpdateResourceNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
+
+		msg := types.NewMsgUpdateEffectiveDeposit(req.Reporters, req.ReporterOwner, networkAddr, req.EffectiveTokens)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -390,9 +426,9 @@ func postUpdateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	}
 }
 
-func postUpdateMetaNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
+func postUpdateMetaNodeDepositHandlerFn(cliCtx client.Context) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req UpdateMetaNodeStakeRequest
+		var req UpdateMetaNodeDepositRequest
 
 		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
@@ -415,12 +451,7 @@ func postUpdateMetaNodeStakeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		incrStake, err := strconv.ParseBool(req.IncrStake)
-		if err != nil {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
-			return
-		}
-		msg := types.NewMsgUpdateMetaNodeStake(networkAddr, ownerAddr, &req.StakeDelta, incrStake)
+		msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, req.DepositDelta)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return

@@ -14,29 +14,24 @@ import (
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
-const (
-	QueryVolumeReport                   = "query_volume_report"
-	QueryIndividualRewardsByReportEpoch = "query_pot_individual_rewards_by_report_epoch"
-	QueryRewardsByWalletAddr            = "query_pot_rewards_by_wallet_address"
-	QuerySlashingByWalletAddr           = "query_pot_slashing_by_wallet_address"
-	QueryPotParams                      = "query_pot_params"
-	QueryDefaultLimit                   = 100
-)
-
 // NewQuerier creates a new querier for pot clients.
 func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 	return func(ctx sdk.Context, path []string, req abci.RequestQuery) ([]byte, error) {
 		switch path[0] {
-		case QueryVolumeReport:
+		case types.QueryVolumeReport:
 			return queryVolumeReport(ctx, req, k, legacyQuerierCdc)
-		case QueryIndividualRewardsByReportEpoch:
+		case types.QueryIndividualRewardsByReportEpoch:
 			return queryIndividualRewardsByReportEpoch(ctx, req, k, legacyQuerierCdc)
-		case QueryRewardsByWalletAddr:
+		case types.QueryRewardsByWalletAddr:
 			return queryRewardsByWalletAddress(ctx, req, k, legacyQuerierCdc)
-		case QuerySlashingByWalletAddr:
+		case types.QuerySlashingByWalletAddr:
 			return querySlashingByWalletAddress(ctx, req, k, legacyQuerierCdc)
-		case QueryPotParams:
+		case types.QueryPotParams:
 			return getPotParams(ctx, req, k, legacyQuerierCdc)
+		case types.QueryTotalMinedToken:
+			return getTotalMinedToken(ctx, req, k, legacyQuerierCdc)
+		case types.QueryCirculationSupply:
+			return getCirculationSupply(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -64,7 +59,7 @@ func queryVolumeReport(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQ
 	if reportRecord.TxHash == "" {
 		e := sdkerrors.Wrapf(types.ErrCannotFindReport,
 			fmt.Sprintf("no volume report found at epoch %d. Current epoch is %s",
-				epoch, k.GetLastReportedEpoch(ctx).String()))
+				epoch, k.GetLastDistributedEpoch(ctx).String()))
 		return []byte{}, e
 	}
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, reportRecord)
@@ -96,7 +91,7 @@ func queryIndividualRewardsByReportEpoch(ctx sdk.Context, req abci.RequestQuery,
 func (k Keeper) getIndividualRewardsByReportEpoch(ctx sdk.Context, params types.QueryIndividualRewardsByReportEpochParams) (res []types.Reward) {
 	matureEpoch := params.Epoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
 
-	start, end := client.Paginate(params.Page, params.Limit, QueryDefaultLimit)
+	start, end := client.Paginate(params.Page, params.Limit, types.QueryDefaultLimit)
 	if start < 0 || end < 0 {
 		return nil
 	}
@@ -147,7 +142,7 @@ func queryRewardsByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keepe
 	// param epoch not exists
 	immatureTotalReward := k.GetImmatureTotalReward(ctx, params.WalletAddr)
 	matureTotalReward := k.GetMatureTotalReward(ctx, params.WalletAddr)
-	reward := types.NewPotRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)
+	reward := types.NewRewardInfo(params.WalletAddr, matureTotalReward, immatureTotalReward)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, reward)
 	if err != nil {
@@ -162,5 +157,23 @@ func querySlashingByWalletAddress(ctx sdk.Context, req abci.RequestQuery, k Keep
 		return []byte(sdk.ZeroInt().String()), types.ErrUnknownAccountAddress
 	}
 
-	return []byte(k.RegisterKeeper.GetSlashing(ctx, addr).String()), nil
+	return []byte(k.registerKeeper.GetSlashing(ctx, addr).String()), nil
+}
+
+func getTotalMinedToken(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	totalMinedToken := k.GetTotalMinedTokens(ctx)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, totalMinedToken)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func getCirculationSupply(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	circulationSupply := k.GetCirculationSupply(ctx)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, circulationSupply)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
 }

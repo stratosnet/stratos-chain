@@ -140,37 +140,73 @@ func local_request_Msg_HandleMsgUpdateResourceNode_0(ctx context.Context, marsha
 }
 
 var (
-	filter_Msg_HandleMsgUpdateResourceNodeStake_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgUpdateResourceNodeDeposit_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgUpdateResourceNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateResourceNodeStake
+func request_Msg_HandleMsgUpdateResourceNodeDeposit_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateResourceNodeDeposit
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateResourceNodeStake_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateResourceNodeDeposit_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgUpdateResourceNodeStake(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgUpdateResourceNodeDeposit(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgUpdateResourceNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateResourceNodeStake
+func local_request_Msg_HandleMsgUpdateResourceNodeDeposit_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateResourceNodeDeposit
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateResourceNodeStake_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateResourceNodeDeposit_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgUpdateResourceNodeStake(ctx, &protoReq)
+	msg, err := server.HandleMsgUpdateResourceNodeDeposit(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_Msg_HandleMsgUpdateEffectiveDeposit_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Msg_HandleMsgUpdateEffectiveDeposit_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateEffectiveDeposit
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateEffectiveDeposit_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.HandleMsgUpdateEffectiveDeposit(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Msg_HandleMsgUpdateEffectiveDeposit_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateEffectiveDeposit
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateEffectiveDeposit_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.HandleMsgUpdateEffectiveDeposit(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -284,37 +320,37 @@ func local_request_Msg_HandleMsgUpdateMetaNode_0(ctx context.Context, marshaler 
 }
 
 var (
-	filter_Msg_HandleMsgUpdateMetaNodeStake_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+	filter_Msg_HandleMsgUpdateMetaNodeDeposit_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
 )
 
-func request_Msg_HandleMsgUpdateMetaNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateMetaNodeStake
+func request_Msg_HandleMsgUpdateMetaNodeDeposit_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateMetaNodeDeposit
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNodeStake_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNodeDeposit_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.HandleMsgUpdateMetaNodeStake(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.HandleMsgUpdateMetaNodeDeposit(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Msg_HandleMsgUpdateMetaNodeStake_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq MsgUpdateMetaNodeStake
+func local_request_Msg_HandleMsgUpdateMetaNodeDeposit_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgUpdateMetaNodeDeposit
 	var metadata runtime.ServerMetadata
 
 	if err := req.ParseForm(); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
-	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNodeStake_0); err != nil {
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgUpdateMetaNodeDeposit_0); err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.HandleMsgUpdateMetaNodeStake(ctx, &protoReq)
+	msg, err := server.HandleMsgUpdateMetaNodeDeposit(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -351,6 +387,42 @@ func local_request_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx context.Context, 
 	}
 
 	msg, err := server.HandleMsgMetaNodeRegistrationVote(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
+var (
+	filter_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0(ctx context.Context, marshaler runtime.Marshaler, client MsgClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgWithdrawMetaNodeRegistrationDeposit
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0(ctx context.Context, marshaler runtime.Marshaler, server MsgServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq MsgWithdrawMetaNodeRegistrationDeposit
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -421,7 +493,7 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateResourceNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateResourceNodeDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -430,14 +502,34 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgUpdateResourceNodeStake_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgUpdateResourceNodeDeposit_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateResourceNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateResourceNodeDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateEffectiveDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Msg_HandleMsgUpdateEffectiveDeposit_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Msg_HandleMsgUpdateEffectiveDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -501,7 +593,7 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNodeDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -510,14 +602,14 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Msg_HandleMsgUpdateMetaNodeStake_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Msg_HandleMsgUpdateMetaNodeDeposit_0(rctx, inboundMarshaler, server, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateMetaNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateMetaNodeDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -538,6 +630,26 @@ func RegisterMsgHandlerServer(ctx context.Context, mux *runtime.ServeMux, server
 		}
 
 		forward_Msg_HandleMsgMetaNodeRegistrationVote_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0(rctx, inboundMarshaler, server, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -642,7 +754,7 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateResourceNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateResourceNodeDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -651,14 +763,34 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgUpdateResourceNodeStake_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgUpdateResourceNodeDeposit_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateResourceNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateResourceNodeDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateEffectiveDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Msg_HandleMsgUpdateEffectiveDeposit_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Msg_HandleMsgUpdateEffectiveDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -722,7 +854,7 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 
 	})
 
-	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNodeStake_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Msg_HandleMsgUpdateMetaNodeDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
@@ -731,14 +863,14 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Msg_HandleMsgUpdateMetaNodeStake_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Msg_HandleMsgUpdateMetaNodeDeposit_0(rctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Msg_HandleMsgUpdateMetaNodeStake_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Msg_HandleMsgUpdateMetaNodeDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -762,6 +894,26 @@ func RegisterMsgHandlerClient(ctx context.Context, mux *runtime.ServeMux, client
 
 	})
 
+	mux.Handle("POST", pattern_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, mux, req)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0(ctx, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -772,7 +924,9 @@ var (
 
 	pattern_Msg_HandleMsgUpdateResourceNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_resource_node"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgUpdateResourceNodeStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_resource_node_stake"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgUpdateResourceNodeDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_resource_node_deposit"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Msg_HandleMsgUpdateEffectiveDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_effective_deposit"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Msg_HandleMsgCreateMetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "create_meta_node"}, "", runtime.AssumeColonVerbOpt(true)))
 
@@ -780,9 +934,11 @@ var (
 
 	pattern_Msg_HandleMsgUpdateMetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_meta_node"}, "", runtime.AssumeColonVerbOpt(true)))
 
-	pattern_Msg_HandleMsgUpdateMetaNodeStake_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_meta_node_stake"}, "", runtime.AssumeColonVerbOpt(true)))
+	pattern_Msg_HandleMsgUpdateMetaNodeDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "update_meta_node_deposit"}, "", runtime.AssumeColonVerbOpt(true)))
 
 	pattern_Msg_HandleMsgMetaNodeRegistrationVote_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "meta_node_registration_vote"}, "", runtime.AssumeColonVerbOpt(true)))
+
+	pattern_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "withdraw_meta_node_registration_deposit"}, "", runtime.AssumeColonVerbOpt(true)))
 )
 
 var (
@@ -792,7 +948,9 @@ var (
 
 	forward_Msg_HandleMsgUpdateResourceNode_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgUpdateResourceNodeStake_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgUpdateResourceNodeDeposit_0 = runtime.ForwardResponseMessage
+
+	forward_Msg_HandleMsgUpdateEffectiveDeposit_0 = runtime.ForwardResponseMessage
 
 	forward_Msg_HandleMsgCreateMetaNode_0 = runtime.ForwardResponseMessage
 
@@ -800,7 +958,9 @@ var (
 
 	forward_Msg_HandleMsgUpdateMetaNode_0 = runtime.ForwardResponseMessage
 
-	forward_Msg_HandleMsgUpdateMetaNodeStake_0 = runtime.ForwardResponseMessage
+	forward_Msg_HandleMsgUpdateMetaNodeDeposit_0 = runtime.ForwardResponseMessage
 
 	forward_Msg_HandleMsgMetaNodeRegistrationVote_0 = runtime.ForwardResponseMessage
+
+	forward_Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_0 = runtime.ForwardResponseMessage
 )

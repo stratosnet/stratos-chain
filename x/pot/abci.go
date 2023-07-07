@@ -1,11 +1,13 @@
 package pot
 
 import (
+	abci "github.com/tendermint/tendermint/abci/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
-	abci "github.com/tendermint/tendermint/abci/types"
-	// abci "github.com/tendermint/tendermint/abci/types"
 )
+
+const CHECK_TOTAL_SUPPLY_INTERVAL = 10000
 
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
@@ -16,27 +18,18 @@ func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) 
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, req abci.RequestEndBlock, k keeper.Keeper) []abci.ValidatorUpdate {
 
-	// Do not distribute rewards until the next block
-	if !k.GetIsReadyToDistributeReward(ctx) && k.GetUnhandledEpoch(ctx).GT(sdk.ZeroInt()) {
-		k.SetIsReadyToDistributeReward(ctx, true)
-		return []abci.ValidatorUpdate{}
-	}
-
-	walletVolumes, found := k.GetUnhandledReport(ctx)
-	if !found {
-		return []abci.ValidatorUpdate{}
-	}
-	epoch := k.GetUnhandledEpoch(ctx)
 	logger := k.Logger(ctx)
 
-	//distribute POT reward
-	_, err := k.DistributePotReward(ctx, walletVolumes, epoch)
+	// mature reward
+	err := k.RewardMatureAndSubSlashing(ctx)
 	if err != nil {
 		logger.Error("An error occurred while distributing the reward. ", "ErrMsg", err.Error())
 	}
 
-	k.SetUnhandledReport(ctx, nil)
-	k.SetUnhandledEpoch(ctx, sdk.ZeroInt())
-
+	// reset total supply to 100M stos every 10k blocks
+	if ctx.BlockHeight()%CHECK_TOTAL_SUPPLY_INTERVAL == 1 {
+		logger.Info("start RestoreTotalSupply")
+		k.RestoreTotalSupply(ctx)
+	}
 	return []abci.ValidatorUpdate{}
 }

@@ -240,7 +240,7 @@ func (tx DynamicFeeTx) Validate() error {
 	}
 
 	if tx.To != "" {
-		if err := types.ValidateAddress(tx.To); err != nil {
+		if err := types.ValidateHexAddress(tx.To); err != nil {
 			return sdkerrors.Wrap(err, "invalid to address")
 		}
 	}

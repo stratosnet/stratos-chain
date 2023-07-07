@@ -63,7 +63,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 	}
 
 	// override dynamicly miner address
-	sdkCtx, err := b.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		b.logger.Debug("GetSdkContextWithHeader context", "height", blockNum, "error", err.Error())
 		return nil, err
@@ -75,6 +75,12 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 		return nil, err
 	}
 	res.Miner = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	res.BaseFee = feeResp.BaseFee.BigInt()
 
 	return res, nil
 }
@@ -99,7 +105,7 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 	}
 
 	// override dynamicly miner address
-	sdkCtx, err := b.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		b.logger.Debug("GetSdkContextWithHeader context", "hash", hash.Hex(), "error", err.Error())
 		return nil, err
@@ -111,6 +117,12 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 		return nil, err
 	}
 	res.Miner = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	res.BaseFee = feeResp.BaseFee.BigInt()
 
 	return res, nil
 }
@@ -222,7 +234,7 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, err
 	}
 
 	// override dynamicly miner address
-	sdkCtx, err := b.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		b.logger.Debug("GetSdkContextWithHeader context", "height", blockNum, "error", err.Error())
 		return nil, err
@@ -234,6 +246,12 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, err
 		return nil, err
 	}
 	ethHeader.Coinbase = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	ethHeader.BaseFee = feeResp.BaseFee.BigInt()
 	return ethHeader, nil
 }
 
@@ -256,7 +274,7 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 	}
 
 	// override dynamicly miner address
-	sdkCtx, err := b.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		b.logger.Debug("GetSdkContextWithHeader context", "hash", blockHash.Hex(), "error", err.Error())
 		return nil, err
@@ -268,6 +286,12 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 		return nil, err
 	}
 	ethHeader.Coinbase = validator
+
+	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	if err != nil {
+		return nil, err
+	}
+	ethHeader.BaseFee = feeResp.BaseFee.BigInt()
 	return ethHeader, nil
 }
 
@@ -360,7 +384,7 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 		ConsAddress: sdk.ConsAddress(status.ValidatorInfo.Address).String(),
 	}
 
-	ctx := b.GetSdkContext()
+	ctx := b.GetEVMContext().GetSdkContext()
 	res, err := b.GetEVMKeeper().ValidatorAccount(sdk.WrapSDKContext(ctx), req)
 	if err != nil {
 		return nil, err
@@ -372,7 +396,7 @@ func (b *Backend) GetCoinbase() (sdk.AccAddress, error) {
 
 // GetTransactionByHash returns the Ethereum format transaction identified by Ethereum transaction hash
 func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.Transaction, error) {
-	res, err := b.GetTxByHash(txHash)
+	res, err := evmtypes.GetTmTxByHash(txHash)
 	if err != nil {
 		// TODO: Get chain id value from genesis
 		tx, err := types.GetPendingTx(b.clientCtx.TxConfig.TxDecoder(), b.GetMempool(), txHash)
@@ -400,22 +424,6 @@ func (b *Backend) GetTransactionByHash(txHash common.Hash) (*types.Transaction, 
 		&blockHeight,
 		&txIndex,
 	)
-}
-
-func (b *Backend) GetTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
-	resTx, err := tmrpccore.Tx(nil, hash.Bytes(), false)
-	if err != nil {
-		query := fmt.Sprintf("%s.%s='%s'", evmtypes.TypeMsgEthereumTx, evmtypes.AttributeKeyEthereumTxHash, hash.Hex())
-		resTxs, err := tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
-		if err != nil {
-			return nil, err
-		}
-		if len(resTxs.Txs) == 0 {
-			return nil, errors.Errorf("ethereum tx not found for hash %s", hash.Hex())
-		}
-		return resTxs.Txs[0], nil
-	}
-	return resTx, nil
 }
 
 // GetTxByTxIndex uses `/tx_query` to find transaction by tx index of valid ethereum txs
@@ -468,7 +476,7 @@ func (b *Backend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash, e
 	}
 
 	// Query params to use the EVM denomination
-	sdkCtx := b.GetSdkContext()
+	sdkCtx := b.GetEVMContext().GetSdkContext()
 	res, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		b.logger.Error("failed to query evm params", "error", err.Error())
@@ -543,7 +551,7 @@ func (b *Backend) EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *ty
 
 	// it will return an empty context and the sdk.Context will use
 	// the latest block height for querying.
-	sdkCtx, err := b.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return 0, err
 	}
@@ -611,7 +619,7 @@ func (b *Backend) RPCBlockRangeCap() int32 {
 // the node config. If set value is 0, it will default to 20.
 
 func (b *Backend) RPCMinGasPrice() int64 {
-	sdkCtx := b.GetSdkContext()
+	sdkCtx := b.GetEVMContext().GetSdkContext()
 	evmParams, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return stratos.DefaultGasPrice
@@ -628,7 +636,7 @@ func (b *Backend) RPCMinGasPrice() int64 {
 
 // ChainConfig returns the latest ethereum chain configuration
 func (b *Backend) ChainConfig() *params.ChainConfig {
-	sdkCtx := b.GetSdkContext()
+	sdkCtx := b.GetEVMContext().GetSdkContext()
 	params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return nil
@@ -641,33 +649,37 @@ func (b *Backend) ChainConfig() *params.ChainConfig {
 // Although we don't support tx prioritization yet, but we return a positive value to help client to
 // mitigate the base fee changes.
 func (b *Backend) SuggestGasTipCap() (*big.Int, error) {
-	baseFee, err := b.BaseFee()
-	if err != nil {
-		// london hardfork not enabled or feemarket not enabled
-		return big.NewInt(0), nil
-	}
+	// baseFee, err := b.BaseFee()
+	// if err != nil {
+	// 	// london hardfork not enabled or feemarket not enabled
+	// 	return big.NewInt(0), nil
+	// }
 
-	sdkCtx := b.GetSdkContext()
-	params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
-	if err != nil {
-		return nil, err
-	}
-	// calculate the maximum base fee delta in current block, assuming all block gas limit is consumed
-	// ```
-	// GasTarget = GasLimit / ElasticityMultiplier
-	// Delta = BaseFee * (GasUsed - GasTarget) / GasTarget / Denominator
-	// ```
-	// The delta is at maximum when `GasUsed` is equal to `GasLimit`, which is:
-	// ```
-	// MaxDelta = BaseFee * (GasLimit - GasLimit / ElasticityMultiplier) / (GasLimit / ElasticityMultiplier) / Denominator
-	//          = BaseFee * (ElasticityMultiplier - 1) / Denominator
-	// ```
-	maxDelta := baseFee.Int64() * (int64(params.Params.FeeMarketParams.ElasticityMultiplier) - 1) / int64(params.Params.FeeMarketParams.BaseFeeChangeDenominator)
-	if maxDelta < 0 {
-		// impossible if the parameter validation passed.
-		maxDelta = 0
-	}
-	return big.NewInt(maxDelta), nil
+	// sdkCtx := b.GetEVMContext().GetSdkContext()
+	// params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// // calculate the maximum base fee delta in current block, assuming all block gas limit is consumed
+	// // ```
+	// // GasTarget = GasLimit / ElasticityMultiplier
+	// // Delta = BaseFee * (GasUsed - GasTarget) / GasTarget / Denominator
+	// // ```
+	// // The delta is at maximum when `GasUsed` is equal to `GasLimit`, which is:
+	// // ```
+	// // MaxDelta = BaseFee * (GasLimit - GasLimit / ElasticityMultiplier) / (GasLimit / ElasticityMultiplier) / Denominator
+	// //          = BaseFee * (ElasticityMultiplier - 1) / Denominator
+	// // ```
+	// maxDelta := baseFee.Int64() * (int64(params.Params.FeeMarketParams.ElasticityMultiplier) - 1) / int64(params.Params.FeeMarketParams.BaseFeeChangeDenominator)
+	// if maxDelta < 0 {
+	// 	// impossible if the parameter validation passed.
+	// 	maxDelta = 0
+	// }
+	// return big.NewInt(maxDelta), nil
+
+	// NOTE: Commented as validators do not receive tips
+	// but I left a logic in case we want to have this in future
+	return big.NewInt(0), nil
 }
 
 // BaseFee returns the base fee tracked by the Fee Market module.
@@ -685,7 +697,7 @@ func (b *Backend) BaseFee() (*big.Int, error) {
 		return nil, nil
 	}
 
-	sdkCtx, err := b.GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}

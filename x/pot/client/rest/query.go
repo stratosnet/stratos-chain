@@ -5,21 +5,23 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/gorilla/mux"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
-	"github.com/gorilla/mux"
-	"github.com/stratosnet/stratos-chain/x/pot/keeper"
+
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(clientCtx, keeper.QueryVolumeReport)).Methods("GET")
-	r.HandleFunc("/pot/rewards/epoch/{epoch}", getIndividualRewardsByEpochHandlerFn(clientCtx, keeper.QueryIndividualRewardsByReportEpoch)).Methods("GET")
-	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getRewardsByWalletAddrHandlerFn(clientCtx, keeper.QueryRewardsByWalletAddr)).Methods("GET")
-	r.HandleFunc("/pot/slashing/{walletAddress}", getSlashingByWalletAddressHandlerFn(clientCtx, keeper.QuerySlashingByWalletAddr)).Methods("GET")
-	r.HandleFunc("/pot/params", potParamsHandlerFn(clientCtx, keeper.QueryPotParams)).Methods("GET")
-
+	r.HandleFunc("/pot/report/epoch/{epoch}", getVolumeReportHandlerFn(clientCtx, types.QueryVolumeReport)).Methods("GET")
+	r.HandleFunc("/pot/rewards/epoch/{epoch}", getIndividualRewardsByEpochHandlerFn(clientCtx, types.QueryIndividualRewardsByReportEpoch)).Methods("GET")
+	r.HandleFunc("/pot/rewards/wallet/{walletAddress}", getRewardsByWalletAddrHandlerFn(clientCtx, types.QueryRewardsByWalletAddr)).Methods("GET")
+	r.HandleFunc("/pot/slashing/{walletAddress}", getSlashingByWalletAddressHandlerFn(clientCtx, types.QuerySlashingByWalletAddr)).Methods("GET")
+	r.HandleFunc("/pot/params", potParamsHandlerFn(clientCtx, types.QueryPotParams)).Methods("GET")
+	r.HandleFunc("/pot/total-mined-token", getTotalMinedTokenHandlerFn(clientCtx, types.QueryTotalMinedToken)).Methods("GET")
+	r.HandleFunc("/pot/circulation-supply", getCirculationSupplyHandlerFn(clientCtx, types.QueryCirculationSupply)).Methods("GET")
 }
 
 // GET request handler to query params of POT module
@@ -185,6 +187,42 @@ func getSlashingByWalletAddressHandlerFn(clientCtx client.Context, queryPath str
 			return
 		}
 
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getTotalMinedTokenHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getCirculationSupplyHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}

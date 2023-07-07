@@ -44,6 +44,8 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
+	// access for pot functionality with related keeper
+	potKeeper types.PotKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
@@ -85,6 +87,10 @@ func NewKeeper(
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", types.ModuleName)
+}
+
+func (k *Keeper) SetPotKeeper(potk types.PotKeeper) {
+	k.potKeeper = potk
 }
 
 // ----------------------------------------------------------------------------

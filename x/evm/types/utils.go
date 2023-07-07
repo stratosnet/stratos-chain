@@ -11,6 +11,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	"github.com/pkg/errors"
+	tmrpccore "github.com/tendermint/tendermint/rpc/core"
+	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	tmjsonrpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
 )
 
 const maxBitLen = 256
@@ -104,4 +109,39 @@ func SafeNewIntFromBigInt(i *big.Int) (sdk.Int, error) {
 // IsValidInt256 check the bound of 256 bit number
 func IsValidInt256(i *big.Int) bool {
 	return i == nil || i.BitLen() <= maxBitLen
+}
+
+// GetTmTxByHash return result tx in according of dynamic tx searching
+func GetTmTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
+	resTx, err := tmrpccore.Tx(nil, hash.Bytes(), false)
+	if err != nil {
+		query := fmt.Sprintf("%s.%s='%s'", TypeMsgEthereumTx, AttributeKeyEthereumTxHash, hash.Hex())
+		resTxs, err := tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
+		if err != nil {
+			return nil, err
+		}
+		if len(resTxs.Txs) == 0 {
+			return nil, errors.Errorf("ethereum tx not found for hash %s", hash.Hex())
+		}
+		return resTxs.Txs[0], nil
+	}
+	return resTx, nil
+}
+
+// BlockMaxGasFromConsensusParams returns the gas limit for the current block from the chain consensus params.
+func BlockMaxGasFromConsensusParams(blockHeight *int64) (int64, error) {
+	resConsParams, err := tmrpccore.ConsensusParams(nil, blockHeight)
+	if err != nil {
+		return int64(^uint32(0)), err
+	}
+
+	gasLimit := resConsParams.ConsensusParams.Block.MaxGas
+	if gasLimit == -1 {
+		// Sets gas limit to max uint32 to not error with javascript dev tooling
+		// This -1 value indicating no block gas limit is set to max uint64 with geth hexutils
+		// which errors certain javascript dev tooling which only supports up to 53 bits
+		gasLimit = int64(^uint32(0))
+	}
+
+	return gasLimit, nil
 }

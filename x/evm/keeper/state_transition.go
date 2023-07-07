@@ -382,24 +382,16 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	// take over the nonce management from evm:
 	// reset sender's nonce to msg.Nonce() before calling evm on msg nonce
 	// as nonce already increased in db
-	// TODO: UNCOMMENT THIS FOR PROD!!!!!!
-	// stateDB.SetNonce(sender.Address(), msg.Nonce())
+	stateDB.SetNonce(sender.Address(), msg.Nonce())
 
 	if contractCreation {
 		// no need to increase nonce here as contract as during contract creation:
 		// - tx.origin nonce increase automatically
 		// - if IsEIP158 enabled, contract nonce will be set as 1
-
-		// NOTE: REMOVE THIS FOR PROD!!!!!!!!!!!
-		stateDB.SetNonce(sender.Address(), msg.Nonce())
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
-
-		// NOTE: REMOVE THIS FOR PROD!!!!!!!!!!!
-		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 	} else {
 		// should be incresed before call on nonce from msg so we make sure nonce remaining same as on init tx
-		// TODO: UNCOMMENT THIS FOR PROD!!!!!!
-		// stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
+		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 

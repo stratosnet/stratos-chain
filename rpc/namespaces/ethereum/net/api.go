@@ -21,7 +21,7 @@ func NewPublicAPI(backend backend.BackendI) *PublicAPI {
 
 // Version returns the current ethereum protocol version.
 func (s *PublicAPI) Version() (string, error) {
-	ctx := s.backend.GetSdkContext()
+	ctx := s.backend.GetEVMContext().GetSdkContext()
 	params := s.backend.GetEVMKeeper().GetParams(ctx)
 	return params.ChainConfig.ChainID.String(), nil
 }

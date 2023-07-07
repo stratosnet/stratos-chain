@@ -5,6 +5,7 @@ package types
 
 import (
 	fmt "fmt"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
@@ -26,12 +27,13 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // GenesisState defines the register module's genesis state.
 type GenesisState struct {
-	Params               *Params          `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty" yaml:"params"`
-	TotalMinedToken      *types.Coin      `protobuf:"bytes,2,opt,name=total_mined_token,json=totalMinedToken,proto3" json:"total_mined_token,omitempty" yaml:"total_mined_token"`
-	LastReportedEpoch    int64            `protobuf:"varint,3,opt,name=last_reported_epoch,json=lastReportedEpoch,proto3" json:"last_reported_epoch,omitempty" yaml:"last_reported_epoch"`
-	ImmatureTotalInfo    []*ImmatureTotal `protobuf:"bytes,4,rep,name=immature_total_info,json=immatureTotalInfo,proto3" json:"immature_total_info,omitempty" yaml:"immature_total_info"`
-	MatureTotalInfo      []*MatureTotal   `protobuf:"bytes,5,rep,name=mature_total_info,json=matureTotalInfo,proto3" json:"mature_total_info,omitempty" yaml:"mature_total_info"`
-	IndividualRewardInfo []*Reward        `protobuf:"bytes,6,rep,name=individual_reward_info,json=individualRewardInfo,proto3" json:"individual_reward_info,omitempty" yaml:"individual_reward_info"`
+	Params               Params                                 `protobuf:"bytes,1,opt,name=params,proto3" json:"params" yaml:"params"`
+	TotalMinedToken      types.Coin                             `protobuf:"bytes,2,opt,name=total_mined_token,json=totalMinedToken,proto3" json:"total_mined_token" yaml:"total_mined_token"`
+	LastDistributedEpoch github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=last_distributed_epoch,json=lastDistributedEpoch,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"last_distributed_epoch" yaml:"last_distributed_epoch"`
+	ImmatureTotalInfo    []ImmatureTotal                        `protobuf:"bytes,4,rep,name=immature_total_info,json=immatureTotalInfo,proto3" json:"immature_total_info" yaml:"immature_total_info"`
+	MatureTotalInfo      []MatureTotal                          `protobuf:"bytes,5,rep,name=mature_total_info,json=matureTotalInfo,proto3" json:"mature_total_info" yaml:"mature_total_info"`
+	IndividualRewardInfo []Reward                               `protobuf:"bytes,6,rep,name=individual_reward_info,json=individualRewardInfo,proto3" json:"individual_reward_info" yaml:"individual_reward_info"`
+	MaturedEpoch         github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=matured_epoch,json=maturedEpoch,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"matured_epoch" yaml:"matured_epoch"`
 }
 
 func (m *GenesisState) Reset()         { *m = GenesisState{} }
@@ -67,84 +69,195 @@ func (m *GenesisState) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_GenesisState proto.InternalMessageInfo
 
-func (m *GenesisState) GetParams() *Params {
+func (m *GenesisState) GetParams() Params {
 	if m != nil {
 		return m.Params
 	}
-	return nil
+	return Params{}
 }
 
-func (m *GenesisState) GetTotalMinedToken() *types.Coin {
+func (m *GenesisState) GetTotalMinedToken() types.Coin {
 	if m != nil {
 		return m.TotalMinedToken
 	}
-	return nil
+	return types.Coin{}
 }
 
-func (m *GenesisState) GetLastReportedEpoch() int64 {
-	if m != nil {
-		return m.LastReportedEpoch
-	}
-	return 0
-}
-
-func (m *GenesisState) GetImmatureTotalInfo() []*ImmatureTotal {
+func (m *GenesisState) GetImmatureTotalInfo() []ImmatureTotal {
 	if m != nil {
 		return m.ImmatureTotalInfo
 	}
 	return nil
 }
 
-func (m *GenesisState) GetMatureTotalInfo() []*MatureTotal {
+func (m *GenesisState) GetMatureTotalInfo() []MatureTotal {
 	if m != nil {
 		return m.MatureTotalInfo
 	}
 	return nil
 }
 
-func (m *GenesisState) GetIndividualRewardInfo() []*Reward {
+func (m *GenesisState) GetIndividualRewardInfo() []Reward {
 	if m != nil {
 		return m.IndividualRewardInfo
 	}
 	return nil
 }
 
+type ImmatureTotal struct {
+	WalletAddress string                                   `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address" yaml:"wallet_address"`
+	Value         github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=value,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"value"`
+}
+
+func (m *ImmatureTotal) Reset()         { *m = ImmatureTotal{} }
+func (m *ImmatureTotal) String() string { return proto.CompactTextString(m) }
+func (*ImmatureTotal) ProtoMessage()    {}
+func (*ImmatureTotal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_abdde08c2564316a, []int{1}
+}
+func (m *ImmatureTotal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *ImmatureTotal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_ImmatureTotal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *ImmatureTotal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ImmatureTotal.Merge(m, src)
+}
+func (m *ImmatureTotal) XXX_Size() int {
+	return m.Size()
+}
+func (m *ImmatureTotal) XXX_DiscardUnknown() {
+	xxx_messageInfo_ImmatureTotal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ImmatureTotal proto.InternalMessageInfo
+
+func (m *ImmatureTotal) GetWalletAddress() string {
+	if m != nil {
+		return m.WalletAddress
+	}
+	return ""
+}
+
+func (m *ImmatureTotal) GetValue() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
+type MatureTotal struct {
+	WalletAddress string                                   `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address" yaml:"wallet_address"`
+	Value         github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=value,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"value"`
+}
+
+func (m *MatureTotal) Reset()         { *m = MatureTotal{} }
+func (m *MatureTotal) String() string { return proto.CompactTextString(m) }
+func (*MatureTotal) ProtoMessage()    {}
+func (*MatureTotal) Descriptor() ([]byte, []int) {
+	return fileDescriptor_abdde08c2564316a, []int{2}
+}
+func (m *MatureTotal) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MatureTotal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MatureTotal.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MatureTotal) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MatureTotal.Merge(m, src)
+}
+func (m *MatureTotal) XXX_Size() int {
+	return m.Size()
+}
+func (m *MatureTotal) XXX_DiscardUnknown() {
+	xxx_messageInfo_MatureTotal.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MatureTotal proto.InternalMessageInfo
+
+func (m *MatureTotal) GetWalletAddress() string {
+	if m != nil {
+		return m.WalletAddress
+	}
+	return ""
+}
+
+func (m *MatureTotal) GetValue() github_com_cosmos_cosmos_sdk_types.Coins {
+	if m != nil {
+		return m.Value
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*GenesisState)(nil), "stratos.pot.v1.GenesisState")
+	proto.RegisterType((*ImmatureTotal)(nil), "stratos.pot.v1.ImmatureTotal")
+	proto.RegisterType((*MatureTotal)(nil), "stratos.pot.v1.MatureTotal")
 }
 
 func init() { proto.RegisterFile("stratos/pot/v1/genesis.proto", fileDescriptor_abdde08c2564316a) }
 
 var fileDescriptor_abdde08c2564316a = []byte{
-	// 447 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x6c, 0x92, 0xcd, 0x6e, 0xd3, 0x40,
-	0x14, 0x85, 0x63, 0x52, 0xb2, 0x70, 0x81, 0xca, 0x6e, 0x55, 0x99, 0xd0, 0x3a, 0xc1, 0xab, 0x6c,
-	0x98, 0x51, 0xca, 0x8e, 0x1d, 0x46, 0x08, 0x65, 0x51, 0x84, 0x4c, 0x57, 0x6c, 0xac, 0x89, 0x3d,
-	0x4d, 0x46, 0xc4, 0x73, 0x2d, 0xcf, 0x4d, 0xa0, 0x6f, 0xc1, 0x63, 0xb1, 0x41, 0xea, 0x92, 0x55,
-	0x84, 0x92, 0x37, 0xc8, 0x13, 0xa0, 0xf9, 0x41, 0xa4, 0x49, 0x76, 0xa3, 0x73, 0xce, 0x3d, 0xdf,
-	0xf5, 0x78, 0xfc, 0x0b, 0x85, 0x0d, 0x43, 0x50, 0xb4, 0x06, 0xa4, 0x8b, 0x21, 0x9d, 0x70, 0xc9,
-	0x95, 0x50, 0xa4, 0x6e, 0x00, 0x21, 0x7c, 0xe6, 0x5c, 0x52, 0x03, 0x92, 0xc5, 0xb0, 0x7b, 0x36,
-	0x81, 0x09, 0x18, 0x8b, 0xea, 0x93, 0x4d, 0x75, 0xe3, 0x02, 0x54, 0x05, 0x8a, 0x8e, 0x99, 0xe2,
-	0x74, 0x31, 0x1c, 0x73, 0x64, 0x43, 0x5a, 0x80, 0x90, 0xce, 0x8f, 0x76, 0x18, 0xba, 0xcc, 0x38,
-	0xc9, 0xaf, 0x23, 0xff, 0xc9, 0x07, 0x4b, 0xfc, 0x8c, 0x0c, 0x79, 0xf8, 0xd6, 0xef, 0xd4, 0xac,
-	0x61, 0x95, 0x8a, 0xbc, 0xbe, 0x37, 0x38, 0xbe, 0x3a, 0x27, 0x0f, 0x37, 0x20, 0x9f, 0x8c, 0x9b,
-	0x06, 0x9b, 0x65, 0xef, 0xe9, 0x1d, 0xab, 0x66, 0x6f, 0x12, 0x9b, 0x4f, 0x32, 0x37, 0x18, 0x16,
-	0x7e, 0x80, 0x80, 0x6c, 0x96, 0x57, 0x42, 0xf2, 0x32, 0x47, 0xf8, 0xca, 0x65, 0xf4, 0xc8, 0xb4,
-	0x3d, 0x27, 0x76, 0x53, 0xa2, 0x37, 0x25, 0x6e, 0x53, 0xf2, 0x0e, 0x84, 0x4c, 0x2f, 0x36, 0xcb,
-	0x5e, 0x64, 0x0b, 0xf7, 0xa6, 0x93, 0xec, 0xc4, 0x68, 0xd7, 0x5a, 0xba, 0xd1, 0x4a, 0xf8, 0xd1,
-	0x3f, 0x9d, 0x31, 0x85, 0x79, 0xc3, 0x6b, 0x68, 0x90, 0x97, 0x39, 0xaf, 0xa1, 0x98, 0x46, 0xed,
-	0xbe, 0x37, 0x68, 0xa7, 0xf1, 0x66, 0xd9, 0xeb, 0xda, 0xae, 0x03, 0xa1, 0x24, 0x0b, 0xb4, 0x9a,
-	0x39, 0xf1, 0xbd, 0xd6, 0xc2, 0xca, 0x3f, 0x15, 0x55, 0xc5, 0x70, 0xde, 0xf0, 0xdc, 0xf2, 0x85,
-	0xbc, 0x85, 0xe8, 0xa8, 0xdf, 0x1e, 0x1c, 0x5f, 0x5d, 0xee, 0x5e, 0xc2, 0xc8, 0x45, 0x6f, 0x74,
-	0x72, 0x1b, 0x77, 0xa0, 0x23, 0xc9, 0x02, 0xb1, 0x1d, 0x1f, 0xc9, 0x5b, 0x08, 0xb9, 0x1f, 0xec,
-	0xc3, 0x1e, 0x1b, 0xd8, 0x8b, 0x5d, 0xd8, 0xf5, 0x16, 0x6a, 0xeb, 0x96, 0x0e, 0x80, 0x4e, 0x76,
-	0x31, 0xe0, 0x9f, 0x0b, 0x59, 0x8a, 0x85, 0x28, 0xe7, 0x6c, 0x96, 0x37, 0xfc, 0x1b, 0x6b, 0x4a,
-	0xcb, 0xea, 0x18, 0xd6, 0xde, 0xdf, 0xcd, 0x4c, 0x24, 0x7d, 0xb9, 0x59, 0xf6, 0x2e, 0xdd, 0x17,
-	0x1d, 0x9c, 0x4f, 0xb2, 0xb3, 0xff, 0x86, 0x1d, 0xd2, 0xc0, 0x74, 0xf4, 0x73, 0x15, 0x7b, 0xf7,
-	0xab, 0xd8, 0xfb, 0xb3, 0x8a, 0xbd, 0x1f, 0xeb, 0xb8, 0x75, 0xbf, 0x8e, 0x5b, 0xbf, 0xd7, 0x71,
-	0xeb, 0x0b, 0x9d, 0x08, 0x9c, 0xce, 0xc7, 0xa4, 0x80, 0x8a, 0x3a, 0xa8, 0xe4, 0xf8, 0xef, 0xf8,
-	0xaa, 0x98, 0x32, 0x21, 0xe9, 0x77, 0xf3, 0x42, 0xf1, 0xae, 0xe6, 0x6a, 0xdc, 0x31, 0x2f, 0xf4,
-	0xf5, 0xdf, 0x00, 0x00, 0x00, 0xff, 0xff, 0x0e, 0x3b, 0x1f, 0xdb, 0x21, 0x03, 0x00, 0x00,
+	// 636 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x94, 0x4f, 0x6b, 0xd4, 0x4e,
+	0x18, 0xc7, 0x37, 0xed, 0xaf, 0x2d, 0x9d, 0x76, 0x5b, 0x9a, 0xdf, 0x5a, 0x62, 0xb5, 0x99, 0x92,
+	0x83, 0x2c, 0x48, 0x13, 0xb7, 0xe2, 0x41, 0x2f, 0x62, 0x54, 0x64, 0x0f, 0x45, 0x89, 0x05, 0xc1,
+	0x4b, 0x98, 0xdd, 0x4c, 0xb7, 0x43, 0x93, 0x4c, 0xc8, 0xcc, 0x6e, 0x2d, 0x14, 0xcf, 0x5e, 0x04,
+	0x8f, 0xde, 0xbc, 0xfb, 0x3a, 0x44, 0x7a, 0xec, 0x51, 0x3c, 0x44, 0xe9, 0xde, 0xf6, 0x98, 0x57,
+	0x20, 0x99, 0x99, 0x76, 0xff, 0xa5, 0xa2, 0x47, 0x4f, 0xc9, 0x3c, 0xdf, 0x67, 0xbe, 0xcf, 0x67,
+	0x9e, 0x79, 0x12, 0x70, 0x93, 0xf1, 0x14, 0x71, 0xca, 0x9c, 0x84, 0x72, 0xa7, 0xd7, 0x70, 0x3a,
+	0x38, 0xc6, 0x8c, 0x30, 0x3b, 0x49, 0x29, 0xa7, 0xfa, 0x8a, 0x52, 0xed, 0x84, 0x72, 0xbb, 0xd7,
+	0xd8, 0xa8, 0x75, 0x68, 0x87, 0x0a, 0xc9, 0x29, 0xde, 0x64, 0xd6, 0x86, 0xd9, 0xa6, 0x2c, 0xa2,
+	0xcc, 0x69, 0x21, 0x86, 0x9d, 0x5e, 0xa3, 0x85, 0x39, 0x6a, 0x38, 0x6d, 0x4a, 0x62, 0xa5, 0x1b,
+	0x13, 0x35, 0x0a, 0x33, 0xa1, 0x58, 0x1f, 0x17, 0xc0, 0xf2, 0x33, 0x59, 0xf1, 0x25, 0x47, 0x1c,
+	0xeb, 0xcf, 0xc1, 0x7c, 0x82, 0x52, 0x14, 0x31, 0x43, 0xdb, 0xd2, 0xea, 0x4b, 0x3b, 0xeb, 0xf6,
+	0x38, 0x81, 0xfd, 0x42, 0xa8, 0x2e, 0x3c, 0xcd, 0x60, 0x65, 0x90, 0x41, 0x95, 0x9d, 0x67, 0xb0,
+	0x7a, 0x8c, 0xa2, 0xf0, 0x81, 0x25, 0xd7, 0x96, 0xa7, 0x04, 0xfd, 0x04, 0xac, 0x71, 0xca, 0x51,
+	0xe8, 0x47, 0x24, 0xc6, 0x81, 0xcf, 0xe9, 0x21, 0x8e, 0x8d, 0x19, 0xe1, 0x7d, 0xdd, 0x96, 0xdc,
+	0x76, 0xc1, 0x6d, 0x2b, 0x6e, 0xfb, 0x31, 0x25, 0xb1, 0x7b, 0x4f, 0xd9, 0x4f, 0xef, 0xcd, 0x33,
+	0x68, 0xc8, 0x4a, 0x53, 0x92, 0xe5, 0xad, 0x8a, 0xd8, 0x6e, 0x11, 0xda, 0x2b, 0x22, 0xfa, 0x27,
+	0x0d, 0xac, 0x87, 0x88, 0x71, 0x3f, 0x20, 0x8c, 0xa7, 0xa4, 0xd5, 0xe5, 0x38, 0xf0, 0x71, 0x42,
+	0xdb, 0x07, 0xc6, 0xec, 0x96, 0x56, 0x5f, 0x74, 0x49, 0x51, 0xe8, 0x7b, 0x06, 0x6f, 0x75, 0x08,
+	0x3f, 0xe8, 0xb6, 0xec, 0x36, 0x8d, 0x1c, 0xd5, 0x4d, 0xf9, 0xd8, 0x66, 0xc1, 0xa1, 0xc3, 0x8f,
+	0x13, 0xcc, 0xec, 0x66, 0xcc, 0x07, 0x19, 0xbc, 0xc2, 0x2f, 0xcf, 0xe0, 0xa6, 0xe4, 0x2a, 0xd7,
+	0x2d, 0xaf, 0x56, 0x08, 0x4f, 0x86, 0xf1, 0xa7, 0x45, 0x58, 0x7f, 0xa7, 0x81, 0xff, 0x49, 0x14,
+	0x21, 0xde, 0x4d, 0xb1, 0x2f, 0x8f, 0x44, 0xe2, 0x7d, 0x6a, 0xfc, 0xb7, 0x35, 0x5b, 0x5f, 0xda,
+	0xd9, 0x9c, 0x6c, 0x7f, 0x53, 0xa5, 0xee, 0x15, 0x99, 0xee, 0x7d, 0xd5, 0xa6, 0x32, 0x87, 0x3c,
+	0x83, 0x1b, 0x12, 0xa8, 0x44, 0xb4, 0xbc, 0x35, 0x32, 0xea, 0xd4, 0x8c, 0xf7, 0xa9, 0xfe, 0x16,
+	0xac, 0x4d, 0x73, 0xcc, 0x09, 0x8e, 0x1b, 0x93, 0x1c, 0xbb, 0x23, 0x14, 0x97, 0x97, 0x55, 0xc6,
+	0xa0, 0x2e, 0xab, 0x84, 0x60, 0x75, 0xb2, 0xfe, 0x7b, 0x0d, 0xac, 0x93, 0x38, 0x20, 0x3d, 0x12,
+	0x74, 0x51, 0xe8, 0xa7, 0xf8, 0x08, 0xa5, 0x81, 0xa4, 0x98, 0x17, 0x14, 0x53, 0xc3, 0xe8, 0x89,
+	0x14, 0xf7, 0xa1, 0x02, 0xb8, 0x62, 0xf7, 0xf0, 0x6a, 0xca, 0x75, 0xcb, 0xab, 0x0d, 0x05, 0x69,
+	0x29, 0x78, 0x4e, 0x40, 0x55, 0x22, 0x5e, 0x8c, 0xcc, 0x82, 0x18, 0x99, 0x57, 0x7f, 0x3d, 0x32,
+	0xe3, 0x36, 0x79, 0x06, 0x6b, 0xa3, 0x4d, 0xb9, 0x1c, 0x90, 0x65, 0xb5, 0x16, 0x83, 0x61, 0x7d,
+	0xd5, 0x40, 0x75, 0xec, 0xb6, 0x75, 0x0f, 0xac, 0x1c, 0xa1, 0x30, 0xc4, 0xdc, 0x47, 0x41, 0x90,
+	0x62, 0x26, 0xbf, 0xd1, 0x45, 0xf7, 0xf6, 0x20, 0x83, 0x13, 0x4a, 0x9e, 0xc1, 0x6b, 0xb2, 0xc6,
+	0x78, 0xdc, 0xf2, 0xaa, 0x32, 0xf0, 0x48, 0xae, 0x75, 0x04, 0xe6, 0x7a, 0x28, 0xec, 0x62, 0x63,
+	0x46, 0x74, 0xf8, 0x37, 0x9f, 0xe4, 0x9d, 0xe2, 0xd8, 0x9f, 0x7f, 0xc0, 0xfa, 0x1f, 0x1c, 0xbb,
+	0xd8, 0xc0, 0x3c, 0xe9, 0x6c, 0x7d, 0xd1, 0xc0, 0xd2, 0xee, 0x3f, 0x7f, 0x0c, 0xb7, 0x79, 0x7a,
+	0x6e, 0x6a, 0x67, 0xe7, 0xa6, 0xf6, 0xf3, 0xdc, 0xd4, 0x3e, 0xf4, 0xcd, 0xca, 0x59, 0xdf, 0xac,
+	0x7c, 0xeb, 0x9b, 0x95, 0xd7, 0xce, 0x88, 0x95, 0x1a, 0xd0, 0x18, 0xf3, 0x8b, 0xd7, 0xed, 0xf6,
+	0x01, 0x22, 0xb1, 0xf3, 0x46, 0xfc, 0x7c, 0x85, 0x6f, 0x6b, 0x5e, 0xfc, 0x7c, 0xef, 0xfe, 0x0a,
+	0x00, 0x00, 0xff, 0xff, 0x09, 0xda, 0xca, 0x79, 0xfc, 0x05, 0x00, 0x00,
 }
 
 func (m *GenesisState) Marshal() (dAtA []byte, err error) {
@@ -167,6 +280,16 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size := m.MaturedEpoch.Size()
+		i -= size
+		if _, err := m.MaturedEpoch.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
 	if len(m.IndividualRewardInfo) > 0 {
 		for iNdEx := len(m.IndividualRewardInfo) - 1; iNdEx >= 0; iNdEx-- {
 			{
@@ -209,32 +332,121 @@ func (m *GenesisState) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 			dAtA[i] = 0x22
 		}
 	}
-	if m.LastReportedEpoch != 0 {
-		i = encodeVarintGenesis(dAtA, i, uint64(m.LastReportedEpoch))
-		i--
-		dAtA[i] = 0x18
-	}
-	if m.TotalMinedToken != nil {
-		{
-			size, err := m.TotalMinedToken.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintGenesis(dAtA, i, uint64(size))
+	{
+		size := m.LastDistributedEpoch.Size()
+		i -= size
+		if _, err := m.LastDistributedEpoch.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x12
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
 	}
-	if m.Params != nil {
-		{
-			size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintGenesis(dAtA, i, uint64(size))
+	i--
+	dAtA[i] = 0x1a
+	{
+		size, err := m.TotalMinedToken.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintGenesis(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0xa
+	return len(dAtA) - i, nil
+}
+
+func (m *ImmatureTotal) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *ImmatureTotal) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *ImmatureTotal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Value) > 0 {
+		for iNdEx := len(m.Value) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Value[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.WalletAddress) > 0 {
+		i -= len(m.WalletAddress)
+		copy(dAtA[i:], m.WalletAddress)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.WalletAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MatureTotal) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MatureTotal) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MatureTotal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Value) > 0 {
+		for iNdEx := len(m.Value) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Value[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintGenesis(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if len(m.WalletAddress) > 0 {
+		i -= len(m.WalletAddress)
+		copy(dAtA[i:], m.WalletAddress)
+		i = encodeVarintGenesis(dAtA, i, uint64(len(m.WalletAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
@@ -258,17 +470,12 @@ func (m *GenesisState) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.Params != nil {
-		l = m.Params.Size()
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	if m.TotalMinedToken != nil {
-		l = m.TotalMinedToken.Size()
-		n += 1 + l + sovGenesis(uint64(l))
-	}
-	if m.LastReportedEpoch != 0 {
-		n += 1 + sovGenesis(uint64(m.LastReportedEpoch))
-	}
+	l = m.Params.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	l = m.TotalMinedToken.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	l = m.LastDistributedEpoch.Size()
+	n += 1 + l + sovGenesis(uint64(l))
 	if len(m.ImmatureTotalInfo) > 0 {
 		for _, e := range m.ImmatureTotalInfo {
 			l = e.Size()
@@ -283,6 +490,46 @@ func (m *GenesisState) Size() (n int) {
 	}
 	if len(m.IndividualRewardInfo) > 0 {
 		for _, e := range m.IndividualRewardInfo {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	l = m.MaturedEpoch.Size()
+	n += 1 + l + sovGenesis(uint64(l))
+	return n
+}
+
+func (m *ImmatureTotal) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.WalletAddress)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	if len(m.Value) > 0 {
+		for _, e := range m.Value {
+			l = e.Size()
+			n += 1 + l + sovGenesis(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *MatureTotal) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.WalletAddress)
+	if l > 0 {
+		n += 1 + l + sovGenesis(uint64(l))
+	}
+	if len(m.Value) > 0 {
+		for _, e := range m.Value {
 			l = e.Size()
 			n += 1 + l + sovGenesis(uint64(l))
 		}
@@ -354,9 +601,6 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Params == nil {
-				m.Params = &Params{}
-			}
 			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -390,18 +634,15 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.TotalMinedToken == nil {
-				m.TotalMinedToken = &types.Coin{}
-			}
 			if err := m.TotalMinedToken.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field LastReportedEpoch", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LastDistributedEpoch", wireType)
 			}
-			m.LastReportedEpoch = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowGenesis
@@ -411,11 +652,26 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.LastReportedEpoch |= int64(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.LastDistributedEpoch.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field ImmatureTotalInfo", wireType)
@@ -445,7 +701,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.ImmatureTotalInfo = append(m.ImmatureTotalInfo, &ImmatureTotal{})
+			m.ImmatureTotalInfo = append(m.ImmatureTotalInfo, ImmatureTotal{})
 			if err := m.ImmatureTotalInfo[len(m.ImmatureTotalInfo)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -479,7 +735,7 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MatureTotalInfo = append(m.MatureTotalInfo, &MatureTotal{})
+			m.MatureTotalInfo = append(m.MatureTotalInfo, MatureTotal{})
 			if err := m.MatureTotalInfo[len(m.MatureTotalInfo)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -513,8 +769,274 @@ func (m *GenesisState) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.IndividualRewardInfo = append(m.IndividualRewardInfo, &Reward{})
+			m.IndividualRewardInfo = append(m.IndividualRewardInfo, Reward{})
 			if err := m.IndividualRewardInfo[len(m.IndividualRewardInfo)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MaturedEpoch", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.MaturedEpoch.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *ImmatureTotal) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: ImmatureTotal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: ImmatureTotal: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WalletAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Value = append(m.Value, types.Coin{})
+			if err := m.Value[len(m.Value)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipGenesis(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MatureTotal) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowGenesis
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MatureTotal: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MatureTotal: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.WalletAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowGenesis
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthGenesis
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Value = append(m.Value, types.Coin{})
+			if err := m.Value[len(m.Value)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex

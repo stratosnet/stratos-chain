@@ -2,9 +2,9 @@
 
 BUILDDIR ?= $(CURDIR)/build
 
-APP_VER := v0.9.1
-COMMIT := $(shell git log -1 --format='%H')
-TEST_DOCKER_REPO=stratos-chain
+APP_VER := v0.10.0
+COMMIT := $(GIT_COMMIT_HASH)
+TEST_DOCKER_REPO=stratos-chain-e2e
 
 ifeq ($(COMMIT),)
 	VERSION := $(APP_VER)

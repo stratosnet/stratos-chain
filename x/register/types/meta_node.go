@@ -10,11 +10,19 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
+type CacheStatus uint8
+
+const (
+	CACHE_NOT_DIRTY CacheStatus = 0
+	CACHE_DIRTY     CacheStatus = 1
+)
+
 // NewMetaNode - initialize a new meta node
-func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description *Description, creationTime time.Time) (MetaNode, error) {
+func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return MetaNode{}, err
@@ -37,7 +45,10 @@ func (v MetaNode) ConvertToString() string {
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
-	pubKey, err := stratos.SdsPubKeyFromBech32(pkAny.String())
+	cachedPubkey := pkAny.GetCachedValue()
+	pk := cachedPubkey.(cryptotypes.PubKey)
+
+	pubKey, err := stratos.SdsPubKeyToBech32(pk)
 	if err != nil {
 		return ErrUnknownPubKey.Error()
 	}
@@ -149,7 +160,7 @@ func UnmarshalMetaNode(cdc codec.Codec, value []byte) (metaNode MetaNode, err er
 	return metaNode, err
 }
 
-//MetaNodes is a collection of meta node
+// MetaNodes is a collection of meta node
 type MetaNodes []MetaNode
 
 func NewMetaNodes(metaNodes ...MetaNode) MetaNodes {
@@ -220,34 +231,9 @@ func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []strat
 		ApproveList:    approveSlice,
 		RejectList:     rejectSlice,
 		ExpireTime:     expireTime,
+		IsVotePassed:   false,
 	}
 }
-
-// MustMarshalMetaNodeRegistrationVotePool returns the MetaNode bytes. Panics if fails
-func MustMarshalMetaNodeRegistrationVotePool(cdc codec.Codec, votePool MetaNodeRegistrationVotePool) []byte {
-	return cdc.MustMarshal(&votePool)
-}
-
-// MustUnmarshalMetaNodeRegistrationVotePool unmarshal an meta node from a store value. Panics if fails
-func MustUnmarshalMetaNodeRegistrationVotePool(cdc codec.Codec, value []byte) MetaNodeRegistrationVotePool {
-	votePool, err := UnmarshalMetaNodeRegistrationVotePool(cdc, value)
-	if err != nil {
-		panic(err)
-	}
-	return votePool
-}
-
-// UnmarshalMetaNodeRegistrationVotePool unmarshal an Meta node from a store value
-func UnmarshalMetaNodeRegistrationVotePool(cdc codec.Codec, value []byte) (votePool MetaNodeRegistrationVotePool, err error) {
-	err = cdc.Unmarshal(value, &votePool)
-	return votePool, err
-}
-
-//func (v1 MetaNode) Equal(v2 MetaNode) bool {
-//	bz1 := ModuleCdc.MustMarshalLengthPrefixed(&v1)
-//	bz2 := ModuleCdc.MustMarshalLengthPrefixed(&v2)
-//	return bytes.Equal(bz1, bz2)
-//}
 
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v MetaNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {

@@ -7,27 +7,25 @@ option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // Params defines the Register module parameters
 message Params {
-  string  bond_denom                = 1 [
-    (gogoproto.jsontag)  = "bond_denom",
+  string  bond_denom = 1 [
+    (gogoproto.jsontag) = "bond_denom",
     (gogoproto.moretags) = "yaml:\"bond_denom\""
   ];
 }
 
-message FileUpload {
-  string           file_hash = 1 [
-    (gogoproto.jsontag)  = "file_hash",
-    (gogoproto.moretags) = "yaml:\"file_hash\""
-  ];
-  FileInfo         file_info = 2 [
-    (gogoproto.jsontag)  = "file_info",
-    (gogoproto.moretags) = "yaml:\"file_info\"" ];
-}
-
 message FileInfo {
-  string          height = 1 [
+  string            height = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "height",
+    (gogoproto.moretags) = "yaml:\"height\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  string          reporter = 2;
-  string          uploader = 3;
+  bytes             reporters = 2 [
+    (gogoproto.jsontag) = "reporters",
+    (gogoproto.moretags) = "yaml:\"reporters\""
+  ];
+  string            uploader = 3 [
+    (gogoproto.jsontag) = "uploader",
+    (gogoproto.moretags) = "yaml:\"uploader\""
+  ];
 }
-

@@ -25,8 +25,11 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgUpdateResourceNode:
 			res, err := msgServer.HandleMsgUpdateResourceNode(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgUpdateResourceNodeStake:
-			res, err := msgServer.HandleMsgUpdateResourceNodeStake(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgUpdateResourceNodeDeposit:
+			res, err := msgServer.HandleMsgUpdateResourceNodeDeposit(sdk.WrapSDKContext(ctx), msg)
+			return sdk.WrapServiceResult(ctx, res, err)
+		case *types.MsgUpdateEffectiveDeposit:
+			res, err := msgServer.HandleMsgUpdateEffectiveDeposit(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		case *types.MsgCreateMetaNode:
@@ -38,8 +41,8 @@ func NewHandler(k keeper.Keeper) sdk.Handler {
 		case *types.MsgUpdateMetaNode:
 			res, err := msgServer.HandleMsgUpdateMetaNode(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
-		case *types.MsgUpdateMetaNodeStake:
-			res, err := msgServer.HandleMsgUpdateMetaNodeStake(sdk.WrapSDKContext(ctx), msg)
+		case *types.MsgUpdateMetaNodeDeposit:
+			res, err := msgServer.HandleMsgUpdateMetaNodeDeposit(sdk.WrapSDKContext(ctx), msg)
 			return sdk.WrapServiceResult(ctx, res, err)
 		case *types.MsgMetaNodeRegistrationVote:
 			res, err := msgServer.HandleMsgMetaNodeRegistrationVote(sdk.WrapSDKContext(ctx), msg)

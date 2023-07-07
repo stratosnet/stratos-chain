@@ -48,3 +48,14 @@ func (k Keeper) ResourceNodeRegEnabled(ctx sdk.Context) (res bool) {
 	k.paramSpace.Get(ctx, types.KeyResourceNodeRegEnabled, &res)
 	return
 }
+
+func (k Keeper) ResourceNodeMinDeposit(ctx sdk.Context) (res sdk.Coin) {
+	k.paramSpace.Get(ctx, types.KeyResourceNodeMinDeposit, &res)
+	return
+}
+
+// VotingPeriod
+func (k Keeper) VotingPeriod(ctx sdk.Context) (res time.Duration) {
+	k.paramSpace.Get(ctx, types.KeyVotingPeriod, &res)
+	return
+}

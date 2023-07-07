@@ -18,8 +18,8 @@ func IsZeroAddress(address string) bool {
 	return bytes.Equal(common.HexToAddress(address).Bytes(), common.Address{}.Bytes())
 }
 
-// ValidateAddress returns an error if the provided string is either not a hex formatted string address
-func ValidateAddress(address string) error {
+// ValidateHexAddress returns an error if the provided string is either not a hex formatted string address
+func ValidateHexAddress(address string) error {
 	if !common.IsHexAddress(address) {
 		return sdkerrors.Wrapf(
 			sdkerrors.ErrInvalidAddress, "address '%s' is not a valid ethereum hex address",

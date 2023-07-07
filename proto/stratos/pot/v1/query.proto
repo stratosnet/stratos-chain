@@ -5,7 +5,6 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
-
 import "stratos/pot/v1/pot.proto";
 
 option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
@@ -17,18 +16,18 @@ service Query {
     option (google.api.http).get = "/stratos/pot/v1/volume-report/{epoch}";
   }
 
-  // PotRewardsByEpoch queries Pot rewards by a given epoch.
-  rpc PotRewardsByEpoch(QueryPotRewardsByEpochRequest) returns (QueryPotRewardsByEpochResponse) {
+  // RewardsByEpoch queries Pot rewards by a given epoch.
+  rpc RewardsByEpoch(QueryRewardsByEpochRequest) returns (QueryRewardsByEpochResponse) {
     option (google.api.http).get = "/stratos/pot/v1/rewards/epoch/{epoch}";
   }
 
-  // PotRewardsByOwner queries Pot rewards by a given owner wallet address.
-  rpc PotRewardsByOwner(QueryPotRewardsByOwnerRequest) returns (QueryPotRewardsByOwnerResponse) {
+  // RewardsByOwner queries Pot rewards by a given owner wallet address.
+  rpc RewardsByOwner(QueryRewardsByOwnerRequest) returns (QueryRewardsByOwnerResponse) {
     option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}";
   }
 
-  // PotSlashingByOwner queries Pot Pot slashingBy by owner wallet address.
-  rpc PotSlashingByOwner(QueryPotSlashingByOwnerRequest) returns (QueryPotSlashingByOwnerResponse) {
+  // SlashingByOwner queries Pot slashing by owner wallet address.
+  rpc SlashingByOwner(QuerySlashingByOwnerRequest) returns (QuerySlashingByOwnerResponse) {
     option (google.api.http).get = "/stratos/pot/v1/slashing/{wallet_address}";
   }
 
@@ -37,7 +36,13 @@ service Query {
     option (google.api.http).get = "/stratos/pot/v1/params";
   }
 
+  rpc TotalMinedToken(QueryTotalMinedTokenRequest) returns (QueryTotalMinedTokenResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/total-mined-token";
+  }
 
+  rpc CirculationSupply(QueryCirculationSupplyRequest) returns (QueryCirculationSupplyResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/circulation-supply";
+  }
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
@@ -46,22 +51,20 @@ message QueryVolumeReportRequest {
    int64 epoch = 1;
 }
 
-message ReportInfo {
-  int64 epoch     = 1;
-  string reference = 2;
-  string tx_hash = 3;
-  string reporter = 4;
-
-}
-
 // QueryVolumeReportResponse is response type for the Query/ResourceNode RPC method
 message QueryVolumeReportResponse {
   // node defines the the volumeReport info.
-  ReportInfo report_info = 1;
-  int64 height = 2;
+  ReportInfo  report_info = 1;
+  int64       height = 2;
 }
 
+message ReportInfo {
+  int64   epoch = 1;
+  string  reference = 2;
+  string  tx_hash = 3;
+  string  reporter = 4;
 
+}
 
 // QueryParamsRequest is request type for the Query/Params RPC method.
 message QueryParamsRequest {}
@@ -72,57 +75,71 @@ message QueryParamsResponse {
   Params params = 1;
 }
 
-// QueryPotRewardsByEpochRequest is request type for the Query/PotRewardsByEpoch by a given epoch RPC method
-message QueryPotRewardsByEpochRequest {
-  int64 epoch = 1;
-  string wallet_address = 2;
+// QueryRewardsByEpochRequest is request type for the Query/RewardsByEpoch by a given epoch RPC method
+message QueryRewardsByEpochRequest {
+  int64                                 epoch = 1;
+  string                                wallet_address = 2;
   cosmos.base.query.v1beta1.PageRequest pagination = 3;
 }
 
-// QueryVolumeReportResponse is response type for the Query/PotRewardsByEpoch RPC method
-message QueryPotRewardsByEpochResponse {
-  repeated Reward   rewards = 1;
-  int64             height  = 2;
-  cosmos.base.query.v1beta1.PageResponse pagination = 3;
+// QueryRewardsByEpochResponse is response type for the Query/RewardsByEpoch RPC method
+message QueryRewardsByEpochResponse {
+  repeated Reward                         rewards = 1;
+  int64                                   height = 2;
+  cosmos.base.query.v1beta1.PageResponse  pagination = 3;
 }
 
-message PotRewardByOwner {
+// QueryRewardsByOwnerRequest is request type for the Query/RewardsByOwner by a given owner RPC method
+message QueryRewardsByOwnerRequest {
+  string wallet_address = 1;
+}
+
+// QueryRewardsByOwnerResponse is response type for the Query/RewardsByOwner RPC method
+message QueryRewardsByOwnerResponse {
+  RewardByOwner     rewards = 1;
+  int64             height = 2;
+}
+
+message RewardByOwner {
   string                              wallet_address = 1;
-  repeated cosmos.base.v1beta1.Coin   MatureTotalReward = 2
-  [(gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
-
-  repeated cosmos.base.v1beta1.Coin   ImmatureTotalReward = 3
-[(gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"];
+  repeated cosmos.base.v1beta1.Coin   mature_total_reward = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  repeated cosmos.base.v1beta1.Coin   immature_total_reward = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
 }
 
-
-// QueryPotRewardsByOwnerRequest is request type for the Query/PotRewardsByOwner by a given owner RPC method
-message QueryPotRewardsByOwnerRequest {
+// QuerySlashingByOwnerRequest is request type for the Query/Slashing by a given owner RPC method
+message QuerySlashingByOwnerRequest {
   string wallet_address = 1;
 }
 
-// QueryPotRewardsByOwnerResponse is response type for the Query/PotRewardsByOwner RPC method
-message QueryPotRewardsByOwnerResponse {
-  PotRewardByOwner    rewards = 1;
-  int64               height  = 2;
-}
-
-
-// QueryPotSlashingByOwnerRequest is request type for the Query/Slashing by a given owner RPC method
-message QueryPotSlashingByOwnerRequest {
-  string wallet_address = 1;
-}
-
-// QueryPotSlashingByOwnerResponse is response type for the Query/Slashing RPC method
-message QueryPotSlashingByOwnerResponse {
+// QuerySlashingByOwnerResponse is response type for the Query/Slashing RPC method
+message QuerySlashingByOwnerResponse {
   string    slashing = 1;
-  int64     height  = 2;
+  int64     height = 2;
 }
 
+message QueryTotalMinedTokenRequest{}
 
+message QueryTotalMinedTokenResponse{
+  cosmos.base.v1beta1.Coin            total_mined_token = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_mined_token",
+    (gogoproto.moretags) = "yaml:\"total_mined_token\""
+  ];
+}
 
+message QueryCirculationSupplyRequest{}
 
+message QueryCirculationSupplyResponse{
+  repeated cosmos.base.v1beta1.Coin   circulation_supply = 3 [
+    (gogoproto.nullable) = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
 
 

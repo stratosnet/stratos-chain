@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
@@ -30,20 +31,20 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	if _, found := k.RegisterKeeper.GetMetaNode(ctx, reporter); found == false {
-		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnauthorized, "Reporter %s isn't an SP node", msg.GetReporter())
-	}
-	height := sdk.NewInt(ctx.BlockHeight())
-	heightByteArr, _ := height.MarshalJSON()
-	var heightReEncoded sdk.Int
-	err = heightReEncoded.UnmarshalJSON(heightByteArr)
+	reporterOwner, err := sdk.AccAddressFromBech32(msg.GetFrom())
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	fileInfo := types.NewFileInfo(&heightReEncoded, msg.Reporter, msg.Uploader)
-	fileHashByte := []byte(msg.FileHash)
-	k.SetFileHash(ctx, fileHashByte, fileInfo)
+	uploader, err := sdk.AccAddressFromBech32(msg.Uploader)
+	if err != nil {
+		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+	}
+
+	err = k.FileUpload(ctx, msg.GetFileHash(), reporter, reporterOwner, uploader)
+	if err != nil {
+		return &types.MsgFileUploadResponse{}, err
+	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{
 		sdk.NewEvent(
@@ -66,20 +67,18 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 // HandleMsgPrepay Handles MsgPrepay.
 func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*types.MsgPrepayResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	//if k.BankKeeper.GetSendEnabled(ctx) == false {
-	//	return nil, nil
-	//}
-
-	if k.bankKeeper.IsSendEnabledCoin(ctx, sdk.NewCoin(types.DefaultBondDenom, sdk.OneInt())) == false {
-		return &types.MsgPrepayResponse{}, sdkerrors.ErrInvalidCoins
-	}
 
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(types.ErrInvalidSenderAddr, err.Error())
 	}
 
-	purchased, err := k.Prepay(ctx, sender, msg.Coins)
+	_, err = sdk.AccAddressFromBech32(msg.GetBeneficiary())
+	if err != nil {
+		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+	}
+
+	purchased, err := k.Prepay(ctx, sender, msg.GetAmount())
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
@@ -88,7 +87,8 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		sdk.NewEvent(
 			types.EventTypePrepay,
 			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
-			sdk.NewAttribute(types.AttributeKeyCoins, msg.Coins.String()),
+			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.GetBeneficiary()),
+			sdk.NewAttribute(types.AttributeKeyAmount, msg.GetAmount().String()),
 			sdk.NewAttribute(types.AttributeKeyPurchasedNoz, purchased.String()),
 		),
 		sdk.NewEvent(

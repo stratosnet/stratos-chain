@@ -9,6 +9,13 @@ import (
 	"github.com/ethereum/go-ethereum/common/math"
 )
 
+var (
+	// MinimumBaseFee is a bare minimum for calculation even if block capacity showing less
+	// to prevent spam. Later could be removed after CalculateBaseFee rework on block end
+	// and getting a real gas for the period
+	MinimumBaseFee = new(big.Int).SetUint64(1_000_000_000) // 1gWei
+)
+
 // CalculateBaseFee calculates the base fee for the current block. This is only calculated once per
 // block during BeginBlock. If the NoBaseFee parameter is enabled or below activation height, this function returns nil.
 // NOTE: This code is inspired from the go-ethereum EIP1559 implementation and adapted to Cosmos SDK-based
@@ -84,6 +91,6 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 
 	return math.BigMax(
 		x.Sub(parentBaseFee, baseFeeDelta),
-		common.Big0,
+		MinimumBaseFee,
 	)
 }
