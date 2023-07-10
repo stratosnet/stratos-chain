@@ -9,22 +9,22 @@ import (
 func NewSingleWalletVolume(
 	walletAddress sdk.AccAddress,
 	volume sdk.Int,
-) *SingleWalletVolume {
-	return &SingleWalletVolume{
+) SingleWalletVolume {
+	return SingleWalletVolume{
 		WalletAddress: walletAddress.String(),
-		Volume:        &volume,
+		Volume:        volume,
 	}
 }
 
 func NewMiningRewardParam(totalMinedValveStart sdk.Coin, totalMinedValveEnd sdk.Coin, miningReward sdk.Coin,
-	resourceNodePercentageInTenThousand sdk.Int, metaNodePercentageInTenThousand sdk.Int, blockChainPercentageInTenThousand sdk.Int) *MiningRewardParam {
-	return &MiningRewardParam{
-		TotalMinedValveStart:                &totalMinedValveStart,
-		TotalMinedValveEnd:                  &totalMinedValveEnd,
-		MiningReward:                        &miningReward,
-		BlockChainPercentageInTenThousand:   &blockChainPercentageInTenThousand,
-		ResourceNodePercentageInTenThousand: &resourceNodePercentageInTenThousand,
-		MetaNodePercentageInTenThousand:     &metaNodePercentageInTenThousand,
+	resourceNodePercentageInBp sdk.Int, metaNodePercentageInBp sdk.Int, blockChainPercentageInBp sdk.Int) MiningRewardParam {
+	return MiningRewardParam{
+		TotalMinedValveStart:       totalMinedValveStart,
+		TotalMinedValveEnd:         totalMinedValveEnd,
+		MiningReward:               miningReward,
+		BlockChainPercentageInBp:   blockChainPercentageInBp,
+		ResourceNodePercentageInBp: resourceNodePercentageInBp,
+		MetaNodePercentageInBp:     metaNodePercentageInBp,
 	}
 }
 

@@ -5,12 +5,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
+
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
@@ -28,9 +30,67 @@ func GetQueryCmd() *cobra.Command {
 	potQueryCmd.AddCommand(
 		GetCmdQueryVolumeReport(),
 		GetCmdQueryParams(),
+		GetCmdQueryTotalMinedTokens(),
+		GetCmdQueryCirculationSupply(),
 	)
 
 	return potQueryCmd
+}
+
+func GetCmdQueryCirculationSupply() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "circulation-supply",
+		Args:  cobra.NoArgs,
+		Short: "Query the circulation supply",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the circulation supply.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.CirculationSupply(cmd.Context(), &types.QueryCirculationSupplyRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
+}
+
+func GetCmdQueryTotalMinedTokens() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "total-mined-token",
+		Args:  cobra.NoArgs,
+		Short: "Query the total mined tokens",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query the total mined tokens.`),
+		),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			res, err := queryClient.TotalMinedToken(cmd.Context(), &types.QueryTotalMinedTokenRequest{})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(res)
+		},
+	}
+
+	flags.AddQueryFlagsToCmd(cmd)
+	return cmd
 }
 
 // GetCmdQueryParams implements the params query command.
@@ -72,10 +132,9 @@ $ %s query pot params
 // GetCmdQueryVolumeReport implements the query volume report command.
 func GetCmdQueryVolumeReport() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "report [flags]", // reporter: []byte
+		Use:   "report [flags]",
 		Short: "Query volume report hash by epoch",
 		Long: strings.TrimSpace(
-			//fmt.Sprintf(`Query volume report hash by reporter.`),
 			fmt.Sprintf(`Query volume report hash by epoch.`),
 		),
 
@@ -109,16 +168,6 @@ func GetCmdQueryVolumeReport() *cobra.Command {
 
 	return cmd
 }
-
-//func QueryVolumeReport(cliCtx context.CLIContext, queryRoute string, epoch sdk.Int) (types.ReportInfo, int64, error) {
-//	route := fmt.Sprintf("custom/%s/%s", queryRoute, keeper.QueryVolumeReport)
-//	resp, height, err := cliCtx.QueryWithData(route, []byte(epoch.String()))
-//	if err != nil {
-//		return types.ReportInfo{}, height, err
-//	}
-//	reportRes := types.NewReportInfo(epoch, string(resp))
-//	return reportRes, height, nil
-//}
 
 func checkFlagEpoch(epochStr string) (sdk.Int, error) {
 	epochInt64, err := strconv.ParseInt(epochStr, 10, 64)

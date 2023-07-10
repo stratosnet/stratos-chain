@@ -1,15 +1,12 @@
 package sds_test
 
 import (
-	"fmt"
 	"math/rand"
 	"os"
 	"strconv"
 	"testing"
 	"time"
 
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stretchr/testify/require"
 
 	abci "github.com/tendermint/tendermint/abci/types"
@@ -18,18 +15,20 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
+	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	"github.com/stratosnet/stratos-chain/app"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
+	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -40,20 +39,21 @@ Test scenarios:
 */
 
 const (
-	chainID         = "testchain_1-1"
-	stos2wei        = stratos.StosToWei
-	StosToWeiSuffix = "000000000000000000" // 1 Stos = 1e18 wei
-	rewardDenom     = stratos.Utros
-	stakeNozRateStr = "100000"
+	chainID           = "testchain_1-1"
+	stos2wei          = stratos.StosToWei
+	StosToWeiSuffix   = "000000000000000000" // 1 Stos = 1e18 wei
+	rewardDenom       = stratos.Utros
+	depositNozRateStr = "100000"
 )
 
 var (
-	stakeNozRateInt, _ = sdk.NewIntFromString(stakeNozRateStr)
+	depositNozRateInt, _ = sdk.NewIntFromString(depositNozRateStr)
 
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
-	resNodeSlashingNOZAmt1 = sdk.NewInt(100000000000)
+	resNodeSlashingNOZAmt1            = sdk.NewInt(100000000000)
+	resNodeSlashingEffectiveTokenAmt1 = sdk.NewInt(1000000000000000000)
 
 	resourceNodeVolume1 = sdk.NewInt(537500000000)
 	resourceNodeVolume2 = sdk.NewInt(200000000000)
@@ -85,55 +85,55 @@ var (
 	idxOwner2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
 	idxOwner3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
 
-	resNodeInitialStakeForMultipleNodes, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialStakeForMultipleNodes = sdk.NewInt(3 * stos2wei)
+	resNodeInitialDepositForMultipleNodes, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialDepositForMultipleNodes = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey1          = ed25519.GenPrivKey().PubKey()
-	resNodeAddr1            = sdk.AccAddress(resNodePubKey1.Address())
-	resNodeNetworkId1       = stratos.SdsAddress(resNodePubKey1.Address())
-	resNodeInitialStake1, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialStake1 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey1            = ed25519.GenPrivKey().PubKey()
+	resNodeAddr1              = sdk.AccAddress(resNodePubKey1.Address())
+	resNodeNetworkId1         = stratos.SdsAddress(resNodePubKey1.Address())
+	resNodeInitialDeposit1, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialDeposit1 = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey2          = ed25519.GenPrivKey().PubKey()
-	resNodeAddr2            = sdk.AccAddress(resNodePubKey2.Address())
-	resNodeNetworkId2       = stratos.SdsAddress(resNodePubKey2.Address())
-	resNodeInitialStake2, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialStake2 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey2            = ed25519.GenPrivKey().PubKey()
+	resNodeAddr2              = sdk.AccAddress(resNodePubKey2.Address())
+	resNodeNetworkId2         = stratos.SdsAddress(resNodePubKey2.Address())
+	resNodeInitialDeposit2, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialDeposit2 = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey3          = ed25519.GenPrivKey().PubKey()
-	resNodeAddr3            = sdk.AccAddress(resNodePubKey3.Address())
-	resNodeNetworkId3       = stratos.SdsAddress(resNodePubKey3.Address())
-	resNodeInitialStake3, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialStake3 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey3            = ed25519.GenPrivKey().PubKey()
+	resNodeAddr3              = sdk.AccAddress(resNodePubKey3.Address())
+	resNodeNetworkId3         = stratos.SdsAddress(resNodePubKey3.Address())
+	resNodeInitialDeposit3, _ = sdk.NewIntFromString("3" + StosToWeiSuffix)
+	//resNodeInitialDeposit3 = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey4       = ed25519.GenPrivKey().PubKey()
-	resNodeAddr4         = sdk.AccAddress(resNodePubKey4.Address())
-	resNodeNetworkId4    = stratos.SdsAddress(resNodePubKey4.Address())
-	resNodeInitialStake4 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey4         = ed25519.GenPrivKey().PubKey()
+	resNodeAddr4           = sdk.AccAddress(resNodePubKey4.Address())
+	resNodeNetworkId4      = stratos.SdsAddress(resNodePubKey4.Address())
+	resNodeInitialDeposit4 = sdk.NewInt(3 * stos2wei)
 
-	resNodePubKey5       = ed25519.GenPrivKey().PubKey()
-	resNodeAddr5         = sdk.AccAddress(resNodePubKey5.Address())
-	resNodeNetworkId5    = stratos.SdsAddress(resNodePubKey5.Address())
-	resNodeInitialStake5 = sdk.NewInt(3 * stos2wei)
+	resNodePubKey5         = ed25519.GenPrivKey().PubKey()
+	resNodeAddr5           = sdk.AccAddress(resNodePubKey5.Address())
+	resNodeNetworkId5      = stratos.SdsAddress(resNodePubKey5.Address())
+	resNodeInitialDeposit5 = sdk.NewInt(3 * stos2wei)
 
-	idxNodePrivKey1         = ed25519.GenPrivKey()
-	idxNodePubKey1          = idxNodePrivKey1.PubKey()
-	idxNodeAddr1            = sdk.AccAddress(idxNodePubKey1.Address())
-	idxNodeNetworkId1       = stratos.SdsAddress(idxNodePubKey1.Address())
-	idxNodeInitialStake1, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
-	//idxNodeInitialStake1 = sdk.NewInt(5 * stos2wei)
+	idxNodePrivKey1           = ed25519.GenPrivKey()
+	idxNodePubKey1            = idxNodePrivKey1.PubKey()
+	idxNodeAddr1              = sdk.AccAddress(idxNodePubKey1.Address())
+	idxNodeNetworkId1         = stratos.SdsAddress(idxNodePubKey1.Address())
+	idxNodeInitialDeposit1, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
+	//idxNodeInitialDeposit1 = sdk.NewInt(5 * stos2wei)
 
-	idxNodePubKey2          = ed25519.GenPrivKey().PubKey()
-	idxNodeAddr2            = sdk.AccAddress(idxNodePubKey2.Address())
-	idxNodeNetworkId2       = stratos.SdsAddress(idxNodePubKey2.Address())
-	idxNodeInitialStake2, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
-	//idxNodeInitialStake2 = sdk.NewInt(5 * stos2wei)
+	idxNodePubKey2            = ed25519.GenPrivKey().PubKey()
+	idxNodeAddr2              = sdk.AccAddress(idxNodePubKey2.Address())
+	idxNodeNetworkId2         = stratos.SdsAddress(idxNodePubKey2.Address())
+	idxNodeInitialDeposit2, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
+	//idxNodeInitialDeposit2 = sdk.NewInt(5 * stos2wei)
 
-	idxNodePubKey3          = ed25519.GenPrivKey().PubKey()
-	idxNodeAddr3            = sdk.AccAddress(idxNodePubKey3.Address())
-	idxNodeNetworkId3       = stratos.SdsAddress(idxNodePubKey3.Address())
-	idxNodeInitialStake3, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
-	//idxNodeInitialStake3 = sdk.NewInt(5 * stos2wei)
+	idxNodePubKey3            = ed25519.GenPrivKey().PubKey()
+	idxNodeAddr3              = sdk.AccAddress(idxNodePubKey3.Address())
+	idxNodeNetworkId3         = stratos.SdsAddress(idxNodePubKey3.Address())
+	idxNodeInitialDeposit3, _ = sdk.NewIntFromString("5" + StosToWeiSuffix)
+	//idxNodeInitialDeposit3 = sdk.NewInt(5 * stos2wei)
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
 	valOpPubKey1  = valOpPrivKey1.PubKey()
@@ -146,13 +146,13 @@ var (
 )
 
 type NozPriceFactors struct {
-	NOzonePrice          sdk.Dec
-	InitialTotalStakes   sdk.Int
-	EffectiveTotalStakes sdk.Int
-	TotalUnissuedPrepay  sdk.Int
-	StakeAndPrepay       sdk.Int
-	OzoneLimit           sdk.Int
-	NozSupply            sdk.Int
+	NOzonePrice           sdk.Dec
+	InitialTotalDeposit   sdk.Int
+	EffectiveTotalDeposit sdk.Int
+	TotalUnissuedPrepay   sdk.Int
+	DepositAndPrepay      sdk.Int
+	OzoneLimit            sdk.Int
+	NozSupply             sdk.Int
 }
 
 func TestPriceCurve(t *testing.T) {
@@ -160,41 +160,41 @@ func TestPriceCurve(t *testing.T) {
 	NUM_TESTS := 100
 
 	initFactorsBefore := &NozPriceFactors{
-		NOzonePrice:          nozPrice,
-		InitialTotalStakes:   initialTotalStakesStore,
-		EffectiveTotalStakes: initialTotalStakesStore,
-		TotalUnissuedPrepay:  totalUnissuedPrepayStore,
-		StakeAndPrepay:       initialTotalStakesStore.Add(totalUnissuedPrepayStore),
-		OzoneLimit:           initialTotalStakesStore.ToDec().Quo(nozPrice).TruncateInt(),
-		NozSupply:            initialTotalStakesStore.ToDec().Quo(stakeNozRateInt.ToDec()).TruncateInt(),
+		NOzonePrice:           nozPrice,
+		InitialTotalDeposit:   initialTotalDepositStore,
+		EffectiveTotalDeposit: initialTotalDepositStore,
+		TotalUnissuedPrepay:   totalUnissuedPrepayStore,
+		DepositAndPrepay:      initialTotalDepositStore.Add(totalUnissuedPrepayStore),
+		OzoneLimit:            initialTotalDepositStore.ToDec().Quo(nozPrice).TruncateInt(),
+		NozSupply:             initialTotalDepositStore.ToDec().Quo(depositNozRateInt.ToDec()).TruncateInt(),
 	}
 
-	initFactorsBefore, _, _ = simulatePriceChange(&PriceChangeEvent{
-		stakeDelta:          sdk.ZeroInt(),
+	initFactorsBefore, _, _ = simulatePriceChange(t, &PriceChangeEvent{
+		depositDelta:        sdk.ZeroInt(),
 		unissuedPrepayDelta: sdk.ZeroInt(),
 	}, initFactorsBefore)
 
-	stakeChangePerm := rand.Perm(NUM_TESTS)
+	depositChangePerm := rand.Perm(NUM_TESTS)
 	prepayChangePerm := rand.Perm(NUM_TESTS)
 
 	for i := 0; i < NUM_TESTS; i++ {
-		tempStakeSign := 1
+		tempDepositSign := 1
 		if i > 50 && rand.Intn(5) >= 3 {
-			tempStakeSign = -1
+			tempDepositSign = -1
 		}
 		tempPrepaySign := 1
 		if i > 50 && rand.Intn(5) >= 3 {
 			tempPrepaySign = -1
 		}
-		stakeDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(stakeChangePerm[i]) + StosToWeiSuffix)
+		depositDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(depositChangePerm[i]) + StosToWeiSuffix)
 		unissuedPrepayDeltaChange, _ := sdk.NewIntFromString(strconv.Itoa(prepayChangePerm[i]) + StosToWeiSuffix)
 		change := &PriceChangeEvent{
-			stakeDelta:          stakeDeltaChange.Mul(sdk.NewInt(int64(tempStakeSign))),
+			depositDelta:        depositDeltaChange.Mul(sdk.NewInt(int64(tempDepositSign))),
 			unissuedPrepayDelta: unissuedPrepayDeltaChange.Mul(sdk.NewInt(int64(tempPrepaySign))),
 		}
-		fmt.Printf("\nstakeDeltaOri: %d, unissuedPrepayDeltaOri: %d\n", stakeChangePerm[i], prepayChangePerm[i])
-		fmt.Printf("\nstakeDelta: %v, unissuedPrepayDelta: %v\n", change.stakeDelta.String(), change.unissuedPrepayDelta.String())
-		initFactorsBefore, _, _ = simulatePriceChange(change, initFactorsBefore)
+		t.Logf("\ndepositDeltaOri: %d, unissuedPrepayDeltaOri: %d\n", depositChangePerm[i], prepayChangePerm[i])
+		t.Logf("\ndepositDelta: %v, unissuedPrepayDelta: %v\n", change.depositDelta.String(), change.unissuedPrepayDelta.String())
+		initFactorsBefore, _, _ = simulatePriceChange(t, change, initFactorsBefore)
 	}
 }
 
@@ -209,12 +209,13 @@ func TestOzPriceChange(t *testing.T) {
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
+	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
 	potKeeper := stApp.GetPotKeeper()
+	distrKeeper := stApp.GetDistrKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -258,18 +259,18 @@ func TestOzPriceChange(t *testing.T) {
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 
 	_, nozSupply := registerKeeper.NozSupply(ctx)
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
-		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
-		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
-		NozSupply:            nozSupply,
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
+		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
+		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+		DepositAndPrepay:      registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+		OzoneLimit:            registerKeeper.GetRemainingOzoneLimit(ctx),
+		NozSupply:             nozSupply,
 	})
 
 	// start testing
-	println("\n********************************* Deliver Prepay Tx START ********************************************")
+	t.Log("\n********************************* Deliver Prepay Tx START ********************************************")
 	prepayMsg := setupPrepayMsg()
 	/********************* deliver tx *********************/
 
@@ -284,12 +285,12 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq1, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq0)
+	nozPriceFactorsSeq1, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq0)
 	require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
 	require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after PREPAY")
-	println("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver CreateResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver CreateResourceNode Tx START ********************************************")
 	createResourceNodeMsg := setupMsgCreateResourceNode1()
 	/********************* deliver tx *********************/
 
@@ -304,12 +305,12 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq2, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq1)
+	nozPriceFactorsSeq2, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq1)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
-	println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver UnsuspendResourceNode Tx (Slashing) START ********************************************")
+	t.Log("********************************* Deliver UnsuspendResourceNode Tx (Slashing) START ********************************************")
 	unsuspendMsg := setupUnsuspendMsg()
 	/********************* deliver tx *********************/
 
@@ -329,15 +330,15 @@ func TestOzPriceChange(t *testing.T) {
 	totalConsumedNoz := sdk.ZeroInt().ToDec()
 
 	slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
-	println("slashingAmtSetup=" + slashingAmtSetup.String())
+	t.Log("slashingAmtSetup=" + slashingAmtSetup.String())
 	require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
-	nozPriceFactorsSeq3, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq2)
+	nozPriceFactorsSeq3, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq2)
 	require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after UnsuspendResourceNode")
 	require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit should increase after UnsuspendResourceNode")
-	println("********************************* Deliver UnsuspendResourceNode Tx (Slashing) END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver UnsuspendResourceNode Tx (Slashing) END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver SuspendResourceNode Tx (Slashing) START ********************************************")
+	t.Log("********************************* Deliver SuspendResourceNode Tx (Slashing) START ********************************************")
 	slashingMsg := setupSlashingMsg()
 	/********************* deliver tx *********************/
 
@@ -357,24 +358,24 @@ func TestOzPriceChange(t *testing.T) {
 	//totalConsumedNoz = resNodeSlashingNOZAmt1.ToDec()
 	//
 	//slashingAmtCheck = potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
-	//println("slashingAmtSetup=" + slashingAmtSetup.String())
+	//t.Log("slashingAmtSetup=" + slashingAmtSetup.String())
 	//require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
-	nozPriceFactorsSeq4, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq3)
+	nozPriceFactorsSeq4, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq3)
 	require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after SlashResourceNode")
 	require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after SlashResourceNode")
 
-	_, nozPricePercentage42, ozoneLimitPercentage42 := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq2)
+	_, nozPricePercentage42, ozoneLimitPercentage42 := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq2)
 	require.True(t, nozPricePercentage42.Equal(sdk.ZeroDec()), "noz price after SlashResourceNode should be same with the price when node hadn't been activated")
 	require.True(t, ozoneLimitPercentage42.Equal(sdk.ZeroDec()), "OzLimit after SlashResourceNode should be same with the ozLimit when node hadn't been activated")
-	println("********************************* Deliver SuspendResourceNode Tx (Slashing) END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver SuspendResourceNode Tx (Slashing) END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver VolumeReport Tx START ********************************************")
+	t.Log("********************************* Deliver VolumeReport Tx START ********************************************")
 	/********************* prepare tx data *********************/
 	volumeReportMsg := setupMsgVolumeReport(1)
 
 	lastTotalMinedToken := potKeeper.GetTotalMinedTokens(ctx)
-	println("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
+	t.Log("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
 	epoch, ok := sdk.NewIntFromString(volumeReportMsg.Epoch.String())
 	require.Equal(t, ok, true)
 
@@ -383,16 +384,16 @@ func TestOzPriceChange(t *testing.T) {
 	require.True(t, potKeeper.GetTotalConsumedNoz(volumeReportMsg.WalletVolumes).Add(remaining).LTE(total), "remaining+consumed Noz exceeds total Noz supply")
 
 	/********************* print info *********************/
-	println("epoch " + volumeReportMsg.Epoch.String())
-	St := registerKeeper.GetEffectiveTotalStake(ctx).ToDec()
+	t.Log("epoch " + volumeReportMsg.Epoch.String())
+	St := registerKeeper.GetEffectiveTotalDeposit(ctx).ToDec()
 	Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	Y := totalConsumedNoz
 	Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 	R := St.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
-	//println("R = (S + Pt) * Y / (Lt + Y)")
-	println("St=" + St.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+	//t.Log("R = (S + Pt) * Y / (Lt + Y)")
+	t.Log("St=" + St.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
 
-	println("---------------------------")
+	t.Log("---------------------------")
 	potKeeper.InitVariable(ctx)
 	distributeGoal := pottypes.InitDistributeGoal()
 	distributeGoal, err = potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
@@ -400,52 +401,52 @@ func TestOzPriceChange(t *testing.T) {
 
 	distributeGoal, err = potKeeper.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
 	require.NoError(t, err)
-	println(distributeGoal.String())
+	t.Log(distributeGoal.String())
 
-	println("---------------------------")
-	println("distribute detail:")
+	t.Log("---------------------------")
+	t.Log("distribute detail:")
 	distributeGoalBalance := distributeGoal
 	rewardDetailMap := make(map[string]pottypes.Reward)
 	rewardDetailMap = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedNoz, volumeReportMsg.WalletVolumes, distributeGoalBalance, rewardDetailMap)
 	rewardDetailMap = potKeeper.CalcRewardForMetaNode(ctx, distributeGoalBalance, rewardDetailMap)
 
-	println("resource_wallet1:  address = " + resOwner1.String())
-	println("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
+	t.Log("resource_wallet1:  address = " + resOwner1.String())
+	t.Log("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
 
-	println("resource_wallet2:  address = " + resOwner2.String())
-	println("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
+	t.Log("resource_wallet2:  address = " + resOwner2.String())
+	t.Log("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
 
-	println("resource_wallet3:  address = " + resOwner3.String())
-	println("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
+	t.Log("resource_wallet3:  address = " + resOwner3.String())
+	t.Log("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
 
-	println("resource_wallet4:  address = " + resOwner4.String())
-	println("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
+	t.Log("resource_wallet4:  address = " + resOwner4.String())
+	t.Log("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
 
-	println("resource_wallet5:  address = " + resOwner5.String())
-	println("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
+	t.Log("resource_wallet5:  address = " + resOwner5.String())
+	t.Log("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-	println("indexing_wallet1:  address = " + idxOwner1.String())
-	println("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
+	t.Log("indexing_wallet1:  address = " + idxOwner1.String())
+	t.Log("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
 
-	println("indexing_wallet2:  address = " + idxOwner2.String())
-	println("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
+	t.Log("indexing_wallet2:  address = " + idxOwner2.String())
+	t.Log("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
 
-	println("indexing_wallet3:  address = " + idxOwner3.String())
-	println("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
-	println("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
-	println("---------------------------")
+	t.Log("indexing_wallet3:  address = " + idxOwner3.String())
+	t.Log("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
+	t.Log("---------------------------")
 
 	/********************* record data before delivering tx  *********************/
 	lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 	lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
-	lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
+	lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 	lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
 
 	/********************* deliver tx *********************/
@@ -485,12 +486,12 @@ func TestOzPriceChange(t *testing.T) {
 		feeCollectorToFeePoolAtBeginBlock,
 	)
 
-	nozPriceFactorsSeq5, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq4)
+	nozPriceFactorsSeq5, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq4)
 	require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after VolumeReport")
 	require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit shouldn't change after VolumeReport")
-	println("********************************* Deliver VolumeReport Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver VolumeReport Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver CreateResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver CreateResourceNode Tx START ********************************************")
 	createResourceNodeMsg2 := setupMsgCreateResourceNode2()
 	/********************* deliver tx *********************/
 
@@ -505,12 +506,12 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq6, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq5)
+	nozPriceFactorsSeq6, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq5)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
-	println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver CreateResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver CreateResourceNode Tx START ********************************************")
 	createResourceNodeMsg3 := setupMsgCreateResourceNode3()
 	/********************* deliver tx *********************/
 
@@ -525,12 +526,12 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq7, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq6)
+	nozPriceFactorsSeq7, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq6)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
-	println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver CreateResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver CreateResourceNode Tx START ********************************************")
 	createResourceNodeMsg4 := setupMsgCreateResourceNode4()
 	/********************* deliver tx *********************/
 
@@ -545,12 +546,12 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq8, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq7)
+	nozPriceFactorsSeq8, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq7)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
-	println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
-	println("********************************* Deliver CreateResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver CreateResourceNode Tx START ********************************************")
 	createResourceNodeMsg5 := setupMsgCreateResourceNode5()
 	/********************* deliver tx *********************/
 
@@ -565,10 +566,10 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	_, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, nozPriceFactorsSeq8)
+	_, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq8)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
-	println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 }
 
@@ -578,7 +579,7 @@ func setupMsgVolumeReport(newEpoch int64) *pottypes.MsgVolumeReport {
 	volume2 := pottypes.NewSingleWalletVolume(resOwner2, resourceNodeVolume2)
 	volume3 := pottypes.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
 
-	nodesVolume := []*pottypes.SingleWalletVolume{volume1, volume2, volume3}
+	nodesVolume := []pottypes.SingleWalletVolume{volume1, volume2, volume3}
 	reporter := idxNodeNetworkId1
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
@@ -626,7 +627,7 @@ func setupPrepayMsg() *sdstypes.MsgPrepay {
 	sender := resOwner1
 	amount, _ := sdk.NewIntFromString("1" + StosToWeiSuffix)
 	coin := sdk.NewCoin(stratos.Wei, amount)
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(coin))
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
 }
 
@@ -634,7 +635,7 @@ func setupPrepayMsgWithResOwner(resOwner sdk.AccAddress) *sdstypes.MsgPrepay {
 	sender := resOwner
 	amount, _ := sdk.NewIntFromString("3" + StosToWeiSuffix)
 	coin := sdk.NewCoin(stratos.Wei, amount)
-	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sdk.NewCoins(coin))
+	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
 }
 
@@ -644,7 +645,7 @@ func setupMsgRemoveResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resO
 }
 func setupMsgCreateResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialStakeForMultipleNodes), resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialDepositForMultipleNodes), resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
@@ -659,65 +660,65 @@ func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNod
 
 func setupMsgCreateResourceNode1() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId1, resNodePubKey1, sdk.NewCoin(stratos.Wei, resNodeInitialStake1), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId1, resNodePubKey1, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit1), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 func setupMsgCreateResourceNode2() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId2, resNodePubKey2, sdk.NewCoin(stratos.Wei, resNodeInitialStake2), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId2, resNodePubKey2, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit2), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 func setupMsgCreateResourceNode3() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId3, resNodePubKey3, sdk.NewCoin(stratos.Wei, resNodeInitialStake3), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId3, resNodePubKey3, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit3), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
 func setupMsgCreateResourceNode4() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId4, resNodePubKey4, sdk.NewCoin(stratos.Wei, resNodeInitialStake4), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId4, resNodePubKey4, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit4), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
 func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId5, resNodePubKey5, sdk.NewCoin(stratos.Wei, resNodeInitialStake5), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId5, resNodePubKey5, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit5), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
-func printCurrNozPrice(ctx sdk.Context, registerKeeper registerKeeper.Keeper, nozPriceFactorsBefore NozPriceFactors) (NozPriceFactors, sdk.Dec, sdk.Dec) {
+func printCurrNozPrice(t *testing.T, ctx sdk.Context, registerKeeper registerKeeper.Keeper, nozPriceFactorsBefore NozPriceFactors) (NozPriceFactors, sdk.Dec, sdk.Dec) {
 	nozPriceFactorsAfter := NozPriceFactors{}
-	nozPriceFactorsAfter.InitialTotalStakes = registerKeeper.GetInitialGenesisStakeTotal(ctx)
-	nozPriceFactorsAfter.EffectiveTotalStakes = registerKeeper.GetEffectiveTotalStake(ctx)
+	nozPriceFactorsAfter.InitialTotalDeposit = registerKeeper.GetInitialGenesisDepositTotal(ctx)
+	nozPriceFactorsAfter.EffectiveTotalDeposit = registerKeeper.GetEffectiveTotalDeposit(ctx)
 	nozPriceFactorsAfter.TotalUnissuedPrepay = registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	nozPriceFactorsAfter.StakeAndPrepay = nozPriceFactorsAfter.InitialTotalStakes.Add(nozPriceFactorsAfter.TotalUnissuedPrepay)
+	nozPriceFactorsAfter.DepositAndPrepay = nozPriceFactorsAfter.InitialTotalDeposit.Add(nozPriceFactorsAfter.TotalUnissuedPrepay)
 	nozPriceFactorsAfter.OzoneLimit = registerKeeper.GetRemainingOzoneLimit(ctx)
 	nozPriceFactorsAfter.NOzonePrice = registerKeeper.CurrNozPrice(ctx)
 	_, nozPriceFactorsAfter.NozSupply = registerKeeper.NozSupply(ctx)
 
 	nozPriceDelta := nozPriceFactorsAfter.NOzonePrice.Sub(nozPriceFactorsBefore.NOzonePrice)
-	initialTotalStakesDelta := nozPriceFactorsAfter.InitialTotalStakes.Sub(nozPriceFactorsBefore.InitialTotalStakes)
-	effectiveTotalStakesDelta := nozPriceFactorsAfter.EffectiveTotalStakes.Sub(nozPriceFactorsBefore.EffectiveTotalStakes)
+	initialTotalDepositDelta := nozPriceFactorsAfter.InitialTotalDeposit.Sub(nozPriceFactorsBefore.InitialTotalDeposit)
+	effectiveTotalDepositDelta := nozPriceFactorsAfter.EffectiveTotalDeposit.Sub(nozPriceFactorsBefore.EffectiveTotalDeposit)
 	totalUnissuedPrepayDelta := nozPriceFactorsAfter.TotalUnissuedPrepay.Sub(nozPriceFactorsBefore.TotalUnissuedPrepay)
-	stakeAndPrepayDelta := nozPriceFactorsAfter.StakeAndPrepay.Sub(nozPriceFactorsBefore.StakeAndPrepay)
+	depositAndPrepayDelta := nozPriceFactorsAfter.DepositAndPrepay.Sub(nozPriceFactorsBefore.DepositAndPrepay)
 	ozoneLimitDelta := nozPriceFactorsAfter.OzoneLimit.Sub(nozPriceFactorsBefore.OzoneLimit)
 	nozSupplyDelta := nozPriceFactorsAfter.NozSupply.Sub(nozPriceFactorsBefore.NozSupply)
 
 	nozPricePercentage := nozPriceDelta.Quo(nozPriceFactorsBefore.NOzonePrice).MulInt(sdk.NewInt(100))
-	//initialTotalStakesPercentage := initialTotalStakesDelta.Quo(nozPriceFactorsBefore.InitialTotalStakes)
-	//effectiveTotalStakesPercentage := effectiveTotalStakesDelta.Quo(nozPriceFactorsBefore.EffectiveTotalStakes)
+	//initialTotalDepositPercentage := initialTotalDepositDelta.Quo(nozPriceFactorsBefore.InitialTotalDeposit)
+	//effectiveTotalDepositPercentage := effectiveTotalDepositDelta.Quo(nozPriceFactorsBefore.EffectiveTotalDeposit)
 	//totalUnissuedPrepayPercentage := totalUnissuedPrepayDelta.Quo(nozPriceFactorsBefore.TotalUnissuedPrepay)
-	//stakeAndPrepayPercentage := stakeAndPrepayDelta.Quo(nozPriceFactorsBefore.StakeAndPrepay)
+	//depositAndPrepayPercentage := depositAndPrepayDelta.Quo(nozPriceFactorsBefore.DepositAndPrepay)
 	ozoneLimitPercentage := ozoneLimitDelta.ToDec().Quo(nozPriceFactorsBefore.OzoneLimit.ToDec()).MulInt(sdk.NewInt(100))
 
-	println("===>>>>>>>>>>>>>>     Current noz Price    ===>>>>>>>>>>>>>>")
-	println("NOzonePrice: 									" + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
-	println("InitialTotalStakes: 							" + nozPriceFactorsAfter.InitialTotalStakes.String() + "(delta: " + initialTotalStakesDelta.String() + ")")
-	println("EffectiveTotalStakes: 							" + nozPriceFactorsAfter.EffectiveTotalStakes.String() + "(delta: " + effectiveTotalStakesDelta.String() + ")")
-	println("TotalUnissuedPrepay: 							" + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
-	println("InitialTotalStakes+TotalUnissuedPrepay:			" + nozPriceFactorsAfter.StakeAndPrepay.String() + "(delta: " + stakeAndPrepayDelta.String() + ")")
-	println("OzoneLimit: 									" + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
-	println("NozSupply: 									    " + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
+	t.Log("===>>>>>>>>>>>>>>     Current noz Price    ===>>>>>>>>>>>>>>")
+	t.Log("NOzonePrice: 									" + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
+	t.Log("InitialTotalDeposit: 							" + nozPriceFactorsAfter.InitialTotalDeposit.String() + "(delta: " + initialTotalDepositDelta.String() + ")")
+	t.Log("EffectiveTotalDeposit: 							" + nozPriceFactorsAfter.EffectiveTotalDeposit.String() + "(delta: " + effectiveTotalDepositDelta.String() + ")")
+	t.Log("TotalUnissuedPrepay: 							" + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
+	t.Log("InitialTotalDeposit+TotalUnissuedPrepay:			" + nozPriceFactorsAfter.DepositAndPrepay.String() + "(delta: " + depositAndPrepayDelta.String() + ")")
+	t.Log("OzoneLimit: 									" + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
+	t.Log("NozSupply: 									    " + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
 
 	return nozPriceFactorsAfter, nozPricePercentage, ozoneLimitPercentage
 }
@@ -754,14 +755,14 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	feeCollectorToFeePoolAtBeginBlock sdk.Coin) {
 
 	currentSlashing := registerKeeper.GetSlashing(ctx, resNodeAddr2)
-	println("currentSlashing					= " + currentSlashing.String())
+	t.Log("currentSlashing					= " + currentSlashing.String())
 
 	individualRewardTotal := sdk.Coins{}
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
 
 	k.IteratorIndividualReward(ctx, newMatureEpoch, func(walletAddress sdk.AccAddress, individualReward pottypes.Reward) (stop bool) {
 		individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
-		println("individualReward of [" + walletAddress.String() + "] = " + individualReward.String())
+		t.Log("individualReward of [" + walletAddress.String() + "] = " + individualReward.String())
 		return false
 	})
 
@@ -772,29 +773,29 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	newUnissuedPrepay := sdk.NewCoins(registerKeeper.GetTotalUnissuedPrepay(ctx))
 
 	slashingChange := slashingAmtSetup.Sub(registerKeeper.GetSlashing(ctx, resOwner1))
-	println("resource node 1 slashing change		= " + slashingChange.String())
+	t.Log("resource node 1 slashing change		= " + slashingChange.String())
 	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
-	println("resource node 1 matureTotal		= " + matureTotal.String())
-	println("resource node 1 immatureTotal		= " + immatureTotal.String())
+	t.Log("resource node 1 matureTotal		= " + matureTotal.String())
+	t.Log("resource node 1 immatureTotal		= " + immatureTotal.String())
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
-	println("rewardSrcChange				= " + rewardSrcChange.String())
+	t.Log("rewardSrcChange				= " + rewardSrcChange.String())
 
 	// distribution module will send all tokens from "fee_collector" to "distribution" account in the BeginBlocker() method
 	feePoolValChange := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
-	println("reward send to validator fee pool	= " + feePoolValChange.String())
+	t.Log("reward send to validator fee pool	= " + feePoolValChange.String())
 
 	rewardDestChange := feePoolValChange.Add(individualRewardTotal...)
-	println("rewardDestChange			= " + rewardDestChange.String())
+	t.Log("rewardDestChange			= " + rewardDestChange.String())
 
 	//require.Equal(t, rewardSrcChange, rewardDestChange)
 
-	println("************************ slashing test***********************************")
-	println("slashing change				= " + slashingChange.String())
+	t.Log("************************ slashing test***********************************")
+	t.Log("slashing change				= " + slashingChange.String())
 
 	upcomingMaturedIndividual := sdk.Coins{}
 	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
@@ -802,7 +803,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
 		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingChange)
 	}
-	println("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
+	t.Log("upcomingMaturedIndividual		= " + upcomingMaturedIndividual.String())
 
 	// get mature total changes
 	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
@@ -810,7 +811,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	if matureTotalOfResNode1Change == nil || matureTotalOfResNode1Change.IsAnyNegative() {
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
-	println("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
+	t.Log("matureTotalOfResNode1Change		= " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change.String(), upcomingMaturedIndividual.String())
 }
 
@@ -858,35 +859,35 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 	balances := []banktypes.Balance{
 		{
 			Address: resOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake1.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit1.Add(depositForSendingTx))},
 		},
 		{
 			Address: resOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake2)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit2)},
 		},
 		{
 			Address: resOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake3)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit3)},
 		},
 		{
 			Address: resOwner4.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake4)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit4)},
 		},
 		{
 			Address: resOwner5.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake5)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit5)},
 		},
 		{
 			Address: idxOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake1)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit1)},
 		},
 		{
 			Address: idxOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake2)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit2)},
 		},
 		{
 			Address: idxOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake3)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit3)},
 		},
 		{
 			Address: valOpAccAddr1.String(),
@@ -937,15 +938,15 @@ func setupAccountsMultipleResNodes(resOwners []sdk.AccAddress) ([]authtypes.Gene
 	balances := []banktypes.Balance{
 		{
 			Address: idxOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake1)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit1)},
 		},
 		{
 			Address: idxOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake2)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit2)},
 		},
 		{
 			Address: idxOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake3)},
+			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit3)},
 		},
 		{
 			Address: valOpAccAddr1.String(),
@@ -965,7 +966,7 @@ func setupAccountsMultipleResNodes(resOwners []sdk.AccAddress) ([]authtypes.Gene
 		accs = append(accs, resOwnerAcc)
 		balances = append(balances, banktypes.Balance{
 			Address: resOwnerAcc.Address,
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStakeForMultipleNodes.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDepositForMultipleNodes.Add(depositForSendingTx))},
 		})
 	}
 
@@ -982,11 +983,11 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 	resourceNode4, _ := registertypes.NewResourceNode(resNodeNetworkId4, resNodePubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, time)
 	resourceNode5, _ := registertypes.NewResourceNode(resNodeNetworkId5, resNodePubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, time)
 
-	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
-	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
-	resourceNode3 = resourceNode3.AddToken(resNodeInitialStake3)
-	resourceNode4 = resourceNode4.AddToken(resNodeInitialStake4)
-	resourceNode5 = resourceNode5.AddToken(resNodeInitialStake5)
+	resourceNode1 = resourceNode1.AddToken(resNodeInitialDeposit1)
+	resourceNode2 = resourceNode2.AddToken(resNodeInitialDeposit2)
+	resourceNode3 = resourceNode3.AddToken(resNodeInitialDeposit3)
+	resourceNode4 = resourceNode4.AddToken(resNodeInitialDeposit4)
+	resourceNode5 = resourceNode5.AddToken(resNodeInitialDeposit5)
 
 	resourceNode1.Status = stakingtypes.Bonded
 	resourceNode2.Status = stakingtypes.Bonded
@@ -1018,7 +1019,7 @@ func setupMultipleResourceNodes(resOwnerPrivKeys []*secp256k1.PrivKey, resNodePu
 
 	for i, _ := range resOwnerPrivKeys {
 		resourceNodeTmp, _ := registertypes.NewResourceNode(resNodeNetworkIds[i], resNodePubKeys[i], resOwners[i], registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType, time)
-		resourceNodeTmp = resourceNodeTmp.AddToken(resNodeInitialStakeForMultipleNodes)
+		resourceNodeTmp = resourceNodeTmp.AddToken(resNodeInitialDepositForMultipleNodes)
 		resourceNodeTmp.Status = stakingtypes.Bonded
 		resourceNodes = append(resourceNodes, resourceNodeTmp)
 	}
@@ -1038,9 +1039,9 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 	indexingNode2.Suspend = false
 	indexingNode3.Suspend = false
 
-	indexingNode1 = indexingNode1.AddToken(idxNodeInitialStake1)
-	indexingNode2 = indexingNode2.AddToken(idxNodeInitialStake2)
-	indexingNode3 = indexingNode3.AddToken(idxNodeInitialStake3)
+	indexingNode1 = indexingNode1.AddToken(idxNodeInitialDeposit1)
+	indexingNode2 = indexingNode2.AddToken(idxNodeInitialDeposit2)
+	indexingNode3 = indexingNode3.AddToken(idxNodeInitialDeposit3)
 
 	indexingNode1.Status = stakingtypes.Bonded
 	indexingNode2.Status = stakingtypes.Bonded
@@ -1054,39 +1055,39 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 }
 
 var (
-	initialTotalStakesStore   = sdk.NewInt(1500000000000)
-	effectiveTotalStakesStore = sdk.NewInt(1500000000000)
-	remainOzoneLimitStore     = sdk.NewInt(1500000000000000)
-	totalUnissuedPrepayStore  = sdk.ZeroInt()
-	nozPrice                  = sdk.NewDecWithPrec(1000000, 9)
+	initialTotalDepositStore   = sdk.NewInt(1500000000000)
+	effectiveTotalDepositStore = sdk.NewInt(1500000000000)
+	remainOzoneLimitStore      = sdk.NewInt(1500000000000000)
+	totalUnissuedPrepayStore   = sdk.ZeroInt()
+	nozPrice                   = sdk.NewDecWithPrec(1000000, 9)
 	//priceChangeChan = make(chan PriceChangeEvent, 0)
 )
 
 type PriceChangeEvent struct {
-	stakeDelta          sdk.Int
+	depositDelta        sdk.Int
 	unissuedPrepayDelta sdk.Int
 }
 
-func simulatePriceChange(priceChangeEvent *PriceChangeEvent, nozPriceFactorsBefore *NozPriceFactors) (*NozPriceFactors, sdk.Dec, sdk.Dec) {
+func simulatePriceChange(t *testing.T, priceChangeEvent *PriceChangeEvent, nozPriceFactorsBefore *NozPriceFactors) (*NozPriceFactors, sdk.Dec, sdk.Dec) {
 	nozPriceFactorsAfter := &NozPriceFactors{}
-	nozPriceFactorsAfter.InitialTotalStakes = nozPriceFactorsBefore.InitialTotalStakes
+	nozPriceFactorsAfter.InitialTotalDeposit = nozPriceFactorsBefore.InitialTotalDeposit
 	nozPriceFactorsAfter.TotalUnissuedPrepay = nozPriceFactorsBefore.TotalUnissuedPrepay.Add(priceChangeEvent.unissuedPrepayDelta)
-	nozPriceFactorsAfter.StakeAndPrepay = nozPriceFactorsAfter.InitialTotalStakes.Add(nozPriceFactorsAfter.TotalUnissuedPrepay)
-	nozPriceFactorsAfter.EffectiveTotalStakes = nozPriceFactorsBefore.EffectiveTotalStakes.Add(priceChangeEvent.stakeDelta)
+	nozPriceFactorsAfter.DepositAndPrepay = nozPriceFactorsAfter.InitialTotalDeposit.Add(nozPriceFactorsAfter.TotalUnissuedPrepay)
+	nozPriceFactorsAfter.EffectiveTotalDeposit = nozPriceFactorsBefore.EffectiveTotalDeposit.Add(priceChangeEvent.depositDelta)
 	deltaNozLimit := sdk.ZeroInt()
 	nozPriceFactorsAfter.NozSupply = nozPriceFactorsBefore.NozSupply
-	if !priceChangeEvent.stakeDelta.Equal(sdk.ZeroInt()) {
-		ozoneLimitChangeByStake := priceChangeEvent.stakeDelta.ToDec().Quo(stakeNozRateInt.ToDec()).TruncateInt()
-		//ozoneLimitChangeByStake := nozPriceFactorsBefore.OzoneLimit.ToDec().Quo(nozPriceFactorsBefore.InitialTotalStakes.ToDec()).Mul(priceChangeEvent.stakeDelta.ToDec()).TruncateInt()
-		deltaNozLimit = deltaNozLimit.Add(ozoneLimitChangeByStake)
-		nozPriceFactorsAfter.NozSupply = nozPriceFactorsBefore.NozSupply.Add(ozoneLimitChangeByStake)
+	if !priceChangeEvent.depositDelta.Equal(sdk.ZeroInt()) {
+		ozoneLimitChangeByDeposit := priceChangeEvent.depositDelta.ToDec().Quo(depositNozRateInt.ToDec()).TruncateInt()
+		//ozoneLimitChangeByDeposit := nozPriceFactorsBefore.OzoneLimit.ToDec().Quo(nozPriceFactorsBefore.InitialTotalDeposit.ToDec()).Mul(priceChangeEvent.depositDelta.ToDec()).TruncateInt()
+		deltaNozLimit = deltaNozLimit.Add(ozoneLimitChangeByDeposit)
+		nozPriceFactorsAfter.NozSupply = nozPriceFactorsBefore.NozSupply.Add(ozoneLimitChangeByDeposit)
 	}
 	if !priceChangeEvent.unissuedPrepayDelta.Equal(sdk.ZeroInt()) {
 		ozoneLimitChangeByPrepay := nozPriceFactorsBefore.OzoneLimit.ToDec().
 			Mul(priceChangeEvent.unissuedPrepayDelta.ToDec()).
-			Quo(nozPriceFactorsBefore.EffectiveTotalStakes.Add(nozPriceFactorsBefore.TotalUnissuedPrepay).Add(priceChangeEvent.unissuedPrepayDelta).ToDec()).
+			Quo(nozPriceFactorsBefore.EffectiveTotalDeposit.Add(nozPriceFactorsBefore.TotalUnissuedPrepay).Add(priceChangeEvent.unissuedPrepayDelta).ToDec()).
 			TruncateInt()
-			//Sub(nozPriceFactorsBefore.OzoneLimit)
+		//Sub(nozPriceFactorsBefore.OzoneLimit)
 		if priceChangeEvent.unissuedPrepayDelta.GT(sdk.ZeroInt()) {
 			// positive value of prepay leads to limit decrease
 			deltaNozLimit = deltaNozLimit.Sub(ozoneLimitChangeByPrepay)
@@ -1098,32 +1099,32 @@ func simulatePriceChange(priceChangeEvent *PriceChangeEvent, nozPriceFactorsBefo
 
 	nozPriceFactorsAfter.OzoneLimit = nozPriceFactorsBefore.OzoneLimit.Add(deltaNozLimit)
 
-	nozPriceFactorsAfter.NOzonePrice = nozPriceFactorsAfter.StakeAndPrepay.ToDec().Quo(nozPriceFactorsAfter.OzoneLimit.ToDec())
-	nozPriceFactorsAfter.EffectiveTotalStakes = nozPriceFactorsBefore.EffectiveTotalStakes.Add(priceChangeEvent.stakeDelta)
+	nozPriceFactorsAfter.NOzonePrice = nozPriceFactorsAfter.DepositAndPrepay.ToDec().Quo(nozPriceFactorsAfter.OzoneLimit.ToDec())
+	nozPriceFactorsAfter.EffectiveTotalDeposit = nozPriceFactorsBefore.EffectiveTotalDeposit.Add(priceChangeEvent.depositDelta)
 
 	nozPriceDelta := nozPriceFactorsAfter.NOzonePrice.Sub(nozPriceFactorsBefore.NOzonePrice)
-	initialTotalStakesDelta := nozPriceFactorsAfter.InitialTotalStakes.Sub(nozPriceFactorsBefore.InitialTotalStakes)
-	effectiveTotalStakesDelta := nozPriceFactorsAfter.EffectiveTotalStakes.Sub(nozPriceFactorsBefore.EffectiveTotalStakes)
+	initialTotalDepositDelta := nozPriceFactorsAfter.InitialTotalDeposit.Sub(nozPriceFactorsBefore.InitialTotalDeposit)
+	effectiveTotalDepositDelta := nozPriceFactorsAfter.EffectiveTotalDeposit.Sub(nozPriceFactorsBefore.EffectiveTotalDeposit)
 	totalUnissuedPrepayDelta := nozPriceFactorsAfter.TotalUnissuedPrepay.Sub(nozPriceFactorsBefore.TotalUnissuedPrepay)
-	stakeAndPrepayDelta := nozPriceFactorsAfter.StakeAndPrepay.Sub(nozPriceFactorsBefore.StakeAndPrepay)
+	depositAndPrepayDelta := nozPriceFactorsAfter.DepositAndPrepay.Sub(nozPriceFactorsBefore.DepositAndPrepay)
 	ozoneLimitDelta := nozPriceFactorsAfter.OzoneLimit.Sub(nozPriceFactorsBefore.OzoneLimit)
 	nozSupplyDelta := nozPriceFactorsAfter.NozSupply.Sub(nozPriceFactorsBefore.NozSupply)
 
 	nozPricePercentage := nozPriceDelta.Quo(nozPriceFactorsBefore.NOzonePrice).MulInt(sdk.NewInt(100))
-	//initialTotalStakesPercentage := initialTotalStakesDelta.Quo(nozPriceFactorsBefore.InitialTotalStakes)
-	//effectiveTotalStakesPercentage := effectiveTotalStakesDelta.Quo(nozPriceFactorsBefore.EffectiveTotalStakes)
+	//initialTotalDepositPercentage := initialTotalDepositDelta.Quo(nozPriceFactorsBefore.InitialTotalDeposit)
+	//effectiveTotalDepositPercentage := effectiveTotalDepositDelta.Quo(nozPriceFactorsBefore.EffectiveTotalDeposit)
 	//totalUnissuedPrepayPercentage := totalUnissuedPrepayDelta.Quo(nozPriceFactorsBefore.TotalUnissuedPrepay)
-	//stakeAndPrepayPercentage := stakeAndPrepayDelta.Quo(nozPriceFactorsBefore.StakeAndPrepay)
+	//depositAndPrepayPercentage := depositAndPrepayDelta.Quo(nozPriceFactorsBefore.DepositAndPrepay)
 	ozoneLimitPercentage := ozoneLimitDelta.ToDec().Quo(nozPriceFactorsBefore.OzoneLimit.ToDec()).MulInt(sdk.NewInt(100))
 
-	println("===>>>>>>>>>>>>>>     Current noz Price    ===>>>>>>>>>>>>>>")
-	println("NOzonePrice: 									" + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
-	println("InitialTotalStakes: 							" + nozPriceFactorsAfter.InitialTotalStakes.String() + "(delta: " + initialTotalStakesDelta.String() + ")")
-	println("EffectiveTotalStakes: 							" + nozPriceFactorsAfter.EffectiveTotalStakes.String() + "(delta: " + effectiveTotalStakesDelta.String() + ")")
-	println("TotalUnissuedPrepay: 							" + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
-	println("InitialTotalStakes+TotalUnissuedPrepay:			" + nozPriceFactorsAfter.StakeAndPrepay.String() + "(delta: " + stakeAndPrepayDelta.String() + ")")
-	println("OzoneLimit: 									" + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
-	println("NozSupply: 				     					" + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
+	t.Log("===>>>>>>>>>>>>>>     Current noz Price    ===>>>>>>>>>>>>>>")
+	t.Log("NOzonePrice: 									" + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
+	t.Log("InitialTotalDeposit: 							" + nozPriceFactorsAfter.InitialTotalDeposit.String() + "(delta: " + initialTotalDepositDelta.String() + ")")
+	t.Log("EffectiveTotalDeposit: 							" + nozPriceFactorsAfter.EffectiveTotalDeposit.String() + "(delta: " + effectiveTotalDepositDelta.String() + ")")
+	t.Log("TotalUnissuedPrepay: 							" + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
+	t.Log("InitialTotalDeposit+TotalUnissuedPrepay:			" + nozPriceFactorsAfter.DepositAndPrepay.String() + "(delta: " + depositAndPrepayDelta.String() + ")")
+	t.Log("OzoneLimit: 									" + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
+	t.Log("NozSupply: 				     					" + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
 
 	return nozPriceFactorsAfter, nozPricePercentage, ozoneLimitPercentage
 }
@@ -1141,7 +1142,7 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
+	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
@@ -1189,18 +1190,18 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := registerKeeper.NozSupply(ctx)
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
-		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
-		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
-		NozSupply:            nozSupply,
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
+		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
+		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+		DepositAndPrepay:      registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+		OzoneLimit:            registerKeeper.GetRemainingOzoneLimit(ctx),
+		NozSupply:             nozSupply,
 	})
 
 	// start testing
-	println("\n********************************* Deliver Prepay Tx START ********************************************")
+	t.Log("\n********************************* Deliver Prepay Tx START ********************************************")
 
 	priceBefore := nozPriceFactorsSeq0
 	priceAfter := nozPriceFactorsSeq0
@@ -1220,15 +1221,15 @@ func TestOzPriceChangePrepay(t *testing.T) {
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should not change after PREPAY")
-		println("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		t.Log("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		priceBefore = priceAfter
 	}
-	exportToCSV(dataToExcel)
+	exportToCSV(t, dataToExcel)
 }
 
 func TestOzPriceChangeVolumeReport(t *testing.T) {
@@ -1244,12 +1245,13 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
+	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
 	potKeeper := stApp.GetPotKeeper()
+	distrKeeper := stApp.GetDistrKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1292,18 +1294,18 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := registerKeeper.NozSupply(ctx)
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
-		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
-		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
-		NozSupply:            nozSupply,
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
+		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
+		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+		DepositAndPrepay:      registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+		OzoneLimit:            registerKeeper.GetRemainingOzoneLimit(ctx),
+		NozSupply:             nozSupply,
 	})
 
 	// start testing
-	println("\n********************************* Deliver Prepay Tx START ********************************************")
+	t.Log("\n********************************* Deliver Prepay Tx START ********************************************")
 
 	priceBefore := nozPriceFactorsSeq0
 	priceAfter := nozPriceFactorsSeq0
@@ -1323,37 +1325,37 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after PREPAY")
-		println("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		t.Log("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		priceBefore = priceAfter
 	}
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		println("********************************* Deliver VolumeReport Tx START ********************************************")
+		t.Log("********************************* Deliver VolumeReport Tx START ********************************************")
 		/********************* prepare tx data *********************/
 		volumeReportMsg := setupMsgVolumeReport(int64(i + 1))
 
 		lastTotalMinedToken := potKeeper.GetTotalMinedTokens(ctx)
-		println("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
+		t.Log("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
 		_, ok := sdk.NewIntFromString(volumeReportMsg.Epoch.String())
 		require.Equal(t, ok, true)
 		totalConsumedNoz := potKeeper.GetTotalConsumedNoz(volumeReportMsg.WalletVolumes).ToDec()
 
 		/********************* print info *********************/
-		println("epoch " + volumeReportMsg.Epoch.String())
-		S := registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+		t.Log("epoch " + volumeReportMsg.Epoch.String())
+		S := registerKeeper.GetInitialGenesisDepositTotal(ctx).ToDec()
 		Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 		Y := totalConsumedNoz
 		Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
-		//println("R = (S + Pt) * Y / (Lt + Y)")
-		println("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+		//t.Log("R = (S + Pt) * Y / (Lt + Y)")
+		t.Log("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
 
-		println("---------------------------")
+		t.Log("---------------------------")
 		potKeeper.InitVariable(ctx)
 		distributeGoal := pottypes.InitDistributeGoal()
 		distributeGoal, err := potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
@@ -1361,51 +1363,51 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 
 		distributeGoal, err = potKeeper.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
 		require.NoError(t, err)
-		println(distributeGoal.String())
+		t.Log(distributeGoal.String())
 
-		println("---------------------------")
-		println("distribute detail:")
+		t.Log("---------------------------")
+		t.Log("distribute detail:")
 		rewardDetailMap := make(map[string]pottypes.Reward)
 		rewardDetailMap = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedNoz, volumeReportMsg.WalletVolumes, distributeGoal, rewardDetailMap)
 		rewardDetailMap = potKeeper.CalcRewardForMetaNode(ctx, distributeGoal, rewardDetailMap)
 
-		println("resource_wallet1:  address = " + resOwner1.String())
-		println("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet1:  address = " + resOwner1.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet2:  address = " + resOwner2.String())
-		println("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet2:  address = " + resOwner2.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet3:  address = " + resOwner3.String())
-		println("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet3:  address = " + resOwner3.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet4:  address = " + resOwner4.String())
-		println("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet4:  address = " + resOwner4.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet5:  address = " + resOwner5.String())
-		println("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet5:  address = " + resOwner5.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-		println("indexing_wallet1:  address = " + idxOwner1.String())
-		println("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
+		t.Log("indexing_wallet1:  address = " + idxOwner1.String())
+		t.Log("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
 
-		println("indexing_wallet2:  address = " + idxOwner2.String())
-		println("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
+		t.Log("indexing_wallet2:  address = " + idxOwner2.String())
+		t.Log("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
 
-		println("indexing_wallet3:  address = " + idxOwner3.String())
-		println("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
-		println("---------------------------")
+		t.Log("indexing_wallet3:  address = " + idxOwner3.String())
+		t.Log("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
+		t.Log("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
 		_ = bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		_ = registerKeeper.GetTotalUnissuedPrepay(ctx)
-		_ = sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
+		_ = sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 		_ = potKeeper.GetMatureTotalReward(ctx, resOwner1)
 		//lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		//lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
@@ -1432,11 +1434,11 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		priceBefore = priceAfter
 	}
-	exportToCSV(dataToExcel)
+	exportToCSV(t, dataToExcel)
 }
 
 func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
@@ -1468,7 +1470,7 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
+	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
@@ -1516,18 +1518,18 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := registerKeeper.NozSupply(ctx)
-	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
+	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
 	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-	//	InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-	//	EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
+	//	InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+	//	EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-	//	StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+	//	DepositAndPrepay:       registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
 	//	NozSupply:            nozSupply,
 	//})
 
 	// start testing
-	println("********************************* Deliver Create and unsuspend ResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver Create and unsuspend ResourceNode Tx START ********************************************")
 
 	prepayMsg := setupPrepayMsgWithResOwner(resOwners[0])
 	/********************* deliver tx *********************/
@@ -1543,14 +1545,14 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
-		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
-		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
-		NozSupply:            nozSupply,
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
+		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
+		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+		DepositAndPrepay:      registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+		OzoneLimit:            registerKeeper.GetRemainingOzoneLimit(ctx),
+		NozSupply:             nozSupply,
 	})
 	priceBefore := nozPriceFactorsSeq0
 	priceAfter := nozPriceFactorsSeq0
@@ -1589,10 +1591,10 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
 
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after CreateResourceNode")
 		require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit should increase after CreateResourceNode")
-		println("********************************* Deliver Create and unsuspend ResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		t.Log("********************************* Deliver Create and unsuspend ResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		dataToExcel = append(dataToExcel, priceAfter)
 		priceBefore = priceAfter
@@ -1627,16 +1629,16 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 		//stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		//ctx = stApp.BaseApp.NewContext(true, header)
 
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after RemoveResourceNode")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after RemoveResourceNode")
-		println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		dataToExcel = append(dataToExcel, priceAfter)
 		priceBefore = priceAfter
 	}
 
-	exportToCSV(dataToExcel)
+	exportToCSV(t, dataToExcel)
 
 }
 
@@ -1668,7 +1670,7 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	metaNodes := setupAllMetaNodes()
 	resourceNodes := setupMultipleResourceNodes(resOwnerPrivKeys, resOwnerPubkeys, resOwners, resNodeNetworkIds)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
+	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
@@ -1716,12 +1718,12 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := registerKeeper.NozSupply(ctx)
-	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
+	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
 	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-	//	InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-	//	EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
+	//	InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+	//	EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-	//	StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+	//	DepositAndPrepay:       registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
 	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
 	//	NozSupply:            nozSupply,
 	//})
@@ -1744,7 +1746,7 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	}
 
 	// start testing
-	println("********************************* Deliver RemoveResourceNode Tx START ********************************************")
+	t.Log("********************************* Deliver RemoveResourceNode Tx START ********************************************")
 
 	prepayMsg := setupPrepayMsgWithResOwner(resOwners[0])
 	/********************* deliver tx *********************/
@@ -1760,14 +1762,14 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
-		InitialTotalStakes:   registerKeeper.GetInitialGenesisStakeTotal(ctx),
-		EffectiveTotalStakes: registerKeeper.GetEffectiveTotalStake(ctx),
-		TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-		StakeAndPrepay:       registerKeeper.GetInitialGenesisStakeTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
-		OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
-		NozSupply:            nozSupply,
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
+		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
+		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
+		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
+		DepositAndPrepay:      registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
+		OzoneLimit:            registerKeeper.GetRemainingOzoneLimit(ctx),
+		NozSupply:             nozSupply,
 	})
 
 	priceBefore := nozPriceFactorsSeq0
@@ -1802,25 +1804,25 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 		//stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		//ctx = stApp.BaseApp.NewContext(true, header)
 
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after RemoveResourceNode")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after RemoveResourceNode")
-		println("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 		dataToExcel = append(dataToExcel, priceAfter)
 		priceBefore = priceAfter
 	}
 
-	exportToCSV(dataToExcel)
+	exportToCSV(t, dataToExcel)
 
 }
 
-func exportToCSV(factors []NozPriceFactors) {
-	fmt.Printf("\n%v, %v, %v, %v, %v, %v, %v", "Index", "InitialTotalStake", "TotalUnissuedPrepay", "StakeAndPrepay",
+func exportToCSV(t *testing.T, factors []NozPriceFactors) {
+	t.Logf("\n%v, %v, %v, %v, %v, %v, %v", "Index", "InitialTotalDeposit", "TotalUnissuedPrepay", "DepositAndPrepay",
 		"NOzonePrice", "RemainingOzoneLimit", "TotalNozSupply")
 	for i, factor := range factors {
-		fmt.Printf("\n%v, %v, %v, %v, %v, %v, %v", i+1, factor.InitialTotalStakes.String(), factor.TotalUnissuedPrepay.String(), factor.StakeAndPrepay.String(),
+		t.Logf("\n%v, %v, %v, %v, %v, %v, %v", i+1, factor.InitialTotalDeposit.String(), factor.TotalUnissuedPrepay.String(), factor.DepositAndPrepay.String(),
 			factor.NOzonePrice.String(), factor.OzoneLimit.String(), factor.NozSupply.String())
 	}
-	println("\n")
+	t.Log("\n")
 }

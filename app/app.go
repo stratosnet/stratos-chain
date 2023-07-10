@@ -156,7 +156,7 @@ var (
 
 	maccPerms = map[string][]string{
 		authtypes.FeeCollectorName:     nil,
-		distrtypes.ModuleName:          nil,
+		distrtypes.ModuleName:          {authtypes.Burner},
 		minttypes.ModuleName:           {authtypes.Minter},
 		stakingtypes.BondedPoolName:    {authtypes.Burner, authtypes.Staking},
 		stakingtypes.NotBondedPoolName: {authtypes.Burner, authtypes.Staking},
@@ -171,6 +171,7 @@ var (
 		registertypes.MetaNodeNotBondedPool:     {authtypes.Minter},
 		registertypes.TotalUnissuedPrepay:       {authtypes.Minter},
 
+		pottypes.ModuleName:        {authtypes.Minter},
 		pottypes.FoundationAccount: {authtypes.Minter, authtypes.Burner},
 		pottypes.TotalRewardPool:   nil,
 		//pottypes.TotalMinedTokens: {authtypes.Minter, authtypes.Burner},
@@ -191,6 +192,10 @@ var (
 		//pot.FoundationAccount: true,
 	}
 )
+
+type EVMKeeperApp interface {
+	GetEVMKeeper() *evmkeeper.Keeper
+}
 
 type NewApp struct {
 	*baseapp.BaseApp
@@ -352,8 +357,7 @@ func NewInitApp(
 	tracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
 	app.evmKeeper = evmkeeper.NewKeeper(
 		appCodec, keys[evmtypes.StoreKey], tKeys[evmtypes.TransientKey], app.GetSubspace(evmtypes.ModuleName),
-		app.accountKeeper, app.bankKeeper, app.stakingKeeper,
-		tracer,
+		app.accountKeeper, app.bankKeeper, app.stakingKeeper, tracer,
 	)
 
 	// Create IBC Keeper
@@ -431,6 +435,8 @@ func NewInitApp(
 		app.registerKeeper,
 		app.potKeeper,
 	)
+	// set PotKeeper to evm module
+	app.evmKeeper.SetPotKeeper(app.potKeeper)
 
 	/****  Module Options ****/
 
@@ -505,7 +511,6 @@ func NewInitApp(
 		govtypes.ModuleName,
 		stakingtypes.ModuleName,
 		registertypes.ModuleName,
-		pottypes.ModuleName,
 		sdstypes.ModuleName,
 		evmtypes.ModuleName,
 		// no-op modules
@@ -521,6 +526,7 @@ func NewInitApp(
 		evidencetypes.ModuleName,
 		authz.ModuleName,
 		feegrant.ModuleName,
+		pottypes.ModuleName,
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
@@ -749,6 +755,14 @@ func (app *NewApp) GetRegisterKeeper() registerkeeper.Keeper {
 
 func (app *NewApp) GetPotKeeper() potkeeper.Keeper {
 	return app.potKeeper
+}
+
+func (app *NewApp) GetDistrKeeper() distrkeeper.Keeper {
+	return app.distrKeeper
+}
+
+func (app *NewApp) GetEVMKeeper() *evmkeeper.Keeper {
+	return app.evmKeeper
 }
 
 // RegisterSwaggerAPI registers swagger route with API Server

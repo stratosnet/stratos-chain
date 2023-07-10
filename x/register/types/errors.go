@@ -14,6 +14,7 @@ const (
 	codeErrEmptyResourceNodeAddr
 	codeErrEmptyMetaNodeAddr
 	codeErrBadDenom
+	codeErrInsufficientDeposit
 	codeErrResourceNodePubKeyExists
 	codeErrMetaNodePubKeyExists
 	codeErrNoResourceNodeFound
@@ -27,11 +28,12 @@ const (
 	codeErrEmptyVoterOwnerAddr
 	codeErrInvalidCandidateNetworkAddr
 	codeErrInvalidCandidateOwnerAddr
+	codeErrNoCandidateMetaNodeFound
 	codeErrInvalidVoterNetworkAddr
 	codeErrInvalidVoterOwnerAddr
+	codeErrNoVoterMetaNodeFound
 	codeErrSameAddr
 	codeErrInvalidOwnerAddr
-	codeErrInvalidVoterAddr
 	codeErrInvalidVoterStatus
 	codeEcoderrNoRegistrationVotePoolFound
 	codeErrDuplicateVoting
@@ -42,9 +44,9 @@ const (
 	codeErrNoUnbondingNode
 	codeErrMaxUnbondingNodeEntries
 	codeErrUnbondingNode
-	codeErrStakeNozRate
+	codeErrDepositNozRate
 	codeErrRemainingNozLimit
-	codeErrInvalidStakeChange
+	codeErrInvalidDepositChange
 	codeErrInvalidNodeType
 	codeErrUnknownAccountAddress
 	codeErrUnknownPubKey
@@ -55,11 +57,14 @@ const (
 	codeErrUnbondMetaNode
 	codeErrUpdateResourceNode
 	codeErrUpdateMetaNode
-	codeErrUpdateResourceNodeStake
-	codeErrUpdateMetaNodeStake
+	codeErrUpdateResourceNodeDeposit
+	codeErrUpdateMetaNodeDeposit
 	codeErrVoteMetaNode
 	codeErrResourceNodeRegDisabled
 	codeErrInvalidSuspensionStatForUnbondNode
+	codeErrReporterAddress
+	codeErrInvalidAmount
+	codeErrReporterAddressOrOwner
 )
 
 var (
@@ -72,6 +77,7 @@ var (
 	ErrEmptyResourceNodeAddr              = sdkerrors.Register(ModuleName, codeErrEmptyResourceNodeAddr, "missing resource node address")
 	ErrEmptyMetaNodeAddr                  = sdkerrors.Register(ModuleName, codeErrEmptyMetaNodeAddr, "missing Meta node address")
 	ErrBadDenom                           = sdkerrors.Register(ModuleName, codeErrBadDenom, "invalid coin denomination")
+	ErrInsufficientDeposit                = sdkerrors.Register(ModuleName, codeErrInsufficientDeposit, "insufficient deposit")
 	ErrResourceNodePubKeyExists           = sdkerrors.Register(ModuleName, codeErrResourceNodePubKeyExists, "resource node already exist for this pubkey; must use new resource node pubkey")
 	ErrMetaNodePubKeyExists               = sdkerrors.Register(ModuleName, codeErrMetaNodePubKeyExists, "meta node already exist for this pubkey; must use new meta node pubkey")
 	ErrNoResourceNodeFound                = sdkerrors.Register(ModuleName, codeErrNoResourceNodeFound, "resource node does not exist")
@@ -85,11 +91,12 @@ var (
 	ErrEmptyVoterOwnerAddr                = sdkerrors.Register(ModuleName, codeErrEmptyVoterOwnerAddr, "missing voter owner address")
 	ErrInvalidCandidateNetworkAddr        = sdkerrors.Register(ModuleName, codeErrInvalidCandidateNetworkAddr, "invalid candidate network address")
 	ErrInvalidCandidateOwnerAddr          = sdkerrors.Register(ModuleName, codeErrInvalidCandidateOwnerAddr, "invalid candidate owner address")
+	ErrNoCandidateMetaNodeFound           = sdkerrors.Register(ModuleName, codeErrNoCandidateMetaNodeFound, "candidate meta node does not exist")
 	ErrInvalidVoterNetworkAddr            = sdkerrors.Register(ModuleName, codeErrInvalidVoterNetworkAddr, "invalid voter network address")
 	ErrInvalidVoterOwnerAddr              = sdkerrors.Register(ModuleName, codeErrInvalidVoterOwnerAddr, "invalid voter owner address")
+	ErrNoVoterMetaNodeFound               = sdkerrors.Register(ModuleName, codeErrNoVoterMetaNodeFound, "voter meta node does not exist")
 	ErrSameAddr                           = sdkerrors.Register(ModuleName, codeErrSameAddr, "node address should not same as the voter address")
 	ErrInvalidOwnerAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
-	ErrInvalidVoterAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidVoterAddr, "invalid voter address")
 	ErrInvalidVoterStatus                 = sdkerrors.Register(ModuleName, codeErrInvalidVoterStatus, "invalid voter status")
 	ErrNoRegistrationVotePoolFound        = sdkerrors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
 	ErrDuplicateVoting                    = sdkerrors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")
@@ -100,9 +107,9 @@ var (
 	ErrNoUnbondingNode                    = sdkerrors.Register(ModuleName, codeErrNoUnbondingNode, "no unbonding node found")
 	ErrMaxUnbondingNodeEntries            = sdkerrors.Register(ModuleName, codeErrMaxUnbondingNodeEntries, "too many unbonding node entries for networkAddr tuple")
 	ErrUnbondingNode                      = sdkerrors.Register(ModuleName, codeErrUnbondingNode, "changes cannot be made to an unbonding node")
-	ErrStakeNozRate                       = sdkerrors.Register(ModuleName, codeErrStakeNozRate, "stake noz rate must be positive")
+	ErrDepositNozRate                     = sdkerrors.Register(ModuleName, codeErrDepositNozRate, "deposit noz rate must be positive")
 	ErrRemainingNozLimit                  = sdkerrors.Register(ModuleName, codeErrRemainingNozLimit, "remaining Noz Limit must be non-negative")
-	ErrInvalidStakeChange                 = sdkerrors.Register(ModuleName, codeErrInvalidStakeChange, "invalid change for stake")
+	ErrInvalidDepositChange               = sdkerrors.Register(ModuleName, codeErrInvalidDepositChange, "invalid change for deposit")
 	ErrInvalidNodeType                    = sdkerrors.Register(ModuleName, codeErrInvalidNodeType, "invalid node type")
 	ErrUnknownAccountAddress              = sdkerrors.Register(ModuleName, codeErrUnknownAccountAddress, "account address does not exist")
 	ErrUnknownPubKey                      = sdkerrors.Register(ModuleName, codeErrUnknownPubKey, "unknown pubKey ")
@@ -113,9 +120,12 @@ var (
 	ErrUnbondMetaNode                     = sdkerrors.Register(ModuleName, codeErrUnbondMetaNode, "failed to unbond meta node")
 	ErrUpdateResourceNode                 = sdkerrors.Register(ModuleName, codeErrUpdateResourceNode, "failed to update resource node")
 	ErrUpdateMetaNode                     = sdkerrors.Register(ModuleName, codeErrUpdateMetaNode, "failed to update meta node")
-	ErrUpdateResourceNodeStake            = sdkerrors.Register(ModuleName, codeErrUpdateResourceNodeStake, "failed to update stake for resource node")
-	ErrUpdateMetaNodeStake                = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeStake, "failed to update stake for meta node")
+	ErrUpdateResourceNodeDeposit          = sdkerrors.Register(ModuleName, codeErrUpdateResourceNodeDeposit, "failed to update deposit for resource node")
+	ErrUpdateMetaNodeDeposit              = sdkerrors.Register(ModuleName, codeErrUpdateMetaNodeDeposit, "failed to update deposit for meta node")
 	ErrVoteMetaNode                       = sdkerrors.Register(ModuleName, codeErrVoteMetaNode, "failed to vote meta node")
 	ErrResourceNodeRegDisabled            = sdkerrors.Register(ModuleName, codeErrResourceNodeRegDisabled, "resource node registration is disabled")
 	ErrInvalidSuspensionStatForUnbondNode = sdkerrors.Register(ModuleName, codeErrInvalidSuspensionStatForUnbondNode, "cannot unbond a suspended node")
+	ErrReporterAddress                    = sdkerrors.Register(ModuleName, codeErrReporterAddress, "invalid reporter address")
+	ErrInvalidAmount                      = sdkerrors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
+	ErrReporterAddressOrOwner             = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 )

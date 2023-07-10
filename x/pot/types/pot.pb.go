@@ -30,8 +30,9 @@ type Params struct {
 	BondDenom          string                                 `protobuf:"bytes,1,opt,name=bond_denom,json=bondDenom,proto3" json:"bond_denom" yaml:"bond_denom"`
 	RewardDenom        string                                 `protobuf:"bytes,2,opt,name=reward_denom,json=rewardDenom,proto3" json:"reward_denom" yaml:"reward_denom"`
 	MatureEpoch        int64                                  `protobuf:"varint,3,opt,name=mature_epoch,json=matureEpoch,proto3" json:"mature_epoch" yaml:"mature_epoch"`
-	MiningRewardParams []*MiningRewardParam                   `protobuf:"bytes,4,rep,name=mining_reward_params,json=miningRewardParams,proto3" json:"mining_reward_params" yaml:"mining_reward_params"`
+	MiningRewardParams []MiningRewardParam                    `protobuf:"bytes,4,rep,name=mining_reward_params,json=miningRewardParams,proto3" json:"mining_reward_params" yaml:"mining_reward_params"`
 	CommunityTax       github_com_cosmos_cosmos_sdk_types.Dec `protobuf:"bytes,5,opt,name=community_tax,json=communityTax,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Dec" json:"community_tax" yaml:"community_tax"`
+	InitialTotalSupply types.Coin                             `protobuf:"bytes,6,opt,name=initial_total_supply,json=initialTotalSupply,proto3" json:"initial_total_supply" yaml:"initial_total_supply"`
 }
 
 func (m *Params) Reset()         { *m = Params{} }
@@ -88,20 +89,27 @@ func (m *Params) GetMatureEpoch() int64 {
 	return 0
 }
 
-func (m *Params) GetMiningRewardParams() []*MiningRewardParam {
+func (m *Params) GetMiningRewardParams() []MiningRewardParam {
 	if m != nil {
 		return m.MiningRewardParams
 	}
 	return nil
 }
 
+func (m *Params) GetInitialTotalSupply() types.Coin {
+	if m != nil {
+		return m.InitialTotalSupply
+	}
+	return types.Coin{}
+}
+
 type MiningRewardParam struct {
-	TotalMinedValveStart                *types.Coin                             `protobuf:"bytes,1,opt,name=total_mined_valve_start,json=totalMinedValveStart,proto3" json:"total_mined_valve_start,omitempty" yaml:"total_mined_valve_start"`
-	TotalMinedValveEnd                  *types.Coin                             `protobuf:"bytes,2,opt,name=total_mined_valve_end,json=totalMinedValveEnd,proto3" json:"total_mined_valve_end,omitempty" yaml:"total_mined_valve_end"`
-	MiningReward                        *types.Coin                             `protobuf:"bytes,3,opt,name=mining_reward,json=miningReward,proto3" json:"mining_reward,omitempty" yaml:"mining_reward"`
-	BlockChainPercentageInTenThousand   *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=block_chain_percentage_in_ten_thousand,json=blockChainPercentageInTenThousand,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"block_chain_percentage_in_ten_thousand" yaml:"block_chain_percentage_in_ten_thousand"`
-	ResourceNodePercentageInTenThousand *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=resource_node_percentage_in_ten_thousand,json=resourceNodePercentageInTenThousand,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"resource_node_percentage_in_ten_thousand" yaml:"resource_node_percentage_in_ten_thousand"`
-	MetaNodePercentageInTenThousand     *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=meta_node_percentage_in_ten_thousand,json=metaNodePercentageInTenThousand,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"meta_node_percentage_in_ten_thousand" yaml:"meta_node_percentage_in_ten_thousand"`
+	TotalMinedValveStart       types.Coin                             `protobuf:"bytes,1,opt,name=total_mined_valve_start,json=totalMinedValveStart,proto3" json:"total_mined_valve_start" yaml:"total_mined_valve_start"`
+	TotalMinedValveEnd         types.Coin                             `protobuf:"bytes,2,opt,name=total_mined_valve_end,json=totalMinedValveEnd,proto3" json:"total_mined_valve_end" yaml:"total_mined_valve_end"`
+	MiningReward               types.Coin                             `protobuf:"bytes,3,opt,name=mining_reward,json=miningReward,proto3" json:"mining_reward" yaml:"mining_reward"`
+	BlockChainPercentageInBp   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=block_chain_percentage_in_bp,json=blockChainPercentageInBp,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"block_chain_percentage_in_bp" yaml:"block_chain_percentage_in_bp"`
+	ResourceNodePercentageInBp github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=resource_node_percentage_in_bp,json=resourceNodePercentageInBp,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"resource_node_percentage_in_bp" yaml:"resource_node_percentage_in_bp"`
+	MetaNodePercentageInBp     github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,6,opt,name=meta_node_percentage_in_bp,json=metaNodePercentageInBp,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"meta_node_percentage_in_bp" yaml:"meta_node_percentage_in_bp"`
 }
 
 func (m *MiningRewardParam) Reset()         { *m = MiningRewardParam{} }
@@ -137,129 +145,25 @@ func (m *MiningRewardParam) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MiningRewardParam proto.InternalMessageInfo
 
-func (m *MiningRewardParam) GetTotalMinedValveStart() *types.Coin {
+func (m *MiningRewardParam) GetTotalMinedValveStart() types.Coin {
 	if m != nil {
 		return m.TotalMinedValveStart
 	}
-	return nil
+	return types.Coin{}
 }
 
-func (m *MiningRewardParam) GetTotalMinedValveEnd() *types.Coin {
+func (m *MiningRewardParam) GetTotalMinedValveEnd() types.Coin {
 	if m != nil {
 		return m.TotalMinedValveEnd
 	}
-	return nil
+	return types.Coin{}
 }
 
-func (m *MiningRewardParam) GetMiningReward() *types.Coin {
+func (m *MiningRewardParam) GetMiningReward() types.Coin {
 	if m != nil {
 		return m.MiningReward
 	}
-	return nil
-}
-
-type ImmatureTotal struct {
-	WalletAddress string                                   `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address" yaml:"wallet_address"`
-	Value         github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=value,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"value"`
-}
-
-func (m *ImmatureTotal) Reset()         { *m = ImmatureTotal{} }
-func (m *ImmatureTotal) String() string { return proto.CompactTextString(m) }
-func (*ImmatureTotal) ProtoMessage()    {}
-func (*ImmatureTotal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a05930b44d981057, []int{2}
-}
-func (m *ImmatureTotal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *ImmatureTotal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_ImmatureTotal.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *ImmatureTotal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ImmatureTotal.Merge(m, src)
-}
-func (m *ImmatureTotal) XXX_Size() int {
-	return m.Size()
-}
-func (m *ImmatureTotal) XXX_DiscardUnknown() {
-	xxx_messageInfo_ImmatureTotal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ImmatureTotal proto.InternalMessageInfo
-
-func (m *ImmatureTotal) GetWalletAddress() string {
-	if m != nil {
-		return m.WalletAddress
-	}
-	return ""
-}
-
-func (m *ImmatureTotal) GetValue() github_com_cosmos_cosmos_sdk_types.Coins {
-	if m != nil {
-		return m.Value
-	}
-	return nil
-}
-
-type MatureTotal struct {
-	WalletAddress string                                   `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address" yaml:"wallet_address"`
-	Value         github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,2,rep,name=value,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"value"`
-}
-
-func (m *MatureTotal) Reset()         { *m = MatureTotal{} }
-func (m *MatureTotal) String() string { return proto.CompactTextString(m) }
-func (*MatureTotal) ProtoMessage()    {}
-func (*MatureTotal) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a05930b44d981057, []int{3}
-}
-func (m *MatureTotal) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *MatureTotal) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_MatureTotal.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *MatureTotal) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MatureTotal.Merge(m, src)
-}
-func (m *MatureTotal) XXX_Size() int {
-	return m.Size()
-}
-func (m *MatureTotal) XXX_DiscardUnknown() {
-	xxx_messageInfo_MatureTotal.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_MatureTotal proto.InternalMessageInfo
-
-func (m *MatureTotal) GetWalletAddress() string {
-	if m != nil {
-		return m.WalletAddress
-	}
-	return ""
-}
-
-func (m *MatureTotal) GetValue() github_com_cosmos_cosmos_sdk_types.Coins {
-	if m != nil {
-		return m.Value
-	}
-	return nil
+	return types.Coin{}
 }
 
 type Reward struct {
@@ -272,7 +176,7 @@ func (m *Reward) Reset()         { *m = Reward{} }
 func (m *Reward) String() string { return proto.CompactTextString(m) }
 func (*Reward) ProtoMessage()    {}
 func (*Reward) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a05930b44d981057, []int{4}
+	return fileDescriptor_a05930b44d981057, []int{2}
 }
 func (m *Reward) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -323,15 +227,15 @@ func (m *Reward) GetRewardFromTrafficPool() github_com_cosmos_cosmos_sdk_types.C
 }
 
 type SingleWalletVolume struct {
-	WalletAddress string                                  `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address" yaml:"wallet_address"`
-	Volume        *github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=volume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"volume" yaml:"volume"`
+	WalletAddress string                                 `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address" yaml:"wallet_address"`
+	Volume        github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=volume,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"volume" yaml:"volume"`
 }
 
 func (m *SingleWalletVolume) Reset()         { *m = SingleWalletVolume{} }
 func (m *SingleWalletVolume) String() string { return proto.CompactTextString(m) }
 func (*SingleWalletVolume) ProtoMessage()    {}
 func (*SingleWalletVolume) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a05930b44d981057, []int{5}
+	return fileDescriptor_a05930b44d981057, []int{3}
 }
 func (m *SingleWalletVolume) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -367,6 +271,50 @@ func (m *SingleWalletVolume) GetWalletAddress() string {
 	return ""
 }
 
+type WalletVolumes struct {
+	Volumes []SingleWalletVolume `protobuf:"bytes,1,rep,name=volumes,proto3" json:"volumes" yaml:"volumes"`
+}
+
+func (m *WalletVolumes) Reset()         { *m = WalletVolumes{} }
+func (m *WalletVolumes) String() string { return proto.CompactTextString(m) }
+func (*WalletVolumes) ProtoMessage()    {}
+func (*WalletVolumes) Descriptor() ([]byte, []int) {
+	return fileDescriptor_a05930b44d981057, []int{4}
+}
+func (m *WalletVolumes) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *WalletVolumes) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_WalletVolumes.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *WalletVolumes) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_WalletVolumes.Merge(m, src)
+}
+func (m *WalletVolumes) XXX_Size() int {
+	return m.Size()
+}
+func (m *WalletVolumes) XXX_DiscardUnknown() {
+	xxx_messageInfo_WalletVolumes.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_WalletVolumes proto.InternalMessageInfo
+
+func (m *WalletVolumes) GetVolumes() []SingleWalletVolume {
+	if m != nil {
+		return m.Volumes
+	}
+	return nil
+}
+
 type VolumeReportRecord struct {
 	Reporter        string `protobuf:"bytes,1,opt,name=reporter,proto3" json:"reporter" yaml:"reporter"`
 	ReportReference string `protobuf:"bytes,2,opt,name=report_reference,json=reportReference,proto3" json:"report_reference" yaml:"report_reference"`
@@ -377,7 +325,7 @@ func (m *VolumeReportRecord) Reset()         { *m = VolumeReportRecord{} }
 func (m *VolumeReportRecord) String() string { return proto.CompactTextString(m) }
 func (*VolumeReportRecord) ProtoMessage()    {}
 func (*VolumeReportRecord) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a05930b44d981057, []int{6}
+	return fileDescriptor_a05930b44d981057, []int{5}
 }
 func (m *VolumeReportRecord) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -427,151 +375,85 @@ func (m *VolumeReportRecord) GetTxHash() string {
 	return ""
 }
 
-type BLSSignatureInfo struct {
-	PubKeys   [][]byte `protobuf:"bytes,1,rep,name=pub_keys,json=pubKeys,proto3" json:"pub_keys" yaml:"pub_keys"`
-	Signature []byte   `protobuf:"bytes,2,opt,name=signature,proto3" json:"signature" yaml:"signature"`
-	TxData    []byte   `protobuf:"bytes,3,opt,name=txData,proto3" json:"tx_data" yaml:"tx_data"`
-}
-
-func (m *BLSSignatureInfo) Reset()         { *m = BLSSignatureInfo{} }
-func (m *BLSSignatureInfo) String() string { return proto.CompactTextString(m) }
-func (*BLSSignatureInfo) ProtoMessage()    {}
-func (*BLSSignatureInfo) Descriptor() ([]byte, []int) {
-	return fileDescriptor_a05930b44d981057, []int{7}
-}
-func (m *BLSSignatureInfo) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *BLSSignatureInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_BLSSignatureInfo.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *BLSSignatureInfo) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_BLSSignatureInfo.Merge(m, src)
-}
-func (m *BLSSignatureInfo) XXX_Size() int {
-	return m.Size()
-}
-func (m *BLSSignatureInfo) XXX_DiscardUnknown() {
-	xxx_messageInfo_BLSSignatureInfo.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_BLSSignatureInfo proto.InternalMessageInfo
-
-func (m *BLSSignatureInfo) GetPubKeys() [][]byte {
-	if m != nil {
-		return m.PubKeys
-	}
-	return nil
-}
-
-func (m *BLSSignatureInfo) GetSignature() []byte {
-	if m != nil {
-		return m.Signature
-	}
-	return nil
-}
-
-func (m *BLSSignatureInfo) GetTxData() []byte {
-	if m != nil {
-		return m.TxData
-	}
-	return nil
-}
-
 func init() {
 	proto.RegisterType((*Params)(nil), "stratos.pot.v1.Params")
 	proto.RegisterType((*MiningRewardParam)(nil), "stratos.pot.v1.MiningRewardParam")
-	proto.RegisterType((*ImmatureTotal)(nil), "stratos.pot.v1.ImmatureTotal")
-	proto.RegisterType((*MatureTotal)(nil), "stratos.pot.v1.MatureTotal")
 	proto.RegisterType((*Reward)(nil), "stratos.pot.v1.Reward")
 	proto.RegisterType((*SingleWalletVolume)(nil), "stratos.pot.v1.SingleWalletVolume")
+	proto.RegisterType((*WalletVolumes)(nil), "stratos.pot.v1.WalletVolumes")
 	proto.RegisterType((*VolumeReportRecord)(nil), "stratos.pot.v1.VolumeReportRecord")
-	proto.RegisterType((*BLSSignatureInfo)(nil), "stratos.pot.v1.BLSSignatureInfo")
 }
 
 func init() { proto.RegisterFile("stratos/pot/v1/pot.proto", fileDescriptor_a05930b44d981057) }
 
 var fileDescriptor_a05930b44d981057 = []byte{
-	// 1116 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xd4, 0x57, 0xcf, 0x6f, 0x1c, 0xb5,
-	0x17, 0xcf, 0x74, 0xdb, 0x6d, 0xe3, 0x6c, 0xd2, 0xd4, 0xdf, 0x44, 0xd9, 0x6f, 0x81, 0x75, 0xe2,
-	0xa2, 0xb2, 0x52, 0x95, 0x1d, 0x52, 0x04, 0x48, 0xe5, 0x80, 0xd8, 0x26, 0x88, 0x00, 0x41, 0x91,
-	0x13, 0xb5, 0xa8, 0x12, 0x1a, 0x79, 0x67, 0x9c, 0xcd, 0x28, 0x33, 0xf6, 0x6a, 0xc6, 0xbb, 0xdd,
-	0x48, 0x5c, 0x38, 0x70, 0x40, 0xe2, 0xc0, 0xdf, 0xc1, 0x3f, 0xc1, 0x01, 0x54, 0x7a, 0x2c, 0x37,
-	0xe0, 0x60, 0x20, 0x01, 0x21, 0xcd, 0x8d, 0xf9, 0x0b, 0xd0, 0xd8, 0xb3, 0xbf, 0x92, 0x6e, 0xb2,
-	0x39, 0xf4, 0xc0, 0x69, 0xec, 0xcf, 0x7b, 0xfe, 0x3c, 0x7f, 0xfc, 0xde, 0xbc, 0xf1, 0x80, 0x72,
-	0x2c, 0x23, 0x2a, 0x45, 0x6c, 0xb7, 0x84, 0xb4, 0x3b, 0x6b, 0xd9, 0xa3, 0xd6, 0x8a, 0x84, 0x14,
-	0x70, 0x2e, 0xb7, 0xd4, 0x32, 0xa8, 0xb3, 0x76, 0x73, 0xa1, 0x29, 0x9a, 0x42, 0x9b, 0xec, 0x6c,
-	0x64, 0xbc, 0x6e, 0x56, 0x5c, 0x11, 0x87, 0x22, 0xb6, 0x1b, 0x34, 0x66, 0x76, 0x67, 0xad, 0xc1,
-	0x24, 0x5d, 0xb3, 0x5d, 0xe1, 0x73, 0x63, 0xc7, 0xff, 0x14, 0x40, 0x71, 0x9b, 0x46, 0x34, 0x8c,
-	0x61, 0x1d, 0x80, 0x86, 0xe0, 0x9e, 0xe3, 0x31, 0x2e, 0xc2, 0xb2, 0xb5, 0x6c, 0x55, 0xa7, 0xeb,
-	0xb7, 0x12, 0x85, 0x86, 0xd0, 0x54, 0xa1, 0x1b, 0x87, 0x34, 0x0c, 0xee, 0xe1, 0x01, 0x86, 0xc9,
-	0x74, 0x36, 0x59, 0xcf, 0xc6, 0xf0, 0x43, 0x50, 0x8a, 0xd8, 0x63, 0x1a, 0xf5, 0x58, 0x2e, 0x69,
-	0x96, 0xd7, 0x12, 0x85, 0x46, 0xf0, 0x54, 0xa1, 0xff, 0x19, 0x9e, 0x61, 0x14, 0x93, 0x19, 0x33,
-	0xed, 0x73, 0x85, 0x54, 0xb6, 0x23, 0xe6, 0xb0, 0x96, 0x70, 0xf7, 0xcb, 0x85, 0x65, 0xab, 0x5a,
-	0x30, 0x5c, 0xc3, 0xf8, 0x80, 0x6b, 0x18, 0xc5, 0x64, 0xc6, 0x4c, 0x37, 0xb2, 0x19, 0xfc, 0xda,
-	0x02, 0x0b, 0xa1, 0xcf, 0x7d, 0xde, 0x74, 0xf2, 0x88, 0x2d, 0x2d, 0xba, 0x7c, 0x79, 0xb9, 0x50,
-	0x9d, 0xb9, 0xbb, 0x52, 0x1b, 0x3d, 0xcc, 0xda, 0x96, 0xf6, 0x25, 0xda, 0x55, 0x1f, 0x4f, 0xfd,
-	0xed, 0x44, 0xa1, 0xe7, 0x52, 0xa4, 0x0a, 0xbd, 0x94, 0xc7, 0x7f, 0x8e, 0x15, 0x13, 0x18, 0x9e,
-	0xe4, 0x8a, 0xe1, 0xe7, 0x60, 0xd6, 0x15, 0x61, 0xd8, 0xe6, 0xbe, 0x3c, 0x74, 0x24, 0xed, 0x96,
-	0xaf, 0xe8, 0x73, 0x7a, 0xf8, 0x54, 0xa1, 0xa9, 0x5f, 0x15, 0xba, 0xdd, 0xf4, 0xe5, 0x7e, 0xbb,
-	0x51, 0x73, 0x45, 0x68, 0xe7, 0xf9, 0x33, 0x8f, 0xd5, 0xd8, 0x3b, 0xb0, 0xe5, 0x61, 0x8b, 0xc5,
-	0xb5, 0x75, 0xe6, 0x26, 0x0a, 0x8d, 0xd2, 0xa4, 0x0a, 0x2d, 0x98, 0xad, 0x8c, 0xc0, 0x98, 0x94,
-	0xfa, 0xf3, 0x5d, 0xda, 0xc5, 0x7f, 0x5f, 0x05, 0x37, 0x4e, 0x09, 0x84, 0x12, 0x2c, 0x49, 0x21,
-	0x69, 0xe0, 0x84, 0x3e, 0x67, 0x9e, 0xd3, 0xa1, 0x41, 0x87, 0x39, 0xb1, 0xa4, 0x91, 0xd4, 0xb5,
-	0x30, 0x73, 0xf7, 0xff, 0x35, 0xb3, 0x89, 0x5a, 0x56, 0x4b, 0xb5, 0xbc, 0x96, 0x6a, 0xf7, 0x85,
-	0xcf, 0xeb, 0x38, 0x55, 0xa8, 0x62, 0x22, 0x8f, 0xe1, 0xc0, 0x64, 0x41, 0x5b, 0xb6, 0x32, 0xc3,
-	0x83, 0x0c, 0xdf, 0xc9, 0x60, 0xc8, 0xc1, 0xe2, 0xe9, 0x15, 0x8c, 0x7b, 0xba, 0x72, 0xce, 0x8c,
-	0xb9, 0x9c, 0x2a, 0xf4, 0xf2, 0xb8, 0x98, 0x8c, 0x7b, 0x98, 0xc0, 0x13, 0x11, 0x37, 0xb8, 0x07,
-	0x3f, 0x05, 0xb3, 0x23, 0x69, 0xd2, 0x55, 0x75, 0x66, 0x9c, 0xf2, 0xe0, 0x54, 0x47, 0x56, 0x62,
-	0x52, 0x1a, 0xce, 0x2c, 0xfc, 0xc5, 0x02, 0xb7, 0x1b, 0x81, 0x70, 0x0f, 0x1c, 0x77, 0x9f, 0xfa,
-	0xdc, 0x69, 0xb1, 0xc8, 0x65, 0x5c, 0xd2, 0x26, 0x73, 0x7c, 0xee, 0x48, 0xc6, 0x1d, 0xb9, 0x2f,
-	0xda, 0x31, 0xe5, 0x5e, 0xf9, 0xb2, 0xce, 0xf6, 0x97, 0xd6, 0x84, 0xa9, 0xde, 0xe4, 0x32, 0x51,
-	0x68, 0x42, 0xf2, 0x54, 0xa1, 0xd5, 0xfc, 0x15, 0x9d, 0xc8, 0x1f, 0x93, 0x15, 0xed, 0x78, 0x3f,
-	0xf3, 0xdb, 0xee, 0xbb, 0x6d, 0xf2, 0x5d, 0xc6, 0x77, 0x73, 0x1f, 0xf8, 0x87, 0x05, 0xaa, 0x11,
-	0x8b, 0x45, 0x3b, 0x72, 0x99, 0xc3, 0x85, 0xc7, 0xce, 0x52, 0x67, 0x6a, 0xf9, 0xab, 0x8b, 0xa9,
-	0x9b, 0x98, 0x3e, 0x55, 0xc8, 0xee, 0xb5, 0x8e, 0xc9, 0x56, 0x60, 0x72, 0xab, 0xe7, 0xfa, 0x89,
-	0xf0, 0xd8, 0x38, 0x8d, 0x3f, 0x59, 0xe0, 0xd5, 0x90, 0x49, 0x7a, 0xae, 0xbe, 0xa2, 0xd6, 0xf7,
-	0xc5, 0xc5, 0xf4, 0x4d, 0x44, 0x9d, 0x2a, 0x74, 0x27, 0xaf, 0xb4, 0x09, 0xbc, 0x31, 0x41, 0x99,
-	0xdb, 0x19, 0x9a, 0xf0, 0x13, 0x0b, 0xcc, 0x6e, 0x86, 0xa6, 0x11, 0xee, 0x66, 0x2f, 0x03, 0x24,
-	0x60, 0xee, 0x31, 0x0d, 0x02, 0x26, 0x1d, 0xea, 0x79, 0x11, 0x8b, 0xe3, 0xbc, 0xd1, 0xdf, 0x49,
-	0x14, 0x3a, 0x61, 0x49, 0x15, 0x5a, 0x34, 0xbb, 0x19, 0xc5, 0x31, 0x99, 0x35, 0xc0, 0x7b, 0x66,
-	0x0e, 0x29, 0xb8, 0xd2, 0xa1, 0x41, 0x9b, 0x95, 0x2f, 0xe9, 0x66, 0x7a, 0xc6, 0xbb, 0xf4, 0x7a,
-	0xd6, 0xe0, 0xbe, 0xfd, 0x0d, 0x55, 0x27, 0x38, 0xb7, 0x6c, 0x41, 0x4c, 0x0c, 0x33, 0xfe, 0xc1,
-	0x02, 0x33, 0x5b, 0xff, 0x7d, 0x19, 0x7f, 0x16, 0x40, 0x31, 0x6f, 0x17, 0x2f, 0x42, 0xc1, 0x77,
-	0x16, 0x58, 0xca, 0xbf, 0x3e, 0x7b, 0x91, 0x08, 0x9d, 0xbc, 0x5f, 0xb5, 0x84, 0x08, 0xce, 0x17,
-	0x15, 0x66, 0xa2, 0x12, 0x85, 0xc6, 0x31, 0x0c, 0x5a, 0xfc, 0x18, 0x07, 0x7c, 0xa1, 0x13, 0x59,
-	0x30, 0x2c, 0xef, 0x47, 0x22, 0x34, 0xdf, 0xa2, 0x6d, 0x21, 0x02, 0xf8, 0xbd, 0x05, 0xca, 0xc3,
-	0xf4, 0x32, 0xa2, 0x7b, 0x7b, 0xbe, 0x6b, 0x24, 0x14, 0xce, 0x93, 0x20, 0x72, 0x09, 0x63, 0x29,
-	0x52, 0x85, 0xd0, 0x69, 0x0d, 0xc3, 0x1e, 0x17, 0x13, 0xb1, 0x38, 0x10, 0xb1, 0x6b, 0x48, 0x32,
-	0x15, 0xf8, 0x47, 0x0b, 0xc0, 0x1d, 0x9f, 0x37, 0x03, 0xf6, 0x50, 0xe7, 0xe7, 0x81, 0x08, 0xda,
-	0x21, 0x7b, 0x21, 0x29, 0xff, 0x0c, 0x14, 0x3b, 0x9a, 0x3d, 0xbf, 0x6a, 0x6d, 0x5c, 0xa8, 0x2b,
-	0xe5, 0x6b, 0x53, 0x85, 0x66, 0x4d, 0x34, 0x33, 0xc7, 0x24, 0x37, 0xe0, 0xbf, 0x2c, 0x00, 0xcd,
-	0xee, 0x09, 0x6b, 0x89, 0x48, 0x12, 0xe6, 0x8a, 0xc8, 0x83, 0xef, 0x80, 0x6b, 0x91, 0x9e, 0xb3,
-	0x28, 0xd7, 0x80, 0x12, 0x85, 0xfa, 0x58, 0xaa, 0xd0, 0xf5, 0xde, 0x31, 0x1b, 0x04, 0x93, 0xbe,
-	0x11, 0x3e, 0x02, 0xf3, 0x66, 0xec, 0x44, 0x6c, 0x8f, 0x45, 0x8c, 0xbb, 0xbd, 0xcd, 0xdb, 0x89,
-	0x42, 0xa7, 0x6c, 0xa9, 0x42, 0x4b, 0xc3, 0x64, 0x03, 0x0b, 0x26, 0xd7, 0xa3, 0x7c, 0x57, 0x39,
-	0x02, 0xdf, 0x02, 0x57, 0x65, 0xd7, 0xd9, 0xa7, 0xb1, 0xb9, 0x2e, 0x4e, 0xd7, 0x5f, 0x49, 0x14,
-	0xea, 0x41, 0xa9, 0x42, 0x73, 0xf9, 0x85, 0xc1, 0x00, 0x98, 0x14, 0x65, 0xf7, 0x83, 0x6c, 0xf0,
-	0xc4, 0x02, 0xf3, 0xf5, 0x8f, 0x77, 0x76, 0xfc, 0x26, 0xd7, 0x5d, 0x66, 0x93, 0xef, 0x09, 0x78,
-	0x0f, 0x5c, 0x6b, 0xb5, 0x1b, 0xce, 0x01, 0x3b, 0xcc, 0x32, 0x55, 0xa8, 0x96, 0x8c, 0xca, 0x1e,
-	0x36, 0x50, 0xd9, 0x43, 0x30, 0xb9, 0xda, 0x6a, 0x37, 0x3e, 0x62, 0x87, 0x31, 0x7c, 0x17, 0x4c,
-	0xc7, 0x3d, 0x32, 0xad, 0xae, 0x54, 0x5f, 0x49, 0x14, 0x1a, 0x80, 0xa9, 0x42, 0xf3, 0x66, 0x75,
-	0x1f, 0xc2, 0x64, 0x60, 0x86, 0x6f, 0x82, 0xa2, 0xec, 0xae, 0x53, 0x49, 0xb5, 0x90, 0x52, 0x5f,
-	0x88, 0x47, 0x25, 0x1d, 0x11, 0x92, 0x01, 0x5a, 0x48, 0xe6, 0x5c, 0xdf, 0x7c, 0x7a, 0x54, 0xb1,
-	0x9e, 0x1d, 0x55, 0xac, 0xdf, 0x8f, 0x2a, 0xd6, 0x37, 0xc7, 0x95, 0xa9, 0x67, 0xc7, 0x95, 0xa9,
-	0x9f, 0x8f, 0x2b, 0x53, 0x8f, 0xec, 0xa1, 0xaa, 0xc8, 0x6f, 0xbb, 0x9c, 0xc9, 0xde, 0x70, 0x55,
-	0xdf, 0x13, 0xec, 0xae, 0xfe, 0xcf, 0xd0, 0x25, 0xd2, 0x28, 0xea, 0x3f, 0x84, 0x37, 0xfe, 0x0d,
-	0x00, 0x00, 0xff, 0xff, 0x4e, 0xb4, 0x28, 0xed, 0x83, 0x0c, 0x00, 0x00,
+	// 1054 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xb4, 0x56, 0xcf, 0x6f, 0x1c, 0x35,
+	0x14, 0xce, 0x34, 0xed, 0x86, 0x38, 0x3f, 0x4a, 0xcd, 0x86, 0x2c, 0xa1, 0xac, 0x13, 0x57, 0x40,
+	0x24, 0x94, 0x5d, 0xa5, 0x48, 0x1c, 0xa8, 0x38, 0x74, 0xdb, 0x22, 0x82, 0x54, 0x14, 0x39, 0x51,
+	0x2b, 0xf5, 0x32, 0xf2, 0xce, 0x38, 0x9b, 0x51, 0x67, 0xec, 0xc1, 0xe3, 0xdd, 0x26, 0x12, 0x07,
+	0x8e, 0x48, 0x5c, 0x2a, 0xf1, 0x5f, 0x20, 0x71, 0xe4, 0x88, 0x38, 0x70, 0xa9, 0x84, 0x84, 0x7a,
+	0x44, 0x1c, 0x0c, 0x4a, 0xe0, 0xb2, 0xc7, 0xf9, 0x0b, 0xd0, 0xd8, 0xde, 0xec, 0x6c, 0x36, 0xbb,
+	0x25, 0x07, 0x4e, 0x6b, 0x7f, 0xdf, 0xf3, 0xe7, 0xef, 0x3d, 0xbf, 0xf1, 0x1a, 0xd4, 0x32, 0x25,
+	0xa9, 0x12, 0x59, 0x33, 0x15, 0xaa, 0xd9, 0xdb, 0x2e, 0x7e, 0x1a, 0xa9, 0x14, 0x4a, 0xc0, 0x65,
+	0xc7, 0x34, 0x0a, 0xa8, 0xb7, 0xbd, 0x56, 0xed, 0x88, 0x8e, 0x30, 0x54, 0xb3, 0x18, 0xd9, 0xa8,
+	0xb5, 0x7a, 0x20, 0xb2, 0x44, 0x64, 0xcd, 0x36, 0xcd, 0x58, 0xb3, 0xb7, 0xdd, 0x66, 0x8a, 0x6e,
+	0x37, 0x03, 0x11, 0x71, 0xcb, 0xe3, 0xaf, 0xaf, 0x81, 0xca, 0x2e, 0x95, 0x34, 0xc9, 0x60, 0x0b,
+	0x80, 0xb6, 0xe0, 0xa1, 0x1f, 0x32, 0x2e, 0x92, 0x9a, 0xb7, 0xee, 0x6d, 0xce, 0xb7, 0x6e, 0xf5,
+	0x35, 0x2a, 0xa1, 0xb9, 0x46, 0x37, 0x8e, 0x69, 0x12, 0x7f, 0x8c, 0x87, 0x18, 0x26, 0xf3, 0xc5,
+	0xe4, 0x7e, 0x31, 0x86, 0x9f, 0x83, 0x45, 0xc9, 0x9e, 0x51, 0x39, 0x50, 0xb9, 0x62, 0x54, 0xde,
+	0xef, 0x6b, 0x34, 0x82, 0xe7, 0x1a, 0xbd, 0x61, 0x75, 0xca, 0x28, 0x26, 0x0b, 0x76, 0x7a, 0xa6,
+	0x95, 0x50, 0xd5, 0x95, 0xcc, 0x67, 0xa9, 0x08, 0x0e, 0x6b, 0xb3, 0xeb, 0xde, 0xe6, 0xac, 0xd5,
+	0x2a, 0xe3, 0x43, 0xad, 0x32, 0x8a, 0xc9, 0x82, 0x9d, 0x3e, 0x28, 0x66, 0xf0, 0xb9, 0x07, 0xaa,
+	0x49, 0xc4, 0x23, 0xde, 0xf1, 0xdd, 0x8e, 0xa9, 0x49, 0xba, 0x76, 0x75, 0x7d, 0x76, 0x73, 0xe1,
+	0xf6, 0x46, 0x63, 0xb4, 0x98, 0x8d, 0x87, 0x26, 0x96, 0x98, 0x50, 0x53, 0x9e, 0xd6, 0x9d, 0x17,
+	0x1a, 0xcd, 0xf4, 0x35, 0xba, 0x50, 0x26, 0xd7, 0xe8, 0x6d, 0xe7, 0xe1, 0x02, 0x16, 0x13, 0x98,
+	0x9c, 0xd7, 0xcb, 0xe0, 0x57, 0x60, 0x29, 0x10, 0x49, 0xd2, 0xe5, 0x91, 0x3a, 0xf6, 0x15, 0x3d,
+	0xaa, 0x5d, 0x33, 0xb5, 0x7a, 0x5c, 0xec, 0xf3, 0x87, 0x46, 0xef, 0x75, 0x22, 0x75, 0xd8, 0x6d,
+	0x37, 0x02, 0x91, 0x34, 0xdd, 0x19, 0xda, 0x9f, 0xad, 0x2c, 0x7c, 0xda, 0x54, 0xc7, 0x29, 0xcb,
+	0x1a, 0xf7, 0x59, 0xd0, 0xd7, 0x68, 0x54, 0x26, 0xd7, 0xa8, 0x6a, 0xad, 0x8c, 0xc0, 0x98, 0x2c,
+	0x9e, 0xcd, 0xf7, 0xe9, 0x11, 0xfc, 0xc6, 0x03, 0xd5, 0x88, 0x47, 0x2a, 0xa2, 0xb1, 0xaf, 0x84,
+	0xa2, 0xb1, 0x9f, 0x75, 0xd3, 0x34, 0x3e, 0xae, 0x55, 0xd6, 0xbd, 0xcd, 0x85, 0xdb, 0x6f, 0x35,
+	0xec, 0x66, 0x8d, 0xa2, 0x6f, 0x1a, 0xae, 0x6f, 0x1a, 0xf7, 0x44, 0xc4, 0x87, 0x85, 0xb8, 0x68,
+	0xf9, 0xb0, 0x10, 0x17, 0xb1, 0x98, 0x40, 0x07, 0xef, 0x17, 0xe8, 0x9e, 0x05, 0x7f, 0x9b, 0x03,
+	0x37, 0xc6, 0xea, 0x0d, 0xbf, 0xf3, 0xc0, 0xaa, 0x5d, 0x9b, 0x44, 0x9c, 0x85, 0x7e, 0x8f, 0xc6,
+	0x3d, 0xe6, 0x67, 0x8a, 0x4a, 0x65, 0x7a, 0x73, 0xaa, 0xc7, 0xbb, 0xce, 0xe3, 0x24, 0x85, 0x5c,
+	0xa3, 0xba, 0xb5, 0x39, 0x21, 0x00, 0x93, 0xaa, 0x61, 0x1e, 0x16, 0xc4, 0xa3, 0x02, 0xdf, 0x2b,
+	0x60, 0xf8, 0xad, 0x07, 0x56, 0xc6, 0x97, 0x30, 0x1e, 0x9a, 0x4e, 0x9f, 0xea, 0xe9, 0x13, 0xe7,
+	0xe9, 0xe2, 0xf5, 0xb9, 0x46, 0x37, 0x27, 0x39, 0x62, 0x3c, 0xc4, 0x04, 0x9e, 0xf3, 0xf3, 0x80,
+	0x87, 0x30, 0x01, 0x4b, 0x23, 0xfd, 0x66, 0x3e, 0x91, 0xa9, 0x26, 0xb6, 0x9c, 0x89, 0xd1, 0x75,
+	0xc3, 0x9e, 0x19, 0x81, 0x31, 0x59, 0x2c, 0xf7, 0x2d, 0xfc, 0xd1, 0x03, 0x37, 0xdb, 0xb1, 0x08,
+	0x9e, 0xfa, 0xc1, 0x21, 0x8d, 0xb8, 0x9f, 0x32, 0x19, 0x30, 0xae, 0x68, 0x87, 0xf9, 0x11, 0xf7,
+	0xdb, 0x69, 0xed, 0xaa, 0xe9, 0xe0, 0xee, 0x25, 0x3a, 0x78, 0x87, 0xab, 0xbe, 0x46, 0x53, 0x55,
+	0x73, 0x8d, 0x6e, 0xb9, 0x3b, 0x67, 0x4a, 0x14, 0x26, 0x35, 0x43, 0xdf, 0x2b, 0xd8, 0xdd, 0x33,
+	0x72, 0x87, 0xb7, 0x52, 0xf8, 0x93, 0x07, 0xea, 0x92, 0x65, 0xa2, 0x2b, 0x03, 0xe6, 0x73, 0x11,
+	0xb2, 0x71, 0xe7, 0xf6, 0xdb, 0x3b, 0xbe, 0xb4, 0xf3, 0x57, 0xe8, 0xe6, 0x1a, 0xbd, 0x3b, 0xb8,
+	0xe7, 0xa6, 0xc5, 0x61, 0xb2, 0x36, 0x08, 0xf8, 0x42, 0x84, 0xec, 0x9c, 0xff, 0x1f, 0x3c, 0xb0,
+	0x96, 0x30, 0x45, 0x27, 0x78, 0xaf, 0x18, 0xef, 0x5f, 0x5e, 0xda, 0xfb, 0x14, 0xcd, 0x5c, 0xa3,
+	0x0d, 0xd7, 0x10, 0x13, 0x63, 0x30, 0x79, 0xb3, 0x20, 0xc7, 0xfd, 0xe2, 0xbf, 0x67, 0x41, 0xc5,
+	0xb5, 0x0c, 0x01, 0xcb, 0xcf, 0x68, 0x1c, 0x33, 0xe5, 0xd3, 0x30, 0x94, 0x2c, 0xcb, 0xdc, 0xff,
+	0xca, 0x07, 0x7d, 0x8d, 0xce, 0x31, 0xb9, 0x46, 0x2b, 0x76, 0xcf, 0x51, 0x1c, 0x93, 0x25, 0x0b,
+	0xdc, 0xb5, 0x73, 0xf8, 0xb3, 0x07, 0x56, 0xdd, 0xfd, 0x7a, 0x20, 0x45, 0xe2, 0xbb, 0x9e, 0x4d,
+	0x85, 0x88, 0x6b, 0x57, 0xcc, 0x75, 0x3e, 0xe5, 0x03, 0x48, 0x06, 0x37, 0xc3, 0x04, 0x85, 0xe1,
+	0xcd, 0x30, 0x21, 0x00, 0x7f, 0xff, 0x27, 0xda, 0xfc, 0x0f, 0x35, 0x2e, 0x76, 0xcb, 0x48, 0xd5,
+	0xaa, 0x7c, 0x2a, 0x45, 0x62, 0xaf, 0xb8, 0x5d, 0x21, 0x62, 0xf8, 0x8b, 0x07, 0x6a, 0x65, 0x79,
+	0x25, 0xe9, 0xc1, 0x41, 0x14, 0xd8, 0x14, 0x66, 0x5f, 0x95, 0x82, 0x70, 0x29, 0x4c, 0x94, 0xc8,
+	0x35, 0x42, 0xe3, 0x39, 0x94, 0x23, 0x2e, 0x97, 0xc4, 0xca, 0x30, 0x89, 0x7d, 0x2b, 0x52, 0x64,
+	0x81, 0x7f, 0xf5, 0x00, 0xdc, 0x8b, 0x78, 0x27, 0x66, 0x8f, 0xcd, 0xf9, 0x3c, 0x12, 0x71, 0x37,
+	0x61, 0xff, 0xcb, 0x91, 0x53, 0x50, 0xe9, 0x19, 0x75, 0xf7, 0xa0, 0xd8, 0xb9, 0x74, 0xb3, 0xbb,
+	0xf5, 0xb9, 0x46, 0x4b, 0x76, 0x47, 0x3b, 0xc7, 0xc4, 0x11, 0x38, 0x05, 0x4b, 0xe5, 0x34, 0x32,
+	0xe8, 0x83, 0x39, 0x4b, 0x15, 0x09, 0x14, 0x47, 0x82, 0xcf, 0x3f, 0x12, 0xc6, 0x93, 0x6f, 0x6d,
+	0xb8, 0xb3, 0x19, 0x2c, 0xcd, 0x35, 0x5a, 0x2e, 0xef, 0x97, 0x61, 0x32, 0xa0, 0xf0, 0x3f, 0x1e,
+	0x80, 0x76, 0x19, 0x61, 0xa9, 0x90, 0x8a, 0xb0, 0x40, 0xc8, 0x10, 0xde, 0x01, 0xaf, 0x49, 0x33,
+	0x67, 0xd2, 0x55, 0x0e, 0xf5, 0x35, 0x3a, 0xc3, 0x72, 0x8d, 0xae, 0x0f, 0x0e, 0xd7, 0x22, 0x98,
+	0x9c, 0x91, 0xf0, 0x09, 0x78, 0xdd, 0x8e, 0x7d, 0xc9, 0x0e, 0x98, 0x64, 0x3c, 0x18, 0x94, 0xac,
+	0xd9, 0xd7, 0x68, 0x8c, 0xcb, 0x35, 0x5a, 0x2d, 0x8b, 0x0d, 0x19, 0x4c, 0xae, 0x4b, 0xe7, 0xca,
+	0x21, 0xf0, 0x23, 0x30, 0xa7, 0x8e, 0xfc, 0x43, 0x9a, 0xd9, 0xa7, 0xd8, 0x7c, 0xeb, 0x9d, 0x22,
+	0x51, 0x07, 0x0d, 0x13, 0x75, 0x00, 0x26, 0x15, 0x75, 0xf4, 0x19, 0xcd, 0x0e, 0x5b, 0x3b, 0x2f,
+	0x4e, 0xea, 0xde, 0xcb, 0x93, 0xba, 0xf7, 0xd7, 0x49, 0xdd, 0x7b, 0x7e, 0x5a, 0x9f, 0x79, 0x79,
+	0x5a, 0x9f, 0xf9, 0xfd, 0xb4, 0x3e, 0xf3, 0xa4, 0x59, 0x3a, 0x3e, 0x57, 0x5b, 0xce, 0xd4, 0x60,
+	0xb8, 0x65, 0x6e, 0xfa, 0xe6, 0x91, 0x79, 0xfa, 0x9a, 0xb3, 0x6c, 0x57, 0xcc, 0xa3, 0xf5, 0xc3,
+	0x7f, 0x03, 0x00, 0x00, 0xff, 0xff, 0xdf, 0xdb, 0x8c, 0x0f, 0x16, 0x0b, 0x00, 0x00,
 }
 
 func (m *Params) Marshal() (dAtA []byte, err error) {
@@ -594,6 +476,16 @@ func (m *Params) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	{
+		size, err := m.InitialTotalSupply.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintPot(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x32
 	{
 		size := m.CommunityTax.Size()
 		i -= size
@@ -660,166 +552,66 @@ func (m *MiningRewardParam) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.MetaNodePercentageInTenThousand != nil {
-		{
-			size := m.MetaNodePercentageInTenThousand.Size()
-			i -= size
-			if _, err := m.MetaNodePercentageInTenThousand.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	{
+		size := m.MetaNodePercentageInBp.Size()
+		i -= size
+		if _, err := m.MetaNodePercentageInBp.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x32
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
-	if m.ResourceNodePercentageInTenThousand != nil {
-		{
-			size := m.ResourceNodePercentageInTenThousand.Size()
-			i -= size
-			if _, err := m.ResourceNodePercentageInTenThousand.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	i--
+	dAtA[i] = 0x32
+	{
+		size := m.ResourceNodePercentageInBp.Size()
+		i -= size
+		if _, err := m.ResourceNodePercentageInBp.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x2a
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
-	if m.BlockChainPercentageInTenThousand != nil {
-		{
-			size := m.BlockChainPercentageInTenThousand.Size()
-			i -= size
-			if _, err := m.BlockChainPercentageInTenThousand.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	i--
+	dAtA[i] = 0x2a
+	{
+		size := m.BlockChainPercentageInBp.Size()
+		i -= size
+		if _, err := m.BlockChainPercentageInBp.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x22
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
-	if m.MiningReward != nil {
-		{
-			size, err := m.MiningReward.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	i--
+	dAtA[i] = 0x22
+	{
+		size, err := m.MiningReward.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x1a
+		i -= size
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
-	if m.TotalMinedValveEnd != nil {
-		{
-			size, err := m.TotalMinedValveEnd.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	i--
+	dAtA[i] = 0x1a
+	{
+		size, err := m.TotalMinedValveEnd.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x12
+		i -= size
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
-	if m.TotalMinedValveStart != nil {
-		{
-			size, err := m.TotalMinedValveStart.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	i--
+	dAtA[i] = 0x12
+	{
+		size, err := m.TotalMinedValveStart.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0xa
+		i -= size
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
-	return len(dAtA) - i, nil
-}
-
-func (m *ImmatureTotal) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *ImmatureTotal) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *ImmatureTotal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Value) > 0 {
-		for iNdEx := len(m.Value) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Value[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPot(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.WalletAddress) > 0 {
-		i -= len(m.WalletAddress)
-		copy(dAtA[i:], m.WalletAddress)
-		i = encodeVarintPot(dAtA, i, uint64(len(m.WalletAddress)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
-func (m *MatureTotal) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *MatureTotal) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *MatureTotal) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Value) > 0 {
-		for iNdEx := len(m.Value) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Value[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintPot(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0x12
-		}
-	}
-	if len(m.WalletAddress) > 0 {
-		i -= len(m.WalletAddress)
-		copy(dAtA[i:], m.WalletAddress)
-		i = encodeVarintPot(dAtA, i, uint64(len(m.WalletAddress)))
-		i--
-		dAtA[i] = 0xa
-	}
+	i--
+	dAtA[i] = 0xa
 	return len(dAtA) - i, nil
 }
 
@@ -901,24 +693,59 @@ func (m *SingleWalletVolume) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Volume != nil {
-		{
-			size := m.Volume.Size()
-			i -= size
-			if _, err := m.Volume.MarshalTo(dAtA[i:]); err != nil {
-				return 0, err
-			}
-			i = encodeVarintPot(dAtA, i, uint64(size))
+	{
+		size := m.Volume.Size()
+		i -= size
+		if _, err := m.Volume.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x12
+		i = encodeVarintPot(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x12
 	if len(m.WalletAddress) > 0 {
 		i -= len(m.WalletAddress)
 		copy(dAtA[i:], m.WalletAddress)
 		i = encodeVarintPot(dAtA, i, uint64(len(m.WalletAddress)))
 		i--
 		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *WalletVolumes) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *WalletVolumes) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *WalletVolumes) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Volumes) > 0 {
+		for iNdEx := len(m.Volumes) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Volumes[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintPot(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0xa
+		}
 	}
 	return len(dAtA) - i, nil
 }
@@ -967,52 +794,6 @@ func (m *VolumeReportRecord) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *BLSSignatureInfo) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *BLSSignatureInfo) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *BLSSignatureInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.TxData) > 0 {
-		i -= len(m.TxData)
-		copy(dAtA[i:], m.TxData)
-		i = encodeVarintPot(dAtA, i, uint64(len(m.TxData)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Signature) > 0 {
-		i -= len(m.Signature)
-		copy(dAtA[i:], m.Signature)
-		i = encodeVarintPot(dAtA, i, uint64(len(m.Signature)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.PubKeys) > 0 {
-		for iNdEx := len(m.PubKeys) - 1; iNdEx >= 0; iNdEx-- {
-			i -= len(m.PubKeys[iNdEx])
-			copy(dAtA[i:], m.PubKeys[iNdEx])
-			i = encodeVarintPot(dAtA, i, uint64(len(m.PubKeys[iNdEx])))
-			i--
-			dAtA[i] = 0xa
-		}
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintPot(dAtA []byte, offset int, v uint64) int {
 	offset -= sovPot(v)
 	base := offset
@@ -1049,6 +830,8 @@ func (m *Params) Size() (n int) {
 	}
 	l = m.CommunityTax.Size()
 	n += 1 + l + sovPot(uint64(l))
+	l = m.InitialTotalSupply.Size()
+	n += 1 + l + sovPot(uint64(l))
 	return n
 }
 
@@ -1058,68 +841,18 @@ func (m *MiningRewardParam) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if m.TotalMinedValveStart != nil {
-		l = m.TotalMinedValveStart.Size()
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if m.TotalMinedValveEnd != nil {
-		l = m.TotalMinedValveEnd.Size()
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if m.MiningReward != nil {
-		l = m.MiningReward.Size()
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if m.BlockChainPercentageInTenThousand != nil {
-		l = m.BlockChainPercentageInTenThousand.Size()
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if m.ResourceNodePercentageInTenThousand != nil {
-		l = m.ResourceNodePercentageInTenThousand.Size()
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if m.MetaNodePercentageInTenThousand != nil {
-		l = m.MetaNodePercentageInTenThousand.Size()
-		n += 1 + l + sovPot(uint64(l))
-	}
-	return n
-}
-
-func (m *ImmatureTotal) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.WalletAddress)
-	if l > 0 {
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if len(m.Value) > 0 {
-		for _, e := range m.Value {
-			l = e.Size()
-			n += 1 + l + sovPot(uint64(l))
-		}
-	}
-	return n
-}
-
-func (m *MatureTotal) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.WalletAddress)
-	if l > 0 {
-		n += 1 + l + sovPot(uint64(l))
-	}
-	if len(m.Value) > 0 {
-		for _, e := range m.Value {
-			l = e.Size()
-			n += 1 + l + sovPot(uint64(l))
-		}
-	}
+	l = m.TotalMinedValveStart.Size()
+	n += 1 + l + sovPot(uint64(l))
+	l = m.TotalMinedValveEnd.Size()
+	n += 1 + l + sovPot(uint64(l))
+	l = m.MiningReward.Size()
+	n += 1 + l + sovPot(uint64(l))
+	l = m.BlockChainPercentageInBp.Size()
+	n += 1 + l + sovPot(uint64(l))
+	l = m.ResourceNodePercentageInBp.Size()
+	n += 1 + l + sovPot(uint64(l))
+	l = m.MetaNodePercentageInBp.Size()
+	n += 1 + l + sovPot(uint64(l))
 	return n
 }
 
@@ -1158,9 +891,22 @@ func (m *SingleWalletVolume) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovPot(uint64(l))
 	}
-	if m.Volume != nil {
-		l = m.Volume.Size()
-		n += 1 + l + sovPot(uint64(l))
+	l = m.Volume.Size()
+	n += 1 + l + sovPot(uint64(l))
+	return n
+}
+
+func (m *WalletVolumes) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Volumes) > 0 {
+		for _, e := range m.Volumes {
+			l = e.Size()
+			n += 1 + l + sovPot(uint64(l))
+		}
 	}
 	return n
 }
@@ -1180,29 +926,6 @@ func (m *VolumeReportRecord) Size() (n int) {
 		n += 1 + l + sovPot(uint64(l))
 	}
 	l = len(m.TxHash)
-	if l > 0 {
-		n += 1 + l + sovPot(uint64(l))
-	}
-	return n
-}
-
-func (m *BLSSignatureInfo) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	if len(m.PubKeys) > 0 {
-		for _, b := range m.PubKeys {
-			l = len(b)
-			n += 1 + l + sovPot(uint64(l))
-		}
-	}
-	l = len(m.Signature)
-	if l > 0 {
-		n += 1 + l + sovPot(uint64(l))
-	}
-	l = len(m.TxData)
 	if l > 0 {
 		n += 1 + l + sovPot(uint64(l))
 	}
@@ -1356,7 +1079,7 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.MiningRewardParams = append(m.MiningRewardParams, &MiningRewardParam{})
+			m.MiningRewardParams = append(m.MiningRewardParams, MiningRewardParam{})
 			if err := m.MiningRewardParams[len(m.MiningRewardParams)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1392,6 +1115,39 @@ func (m *Params) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			if err := m.CommunityTax.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field InitialTotalSupply", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPot
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPot
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthPot
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.InitialTotalSupply.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -1474,9 +1230,6 @@ func (m *MiningRewardParam) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.TotalMinedValveStart == nil {
-				m.TotalMinedValveStart = &types.Coin{}
-			}
 			if err := m.TotalMinedValveStart.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
@@ -1509,9 +1262,6 @@ func (m *MiningRewardParam) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
-			}
-			if m.TotalMinedValveEnd == nil {
-				m.TotalMinedValveEnd = &types.Coin{}
 			}
 			if err := m.TotalMinedValveEnd.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -1546,16 +1296,13 @@ func (m *MiningRewardParam) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.MiningReward == nil {
-				m.MiningReward = &types.Coin{}
-			}
 			if err := m.MiningReward.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field BlockChainPercentageInTenThousand", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field BlockChainPercentageInBp", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1583,15 +1330,13 @@ func (m *MiningRewardParam) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
-			m.BlockChainPercentageInTenThousand = &v
-			if err := m.BlockChainPercentageInTenThousand.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.BlockChainPercentageInBp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field ResourceNodePercentageInTenThousand", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ResourceNodePercentageInBp", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1619,15 +1364,13 @@ func (m *MiningRewardParam) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
-			m.ResourceNodePercentageInTenThousand = &v
-			if err := m.ResourceNodePercentageInTenThousand.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ResourceNodePercentageInBp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field MetaNodePercentageInTenThousand", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaNodePercentageInBp", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -1655,241 +1398,7 @@ func (m *MiningRewardParam) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
-			m.MetaNodePercentageInTenThousand = &v
-			if err := m.MetaNodePercentageInTenThousand.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPot(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPot
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *ImmatureTotal) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPot
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: ImmatureTotal: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: ImmatureTotal: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.WalletAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Value = append(m.Value, types.Coin{})
-			if err := m.Value[len(m.Value)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPot(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPot
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *MatureTotal) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPot
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: MatureTotal: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MatureTotal: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.WalletAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Value", wireType)
-			}
-			var msglen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				msglen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if msglen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + msglen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Value = append(m.Value, types.Coin{})
-			if err := m.Value[len(m.Value)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.MetaNodePercentageInBp.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2155,9 +1664,91 @@ func (m *SingleWalletVolume) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			var v github_com_cosmos_cosmos_sdk_types.Int
-			m.Volume = &v
 			if err := m.Volume.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipPot(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthPot
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *WalletVolumes) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowPot
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: WalletVolumes: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: WalletVolumes: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Volumes", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowPot
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthPot
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthPot
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Volumes = append(m.Volumes, SingleWalletVolume{})
+			if err := m.Volumes[len(m.Volumes)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2306,156 +1897,6 @@ func (m *VolumeReportRecord) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.TxHash = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipPot(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthPot
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *BLSSignatureInfo) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowPot
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: BLSSignatureInfo: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: BLSSignatureInfo: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field PubKeys", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.PubKeys = append(m.PubKeys, make([]byte, postIndex-iNdEx))
-			copy(m.PubKeys[len(m.PubKeys)-1], dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Signature", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Signature = append(m.Signature[:0], dAtA[iNdEx:postIndex]...)
-			if m.Signature == nil {
-				m.Signature = []byte{}
-			}
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TxData", wireType)
-			}
-			var byteLen int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowPot
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				byteLen |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			if byteLen < 0 {
-				return ErrInvalidLengthPot
-			}
-			postIndex := iNdEx + byteLen
-			if postIndex < 0 {
-				return ErrInvalidLengthPot
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TxData = append(m.TxData[:0], dAtA[iNdEx:postIndex]...)
-			if m.TxData == nil {
-				m.TxData = []byte{}
-			}
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

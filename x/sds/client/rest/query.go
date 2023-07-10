@@ -10,27 +10,54 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/rest"
 	"github.com/gorilla/mux"
+	"github.com/ipfs/go-cid"
 	"github.com/stratosnet/stratos-chain/x/sds/client/common"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 func sdsQueryRoutes(clientCtx client.Context, r *mux.Router) {
-	r.HandleFunc(
-		"/sds/simulatePrepay/{amtToPrepay}",
-		SimulatePrepayHandlerFn(clientCtx),
-	).Methods("GET")
-	r.HandleFunc(
-		"/sds/nozPrice",
-		NozPriceHandlerFn(clientCtx),
-	).Methods("GET")
-	r.HandleFunc(
-		"/sds/nozSupply",
-		NozSupplyHandlerFn(clientCtx),
-	).Methods("GET")
-	r.HandleFunc("/sds/params",
-		sdsParamsHandlerFn(clientCtx, types.QueryParams),
-	).Methods("GET")
+	r.HandleFunc("/sds/fileUpload/{fileHash}", queryFileUploadHandlerFn(clientCtx, types.QueryFileUpload)).Methods("GET")
+	r.HandleFunc("/sds/simPrepay/{amtToPrepay}", SimulatePrepayHandlerFn(clientCtx)).Methods("GET")
+	r.HandleFunc("/sds/nozPrice", NozPriceHandlerFn(clientCtx)).Methods("GET")
+	r.HandleFunc("/sds/nozSupply", NozSupplyHandlerFn(clientCtx)).Methods("GET")
+	r.HandleFunc("/sds/params", sdsParamsHandlerFn(clientCtx, types.QueryParams)).Methods("GET")
+}
 
+func queryFileUploadHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		fileHash := mux.Vars(r)["fileHash"]
+		if len(fileHash) == 0 {
+			return
+		}
+		_, err := cid.Decode(fileHash)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		params := types.NewQueryFileUploadParams(fileHash)
+
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
 }
 
 // GET request handler to query params of POT module

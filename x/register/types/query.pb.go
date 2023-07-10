@@ -6,22 +6,32 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	types1 "github.com/cosmos/cosmos-sdk/codec/types"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
+	types "github.com/cosmos/cosmos-sdk/types"
 	query "github.com/cosmos/cosmos-sdk/types/query"
+	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
+	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
+	github_com_gogo_protobuf_types "github.com/gogo/protobuf/types"
+	_ "github.com/regen-network/cosmos-proto"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
+	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
+	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
+var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -213,25 +223,25 @@ func (m *QueryMetaNodeResponse) GetNode() *MetaNode {
 	return nil
 }
 
-// QueryStakeByNodeRequest is request type for the Query/StakeByNode RPC method
-type QueryStakeByNodeRequest struct {
+// QueryDepositByNodeRequest is request type for the Query/DepositByNode RPC method
+type QueryDepositByNodeRequest struct {
 	// network_addr defines the node network address to query for.
 	NetworkAddr string `protobuf:"bytes,1,opt,name=network_addr,json=networkAddr,proto3" json:"network_addr,omitempty"`
 	QueryType   uint32 `protobuf:"varint,2,opt,name=query_type,json=queryType,proto3" json:"query_type,omitempty"`
 }
 
-func (m *QueryStakeByNodeRequest) Reset()         { *m = QueryStakeByNodeRequest{} }
-func (m *QueryStakeByNodeRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryStakeByNodeRequest) ProtoMessage()    {}
-func (*QueryStakeByNodeRequest) Descriptor() ([]byte, []int) {
+func (m *QueryDepositByNodeRequest) Reset()         { *m = QueryDepositByNodeRequest{} }
+func (m *QueryDepositByNodeRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDepositByNodeRequest) ProtoMessage()    {}
+func (*QueryDepositByNodeRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59a612d1da8c0670, []int{4}
 }
-func (m *QueryStakeByNodeRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryDepositByNodeRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryStakeByNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDepositByNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryStakeByNodeRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDepositByNodeRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -241,50 +251,50 @@ func (m *QueryStakeByNodeRequest) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *QueryStakeByNodeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryStakeByNodeRequest.Merge(m, src)
+func (m *QueryDepositByNodeRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDepositByNodeRequest.Merge(m, src)
 }
-func (m *QueryStakeByNodeRequest) XXX_Size() int {
+func (m *QueryDepositByNodeRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryStakeByNodeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryStakeByNodeRequest.DiscardUnknown(m)
+func (m *QueryDepositByNodeRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDepositByNodeRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryStakeByNodeRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryDepositByNodeRequest proto.InternalMessageInfo
 
-func (m *QueryStakeByNodeRequest) GetNetworkAddr() string {
+func (m *QueryDepositByNodeRequest) GetNetworkAddr() string {
 	if m != nil {
 		return m.NetworkAddr
 	}
 	return ""
 }
 
-func (m *QueryStakeByNodeRequest) GetQueryType() uint32 {
+func (m *QueryDepositByNodeRequest) GetQueryType() uint32 {
 	if m != nil {
 		return m.QueryType
 	}
 	return 0
 }
 
-// QueryStakeByNodeResponse is response type for the Query/StakeByNode RPC method
-type QueryStakeByNodeResponse struct {
-	// staking_info defines the the staking_info info of the node.
-	StakingInfo *StakingInfo `protobuf:"bytes,1,opt,name=staking_info,json=stakingInfo,proto3" json:"staking_info,omitempty"`
+// QueryDepositByNodeResponse is response type for the Query/DepositByNode RPC method
+type QueryDepositByNodeResponse struct {
+	// deposit_info defines the the deposit info of the node.
+	DepositInfo *DepositInfo `protobuf:"bytes,1,opt,name=deposit_info,json=depositInfo,proto3" json:"deposit_info,omitempty"`
 }
 
-func (m *QueryStakeByNodeResponse) Reset()         { *m = QueryStakeByNodeResponse{} }
-func (m *QueryStakeByNodeResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryStakeByNodeResponse) ProtoMessage()    {}
-func (*QueryStakeByNodeResponse) Descriptor() ([]byte, []int) {
+func (m *QueryDepositByNodeResponse) Reset()         { *m = QueryDepositByNodeResponse{} }
+func (m *QueryDepositByNodeResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDepositByNodeResponse) ProtoMessage()    {}
+func (*QueryDepositByNodeResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59a612d1da8c0670, []int{5}
 }
-func (m *QueryStakeByNodeResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryDepositByNodeResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryStakeByNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDepositByNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryStakeByNodeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDepositByNodeResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -294,49 +304,45 @@ func (m *QueryStakeByNodeResponse) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryStakeByNodeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryStakeByNodeResponse.Merge(m, src)
+func (m *QueryDepositByNodeResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDepositByNodeResponse.Merge(m, src)
 }
-func (m *QueryStakeByNodeResponse) XXX_Size() int {
+func (m *QueryDepositByNodeResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryStakeByNodeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryStakeByNodeResponse.DiscardUnknown(m)
+func (m *QueryDepositByNodeResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDepositByNodeResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryStakeByNodeResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryDepositByNodeResponse proto.InternalMessageInfo
 
-func (m *QueryStakeByNodeResponse) GetStakingInfo() *StakingInfo {
+func (m *QueryDepositByNodeResponse) GetDepositInfo() *DepositInfo {
 	if m != nil {
-		return m.StakingInfo
+		return m.DepositInfo
 	}
 	return nil
 }
 
-// QueryStakeByOwnerRequest is request type for the Query/StakeByOwner RPC method
-type QueryStakeByOwnerRequest struct {
+// QueryDepositByOwnerRequest is request type for the Query/DepositByOwner RPC method
+type QueryDepositByOwnerRequest struct {
 	// owner_addr defines the owner address to query for.
-	//  string              network_addr = 1;
-	//  string              moniker = 2;
 	OwnerAddr string `protobuf:"bytes,1,opt,name=owner_addr,json=ownerAddr,proto3" json:"owner_addr,omitempty"`
-	//  int64               page = 2;
-	//  int64               limit = 3;
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryStakeByOwnerRequest) Reset()         { *m = QueryStakeByOwnerRequest{} }
-func (m *QueryStakeByOwnerRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryStakeByOwnerRequest) ProtoMessage()    {}
-func (*QueryStakeByOwnerRequest) Descriptor() ([]byte, []int) {
+func (m *QueryDepositByOwnerRequest) Reset()         { *m = QueryDepositByOwnerRequest{} }
+func (m *QueryDepositByOwnerRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDepositByOwnerRequest) ProtoMessage()    {}
+func (*QueryDepositByOwnerRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59a612d1da8c0670, []int{6}
 }
-func (m *QueryStakeByOwnerRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryDepositByOwnerRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryStakeByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDepositByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryStakeByOwnerRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDepositByOwnerRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -346,52 +352,52 @@ func (m *QueryStakeByOwnerRequest) XXX_Marshal(b []byte, deterministic bool) ([]
 		return b[:n], nil
 	}
 }
-func (m *QueryStakeByOwnerRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryStakeByOwnerRequest.Merge(m, src)
+func (m *QueryDepositByOwnerRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDepositByOwnerRequest.Merge(m, src)
 }
-func (m *QueryStakeByOwnerRequest) XXX_Size() int {
+func (m *QueryDepositByOwnerRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryStakeByOwnerRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryStakeByOwnerRequest.DiscardUnknown(m)
+func (m *QueryDepositByOwnerRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDepositByOwnerRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryStakeByOwnerRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryDepositByOwnerRequest proto.InternalMessageInfo
 
-func (m *QueryStakeByOwnerRequest) GetOwnerAddr() string {
+func (m *QueryDepositByOwnerRequest) GetOwnerAddr() string {
 	if m != nil {
 		return m.OwnerAddr
 	}
 	return ""
 }
 
-func (m *QueryStakeByOwnerRequest) GetPagination() *query.PageRequest {
+func (m *QueryDepositByOwnerRequest) GetPagination() *query.PageRequest {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-// QueryStakeByOwnerResponse is response type for the Query/StakeByOwner RPC method
-type QueryStakeByOwnerResponse struct {
-	// staking_infos defines the the node staking info of this owner.
-	StakingInfos []*StakingInfo `protobuf:"bytes,1,rep,name=staking_infos,json=stakingInfos,proto3" json:"staking_infos,omitempty"`
+// QueryDepositByOwnerResponse is response type for the Query/DepositByOwner RPC method
+type QueryDepositByOwnerResponse struct {
+	// deposit_infos defines the the node deposit info of this owner.
+	DepositInfos []*DepositInfo `protobuf:"bytes,1,rep,name=deposit_infos,json=depositInfos,proto3" json:"deposit_infos,omitempty"`
 	// pagination defines an optional pagination for the request.
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
-func (m *QueryStakeByOwnerResponse) Reset()         { *m = QueryStakeByOwnerResponse{} }
-func (m *QueryStakeByOwnerResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryStakeByOwnerResponse) ProtoMessage()    {}
-func (*QueryStakeByOwnerResponse) Descriptor() ([]byte, []int) {
+func (m *QueryDepositByOwnerResponse) Reset()         { *m = QueryDepositByOwnerResponse{} }
+func (m *QueryDepositByOwnerResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDepositByOwnerResponse) ProtoMessage()    {}
+func (*QueryDepositByOwnerResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59a612d1da8c0670, []int{7}
 }
-func (m *QueryStakeByOwnerResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryDepositByOwnerResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryStakeByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDepositByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryStakeByOwnerResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDepositByOwnerResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -401,48 +407,48 @@ func (m *QueryStakeByOwnerResponse) XXX_Marshal(b []byte, deterministic bool) ([
 		return b[:n], nil
 	}
 }
-func (m *QueryStakeByOwnerResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryStakeByOwnerResponse.Merge(m, src)
+func (m *QueryDepositByOwnerResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDepositByOwnerResponse.Merge(m, src)
 }
-func (m *QueryStakeByOwnerResponse) XXX_Size() int {
+func (m *QueryDepositByOwnerResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryStakeByOwnerResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryStakeByOwnerResponse.DiscardUnknown(m)
+func (m *QueryDepositByOwnerResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDepositByOwnerResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryStakeByOwnerResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryDepositByOwnerResponse proto.InternalMessageInfo
 
-func (m *QueryStakeByOwnerResponse) GetStakingInfos() []*StakingInfo {
+func (m *QueryDepositByOwnerResponse) GetDepositInfos() []*DepositInfo {
 	if m != nil {
-		return m.StakingInfos
+		return m.DepositInfos
 	}
 	return nil
 }
 
-func (m *QueryStakeByOwnerResponse) GetPagination() *query.PageResponse {
+func (m *QueryDepositByOwnerResponse) GetPagination() *query.PageResponse {
 	if m != nil {
 		return m.Pagination
 	}
 	return nil
 }
 
-// QueryTotalStakeRequest is request type for the Query/TotalStake RPC method
-type QueryTotalStakeRequest struct {
+// QueryDepositTotalRequest is request type for the Query/DepositTotal RPC method
+type QueryDepositTotalRequest struct {
 }
 
-func (m *QueryTotalStakeRequest) Reset()         { *m = QueryTotalStakeRequest{} }
-func (m *QueryTotalStakeRequest) String() string { return proto.CompactTextString(m) }
-func (*QueryTotalStakeRequest) ProtoMessage()    {}
-func (*QueryTotalStakeRequest) Descriptor() ([]byte, []int) {
+func (m *QueryDepositTotalRequest) Reset()         { *m = QueryDepositTotalRequest{} }
+func (m *QueryDepositTotalRequest) String() string { return proto.CompactTextString(m) }
+func (*QueryDepositTotalRequest) ProtoMessage()    {}
+func (*QueryDepositTotalRequest) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59a612d1da8c0670, []int{8}
 }
-func (m *QueryTotalStakeRequest) XXX_Unmarshal(b []byte) error {
+func (m *QueryDepositTotalRequest) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryTotalStakeRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDepositTotalRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryTotalStakeRequest.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDepositTotalRequest.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -452,36 +458,39 @@ func (m *QueryTotalStakeRequest) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *QueryTotalStakeRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryTotalStakeRequest.Merge(m, src)
+func (m *QueryDepositTotalRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDepositTotalRequest.Merge(m, src)
 }
-func (m *QueryTotalStakeRequest) XXX_Size() int {
+func (m *QueryDepositTotalRequest) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryTotalStakeRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryTotalStakeRequest.DiscardUnknown(m)
+func (m *QueryDepositTotalRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDepositTotalRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryTotalStakeRequest proto.InternalMessageInfo
+var xxx_messageInfo_QueryDepositTotalRequest proto.InternalMessageInfo
 
-// QueryTotalStakeResponse is response type for the Query/TotalStake RPC method
-type QueryTotalStakeResponse struct {
-	// total_stakes defines the total staking info.
-	TotalStakes *TotalStakesResponse `protobuf:"bytes,1,opt,name=total_stakes,json=totalStakes,proto3" json:"total_stakes,omitempty"`
+// QueryDepositTotalResponse is response type for the Query/DepositTotal RPC method
+type QueryDepositTotalResponse struct {
+	ResourceNodesTotalDeposit *types.Coin `protobuf:"bytes,1,opt,name=resource_nodes_total_deposit,json=resourceNodesTotalDeposit,proto3" json:"resource_nodes_total_deposit,omitempty"`
+	MetaNodesTotalDeposit     *types.Coin `protobuf:"bytes,2,opt,name=meta_nodes_total_deposit,json=metaNodesTotalDeposit,proto3" json:"meta_nodes_total_deposit,omitempty"`
+	TotalBondedDeposit        *types.Coin `protobuf:"bytes,3,opt,name=total_bonded_deposit,json=totalBondedDeposit,proto3" json:"total_bonded_deposit,omitempty"`
+	TotalUnbondedDeposit      *types.Coin `protobuf:"bytes,4,opt,name=total_unbonded_deposit,json=totalUnbondedDeposit,proto3" json:"total_unbonded_deposit,omitempty"`
+	TotalUnbondingDeposit     *types.Coin `protobuf:"bytes,5,opt,name=total_unbonding_deposit,json=totalUnbondingDeposit,proto3" json:"total_unbonding_deposit,omitempty"`
 }
 
-func (m *QueryTotalStakeResponse) Reset()         { *m = QueryTotalStakeResponse{} }
-func (m *QueryTotalStakeResponse) String() string { return proto.CompactTextString(m) }
-func (*QueryTotalStakeResponse) ProtoMessage()    {}
-func (*QueryTotalStakeResponse) Descriptor() ([]byte, []int) {
+func (m *QueryDepositTotalResponse) Reset()         { *m = QueryDepositTotalResponse{} }
+func (m *QueryDepositTotalResponse) String() string { return proto.CompactTextString(m) }
+func (*QueryDepositTotalResponse) ProtoMessage()    {}
+func (*QueryDepositTotalResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59a612d1da8c0670, []int{9}
 }
-func (m *QueryTotalStakeResponse) XXX_Unmarshal(b []byte) error {
+func (m *QueryDepositTotalResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *QueryTotalStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *QueryDepositTotalResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_QueryTotalStakeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_QueryDepositTotalResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -491,21 +500,49 @@ func (m *QueryTotalStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]b
 		return b[:n], nil
 	}
 }
-func (m *QueryTotalStakeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_QueryTotalStakeResponse.Merge(m, src)
+func (m *QueryDepositTotalResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_QueryDepositTotalResponse.Merge(m, src)
 }
-func (m *QueryTotalStakeResponse) XXX_Size() int {
+func (m *QueryDepositTotalResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *QueryTotalStakeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_QueryTotalStakeResponse.DiscardUnknown(m)
+func (m *QueryDepositTotalResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_QueryDepositTotalResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_QueryTotalStakeResponse proto.InternalMessageInfo
+var xxx_messageInfo_QueryDepositTotalResponse proto.InternalMessageInfo
 
-func (m *QueryTotalStakeResponse) GetTotalStakes() *TotalStakesResponse {
+func (m *QueryDepositTotalResponse) GetResourceNodesTotalDeposit() *types.Coin {
 	if m != nil {
-		return m.TotalStakes
+		return m.ResourceNodesTotalDeposit
+	}
+	return nil
+}
+
+func (m *QueryDepositTotalResponse) GetMetaNodesTotalDeposit() *types.Coin {
+	if m != nil {
+		return m.MetaNodesTotalDeposit
+	}
+	return nil
+}
+
+func (m *QueryDepositTotalResponse) GetTotalBondedDeposit() *types.Coin {
+	if m != nil {
+		return m.TotalBondedDeposit
+	}
+	return nil
+}
+
+func (m *QueryDepositTotalResponse) GetTotalUnbondedDeposit() *types.Coin {
+	if m != nil {
+		return m.TotalUnbondedDeposit
+	}
+	return nil
+}
+
+func (m *QueryDepositTotalResponse) GetTotalUnbondingDeposit() *types.Coin {
+	if m != nil {
+		return m.TotalUnbondingDeposit
 	}
 	return nil
 }
@@ -759,85 +796,247 @@ func (m *QueryBondedMetaNodeCountResponse) GetNumber() uint64 {
 	return 0
 }
 
+type DepositInfo struct {
+	NetworkAddress   string                                 `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	Pubkey           *types1.Any                            `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
+	Suspend          bool                                   `protobuf:"varint,3,opt,name=suspend,proto3" json:"suspend" yaml:"suspend"`
+	Status           types2.BondStatus                      `protobuf:"varint,4,opt,name=status,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"status" yaml:"status"`
+	Tokens           github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,5,opt,name=tokens,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"tokens" yaml:"tokens"`
+	OwnerAddress     string                                 `protobuf:"bytes,6,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	Description      Description                            `protobuf:"bytes,7,opt,name=description,proto3" json:"description" yaml:"description"`
+	CreationTime     time.Time                              `protobuf:"bytes,8,opt,name=creation_time,json=creationTime,proto3,stdtime" json:"creation_time" yaml:"creation_time"`
+	NodeType         uint32                                 `protobuf:"varint,9,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
+	BondedDeposit    types.Coin                             `protobuf:"bytes,10,opt,name=bonded_deposit,json=bondedDeposit,proto3" json:"bonded_deposit" yaml:"bonded_deposit"`
+	UnBondingDeposit types.Coin                             `protobuf:"bytes,11,opt,name=un_bonding_deposit,json=unBondingDeposit,proto3" json:"un_bonding_deposit" yaml:"un_bonding_deposit"`
+	UnBondedDeposit  types.Coin                             `protobuf:"bytes,12,opt,name=un_bonded_deposit,json=unBondedDeposit,proto3" json:"un_bonded_deposit" yaml:"un_bonded_deposit"`
+}
+
+func (m *DepositInfo) Reset()         { *m = DepositInfo{} }
+func (m *DepositInfo) String() string { return proto.CompactTextString(m) }
+func (*DepositInfo) ProtoMessage()    {}
+func (*DepositInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59a612d1da8c0670, []int{16}
+}
+func (m *DepositInfo) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *DepositInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_DepositInfo.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *DepositInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_DepositInfo.Merge(m, src)
+}
+func (m *DepositInfo) XXX_Size() int {
+	return m.Size()
+}
+func (m *DepositInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_DepositInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_DepositInfo proto.InternalMessageInfo
+
+func (m *DepositInfo) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
+}
+
+func (m *DepositInfo) GetPubkey() *types1.Any {
+	if m != nil {
+		return m.Pubkey
+	}
+	return nil
+}
+
+func (m *DepositInfo) GetSuspend() bool {
+	if m != nil {
+		return m.Suspend
+	}
+	return false
+}
+
+func (m *DepositInfo) GetStatus() types2.BondStatus {
+	if m != nil {
+		return m.Status
+	}
+	return types2.Unspecified
+}
+
+func (m *DepositInfo) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
+func (m *DepositInfo) GetDescription() Description {
+	if m != nil {
+		return m.Description
+	}
+	return Description{}
+}
+
+func (m *DepositInfo) GetCreationTime() time.Time {
+	if m != nil {
+		return m.CreationTime
+	}
+	return time.Time{}
+}
+
+func (m *DepositInfo) GetNodeType() uint32 {
+	if m != nil {
+		return m.NodeType
+	}
+	return 0
+}
+
+func (m *DepositInfo) GetBondedDeposit() types.Coin {
+	if m != nil {
+		return m.BondedDeposit
+	}
+	return types.Coin{}
+}
+
+func (m *DepositInfo) GetUnBondingDeposit() types.Coin {
+	if m != nil {
+		return m.UnBondingDeposit
+	}
+	return types.Coin{}
+}
+
+func (m *DepositInfo) GetUnBondedDeposit() types.Coin {
+	if m != nil {
+		return m.UnBondedDeposit
+	}
+	return types.Coin{}
+}
+
 func init() {
 	proto.RegisterType((*QueryResourceNodeRequest)(nil), "stratos.register.v1.QueryResourceNodeRequest")
 	proto.RegisterType((*QueryResourceNodeResponse)(nil), "stratos.register.v1.QueryResourceNodeResponse")
 	proto.RegisterType((*QueryMetaNodeRequest)(nil), "stratos.register.v1.QueryMetaNodeRequest")
 	proto.RegisterType((*QueryMetaNodeResponse)(nil), "stratos.register.v1.QueryMetaNodeResponse")
-	proto.RegisterType((*QueryStakeByNodeRequest)(nil), "stratos.register.v1.QueryStakeByNodeRequest")
-	proto.RegisterType((*QueryStakeByNodeResponse)(nil), "stratos.register.v1.QueryStakeByNodeResponse")
-	proto.RegisterType((*QueryStakeByOwnerRequest)(nil), "stratos.register.v1.QueryStakeByOwnerRequest")
-	proto.RegisterType((*QueryStakeByOwnerResponse)(nil), "stratos.register.v1.QueryStakeByOwnerResponse")
-	proto.RegisterType((*QueryTotalStakeRequest)(nil), "stratos.register.v1.QueryTotalStakeRequest")
-	proto.RegisterType((*QueryTotalStakeResponse)(nil), "stratos.register.v1.QueryTotalStakeResponse")
+	proto.RegisterType((*QueryDepositByNodeRequest)(nil), "stratos.register.v1.QueryDepositByNodeRequest")
+	proto.RegisterType((*QueryDepositByNodeResponse)(nil), "stratos.register.v1.QueryDepositByNodeResponse")
+	proto.RegisterType((*QueryDepositByOwnerRequest)(nil), "stratos.register.v1.QueryDepositByOwnerRequest")
+	proto.RegisterType((*QueryDepositByOwnerResponse)(nil), "stratos.register.v1.QueryDepositByOwnerResponse")
+	proto.RegisterType((*QueryDepositTotalRequest)(nil), "stratos.register.v1.QueryDepositTotalRequest")
+	proto.RegisterType((*QueryDepositTotalResponse)(nil), "stratos.register.v1.QueryDepositTotalResponse")
 	proto.RegisterType((*QueryParamsRequest)(nil), "stratos.register.v1.QueryParamsRequest")
 	proto.RegisterType((*QueryParamsResponse)(nil), "stratos.register.v1.QueryParamsResponse")
 	proto.RegisterType((*QueryBondedResourceNodeCountRequest)(nil), "stratos.register.v1.QueryBondedResourceNodeCountRequest")
 	proto.RegisterType((*QueryBondedResourceNodeCountResponse)(nil), "stratos.register.v1.QueryBondedResourceNodeCountResponse")
 	proto.RegisterType((*QueryBondedMetaNodeCountRequest)(nil), "stratos.register.v1.QueryBondedMetaNodeCountRequest")
 	proto.RegisterType((*QueryBondedMetaNodeCountResponse)(nil), "stratos.register.v1.QueryBondedMetaNodeCountResponse")
+	proto.RegisterType((*DepositInfo)(nil), "stratos.register.v1.DepositInfo")
 }
 
 func init() { proto.RegisterFile("stratos/register/v1/query.proto", fileDescriptor_59a612d1da8c0670) }
 
 var fileDescriptor_59a612d1da8c0670 = []byte{
-	// 883 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x96, 0x4f, 0x6f, 0x1b, 0x45,
-	0x18, 0xc6, 0x33, 0xa5, 0x58, 0xe4, 0xb5, 0x7b, 0x99, 0x94, 0xd6, 0x6c, 0xb1, 0x6b, 0x6f, 0xa0,
-	0x75, 0x4b, 0xbd, 0x8b, 0xdd, 0x14, 0xd1, 0x0a, 0x2a, 0x91, 0xf2, 0x47, 0x14, 0x51, 0xca, 0xb6,
-	0x27, 0x38, 0x58, 0x63, 0xef, 0xc4, 0x59, 0x25, 0x9e, 0xd9, 0xec, 0x8c, 0x13, 0xac, 0x28, 0x12,
-	0xf0, 0x09, 0x10, 0x9c, 0xf8, 0x00, 0x48, 0xfc, 0xb9, 0x70, 0xe2, 0x33, 0x70, 0x8c, 0xc4, 0x85,
-	0x23, 0x4a, 0xf8, 0x20, 0x68, 0x67, 0x67, 0xe3, 0xdd, 0x64, 0xd6, 0x76, 0xb8, 0x65, 0x27, 0xcf,
-	0xfb, 0x3e, 0xbf, 0x77, 0xf6, 0xdd, 0x47, 0x86, 0xeb, 0x42, 0x46, 0x44, 0x72, 0xe1, 0x46, 0x74,
-	0x18, 0x08, 0x49, 0x23, 0x77, 0xb7, 0xe3, 0xee, 0x8c, 0x69, 0x34, 0x71, 0xc2, 0x88, 0x4b, 0x8e,
-	0x57, 0xb4, 0xc0, 0x49, 0x05, 0xce, 0x6e, 0xc7, 0x7a, 0x75, 0xc8, 0xf9, 0x70, 0x9b, 0xba, 0x24,
-	0x0c, 0x5c, 0xc2, 0x18, 0x97, 0x44, 0x06, 0x9c, 0x89, 0xa4, 0xc4, 0xba, 0x3d, 0xe0, 0x62, 0xc4,
-	0x85, 0xdb, 0x27, 0x82, 0x26, 0xbd, 0xdc, 0xdd, 0x4e, 0x9f, 0x4a, 0xd2, 0x71, 0x43, 0x32, 0x0c,
-	0x98, 0x12, 0x6b, 0xad, 0x6d, 0xf2, 0x3f, 0xb1, 0x52, 0x1a, 0xfb, 0x5d, 0xa8, 0x7e, 0x1e, 0x77,
-	0xf1, 0xa8, 0xe0, 0xe3, 0x68, 0x40, 0x9f, 0x70, 0x9f, 0x7a, 0x74, 0x67, 0x4c, 0x85, 0xc4, 0x4d,
-	0xa8, 0x30, 0x2a, 0xf7, 0x78, 0xb4, 0xd5, 0x23, 0xbe, 0x1f, 0x55, 0x51, 0x03, 0xb5, 0x96, 0xbd,
-	0xb2, 0x3e, 0x7b, 0xcf, 0xf7, 0x23, 0xdb, 0x83, 0x57, 0x0c, 0xe5, 0x22, 0xe4, 0x4c, 0x50, 0x7c,
-	0x0f, 0x2e, 0x32, 0xee, 0x53, 0x55, 0x57, 0xee, 0x36, 0x1d, 0xc3, 0xb4, 0x4e, 0xae, 0x50, 0xc9,
-	0xed, 0xfb, 0x70, 0x59, 0xf5, 0xfc, 0x94, 0x4a, 0x72, 0x4e, 0x9c, 0xc7, 0xf0, 0xf2, 0xa9, 0x52,
-	0x8d, 0xd2, 0xc9, 0xa1, 0xd4, 0x8c, 0x28, 0x27, 0x45, 0x09, 0xc6, 0x97, 0x70, 0x55, 0xf5, 0x7a,
-	0x26, 0xc9, 0x16, 0x5d, 0x9f, 0x9c, 0x8f, 0x04, 0xd7, 0x00, 0xd4, 0xdb, 0xe9, 0xc9, 0x49, 0x48,
-	0xab, 0x17, 0x1a, 0xa8, 0x75, 0xc9, 0x5b, 0x56, 0x27, 0xcf, 0x27, 0x21, 0xb5, 0x7b, 0xfa, 0xda,
-	0x73, 0xcd, 0x35, 0xeb, 0x23, 0xa8, 0x08, 0x49, 0xb6, 0x02, 0x36, 0xec, 0x05, 0x6c, 0x83, 0x6b,
-	0xe6, 0x86, 0x91, 0xf9, 0x59, 0x22, 0xfc, 0x98, 0x6d, 0x70, 0xaf, 0x2c, 0xa6, 0x0f, 0xf6, 0x37,
-	0x28, 0xef, 0xf0, 0xd9, 0x1e, 0xa3, 0x51, 0xca, 0x5f, 0x03, 0xe0, 0xf1, 0x73, 0x96, 0x7e, 0x59,
-	0x9d, 0x28, 0xf6, 0x0f, 0x01, 0xa6, 0xbb, 0xa4, 0xd8, 0xcb, 0xdd, 0x1b, 0x4e, 0xb2, 0x78, 0x4e,
-	0xbc, 0x78, 0x4e, 0xb2, 0xc4, 0x7a, 0xf1, 0x9c, 0xa7, 0x64, 0x98, 0x5e, 0x8d, 0x97, 0xa9, 0xb4,
-	0x7f, 0x43, 0x7a, 0x3b, 0xf2, 0x0c, 0x7a, 0xcc, 0x0f, 0xe0, 0x52, 0x76, 0x4c, 0x51, 0x45, 0x8d,
-	0x17, 0x16, 0x9a, 0xb3, 0x92, 0x99, 0x53, 0xe0, 0x8f, 0x0c, 0xb0, 0x37, 0xe7, 0xc2, 0x26, 0x0c,
-	0x39, 0xda, 0x2a, 0x5c, 0x51, 0xb0, 0xcf, 0xb9, 0x24, 0xdb, 0x8a, 0x58, 0xcf, 0x64, 0x6f, 0xe8,
-	0x4d, 0xc8, 0xfe, 0x47, 0x0f, 0xf1, 0x09, 0x54, 0x64, 0x7c, 0xda, 0x8b, 0x99, 0xa8, 0xd0, 0xef,
-	0xaa, 0x65, 0x9c, 0x61, 0x5a, 0x2e, 0x4e, 0x00, 0xca, 0x72, 0x7a, 0x68, 0x5f, 0x06, 0xac, 0x7c,
-	0x9e, 0x92, 0x88, 0x8c, 0x44, 0xea, 0xfe, 0x18, 0x56, 0x72, 0xa7, 0xda, 0xf9, 0x2e, 0x94, 0x42,
-	0x75, 0xa2, 0x3d, 0xaf, 0x19, 0x3d, 0x75, 0x91, 0x96, 0xda, 0xaf, 0xc3, 0xaa, 0xea, 0xb5, 0xce,
-	0x99, 0x4f, 0xfd, 0xec, 0xb7, 0xf7, 0x88, 0x8f, 0x99, 0x4c, 0x2d, 0x1f, 0xc2, 0x6b, 0xb3, 0x65,
-	0x9a, 0xe1, 0x0a, 0x94, 0xd8, 0x78, 0xd4, 0xa7, 0xc9, 0x0e, 0x5d, 0xf4, 0xf4, 0x93, 0xdd, 0x84,
-	0xeb, 0x99, 0xfa, 0xf4, 0xbb, 0xca, 0x59, 0x3c, 0x80, 0x46, 0xb1, 0x64, 0x76, 0xfb, 0xee, 0xcf,
-	0x00, 0x2f, 0xaa, 0x62, 0xfc, 0x0b, 0x82, 0x4a, 0x16, 0x0f, 0xb7, 0x8d, 0xb7, 0x50, 0x94, 0x70,
-	0x96, 0xb3, 0xa8, 0x3c, 0x21, 0xb2, 0x1f, 0x7c, 0xfb, 0xd7, 0xbf, 0x3f, 0x5c, 0x58, 0xc3, 0x5d,
-	0xd7, 0x1c, 0xad, 0x49, 0x49, 0x3b, 0xce, 0x0f, 0xe1, 0xee, 0x67, 0x33, 0xe2, 0x00, 0xff, 0x88,
-	0xe0, 0xa5, 0x74, 0x4e, 0x7c, 0xab, 0xd8, 0xf8, 0x54, 0xec, 0x59, 0xb7, 0x17, 0x91, 0x6a, 0xbe,
-	0xb7, 0x14, 0xdf, 0x9b, 0xd8, 0x31, 0xf2, 0x8d, 0xa8, 0x24, 0x66, 0xb6, 0xaf, 0x11, 0x94, 0x92,
-	0x55, 0xc1, 0x37, 0x8b, 0xed, 0x72, 0x7b, 0x69, 0xb5, 0xe6, 0x0b, 0x35, 0xd5, 0xaa, 0xa2, 0xaa,
-	0xe1, 0x6b, 0x46, 0xaa, 0x64, 0x35, 0xf1, 0xef, 0x08, 0xca, 0x99, 0x34, 0xc4, 0x77, 0x8a, 0xdb,
-	0x9f, 0x4d, 0x64, 0xab, 0xbd, 0xa0, 0x5a, 0x13, 0xbd, 0xaf, 0x88, 0x1e, 0xe2, 0x77, 0x8c, 0x44,
-	0xc9, 0xb7, 0xdc, 0x8b, 0x6f, 0xea, 0xd4, 0x45, 0xb9, 0xfb, 0xd3, 0x50, 0x3f, 0xc0, 0x3f, 0x21,
-	0xa8, 0x64, 0xa3, 0x0d, 0xcf, 0xa7, 0xc8, 0xc6, 0xf0, 0xac, 0xed, 0x33, 0x25, 0xe6, 0x9c, 0xb7,
-	0xab, 0xa9, 0x55, 0x8c, 0xbb, 0xfb, 0xd3, 0x7c, 0x3f, 0xc0, 0xdf, 0x23, 0x00, 0xd5, 0x50, 0x25,
-	0x10, 0x7e, 0xa3, 0xd8, 0xf6, 0x4c, 0xf6, 0x59, 0x77, 0x16, 0x13, 0x6b, 0xc2, 0x5b, 0x8a, 0x70,
-	0x15, 0x37, 0x8d, 0x84, 0xd9, 0xa4, 0xc4, 0x7f, 0x20, 0xb8, 0x5a, 0x90, 0x2f, 0xf8, 0xed, 0x62,
-	0xd3, 0xd9, 0xc9, 0x65, 0xdd, 0xff, 0x1f, 0x95, 0x9a, 0xfd, 0x86, 0x62, 0x6f, 0xe0, 0xba, 0x79,
-	0x4b, 0xc3, 0x5e, 0x92, 0x3e, 0xf8, 0x57, 0x04, 0x2b, 0x86, 0xd4, 0xc2, 0x6b, 0xf3, 0xac, 0x4d,
-	0x39, 0x68, 0xdd, 0x3b, 0x67, 0xd5, 0x42, 0xb0, 0x22, 0x85, 0x5d, 0x7f, 0xf2, 0xe7, 0x51, 0x1d,
-	0x1d, 0x1e, 0xd5, 0xd1, 0x3f, 0x47, 0x75, 0xf4, 0xdd, 0x71, 0x7d, 0xe9, 0xf0, 0xb8, 0xbe, 0xf4,
-	0xf7, 0x71, 0x7d, 0xe9, 0x8b, 0xb5, 0x61, 0x20, 0x37, 0xc7, 0x7d, 0x67, 0xc0, 0x47, 0x69, 0x0f,
-	0x46, 0x65, 0xfa, 0x67, 0x7b, 0xb0, 0x49, 0x02, 0xe6, 0x7e, 0x35, 0x6d, 0x1b, 0xaf, 0xbc, 0xe8,
-	0x97, 0xd4, 0xaf, 0xc6, 0xbb, 0xff, 0x05, 0x00, 0x00, 0xff, 0xff, 0x5d, 0x50, 0x35, 0xdb, 0xdb,
-	0x0a, 0x00, 0x00,
+	// 1470 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x9c, 0x56, 0xcb, 0x8f, 0xd3, 0x56,
+	0x17, 0x1f, 0xf3, 0x08, 0x93, 0x9b, 0x64, 0xe0, 0xbb, 0x04, 0xc8, 0x78, 0x98, 0x78, 0xc6, 0xf0,
+	0xf1, 0x92, 0xc6, 0x66, 0x06, 0xf8, 0xf8, 0x40, 0x2a, 0x2a, 0xa6, 0x2f, 0x40, 0xe5, 0xe1, 0xd2,
+	0x56, 0x42, 0xaa, 0x22, 0x27, 0xbe, 0x04, 0x6b, 0xc8, 0xbd, 0xc6, 0xd7, 0x86, 0x46, 0x14, 0x09,
+	0xb5, 0xff, 0x00, 0x52, 0x57, 0xdd, 0x77, 0xd3, 0x4a, 0x55, 0x37, 0x55, 0x17, 0x55, 0x77, 0xdd,
+	0xa0, 0xae, 0x90, 0xba, 0xa9, 0xba, 0x70, 0x2b, 0xe8, 0x6a, 0x96, 0xf9, 0x0b, 0x2a, 0xdf, 0x7b,
+	0x9c, 0xd8, 0xc1, 0x33, 0x09, 0x5d, 0x25, 0xf7, 0x3c, 0x7e, 0xe7, 0x77, 0xee, 0x3d, 0x3e, 0xe7,
+	0x20, 0x8d, 0x87, 0x81, 0x13, 0x32, 0x6e, 0x06, 0xa4, 0xeb, 0xf1, 0x90, 0x04, 0xe6, 0x83, 0x55,
+	0xf3, 0x7e, 0x44, 0x82, 0xbe, 0xe1, 0x07, 0x2c, 0x64, 0x78, 0x2f, 0x18, 0x18, 0xa9, 0x81, 0xf1,
+	0x60, 0x55, 0xad, 0x77, 0x59, 0x97, 0x09, 0xbd, 0x99, 0xfc, 0x93, 0xa6, 0xea, 0x7c, 0x97, 0xb1,
+	0xee, 0x3d, 0x62, 0x8a, 0x53, 0x3b, 0xba, 0x63, 0x3a, 0x14, 0x50, 0x54, 0x6d, 0x5c, 0x15, 0x7a,
+	0x3d, 0xc2, 0x43, 0xa7, 0xe7, 0x83, 0xc1, 0x41, 0x30, 0x70, 0x7c, 0xcf, 0x74, 0x28, 0x65, 0xa1,
+	0x13, 0x7a, 0x8c, 0xf2, 0x14, 0xb9, 0xc3, 0x78, 0x8f, 0xf1, 0x96, 0x0c, 0x29, 0x0f, 0xa0, 0x3a,
+	0x21, 0x4f, 0x66, 0xdb, 0xe1, 0x44, 0x12, 0x37, 0x1f, 0xac, 0xb6, 0x49, 0xe8, 0xac, 0x9a, 0xbe,
+	0xd3, 0xf5, 0xa8, 0xc0, 0x01, 0xdb, 0x66, 0xd6, 0x36, 0xb5, 0xea, 0x30, 0x2f, 0xd5, 0x1f, 0x06,
+	0x3d, 0x0f, 0x9d, 0x75, 0x8f, 0x76, 0x87, 0x26, 0x70, 0x06, 0x2b, 0xbd, 0xe8, 0xca, 0x86, 0xb7,
+	0x23, 0x6c, 0xf4, 0x37, 0x50, 0xe3, 0x66, 0xc2, 0xc5, 0x26, 0x9c, 0x45, 0x41, 0x87, 0x5c, 0x63,
+	0x2e, 0xb1, 0xc9, 0xfd, 0x88, 0xf0, 0x10, 0x2f, 0xa3, 0x2a, 0x25, 0xe1, 0x43, 0x16, 0xac, 0xb7,
+	0x1c, 0xd7, 0x0d, 0x1a, 0xca, 0x92, 0x72, 0xac, 0x6c, 0x57, 0x40, 0x76, 0xd1, 0x75, 0x03, 0xdd,
+	0x46, 0xf3, 0x05, 0xee, 0xdc, 0x67, 0x94, 0x13, 0x7c, 0x06, 0xed, 0xa0, 0xcc, 0x25, 0xc2, 0xaf,
+	0xb2, 0xb6, 0x6c, 0x14, 0x3c, 0x90, 0x91, 0x73, 0x14, 0xe6, 0xfa, 0x39, 0x54, 0x17, 0x98, 0xef,
+	0x93, 0xd0, 0x79, 0x4d, 0x3a, 0x57, 0xd0, 0xbe, 0x31, 0x57, 0xa0, 0xb2, 0x9a, 0xa3, 0xb2, 0x58,
+	0x48, 0x65, 0xe8, 0x24, 0x69, 0x7c, 0x02, 0xa9, 0xbd, 0x45, 0x7c, 0xc6, 0xbd, 0xd0, 0xea, 0xbf,
+	0x1e, 0x17, 0xbc, 0x88, 0x90, 0x78, 0xe5, 0x56, 0xd8, 0xf7, 0x49, 0x63, 0xdb, 0x92, 0x72, 0xac,
+	0x66, 0x97, 0x85, 0xe4, 0x56, 0xdf, 0x27, 0xba, 0x83, 0xd4, 0x22, 0x78, 0xe0, 0x7b, 0x09, 0x55,
+	0x5d, 0xa9, 0x68, 0x79, 0xf4, 0x0e, 0x03, 0xde, 0x4b, 0x85, 0xbc, 0x01, 0xe1, 0x32, 0xbd, 0xc3,
+	0xec, 0x8a, 0x3b, 0x3a, 0xe8, 0x5f, 0x28, 0xe3, 0x31, 0xae, 0x3f, 0xa4, 0x24, 0x48, 0x73, 0x58,
+	0x44, 0x88, 0x25, 0xe7, 0x6c, 0x06, 0x65, 0x21, 0x11, 0xfc, 0xdf, 0x41, 0x68, 0x54, 0x97, 0x82,
+	0x7f, 0x65, 0xed, 0x88, 0x01, 0x25, 0x9d, 0x14, 0xa6, 0x21, 0xbf, 0x3e, 0xa8, 0x3d, 0xe3, 0x86,
+	0xd3, 0x4d, 0xaf, 0xc7, 0xce, 0x78, 0xea, 0xdf, 0x29, 0x68, 0xa1, 0x90, 0x05, 0xa4, 0xfa, 0x36,
+	0xaa, 0x65, 0x53, 0xe5, 0x0d, 0x65, 0x69, 0xfb, 0x54, 0xb9, 0x56, 0x33, 0xb9, 0x72, 0xfc, 0x6e,
+	0x01, 0xdd, 0xa3, 0x13, 0xe9, 0x4a, 0x0e, 0x39, 0xbe, 0x2a, 0x7c, 0x11, 0x10, 0xea, 0x16, 0x0b,
+	0x9d, 0x7b, 0x90, 0x97, 0xfe, 0xf3, 0xf6, 0x7c, 0x51, 0x80, 0x12, 0x32, 0xb9, 0x8d, 0x0e, 0x06,
+	0x50, 0xce, 0xad, 0xa4, 0x84, 0x78, 0x2b, 0x4c, 0xf4, 0x2d, 0xe0, 0x09, 0x8f, 0x38, 0x9f, 0x23,
+	0x95, 0xd2, 0xb9, 0xc4, 0x3c, 0x6a, 0xcf, 0x07, 0x99, 0xaf, 0x81, 0x0b, 0x70, 0x08, 0x84, 0x6d,
+	0xd4, 0xe8, 0x91, 0xd0, 0x29, 0xc4, 0xdd, 0x36, 0x09, 0x77, 0x5f, 0x0f, 0x4a, 0x3b, 0x8f, 0x79,
+	0x15, 0xd5, 0x25, 0x50, 0x9b, 0x51, 0x97, 0xb8, 0x43, 0xbc, 0xed, 0x93, 0xf0, 0xb0, 0x70, 0xb3,
+	0x84, 0x57, 0x0a, 0x76, 0x1d, 0xed, 0x97, 0x60, 0x11, 0x1d, 0x83, 0xdb, 0x31, 0x09, 0x4e, 0xb2,
+	0xf8, 0x10, 0xfc, 0x52, 0xc0, 0x9b, 0xe8, 0x40, 0x16, 0xd0, 0xa3, 0xdd, 0x21, 0xe2, 0xce, 0x89,
+	0x09, 0x67, 0x10, 0x3d, 0xda, 0x05, 0x48, 0xbd, 0x8e, 0xb0, 0x78, 0xbd, 0x1b, 0x4e, 0xe0, 0xf4,
+	0x78, 0xfa, 0xa8, 0x57, 0xd0, 0xde, 0x9c, 0x14, 0x5e, 0xf3, 0x14, 0x2a, 0xf9, 0x42, 0x02, 0xef,
+	0xb6, 0x50, 0x58, 0x90, 0xe0, 0x04, 0xa6, 0xfa, 0x7f, 0xd1, 0x21, 0x81, 0x25, 0xef, 0x26, 0xdb,
+	0xdc, 0x2e, 0xb1, 0x88, 0x86, 0x69, 0xc8, 0x0b, 0xe8, 0xf0, 0xd6, 0x66, 0xc0, 0x61, 0x3f, 0x2a,
+	0xd1, 0xa8, 0xd7, 0x26, 0xf2, 0xf3, 0xdc, 0x61, 0xc3, 0x49, 0x5f, 0x46, 0x5a, 0xc6, 0x3f, 0x6d,
+	0x5c, 0xb9, 0x10, 0xe7, 0xd1, 0xd2, 0xe6, 0x26, 0x13, 0xe0, 0xbf, 0x2e, 0xa3, 0x4a, 0xe6, 0x4b,
+	0xc3, 0x1f, 0xa1, 0xdd, 0xd9, 0x6e, 0x47, 0xb8, 0xbc, 0x93, 0xb2, 0xb5, 0xb2, 0x11, 0x6b, 0xe3,
+	0xaa, 0x41, 0xac, 0xed, 0xef, 0x3b, 0xbd, 0x7b, 0xe7, 0xf5, 0x31, 0x85, 0x6e, 0xcf, 0x65, 0xfa,
+	0x23, 0xe1, 0x1c, 0x3b, 0xa8, 0xe4, 0x47, 0xed, 0x75, 0xd2, 0x87, 0x12, 0xae, 0x1b, 0x72, 0xb8,
+	0x1a, 0xe9, 0xf4, 0x35, 0x2e, 0xd2, 0xbe, 0x75, 0x6a, 0x23, 0xd6, 0xc0, 0x6e, 0x10, 0x6b, 0x35,
+	0x89, 0x2d, 0xcf, 0xfa, 0xaf, 0x3f, 0xac, 0xd4, 0xa1, 0x0a, 0x3a, 0x41, 0xdf, 0x0f, 0x99, 0x71,
+	0x23, 0x6a, 0x5f, 0x25, 0x7d, 0x1b, 0x1c, 0xf0, 0x59, 0xb4, 0x8b, 0x47, 0xdc, 0x27, 0xd4, 0x15,
+	0x65, 0x3d, 0x6b, 0x2d, 0x6e, 0xc4, 0x5a, 0x2a, 0x1a, 0xc4, 0xda, 0x9c, 0x84, 0x03, 0x81, 0x6e,
+	0xa7, 0x2a, 0xfc, 0x31, 0x2a, 0xf1, 0xd0, 0x09, 0x23, 0x2e, 0xea, 0x77, 0x6e, 0x4d, 0x4f, 0xab,
+	0x2d, 0x9d, 0xb1, 0x69, 0xc1, 0x25, 0x17, 0xfc, 0x81, 0xb0, 0xb4, 0x16, 0x12, 0xa6, 0xd2, 0x6b,
+	0xc4, 0x54, 0x9e, 0x75, 0x1b, 0x14, 0x49, 0xd2, 0x21, 0x5b, 0x27, 0x94, 0x8b, 0x32, 0x2e, 0x5b,
+	0x97, 0x9f, 0xc5, 0xda, 0xcc, 0x1f, 0xb1, 0x76, 0xa4, 0xeb, 0x85, 0x77, 0xa3, 0xb6, 0xd1, 0x61,
+	0x3d, 0x58, 0x1c, 0xe0, 0x67, 0x85, 0xbb, 0xeb, 0x66, 0x32, 0x44, 0xb8, 0x71, 0x99, 0x86, 0x49,
+	0x08, 0xe9, 0x3f, 0x0a, 0x21, 0xcf, 0xba, 0x0d, 0x0a, 0x7c, 0x0d, 0xd5, 0x46, 0x9d, 0x3d, 0x79,
+	0xad, 0x92, 0x88, 0x74, 0x7c, 0x23, 0xd6, 0xf2, 0x8a, 0x41, 0xac, 0xd5, 0x25, 0x44, 0x4e, 0xac,
+	0xdb, 0xd5, 0xe1, 0x1c, 0x48, 0xde, 0xa9, 0x87, 0x2a, 0x2e, 0xe1, 0x9d, 0xc0, 0xf3, 0x45, 0x73,
+	0xdd, 0xb5, 0xe5, 0x30, 0x1a, 0xda, 0x59, 0xc7, 0x93, 0xcc, 0x36, 0x62, 0x2d, 0xeb, 0x3c, 0x88,
+	0x35, 0x2c, 0x23, 0x66, 0x84, 0xba, 0x9d, 0x35, 0xc1, 0x01, 0xaa, 0x75, 0x02, 0x22, 0xba, 0x71,
+	0x2b, 0x59, 0xbf, 0x1a, 0xb3, 0x22, 0xa0, 0xfa, 0x4a, 0x75, 0xdc, 0x4a, 0x77, 0x33, 0x6b, 0x15,
+	0x42, 0xe5, 0x1d, 0x47, 0xe9, 0xe5, 0xc4, 0xfa, 0xd3, 0x3f, 0x35, 0xc5, 0xae, 0xa6, 0xb2, 0x04,
+	0x05, 0x5f, 0x40, 0xe5, 0xa4, 0xb5, 0xca, 0x61, 0x5d, 0x4e, 0x86, 0xb5, 0xb5, 0xbc, 0x11, 0x6b,
+	0x23, 0xe1, 0x20, 0xd6, 0xf6, 0x40, 0x59, 0xa7, 0x22, 0xdd, 0x9e, 0x4d, 0xfe, 0x27, 0xe3, 0x1c,
+	0xdf, 0x47, 0x73, 0x63, 0x6d, 0x0f, 0x4d, 0x68, 0x52, 0x96, 0x09, 0x9c, 0xc7, 0x1c, 0x07, 0xb1,
+	0xb6, 0x4f, 0x06, 0xca, 0xcb, 0x75, 0xbb, 0x96, 0x6f, 0x90, 0x4f, 0x14, 0x84, 0x23, 0xda, 0x1a,
+	0x6f, 0x8e, 0x95, 0x49, 0x71, 0xcf, 0x42, 0xdc, 0x02, 0xe7, 0x41, 0xac, 0xcd, 0xcb, 0xd8, 0xaf,
+	0xea, 0x74, 0x7b, 0x4f, 0x44, 0xad, 0x5c, 0x43, 0xc5, 0x9f, 0xa1, 0xff, 0x80, 0x61, 0x26, 0xf1,
+	0xea, 0x24, 0x02, 0x67, 0x80, 0xc0, 0xab, 0xbe, 0x83, 0x58, 0x6b, 0xe4, 0xe2, 0x67, 0xd3, 0xdf,
+	0x2d, 0xc3, 0x0f, 0x2f, 0x60, 0xed, 0x17, 0x84, 0x76, 0x8a, 0x1e, 0x87, 0xbf, 0x51, 0x50, 0x35,
+	0xdb, 0x45, 0xf1, 0x4a, 0x61, 0x71, 0x6e, 0xb6, 0xe9, 0xaa, 0xc6, 0xb4, 0xe6, 0xb2, 0x71, 0xea,
+	0xe7, 0x3f, 0xff, 0xed, 0xef, 0x2f, 0xb7, 0x9d, 0xc6, 0x6b, 0x66, 0xf1, 0x8a, 0x2d, 0x5d, 0x56,
+	0xc4, 0xb0, 0x36, 0x1f, 0x65, 0xfb, 0xe0, 0x63, 0xfc, 0x95, 0x82, 0x66, 0xd3, 0x76, 0x8c, 0x8f,
+	0x6f, 0x1e, 0x78, 0x6c, 0xfd, 0x55, 0x4f, 0x4c, 0x63, 0x0a, 0xfc, 0xfe, 0x27, 0xf8, 0x9d, 0xc4,
+	0x46, 0x21, 0xbf, 0x64, 0x1b, 0x28, 0xe6, 0xf6, 0x44, 0x41, 0x25, 0x39, 0xd1, 0xf0, 0xd1, 0xcd,
+	0xc3, 0xe5, 0xc6, 0xa7, 0x7a, 0x6c, 0xb2, 0x21, 0xb0, 0x3a, 0x24, 0x58, 0x2d, 0xe2, 0x85, 0x42,
+	0x56, 0x72, 0x82, 0xe2, 0x9f, 0x14, 0x54, 0xcb, 0xed, 0xc4, 0x78, 0x8b, 0xc7, 0x29, 0xda, 0xcd,
+	0x55, 0x73, 0x6a, 0x7b, 0xe0, 0xf5, 0x9e, 0xe0, 0x65, 0xe1, 0x37, 0x0b, 0x79, 0xa5, 0xcb, 0x69,
+	0xbb, 0x2f, 0x96, 0xaf, 0xb1, 0x2b, 0x33, 0x1f, 0x8d, 0x96, 0xfc, 0xc7, 0xf8, 0x7b, 0x05, 0xcd,
+	0xe5, 0xd7, 0x5c, 0x3c, 0x0d, 0x9b, 0xec, 0x5a, 0xae, 0x9e, 0x9c, 0xde, 0x61, 0xaa, 0x6a, 0xcc,
+	0xf0, 0x17, 0x4d, 0xdd, 0x7c, 0x34, 0xea, 0xf5, 0xa2, 0x1a, 0xab, 0xd9, 0x65, 0x76, 0xab, 0x2f,
+	0xa7, 0x60, 0x23, 0x56, 0x8d, 0x69, 0xcd, 0x81, 0xeb, 0x09, 0xc1, 0xf5, 0x30, 0xd6, 0xb7, 0xe4,
+	0x2a, 0xd6, 0x37, 0xfc, 0xa3, 0x82, 0x0e, 0x6c, 0xb2, 0x21, 0xe1, 0xff, 0x6f, 0x1e, 0x77, 0xeb,
+	0xdd, 0x4b, 0x3d, 0xf7, 0x2f, 0x3c, 0x81, 0xfc, 0x11, 0x41, 0x7e, 0x09, 0x37, 0x8b, 0x0b, 0xd8,
+	0x6f, 0xc9, 0xfd, 0x09, 0x7f, 0xab, 0xa0, 0xbd, 0x05, 0x7b, 0x17, 0x3e, 0x3d, 0x29, 0x74, 0xd1,
+	0x26, 0xa7, 0x9e, 0x79, 0x4d, 0xaf, 0xa9, 0xc8, 0xf2, 0x94, 0xac, 0x75, 0xed, 0xd9, 0x8b, 0xa6,
+	0xf2, 0xfc, 0x45, 0x53, 0xf9, 0xeb, 0x45, 0x53, 0x79, 0xfa, 0xb2, 0x39, 0xf3, 0xfc, 0x65, 0x73,
+	0xe6, 0xf7, 0x97, 0xcd, 0x99, 0xdb, 0xa7, 0x33, 0x1b, 0x09, 0x60, 0x50, 0x12, 0xa6, 0x7f, 0x57,
+	0x3a, 0x77, 0x1d, 0x8f, 0x9a, 0x9f, 0x8e, 0x60, 0xc5, 0x8e, 0xd2, 0x2e, 0x89, 0xf1, 0x7c, 0xea,
+	0x9f, 0x00, 0x00, 0x00, 0xff, 0xff, 0xbc, 0x8a, 0x48, 0x6c, 0xb1, 0x11, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -858,12 +1057,12 @@ type QueryClient interface {
 	MetaNode(ctx context.Context, in *QueryMetaNodeRequest, opts ...grpc.CallOption) (*QueryMetaNodeResponse, error)
 	// Params queries Register module Params info.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
-	// StakeByNode queries all staking info for given node network address.
-	StakeByNode(ctx context.Context, in *QueryStakeByNodeRequest, opts ...grpc.CallOption) (*QueryStakeByNodeResponse, error)
-	// StakeByOwner queries all staking info for given owner address.
-	StakeByOwner(ctx context.Context, in *QueryStakeByOwnerRequest, opts ...grpc.CallOption) (*QueryStakeByOwnerResponse, error)
-	// StakeTotal queries all staking info.
-	StakeTotal(ctx context.Context, in *QueryTotalStakeRequest, opts ...grpc.CallOption) (*QueryTotalStakeResponse, error)
+	// DepositByNode queries all deposit info for given node network address.
+	DepositByNode(ctx context.Context, in *QueryDepositByNodeRequest, opts ...grpc.CallOption) (*QueryDepositByNodeResponse, error)
+	// DepositByOwner queries all deposit info for given owner address.
+	DepositByOwner(ctx context.Context, in *QueryDepositByOwnerRequest, opts ...grpc.CallOption) (*QueryDepositByOwnerResponse, error)
+	// DepositTotal queries all deposit info.
+	DepositTotal(ctx context.Context, in *QueryDepositTotalRequest, opts ...grpc.CallOption) (*QueryDepositTotalResponse, error)
 	// BondedResourceNodeCount queries total number of ResourceNodes.
 	BondedResourceNodeCount(ctx context.Context, in *QueryBondedResourceNodeCountRequest, opts ...grpc.CallOption) (*QueryBondedResourceNodeCountResponse, error)
 	// BondedMetaNodeCount queries total number of MetaNodes.
@@ -905,27 +1104,27 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
-func (c *queryClient) StakeByNode(ctx context.Context, in *QueryStakeByNodeRequest, opts ...grpc.CallOption) (*QueryStakeByNodeResponse, error) {
-	out := new(QueryStakeByNodeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Query/StakeByNode", in, out, opts...)
+func (c *queryClient) DepositByNode(ctx context.Context, in *QueryDepositByNodeRequest, opts ...grpc.CallOption) (*QueryDepositByNodeResponse, error) {
+	out := new(QueryDepositByNodeResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Query/DepositByNode", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) StakeByOwner(ctx context.Context, in *QueryStakeByOwnerRequest, opts ...grpc.CallOption) (*QueryStakeByOwnerResponse, error) {
-	out := new(QueryStakeByOwnerResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Query/StakeByOwner", in, out, opts...)
+func (c *queryClient) DepositByOwner(ctx context.Context, in *QueryDepositByOwnerRequest, opts ...grpc.CallOption) (*QueryDepositByOwnerResponse, error) {
+	out := new(QueryDepositByOwnerResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Query/DepositByOwner", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *queryClient) StakeTotal(ctx context.Context, in *QueryTotalStakeRequest, opts ...grpc.CallOption) (*QueryTotalStakeResponse, error) {
-	out := new(QueryTotalStakeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Query/StakeTotal", in, out, opts...)
+func (c *queryClient) DepositTotal(ctx context.Context, in *QueryDepositTotalRequest, opts ...grpc.CallOption) (*QueryDepositTotalResponse, error) {
+	out := new(QueryDepositTotalResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Query/DepositTotal", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -958,12 +1157,12 @@ type QueryServer interface {
 	MetaNode(context.Context, *QueryMetaNodeRequest) (*QueryMetaNodeResponse, error)
 	// Params queries Register module Params info.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
-	// StakeByNode queries all staking info for given node network address.
-	StakeByNode(context.Context, *QueryStakeByNodeRequest) (*QueryStakeByNodeResponse, error)
-	// StakeByOwner queries all staking info for given owner address.
-	StakeByOwner(context.Context, *QueryStakeByOwnerRequest) (*QueryStakeByOwnerResponse, error)
-	// StakeTotal queries all staking info.
-	StakeTotal(context.Context, *QueryTotalStakeRequest) (*QueryTotalStakeResponse, error)
+	// DepositByNode queries all deposit info for given node network address.
+	DepositByNode(context.Context, *QueryDepositByNodeRequest) (*QueryDepositByNodeResponse, error)
+	// DepositByOwner queries all deposit info for given owner address.
+	DepositByOwner(context.Context, *QueryDepositByOwnerRequest) (*QueryDepositByOwnerResponse, error)
+	// DepositTotal queries all deposit info.
+	DepositTotal(context.Context, *QueryDepositTotalRequest) (*QueryDepositTotalResponse, error)
 	// BondedResourceNodeCount queries total number of ResourceNodes.
 	BondedResourceNodeCount(context.Context, *QueryBondedResourceNodeCountRequest) (*QueryBondedResourceNodeCountResponse, error)
 	// BondedMetaNodeCount queries total number of MetaNodes.
@@ -983,14 +1182,14 @@ func (*UnimplementedQueryServer) MetaNode(ctx context.Context, req *QueryMetaNod
 func (*UnimplementedQueryServer) Params(ctx context.Context, req *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
 }
-func (*UnimplementedQueryServer) StakeByNode(ctx context.Context, req *QueryStakeByNodeRequest) (*QueryStakeByNodeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StakeByNode not implemented")
+func (*UnimplementedQueryServer) DepositByNode(ctx context.Context, req *QueryDepositByNodeRequest) (*QueryDepositByNodeResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositByNode not implemented")
 }
-func (*UnimplementedQueryServer) StakeByOwner(ctx context.Context, req *QueryStakeByOwnerRequest) (*QueryStakeByOwnerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StakeByOwner not implemented")
+func (*UnimplementedQueryServer) DepositByOwner(ctx context.Context, req *QueryDepositByOwnerRequest) (*QueryDepositByOwnerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositByOwner not implemented")
 }
-func (*UnimplementedQueryServer) StakeTotal(ctx context.Context, req *QueryTotalStakeRequest) (*QueryTotalStakeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method StakeTotal not implemented")
+func (*UnimplementedQueryServer) DepositTotal(ctx context.Context, req *QueryDepositTotalRequest) (*QueryDepositTotalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DepositTotal not implemented")
 }
 func (*UnimplementedQueryServer) BondedResourceNodeCount(ctx context.Context, req *QueryBondedResourceNodeCountRequest) (*QueryBondedResourceNodeCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BondedResourceNodeCount not implemented")
@@ -1057,56 +1256,56 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_StakeByNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryStakeByNodeRequest)
+func _Query_DepositByNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDepositByNodeRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).StakeByNode(ctx, in)
+		return srv.(QueryServer).DepositByNode(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Query/StakeByNode",
+		FullMethod: "/stratos.register.v1.Query/DepositByNode",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).StakeByNode(ctx, req.(*QueryStakeByNodeRequest))
+		return srv.(QueryServer).DepositByNode(ctx, req.(*QueryDepositByNodeRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_StakeByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryStakeByOwnerRequest)
+func _Query_DepositByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDepositByOwnerRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).StakeByOwner(ctx, in)
+		return srv.(QueryServer).DepositByOwner(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Query/StakeByOwner",
+		FullMethod: "/stratos.register.v1.Query/DepositByOwner",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).StakeByOwner(ctx, req.(*QueryStakeByOwnerRequest))
+		return srv.(QueryServer).DepositByOwner(ctx, req.(*QueryDepositByOwnerRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_StakeTotal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryTotalStakeRequest)
+func _Query_DepositTotal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryDepositTotalRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).StakeTotal(ctx, in)
+		return srv.(QueryServer).DepositTotal(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Query/StakeTotal",
+		FullMethod: "/stratos.register.v1.Query/DepositTotal",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).StakeTotal(ctx, req.(*QueryTotalStakeRequest))
+		return srv.(QueryServer).DepositTotal(ctx, req.(*QueryDepositTotalRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1164,16 +1363,16 @@ var _Query_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Query_Params_Handler,
 		},
 		{
-			MethodName: "StakeByNode",
-			Handler:    _Query_StakeByNode_Handler,
+			MethodName: "DepositByNode",
+			Handler:    _Query_DepositByNode_Handler,
 		},
 		{
-			MethodName: "StakeByOwner",
-			Handler:    _Query_StakeByOwner_Handler,
+			MethodName: "DepositByOwner",
+			Handler:    _Query_DepositByOwner_Handler,
 		},
 		{
-			MethodName: "StakeTotal",
-			Handler:    _Query_StakeTotal_Handler,
+			MethodName: "DepositTotal",
+			Handler:    _Query_DepositTotal_Handler,
 		},
 		{
 			MethodName: "BondedResourceNodeCount",
@@ -1318,7 +1517,7 @@ func (m *QueryMetaNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryStakeByNodeRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryDepositByNodeRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1328,12 +1527,12 @@ func (m *QueryStakeByNodeRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryStakeByNodeRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDepositByNodeRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryStakeByNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDepositByNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1353,7 +1552,7 @@ func (m *QueryStakeByNodeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryStakeByNodeResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryDepositByNodeResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1363,19 +1562,19 @@ func (m *QueryStakeByNodeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryStakeByNodeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDepositByNodeResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryStakeByNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDepositByNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.StakingInfo != nil {
+	if m.DepositInfo != nil {
 		{
-			size, err := m.StakingInfo.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.DepositInfo.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1388,7 +1587,7 @@ func (m *QueryStakeByNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryStakeByOwnerRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryDepositByOwnerRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1398,12 +1597,12 @@ func (m *QueryStakeByOwnerRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryStakeByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDepositByOwnerRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryStakeByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDepositByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1430,7 +1629,7 @@ func (m *QueryStakeByOwnerRequest) MarshalToSizedBuffer(dAtA []byte) (int, error
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryStakeByOwnerResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryDepositByOwnerResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1440,12 +1639,12 @@ func (m *QueryStakeByOwnerResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryStakeByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDepositByOwnerResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryStakeByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDepositByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1462,10 +1661,10 @@ func (m *QueryStakeByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 		i--
 		dAtA[i] = 0x12
 	}
-	if len(m.StakingInfos) > 0 {
-		for iNdEx := len(m.StakingInfos) - 1; iNdEx >= 0; iNdEx-- {
+	if len(m.DepositInfos) > 0 {
+		for iNdEx := len(m.DepositInfos) - 1; iNdEx >= 0; iNdEx-- {
 			{
-				size, err := m.StakingInfos[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				size, err := m.DepositInfos[iNdEx].MarshalToSizedBuffer(dAtA[:i])
 				if err != nil {
 					return 0, err
 				}
@@ -1479,7 +1678,7 @@ func (m *QueryStakeByOwnerResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryTotalStakeRequest) Marshal() (dAtA []byte, err error) {
+func (m *QueryDepositTotalRequest) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1489,12 +1688,12 @@ func (m *QueryTotalStakeRequest) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryTotalStakeRequest) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDepositTotalRequest) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryTotalStakeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDepositTotalRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1502,7 +1701,7 @@ func (m *QueryTotalStakeRequest) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *QueryTotalStakeResponse) Marshal() (dAtA []byte, err error) {
+func (m *QueryDepositTotalResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1512,19 +1711,67 @@ func (m *QueryTotalStakeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *QueryTotalStakeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *QueryDepositTotalResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *QueryTotalStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *QueryDepositTotalResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.TotalStakes != nil {
+	if m.TotalUnbondingDeposit != nil {
 		{
-			size, err := m.TotalStakes.MarshalToSizedBuffer(dAtA[:i])
+			size, err := m.TotalUnbondingDeposit.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x2a
+	}
+	if m.TotalUnbondedDeposit != nil {
+		{
+			size, err := m.TotalUnbondedDeposit.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.TotalBondedDeposit != nil {
+		{
+			size, err := m.TotalBondedDeposit.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.MetaNodesTotalDeposit != nil {
+		{
+			size, err := m.MetaNodesTotalDeposit.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if m.ResourceNodesTotalDeposit != nil {
+		{
+			size, err := m.ResourceNodesTotalDeposit.MarshalToSizedBuffer(dAtA[:i])
 			if err != nil {
 				return 0, err
 			}
@@ -1697,6 +1944,133 @@ func (m *QueryBondedMetaNodeCountResponse) MarshalToSizedBuffer(dAtA []byte) (in
 	return len(dAtA) - i, nil
 }
 
+func (m *DepositInfo) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *DepositInfo) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *DepositInfo) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.UnBondedDeposit.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x62
+	{
+		size, err := m.UnBondingDeposit.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x5a
+	{
+		size, err := m.BondedDeposit.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x52
+	if m.NodeType != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.NodeType))
+		i--
+		dAtA[i] = 0x48
+	}
+	n15, err15 := github_com_gogo_protobuf_types.StdTimeMarshalTo(m.CreationTime, dAtA[i-github_com_gogo_protobuf_types.SizeOfStdTime(m.CreationTime):])
+	if err15 != nil {
+		return 0, err15
+	}
+	i -= n15
+	i = encodeVarintQuery(dAtA, i, uint64(n15))
+	i--
+	dAtA[i] = 0x42
+	{
+		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x3a
+	if len(m.OwnerAddress) > 0 {
+		i -= len(m.OwnerAddress)
+		copy(dAtA[i:], m.OwnerAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.OwnerAddress)))
+		i--
+		dAtA[i] = 0x32
+	}
+	{
+		size := m.Tokens.Size()
+		i -= size
+		if _, err := m.Tokens.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
+		}
+		i = encodeVarintQuery(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x2a
+	if m.Status != 0 {
+		i = encodeVarintQuery(dAtA, i, uint64(m.Status))
+		i--
+		dAtA[i] = 0x20
+	}
+	if m.Suspend {
+		i--
+		if m.Suspend {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Pubkey != nil {
+		{
+			size, err := m.Pubkey.MarshalToSizedBuffer(dAtA[:i])
+			if err != nil {
+				return 0, err
+			}
+			i -= size
+			i = encodeVarintQuery(dAtA, i, uint64(size))
+		}
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.NetworkAddress) > 0 {
+		i -= len(m.NetworkAddress)
+		copy(dAtA[i:], m.NetworkAddress)
+		i = encodeVarintQuery(dAtA, i, uint64(len(m.NetworkAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintQuery(dAtA []byte, offset int, v uint64) int {
 	offset -= sovQuery(v)
 	base := offset
@@ -1760,7 +2134,7 @@ func (m *QueryMetaNodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryStakeByNodeRequest) Size() (n int) {
+func (m *QueryDepositByNodeRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1776,20 +2150,20 @@ func (m *QueryStakeByNodeRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryStakeByNodeResponse) Size() (n int) {
+func (m *QueryDepositByNodeResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.StakingInfo != nil {
-		l = m.StakingInfo.Size()
+	if m.DepositInfo != nil {
+		l = m.DepositInfo.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
 }
 
-func (m *QueryStakeByOwnerRequest) Size() (n int) {
+func (m *QueryDepositByOwnerRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1806,14 +2180,14 @@ func (m *QueryStakeByOwnerRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryStakeByOwnerResponse) Size() (n int) {
+func (m *QueryDepositByOwnerResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if len(m.StakingInfos) > 0 {
-		for _, e := range m.StakingInfos {
+	if len(m.DepositInfos) > 0 {
+		for _, e := range m.DepositInfos {
 			l = e.Size()
 			n += 1 + l + sovQuery(uint64(l))
 		}
@@ -1825,7 +2199,7 @@ func (m *QueryStakeByOwnerResponse) Size() (n int) {
 	return n
 }
 
-func (m *QueryTotalStakeRequest) Size() (n int) {
+func (m *QueryDepositTotalRequest) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1834,14 +2208,30 @@ func (m *QueryTotalStakeRequest) Size() (n int) {
 	return n
 }
 
-func (m *QueryTotalStakeResponse) Size() (n int) {
+func (m *QueryDepositTotalResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	if m.TotalStakes != nil {
-		l = m.TotalStakes.Size()
+	if m.ResourceNodesTotalDeposit != nil {
+		l = m.ResourceNodesTotalDeposit.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.MetaNodesTotalDeposit != nil {
+		l = m.MetaNodesTotalDeposit.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.TotalBondedDeposit != nil {
+		l = m.TotalBondedDeposit.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.TotalUnbondedDeposit != nil {
+		l = m.TotalUnbondedDeposit.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.TotalUnbondingDeposit != nil {
+		l = m.TotalUnbondingDeposit.Size()
 		n += 1 + l + sovQuery(uint64(l))
 	}
 	return n
@@ -1908,6 +2298,48 @@ func (m *QueryBondedMetaNodeCountResponse) Size() (n int) {
 	if m.Number != 0 {
 		n += 1 + sovQuery(uint64(m.Number))
 	}
+	return n
+}
+
+func (m *DepositInfo) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.NetworkAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Pubkey != nil {
+		l = m.Pubkey.Size()
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	if m.Suspend {
+		n += 2
+	}
+	if m.Status != 0 {
+		n += 1 + sovQuery(uint64(m.Status))
+	}
+	l = m.Tokens.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = len(m.OwnerAddress)
+	if l > 0 {
+		n += 1 + l + sovQuery(uint64(l))
+	}
+	l = m.Description.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = github_com_gogo_protobuf_types.SizeOfStdTime(m.CreationTime)
+	n += 1 + l + sovQuery(uint64(l))
+	if m.NodeType != 0 {
+		n += 1 + sovQuery(uint64(m.NodeType))
+	}
+	l = m.BondedDeposit.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.UnBondingDeposit.Size()
+	n += 1 + l + sovQuery(uint64(l))
+	l = m.UnBondedDeposit.Size()
+	n += 1 + l + sovQuery(uint64(l))
 	return n
 }
 
@@ -2253,7 +2685,7 @@ func (m *QueryMetaNodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryStakeByNodeRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryDepositByNodeRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2276,10 +2708,10 @@ func (m *QueryStakeByNodeRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryStakeByNodeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDepositByNodeRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryStakeByNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDepositByNodeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2354,7 +2786,7 @@ func (m *QueryStakeByNodeRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryStakeByNodeResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryDepositByNodeResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2377,15 +2809,15 @@ func (m *QueryStakeByNodeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryStakeByNodeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDepositByNodeResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryStakeByNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDepositByNodeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StakingInfo", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DepositInfo", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2412,10 +2844,10 @@ func (m *QueryStakeByNodeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.StakingInfo == nil {
-				m.StakingInfo = &StakingInfo{}
+			if m.DepositInfo == nil {
+				m.DepositInfo = &DepositInfo{}
 			}
-			if err := m.StakingInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.DepositInfo.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2440,7 +2872,7 @@ func (m *QueryStakeByNodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryStakeByOwnerRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryDepositByOwnerRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2463,10 +2895,10 @@ func (m *QueryStakeByOwnerRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryStakeByOwnerRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDepositByOwnerRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryStakeByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDepositByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -2558,7 +2990,7 @@ func (m *QueryStakeByOwnerRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryStakeByOwnerResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryDepositByOwnerResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2581,15 +3013,15 @@ func (m *QueryStakeByOwnerResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryStakeByOwnerResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDepositByOwnerResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryStakeByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDepositByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StakingInfos", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DepositInfos", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2616,8 +3048,8 @@ func (m *QueryStakeByOwnerResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.StakingInfos = append(m.StakingInfos, &StakingInfo{})
-			if err := m.StakingInfos[len(m.StakingInfos)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			m.DepositInfos = append(m.DepositInfos, &DepositInfo{})
+			if err := m.DepositInfos[len(m.DepositInfos)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -2678,7 +3110,7 @@ func (m *QueryStakeByOwnerResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryTotalStakeRequest) Unmarshal(dAtA []byte) error {
+func (m *QueryDepositTotalRequest) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2701,10 +3133,10 @@ func (m *QueryTotalStakeRequest) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryTotalStakeRequest: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDepositTotalRequest: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryTotalStakeRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDepositTotalRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -2728,7 +3160,7 @@ func (m *QueryTotalStakeRequest) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *QueryTotalStakeResponse) Unmarshal(dAtA []byte) error {
+func (m *QueryDepositTotalResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -2751,15 +3183,15 @@ func (m *QueryTotalStakeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: QueryTotalStakeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: QueryDepositTotalResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: QueryTotalStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: QueryDepositTotalResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TotalStakes", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field ResourceNodesTotalDeposit", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -2786,10 +3218,154 @@ func (m *QueryTotalStakeResponse) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.TotalStakes == nil {
-				m.TotalStakes = &TotalStakesResponse{}
+			if m.ResourceNodesTotalDeposit == nil {
+				m.ResourceNodesTotalDeposit = &types.Coin{}
 			}
-			if err := m.TotalStakes.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.ResourceNodesTotalDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field MetaNodesTotalDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.MetaNodesTotalDeposit == nil {
+				m.MetaNodesTotalDeposit = &types.Coin{}
+			}
+			if err := m.MetaNodesTotalDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalBondedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TotalBondedDeposit == nil {
+				m.TotalBondedDeposit = &types.Coin{}
+			}
+			if err := m.TotalBondedDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalUnbondedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TotalUnbondedDeposit == nil {
+				m.TotalUnbondedDeposit = &types.Coin{}
+			}
+			if err := m.TotalUnbondedDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field TotalUnbondingDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.TotalUnbondingDeposit == nil {
+				m.TotalUnbondingDeposit = &types.Coin{}
+			}
+			if err := m.TotalUnbondingDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3167,6 +3743,413 @@ func (m *QueryBondedMetaNodeCountResponse) Unmarshal(dAtA []byte) error {
 					break
 				}
 			}
+		default:
+			iNdEx = preIndex
+			skippy, err := skipQuery(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *DepositInfo) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowQuery
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: DepositInfo: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: DepositInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pubkey == nil {
+				m.Pubkey = &types1.Any{}
+			}
+			if err := m.Pubkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Suspend", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Suspend = bool(v != 0)
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Status", wireType)
+			}
+			m.Status = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Status |= types2.BondStatus(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Tokens", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Tokens.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Description.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field CreationTime", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := github_com_gogo_protobuf_types.StdTimeUnmarshal(&m.CreationTime, dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 9:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
+			}
+			m.NodeType = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.NodeType |= uint32(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 10:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BondedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.BondedDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 11:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UnBondingDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.UnBondingDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 12:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field UnBondedDeposit", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowQuery
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthQuery
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthQuery
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.UnBondedDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipQuery(dAtA[iNdEx:])

@@ -1,55 +1,37 @@
 package net
 
 import (
-	"context"
-	"fmt"
 	"math/big"
 
-	rpcclient "github.com/tendermint/tendermint/rpc/client"
-
-	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 )
 
 // PublicAPI is the eth_ prefixed set of APIs in the Web3 JSON-RPC spec.
 type PublicAPI struct {
-	networkVersion uint64
-	tmClient       rpcclient.Client
+	backend backend.BackendI
 }
 
 // NewPublicAPI creates an instance of the public Net Web3 API.
-func NewPublicAPI(clientCtx client.Context) *PublicAPI {
-	eip155ChainId, ok := new(big.Int).SetString(clientCtx.ChainID, 10)
-	if !ok {
-		panic("failed to parse chainID")
-	}
-
+func NewPublicAPI(backend backend.BackendI) *PublicAPI {
 	return &PublicAPI{
-		networkVersion: eip155ChainId.Uint64(),
-		tmClient:       clientCtx.Client,
+		backend: backend,
 	}
 }
 
 // Version returns the current ethereum protocol version.
-func (s *PublicAPI) Version() string {
-	return fmt.Sprintf("%d", s.networkVersion)
+func (s *PublicAPI) Version() (string, error) {
+	ctx := s.backend.GetEVMContext().GetSdkContext()
+	params := s.backend.GetEVMKeeper().GetParams(ctx)
+	return params.ChainConfig.ChainID.String(), nil
 }
 
 // Listening returns if client is actively listening for network connections.
 func (s *PublicAPI) Listening() bool {
-	ctx := context.Background()
-	netInfo, err := s.tmClient.NetInfo(ctx)
-	if err != nil {
-		return false
-	}
-	return netInfo.Listening
+	return s.backend.GetNode().IsListening()
 }
 
 // PeerCount returns the number of peers currently connected to the client.
-func (s *PublicAPI) PeerCount() int {
-	ctx := context.Background()
-	netInfo, err := s.tmClient.NetInfo(ctx)
-	if err != nil {
-		return 0
-	}
-	return len(netInfo.Peers)
+func (s *PublicAPI) PeerCount() hexutil.Big {
+	return hexutil.Big(*big.NewInt(int64(len(s.backend.GetSwitch().Peers().List()))))
 }

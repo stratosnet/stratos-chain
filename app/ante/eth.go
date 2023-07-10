@@ -17,6 +17,41 @@ import (
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
+// EthTxPayloadVerificationDecorator validates base tx payload and check some limitations
+type EthTxPayloadVerificationDecorator struct {
+}
+
+func NewEthTxPayloadVerificationDecorator() EthTxPayloadVerificationDecorator {
+	return EthTxPayloadVerificationDecorator{}
+}
+
+// AnteHandle validates msgs count, some signature protection and applied limitations
+func (tpvd EthTxPayloadVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	if len(tx.GetMsgs()) > 1 {
+		return ctx, sdkerrors.Wrapf(sdkerrors.ErrInvalidType, "evm transactions only operates with 1 msg")
+	}
+
+	for _, msg := range tx.GetMsgs() {
+		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+		if !ok {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+		}
+
+		ethTx := msgEthTx.AsTransaction()
+		// EIP-155 only allowed
+		if !ethTx.Protected() {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrNotSupported, "legacy pre-eip-155 transactions not supported")
+		}
+
+		// forbid EIP-2930 update with access list
+		if len(ethTx.AccessList()) > 0 {
+			return ctx, sdkerrors.Wrapf(sdkerrors.ErrNotSupported, "eip-2930 transactions not supported")
+		}
+	}
+
+	return next(ctx, tx, simulate)
+}
+
 // EthSigVerificationDecorator validates an ethereum signatures
 type EthSigVerificationDecorator struct {
 	evmKeeper EVMKeeper
@@ -515,21 +550,26 @@ func (mfd EthMempoolFeeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulat
 	if ctx.IsCheckTx() && !simulate {
 		params := mfd.evmKeeper.GetParams(ctx)
 		ethCfg := params.ChainConfig.EthereumConfig()
+		evmDenom := params.EvmDenom
 		baseFee := mfd.evmKeeper.GetBaseFee(ctx, ethCfg)
-		if baseFee == nil {
-			for _, msg := range tx.GetMsgs() {
-				ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
-				if !ok {
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
-				}
 
-				evmDenom := params.EvmDenom
-				feeAmt := ethMsg.GetFee()
-				glDec := sdk.NewDec(int64(ethMsg.GetGas()))
-				requiredFee := ctx.MinGasPrices().AmountOf(evmDenom).Mul(glDec)
-				if sdk.NewDecFromBigInt(feeAmt).LT(requiredFee) {
-					return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeAmt, requiredFee)
-				}
+		for _, msg := range tx.GetMsgs() {
+			ethMsg, ok := msg.(*evmtypes.MsgEthereumTx)
+			if !ok {
+				return ctx, sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+			}
+
+			var feeAmt *big.Int
+			// if base fee disabled, calculate without effective fee mechanics
+			if baseFee == nil {
+				feeAmt = ethMsg.GetFee()
+			} else {
+				feeAmt = ethMsg.GetEffectiveFee(baseFee)
+			}
+			glDec := sdk.NewDec(int64(ethMsg.GetGas()))
+			requiredFee := ctx.MinGasPrices().AmountOf(evmDenom).Mul(glDec)
+			if sdk.NewDecFromBigInt(feeAmt).LT(requiredFee) {
+				return ctx, sdkerrors.Wrapf(sdkerrors.ErrInsufficientFee, "insufficient fees; got: %s required: %s", feeAmt, requiredFee)
 			}
 		}
 	}

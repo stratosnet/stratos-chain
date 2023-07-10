@@ -1,17 +1,17 @@
 package cli
 
 import (
-	"encoding/hex"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/spf13/cobra"
-	stratos "github.com/stratosnet/stratos-chain/types"
+	flag "github.com/spf13/pflag"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	flag "github.com/spf13/pflag"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -72,7 +72,7 @@ func FileUploadTxCmd() *cobra.Command {
 // PrepayTxCmd will create a prepay tx and sign it with the given key.
 func PrepayTxCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "prepay [from_address] [coins]",
+		Use:   "prepay [from_address] [beneficiary_address] [coins]",
 		Short: "Create and sign a prepay tx",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
@@ -81,7 +81,7 @@ func PrepayTxCmd() *cobra.Command {
 				return err
 			}
 
-			fromAddr, fromName, _, err := client.GetFromFields(cliCtx.Keyring, args[0], cliCtx.GenerateOnly)
+			fromAddr, fromName, _, err := client.GetFromFields(cliCtx, cliCtx.Keyring, args[0])
 			if err != nil {
 				return err
 			}
@@ -105,10 +105,6 @@ func PrepayTxCmd() *cobra.Command {
 // makes a new newBuildFileuploadMsg
 func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgFileUpload, error) {
 	fileHash, err := fs.GetString(FlagFileHash)
-	if err != nil {
-		return txf, nil, err
-	}
-	_, err = hex.DecodeString(fileHash)
 	if err != nil {
 		return txf, nil, err
 	}
@@ -143,13 +139,18 @@ func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 
 // makes a new newBuildPrepayMsg
 func newBuildPrepayMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgPrepay, error) {
-	coin, err := sdk.ParseCoinNormalized(fs.Arg(1))
+	beneficiary, err := sdk.AccAddressFromBech32(fs.Arg(1))
+	if err != nil {
+		return txf, nil, err
+	}
+
+	amount, err := sdk.ParseCoinNormalized(fs.Arg(2))
 	if err != nil {
 		return txf, nil, err
 	}
 
 	// build and sign the transaction, then broadcast to Tendermint
-	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), sdk.NewCoins(coin))
+	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), beneficiary.String(), sdk.NewCoins(amount))
 
 	return txf, msg, nil
 }

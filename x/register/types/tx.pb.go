@@ -7,6 +7,7 @@ import (
 	context "context"
 	fmt "fmt"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
+	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
@@ -34,12 +35,12 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgCreateResourceNode encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
 type MsgCreateResourceNode struct {
-	NetworkAddress string       `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	Pubkey         *types.Any   `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
-	Value          types1.Coin  `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
-	OwnerAddress   string       `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	Description    *Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
-	NodeType       uint32       `protobuf:"varint,6,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
+	NetworkAddress string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	Pubkey         *types.Any  `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
+	Value          types1.Coin `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
+	OwnerAddress   string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	Description    Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
+	NodeType       uint32      `protobuf:"varint,6,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
 }
 
 func (m *MsgCreateResourceNode) Reset()         { *m = MsgCreateResourceNode{} }
@@ -103,11 +104,11 @@ func (m *MsgCreateResourceNode) GetOwnerAddress() string {
 	return ""
 }
 
-func (m *MsgCreateResourceNode) GetDescription() *Description {
+func (m *MsgCreateResourceNode) GetDescription() Description {
 	if m != nil {
 		return m.Description
 	}
-	return nil
+	return Description{}
 }
 
 func (m *MsgCreateResourceNode) GetNodeType() uint32 {
@@ -156,11 +157,11 @@ var xxx_messageInfo_MsgCreateResourceNodeResponse proto.InternalMessageInfo
 
 // MsgCreateMetaNode encapsulates an MsgCreateMetaNodeTx transaction as an SDK message.
 type MsgCreateMetaNode struct {
-	NetworkAddress string       `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	Pubkey         *types.Any   `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
-	Value          types1.Coin  `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
-	OwnerAddress   string       `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	Description    *Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
+	NetworkAddress string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	Pubkey         *types.Any  `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
+	Value          types1.Coin `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
+	OwnerAddress   string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	Description    Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
 }
 
 func (m *MsgCreateMetaNode) Reset()         { *m = MsgCreateMetaNode{} }
@@ -224,11 +225,11 @@ func (m *MsgCreateMetaNode) GetOwnerAddress() string {
 	return ""
 }
 
-func (m *MsgCreateMetaNode) GetDescription() *Description {
+func (m *MsgCreateMetaNode) GetDescription() Description {
 	if m != nil {
 		return m.Description
 	}
-	return nil
+	return Description{}
 }
 
 // MsgCreateMetaNodeResponse defines the CreateMetaNode response type
@@ -307,6 +308,20 @@ func (m *MsgRemoveResourceNode) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgRemoveResourceNode proto.InternalMessageInfo
 
+func (m *MsgRemoveResourceNode) GetResourceNodeAddress() string {
+	if m != nil {
+		return m.ResourceNodeAddress
+	}
+	return ""
+}
+
+func (m *MsgRemoveResourceNode) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
 // MsgRemoveResourceNodeResponse defines the Msg/RemoveResourceNode response type.
 type MsgRemoveResourceNodeResponse struct {
 }
@@ -382,6 +397,20 @@ func (m *MsgRemoveMetaNode) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_MsgRemoveMetaNode proto.InternalMessageInfo
+
+func (m *MsgRemoveMetaNode) GetMetaNodeAddress() string {
+	if m != nil {
+		return m.MetaNodeAddress
+	}
+	return ""
+}
+
+func (m *MsgRemoveMetaNode) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
 
 // MsgRemoveMetaNodeResponse defines the Msg/RemoveMetaNode response type.
 type MsgRemoveMetaNodeResponse struct {
@@ -461,6 +490,34 @@ func (m *MsgUpdateResourceNode) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateResourceNode proto.InternalMessageInfo
 
+func (m *MsgUpdateResourceNode) GetDescription() Description {
+	if m != nil {
+		return m.Description
+	}
+	return Description{}
+}
+
+func (m *MsgUpdateResourceNode) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateResourceNode) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateResourceNode) GetNodeType() uint32 {
+	if m != nil {
+		return m.NodeType
+	}
+	return 0
+}
+
 // MsgUpdateResourceNodeResponse defines the Msg/UpdateResourceNode response type.
 type MsgUpdateResourceNodeResponse struct {
 }
@@ -538,6 +595,27 @@ func (m *MsgUpdateMetaNode) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateMetaNode proto.InternalMessageInfo
 
+func (m *MsgUpdateMetaNode) GetDescription() Description {
+	if m != nil {
+		return m.Description
+	}
+	return Description{}
+}
+
+func (m *MsgUpdateMetaNode) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateMetaNode) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
 // MsgUpdateMetaNodeResponse defines the Msg/UpdateMetaNode response type.
 type MsgUpdateMetaNodeResponse struct {
 }
@@ -575,26 +653,25 @@ func (m *MsgUpdateMetaNodeResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgUpdateMetaNodeResponse proto.InternalMessageInfo
 
-// MsgUpdateResourceNodeStake defines a SDK message for updating the stake of an existing resource node.
-type MsgUpdateResourceNodeStake struct {
-	NetworkAddress string       `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	OwnerAddress   string       `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	IncrStake      bool         `protobuf:"varint,3,opt,name=incr_stake,json=incrStake,proto3" json:"incr_stake" yaml:"incr_stake"`
-	StakeDelta     *types1.Coin `protobuf:"bytes,4,opt,name=stake_delta,json=stakeDelta,proto3" json:"stake_delta" yaml:"stake_delta"`
+// MsgUpdateResourceNodeDeposit defines a SDK message for updating the deposit of an existing resource node.
+type MsgUpdateResourceNodeDeposit struct {
+	NetworkAddress string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	OwnerAddress   string      `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	DepositDelta   types1.Coin `protobuf:"bytes,3,opt,name=deposit_delta,json=depositDelta,proto3" json:"deposit_delta" yaml:"deposit_delta"`
 }
 
-func (m *MsgUpdateResourceNodeStake) Reset()         { *m = MsgUpdateResourceNodeStake{} }
-func (m *MsgUpdateResourceNodeStake) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateResourceNodeStake) ProtoMessage()    {}
-func (*MsgUpdateResourceNodeStake) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateResourceNodeDeposit) Reset()         { *m = MsgUpdateResourceNodeDeposit{} }
+func (m *MsgUpdateResourceNodeDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateResourceNodeDeposit) ProtoMessage()    {}
+func (*MsgUpdateResourceNodeDeposit) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{12}
 }
-func (m *MsgUpdateResourceNodeStake) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateResourceNodeDeposit) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateResourceNodeStake) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateResourceNodeDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateResourceNodeStake.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateResourceNodeDeposit.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -604,34 +681,55 @@ func (m *MsgUpdateResourceNodeStake) XXX_Marshal(b []byte, deterministic bool) (
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateResourceNodeStake) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateResourceNodeStake.Merge(m, src)
+func (m *MsgUpdateResourceNodeDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateResourceNodeDeposit.Merge(m, src)
 }
-func (m *MsgUpdateResourceNodeStake) XXX_Size() int {
+func (m *MsgUpdateResourceNodeDeposit) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateResourceNodeStake) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateResourceNodeStake.DiscardUnknown(m)
+func (m *MsgUpdateResourceNodeDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateResourceNodeDeposit.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateResourceNodeStake proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateResourceNodeDeposit proto.InternalMessageInfo
 
-// MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
-type MsgUpdateResourceNodeStakeResponse struct {
+func (m *MsgUpdateResourceNodeDeposit) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
 }
 
-func (m *MsgUpdateResourceNodeStakeResponse) Reset()         { *m = MsgUpdateResourceNodeStakeResponse{} }
-func (m *MsgUpdateResourceNodeStakeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateResourceNodeStakeResponse) ProtoMessage()    {}
-func (*MsgUpdateResourceNodeStakeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateResourceNodeDeposit) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateResourceNodeDeposit) GetDepositDelta() types1.Coin {
+	if m != nil {
+		return m.DepositDelta
+	}
+	return types1.Coin{}
+}
+
+// MsgUpdateResourceNodeDepositResponse defines the Msg/UpdateResourceNodeDeposit response type.
+type MsgUpdateResourceNodeDepositResponse struct {
+}
+
+func (m *MsgUpdateResourceNodeDepositResponse) Reset()         { *m = MsgUpdateResourceNodeDepositResponse{} }
+func (m *MsgUpdateResourceNodeDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateResourceNodeDepositResponse) ProtoMessage()    {}
+func (*MsgUpdateResourceNodeDepositResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{13}
 }
-func (m *MsgUpdateResourceNodeStakeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateResourceNodeDepositResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateResourceNodeStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateResourceNodeDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateResourceNodeStakeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateResourceNodeDepositResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -641,38 +739,38 @@ func (m *MsgUpdateResourceNodeStakeResponse) XXX_Marshal(b []byte, deterministic
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateResourceNodeStakeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateResourceNodeStakeResponse.Merge(m, src)
+func (m *MsgUpdateResourceNodeDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateResourceNodeDepositResponse.Merge(m, src)
 }
-func (m *MsgUpdateResourceNodeStakeResponse) XXX_Size() int {
+func (m *MsgUpdateResourceNodeDepositResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateResourceNodeStakeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateResourceNodeStakeResponse.DiscardUnknown(m)
+func (m *MsgUpdateResourceNodeDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateResourceNodeDepositResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateResourceNodeStakeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateResourceNodeDepositResponse proto.InternalMessageInfo
 
-// MsgUpdateMetaNodeStake defines a SDK message for updating the stake of an existing meta node.
-type MsgUpdateMetaNodeStake struct {
-	NetworkAddress string       `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	OwnerAddress   string       `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	IncrStake      bool         `protobuf:"varint,3,opt,name=incr_stake,json=incrStake,proto3" json:"incr_stake" yaml:"incr_stake"`
-	StakeDelta     *types1.Coin `protobuf:"bytes,4,opt,name=stake_delta,json=stakeDelta,proto3" json:"stake_delta" yaml:"stake_delta"`
+// MsgUpdateEffectiveDeposit defines a SDK message for updating the effective deposit of an existing resource node.
+type MsgUpdateEffectiveDeposit struct {
+	Reporters       []string                               `protobuf:"bytes,1,rep,name=reporters,proto3" json:"reporters" yaml:"reporters"`
+	ReporterOwner   []string                               `protobuf:"bytes,2,rep,name=reporter_owner,json=reporterOwner,proto3" json:"reporter_owner" yaml:"reporter_owner"`
+	NetworkAddress  string                                 `protobuf:"bytes,3,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	EffectiveTokens github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=effective_tokens,json=effectiveTokens,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"effective_tokens" yaml:"effective_tokens"`
 }
 
-func (m *MsgUpdateMetaNodeStake) Reset()         { *m = MsgUpdateMetaNodeStake{} }
-func (m *MsgUpdateMetaNodeStake) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateMetaNodeStake) ProtoMessage()    {}
-func (*MsgUpdateMetaNodeStake) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateEffectiveDeposit) Reset()         { *m = MsgUpdateEffectiveDeposit{} }
+func (m *MsgUpdateEffectiveDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateEffectiveDeposit) ProtoMessage()    {}
+func (*MsgUpdateEffectiveDeposit) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{14}
 }
-func (m *MsgUpdateMetaNodeStake) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateEffectiveDeposit) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateMetaNodeStake) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateEffectiveDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateMetaNodeStake.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateEffectiveDeposit.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -682,34 +780,34 @@ func (m *MsgUpdateMetaNodeStake) XXX_Marshal(b []byte, deterministic bool) ([]by
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateMetaNodeStake) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateMetaNodeStake.Merge(m, src)
+func (m *MsgUpdateEffectiveDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateEffectiveDeposit.Merge(m, src)
 }
-func (m *MsgUpdateMetaNodeStake) XXX_Size() int {
+func (m *MsgUpdateEffectiveDeposit) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateMetaNodeStake) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateMetaNodeStake.DiscardUnknown(m)
+func (m *MsgUpdateEffectiveDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateEffectiveDeposit.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateMetaNodeStake proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateEffectiveDeposit proto.InternalMessageInfo
 
-// MsgUpdateResourceNodeStakeResponse defines the Msg/UpdateResourceNodeStake response type.
-type MsgUpdateMetaNodeStakeResponse struct {
+// MsgUpdateEffectiveDepositResponse defines the Msg/UpdateEffectiveDeposit response type.
+type MsgUpdateEffectiveDepositResponse struct {
 }
 
-func (m *MsgUpdateMetaNodeStakeResponse) Reset()         { *m = MsgUpdateMetaNodeStakeResponse{} }
-func (m *MsgUpdateMetaNodeStakeResponse) String() string { return proto.CompactTextString(m) }
-func (*MsgUpdateMetaNodeStakeResponse) ProtoMessage()    {}
-func (*MsgUpdateMetaNodeStakeResponse) Descriptor() ([]byte, []int) {
+func (m *MsgUpdateEffectiveDepositResponse) Reset()         { *m = MsgUpdateEffectiveDepositResponse{} }
+func (m *MsgUpdateEffectiveDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateEffectiveDepositResponse) ProtoMessage()    {}
+func (*MsgUpdateEffectiveDepositResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{15}
 }
-func (m *MsgUpdateMetaNodeStakeResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgUpdateEffectiveDepositResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgUpdateMetaNodeStakeResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgUpdateEffectiveDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgUpdateMetaNodeStakeResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgUpdateEffectiveDepositResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -719,17 +817,115 @@ func (m *MsgUpdateMetaNodeStakeResponse) XXX_Marshal(b []byte, deterministic boo
 		return b[:n], nil
 	}
 }
-func (m *MsgUpdateMetaNodeStakeResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgUpdateMetaNodeStakeResponse.Merge(m, src)
+func (m *MsgUpdateEffectiveDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateEffectiveDepositResponse.Merge(m, src)
 }
-func (m *MsgUpdateMetaNodeStakeResponse) XXX_Size() int {
+func (m *MsgUpdateEffectiveDepositResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgUpdateMetaNodeStakeResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgUpdateMetaNodeStakeResponse.DiscardUnknown(m)
+func (m *MsgUpdateEffectiveDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateEffectiveDepositResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgUpdateMetaNodeStakeResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgUpdateEffectiveDepositResponse proto.InternalMessageInfo
+
+// MsgUpdateMetaNodeDeposit defines a SDK message for updating the deposit of an existing meta node.
+type MsgUpdateMetaNodeDeposit struct {
+	NetworkAddress string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	OwnerAddress   string      `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	DepositDelta   types1.Coin `protobuf:"bytes,3,opt,name=deposit_delta,json=depositDelta,proto3" json:"deposit_delta" yaml:"deposit_delta"`
+}
+
+func (m *MsgUpdateMetaNodeDeposit) Reset()         { *m = MsgUpdateMetaNodeDeposit{} }
+func (m *MsgUpdateMetaNodeDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMetaNodeDeposit) ProtoMessage()    {}
+func (*MsgUpdateMetaNodeDeposit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_75d4b90d7a185a31, []int{16}
+}
+func (m *MsgUpdateMetaNodeDeposit) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateMetaNodeDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateMetaNodeDeposit.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateMetaNodeDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMetaNodeDeposit.Merge(m, src)
+}
+func (m *MsgUpdateMetaNodeDeposit) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateMetaNodeDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMetaNodeDeposit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateMetaNodeDeposit proto.InternalMessageInfo
+
+func (m *MsgUpdateMetaNodeDeposit) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateMetaNodeDeposit) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
+func (m *MsgUpdateMetaNodeDeposit) GetDepositDelta() types1.Coin {
+	if m != nil {
+		return m.DepositDelta
+	}
+	return types1.Coin{}
+}
+
+// MsgUpdateMetaNodeDepositResponse defines the Msg/UpdateMetaNodeDeposit response type.
+type MsgUpdateMetaNodeDepositResponse struct {
+}
+
+func (m *MsgUpdateMetaNodeDepositResponse) Reset()         { *m = MsgUpdateMetaNodeDepositResponse{} }
+func (m *MsgUpdateMetaNodeDepositResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateMetaNodeDepositResponse) ProtoMessage()    {}
+func (*MsgUpdateMetaNodeDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_75d4b90d7a185a31, []int{17}
+}
+func (m *MsgUpdateMetaNodeDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateMetaNodeDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateMetaNodeDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateMetaNodeDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateMetaNodeDepositResponse.Merge(m, src)
+}
+func (m *MsgUpdateMetaNodeDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateMetaNodeDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateMetaNodeDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateMetaNodeDepositResponse proto.InternalMessageInfo
 
 // MsgMetaNodeRegistrationVote defines a SDK message for registration vote of an existing meta node.
 type MsgMetaNodeRegistrationVote struct {
@@ -744,7 +940,7 @@ func (m *MsgMetaNodeRegistrationVote) Reset()         { *m = MsgMetaNodeRegistra
 func (m *MsgMetaNodeRegistrationVote) String() string { return proto.CompactTextString(m) }
 func (*MsgMetaNodeRegistrationVote) ProtoMessage()    {}
 func (*MsgMetaNodeRegistrationVote) Descriptor() ([]byte, []int) {
-	return fileDescriptor_75d4b90d7a185a31, []int{16}
+	return fileDescriptor_75d4b90d7a185a31, []int{18}
 }
 func (m *MsgMetaNodeRegistrationVote) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -773,7 +969,42 @@ func (m *MsgMetaNodeRegistrationVote) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMetaNodeRegistrationVote proto.InternalMessageInfo
 
-// MsgUpdateResourceNodeStakeResponse defines the Msg/MetaNodeRegistrationVote response type.
+func (m *MsgMetaNodeRegistrationVote) GetCandidateNetworkAddress() string {
+	if m != nil {
+		return m.CandidateNetworkAddress
+	}
+	return ""
+}
+
+func (m *MsgMetaNodeRegistrationVote) GetCandidateOwnerAddress() string {
+	if m != nil {
+		return m.CandidateOwnerAddress
+	}
+	return ""
+}
+
+func (m *MsgMetaNodeRegistrationVote) GetOpinion() bool {
+	if m != nil {
+		return m.Opinion
+	}
+	return false
+}
+
+func (m *MsgMetaNodeRegistrationVote) GetVoterNetworkAddress() string {
+	if m != nil {
+		return m.VoterNetworkAddress
+	}
+	return ""
+}
+
+func (m *MsgMetaNodeRegistrationVote) GetVoterOwnerAddress() string {
+	if m != nil {
+		return m.VoterOwnerAddress
+	}
+	return ""
+}
+
+// MsgMetaNodeRegistrationVoteResponse defines the Msg/MetaNodeRegistrationVote response type.
 type MsgMetaNodeRegistrationVoteResponse struct {
 }
 
@@ -781,7 +1012,7 @@ func (m *MsgMetaNodeRegistrationVoteResponse) Reset()         { *m = MsgMetaNode
 func (m *MsgMetaNodeRegistrationVoteResponse) String() string { return proto.CompactTextString(m) }
 func (*MsgMetaNodeRegistrationVoteResponse) ProtoMessage()    {}
 func (*MsgMetaNodeRegistrationVoteResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_75d4b90d7a185a31, []int{17}
+	return fileDescriptor_75d4b90d7a185a31, []int{19}
 }
 func (m *MsgMetaNodeRegistrationVoteResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
@@ -810,6 +1041,102 @@ func (m *MsgMetaNodeRegistrationVoteResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMetaNodeRegistrationVoteResponse proto.InternalMessageInfo
 
+// MsgWithdrawMetaNodeRegistrationDeposit defines a SDK message for withdrawing registration deposit of meta node.
+type MsgWithdrawMetaNodeRegistrationDeposit struct {
+	NetworkAddress string `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	OwnerAddress   string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) Reset() {
+	*m = MsgWithdrawMetaNodeRegistrationDeposit{}
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) String() string { return proto.CompactTextString(m) }
+func (*MsgWithdrawMetaNodeRegistrationDeposit) ProtoMessage()    {}
+func (*MsgWithdrawMetaNodeRegistrationDeposit) Descriptor() ([]byte, []int) {
+	return fileDescriptor_75d4b90d7a185a31, []int{20}
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit.Merge(m, src)
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit proto.InternalMessageInfo
+
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) GetOwnerAddress() string {
+	if m != nil {
+		return m.OwnerAddress
+	}
+	return ""
+}
+
+// MsgWithdrawMetaNodeRegistrationDepositResponse defines the Msg/WithdrawMetaNodeRegistrationDeposit response type.
+type MsgWithdrawMetaNodeRegistrationDepositResponse struct {
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Reset() {
+	*m = MsgWithdrawMetaNodeRegistrationDepositResponse{}
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) String() string {
+	return proto.CompactTextString(m)
+}
+func (*MsgWithdrawMetaNodeRegistrationDepositResponse) ProtoMessage() {}
+func (*MsgWithdrawMetaNodeRegistrationDepositResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_75d4b90d7a185a31, []int{21}
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse.Merge(m, src)
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterType((*MsgCreateResourceNode)(nil), "stratos.register.v1.MsgCreateResourceNode")
 	proto.RegisterType((*MsgCreateResourceNodeResponse)(nil), "stratos.register.v1.MsgCreateResourceNodeResponse")
@@ -823,98 +1150,115 @@ func init() {
 	proto.RegisterType((*MsgUpdateResourceNodeResponse)(nil), "stratos.register.v1.MsgUpdateResourceNodeResponse")
 	proto.RegisterType((*MsgUpdateMetaNode)(nil), "stratos.register.v1.MsgUpdateMetaNode")
 	proto.RegisterType((*MsgUpdateMetaNodeResponse)(nil), "stratos.register.v1.MsgUpdateMetaNodeResponse")
-	proto.RegisterType((*MsgUpdateResourceNodeStake)(nil), "stratos.register.v1.MsgUpdateResourceNodeStake")
-	proto.RegisterType((*MsgUpdateResourceNodeStakeResponse)(nil), "stratos.register.v1.MsgUpdateResourceNodeStakeResponse")
-	proto.RegisterType((*MsgUpdateMetaNodeStake)(nil), "stratos.register.v1.MsgUpdateMetaNodeStake")
-	proto.RegisterType((*MsgUpdateMetaNodeStakeResponse)(nil), "stratos.register.v1.MsgUpdateMetaNodeStakeResponse")
+	proto.RegisterType((*MsgUpdateResourceNodeDeposit)(nil), "stratos.register.v1.MsgUpdateResourceNodeDeposit")
+	proto.RegisterType((*MsgUpdateResourceNodeDepositResponse)(nil), "stratos.register.v1.MsgUpdateResourceNodeDepositResponse")
+	proto.RegisterType((*MsgUpdateEffectiveDeposit)(nil), "stratos.register.v1.MsgUpdateEffectiveDeposit")
+	proto.RegisterType((*MsgUpdateEffectiveDepositResponse)(nil), "stratos.register.v1.MsgUpdateEffectiveDepositResponse")
+	proto.RegisterType((*MsgUpdateMetaNodeDeposit)(nil), "stratos.register.v1.MsgUpdateMetaNodeDeposit")
+	proto.RegisterType((*MsgUpdateMetaNodeDepositResponse)(nil), "stratos.register.v1.MsgUpdateMetaNodeDepositResponse")
 	proto.RegisterType((*MsgMetaNodeRegistrationVote)(nil), "stratos.register.v1.MsgMetaNodeRegistrationVote")
 	proto.RegisterType((*MsgMetaNodeRegistrationVoteResponse)(nil), "stratos.register.v1.MsgMetaNodeRegistrationVoteResponse")
+	proto.RegisterType((*MsgWithdrawMetaNodeRegistrationDeposit)(nil), "stratos.register.v1.MsgWithdrawMetaNodeRegistrationDeposit")
+	proto.RegisterType((*MsgWithdrawMetaNodeRegistrationDepositResponse)(nil), "stratos.register.v1.MsgWithdrawMetaNodeRegistrationDepositResponse")
 }
 
 func init() { proto.RegisterFile("stratos/register/v1/tx.proto", fileDescriptor_75d4b90d7a185a31) }
 
 var fileDescriptor_75d4b90d7a185a31 = []byte{
-	// 1275 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0x4d, 0x6f, 0x1b, 0x45,
-	0x18, 0xce, 0x3a, 0x6e, 0x49, 0x26, 0x49, 0x4b, 0x9c, 0xa4, 0x75, 0x9c, 0xc4, 0xe3, 0x4e, 0x49,
-	0x48, 0x88, 0xb2, 0x5b, 0x27, 0xa0, 0x94, 0x4a, 0x20, 0xc5, 0xed, 0x01, 0x09, 0x25, 0xa0, 0x05,
-	0x7a, 0x40, 0x42, 0xd6, 0xda, 0x1e, 0xdc, 0x55, 0xe2, 0x1d, 0x6b, 0x77, 0xed, 0xd6, 0x07, 0x2e,
-	0x9c, 0x38, 0x22, 0x71, 0x46, 0xea, 0x0f, 0xe0, 0xd0, 0x03, 0xfc, 0x04, 0xa4, 0xc0, 0xa9, 0x52,
-	0x2f, 0x20, 0xa1, 0x11, 0x4a, 0x38, 0xa0, 0xbd, 0xb1, 0xe2, 0x07, 0xa0, 0x9d, 0xd9, 0x5d, 0xef,
-	0x77, 0x1c, 0xb5, 0xb9, 0xa0, 0xdc, 0x3c, 0xef, 0xc7, 0xcc, 0xf3, 0xbe, 0xcf, 0xb3, 0xf3, 0x61,
-	0xb0, 0x6c, 0x98, 0xba, 0x62, 0x12, 0x43, 0xd2, 0x71, 0x5b, 0x35, 0x4c, 0xac, 0x4b, 0xfd, 0xaa,
-	0x64, 0x3e, 0x11, 0xbb, 0x3a, 0x31, 0x49, 0x61, 0xce, 0xf5, 0x8a, 0x9e, 0x57, 0xec, 0x57, 0x4b,
-	0xf3, 0x6d, 0xd2, 0x26, 0xcc, 0x2f, 0x39, 0xbf, 0x78, 0x68, 0x69, 0xb1, 0x4d, 0x48, 0xfb, 0x08,
-	0x4b, 0x6c, 0xd4, 0xe8, 0x7d, 0x29, 0x29, 0xda, 0xc0, 0x75, 0x2d, 0xbb, 0x2e, 0xa5, 0xab, 0x4a,
-	0x8a, 0xa6, 0x11, 0x53, 0x31, 0x55, 0xa2, 0x19, 0x5e, 0x62, 0x93, 0x18, 0x1d, 0x62, 0xd4, 0xf9,
-	0x8c, 0x7c, 0xe0, 0xba, 0x50, 0x12, 0x38, 0x1f, 0x0a, 0x8f, 0x29, 0xf3, 0x0c, 0xa9, 0xa1, 0x18,
-	0x58, 0xea, 0x57, 0x1b, 0xd8, 0x54, 0xaa, 0x52, 0x93, 0xa8, 0x1a, 0xf7, 0xa3, 0xef, 0xf3, 0x60,
-	0x61, 0xdf, 0x68, 0xdf, 0xd7, 0xb1, 0x62, 0x62, 0x19, 0x1b, 0xa4, 0xa7, 0x37, 0xf1, 0x01, 0x69,
-	0xe1, 0xc2, 0x43, 0x70, 0x5d, 0xc3, 0xe6, 0x63, 0xa2, 0x1f, 0xd6, 0x95, 0x56, 0x4b, 0xc7, 0x86,
-	0x51, 0x14, 0x2a, 0xc2, 0xfa, 0x64, 0x6d, 0xcb, 0xa2, 0x30, 0xea, 0xb2, 0x29, 0xbc, 0x31, 0x50,
-	0x3a, 0x47, 0xf7, 0x50, 0xc4, 0x81, 0xe4, 0x6b, 0xae, 0x65, 0x8f, 0x1b, 0x0a, 0x0a, 0xb8, 0xda,
-	0xed, 0x35, 0x0e, 0xf1, 0xa0, 0x98, 0xab, 0x08, 0xeb, 0x53, 0xdb, 0xf3, 0x22, 0xaf, 0x5f, 0xf4,
-	0x5a, 0x23, 0xee, 0x69, 0x83, 0xda, 0x8e, 0x45, 0xa1, 0x1b, 0x67, 0x53, 0x38, 0xc3, 0xe7, 0xe6,
-	0x63, 0xf4, 0xeb, 0x8f, 0x5b, 0xf3, 0x6e, 0x23, 0x9a, 0xfa, 0xa0, 0x6b, 0x12, 0xf1, 0xe3, 0x5e,
-	0xe3, 0x43, 0x3c, 0x90, 0xdd, 0x84, 0xc2, 0x01, 0xb8, 0xd2, 0x57, 0x8e, 0x7a, 0xb8, 0x38, 0xce,
-	0x56, 0x58, 0x14, 0xdd, 0x68, 0xa7, 0x09, 0xa2, 0xdb, 0x04, 0xf1, 0x3e, 0x51, 0xb5, 0xda, 0xca,
-	0x31, 0x85, 0x63, 0x16, 0x85, 0x3c, 0xde, 0xa6, 0x70, 0x9a, 0xaf, 0xc4, 0x86, 0x48, 0xe6, 0xe6,
-	0xc2, 0x01, 0x98, 0x21, 0x8f, 0x35, 0xac, 0xfb, 0x8d, 0xc8, 0xb3, 0x46, 0x6c, 0x58, 0x14, 0x86,
-	0x1d, 0x36, 0x85, 0xf3, 0x7c, 0x82, 0x90, 0x19, 0xc9, 0xd3, 0x6c, 0xec, 0xb5, 0x40, 0x05, 0x53,
-	0x2d, 0x6c, 0x34, 0x75, 0xb5, 0xeb, 0x30, 0x5d, 0xbc, 0xc2, 0x50, 0x56, 0xc4, 0x04, 0x35, 0x89,
-	0x0f, 0x86, 0x71, 0xb5, 0x55, 0x8b, 0xc2, 0x60, 0xa2, 0x4d, 0x61, 0x81, 0xaf, 0x16, 0x30, 0x22,
-	0x39, 0x18, 0x52, 0x78, 0x1f, 0x4c, 0x6a, 0xa4, 0x85, 0xeb, 0xe6, 0xa0, 0x8b, 0x8b, 0x57, 0x2b,
-	0xc2, 0xfa, 0x4c, 0xed, 0x96, 0x45, 0xe1, 0xd0, 0x68, 0x53, 0xf8, 0xba, 0xcb, 0x9c, 0x67, 0x42,
-	0xf2, 0x84, 0xf3, 0xfb, 0x53, 0xe7, 0x27, 0x04, 0x2b, 0x89, 0xf2, 0x90, 0xb1, 0xd1, 0x25, 0x9a,
-	0x81, 0xd1, 0xef, 0xe3, 0x60, 0xd6, 0x8f, 0xd8, 0xc7, 0xa6, 0x72, 0x29, 0x9e, 0xff, 0x8b, 0x78,
-	0xd0, 0x12, 0x58, 0x8c, 0x51, 0xeb, 0x13, 0xff, 0x87, 0xc0, 0x76, 0x0e, 0x19, 0x77, 0x48, 0x3f,
-	0xbc, 0x73, 0x74, 0xc0, 0x82, 0xee, 0x8e, 0xeb, 0x4c, 0x54, 0x61, 0x09, 0xbc, 0x6b, 0x51, 0x98,
-	0x1c, 0x60, 0x53, 0xb8, 0xcc, 0x31, 0x25, 0xba, 0x91, 0x3c, 0xa7, 0x07, 0xd6, 0xf1, 0x1a, 0x12,
-	0x6b, 0x70, 0xee, 0xa5, 0x1a, 0x7c, 0x2f, 0xff, 0xcd, 0x53, 0x38, 0xe6, 0x0a, 0x3f, 0x5e, 0x9d,
-	0x5f, 0xff, 0xb1, 0xc0, 0x84, 0xcf, 0x23, 0x7c, 0xe1, 0x7f, 0x01, 0x66, 0x3b, 0xd8, 0x54, 0x92,
-	0xea, 0xae, 0x5a, 0x14, 0xc6, 0x9d, 0x36, 0x85, 0x45, 0x0e, 0x2a, 0xe6, 0x42, 0xf2, 0xf5, 0x8e,
-	0x3b, 0xef, 0xc5, 0xd6, 0xca, 0x79, 0x0e, 0x57, 0xe2, 0xd7, 0xf9, 0x6f, 0x8e, 0xf1, 0xfc, 0x59,
-	0xb7, 0x15, 0x3d, 0x21, 0x3a, 0x61, 0x25, 0x0a, 0x23, 0x2a, 0x71, 0xc3, 0xfd, 0x6c, 0xce, 0xbb,
-	0x95, 0x25, 0xec, 0x29, 0xb9, 0x57, 0xb1, 0xa7, 0xc4, 0x7a, 0x3a, 0xfe, 0x72, 0x1f, 0x68, 0x68,
-	0xcb, 0xcd, 0x9f, 0x7b, 0xcb, 0x0d, 0xe9, 0x2f, 0xde, 0x75, 0x9f, 0x97, 0x67, 0x39, 0xa6, 0x3f,
-	0x1e, 0xe1, 0xeb, 0xef, 0x92, 0x93, 0x33, 0x75, 0x1e, 0xee, 0x98, 0xdf, 0xcf, 0x7f, 0x72, 0xa0,
-	0x94, 0xd8, 0xf1, 0x4f, 0x4c, 0xe5, 0xf0, 0xe2, 0x4e, 0xb4, 0x57, 0xfc, 0x45, 0x17, 0x6a, 0x00,
-	0xa8, 0x5a, 0x53, 0xaf, 0x1b, 0x0e, 0x6a, 0xd6, 0xb6, 0x89, 0xda, 0x6d, 0x8b, 0xc2, 0x80, 0xd5,
-	0xa6, 0x70, 0x96, 0xcf, 0x34, 0xb4, 0x21, 0x79, 0xd2, 0x19, 0xf0, 0x5a, 0x15, 0x30, 0xc5, 0x8c,
-	0xf5, 0x16, 0x3e, 0x32, 0x15, 0xa6, 0xe1, 0xcc, 0x83, 0x90, 0x9d, 0x2d, 0x81, 0x8c, 0xa1, 0x72,
-	0x02, 0x46, 0x24, 0x03, 0x36, 0x7a, 0xe0, 0x0c, 0x5c, 0x42, 0xde, 0x00, 0x28, 0xbd, 0xe5, 0x41,
-	0x66, 0x6e, 0xc4, 0x78, 0xbb, 0x64, 0xe5, 0x02, 0x58, 0x99, 0x70, 0x58, 0xf9, 0xdb, 0x61, 0xa6,
-	0x02, 0xca, 0xc9, 0x2d, 0xf7, 0x59, 0xf9, 0x21, 0x0f, 0x96, 0xf6, 0x8d, 0xf6, 0xf0, 0x3b, 0x72,
-	0x76, 0x16, 0x9d, 0xbd, 0x5d, 0x1e, 0x12, 0x13, 0x17, 0xbe, 0x02, 0x8b, 0x4d, 0x45, 0x6b, 0xa9,
-	0xce, 0x0c, 0xf5, 0x64, 0x92, 0xf6, 0x2c, 0x0a, 0xd3, 0x83, 0x6c, 0x0a, 0x2b, 0x1c, 0x6f, 0x6a,
-	0x08, 0x92, 0x6f, 0xfa, 0xbe, 0x83, 0x30, 0x83, 0x3d, 0x30, 0x74, 0xd5, 0x93, 0xb8, 0x7c, 0xcf,
-	0xa2, 0x30, 0x2d, 0xc4, 0xa6, 0xb0, 0x1c, 0x5d, 0x3a, 0xc2, 0xef, 0x82, 0xef, 0xf9, 0x28, 0x48,
-	0xf4, 0x2e, 0x78, 0x8d, 0x74, 0x55, 0xcd, 0xd9, 0x7b, 0x39, 0xcb, 0x2b, 0x16, 0x85, 0x9e, 0xc9,
-	0xa6, 0xf0, 0x9a, 0x2b, 0x16, 0x6e, 0x40, 0xb2, 0xe7, 0x72, 0x2e, 0x4d, 0x7d, 0x62, 0x62, 0x3d,
-	0xd6, 0xaa, 0xfc, 0xf0, 0xd2, 0x94, 0x18, 0x30, 0xbc, 0x34, 0x25, 0xba, 0x91, 0x3c, 0xc7, 0xec,
-	0x91, 0xf6, 0x60, 0xc0, 0xcd, 0x91, 0xd6, 0x5c, 0x61, 0x8b, 0xbd, 0x63, 0x51, 0x98, 0xe4, 0xb6,
-	0x29, 0x2c, 0x05, 0x97, 0x8a, 0xb4, 0x64, 0x96, 0x59, 0x83, 0xed, 0x08, 0x08, 0x6a, 0x15, 0xdc,
-	0xce, 0x50, 0x8b, 0xa7, 0xaa, 0xed, 0x17, 0xd3, 0x60, 0x7c, 0xdf, 0x68, 0x17, 0x9e, 0x09, 0x60,
-	0xe9, 0x03, 0x45, 0x6b, 0x1d, 0xe1, 0xe4, 0xd7, 0xe9, 0x5b, 0x89, 0x47, 0x5a, 0x62, 0x6c, 0x69,
-	0x7b, 0xf4, 0x58, 0x5f, 0xdd, 0xd5, 0xaf, 0x5f, 0xfc, 0xf5, 0x5d, 0x6e, 0x13, 0x6d, 0x48, 0x49,
-	0x8f, 0xec, 0x26, 0x4b, 0xac, 0x87, 0x6e, 0xa9, 0x61, 0xc8, 0x09, 0xd7, 0xe2, 0x54, 0xc8, 0xf1,
-	0xd8, 0x74, 0xc8, 0x19, 0x17, 0xd2, 0x6c, 0xc8, 0x3a, 0x4b, 0xcc, 0x82, 0x9c, 0x70, 0xc3, 0x4b,
-	0x85, 0x1c, 0x8f, 0x4d, 0x87, 0x9c, 0x71, 0x87, 0xc9, 0x86, 0xdc, 0x63, 0x89, 0x11, 0xc8, 0x3f,
-	0x0b, 0xa0, 0x92, 0x01, 0x99, 0x6f, 0x95, 0xd2, 0xe8, 0x58, 0x58, 0x42, 0x69, 0xf7, 0x9c, 0x09,
-	0x7e, 0x05, 0xbb, 0xac, 0x82, 0x2a, 0x92, 0x46, 0xae, 0x80, 0xef, 0xec, 0x85, 0xa7, 0x02, 0xb8,
-	0x19, 0x11, 0xb8, 0x7f, 0x89, 0x5b, 0xcb, 0x16, 0xac, 0x17, 0x57, 0x12, 0x47, 0x8b, 0xf3, 0xc1,
-	0x6e, 0x31, 0xb0, 0x6f, 0xa2, 0xd5, 0x2c, 0x51, 0xfb, 0xcf, 0x90, 0x30, 0xc4, 0xc8, 0x3b, 0x67,
-	0x2d, 0x5b, 0xa0, 0x67, 0x43, 0x4c, 0x79, 0x6d, 0x64, 0x43, 0x74, 0x45, 0x9c, 0x02, 0x31, 0x72,
-	0x15, 0x5e, 0xcb, 0xe6, 0xf4, 0x6c, 0x88, 0x29, 0x17, 0xc5, 0x6c, 0x88, 0x2e, 0xe5, 0x43, 0x88,
-	0x3f, 0x09, 0x60, 0x39, 0x05, 0x22, 0x17, 0xeb, 0xe6, 0x68, 0xeb, 0x73, 0xa1, 0xee, 0x9c, 0x23,
-	0xd8, 0x47, 0xbc, 0xc3, 0x10, 0x6f, 0xa1, 0xcd, 0x91, 0x10, 0xbb, 0x02, 0xfd, 0x45, 0x00, 0xb7,
-	0x7c, 0xdc, 0xa9, 0xa7, 0xfc, 0x9d, 0x34, 0x3c, 0x69, 0x19, 0xa5, 0xbb, 0xe7, 0xcd, 0xf0, 0xcb,
-	0xb8, 0xcb, 0xca, 0xd8, 0x46, 0x77, 0x12, 0xcb, 0x18, 0xe2, 0xd7, 0x03, 0x13, 0xd4, 0x9d, 0x33,
-	0xa9, 0x76, 0x70, 0x7c, 0x52, 0x16, 0x9e, 0x9f, 0x94, 0x85, 0x3f, 0x4f, 0xca, 0xc2, 0xb7, 0xa7,
-	0xe5, 0xb1, 0xe7, 0xa7, 0xe5, 0xb1, 0xdf, 0x4e, 0xcb, 0x63, 0x9f, 0xbf, 0xdd, 0x56, 0xcd, 0x47,
-	0xbd, 0x86, 0xd8, 0x24, 0x1d, 0x6f, 0x56, 0x0d, 0x9b, 0xde, 0xcf, 0xad, 0xe6, 0x23, 0x45, 0xd5,
-	0xa4, 0x27, 0xc3, 0x85, 0x9c, 0xc7, 0x9a, 0xd1, 0xb8, 0xca, 0xfe, 0x6e, 0xda, 0xf9, 0x2f, 0x00,
-	0x00, 0xff, 0xff, 0xff, 0xc6, 0x03, 0x6c, 0x1f, 0x16, 0x00, 0x00,
+	// 1477 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0x4f, 0x8c, 0xdb, 0xc4,
+	0x1a, 0x5f, 0x27, 0xdb, 0xbe, 0xee, 0xb4, 0xdb, 0x3f, 0xe9, 0xee, 0x6b, 0x36, 0xdd, 0x66, 0xb6,
+	0xd3, 0xd7, 0x7d, 0xdb, 0xd7, 0x17, 0xbb, 0xd9, 0x52, 0x68, 0x0b, 0x14, 0x35, 0x5d, 0x24, 0x10,
+	0xda, 0x2d, 0xb2, 0x4a, 0x91, 0x90, 0xaa, 0xc8, 0x49, 0xa6, 0x69, 0xb4, 0x1b, 0x4f, 0x64, 0x3b,
+	0xd9, 0xe6, 0xc0, 0x85, 0x53, 0x8f, 0x48, 0x9c, 0x38, 0x51, 0x38, 0x72, 0x02, 0x09, 0x8e, 0x48,
+	0x88, 0x53, 0x41, 0x42, 0xaa, 0x84, 0x84, 0x10, 0x12, 0x23, 0xd4, 0x72, 0xf2, 0x81, 0x83, 0x0f,
+	0x9c, 0x91, 0x67, 0xc6, 0xe3, 0xd8, 0xb1, 0xdd, 0x2c, 0x6d, 0x0f, 0xa0, 0x9e, 0x92, 0xf9, 0xfe,
+	0xcc, 0xfc, 0xbe, 0xdf, 0xf7, 0x7d, 0xf3, 0xc7, 0x60, 0xd1, 0x76, 0x2c, 0xc3, 0x21, 0xb6, 0x66,
+	0xe1, 0x76, 0xc7, 0x76, 0xb0, 0xa5, 0x0d, 0xaa, 0x9a, 0x73, 0x5b, 0xed, 0x59, 0xc4, 0x21, 0x85,
+	0xc3, 0x42, 0xab, 0x06, 0x5a, 0x75, 0x50, 0x2d, 0xcd, 0xb5, 0x49, 0x9b, 0x30, 0xbd, 0xe6, 0xff,
+	0xe3, 0xa6, 0xa5, 0x85, 0x36, 0x21, 0xed, 0x2d, 0xac, 0xb1, 0x51, 0xa3, 0x7f, 0x53, 0x33, 0xcc,
+	0xa1, 0x50, 0x2d, 0x0a, 0x95, 0xd1, 0xeb, 0x68, 0x86, 0x69, 0x12, 0xc7, 0x70, 0x3a, 0xc4, 0xb4,
+	0x03, 0xc7, 0x26, 0xb1, 0xbb, 0xc4, 0xae, 0xf3, 0x19, 0xf9, 0x40, 0xa8, 0x50, 0x12, 0x38, 0x09,
+	0x85, 0xdb, 0x94, 0xb9, 0x87, 0xd6, 0x30, 0x6c, 0xac, 0x0d, 0xaa, 0x0d, 0xec, 0x18, 0x55, 0xad,
+	0x49, 0x3a, 0x26, 0xd7, 0xa3, 0x8f, 0xa7, 0xc1, 0xfc, 0xba, 0xdd, 0xbe, 0x62, 0x61, 0xc3, 0xc1,
+	0x3a, 0xb6, 0x49, 0xdf, 0x6a, 0xe2, 0x0d, 0xd2, 0xc2, 0x85, 0xeb, 0xe0, 0x80, 0x89, 0x9d, 0x6d,
+	0x62, 0x6d, 0xd6, 0x8d, 0x56, 0xcb, 0xc2, 0xb6, 0x5d, 0x54, 0x96, 0x94, 0x95, 0x99, 0x5a, 0xc5,
+	0xa5, 0x30, 0xae, 0xf2, 0x28, 0xfc, 0xf7, 0xd0, 0xe8, 0x6e, 0x5d, 0x44, 0x31, 0x05, 0xd2, 0xf7,
+	0x0b, 0xc9, 0x65, 0x2e, 0x28, 0x18, 0x60, 0x77, 0xaf, 0xdf, 0xd8, 0xc4, 0xc3, 0x62, 0x6e, 0x49,
+	0x59, 0xd9, 0xbb, 0x3a, 0xa7, 0xf2, 0xf8, 0xd5, 0x80, 0x1a, 0xf5, 0xb2, 0x39, 0xac, 0x9d, 0x75,
+	0x29, 0x14, 0x76, 0x1e, 0x85, 0xb3, 0x7c, 0x6e, 0x3e, 0x46, 0xdf, 0x7d, 0x51, 0x99, 0x13, 0x44,
+	0x34, 0xad, 0x61, 0xcf, 0x21, 0xea, 0x9b, 0xfd, 0xc6, 0x1b, 0x78, 0xa8, 0x0b, 0x87, 0xc2, 0x06,
+	0xd8, 0x35, 0x30, 0xb6, 0xfa, 0xb8, 0x98, 0x67, 0x2b, 0x2c, 0xa8, 0xc2, 0xda, 0x27, 0x41, 0x15,
+	0x24, 0xa8, 0x57, 0x48, 0xc7, 0xac, 0x1d, 0xbb, 0x47, 0xe1, 0x94, 0x4b, 0x21, 0xb7, 0xf7, 0x28,
+	0xdc, 0xc7, 0x57, 0x62, 0x43, 0xa4, 0x73, 0x71, 0x61, 0x03, 0xcc, 0x92, 0x6d, 0x13, 0x5b, 0x92,
+	0x88, 0x69, 0x46, 0xc4, 0x29, 0x97, 0xc2, 0xa8, 0xc2, 0xa3, 0x70, 0x8e, 0x4f, 0x10, 0x11, 0x23,
+	0x7d, 0x1f, 0x1b, 0x07, 0x14, 0x74, 0xc1, 0xde, 0x16, 0xb6, 0x9b, 0x56, 0xa7, 0xe7, 0x67, 0xba,
+	0xb8, 0x8b, 0xa1, 0x5c, 0x52, 0x13, 0xaa, 0x49, 0x5d, 0x0b, 0xed, 0x6a, 0xa7, 0x04, 0xd8, 0x51,
+	0x67, 0x8f, 0xc2, 0x02, 0x5f, 0x71, 0x44, 0x88, 0xf4, 0x51, 0x93, 0xc2, 0x25, 0x30, 0x63, 0x92,
+	0x16, 0xae, 0x3b, 0xc3, 0x1e, 0x2e, 0xee, 0x5e, 0x52, 0x56, 0x66, 0x6b, 0xc7, 0x5d, 0x0a, 0x43,
+	0xa1, 0x47, 0xe1, 0x41, 0x91, 0xbd, 0x40, 0x84, 0xf4, 0x3d, 0xfe, 0xff, 0x6b, 0xfe, 0x5f, 0x08,
+	0x8e, 0x25, 0x96, 0x88, 0x8e, 0xed, 0x1e, 0x31, 0x6d, 0x8c, 0x7e, 0xc9, 0x83, 0x43, 0xd2, 0x62,
+	0x1d, 0x3b, 0xc6, 0xb3, 0x02, 0xfa, 0x27, 0x15, 0x10, 0x3a, 0x0a, 0x16, 0xc6, 0xd2, 0x2b, 0x93,
+	0xff, 0xa3, 0xc2, 0x76, 0x10, 0x1d, 0x77, 0xc9, 0x20, 0xba, 0x83, 0x74, 0xc1, 0xbc, 0x25, 0xc6,
+	0x75, 0x56, 0x58, 0xd1, 0x32, 0xb8, 0xe0, 0x52, 0x98, 0x6c, 0xe0, 0x51, 0xb8, 0xc8, 0x31, 0x25,
+	0xaa, 0x91, 0x7e, 0xd8, 0x1a, 0x59, 0x27, 0x20, 0x65, 0x8c, 0xe4, 0xdc, 0x63, 0x91, 0x2c, 0xca,
+	0x7e, 0x3c, 0x2e, 0x19, 0xf9, 0x37, 0x0a, 0x2b, 0x7b, 0x6e, 0x21, 0xcb, 0xfe, 0x06, 0x38, 0xd4,
+	0xc5, 0x8e, 0x91, 0x14, 0x71, 0xd5, 0xa5, 0x70, 0x5c, 0xe9, 0x51, 0x58, 0xe4, 0x70, 0xc6, 0x54,
+	0x48, 0x3f, 0xd0, 0x15, 0xf3, 0x3e, 0xad, 0x28, 0x79, 0x6e, 0xa3, 0x31, 0xc8, 0x08, 0x7f, 0xcf,
+	0xb1, 0xdc, 0xbe, 0xd5, 0x6b, 0xc5, 0x4f, 0x87, 0x58, 0x05, 0x2a, 0x4f, 0x79, 0x0b, 0x4b, 0xd8,
+	0x4b, 0x72, 0x4f, 0x62, 0x2f, 0x19, 0x63, 0x33, 0xff, 0x78, 0x8d, 0x19, 0xd9, 0x6a, 0xa7, 0xff,
+	0xea, 0x56, 0x3b, 0xce, 0xb7, 0xcc, 0xc8, 0xa7, 0x39, 0x56, 0x73, 0xdc, 0x42, 0xd6, 0xdc, 0xb3,
+	0x6c, 0x64, 0xd4, 0x76, 0x94, 0x2b, 0xc9, 0xe4, 0x97, 0x39, 0xb0, 0x98, 0xc8, 0xf5, 0x1a, 0xee,
+	0x11, 0xbb, 0xe3, 0x3c, 0xb5, 0xf3, 0xeb, 0x09, 0x77, 0x70, 0xa1, 0x0b, 0x66, 0x5b, 0x1c, 0x72,
+	0xbd, 0x85, 0xb7, 0x1c, 0xe3, 0xd1, 0x87, 0x56, 0x45, 0xe4, 0x3d, 0xea, 0x17, 0x2e, 0x17, 0x11,
+	0x23, 0x7d, 0x9f, 0x18, 0xaf, 0xb1, 0xe1, 0x32, 0xf8, 0x4f, 0x16, 0x6d, 0x92, 0xdf, 0x0f, 0xf3,
+	0x23, 0xec, 0xbf, 0x7a, 0xf3, 0x26, 0x6e, 0x3a, 0x9d, 0x81, 0x24, 0xf7, 0x15, 0x30, 0x63, 0xe1,
+	0x1e, 0xb1, 0x1c, 0x6c, 0xf9, 0xb4, 0xe6, 0x57, 0x66, 0x78, 0xa3, 0x48, 0x61, 0xd8, 0x28, 0x52,
+	0x84, 0xf4, 0x50, 0x5d, 0xd0, 0xc1, 0xfe, 0x60, 0x50, 0x67, 0x74, 0x14, 0x73, 0x6c, 0x96, 0xd3,
+	0x2e, 0x85, 0x31, 0x8d, 0x47, 0xe1, 0x7c, 0x74, 0x2a, 0x2e, 0x47, 0xfa, 0x6c, 0x20, 0xb8, 0xea,
+	0x8f, 0x93, 0x32, 0x9e, 0x7f, 0x12, 0x19, 0xbf, 0xa3, 0x80, 0x83, 0x38, 0x60, 0xa0, 0xee, 0x90,
+	0x4d, 0x6c, 0x06, 0x57, 0x80, 0x1b, 0x7e, 0x2a, 0x7e, 0xa6, 0x70, 0xb9, 0xdd, 0x71, 0x6e, 0xf5,
+	0x1b, 0x6a, 0x93, 0x74, 0xc5, 0x25, 0x5f, 0xfc, 0x54, 0xec, 0xd6, 0xa6, 0xe6, 0x6f, 0x13, 0xb6,
+	0xfa, 0xba, 0xe9, 0xb8, 0x14, 0x8e, 0xcd, 0xe4, 0x51, 0x78, 0x84, 0x03, 0x89, 0x6b, 0x90, 0x7e,
+	0x40, 0x8a, 0xae, 0x31, 0xc9, 0xc5, 0xe9, 0x3b, 0x77, 0xe1, 0x14, 0x3a, 0x01, 0x8e, 0xa7, 0xa6,
+	0x46, 0x26, 0xf0, 0xf3, 0x1c, 0x28, 0x8e, 0xb5, 0xcf, 0xb3, 0xe6, 0xc8, 0x6c, 0x0e, 0x04, 0x96,
+	0xd2, 0x28, 0x93, 0xbc, 0x7e, 0x32, 0x0d, 0x8e, 0xae, 0xdb, 0xed, 0x70, 0x43, 0xf2, 0x37, 0x67,
+	0x8b, 0x3d, 0xfa, 0xae, 0x13, 0x07, 0x17, 0xde, 0x05, 0x0b, 0x4d, 0xc3, 0x6c, 0x75, 0xfc, 0x39,
+	0xea, 0xc9, 0x24, 0x5f, 0x76, 0x29, 0x4c, 0x37, 0xf2, 0x28, 0x5c, 0xe2, 0x58, 0x53, 0x4d, 0x90,
+	0x7e, 0x44, 0xea, 0x36, 0xa2, 0x19, 0xe8, 0x83, 0x50, 0x55, 0x4f, 0xca, 0xc5, 0xcb, 0x2e, 0x85,
+	0x69, 0x26, 0x1e, 0x85, 0xe5, 0xf8, 0xd2, 0xb1, 0xfc, 0xcc, 0x4b, 0xcd, 0xd5, 0xd1, 0x44, 0xbd,
+	0x00, 0xfe, 0x45, 0x7a, 0x1d, 0xd3, 0x3f, 0xbe, 0xfc, 0x14, 0xed, 0xa9, 0x1d, 0x73, 0x29, 0x0c,
+	0x44, 0x1e, 0x85, 0xfb, 0x45, 0xb2, 0xb9, 0x00, 0xe9, 0x81, 0xca, 0xbf, 0x65, 0x0e, 0x88, 0xdf,
+	0xd3, 0x71, 0xaa, 0xa6, 0xc3, 0x5b, 0x66, 0xa2, 0x41, 0x78, 0xcb, 0x4c, 0x54, 0x23, 0xfd, 0x30,
+	0x93, 0xc7, 0xe8, 0xc1, 0x80, 0x8b, 0x63, 0xd4, 0xec, 0x62, 0x8b, 0x9d, 0x73, 0x29, 0x4c, 0x52,
+	0x7b, 0x14, 0x96, 0x46, 0x97, 0x8a, 0x51, 0x72, 0x88, 0x49, 0x47, 0xe9, 0x40, 0x27, 0xc1, 0x89,
+	0x8c, 0x1a, 0x91, 0xb5, 0x74, 0x5f, 0x01, 0xcb, 0xeb, 0x76, 0xfb, 0xed, 0x8e, 0x73, 0xab, 0x65,
+	0x19, 0xdb, 0x49, 0xf6, 0x7f, 0xb3, 0x8e, 0x45, 0x67, 0x80, 0x3a, 0x59, 0x44, 0x01, 0x09, 0xab,
+	0x1f, 0x1d, 0x04, 0xf9, 0x75, 0xbb, 0x5d, 0xf8, 0x4c, 0x01, 0x47, 0x5f, 0x33, 0xcc, 0xd6, 0x16,
+	0x4e, 0xfe, 0xa2, 0xf1, 0xbf, 0xc4, 0x0b, 0x51, 0xa2, 0x6d, 0x69, 0x75, 0x72, 0x5b, 0x99, 0x8c,
+	0xea, 0x7b, 0x3f, 0xfc, 0xf6, 0x41, 0xee, 0x34, 0x3a, 0xa5, 0x25, 0x7d, 0x98, 0x69, 0x32, 0xc7,
+	0x7a, 0xe4, 0x45, 0x13, 0x85, 0x9c, 0xf0, 0x84, 0x4a, 0x85, 0x3c, 0x6e, 0x9b, 0x0e, 0x39, 0xe3,
+	0x09, 0x93, 0x0d, 0xd9, 0x62, 0x8e, 0x59, 0x90, 0x13, 0x5e, 0x06, 0xa9, 0x90, 0xc7, 0x6d, 0xd3,
+	0x21, 0x67, 0xdc, 0x80, 0xb3, 0x21, 0xf7, 0x99, 0x63, 0x0c, 0xf2, 0xf7, 0x0a, 0x40, 0x19, 0x90,
+	0x83, 0x0e, 0xa9, 0x4e, 0x8e, 0x46, 0xb8, 0x94, 0x2e, 0xec, 0xd8, 0x45, 0xc6, 0x71, 0x81, 0xc5,
+	0x71, 0x16, 0x55, 0x27, 0x8e, 0xa3, 0x2e, 0x8e, 0x9a, 0xc2, 0xd7, 0x0a, 0x80, 0xb1, 0x78, 0xc6,
+	0x2e, 0x58, 0x6a, 0x36, 0xb2, 0xb8, 0x7d, 0xe9, 0xf9, 0x9d, 0xd9, 0xcb, 0x30, 0xce, 0xb1, 0x30,
+	0x34, 0x54, 0xc9, 0x0a, 0x23, 0xbc, 0x98, 0x04, 0x21, 0xdc, 0x55, 0xc0, 0x91, 0x58, 0xaf, 0xca,
+	0xd7, 0xcc, 0x72, 0x76, 0xef, 0x05, 0x76, 0x25, 0x75, 0x32, 0x3b, 0x09, 0xb5, 0xc2, 0xa0, 0xfe,
+	0x17, 0x9d, 0xcc, 0xea, 0x4f, 0xf9, 0x06, 0x8f, 0x42, 0x8c, 0x3d, 0xf2, 0x97, 0xb3, 0x7b, 0xed,
+	0xd1, 0x10, 0x53, 0x1e, 0xdc, 0xd9, 0x10, 0x45, 0x3f, 0xa6, 0x40, 0x8c, 0xbd, 0x09, 0x97, 0xb3,
+	0x13, 0xfa, 0x68, 0x88, 0x29, 0xef, 0xa6, 0x6c, 0x88, 0x22, 0xe1, 0x21, 0xc4, 0xaf, 0x14, 0x50,
+	0x4e, 0x81, 0x18, 0x94, 0x6a, 0x65, 0x32, 0x04, 0x41, 0xa5, 0x9e, 0xdb, 0x91, 0xf9, 0xce, 0x0a,
+	0x35, 0xfc, 0x02, 0x13, 0x14, 0xea, 0xb7, 0x0a, 0x38, 0x2e, 0xf1, 0xa7, 0xde, 0xd9, 0xce, 0xa4,
+	0x61, 0x4a, 0xf3, 0x28, 0x9d, 0xdf, 0xa9, 0x87, 0x0c, 0xe4, 0x3c, 0x0b, 0x64, 0x15, 0x9d, 0x49,
+	0x0c, 0x24, 0x8c, 0xc0, 0x1a, 0x99, 0xa0, 0xee, 0xdf, 0x30, 0x0a, 0x7f, 0x28, 0xe0, 0xff, 0x32,
+	0x96, 0x49, 0xee, 0x0c, 0x2f, 0xa6, 0x81, 0x9c, 0xc0, 0xb9, 0x74, 0xe5, 0x31, 0x9c, 0x65, 0xb0,
+	0x6b, 0x2c, 0xd8, 0x4b, 0xe8, 0xa5, 0xc4, 0x60, 0xb7, 0xc5, 0x4c, 0xf5, 0x94, 0xa8, 0x45, 0x12,
+	0x6b, 0x1b, 0xf7, 0x1e, 0x94, 0x95, 0xfb, 0x0f, 0xca, 0xca, 0xaf, 0x0f, 0xca, 0xca, 0xfb, 0x0f,
+	0xcb, 0x53, 0xf7, 0x1f, 0x96, 0xa7, 0x7e, 0x7a, 0x58, 0x9e, 0x7a, 0xe7, 0xb9, 0x91, 0x77, 0x97,
+	0x58, 0xc1, 0xc4, 0x4e, 0xf0, 0xb7, 0xd2, 0xbc, 0x65, 0x74, 0x4c, 0xed, 0x76, 0xb8, 0x28, 0x7b,
+	0x89, 0x35, 0x76, 0xb3, 0x4f, 0xcd, 0x67, 0xff, 0x0c, 0x00, 0x00, 0xff, 0xff, 0x0d, 0x60, 0xb6,
+	0x1c, 0x1f, 0x1a, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -933,12 +1277,14 @@ type MsgClient interface {
 	HandleMsgCreateResourceNode(ctx context.Context, in *MsgCreateResourceNode, opts ...grpc.CallOption) (*MsgCreateResourceNodeResponse, error)
 	HandleMsgRemoveResourceNode(ctx context.Context, in *MsgRemoveResourceNode, opts ...grpc.CallOption) (*MsgRemoveResourceNodeResponse, error)
 	HandleMsgUpdateResourceNode(ctx context.Context, in *MsgUpdateResourceNode, opts ...grpc.CallOption) (*MsgUpdateResourceNodeResponse, error)
-	HandleMsgUpdateResourceNodeStake(ctx context.Context, in *MsgUpdateResourceNodeStake, opts ...grpc.CallOption) (*MsgUpdateResourceNodeStakeResponse, error)
+	HandleMsgUpdateResourceNodeDeposit(ctx context.Context, in *MsgUpdateResourceNodeDeposit, opts ...grpc.CallOption) (*MsgUpdateResourceNodeDepositResponse, error)
+	HandleMsgUpdateEffectiveDeposit(ctx context.Context, in *MsgUpdateEffectiveDeposit, opts ...grpc.CallOption) (*MsgUpdateEffectiveDepositResponse, error)
 	HandleMsgCreateMetaNode(ctx context.Context, in *MsgCreateMetaNode, opts ...grpc.CallOption) (*MsgCreateMetaNodeResponse, error)
 	HandleMsgRemoveMetaNode(ctx context.Context, in *MsgRemoveMetaNode, opts ...grpc.CallOption) (*MsgRemoveMetaNodeResponse, error)
 	HandleMsgUpdateMetaNode(ctx context.Context, in *MsgUpdateMetaNode, opts ...grpc.CallOption) (*MsgUpdateMetaNodeResponse, error)
-	HandleMsgUpdateMetaNodeStake(ctx context.Context, in *MsgUpdateMetaNodeStake, opts ...grpc.CallOption) (*MsgUpdateMetaNodeStakeResponse, error)
+	HandleMsgUpdateMetaNodeDeposit(ctx context.Context, in *MsgUpdateMetaNodeDeposit, opts ...grpc.CallOption) (*MsgUpdateMetaNodeDepositResponse, error)
 	HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *MsgMetaNodeRegistrationVote, opts ...grpc.CallOption) (*MsgMetaNodeRegistrationVoteResponse, error)
+	HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, in *MsgWithdrawMetaNodeRegistrationDeposit, opts ...grpc.CallOption) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error)
 }
 
 type msgClient struct {
@@ -976,9 +1322,18 @@ func (c *msgClient) HandleMsgUpdateResourceNode(ctx context.Context, in *MsgUpda
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgUpdateResourceNodeStake(ctx context.Context, in *MsgUpdateResourceNodeStake, opts ...grpc.CallOption) (*MsgUpdateResourceNodeStakeResponse, error) {
-	out := new(MsgUpdateResourceNodeStakeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateResourceNodeStake", in, out, opts...)
+func (c *msgClient) HandleMsgUpdateResourceNodeDeposit(ctx context.Context, in *MsgUpdateResourceNodeDeposit, opts ...grpc.CallOption) (*MsgUpdateResourceNodeDepositResponse, error) {
+	out := new(MsgUpdateResourceNodeDepositResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateResourceNodeDeposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) HandleMsgUpdateEffectiveDeposit(ctx context.Context, in *MsgUpdateEffectiveDeposit, opts ...grpc.CallOption) (*MsgUpdateEffectiveDepositResponse, error) {
+	out := new(MsgUpdateEffectiveDepositResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateEffectiveDeposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1012,9 +1367,9 @@ func (c *msgClient) HandleMsgUpdateMetaNode(ctx context.Context, in *MsgUpdateMe
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgUpdateMetaNodeStake(ctx context.Context, in *MsgUpdateMetaNodeStake, opts ...grpc.CallOption) (*MsgUpdateMetaNodeStakeResponse, error) {
-	out := new(MsgUpdateMetaNodeStakeResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeStake", in, out, opts...)
+func (c *msgClient) HandleMsgUpdateMetaNodeDeposit(ctx context.Context, in *MsgUpdateMetaNodeDeposit, opts ...grpc.CallOption) (*MsgUpdateMetaNodeDepositResponse, error) {
+	out := new(MsgUpdateMetaNodeDepositResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeDeposit", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1030,18 +1385,29 @@ func (c *msgClient) HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *M
 	return out, nil
 }
 
+func (c *msgClient) HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, in *MsgWithdrawMetaNodeRegistrationDeposit, opts ...grpc.CallOption) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error) {
+	out := new(MsgWithdrawMetaNodeRegistrationDepositResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgWithdrawMetaNodeRegistrationDeposit", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 type MsgServer interface {
 	// CreateResourceNode defines a method for creating a new resource node.
 	HandleMsgCreateResourceNode(context.Context, *MsgCreateResourceNode) (*MsgCreateResourceNodeResponse, error)
 	HandleMsgRemoveResourceNode(context.Context, *MsgRemoveResourceNode) (*MsgRemoveResourceNodeResponse, error)
 	HandleMsgUpdateResourceNode(context.Context, *MsgUpdateResourceNode) (*MsgUpdateResourceNodeResponse, error)
-	HandleMsgUpdateResourceNodeStake(context.Context, *MsgUpdateResourceNodeStake) (*MsgUpdateResourceNodeStakeResponse, error)
+	HandleMsgUpdateResourceNodeDeposit(context.Context, *MsgUpdateResourceNodeDeposit) (*MsgUpdateResourceNodeDepositResponse, error)
+	HandleMsgUpdateEffectiveDeposit(context.Context, *MsgUpdateEffectiveDeposit) (*MsgUpdateEffectiveDepositResponse, error)
 	HandleMsgCreateMetaNode(context.Context, *MsgCreateMetaNode) (*MsgCreateMetaNodeResponse, error)
 	HandleMsgRemoveMetaNode(context.Context, *MsgRemoveMetaNode) (*MsgRemoveMetaNodeResponse, error)
 	HandleMsgUpdateMetaNode(context.Context, *MsgUpdateMetaNode) (*MsgUpdateMetaNodeResponse, error)
-	HandleMsgUpdateMetaNodeStake(context.Context, *MsgUpdateMetaNodeStake) (*MsgUpdateMetaNodeStakeResponse, error)
+	HandleMsgUpdateMetaNodeDeposit(context.Context, *MsgUpdateMetaNodeDeposit) (*MsgUpdateMetaNodeDepositResponse, error)
 	HandleMsgMetaNodeRegistrationVote(context.Context, *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error)
+	HandleMsgWithdrawMetaNodeRegistrationDeposit(context.Context, *MsgWithdrawMetaNodeRegistrationDeposit) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1057,8 +1423,11 @@ func (*UnimplementedMsgServer) HandleMsgRemoveResourceNode(ctx context.Context, 
 func (*UnimplementedMsgServer) HandleMsgUpdateResourceNode(ctx context.Context, req *MsgUpdateResourceNode) (*MsgUpdateResourceNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateResourceNode not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgUpdateResourceNodeStake(ctx context.Context, req *MsgUpdateResourceNodeStake) (*MsgUpdateResourceNodeStakeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateResourceNodeStake not implemented")
+func (*UnimplementedMsgServer) HandleMsgUpdateResourceNodeDeposit(ctx context.Context, req *MsgUpdateResourceNodeDeposit) (*MsgUpdateResourceNodeDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateResourceNodeDeposit not implemented")
+}
+func (*UnimplementedMsgServer) HandleMsgUpdateEffectiveDeposit(ctx context.Context, req *MsgUpdateEffectiveDeposit) (*MsgUpdateEffectiveDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateEffectiveDeposit not implemented")
 }
 func (*UnimplementedMsgServer) HandleMsgCreateMetaNode(ctx context.Context, req *MsgCreateMetaNode) (*MsgCreateMetaNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgCreateMetaNode not implemented")
@@ -1069,11 +1438,14 @@ func (*UnimplementedMsgServer) HandleMsgRemoveMetaNode(ctx context.Context, req 
 func (*UnimplementedMsgServer) HandleMsgUpdateMetaNode(ctx context.Context, req *MsgUpdateMetaNode) (*MsgUpdateMetaNodeResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateMetaNode not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgUpdateMetaNodeStake(ctx context.Context, req *MsgUpdateMetaNodeStake) (*MsgUpdateMetaNodeStakeResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateMetaNodeStake not implemented")
+func (*UnimplementedMsgServer) HandleMsgUpdateMetaNodeDeposit(ctx context.Context, req *MsgUpdateMetaNodeDeposit) (*MsgUpdateMetaNodeDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgUpdateMetaNodeDeposit not implemented")
 }
 func (*UnimplementedMsgServer) HandleMsgMetaNodeRegistrationVote(ctx context.Context, req *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgMetaNodeRegistrationVote not implemented")
+}
+func (*UnimplementedMsgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, req *MsgWithdrawMetaNodeRegistrationDeposit) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgWithdrawMetaNodeRegistrationDeposit not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1134,20 +1506,38 @@ func _Msg_HandleMsgUpdateResourceNode_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgUpdateResourceNodeStake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateResourceNodeStake)
+func _Msg_HandleMsgUpdateResourceNodeDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateResourceNodeDeposit)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgUpdateResourceNodeStake(ctx, in)
+		return srv.(MsgServer).HandleMsgUpdateResourceNodeDeposit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateResourceNodeStake",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateResourceNodeDeposit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgUpdateResourceNodeStake(ctx, req.(*MsgUpdateResourceNodeStake))
+		return srv.(MsgServer).HandleMsgUpdateResourceNodeDeposit(ctx, req.(*MsgUpdateResourceNodeDeposit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_HandleMsgUpdateEffectiveDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateEffectiveDeposit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).HandleMsgUpdateEffectiveDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateEffectiveDeposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).HandleMsgUpdateEffectiveDeposit(ctx, req.(*MsgUpdateEffectiveDeposit))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1206,20 +1596,20 @@ func _Msg_HandleMsgUpdateMetaNode_Handler(srv interface{}, ctx context.Context, 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgUpdateMetaNodeStake_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgUpdateMetaNodeStake)
+func _Msg_HandleMsgUpdateMetaNodeDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateMetaNodeDeposit)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgUpdateMetaNodeStake(ctx, in)
+		return srv.(MsgServer).HandleMsgUpdateMetaNodeDeposit(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeStake",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeDeposit",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgUpdateMetaNodeStake(ctx, req.(*MsgUpdateMetaNodeStake))
+		return srv.(MsgServer).HandleMsgUpdateMetaNodeDeposit(ctx, req.(*MsgUpdateMetaNodeDeposit))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1242,6 +1632,24 @@ func _Msg_HandleMsgMetaNodeRegistrationVote_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgWithdrawMetaNodeRegistrationDeposit)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgWithdrawMetaNodeRegistrationDeposit",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, req.(*MsgWithdrawMetaNodeRegistrationDeposit))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _Msg_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "stratos.register.v1.Msg",
 	HandlerType: (*MsgServer)(nil),
@@ -1259,8 +1667,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_HandleMsgUpdateResourceNode_Handler,
 		},
 		{
-			MethodName: "HandleMsgUpdateResourceNodeStake",
-			Handler:    _Msg_HandleMsgUpdateResourceNodeStake_Handler,
+			MethodName: "HandleMsgUpdateResourceNodeDeposit",
+			Handler:    _Msg_HandleMsgUpdateResourceNodeDeposit_Handler,
+		},
+		{
+			MethodName: "HandleMsgUpdateEffectiveDeposit",
+			Handler:    _Msg_HandleMsgUpdateEffectiveDeposit_Handler,
 		},
 		{
 			MethodName: "HandleMsgCreateMetaNode",
@@ -1275,12 +1687,16 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_HandleMsgUpdateMetaNode_Handler,
 		},
 		{
-			MethodName: "HandleMsgUpdateMetaNodeStake",
-			Handler:    _Msg_HandleMsgUpdateMetaNodeStake_Handler,
+			MethodName: "HandleMsgUpdateMetaNodeDeposit",
+			Handler:    _Msg_HandleMsgUpdateMetaNodeDeposit_Handler,
 		},
 		{
 			MethodName: "HandleMsgMetaNodeRegistrationVote",
 			Handler:    _Msg_HandleMsgMetaNodeRegistrationVote_Handler,
+		},
+		{
+			MethodName: "HandleMsgWithdrawMetaNodeRegistrationDeposit",
+			Handler:    _Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1312,18 +1728,16 @@ func (m *MsgCreateResourceNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i--
 		dAtA[i] = 0x30
 	}
-	if m.Description != nil {
-		{
-			size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
+	{
+		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x2a
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x2a
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
@@ -1406,18 +1820,16 @@ func (m *MsgCreateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if m.Description != nil {
-		{
-			size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
+	{
+		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x2a
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
+	i--
+	dAtA[i] = 0x2a
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
@@ -1745,7 +2157,7 @@ func (m *MsgUpdateMetaNodeResponse) MarshalToSizedBuffer(dAtA []byte) (int, erro
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateResourceNodeStake) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateResourceNodeDeposit) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1755,38 +2167,26 @@ func (m *MsgUpdateResourceNodeStake) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateResourceNodeStake) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateResourceNodeDeposit) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateResourceNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateResourceNodeDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.StakeDelta != nil {
-		{
-			size, err := m.StakeDelta.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
+	{
+		size, err := m.DepositDelta.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x22
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
-	if m.IncrStake {
-		i--
-		if m.IncrStake {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
-		i--
-		dAtA[i] = 0x18
-	}
+	i--
+	dAtA[i] = 0x1a
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
@@ -1804,7 +2204,7 @@ func (m *MsgUpdateResourceNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, err
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateResourceNodeStakeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateResourceNodeDepositResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1814,12 +2214,12 @@ func (m *MsgUpdateResourceNodeStakeResponse) Marshal() (dAtA []byte, err error) 
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateResourceNodeStakeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateResourceNodeDepositResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateResourceNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateResourceNodeDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1827,7 +2227,7 @@ func (m *MsgUpdateResourceNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateMetaNodeStake) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateEffectiveDeposit) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1837,38 +2237,107 @@ func (m *MsgUpdateMetaNodeStake) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateMetaNodeStake) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateEffectiveDeposit) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateMetaNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateEffectiveDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if m.StakeDelta != nil {
-		{
-			size, err := m.StakeDelta.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintTx(dAtA, i, uint64(size))
+	{
+		size := m.EffectiveTokens.Size()
+		i -= size
+		if _, err := m.EffectiveTokens.MarshalTo(dAtA[i:]); err != nil {
+			return 0, err
 		}
-		i--
-		dAtA[i] = 0x22
+		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
-	if m.IncrStake {
+	i--
+	dAtA[i] = 0x22
+	if len(m.NetworkAddress) > 0 {
+		i -= len(m.NetworkAddress)
+		copy(dAtA[i:], m.NetworkAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.NetworkAddress)))
 		i--
-		if m.IncrStake {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
+		dAtA[i] = 0x1a
+	}
+	if len(m.ReporterOwner) > 0 {
+		for iNdEx := len(m.ReporterOwner) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.ReporterOwner[iNdEx])
+			copy(dAtA[i:], m.ReporterOwner[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.ReporterOwner[iNdEx])))
+			i--
+			dAtA[i] = 0x12
 		}
-		i--
-		dAtA[i] = 0x18
 	}
+	if len(m.Reporters) > 0 {
+		for iNdEx := len(m.Reporters) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Reporters[iNdEx])
+			copy(dAtA[i:], m.Reporters[iNdEx])
+			i = encodeVarintTx(dAtA, i, uint64(len(m.Reporters[iNdEx])))
+			i--
+			dAtA[i] = 0xa
+		}
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateEffectiveDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateEffectiveDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateEffectiveDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateMetaNodeDeposit) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateMetaNodeDeposit) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateMetaNodeDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.DepositDelta.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x1a
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
@@ -1886,7 +2355,7 @@ func (m *MsgUpdateMetaNodeStake) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgUpdateMetaNodeStakeResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgUpdateMetaNodeDepositResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1896,12 +2365,12 @@ func (m *MsgUpdateMetaNodeStakeResponse) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *MsgUpdateMetaNodeStakeResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeDepositResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgUpdateMetaNodeStakeResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgUpdateMetaNodeDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -1993,6 +2462,66 @@ func (m *MsgMetaNodeRegistrationVoteResponse) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.OwnerAddress) > 0 {
+		i -= len(m.OwnerAddress)
+		copy(dAtA[i:], m.OwnerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.OwnerAddress)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.NetworkAddress) > 0 {
+		i -= len(m.NetworkAddress)
+		copy(dAtA[i:], m.NetworkAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.NetworkAddress)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintTx(dAtA []byte, offset int, v uint64) int {
 	offset -= sovTx(v)
 	base := offset
@@ -2024,10 +2553,8 @@ func (m *MsgCreateResourceNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.Description != nil {
-		l = m.Description.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
+	l = m.Description.Size()
+	n += 1 + l + sovTx(uint64(l))
 	if m.NodeType != 0 {
 		n += 1 + sovTx(uint64(m.NodeType))
 	}
@@ -2063,10 +2590,8 @@ func (m *MsgCreateMetaNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.Description != nil {
-		l = m.Description.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
+	l = m.Description.Size()
+	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
@@ -2190,7 +2715,7 @@ func (m *MsgUpdateMetaNodeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateResourceNodeStake) Size() (n int) {
+func (m *MsgUpdateResourceNodeDeposit) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2204,17 +2729,12 @@ func (m *MsgUpdateResourceNodeStake) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.IncrStake {
-		n += 2
-	}
-	if m.StakeDelta != nil {
-		l = m.StakeDelta.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
+	l = m.DepositDelta.Size()
+	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
-func (m *MsgUpdateResourceNodeStakeResponse) Size() (n int) {
+func (m *MsgUpdateResourceNodeDepositResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2223,7 +2743,43 @@ func (m *MsgUpdateResourceNodeStakeResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgUpdateMetaNodeStake) Size() (n int) {
+func (m *MsgUpdateEffectiveDeposit) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if len(m.Reporters) > 0 {
+		for _, s := range m.Reporters {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	if len(m.ReporterOwner) > 0 {
+		for _, s := range m.ReporterOwner {
+			l = len(s)
+			n += 1 + l + sovTx(uint64(l))
+		}
+	}
+	l = len(m.NetworkAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.EffectiveTokens.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgUpdateEffectiveDepositResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateMetaNodeDeposit) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2237,17 +2793,12 @@ func (m *MsgUpdateMetaNodeStake) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	if m.IncrStake {
-		n += 2
-	}
-	if m.StakeDelta != nil {
-		l = m.StakeDelta.Size()
-		n += 1 + l + sovTx(uint64(l))
-	}
+	l = m.DepositDelta.Size()
+	n += 1 + l + sovTx(uint64(l))
 	return n
 }
 
-func (m *MsgUpdateMetaNodeStakeResponse) Size() (n int) {
+func (m *MsgUpdateMetaNodeDepositResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2285,6 +2836,32 @@ func (m *MsgMetaNodeRegistrationVote) Size() (n int) {
 }
 
 func (m *MsgMetaNodeRegistrationVoteResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.NetworkAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.OwnerAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	return n
+}
+
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -2489,9 +3066,6 @@ func (m *MsgCreateResourceNode) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
-			}
-			if m.Description == nil {
-				m.Description = &Description{}
 			}
 			if err := m.Description.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -2777,9 +3351,6 @@ func (m *MsgCreateMetaNode) Unmarshal(dAtA []byte) error {
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
-			}
-			if m.Description == nil {
-				m.Description = &Description{}
 			}
 			if err := m.Description.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
@@ -3597,7 +4168,7 @@ func (m *MsgUpdateMetaNodeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateResourceNodeStake) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3620,10 +4191,10 @@ func (m *MsgUpdateResourceNodeStake) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateResourceNodeStake: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateResourceNodeDeposit: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateResourceNodeStake: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateResourceNodeDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3691,28 +4262,8 @@ func (m *MsgUpdateResourceNodeStake) Unmarshal(dAtA []byte) error {
 			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IncrStake", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IncrStake = bool(v != 0)
-		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StakeDelta", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DepositDelta", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3739,10 +4290,7 @@ func (m *MsgUpdateResourceNodeStake) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.StakeDelta == nil {
-				m.StakeDelta = &types1.Coin{}
-			}
-			if err := m.StakeDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.DepositDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3767,7 +4315,7 @@ func (m *MsgUpdateResourceNodeStake) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateResourceNodeStakeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateResourceNodeDepositResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3790,10 +4338,10 @@ func (m *MsgUpdateResourceNodeStakeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateResourceNodeStakeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateResourceNodeDepositResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateResourceNodeStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateResourceNodeDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -3817,7 +4365,7 @@ func (m *MsgUpdateResourceNodeStakeResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateMetaNodeStake) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateEffectiveDeposit) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3840,10 +4388,240 @@ func (m *MsgUpdateMetaNodeStake) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateMetaNodeStake: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateEffectiveDeposit: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateMetaNodeStake: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateEffectiveDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Reporters", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Reporters = append(m.Reporters, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field ReporterOwner", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.ReporterOwner = append(m.ReporterOwner, string(dAtA[iNdEx:postIndex]))
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field EffectiveTokens", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.EffectiveTokens.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateEffectiveDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateEffectiveDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateEffectiveDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateMetaNodeDeposit: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateMetaNodeDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3911,28 +4689,8 @@ func (m *MsgUpdateMetaNodeStake) Unmarshal(dAtA []byte) error {
 			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field IncrStake", wireType)
-			}
-			var v int
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowTx
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				v |= int(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			m.IncrStake = bool(v != 0)
-		case 4:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field StakeDelta", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field DepositDelta", wireType)
 			}
 			var msglen int
 			for shift := uint(0); ; shift += 7 {
@@ -3959,10 +4717,7 @@ func (m *MsgUpdateMetaNodeStake) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.StakeDelta == nil {
-				m.StakeDelta = &types1.Coin{}
-			}
-			if err := m.StakeDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+			if err := m.DepositDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
 				return err
 			}
 			iNdEx = postIndex
@@ -3987,7 +4742,7 @@ func (m *MsgUpdateMetaNodeStake) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgUpdateMetaNodeStakeResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgUpdateMetaNodeDepositResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -4010,10 +4765,10 @@ func (m *MsgUpdateMetaNodeStakeResponse) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgUpdateMetaNodeStakeResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgUpdateMetaNodeDepositResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgUpdateMetaNodeStakeResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgUpdateMetaNodeDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:
@@ -4262,6 +5017,170 @@ func (m *MsgMetaNodeRegistrationVoteResponse) Unmarshal(dAtA []byte) error {
 		}
 		if fieldNum <= 0 {
 			return fmt.Errorf("proto: MsgMetaNodeRegistrationVoteResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDeposit: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDepositResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

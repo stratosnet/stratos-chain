@@ -5,6 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/tx"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
@@ -14,6 +15,20 @@ import (
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
+
+// AccountKeeper defines the contract needed for AccountKeeper related APIs.
+// Interface provides support to use non-sdk AccountKeeper for AnteHandler's decorators.
+type AccountKeeper interface {
+	GetParams(ctx sdk.Context) (params authtypes.Params)
+	GetAccount(ctx sdk.Context, addr sdk.AccAddress) authtypes.AccountI
+	SetAccount(ctx sdk.Context, acc authtypes.AccountI)
+	GetModuleAddress(moduleName string) sdk.AccAddress
+}
+
+// FeegrantKeeper defines the expected feegrant keeper.
+type FeegrantKeeper interface {
+	UseGrantedFees(ctx sdk.Context, granter, grantee sdk.AccAddress, fee sdk.Coins, msgs []sdk.Msg) error
+}
 
 // EVMKeeper defines the expected keeper interface used on the Eth AnteHandler
 type EVMKeeper interface {

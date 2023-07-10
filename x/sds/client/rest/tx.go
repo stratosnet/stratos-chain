@@ -4,13 +4,14 @@ import (
 	"encoding/hex"
 	"net/http"
 
-	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/gorilla/mux"
-	stratos "github.com/stratosnet/stratos-chain/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/rest"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -28,7 +29,7 @@ func postFileUploadHandlerFn(clientCtx client.Context) http.HandlerFunc {
 		}
 
 		var req FileUploadReq
-		if !rest.ReadRESTReq(w, r, types.ModuleCdc, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -75,7 +76,7 @@ func postPrepayHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 		var req PrepayReq
-		if !rest.ReadRESTReq(w, r, types.ModuleCdc, &req) {
+		if !rest.ReadRESTReq(w, r, cliCtx.LegacyAmino, &req) {
 			return
 		}
 
@@ -90,7 +91,13 @@ func postPrepayHandlerFn(clientCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgPrepay(fromAddr.String(), req.Amount)
+		beneficiary, err := sdk.AccAddressFromBech32(req.Beneficiary)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
+		msg := types.NewMsgPrepay(fromAddr.String(), beneficiary.String(), req.Amount)
 		tx.WriteGeneratedTxResponse(cliCtx, w, req.BaseReq, msg)
 	}
 }

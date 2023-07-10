@@ -3,6 +3,7 @@ package keeper
 import (
 	"math"
 	"math/big"
+	"sync"
 
 	tmtypes "github.com/tendermint/tendermint/types"
 
@@ -107,6 +108,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 	var debug bool
 	if _, ok := tracer.(types.NoOpTracer); !ok {
 		debug = true
+		noBaseFee = true
 	}
 
 	return vm.Config{
@@ -122,6 +124,9 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 //  2. The requested height is from an previous height from the same chain epoch
 //  3. The requested height is from a height greater than the latest one
 func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
+	cache := make(map[int64]common.Hash)
+	var rw sync.Mutex
+
 	return func(height uint64) common.Hash {
 		h, err := stratos.SafeInt64(height)
 		if err != nil {
@@ -135,24 +140,20 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 			// hash directly from the context.
 			// Note: The headerHash is only set at begin block, it will be nil in case of a query context
 			headerHash := ctx.HeaderHash()
-			if len(headerHash) != 0 {
-				return common.BytesToHash(headerHash)
-			}
-
-			// only recompute the hash if not set (eg: checkTxState)
-			contextBlockHeader := ctx.BlockHeader()
-			header, err := tmtypes.HeaderFromProto(&contextBlockHeader)
-			if err != nil {
-				k.Logger(ctx).Error("failed to cast tendermint header from proto", "error", err)
-				return common.Hash{}
-			}
-
-			headerHash = header.Hash()
 			return common.BytesToHash(headerHash)
 
 		case ctx.BlockHeight() > h:
 			// Case 2: if the chain is not the current height we need to retrieve the hash from the store for the
 			// current chain epoch. This only applies if the current height is greater than the requested height.
+
+			// NOTE: In case of concurrency
+			rw.Lock()
+			defer rw.Unlock()
+
+			if hash, ok := cache[h]; ok {
+				return hash
+			}
+
 			histInfo, found := k.stakingKeeper.GetHistoricalInfo(ctx, h)
 			if !found {
 				k.Logger(ctx).Debug("historical info not found", "height", h)
@@ -165,7 +166,9 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 				return common.Hash{}
 			}
 
-			return common.BytesToHash(header.Hash())
+			hash := common.BytesToHash(header.Hash())
+			cache[h] = hash
+			return hash
 		default:
 			// Case 3: heights greater than the current one returns an empty hash.
 			return common.Hash{}
@@ -176,7 +179,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 // ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e Message), that will
 // only be persisted (committed) to the underlying KVStore if the transaction does not fail.
 //
-// Gas tracking
+// # Gas tracking
 //
 // Ethereum consumes gas according to the EVM opcodes instead of general reads and writes to store. Because of this, the
 // state transition needs to ignore the SDK gas consumption mechanism defined by the GasKVStore and instead consume the
@@ -302,18 +305,18 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 // If the message fails, the VM execution error with the reason will be returned to the client
 // and the transaction won't be committed to the store.
 //
-// Reverted state
+// # Reverted state
 //
 // The snapshot and rollback are supported by the `statedb.StateDB`.
 //
-// Different Callers
+// # Different Callers
 //
 // It's called in three scenarios:
 // 1. `ApplyTransaction`, in the transaction processing flow.
 // 2. `EthCall/EthEstimateGas` grpc query handler.
 // 3. Called by other native modules directly.
 //
-// Prechecks and Preprocessing
+// # Prechecks and Preprocessing
 //
 // All relevant state transition prechecks for the MsgEthereumTx are performed on the AnteHandler,
 // prior to running the transaction against the state. The prechecks run are the following:
@@ -329,11 +332,11 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 //
 // 1. set up the initial access list (iff fork > Berlin)
 //
-// Tracer parameter
+// # Tracer parameter
 //
 // It should be a `vm.Tracer` object or nil, if pass `nil`, it'll create a default one based on keeper options.
 //
-// Commit parameter
+// # Commit parameter
 //
 // If commit is true, the `StateDB` will be committed, otherwise discarded.
 func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool, cfg *types.EVMConfig, txConfig statedb.TxConfig) (*types.MsgEthereumTxResponse, error) {
@@ -370,18 +373,25 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 
 	// access list preparation is moved from ante handler to here, because it's needed when `ApplyMessage` is called
 	// under contexts where ante handlers are not run, for example `eth_call` and `eth_estimateGas`.
-	if rules := cfg.ChainConfig.Rules(big.NewInt(ctx.BlockHeight()), cfg.ChainConfig.MergeForkBlock != nil); rules.IsBerlin {
+	if rules := cfg.ChainConfig.Rules(big.NewInt(ctx.BlockHeight()), cfg.ChainConfig.MergeNetsplitBlock != nil); rules.IsBerlin {
 		stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
 	}
 
+	// NOTE: In order to achive this, nonce should be checked in ante handler and increased, othervise
+	// it could make pottential nonce overide with double spend or contract rewrite
+	// take over the nonce management from evm:
+	// reset sender's nonce to msg.Nonce() before calling evm on msg nonce
+	// as nonce already increased in db
+	stateDB.SetNonce(sender.Address(), msg.Nonce())
+
 	if contractCreation {
-		// take over the nonce management from evm:
-		// - reset sender's nonce to msg.Nonce() before calling evm.
-		// - increase sender's nonce by one no matter the result.
-		stateDB.SetNonce(sender.Address(), msg.Nonce())
+		// no need to increase nonce here as contract as during contract creation:
+		// - tx.origin nonce increase automatically
+		// - if IsEIP158 enabled, contract nonce will be set as 1
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
-		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 	} else {
+		// should be incresed before call on nonce from msg so we make sure nonce remaining same as on init tx
+		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
 

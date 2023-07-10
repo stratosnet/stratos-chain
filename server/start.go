@@ -1,8 +1,6 @@
 package server
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -38,6 +36,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/server/types"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	stosapp "github.com/stratosnet/stratos-chain/app"
 
 	ethdebug "github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/debug"
 	"github.com/stratosnet/stratos-chain/server/config"
@@ -413,29 +412,15 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 		}
 	}
 
-	var (
-		httpSrv     *http.Server
-		httpSrvDone chan struct{}
-	)
-
 	if config.JSONRPC.Enable {
-		genDoc, err := genDocProvider()
-		if err != nil {
-			return err
-		}
-		var genAppState map[string]interface{}
-		json.Unmarshal([]byte(genDoc.AppState), &genAppState)
-		genEvm := genAppState["evm"].(map[string]interface{})
-		genEvmParams := genEvm["params"].(map[string]interface{})
-		genEvmParamsChainCfg := genEvmParams["chain_config"].(map[string]interface{})
-		genEvmParamsChainId := genEvmParamsChainCfg["chain_id"].(string)
-
-		clientCtx := clientCtx.WithChainID(genEvmParamsChainId)
-
-		tmEndpoint := "/websocket"
-		tmRPCAddr := cfg.RPC.ListenAddress
-		httpSrv, httpSrvDone, err = StartJSONRPC(ctx, clientCtx, tmRPCAddr, tmEndpoint, config)
-		if err != nil {
+		if err := StartJSONRPC(
+			ctx,
+			tmNode,
+			app.(stosapp.EVMKeeperApp).GetEVMKeeper(),
+			app.CommitMultiStore(),
+			clientCtx,
+			config,
+		); err != nil {
 			return err
 		}
 	}
@@ -458,21 +443,6 @@ func startInProcess(ctx *server.Context, clientCtx client.Context, appCreator ty
 			if grpcWebSrv != nil {
 				if err := grpcWebSrv.Close(); err != nil {
 					logger.Error("failed to close the grpcWebSrc", "error", err.Error())
-				}
-			}
-		}
-
-		if httpSrv != nil {
-			shutdownCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancelFn()
-
-			if err := httpSrv.Shutdown(shutdownCtx); err != nil {
-				logger.Error("HTTP server shutdown produced a warning", "error", err.Error())
-			} else {
-				logger.Info("HTTP server shut down, waiting 5 sec")
-				select {
-				case <-time.Tick(5 * time.Second):
-				case <-httpSrvDone:
 				}
 			}
 		}

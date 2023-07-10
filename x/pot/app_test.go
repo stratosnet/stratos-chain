@@ -18,14 +18,18 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/stratosnet/stratos-chain/app"
+	"github.com/stratosnet/stratos-chain/crypto"
+	"github.com/stratosnet/stratos-chain/crypto/bls"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
+	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 const (
@@ -42,78 +46,66 @@ var (
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdk.NewInt(10)
 
-	resNodeSlashingNOZAmt1 = sdk.NewInt(1000000000000000000)
+	resNodeSlashingNOZAmt1            = sdk.NewInt(1000000000000000000)
+	resNodeSlashingEffectiveTokenAmt1 = sdk.NewInt(1000000000000000000)
 
-	resourceNodeVolume1 = sdk.NewInt(500000)
-	resourceNodeVolume2 = sdk.NewInt(300000)
-	resourceNodeVolume3 = sdk.NewInt(200000)
+	resourceNodeVolume1 = sdk.NewInt(50000)
+	resourceNodeVolume2 = sdk.NewInt(30000)
+	resourceNodeVolume3 = sdk.NewInt(20000)
 
-	depositForSendingTx, _    = sdk.NewIntFromString("100000000000000000000000000000")
-	totalUnissuedPrepayVal, _ = sdk.NewIntFromString("1000000000000")
-	totalUnissuedPrepay       = stratos.NewCoin(totalUnissuedPrepayVal)
+	prepayAmount = sdk.NewCoins(stratos.NewCoin(sdk.NewInt(20).Mul(sdk.NewInt(stratos.StosToWei))))
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
 	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(rewardDenom, sdk.NewInt(40000000000000000)))
 
-	resOwnerPrivKey1 = secp256k1.GenPrivKey()
-	resOwnerPrivKey2 = secp256k1.GenPrivKey()
-	resOwnerPrivKey3 = secp256k1.GenPrivKey()
-	resOwnerPrivKey4 = secp256k1.GenPrivKey()
-	resOwnerPrivKey5 = secp256k1.GenPrivKey()
-	idxOwnerPrivKey1 = secp256k1.GenPrivKey()
-	idxOwnerPrivKey2 = secp256k1.GenPrivKey()
-	idxOwnerPrivKey3 = secp256k1.GenPrivKey()
+	nodeInitialDeposit = sdk.NewInt(1 * stratos.StosToWei)
+	initBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
 
-	resOwner1 = sdk.AccAddress(resOwnerPrivKey1.PubKey().Address())
-	resOwner2 = sdk.AccAddress(resOwnerPrivKey2.PubKey().Address())
-	resOwner3 = sdk.AccAddress(resOwnerPrivKey3.PubKey().Address())
-	resOwner4 = sdk.AccAddress(resOwnerPrivKey4.PubKey().Address())
-	resOwner5 = sdk.AccAddress(resOwnerPrivKey5.PubKey().Address())
-	idxOwner1 = sdk.AccAddress(idxOwnerPrivKey1.PubKey().Address())
-	idxOwner2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
-	idxOwner3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
+	// wallet private keys
+	resOwnerPrivKey1  = secp256k1.GenPrivKey()
+	resOwnerPrivKey2  = secp256k1.GenPrivKey()
+	resOwnerPrivKey3  = secp256k1.GenPrivKey()
+	resOwnerPrivKey4  = secp256k1.GenPrivKey()
+	resOwnerPrivKey5  = secp256k1.GenPrivKey()
+	metaOwnerPrivKey1 = secp256k1.GenPrivKey()
+	metaOwnerPrivKey2 = secp256k1.GenPrivKey()
+	metaOwnerPrivKey3 = secp256k1.GenPrivKey()
+	// wallet addresses
+	resOwner1  = sdk.AccAddress(resOwnerPrivKey1.PubKey().Address())
+	resOwner2  = sdk.AccAddress(resOwnerPrivKey2.PubKey().Address())
+	resOwner3  = sdk.AccAddress(resOwnerPrivKey3.PubKey().Address())
+	resOwner4  = sdk.AccAddress(resOwnerPrivKey4.PubKey().Address())
+	resOwner5  = sdk.AccAddress(resOwnerPrivKey5.PubKey().Address())
+	metaOwner1 = sdk.AccAddress(metaOwnerPrivKey1.PubKey().Address())
+	metaOwner2 = sdk.AccAddress(metaOwnerPrivKey2.PubKey().Address())
+	metaOwner3 = sdk.AccAddress(metaOwnerPrivKey3.PubKey().Address())
 
-	resNodePubKey1       = secp256k1.GenPrivKey().PubKey()
-	resNodeAddr1         = sdk.AccAddress(resNodePubKey1.Address())
-	resNodeNetworkId1    = stratos.SdsAddress(resNodePubKey1.Address())
-	resNodeInitialStake1 = sdk.NewInt(3 * stos2wei)
+	// P2P public key of resource nodes
+	resNodeP2PPubKey1 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey2 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey3 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey4 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey5 = ed25519.GenPrivKey().PubKey()
+	// P2P address of resource nodes
+	resNodeP2PAddr1 = stratos.SdsAddress(resNodeP2PPubKey1.Address())
+	resNodeP2PAddr2 = stratos.SdsAddress(resNodeP2PPubKey2.Address())
+	resNodeP2PAddr3 = stratos.SdsAddress(resNodeP2PPubKey3.Address())
+	resNodeP2PAddr4 = stratos.SdsAddress(resNodeP2PPubKey4.Address())
+	resNodeP2PAddr5 = stratos.SdsAddress(resNodeP2PPubKey5.Address())
 
-	resNodePubKey2       = secp256k1.GenPrivKey().PubKey()
-	resNodeAddr2         = sdk.AccAddress(resNodePubKey2.Address())
-	resNodeNetworkId2    = stratos.SdsAddress(resNodePubKey2.Address())
-	resNodeInitialStake2 = sdk.NewInt(3 * stos2wei)
-
-	resNodePubKey3       = secp256k1.GenPrivKey().PubKey()
-	resNodeAddr3         = sdk.AccAddress(resNodePubKey3.Address())
-	resNodeNetworkId3    = stratos.SdsAddress(resNodePubKey3.Address())
-	resNodeInitialStake3 = sdk.NewInt(3 * stos2wei)
-
-	resNodePubKey4       = secp256k1.GenPrivKey().PubKey()
-	resNodeAddr4         = sdk.AccAddress(resNodePubKey4.Address())
-	resNodeNetworkId4    = stratos.SdsAddress(resNodePubKey4.Address())
-	resNodeInitialStake4 = sdk.NewInt(3 * stos2wei)
-
-	resNodePubKey5       = secp256k1.GenPrivKey().PubKey()
-	resNodeAddr5         = sdk.AccAddress(resNodePubKey5.Address())
-	resNodeNetworkId5    = stratos.SdsAddress(resNodePubKey5.Address())
-	resNodeInitialStake5 = sdk.NewInt(3 * stos2wei)
-
-	idxNodePrivKey1      = secp256k1.GenPrivKey()
-	idxNodePubKey1       = idxNodePrivKey1.PubKey()
-	idxNodeAddr1         = sdk.AccAddress(idxNodePubKey1.Address())
-	idxNodeNetworkId1    = stratos.SdsAddress(idxNodePubKey1.Address())
-	idxNodeInitialStake1 = sdk.NewInt(5 * stos2wei)
-
-	idxNodePubKey2       = secp256k1.GenPrivKey().PubKey()
-	idxNodeAddr2         = sdk.AccAddress(idxNodePubKey2.Address())
-	idxNodeNetworkId2    = stratos.SdsAddress(idxNodePubKey2.Address())
-	idxNodeInitialStake2 = sdk.NewInt(5 * stos2wei)
-
-	idxNodePubKey3       = secp256k1.GenPrivKey().PubKey()
-	idxNodeAddr3         = sdk.AccAddress(idxNodePubKey3.Address())
-	idxNodeNetworkId3    = stratos.SdsAddress(idxNodePubKey3.Address())
-	idxNodeInitialStake3 = sdk.NewInt(5 * stos2wei)
+	// P2P private key of meta nodes
+	metaNodeP2PPrivKey1 = ed25519.GenPrivKey()
+	metaNodeP2PPrivKey2 = ed25519.GenPrivKey()
+	metaNodeP2PPrivKey3 = ed25519.GenPrivKey()
+	// P2P public key of meta nodes
+	metaNodeP2PPubKey1 = metaNodeP2PPrivKey1.PubKey()
+	metaNodeP2PPubKey2 = metaNodeP2PPrivKey2.PubKey()
+	metaNodeP2PPubKey3 = metaNodeP2PPrivKey3.PubKey()
+	// P2P address of meta nodes
+	metaNodeP2PAddr1 = stratos.SdsAddress(metaNodeP2PPubKey1.Address())
+	metaNodeP2PAddr2 = stratos.SdsAddress(metaNodeP2PPubKey2.Address())
+	metaNodeP2PAddr3 = stratos.SdsAddress(metaNodeP2PPubKey3.Address())
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
 	valOpPubKey1  = valOpPrivKey1.PubKey()
@@ -122,39 +114,59 @@ var (
 
 	valConsPrivKey1 = ed25519.GenPrivKey()
 	valConsPubk1    = valConsPrivKey1.PubKey()
-	valInitialStake = sdk.NewInt(15 * stos2wei)
 )
 
 // initialize data of volume report
-func setupMsgVolumeReport(newEpoch int64) *types.MsgVolumeReport {
+func setupMsgVolumeReport(t *testing.T, newEpoch int64) *types.MsgVolumeReport {
 	volume1 := types.NewSingleWalletVolume(resOwner1, resourceNodeVolume1)
 	volume2 := types.NewSingleWalletVolume(resOwner2, resourceNodeVolume2)
 	volume3 := types.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
 
-	nodesVolume := []*types.SingleWalletVolume{volume1, volume2, volume3}
-	reporter := idxNodeNetworkId1
+	nodesVolume := []types.SingleWalletVolume{volume1, volume2, volume3}
+	reporter := metaNodeP2PAddr1
 	epoch := sdk.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
-	reporterOwner := idxOwner1
+	reporterOwner := metaOwner1
 
-	pubKeys := make([][]byte, 1)
-	for i := range pubKeys {
-		pubKeys[i] = make([]byte, 1)
-	}
-
-	signature := types.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
-
+	signature := types.BLSSignatureInfo{}
 	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
+
+	signBytes := volumeReportMsg.GetSignBytes()
+	signBytesHash := crypto.Keccak256(signBytes)
+
+	// set blsSignature
+	blsPrivKey1, blsPubKey1, err := bls.NewKeyPairFromBytes(metaNodeP2PPrivKey1.Bytes())
+	require.NoError(t, err)
+	blsPrivKey2, blsPubKey2, err := bls.NewKeyPairFromBytes(metaNodeP2PPrivKey2.Bytes())
+	require.NoError(t, err)
+	blsPrivKey3, blsPubKey3, err := bls.NewKeyPairFromBytes(metaNodeP2PPrivKey3.Bytes())
+	require.NoError(t, err)
+
+	blsSignature1, err := bls.Sign(signBytesHash, blsPrivKey1)
+	require.NoError(t, err)
+	blsSignature2, err := bls.Sign(signBytesHash, blsPrivKey2)
+	require.NoError(t, err)
+	blsSignature3, err := bls.Sign(signBytesHash, blsPrivKey3)
+	require.NoError(t, err)
+	finalBlsSignature, err := bls.AggregateSignatures(blsSignature1, blsSignature2, blsSignature3)
+	require.NoError(t, err)
+
+	pubKeys := make([][]byte, 0)
+	pubKeys = append(pubKeys, blsPubKey1, blsPubKey2, blsPubKey3)
+
+	signature = types.NewBLSSignatureInfo(pubKeys, finalBlsSignature, signBytesHash)
+
+	volumeReportMsg.BLSSignature = signature
 
 	return volumeReportMsg
 }
 
 func setupSlashingMsg() *types.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
+	reporters = append(reporters, metaNodeP2PAddr1)
 	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true)
+	reportOwner = append(reportOwner, metaOwner1)
+	slashingMsg := types.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeP2PAddr1, resOwner1, resNodeSlashingNOZAmt1, true)
 	return slashingMsg
 }
 
@@ -185,12 +197,12 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	metaNodes := setupAllMetaNodes()
 	resourceNodes := setupAllResourceNodes()
 
-	stApp := app.SetupWithGenesisNodeSet(t, false, valSet, metaNodes, resourceNodes, accs, totalUnissuedPrepay, chainID, balances...)
-
+	stApp := app.SetupWithGenesisNodeSet(t, false, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
 	accountKeeper := stApp.GetAccountKeeper()
 	bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
 	potKeeper := stApp.GetPotKeeper()
+	distrKeeper := stApp.GetDistrKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -200,9 +212,9 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 	foundationDepositMsg := types.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
 	txGen := app.MakeTestEncodingConfig().TxConfig
 
-	foundationDepositorAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
-	accNum := foundationDepositorAcc.GetAccountNumber()
-	accSeq := foundationDepositorAcc.GetSequence()
+	senderAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := senderAcc.GetAccountNumber()
+	accSeq := senderAcc.GetSequence()
 	_, _, err := app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(types.FoundationAccount)
@@ -215,14 +227,24 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	commission := stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
 	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdk.OneInt())
+	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(nodeInitialDeposit), description, commission, sdk.OneInt())
 
-	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum = valOpAcc1.GetAccountNumber()
-	accSeq = valOpAcc1.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, valOpAccAddr1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 	_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
 	require.NoError(t, err)
-	app.CheckBalance(t, stApp, valOpAccAddr1, nil)
+
+	/********************* prepay *********************/
+	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	ctx = stApp.BaseApp.NewContext(false, header)
+	prepayMsg := sdstypes.NewMsgPrepay(resOwner1.String(), resOwner1.String(), prepayAmount)
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
+	_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey1)
+	require.NoError(t, err)
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -231,7 +253,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
+	require.True(sdk.IntEq(t, nodeInitialDeposit, validator.BondedTokens()))
 
 	/********************** loop sending volume report **********************/
 	var i int64
@@ -242,15 +264,19 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		/********************* test slashing msg when i==2 *********************/
 		if i == 2 {
-			println("********************************* Deliver Slashing Tx START ********************************************")
+			t.Log("********************************* Deliver Slashing Tx START ********************************************")
+
+			totalConsumedNoz := resNodeSlashingNOZAmt1.ToDec()
+			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
+
 			slashingMsg := setupSlashingMsg()
 			/********************* deliver tx *********************/
 
-			idxOwnerAcc1 := accountKeeper.GetAccount(ctx, idxOwner1)
-			ownerAccNum := idxOwnerAcc1.GetAccountNumber()
-			ownerAccSeq := idxOwnerAcc1.GetSequence()
+			senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+			accNum = senderAcc.GetAccountNumber()
+			accSeq = senderAcc.GetSequence()
 
-			_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+			_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 			require.NoError(t, err)
 			/********************* commit & check result *********************/
 			header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -259,25 +285,22 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 			slashingAmtSetup = registerKeeper.GetSlashing(ctx, resOwner1)
 
-			totalConsumedNoz := resNodeSlashingNOZAmt1.ToDec()
-
-			slashingAmtCheck := potKeeper.GetTrafficReward(ctx, totalConsumedNoz)
-			println("slashingAmtSetup = " + slashingAmtSetup.String())
+			t.Log("slashingAmtSetup = " + slashingAmtSetup.String())
 			require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
-			println("********************************* Deliver Slashing Tx END ********************************************")
+			t.Log("********************************* Deliver Slashing Tx END ********************************************")
 		}
 
-		println("*****************************************************************************")
-		println("*")
-		println("*                    height = ", header.GetHeight())
-		println("*")
-		println("*****************************************************************************")
+		t.Log("*****************************************************************************")
+		t.Log("*")
+		t.Log("*                    height = ", header.GetHeight())
+		t.Log("*")
+		t.Log("*****************************************************************************")
 		/********************* prepare tx data *********************/
-		volumeReportMsg := setupMsgVolumeReport(i + 1)
+		volumeReportMsg := setupMsgVolumeReport(t, i+1)
 
 		lastTotalMinedToken := potKeeper.GetTotalMinedTokens(ctx)
-		println("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
+		t.Log("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
 		epoch, ok := sdk.NewIntFromString(volumeReportMsg.Epoch.String())
 		require.Equal(t, ok, true)
 
@@ -288,16 +311,16 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		totalConsumedNoz := potKeeper.GetTotalConsumedNoz(volumeReportMsg.WalletVolumes).ToDec()
 
 		/********************* print info *********************/
-		println("epoch " + volumeReportMsg.Epoch.String())
-		S := registerKeeper.GetInitialGenesisStakeTotal(ctx).ToDec()
+		t.Log("epoch " + volumeReportMsg.Epoch.String())
+		S := registerKeeper.GetInitialGenesisDepositTotal(ctx).ToDec()
 		Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 		Y := totalConsumedNoz
 		Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
 		R := S.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
-		//println("R = (S + Pt) * Y / (Lt + Y)")
-		println("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+		//t.Log("R = (S + Pt) * Y / (Lt + Y)")
+		t.Log("S=" + S.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
 
-		println("---------------------------")
+		t.Log("---------------------------")
 		potKeeper.InitVariable(ctx)
 		distributeGoal := types.InitDistributeGoal()
 		distributeGoal, err := potKeeper.CalcTrafficRewardInTotal(ctx, distributeGoal, totalConsumedNoz)
@@ -305,73 +328,77 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 
 		distributeGoal, err = potKeeper.CalcMiningRewardInTotal(ctx, distributeGoal) //for main net
 		require.NoError(t, err)
-		println(distributeGoal.String())
+		t.Log(distributeGoal.String())
 
-		println("---------------------------")
-		println("distribute detail:")
+		t.Log("---------------------------")
+		t.Log("distribute detail:")
 		rewardDetailMap := make(map[string]types.Reward)
 		rewardDetailMap = potKeeper.CalcRewardForResourceNode(ctx, totalConsumedNoz, volumeReportMsg.WalletVolumes, distributeGoal, rewardDetailMap)
 		rewardDetailMap = potKeeper.CalcRewardForMetaNode(ctx, distributeGoal, rewardDetailMap)
 
-		println("resource_wallet1:  address = " + resOwner1.String())
-		println("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet1:  address = " + resOwner1.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner1.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner1.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet2:  address = " + resOwner2.String())
-		println("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet2:  address = " + resOwner2.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner2.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner2.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet3:  address = " + resOwner3.String())
-		println("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet3:  address = " + resOwner3.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner3.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner3.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet4:  address = " + resOwner4.String())
-		println("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet4:  address = " + resOwner4.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner4.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner4.String()].RewardFromTrafficPool.String())
 
-		println("resource_wallet5:  address = " + resOwner5.String())
-		println("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
+		t.Log("resource_wallet5:  address = " + resOwner5.String())
+		t.Log("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-		println("indexing_wallet1:  address = " + idxOwner1.String())
-		println("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
+		t.Log("indexing_wallet1:  address = " + metaOwner1.String())
+		t.Log("              miningReward = " + rewardDetailMap[metaOwner1.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[metaOwner1.String()].RewardFromTrafficPool.String())
 
-		println("indexing_wallet2:  address = " + idxOwner2.String())
-		println("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
+		t.Log("indexing_wallet2:  address = " + metaOwner2.String())
+		t.Log("              miningReward = " + rewardDetailMap[metaOwner2.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[metaOwner2.String()].RewardFromTrafficPool.String())
 
-		println("indexing_wallet3:  address = " + idxOwner3.String())
-		println("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
-		println("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
-		println("---------------------------")
+		t.Log("indexing_wallet3:  address = " + metaOwner3.String())
+		t.Log("              miningReward = " + rewardDetailMap[metaOwner3.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[metaOwner3.String()].RewardFromTrafficPool.String())
+		t.Log("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
 		lastFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 		lastUnissuedPrepay := registerKeeper.GetTotalUnissuedPrepay(ctx)
-		lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
+		lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 		lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
-
+		lastIndividualRewardOfResNode1, individualRewardOfResNode1Found := potKeeper.GetIndividualReward(ctx, resOwner1, epoch)
 		/********************* deliver tx *********************/
-		idxOwnerAcc1 := accountKeeper.GetAccount(ctx, idxOwner1)
+		idxOwnerAcc1 := accountKeeper.GetAccount(ctx, metaOwner1)
 		ownerAccNum := idxOwnerAcc1.GetAccountNumber()
 		ownerAccSeq := idxOwnerAcc1.GetSequence()
 
 		feePoolAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 		require.NotNil(t, feePoolAccAddr)
-		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 
-		println("--------------------------- deliver volumeReportMsg")
-		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		t.Log("--------------------------- deliver volumeReportMsg")
+		_, _, err = app.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
 
 		/********************* commit & check result *********************/
-		// reward distribution start at height = height + 1 where volume report tx executed
+		feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetAllBalances(ctx, feePoolAccAddr)
+
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
 		stApp.Commit()
 
+		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		ctx = stApp.BaseApp.NewContext(true, header)
+		stApp.Commit()
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
@@ -383,6 +410,7 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			accountKeeper,
 			bankKeeper,
 			registerKeeper,
+			distrKeeper,
 			epoch,
 			lastFoundationAccBalance,
 			lastUnissuedPrepay,
@@ -390,6 +418,8 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 			lastMatureTotalOfResNode1,
 			slashingAmtSetup,
 			feeCollectorToFeePoolAtBeginBlock,
+			lastIndividualRewardOfResNode1,
+			individualRewardOfResNode1Found,
 		)
 
 		i++
@@ -408,83 +438,88 @@ func deductSlashingAmt(ctx sdk.Context, coins sdk.Coins, slashing sdk.Coin) (ret
 	return ret
 }
 
-//for main net
+// for main net
 func checkResult(t *testing.T, ctx sdk.Context,
 	k potKeeper.Keeper,
 	accountKeeper authkeeper.AccountKeeper,
 	bankKeeper bankKeeper.Keeper,
 	registerKeeper registerKeeper.Keeper,
+	distrKeeper distrkeeper.Keeper,
 	currentEpoch sdk.Int,
 	lastFoundationAccBalance sdk.Coins,
 	lastUnissuedPrepay sdk.Coin,
 	lastCommunityPool sdk.Coins,
 	lastMatureTotalOfResNode1 sdk.Coins,
 	initialSlashingAmt sdk.Int,
-	feeCollectorToFeePoolAtBeginBlock sdk.Coin) {
+	feeCollectorToFeePoolAtBeginBlock sdk.Coins,
+	individualRewardOfResNode1 types.Reward,
+	individualRewardOfResNode1Found bool,
+) {
 
 	// print individual reward
 	individualRewardTotal := sdk.Coins{}
 	newMatureEpoch := currentEpoch.Add(sdk.NewInt(k.MatureEpoch(ctx)))
 	k.IteratorIndividualReward(ctx, newMatureEpoch, func(walletAddress sdk.AccAddress, individualReward types.Reward) (stop bool) {
 		individualRewardTotal = individualRewardTotal.Add(individualReward.RewardFromTrafficPool...).Add(individualReward.RewardFromMiningPool...)
-		println("individualReward of [" + walletAddress.String() + "] = " + individualReward.String())
+		t.Log("individualReward of [" + walletAddress.String() + "] = " + individualReward.String())
 		return false
 	})
-	println("---------------------------")
+	t.Log("---------------------------")
 	k.IteratorMatureTotal(ctx, func(walletAddress sdk.AccAddress, matureTotal sdk.Coins) (stop bool) {
-		println("MatureTotal of [" + walletAddress.String() + "] = " + matureTotal.String())
+		t.Log("MatureTotal of [" + walletAddress.String() + "] = " + matureTotal.String())
 		return false
 	})
-	println("---------------------------")
+	t.Log("---------------------------")
 
 	feeCollectorAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 	require.NotNil(t, feeCollectorAccAddr)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(types.FoundationAccount)
 	newFoundationAccBalance := bankKeeper.GetAllBalances(ctx, foundationAccountAddr)
 	newUnissuedPrepay := sdk.NewCoins(registerKeeper.GetTotalUnissuedPrepay(ctx))
-	newCommunityPool := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), k.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(k.BondDenom(ctx)).TruncateInt()))
+	newCommunityPool := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), distrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(k.BondDenom(ctx)).TruncateInt()))
 
-	println("resource node 1 initial slashingAmt        = " + initialSlashingAmt.String())
+	t.Log("resource node 1 initial slashingAmt        = " + initialSlashingAmt.String())
 	currentSlashingAmt := registerKeeper.GetSlashing(ctx, resOwner1)
-	println("resource node 1 currentSlashingAmt         = " + currentSlashingAmt.String())
+	t.Log("resource node 1 currentSlashingAmt         = " + currentSlashingAmt.String())
 	slashingDeducted := sdk.NewCoin(k.RewardDenom(ctx), initialSlashingAmt.Sub(currentSlashingAmt))
-	println("resource node 1 slashing deducted          = " + slashingDeducted.String())
+	t.Log("resource node 1 slashing deducted          = " + slashingDeducted.String())
 	matureTotal := k.GetMatureTotalReward(ctx, resOwner1)
 	immatureTotal := k.GetImmatureTotalReward(ctx, resOwner1)
-	println("resource node 1 matureTotal                = " + matureTotal.String())
-	println("resource node 1 immatureTotal              = " + immatureTotal.String())
+	t.Log("resource node 1 matureTotal                = " + matureTotal.String())
+	t.Log("resource node 1 immatureTotal              = " + immatureTotal.String())
 
 	// distribution module will send all tokens from "fee_collector" to "distribution" account in the BeginBlocker() method
-	feeCollectorValChange := bankKeeper.GetAllBalances(ctx, feeCollectorAccAddr)
-	println("reward for validator send to fee_collector = " + feeCollectorValChange.String())
-	communityTaxChange := newCommunityPool.Sub(lastCommunityPool).Sub(sdk.NewCoins(feeCollectorToFeePoolAtBeginBlock))
-	println("community tax change in community_pool     = " + communityTaxChange.String())
-	println("community_pool amount of wei               = " + newCommunityPool.String())
+	t.Log("reward for validator send to fee_collector = " + feeCollectorToFeePoolAtBeginBlock.String())
+	stakeRewardFromFeeCollectorToFeePool := sdk.NewCoin(k.BondDenom(ctx), feeCollectorToFeePoolAtBeginBlock.AmountOf(k.BondDenom(ctx)))
+	communityTaxChange := newCommunityPool.Sub(lastCommunityPool).Sub(sdk.NewCoins(stakeRewardFromFeeCollectorToFeePool))
+	t.Log("community tax change in community_pool     = " + communityTaxChange.String())
+	t.Log("community_pool amount of wei               = " + newCommunityPool.String())
 
 	rewardSrcChange := lastFoundationAccBalance.
 		Sub(newFoundationAccBalance).
 		Add(lastUnissuedPrepay).
 		Sub(newUnissuedPrepay)
-	println("rewardSrcChange                            = " + rewardSrcChange.String())
 
-	rewardDestChange := feeCollectorValChange.
+	t.Log("rewardSrcChange                            = " + rewardSrcChange.String())
+
+	rewardDestChange := feeCollectorToFeePoolAtBeginBlock.
 		Add(individualRewardTotal...).
 		Add(communityTaxChange...)
 
-	println("rewardDestChange                           = " + rewardDestChange.String())
+	t.Log("rewardDestChange                           = " + rewardDestChange.String())
 
 	require.Equal(t, rewardSrcChange, rewardDestChange)
 
-	println("************************ slashing test***********************************")
-	println("slashing change                            = " + slashingDeducted.String())
+	t.Log("************************ slashing test***********************************")
+	t.Log("slashing change                            = " + slashingDeducted.String())
 
 	upcomingMaturedIndividual := sdk.Coins{}
-	individualReward, found := k.GetIndividualReward(ctx, resOwner1, currentEpoch)
-	if found {
-		tmp := individualReward.RewardFromTrafficPool.Add(individualReward.RewardFromMiningPool...)
+
+	if individualRewardOfResNode1Found {
+		tmp := individualRewardOfResNode1.RewardFromTrafficPool.Add(individualRewardOfResNode1.RewardFromMiningPool...)
 		upcomingMaturedIndividual = deductSlashingAmt(ctx, tmp, slashingDeducted)
 	}
-	println("upcomingMaturedIndividual                  = " + upcomingMaturedIndividual.String())
+	t.Log("upcomingMaturedIndividual                  = " + upcomingMaturedIndividual.String())
 
 	// get mature total changes
 	newMatureTotalOfResNode1 := k.GetMatureTotalReward(ctx, resOwner1)
@@ -492,12 +527,12 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	if matureTotalOfResNode1Change == nil || matureTotalOfResNode1Change.IsAnyNegative() {
 		matureTotalOfResNode1Change = sdk.Coins{}
 	}
-	println("matureTotalOfResNode1Change                = " + matureTotalOfResNode1Change.String())
+	t.Log("matureTotalOfResNode1Change                = " + matureTotalOfResNode1Change.String())
 	require.Equal(t, matureTotalOfResNode1Change.String(), upcomingMaturedIndividual.String())
 
 	totalRewardPoolAddr := accountKeeper.GetModuleAddress(types.TotalRewardPool)
 	totalRewardPoolBalance := bankKeeper.GetAllBalances(ctx, totalRewardPoolAddr)
-	println("totalRewardPoolBalance                     = " + totalRewardPoolBalance.String())
+	t.Log("totalRewardPoolBalance                     = " + totalRewardPoolBalance.String())
 }
 
 func checkValidator(t *testing.T, app *app.NewApp, addr sdk.ValAddress, expFound bool) stakingtypes.Validator {
@@ -524,13 +559,13 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 	resOwnerAcc4 := &authtypes.BaseAccount{Address: resOwner4.String()}
 	resOwnerAcc5 := &authtypes.BaseAccount{Address: resOwner5.String()}
 	//************************** setup indexing nodes owners' accounts **************************
-	idxOwnerAcc1 := &authtypes.BaseAccount{Address: idxOwner1.String()}
-	idxOwnerAcc2 := &authtypes.BaseAccount{Address: idxOwner2.String()}
-	idxOwnerAcc3 := &authtypes.BaseAccount{Address: idxOwner3.String()}
+	idxOwnerAcc1 := &authtypes.BaseAccount{Address: metaOwner1.String()}
+	idxOwnerAcc2 := &authtypes.BaseAccount{Address: metaOwner2.String()}
+	idxOwnerAcc3 := &authtypes.BaseAccount{Address: metaOwner3.String()}
 	//************************** setup validator delegators' accounts **************************
 	valOwnerAcc1 := &authtypes.BaseAccount{Address: valOpAccAddr1.String()}
-	//************************** setup indexing nodes' accounts **************************
-	idxNodeAcc1 := &authtypes.BaseAccount{Address: idxNodeAddr1.String()}
+	////************************** setup indexing nodes' accounts **************************
+	//idxNodeAcc1 := &authtypes.BaseAccount{Address: idxNodeAddr1.String()}
 	foundationDepositorAcc := &authtypes.BaseAccount{Address: foundationDepositorAccAddr.String()}
 
 	accs := []authtypes.GenesisAccount{
@@ -538,53 +573,55 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 		idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3,
 		valOwnerAcc1,
 		foundationDepositorAcc,
-		idxNodeAcc1,
+		//idxNodeAcc1,
 	}
+
+	feeAmt, _ := sdk.NewIntFromString("50000000000000000000")
 
 	balances := []banktypes.Balance{
 		{
 			Address: resOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake1.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
 			Address: resOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake2)},
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
 			Address: resOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake3)},
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
 			Address: resOwner4.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake4)},
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
 			Address: resOwner5.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialStake5)},
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
-			Address: idxOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake1)},
+			Address: metaOwner1.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
-			Address: idxOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake2)},
+			Address: metaOwner2.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
-			Address: idxOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialStake3)},
+			Address: metaOwner3.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
 		{
 			Address: valOpAccAddr1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(valInitialStake)},
+			Coins:   sdk.Coins{stratos.NewCoin(initBalance)},
 		},
-		{
-			Address: idxNodeAddr1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(sdk.ZeroInt())},
-		},
+		//{
+		//	Address: idxNodeAddr1.String(),
+		//	Coins:   sdk.Coins{stratos.NewCoin(sdk.ZeroInt())},
+		//},
 		{
 			Address: foundationDepositorAccAddr.String(),
-			Coins:   foundationDeposit,
+			Coins:   foundationDeposit.Add(sdk.NewCoin(stratos.Wei, feeAmt)),
 		},
 	}
 	return accs, balances
@@ -594,23 +631,35 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
-	resourceNode1, _ := registertypes.NewResourceNode(resNodeNetworkId1, resNodePubKey1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType, time)
-	resourceNode2, _ := registertypes.NewResourceNode(resNodeNetworkId2, resNodePubKey2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType, time)
-	resourceNode3, _ := registertypes.NewResourceNode(resNodeNetworkId3, resNodePubKey3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType, time)
-	resourceNode4, _ := registertypes.NewResourceNode(resNodeNetworkId4, resNodePubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, time)
-	resourceNode5, _ := registertypes.NewResourceNode(resNodeNetworkId5, resNodePubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, time)
+	resourceNode1, _ := registertypes.NewResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, resOwner1, registertypes.NewDescription("resourceNode1", "", "", "", ""), nodeType, time)
+	resourceNode2, _ := registertypes.NewResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, resOwner2, registertypes.NewDescription("resourceNode2", "", "", "", ""), nodeType, time)
+	resourceNode3, _ := registertypes.NewResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, resOwner3, registertypes.NewDescription("resourceNode3", "", "", "", ""), nodeType, time)
+	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, registertypes.NewDescription("resourceNode4", "", "", "", ""), nodeType, time)
+	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, registertypes.NewDescription("resourceNode5", "", "", "", ""), nodeType, time)
 
-	resourceNode1 = resourceNode1.AddToken(resNodeInitialStake1)
-	resourceNode2 = resourceNode2.AddToken(resNodeInitialStake2)
-	resourceNode3 = resourceNode3.AddToken(resNodeInitialStake3)
-	resourceNode4 = resourceNode4.AddToken(resNodeInitialStake4)
-	resourceNode5 = resourceNode5.AddToken(resNodeInitialStake5)
+	resourceNode1 = resourceNode1.AddToken(nodeInitialDeposit)
+	resourceNode2 = resourceNode2.AddToken(nodeInitialDeposit)
+	resourceNode3 = resourceNode3.AddToken(nodeInitialDeposit)
+	resourceNode4 = resourceNode4.AddToken(nodeInitialDeposit)
+	resourceNode5 = resourceNode5.AddToken(nodeInitialDeposit)
+
+	resourceNode1.EffectiveTokens = nodeInitialDeposit
+	resourceNode2.EffectiveTokens = nodeInitialDeposit
+	resourceNode3.EffectiveTokens = nodeInitialDeposit
+	resourceNode4.EffectiveTokens = nodeInitialDeposit
+	resourceNode5.EffectiveTokens = nodeInitialDeposit
 
 	resourceNode1.Status = stakingtypes.Bonded
 	resourceNode2.Status = stakingtypes.Bonded
 	resourceNode3.Status = stakingtypes.Bonded
 	resourceNode4.Status = stakingtypes.Bonded
 	resourceNode5.Status = stakingtypes.Bonded
+
+	resourceNode1.Suspend = false
+	resourceNode2.Suspend = false
+	resourceNode3.Suspend = false
+	resourceNode4.Suspend = false
+	resourceNode5.Suspend = false
 
 	var resourceNodes []registertypes.ResourceNode
 	resourceNodes = append(resourceNodes, resourceNode1)
@@ -625,17 +674,21 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 	var indexingNodes []registertypes.MetaNode
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	indexingNode1, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr1), idxNodePubKey1, idxOwner1, registertypes.NewDescription("sds://indexingNode1", "", "", "", ""), time)
-	indexingNode2, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr2), idxNodePubKey2, idxOwner2, registertypes.NewDescription("sds://indexingNode2", "", "", "", ""), time)
-	indexingNode3, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr3), idxNodePubKey3, idxOwner3, registertypes.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	indexingNode1, _ := registertypes.NewMetaNode(metaNodeP2PAddr1, metaNodeP2PPubKey1, metaOwner1, registertypes.NewDescription("indexingNode1", "", "", "", ""), time)
+	indexingNode2, _ := registertypes.NewMetaNode(metaNodeP2PAddr2, metaNodeP2PPubKey2, metaOwner2, registertypes.NewDescription("indexingNode2", "", "", "", ""), time)
+	indexingNode3, _ := registertypes.NewMetaNode(metaNodeP2PAddr3, metaNodeP2PPubKey3, metaOwner3, registertypes.NewDescription("indexingNode3", "", "", "", ""), time)
 
-	indexingNode1 = indexingNode1.AddToken(idxNodeInitialStake1)
-	indexingNode2 = indexingNode2.AddToken(idxNodeInitialStake2)
-	indexingNode3 = indexingNode3.AddToken(idxNodeInitialStake3)
+	indexingNode1 = indexingNode1.AddToken(nodeInitialDeposit)
+	indexingNode2 = indexingNode2.AddToken(nodeInitialDeposit)
+	indexingNode3 = indexingNode3.AddToken(nodeInitialDeposit)
 
 	indexingNode1.Status = stakingtypes.Bonded
 	indexingNode2.Status = stakingtypes.Bonded
 	indexingNode3.Status = stakingtypes.Bonded
+
+	indexingNode1.Suspend = false
+	indexingNode2.Suspend = false
+	indexingNode3.Suspend = false
 
 	indexingNodes = append(indexingNodes, indexingNode1)
 	indexingNodes = append(indexingNodes, indexingNode2)

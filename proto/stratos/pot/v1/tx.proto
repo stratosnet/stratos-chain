@@ -31,6 +31,7 @@ service Msg {
 // MsgVolumeReport encapsulates an VolumeReport transaction as an SDK message.
 message MsgVolumeReport {
   repeated SingleWalletVolume wallet_volumes = 1 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "wallet_volumes",
     (gogoproto.moretags) = "yaml:\"wallet_volumes\""
   ];
@@ -39,7 +40,8 @@ message MsgVolumeReport {
     (gogoproto.moretags) = "yaml:\"reporter\""
   ];
   string                   epoch        = 3 [
-    (gogoproto.jsontag)  = "epoch",
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "epoch",
     (gogoproto.moretags) = "yaml:\"epoch\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
@@ -52,6 +54,7 @@ message MsgVolumeReport {
     (gogoproto.moretags) = "yaml:\"reporter_owner\""
   ];
   BLSSignatureInfo         BLS_signature = 6 [
+    (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "bls_signature",
     (gogoproto.moretags) = "yaml:\"bls_signature\""
   ];
@@ -147,3 +150,19 @@ message MsgSlashingResourceNode {
 }
 // MsgSlashingResourceNodeResponse defines the Msg/MsgSlashingResourceNode response type.
 message MsgSlashingResourceNodeResponse {}
+
+message BLSSignatureInfo {
+  repeated bytes  pub_keys = 1 [
+    (gogoproto.jsontag) = "pub_keys",
+    (gogoproto.moretags) = "yaml:\"pub_keys\""
+  ];
+  bytes           signature = 2 [
+    (gogoproto.jsontag) = "signature",
+    (gogoproto.moretags) = "yaml:\"signature\""
+  ];
+  bytes           txData = 3 [
+    (gogoproto.jsontag) = "tx_data",
+    (gogoproto.moretags) = "yaml:\"tx_data\""
+  ];
+}
+

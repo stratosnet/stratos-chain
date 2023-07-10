@@ -66,7 +66,9 @@ func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the pot module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
+	if err := types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx)); err != nil {
+		panic(err)
+	}
 }
 
 // GetTxCmd returns the root tx command for the register module.
@@ -82,11 +84,11 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // ValidateGenesis performs genesis state validation for the pot module.
 func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
-	err := types.ModuleCdc.UnmarshalJSON(bz, &data)
+	err := cdc.UnmarshalJSON(bz, &data)
 	if err != nil {
 		return err
 	}
-	return types.ValidateGenesis(data)
+	return types.ValidateGenesis(&data)
 }
 
 //____________________________________________________________________________
@@ -147,7 +149,7 @@ func (am AppModule) NewQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Q
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-	types.ModuleCdc.MustUnmarshalJSON(data, &genesisState)
+	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, &genesisState)
 	return []abci.ValidatorUpdate{}
 }
@@ -156,7 +158,7 @@ func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.
 // module.
 func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.RawMessage {
 	gs := ExportGenesis(ctx, am.keeper)
-	return types.ModuleCdc.MustMarshalJSON(gs)
+	return cdc.MustMarshalJSON(gs)
 }
 
 // BeginBlock returns the begin blocker for the pot module.
@@ -176,12 +178,12 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	querier := keeper.Querier{Keeper: am.keeper}
 	types.RegisterQueryServer(cfg.QueryServer(), querier)
 
-	m := keeper.NewMigrator(am.keeper)
-	_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
+	//m := keeper.NewMigrator(am.keeper)
+	//_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }
 
 // ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 2 }
+func (AppModule) ConsensusVersion() uint64 { return 1 }
 
 // ProposalContents doesn't return any content functions for governance proposals.
 func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {

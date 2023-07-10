@@ -15,8 +15,8 @@ const (
 )
 
 // NewDescription returns a new Description with the provided values.
-func NewDescription(moniker, identity, website, securityContact, details string) *Description {
-	return &Description{
+func NewDescription(moniker, identity, website, securityContact, details string) Description {
+	return Description{
 		Moniker:         moniker,
 		Identity:        identity,
 		Website:         website,

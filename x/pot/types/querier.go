@@ -4,74 +4,55 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
-// querier keys
 const (
-	QueryParams           = "params"
-	QueryVolumeReportHash = "volume_report"
+	QueryVolumeReport                   = "query_volume_report"
+	QueryIndividualRewardsByReportEpoch = "query_pot_individual_rewards_by_report_epoch"
+	QueryRewardsByWalletAddr            = "query_pot_rewards_by_wallet_address"
+	QuerySlashingByWalletAddr           = "query_pot_slashing_by_wallet_address"
+	QueryPotParams                      = "query_pot_params"
+	QueryTotalMinedToken                = "query_total_mined_token"
+	QueryCirculationSupply              = "query_circulation_supply"
+	QueryDefaultLimit                   = 100
 )
 
-//type PotRewardInfo struct {
-//	WalletAddress       sdk.AccAddress
-//	MatureTotalReward   sdk.Coins
-//	ImmatureTotalReward sdk.Coins
-//}
-
-// NewPotRewardInfo creates a new instance of PotRewardInfo
-func NewPotRewardInfo(
+// NewRewardInfo creates a new instance of PotRewardInfo
+func NewRewardInfo(
 	walletAddress sdk.AccAddress,
 	matureTotal sdk.Coins,
 	immatureTotal sdk.Coins,
-) PotRewardByOwner {
-	return PotRewardByOwner{
+) RewardByOwner {
+	return RewardByOwner{
 		WalletAddress:       walletAddress.String(),
 		MatureTotalReward:   matureTotal,
 		ImmatureTotalReward: immatureTotal,
 	}
 }
 
-type QueryPotRewardsByReportEpochParams struct {
+type QueryIndividualRewardsByReportEpochParams struct {
 	Page  int
 	Limit int
 	Epoch sdk.Int
-	//WalletAddress sdk.AccAddress
 }
 
-// NewQueryPotRewardsByEpochParams creates a new instance of QueryPotRewardsParams
-func NewQueryPotRewardsByEpochParams(page, limit int, epoch sdk.Int) QueryPotRewardsByReportEpochParams {
-	return QueryPotRewardsByReportEpochParams{
+// NewQueryIndividualRewardsByEpochParams creates a new instance of QueryIndividualRewardsByReportEpochParams
+func NewQueryIndividualRewardsByEpochParams(page, limit int, epoch sdk.Int) QueryIndividualRewardsByReportEpochParams {
+	return QueryIndividualRewardsByReportEpochParams{
 		Page:  page,
 		Limit: limit,
 		Epoch: epoch,
-		//WalletAddress: walletAddress,
 	}
 }
 
-type QueryPotRewardsByWalletAddrParams struct {
-	Page       int
-	Limit      int
+type QueryRewardsByWalletAddrParams struct {
 	WalletAddr sdk.AccAddress
 	Height     int64
 	Epoch      sdk.Int
 }
 
-func NewQueryPotRewardsByWalletAddrParams(page, limit int, walletAddr sdk.AccAddress, height int64, epoch sdk.Int) QueryPotRewardsByWalletAddrParams {
-	return QueryPotRewardsByWalletAddrParams{
-		Page:       page,
-		Limit:      limit,
+func NewQueryRewardsByWalletAddrParams(walletAddr sdk.AccAddress, height int64, epoch sdk.Int) QueryRewardsByWalletAddrParams {
+	return QueryRewardsByWalletAddrParams{
 		WalletAddr: walletAddr,
 		Height:     height,
 		Epoch:      epoch,
-	}
-}
-
-//type ReportInfo struct {
-//	Epoch     sdk.Int
-//	Reference string
-//}
-
-func NewReportInfo(epoch sdk.Int, reference string) ReportInfo {
-	return ReportInfo{
-		Epoch:     epoch.Int64(),
-		Reference: reference,
 	}
 }
