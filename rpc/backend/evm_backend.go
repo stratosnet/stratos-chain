@@ -80,7 +80,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 	if err != nil {
 		return nil, err
 	}
-	res.BaseFee = feeResp.BaseFee.BigInt()
+	res.BaseFee = (*hexutil.Big)(feeResp.BaseFee.BigInt())
 
 	return res, nil
 }
@@ -122,7 +122,7 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 	if err != nil {
 		return nil, err
 	}
-	res.BaseFee = feeResp.BaseFee.BigInt()
+	res.BaseFee = (*hexutil.Big)(feeResp.BaseFee.BigInt())
 
 	return res, nil
 }
