@@ -171,6 +171,7 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 		Timestamp:        hexutil.Uint64(header.Time),
 		Transactions:     transactions,
 		Uncles:           make([]common.Hash, 0),
+		Withdrawals:      make([]common.Hash, 0),
 		ReceiptsRoot:     common.Hash{},
 		BaseFee:          nil,
 	}, nil
