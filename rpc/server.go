@@ -12,23 +12,19 @@ import (
 )
 
 type Web3Server struct {
-	httpURI string
-	wsURI   string
-	enabled bool
-	logger  log.Logger
+	cfg    config.JSONRPCConfig
+	logger log.Logger
 }
 
 func NewWeb3Server(cfg config.Config, logger log.Logger) *Web3Server {
 	return &Web3Server{
-		httpURI: cfg.JSONRPC.Address,
-		wsURI:   cfg.JSONRPC.WsAddress,
-		enabled: cfg.JSONRPC.Enable,
-		logger:  logger,
+		cfg:    cfg.JSONRPC,
+		logger: logger,
 	}
 }
 
 func (web3 *Web3Server) start(uri string, handler http.Handler) error {
-	if !web3.enabled {
+	if !web3.cfg.Enable {
 		web3.logger.Info("Web3 api disabled, skipping")
 		return nil
 	}
@@ -87,18 +83,18 @@ func (web3 *Web3Server) registerAPIs(server *rpc.Server, apis []rpc.API) error {
 
 func (web3 *Web3Server) StartHTTP(apis []rpc.API) error {
 	rpcSrv := rpc.NewServer()
-	handler := node.NewHTTPHandlerStack(rpcSrv, []string{"*"}, []string{"localhost", "host.docker.internal"}, []byte{}) // TODO: Replace cors and vshosts from config
+	handler := node.NewHTTPHandlerStack(rpcSrv, web3.cfg.CORS, web3.cfg.VHosts, []byte{})
 	if err := web3.registerAPIs(rpcSrv, apis); err != nil {
 		return err
 	}
-	return web3.start(web3.httpURI, handler)
+	return web3.start(web3.cfg.Address, handler)
 }
 
 func (web3 *Web3Server) StartWS(apis []rpc.API) error {
 	rpcSrv := rpc.NewServer()
-	handler := rpcSrv.WebsocketHandler([]string{}) // TODO: Add config origins
+	handler := rpcSrv.WebsocketHandler(web3.cfg.AllowedOrigins) // TODO: Add config origins
 	if err := web3.registerAPIs(rpcSrv, apis); err != nil {
 		return err
 	}
-	return web3.start(web3.wsURI, handler)
+	return web3.start(web3.cfg.WsAddress, handler)
 }

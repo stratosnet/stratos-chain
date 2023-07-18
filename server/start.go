@@ -151,6 +151,9 @@ which accepts a path for the resulting pprof file.
 
 	cmd.Flags().Bool(srvflags.JSONRPCEnable, true, "Define if the gRPC server should be enabled")
 	cmd.Flags().StringSlice(srvflags.JSONRPCAPI, config.GetDefaultAPINamespaces(), "Defines a list of JSON-RPC namespaces that should be enabled")
+	cmd.Flags().StringSlice(srvflags.JSONRPCCors, config.GetDefaultAPICors(), "Defines a list of JSON-RPC cors that should be enabled")
+	cmd.Flags().StringSlice(srvflags.JSONRPCVHosts, config.GetDefaultAPIVHosts(), "Defines a list of JSON-RPC vhosts that should be enabled")
+	cmd.Flags().StringSlice(srvflags.JSONRPCAllowedOrigins, config.GetDefaultAPIAllowedOrigins(), "Defines a list of JSON-RPC allowed origins for WS that should be enabled")
 	cmd.Flags().String(srvflags.JSONRPCAddress, config.DefaultJSONRPCAddress, "the JSON-RPC server address to listen on")
 	cmd.Flags().String(srvflags.JSONWsAddress, config.DefaultJSONRPCWsAddress, "the JSON-RPC WS server address to listen on")
 	cmd.Flags().Uint64(srvflags.JSONRPCGasCap, config.DefaultGasCap, "Sets a cap on gas that can be used in eth_call/estimateGas unit is wei (0=infinite)")

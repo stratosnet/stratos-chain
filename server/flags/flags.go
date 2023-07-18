@@ -34,6 +34,9 @@ const (
 const (
 	JSONRPCEnable          = "json-rpc.enable"
 	JSONRPCAPI             = "json-rpc.api"
+	JSONRPCCors            = "json-rpc.cors"
+	JSONRPCVHosts          = "json-rpc.vhosts"
+	JSONRPCAllowedOrigins  = "json-rpc.allowed-origins"
 	JSONRPCAddress         = "json-rpc.address"
 	JSONWsAddress          = "json-rpc.ws-address"
 	JSONRPCGasCap          = "json-rpc.gas-cap"

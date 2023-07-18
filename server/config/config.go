@@ -81,6 +81,12 @@ type EVMConfig struct {
 type JSONRPCConfig struct {
 	// API defines a list of JSON-RPC namespaces that should be enabled
 	API []string `mapstructure:"api"`
+	// API defines a list of JSON-RPC namespaces that should be enabled
+	CORS []string `mapstructure:"cors"`
+	// API defines a list of JSON-RPC namespaces that should be enabled
+	VHosts []string `mapstructure:"vhosts"`
+	// API defines a list of JSON-RPC namespaces that should be enabled
+	AllowedOrigins []string `mapstructure:"allowed-origins"`
 	// Address defines the HTTP server to listen on
 	Address string `mapstructure:"address"`
 	// WsAddress defines the WebSocket server to listen on
@@ -187,11 +193,29 @@ func GetAPINamespaces() []string {
 	return []string{"web3", "eth", "personal", "net", "txpool", "debug", "miner"}
 }
 
+// GetDefaultAPICors returns the default list of JSON-RPC cors that should be enabled
+func GetDefaultAPICors() []string {
+	return []string{"*"}
+}
+
+// GetDefaultAPIVHosts returns the default list of JSON-RPC vhosts that should be enabled
+func GetDefaultAPIVHosts() []string {
+	return []string{"localhost", "host.docker.internal"}
+}
+
+// GetDefaultAPIAllowedOrigins returns the default list of JSON-RPC allowed origins for WS that should be enabled
+func GetDefaultAPIAllowedOrigins() []string {
+	return []string{}
+}
+
 // DefaultJSONRPCConfig returns an EVM config with the JSON-RPC API enabled by default
 func DefaultJSONRPCConfig() *JSONRPCConfig {
 	return &JSONRPCConfig{
 		Enable:          true,
 		API:             GetDefaultAPINamespaces(),
+		CORS:            GetDefaultAPICors(),
+		VHosts:          GetDefaultAPIVHosts(),
+		AllowedOrigins:  GetDefaultAPIAllowedOrigins(),
 		Address:         DefaultJSONRPCAddress,
 		WsAddress:       DefaultJSONRPCWsAddress,
 		GasCap:          DefaultGasCap,
@@ -298,6 +322,9 @@ func GetConfig(v *viper.Viper) (Config, error) {
 		JSONRPC: JSONRPCConfig{
 			Enable:          v.GetBool("json-rpc.enable"),
 			API:             v.GetStringSlice("json-rpc.api"),
+			CORS:            v.GetStringSlice("json-rpc.cors"),
+			VHosts:          v.GetStringSlice("json-rpc.vhosts"),
+			AllowedOrigins:  v.GetStringSlice("json-rpc.allowed-origins"),
 			Address:         v.GetString("json-rpc.address"),
 			WsAddress:       v.GetString("json-rpc.ws-address"),
 			GasCap:          v.GetUint64("json-rpc.gas-cap"),

@@ -35,6 +35,18 @@ ws-address = "{{ .JSONRPC.WsAddress }}"
 # Example: "eth,txpool,personal,net,debug,web3"
 api = "{{range $index, $elmt := .JSONRPC.API}}{{if $index}},{{$elmt}}{{else}}{{$elmt}}{{end}}{{end}}"
 
+# API defines a list of JSON-RPC cors that should be enabled
+# Example: "*" to enable for all
+cors = "{{range $index, $elmt := .JSONRPC.CORS}}{{if $index}},{{$elmt}}{{else}}{{$elmt}}{{end}}{{end}}"
+
+# API defines a list of JSON-RPC vhosts that should be enabled
+# Example: "localhost,host.docker.internal"
+vhosts = "{{range $index, $elmt := .JSONRPC.VHosts}}{{if $index}},{{$elmt}}{{else}}{{$elmt}}{{end}}{{end}}"
+
+# API defines a list of JSON-RPC allowed origins for WS that should be enabled
+# Example: "localhost"
+allowed-origins = "{{range $index, $elmt := .JSONRPC.AllowedOrigins}}{{if $index}},{{$elmt}}{{else}}{{$elmt}}{{end}}{{end}}"
+
 # GasCap sets a cap on gas that can be used in eth_call/estimateGas (0=infinite). Default: 25,000,000.
 gas-cap = {{ .JSONRPC.GasCap }}
 
