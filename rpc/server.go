@@ -87,7 +87,7 @@ func (web3 *Web3Server) registerAPIs(server *rpc.Server, apis []rpc.API) error {
 
 func (web3 *Web3Server) StartHTTP(apis []rpc.API) error {
 	rpcSrv := rpc.NewServer()
-	handler := node.NewHTTPHandlerStack(rpcSrv, []string{"*"}, []string{"localhost", "host.docker.internal"}, []byte{}) // TODO: Replace cors and vshosts from config
+	handler := node.NewHTTPHandlerStack(rpcSrv, []string{}, []string{"*"}, []byte{})
 	if err := web3.registerAPIs(rpcSrv, apis); err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func (web3 *Web3Server) StartHTTP(apis []rpc.API) error {
 
 func (web3 *Web3Server) StartWS(apis []rpc.API) error {
 	rpcSrv := rpc.NewServer()
-	handler := rpcSrv.WebsocketHandler([]string{}) // TODO: Add config origins
+	handler := rpcSrv.WebsocketHandler([]string{})
 	if err := web3.registerAPIs(rpcSrv, apis); err != nil {
 		return err
 	}
