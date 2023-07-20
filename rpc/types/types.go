@@ -131,9 +131,10 @@ type Block struct {
 	GasUsed          *hexutil.Big        `json:"gasUsed"`
 	Timestamp        hexutil.Uint64      `json:"timestamp"`
 	Uncles           []common.Hash       `json:"uncles"`
+	Withdrawals      []common.Hash       `json:"withdrawals"`
 	ReceiptsRoot     common.Hash         `json:"receiptsRoot"`
 	Transactions     []interface{}       `json:"transactions"`
-	BaseFee          *big.Int            `json:"baseFeePerGas"`
+	BaseFee          *hexutil.Big        `json:"baseFeePerGas"`
 }
 
 // TransactionReceipt represents a mined transaction returned to RPC clients.
