@@ -1,6 +1,7 @@
 #!/usr/bin/make -f
 
 BUILDDIR ?= $(CURDIR)/build
+LEDGER_ENABLED ?= false
 
 APP_VER := v0.10.0
 COMMIT := $(GIT_COMMIT_HASH)
@@ -14,7 +15,10 @@ endif
 
 ldflags= -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION)
 
-BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
+BUILD_FLAGS += -ldflags '$(ldflags)'
+ifeq ($(LEDGER_ENABLED),true)
+  BUILD_FLAGS += -tags "ledger"
+endif
 
 BUILD_TARGETS := build install
 
@@ -29,13 +33,13 @@ $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
 build-linux: go.sum
-	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
+	GOOS=linux GOARCH=amd64 $(MAKE) build
 
 build-mac: go.sum
-	LEDGER_ENABLED=false GOOS=darwin GOARCH=amd64 $(MAKE) build
+	GOOS=darwin GOARCH=amd64 $(MAKE) build
 
 build-windows: go.sum
-	LEDGER_ENABLED=false GOOS=windows GOARCH=amd64 $(MAKE) build
+	GOOS=windows GOARCH=amd64 $(MAKE) build
 
 clean:
 	rm -rf $(BUILDDIR)/

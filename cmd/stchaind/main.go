@@ -4,9 +4,12 @@ import (
 	"go/doc/comment"
 	"os"
 
+	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	"github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 
 	"github.com/stratosnet/stratos-chain/app"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -20,6 +23,7 @@ var (
 
 func main() {
 	registerDenoms()
+	ledger.InitLedger(ethsecp256k1.MakePubKey, signing.SignMode_SIGN_MODE_DIRECT)
 
 	rootCmd, _ := NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
