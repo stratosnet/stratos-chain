@@ -8,7 +8,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	"github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 
 	"github.com/stratosnet/stratos-chain/app"
@@ -23,7 +22,7 @@ var (
 
 func main() {
 	registerDenoms()
-	ledger.InitLedger(ethsecp256k1.MakePubKey, signing.SignMode_SIGN_MODE_DIRECT)
+	ledger.InitLedger(ethsecp256k1.MakePubKey, ledger.SignMode_SIGN_MODE_DIRECT)
 
 	rootCmd, _ := NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
