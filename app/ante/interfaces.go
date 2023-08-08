@@ -9,11 +9,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/params"
 
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // AccountKeeper defines the contract needed for AccountKeeper related APIs.

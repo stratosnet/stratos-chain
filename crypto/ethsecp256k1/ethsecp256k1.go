@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/cosmos/cosmos-sdk/codec"
+	"github.com/cosmos/cosmos-sdk/crypto/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -50,6 +51,10 @@ func GenerateKey() (*PrivKey, error) {
 	return &PrivKey{
 		Key: crypto.FromECDSA(priv),
 	}, nil
+}
+
+func MakePubKey(key []byte) types.PubKey {
+	return &PubKey{Key: key}
 }
 
 // Bytes returns the byte representation of the ECDSA Private Key.

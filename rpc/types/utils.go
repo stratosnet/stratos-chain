@@ -20,6 +20,7 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -171,6 +172,7 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 		Timestamp:        hexutil.Uint64(header.Time),
 		Transactions:     transactions,
 		Uncles:           make([]common.Hash, 0),
+		Withdrawals:      make([]common.Hash, 0),
 		ReceiptsRoot:     common.Hash{},
 		BaseFee:          nil,
 	}, nil
@@ -406,6 +408,25 @@ func TmTxToEthTx(
 			bNumber = new(big.Int).SetUint64(*blockNumber)
 		}
 
+		to := new(common.Address)
+		value := new(big.Int).SetInt64(0)
+
+		// cosmos.bank.v1beta1.MsgSend
+		sendTx, ok := msg.(*banktypes.MsgSend)
+		if ok {
+			bFrom, err := sdk.AccAddressFromBech32(sendTx.FromAddress)
+			if err != nil {
+				return nil, err
+			}
+			bTo, err := sdk.AccAddressFromBech32(sendTx.ToAddress)
+			if err != nil {
+				return nil, err
+			}
+			from = common.BytesToAddress(bFrom.Bytes())
+			*to = common.BytesToAddress(bTo.Bytes())
+			value = sendTx.Amount.AmountOf(stratos.Wei).BigInt()
+		}
+
 		return &Transaction{
 			BlockHash:        blockHash,
 			BlockNumber:      (*hexutil.Big)(bNumber),
@@ -416,9 +437,9 @@ func TmTxToEthTx(
 			Hash:             common.BytesToHash(tmTx.Hash()),
 			Input:            make(hexutil.Bytes, 0),
 			Nonce:            hexutil.Uint64(nonce),
-			To:               new(common.Address),
+			To:               to,
 			TransactionIndex: (*hexutil.Uint64)(index),
-			Value:            (*hexutil.Big)(new(big.Int).SetInt64(0)), // NOTE: How to get value in generic way?
+			Value:            (*hexutil.Big)(value),
 			V:                (*hexutil.Big)(v),
 			R:                (*hexutil.Big)(r),
 			S:                (*hexutil.Big)(s),

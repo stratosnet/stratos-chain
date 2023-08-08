@@ -13,9 +13,9 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/bech32"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -211,7 +211,6 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 	if len(msg.Reporters) == 0 || len(msg.ReporterOwner) == 0 {
 		return &types.MsgSlashingResourceNodeResponse{}, types.ErrReporterAddressOrOwner
 	}
-
 	reporterOwners := msg.ReporterOwner
 	for idx, reporter := range msg.Reporters {
 		reporterSdsAddr, err := stratos.SdsAddressFromBech32(reporter)

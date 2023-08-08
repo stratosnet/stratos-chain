@@ -15,16 +15,13 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/params"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
-	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
-	"github.com/stratosnet/stratos-chain/x/evm/vm"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // GasToRefund calculates the amount of gas the state machine should refund to the sender. It is
@@ -44,6 +41,7 @@ func (k *Keeper) EVMConfig(ctx sdk.Context) (*types.EVMConfig, error) {
 	params := k.GetParams(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig()
 
+	// get the coinbase address from the block proposer
 	coinbase, err := k.GetCoinbaseAddress(ctx)
 	if err != nil {
 		return nil, sdkerrors.Wrap(err, "failed to obtain coinbase address")
@@ -80,10 +78,9 @@ func (k *Keeper) NewEVM(
 	stateDB vm.StateDB,
 ) *vm.EVM {
 	blockCtx := vm.BlockContext{
-		CanTransfer: vm.CanTransfer,
-		Transfer:    vm.Transfer,
+		CanTransfer: core.CanTransfer,
+		Transfer:    core.Transfer,
 		GetHash:     k.GetHashFn(ctx),
-		Prepay:      k.PrepayFn(ctx),
 		Coinbase:    cfg.CoinBase,
 		GasLimit:    stratos.BlockGasLimit(ctx),
 		BlockNumber: big.NewInt(ctx.BlockHeight()),
@@ -92,25 +89,24 @@ func (k *Keeper) NewEVM(
 		BaseFee:     cfg.BaseFee,
 	}
 
-	txCtx := vm.NewEVMTxContext(msg)
+	txCtx := core.NewEVMTxContext(msg)
 	if tracer == nil {
 		tracer = k.Tracer(ctx, msg, cfg.ChainConfig)
 	}
-	vmConfig := k.VMConfig(ctx, cfg, tracer)
-	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig, k.verifier)
+	vmConfig := k.VMConfig(ctx, msg, cfg, tracer)
+	return vm.NewEVM(blockCtx, txCtx, stateDB, cfg.ChainConfig, vmConfig)
 }
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
 // module parameters. The config generated uses the default JumpTable from the EVM.
-func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLogger) vm.Config {
+func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig, tracer vm.EVMLogger) vm.Config {
 	noBaseFee := true
 	if types.IsLondon(cfg.ChainConfig, ctx.BlockHeight()) {
 		noBaseFee = k.GetParams(ctx).FeeMarketParams.NoBaseFee
 	}
 
 	var debug bool
-
-	if _, ok := tracer.(tracers.NoOpTracer); !ok {
+	if _, ok := tracer.(types.NoOpTracer); !ok {
 		debug = true
 		noBaseFee = true
 	}
@@ -120,59 +116,6 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 		Tracer:    tracer,
 		NoBaseFee: noBaseFee,
 		ExtraEips: cfg.Params.EIPs(),
-	}
-}
-
-func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
-	return func(evm *vm.EVM, from, beneficiary common.Address, amount *big.Int, gas uint64) (*big.Int, uint64, error) {
-		if amount.Sign() == 0 {
-			return nil, gas, vm.ErrExecutionReverted
-		}
-		if gas < vm.ReturnGasPrepay {
-			return nil, gas, vm.ErrGasUintOverflow
-		}
-		// NOTE: Required to return correct left gas amount to solidity
-		returnGas := gas - vm.ReturnGasPrepay
-
-		kdb := evm.StateDB.GetKeestateDB()
-		kSnapshot := evm.StateDB.KeeSnapshot()
-
-		accFrom := sdk.AccAddress(from.Bytes())
-		accBeneficiary := sdk.AccAddress(beneficiary.Bytes())
-
-		purchased, remaining, err := k.KeeCalculatePrepayPurchaseAmount(evm.StateDB, sdk.NewIntFromBigInt(amount))
-		if err != nil {
-			evm.StateDB.RevertToKeeSnapshot(kSnapshot)
-
-			return nil, returnGas, vm.ErrExecutionReverted
-		}
-
-		to := common.BytesToAddress(authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay))
-
-		if !evm.StateDB.Exist(to) {
-			evm.StateDB.CreateAccount(to)
-		}
-
-		evm.Context.Transfer(evm.StateDB, from, to, purchased.BigInt())
-
-		k.registerKeeper.KeeSetRemainingOzoneLimit(kdb, remaining)
-
-		k.AddEvents(sdk.Events{
-			sdk.NewEvent(
-				sdstypes.EventTypePrepay,
-				sdk.NewAttribute(sdk.AttributeKeySender, accFrom.String()),
-				sdk.NewAttribute(sdstypes.AttributeKeyBeneficiary, accBeneficiary.String()),
-				sdk.NewAttribute(sdstypes.AttributeKeyAmount, sdk.NewIntFromBigInt(amount).String()),
-				sdk.NewAttribute(sdstypes.AttributeKeyPurchasedNoz, purchased.String()),
-			),
-			sdk.NewEvent(
-				sdk.EventTypeMessage,
-				sdk.NewAttribute(sdk.AttributeKeyModule, sdstypes.AttributeValueCategory),
-				sdk.NewAttribute(sdk.AttributeKeySender, accFrom.String()),
-			),
-		})
-
-		return purchased.BigInt(), returnGas, nil
 	}
 }
 
@@ -482,8 +425,6 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 			return nil, sdkerrors.Wrap(err, "failed to commit stateDB")
 		}
 	}
-
-	k.ApplyEvents(ctx, vmErr != nil)
 
 	return &types.MsgEthereumTxResponse{
 		GasUsed: gasUsed,
