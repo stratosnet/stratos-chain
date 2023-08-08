@@ -29,7 +29,7 @@ type Keeper struct {
 	hooks                          types.RegisterHooks
 	metaNodeBitMapIndexCache       map[string]int
 	metaNodeBitMapIndexCacheStatus types.CacheStatus
-	cacheMutex                     sync.Mutex
+	cacheMutex                     *sync.Mutex
 }
 
 // NewKeeper creates a register keeper
@@ -46,7 +46,7 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 		hooks:                          nil,
 		metaNodeBitMapIndexCache:       make(map[string]int),
 		metaNodeBitMapIndexCacheStatus: types.CACHE_DIRTY,
-		cacheMutex:                     sync.Mutex{},
+		cacheMutex:                     &sync.Mutex{},
 	}
 	return keeper
 }
