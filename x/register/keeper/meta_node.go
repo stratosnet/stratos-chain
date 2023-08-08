@@ -520,8 +520,8 @@ func (k Keeper) OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr s
 func (k Keeper) GetMetaNodeBitMapIndex(ctx sdk.Context, networkAddr stratos.SdsAddress) (index int, err error) {
 	k.UpdateMetaNodeBitMapIdxCache(ctx)
 
-	k.cacheMutex.RLock()
-	defer k.cacheMutex.RUnlock()
+	k.cacheMutex.Lock()
+	defer k.cacheMutex.Unlock()
 
 	index, ok := k.metaNodeBitMapIndexCache[networkAddr.String()]
 	if !ok {
