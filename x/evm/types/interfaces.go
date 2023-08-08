@@ -44,7 +44,6 @@ type PotKeeper interface {
 	InitialTotalSupply(ctx sdk.Context) sdk.Coin
 	BondDenom(ctx sdk.Context) string
 	SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
-	GetPrepayAmount(Lt, tokenAmount, St, Pt sdk.Int) (purchaseNoz, remainingNoz sdk.Int, err error)
 }
 
 // Event Hooks
