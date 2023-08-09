@@ -539,7 +539,7 @@ func (k Keeper) AddMetaNodeToBitMapIdxCache(networkAddr stratos.SdsAddress) {
 	defer k.cacheMutex.Unlock()
 
 	k.metaNodeBitMapIndexCache[networkAddr.String()] = -1
-	k.metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_DIRTY
 }
 
 func (k Keeper) RemoveMetaNodeFromBitMapIdxCache(networkAddr stratos.SdsAddress) {
@@ -547,13 +547,13 @@ func (k Keeper) RemoveMetaNodeFromBitMapIdxCache(networkAddr stratos.SdsAddress)
 	defer k.cacheMutex.Unlock()
 
 	delete(k.metaNodeBitMapIndexCache, networkAddr.String())
-	k.metaNodeBitMapIndexCacheStatus = types.CACHE_DIRTY
+	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_DIRTY
 }
 
 func (k Keeper) UpdateMetaNodeBitMapIdxCache(ctx sdk.Context) {
 	k.cacheMutex.Lock()
 
-	if k.metaNodeBitMapIndexCacheStatus == types.CACHE_NOT_DIRTY {
+	if k.metaNodeBitMapIndexCacheStatus.Status == types.CACHE_NOT_DIRTY {
 		k.cacheMutex.Unlock()
 		return
 	}
@@ -573,7 +573,7 @@ func (k Keeper) UpdateMetaNodeBitMapIdxCache(ctx sdk.Context) {
 	for index, key := range keys {
 		k.metaNodeBitMapIndexCache[key] = index
 	}
-	k.metaNodeBitMapIndexCacheStatus = types.CACHE_NOT_DIRTY
+	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_NOT_DIRTY
 	k.cacheMutex.Unlock()
 }
 
@@ -581,7 +581,7 @@ func (k Keeper) ReloadMetaNodeBitMapIdxCache(ctx sdk.Context) {
 	k.cacheMutex.Lock()
 	defer k.cacheMutex.Unlock()
 
-	if k.metaNodeBitMapIndexCacheStatus == types.CACHE_NOT_DIRTY {
+	if k.metaNodeBitMapIndexCacheStatus.Status == types.CACHE_NOT_DIRTY {
 		return
 	}
 	keys := make([]string, 0)
@@ -603,5 +603,5 @@ func (k Keeper) ReloadMetaNodeBitMapIdxCache(ctx sdk.Context) {
 	for index, key := range keys {
 		k.metaNodeBitMapIndexCache[key] = index
 	}
-	k.metaNodeBitMapIndexCacheStatus = types.CACHE_NOT_DIRTY
+	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_NOT_DIRTY
 }

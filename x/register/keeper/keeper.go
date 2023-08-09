@@ -28,7 +28,7 @@ type Keeper struct {
 	distrKeeper                    types.DistrKeeper
 	hooks                          types.RegisterHooks
 	metaNodeBitMapIndexCache       map[string]int
-	metaNodeBitMapIndexCacheStatus types.CacheStatus
+	metaNodeBitMapIndexCacheStatus *types.CacheStatus
 	cacheMutex                     *sync.Mutex
 }
 
@@ -45,7 +45,7 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 		distrKeeper:                    distrKeeper,
 		hooks:                          nil,
 		metaNodeBitMapIndexCache:       make(map[string]int),
-		metaNodeBitMapIndexCacheStatus: types.CACHE_DIRTY,
+		metaNodeBitMapIndexCacheStatus: &types.CacheStatus{Status: types.CACHE_DIRTY},
 		cacheMutex:                     &sync.Mutex{},
 	}
 	return keeper

@@ -14,12 +14,14 @@ import (
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-type CacheStatus uint8
-
 const (
-	CACHE_NOT_DIRTY CacheStatus = 0
-	CACHE_DIRTY     CacheStatus = 1
+	CACHE_NOT_DIRTY = 0
+	CACHE_DIRTY     = 1
 )
+
+type CacheStatus struct {
+	Status uint8
+}
 
 // NewMetaNode - initialize a new meta node
 func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
