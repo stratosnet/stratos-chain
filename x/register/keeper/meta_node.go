@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -13,6 +14,12 @@ import (
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
+)
+
+var (
+	metaNodeBitMapIndexCache       = make(map[string]int)
+	metaNodeBitMapIndexCacheStatus = &types.CacheStatus{Status: types.CACHE_DIRTY}
+	cacheMutex                     = &sync.Mutex{}
 )
 
 // getMetaNode get a single meta node
@@ -520,10 +527,10 @@ func (k Keeper) OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr s
 func (k Keeper) GetMetaNodeBitMapIndex(ctx sdk.Context, networkAddr stratos.SdsAddress) (index int, err error) {
 	k.UpdateMetaNodeBitMapIdxCache(ctx)
 
-	k.cacheMutex.Lock()
-	defer k.cacheMutex.Unlock()
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
 
-	index, ok := k.metaNodeBitMapIndexCache[networkAddr.String()]
+	index, ok := metaNodeBitMapIndexCache[networkAddr.String()]
 	if !ok {
 		return index, errors.New(fmt.Sprintf("Can not find meta-node %v from cache", networkAddr.String()))
 	}
@@ -535,53 +542,53 @@ func (k Keeper) GetMetaNodeBitMapIndex(ctx sdk.Context, networkAddr stratos.SdsA
 }
 
 func (k Keeper) AddMetaNodeToBitMapIdxCache(networkAddr stratos.SdsAddress) {
-	k.cacheMutex.Lock()
-	defer k.cacheMutex.Unlock()
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
 
-	k.metaNodeBitMapIndexCache[networkAddr.String()] = -1
-	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_DIRTY
+	metaNodeBitMapIndexCache[networkAddr.String()] = -1
+	metaNodeBitMapIndexCacheStatus.Status = types.CACHE_DIRTY
 }
 
 func (k Keeper) RemoveMetaNodeFromBitMapIdxCache(networkAddr stratos.SdsAddress) {
-	k.cacheMutex.Lock()
-	defer k.cacheMutex.Unlock()
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
 
-	delete(k.metaNodeBitMapIndexCache, networkAddr.String())
-	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_DIRTY
+	delete(metaNodeBitMapIndexCache, networkAddr.String())
+	metaNodeBitMapIndexCacheStatus.Status = types.CACHE_DIRTY
 }
 
 func (k Keeper) UpdateMetaNodeBitMapIdxCache(ctx sdk.Context) {
-	k.cacheMutex.Lock()
+	cacheMutex.Lock()
 
-	if k.metaNodeBitMapIndexCacheStatus.Status == types.CACHE_NOT_DIRTY {
-		k.cacheMutex.Unlock()
+	if metaNodeBitMapIndexCacheStatus.Status == types.CACHE_NOT_DIRTY {
+		cacheMutex.Unlock()
 		return
 	}
-	if len(k.metaNodeBitMapIndexCache) == 0 {
-		k.cacheMutex.Unlock()
+	if len(metaNodeBitMapIndexCache) == 0 {
+		cacheMutex.Unlock()
 		k.ReloadMetaNodeBitMapIdxCache(ctx)
 		return
 	}
 
 	keys := make([]string, 0)
-	for key, _ := range k.metaNodeBitMapIndexCache {
+	for key, _ := range metaNodeBitMapIndexCache {
 		keys = append(keys, key)
 	}
 	sort.Slice(keys, func(i, j int) bool {
 		return keys[i] < keys[j]
 	})
 	for index, key := range keys {
-		k.metaNodeBitMapIndexCache[key] = index
+		metaNodeBitMapIndexCache[key] = index
 	}
-	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_NOT_DIRTY
-	k.cacheMutex.Unlock()
+	metaNodeBitMapIndexCacheStatus.Status = types.CACHE_NOT_DIRTY
+	cacheMutex.Unlock()
 }
 
 func (k Keeper) ReloadMetaNodeBitMapIdxCache(ctx sdk.Context) {
-	k.cacheMutex.Lock()
-	defer k.cacheMutex.Unlock()
+	cacheMutex.Lock()
+	defer cacheMutex.Unlock()
 
-	if k.metaNodeBitMapIndexCacheStatus.Status == types.CACHE_NOT_DIRTY {
+	if metaNodeBitMapIndexCacheStatus.Status == types.CACHE_NOT_DIRTY {
 		return
 	}
 	keys := make([]string, 0)
@@ -601,7 +608,7 @@ func (k Keeper) ReloadMetaNodeBitMapIdxCache(ctx sdk.Context) {
 		return keys[i] < keys[j]
 	})
 	for index, key := range keys {
-		k.metaNodeBitMapIndexCache[key] = index
+		metaNodeBitMapIndexCache[key] = index
 	}
-	k.metaNodeBitMapIndexCacheStatus.Status = types.CACHE_NOT_DIRTY
+	metaNodeBitMapIndexCacheStatus.Status = types.CACHE_NOT_DIRTY
 }

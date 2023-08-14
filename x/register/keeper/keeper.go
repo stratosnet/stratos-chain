@@ -3,7 +3,6 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,16 +19,13 @@ import (
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey                       sdk.StoreKey
-	cdc                            codec.Codec
-	paramSpace                     paramtypes.Subspace
-	accountKeeper                  types.AccountKeeper
-	bankKeeper                     types.BankKeeper
-	distrKeeper                    types.DistrKeeper
-	hooks                          types.RegisterHooks
-	metaNodeBitMapIndexCache       map[string]int
-	metaNodeBitMapIndexCacheStatus *types.CacheStatus
-	cacheMutex                     *sync.Mutex
+	storeKey      sdk.StoreKey
+	cdc           codec.Codec
+	paramSpace    paramtypes.Subspace
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	distrKeeper   types.DistrKeeper
+	hooks         types.RegisterHooks
 }
 
 // NewKeeper creates a register keeper
@@ -37,16 +33,13 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
 
 	keeper := Keeper{
-		storeKey:                       key,
-		cdc:                            cdc,
-		paramSpace:                     paramSpace.WithKeyTable(types.ParamKeyTable()),
-		accountKeeper:                  accountKeeper,
-		bankKeeper:                     bankKeeper,
-		distrKeeper:                    distrKeeper,
-		hooks:                          nil,
-		metaNodeBitMapIndexCache:       make(map[string]int),
-		metaNodeBitMapIndexCacheStatus: &types.CacheStatus{Status: types.CACHE_DIRTY},
-		cacheMutex:                     &sync.Mutex{},
+		storeKey:      key,
+		cdc:           cdc,
+		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
+		distrKeeper:   distrKeeper,
+		hooks:         nil,
 	}
 	return keeper
 }
