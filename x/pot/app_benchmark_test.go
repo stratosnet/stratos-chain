@@ -76,7 +76,7 @@ var (
 	balances = make([]banktypes.Balance, 0)
 
 	accInitBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
-	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Utros, sdk.NewInt(40000000000000000)))
+	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdk.NewInt(40000000000000000).MulRaw(stratos.GweiToWei)))
 
 	nodeInitDeposit  = sdk.NewInt(1 * stratos.StosToWei)
 	prepayAmt        = sdk.NewCoins(stratos.NewCoin(sdk.NewInt(20).Mul(sdk.NewInt(stratos.StosToWei))))
@@ -220,6 +220,7 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 			metaNode, _ := registertypes.NewMetaNode(
 				keyInfo.P2PAddress(),
 				keyInfo.P2PPubKey(),
+				keyInfo.OwnerAddress(),
 				keyInfo.OwnerAddress(),
 				registertypes.NewDescription(keyInfo.P2PAddressBech32(), "", "", "", ""),
 				time,

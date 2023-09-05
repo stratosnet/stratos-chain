@@ -24,20 +24,23 @@ type CacheStatus struct {
 }
 
 // NewMetaNode - initialize a new meta node
-func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
+func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
+	beneficiaryAddress sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
+
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return MetaNode{}, err
 	}
 	return MetaNode{
-		NetworkAddress: networkAddr.String(),
-		Pubkey:         pkAny,
-		Suspend:        true,
-		Status:         stakingtypes.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr.String(),
-		Description:    description,
-		CreationTime:   creationTime,
+		NetworkAddress:     networkAddr.String(),
+		Pubkey:             pkAny,
+		Suspend:            true,
+		Status:             stakingtypes.Unbonded,
+		Tokens:             sdk.ZeroInt(),
+		OwnerAddress:       ownerAddr.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
+		Description:        description,
+		CreationTime:       creationTime,
 	}, nil
 }
 
@@ -61,10 +64,11 @@ func (v MetaNode) ConvertToString() string {
  		Status:				%s
  		Tokens:				%s
 		Owner Address: 		%s
+        Beneficiary Address %s
  		Description:		%s
 		CreationTime:		%s
 	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(),
-		v.Tokens, v.GetOwnerAddress(), v.GetDescription(), v.GetCreationTime())
+		v.Tokens, v.GetOwnerAddress(), v.GetBeneficiaryAddress(), v.GetDescription(), v.GetCreationTime())
 }
 
 // AddToken adds tokens to a meta node
@@ -118,6 +122,12 @@ func (v MetaNode) Validate() error {
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
+
+	_, err = sdk.AccAddressFromBech32(v.GetBeneficiaryAddress())
+	if err != nil {
+		return err
+	}
+
 	if v.Tokens.LT(sdk.ZeroInt()) {
 		return ErrValueNegative
 	}

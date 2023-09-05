@@ -101,6 +101,7 @@ func CreateMetaNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetAmount())
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -232,6 +233,7 @@ func UpdateMetaNodeCmd() *cobra.Command {
 
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 

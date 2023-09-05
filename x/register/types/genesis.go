@@ -80,6 +80,11 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 		return MetaNode{}, sdkerrors.Wrap(ErrInvalidOwnerAddr, err.Error())
 	}
 
+	beneficiaryAddress, err := sdk.AccAddressFromBech32(v.BeneficiaryAddress)
+	if err != nil {
+		return MetaNode{}, sdkerrors.Wrap(ErrInvalidBeneficiaryAddr, err.Error())
+	}
+
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
 		return MetaNode{}, sdkerrors.Wrap(ErrInvalidNetworkAddr, err.Error())
@@ -92,13 +97,14 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	tokenAmt := tokens.AmountOf(DefaultBondDenom)
 
 	return MetaNode{
-		NetworkAddress: netAddr.String(),
-		Pubkey:         v.GetPubkey(),
-		Suspend:        v.GetSuspend(),
-		Status:         v.GetStatus(),
-		Tokens:         tokenAmt,
-		OwnerAddress:   ownerAddress.String(),
-		Description:    v.GetDescription(),
+		NetworkAddress:     netAddr.String(),
+		Pubkey:             v.GetPubkey(),
+		Suspend:            v.GetSuspend(),
+		Status:             v.GetStatus(),
+		Tokens:             tokenAmt,
+		OwnerAddress:       ownerAddress.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
+		Description:        v.GetDescription(),
 	}, nil
 }
 

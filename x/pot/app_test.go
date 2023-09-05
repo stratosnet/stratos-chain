@@ -33,9 +33,7 @@ import (
 )
 
 const (
-	chainID     = "testchain_1-1"
-	stos2wei    = stratos.StosToWei
-	rewardDenom = stratos.Utros
+	chainID = "testchain_1-1"
 
 	stopFlagOutOfTotalMiningReward = true
 	stopFlagSpecificMinedReward    = false
@@ -57,29 +55,35 @@ var (
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
-	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(rewardDenom, sdk.NewInt(40000000000000000)))
+	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdk.NewInt(40000000000000000).MulRaw(stratos.GweiToWei)))
 
 	nodeInitialDeposit = sdk.NewInt(1 * stratos.StosToWei)
 	initBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
 
 	// wallet private keys
-	resOwnerPrivKey1  = secp256k1.GenPrivKey()
-	resOwnerPrivKey2  = secp256k1.GenPrivKey()
-	resOwnerPrivKey3  = secp256k1.GenPrivKey()
-	resOwnerPrivKey4  = secp256k1.GenPrivKey()
-	resOwnerPrivKey5  = secp256k1.GenPrivKey()
-	metaOwnerPrivKey1 = secp256k1.GenPrivKey()
-	metaOwnerPrivKey2 = secp256k1.GenPrivKey()
-	metaOwnerPrivKey3 = secp256k1.GenPrivKey()
+	resOwnerPrivKey1        = secp256k1.GenPrivKey()
+	resOwnerPrivKey2        = secp256k1.GenPrivKey()
+	resOwnerPrivKey3        = secp256k1.GenPrivKey()
+	resOwnerPrivKey4        = secp256k1.GenPrivKey()
+	resOwnerPrivKey5        = secp256k1.GenPrivKey()
+	metaOwnerPrivKey1       = secp256k1.GenPrivKey()
+	metaOwnerPrivKey2       = secp256k1.GenPrivKey()
+	metaOwnerPrivKey3       = secp256k1.GenPrivKey()
+	metaBeneficiaryPrivKey1 = metaOwnerPrivKey1
+	metaBeneficiaryPrivKey2 = secp256k1.GenPrivKey()
+	metaBeneficiaryPrivKey3 = secp256k1.GenPrivKey()
 	// wallet addresses
-	resOwner1  = sdk.AccAddress(resOwnerPrivKey1.PubKey().Address())
-	resOwner2  = sdk.AccAddress(resOwnerPrivKey2.PubKey().Address())
-	resOwner3  = sdk.AccAddress(resOwnerPrivKey3.PubKey().Address())
-	resOwner4  = sdk.AccAddress(resOwnerPrivKey4.PubKey().Address())
-	resOwner5  = sdk.AccAddress(resOwnerPrivKey5.PubKey().Address())
-	metaOwner1 = sdk.AccAddress(metaOwnerPrivKey1.PubKey().Address())
-	metaOwner2 = sdk.AccAddress(metaOwnerPrivKey2.PubKey().Address())
-	metaOwner3 = sdk.AccAddress(metaOwnerPrivKey3.PubKey().Address())
+	resOwner1        = sdk.AccAddress(resOwnerPrivKey1.PubKey().Address())
+	resOwner2        = sdk.AccAddress(resOwnerPrivKey2.PubKey().Address())
+	resOwner3        = sdk.AccAddress(resOwnerPrivKey3.PubKey().Address())
+	resOwner4        = sdk.AccAddress(resOwnerPrivKey4.PubKey().Address())
+	resOwner5        = sdk.AccAddress(resOwnerPrivKey5.PubKey().Address())
+	metaOwner1       = sdk.AccAddress(metaOwnerPrivKey1.PubKey().Address())
+	metaOwner2       = sdk.AccAddress(metaOwnerPrivKey2.PubKey().Address())
+	metaOwner3       = sdk.AccAddress(metaOwnerPrivKey3.PubKey().Address())
+	metaBeneficiary1 = sdk.AccAddress(metaBeneficiaryPrivKey1.PubKey().Address())
+	metaBeneficiary2 = sdk.AccAddress(metaBeneficiaryPrivKey2.PubKey().Address())
+	metaBeneficiary3 = sdk.AccAddress(metaBeneficiaryPrivKey3.PubKey().Address())
 
 	// P2P public key of resource nodes
 	resNodeP2PPubKey1 = ed25519.GenPrivKey().PubKey()
@@ -356,17 +360,20 @@ func TestPotVolumeReportMsgs(t *testing.T) {
 		t.Log("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
 		t.Log("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-		t.Log("indexing_wallet1:  address = " + metaOwner1.String())
-		t.Log("              miningReward = " + rewardDetailMap[metaOwner1.String()].RewardFromMiningPool.String())
-		t.Log("             trafficReward = " + rewardDetailMap[metaOwner1.String()].RewardFromTrafficPool.String())
+		t.Log("meta_owner_wallet1:        address = " + metaOwner1.String())
+		t.Log("meta_beneficiary_wallet1:  address = " + metaBeneficiary1.String())
+		t.Log("                      miningReward = " + rewardDetailMap[metaBeneficiary1.String()].RewardFromMiningPool.String())
+		t.Log("                     trafficReward = " + rewardDetailMap[metaBeneficiary1.String()].RewardFromTrafficPool.String())
 
-		t.Log("indexing_wallet2:  address = " + metaOwner2.String())
-		t.Log("              miningReward = " + rewardDetailMap[metaOwner2.String()].RewardFromMiningPool.String())
-		t.Log("             trafficReward = " + rewardDetailMap[metaOwner2.String()].RewardFromTrafficPool.String())
+		t.Log("meta_owner_wallet2:  address = " + metaOwner2.String())
+		t.Log("meta_beneficiary_wallet2:  address = " + metaBeneficiary2.String())
+		t.Log("                      miningReward = " + rewardDetailMap[metaBeneficiary2.String()].RewardFromMiningPool.String())
+		t.Log("                     trafficReward = " + rewardDetailMap[metaBeneficiary2.String()].RewardFromTrafficPool.String())
 
-		t.Log("indexing_wallet3:  address = " + metaOwner3.String())
-		t.Log("              miningReward = " + rewardDetailMap[metaOwner3.String()].RewardFromMiningPool.String())
-		t.Log("             trafficReward = " + rewardDetailMap[metaOwner3.String()].RewardFromTrafficPool.String())
+		t.Log("meta_owner_wallet3:        address = " + metaOwner3.String())
+		t.Log("meta_beneficiary_wallet3:  address = " + metaBeneficiary3.String())
+		t.Log("                      miningReward = " + rewardDetailMap[metaBeneficiary3.String()].RewardFromMiningPool.String())
+		t.Log("                     trafficReward = " + rewardDetailMap[metaBeneficiary3.String()].RewardFromTrafficPool.String())
 		t.Log("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
@@ -674,9 +681,9 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 	var indexingNodes []registertypes.MetaNode
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	indexingNode1, _ := registertypes.NewMetaNode(metaNodeP2PAddr1, metaNodeP2PPubKey1, metaOwner1, registertypes.NewDescription("indexingNode1", "", "", "", ""), time)
-	indexingNode2, _ := registertypes.NewMetaNode(metaNodeP2PAddr2, metaNodeP2PPubKey2, metaOwner2, registertypes.NewDescription("indexingNode2", "", "", "", ""), time)
-	indexingNode3, _ := registertypes.NewMetaNode(metaNodeP2PAddr3, metaNodeP2PPubKey3, metaOwner3, registertypes.NewDescription("indexingNode3", "", "", "", ""), time)
+	indexingNode1, _ := registertypes.NewMetaNode(metaNodeP2PAddr1, metaNodeP2PPubKey1, metaOwner1, metaBeneficiary1, registertypes.NewDescription("indexingNode1", "", "", "", ""), time)
+	indexingNode2, _ := registertypes.NewMetaNode(metaNodeP2PAddr2, metaNodeP2PPubKey2, metaOwner2, metaBeneficiary2, registertypes.NewDescription("indexingNode2", "", "", "", ""), time)
+	indexingNode3, _ := registertypes.NewMetaNode(metaNodeP2PAddr3, metaNodeP2PPubKey3, metaOwner3, metaBeneficiary3, registertypes.NewDescription("indexingNode3", "", "", "", ""), time)
 
 	indexingNode1 = indexingNode1.AddToken(nodeInitialDeposit)
 	indexingNode2 = indexingNode2.AddToken(nodeInitialDeposit)

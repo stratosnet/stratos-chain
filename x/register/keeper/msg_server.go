@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -92,7 +93,20 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgCreateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, msg.Description, msg.GetValue())
+	var beneficiaryAddress sdk.AccAddress
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) == 0 {
+		beneficiaryAddress = ownerAddress
+	} else {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgCreateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+		if beneficiaryAddress.Empty() {
+			beneficiaryAddress = ownerAddress
+		}
+	}
+
+	ozoneLimitChange, err := k.CreateMetaNode(ctx, networkAddr, pk, ownerAddress, beneficiaryAddress, msg.Description, msg.GetValue())
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrRegisterMetaNode, err.Error())
 	}

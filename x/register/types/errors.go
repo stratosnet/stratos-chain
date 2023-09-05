@@ -34,6 +34,7 @@ const (
 	codeErrNoVoterMetaNodeFound
 	codeErrSameAddr
 	codeErrInvalidOwnerAddr
+	codeErrInvalidBeneficiaryAddr
 	codeErrInvalidVoterStatus
 	codeEcoderrNoRegistrationVotePoolFound
 	codeErrDuplicateVoting
@@ -97,6 +98,7 @@ var (
 	ErrNoVoterMetaNodeFound               = sdkerrors.Register(ModuleName, codeErrNoVoterMetaNodeFound, "voter meta node does not exist")
 	ErrSameAddr                           = sdkerrors.Register(ModuleName, codeErrSameAddr, "node address should not same as the voter address")
 	ErrInvalidOwnerAddr                   = sdkerrors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
+	ErrInvalidBeneficiaryAddr             = sdkerrors.Register(ModuleName, codeErrInvalidBeneficiaryAddr, "invalid beneficiary address")
 	ErrInvalidVoterStatus                 = sdkerrors.Register(ModuleName, codeErrInvalidVoterStatus, "invalid voter status")
 	ErrNoRegistrationVotePoolFound        = sdkerrors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
 	ErrDuplicateVoting                    = sdkerrors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")

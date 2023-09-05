@@ -1,6 +1,8 @@
 package register
 
 import (
+	"strings"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -84,6 +86,10 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 			}
 		default:
 			panic(types.ErrInvalidNodeStat)
+		}
+
+		if len(strings.TrimSpace(metaNode.BeneficiaryAddress)) == 0 {
+			metaNode.BeneficiaryAddress = metaNode.OwnerAddress
 		}
 		keeper.SetMetaNode(ctx, metaNode)
 	}
