@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
@@ -431,13 +433,13 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 
 	ownerAddr := clientCtx.GetFromAddress()
 
-	flagBeneficiaryAddrStr, err := fs.GetString(FlagBeneficiaryAddress)
-	if err != nil {
-		return txf, nil, err
-	}
-	beneficiaryAddr, err := sdk.AccAddressFromBech32(flagBeneficiaryAddrStr)
-	if err != nil {
-		return txf, nil, err
+	beneficiaryAddr := ownerAddr
+	flagBeneficiaryAddrStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddrStr)) > 0 {
+		beneficiaryAddr, err = sdk.AccAddressFromBech32(flagBeneficiaryAddrStr)
+		if err != nil {
+			return txf, nil, err
+		}
 	}
 
 	pkStr, err := fs.GetString(FlagPubKey)
@@ -523,7 +525,7 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 
 	beneficiaryAddress := sdk.AccAddress{}
 	flagBeneficiaryAddressStr, _ := fs.GetString(FlagBeneficiaryAddress)
-	if len(flagBeneficiaryAddressStr) > 0 {
+	if len(strings.TrimSpace(flagBeneficiaryAddressStr)) > 0 {
 		beneficiaryAddress, err = sdk.AccAddressFromBech32(flagBeneficiaryAddressStr)
 		if err != nil {
 			return txf, nil, err

@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
@@ -80,9 +81,12 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 		return MetaNode{}, sdkerrors.Wrap(ErrInvalidOwnerAddr, err.Error())
 	}
 
-	beneficiaryAddress, err := sdk.AccAddressFromBech32(v.BeneficiaryAddress)
-	if err != nil {
-		return MetaNode{}, sdkerrors.Wrap(ErrInvalidBeneficiaryAddr, err.Error())
+	beneficiaryAddress := ownerAddress
+	if len(strings.TrimSpace(v.BeneficiaryAddress)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(v.BeneficiaryAddress)
+		if err != nil {
+			return MetaNode{}, sdkerrors.Wrap(ErrInvalidBeneficiaryAddr, err.Error())
+		}
 	}
 
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
