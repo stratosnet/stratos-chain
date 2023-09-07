@@ -431,6 +431,15 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	flagBeneficiaryAddrStr, err := fs.GetString(FlagBeneficiaryAddress)
+	if err != nil {
+		return txf, nil, err
+	}
+	beneficiaryAddr, err := sdk.AccAddressFromBech32(flagBeneficiaryAddrStr)
+	if err != nil {
+		return txf, nil, err
+	}
+
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
 		return txf, nil, err
@@ -452,7 +461,7 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 		security,
 		details,
 	)
-	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, description)
+	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, beneficiaryAddr, description)
 	if er != nil {
 		return txf, nil, err
 	}
@@ -512,6 +521,15 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	beneficiaryAddress := sdk.AccAddress{}
+	flagBeneficiaryAddressStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(flagBeneficiaryAddressStr) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(flagBeneficiaryAddressStr)
+		if err != nil {
+			return txf, nil, err
+		}
+	}
+
 	moniker, _ := fs.GetString(FlagMoniker)
 	identity, _ := fs.GetString(FlagIdentity)
 	website, _ := fs.GetString(FlagWebsite)
@@ -525,7 +543,7 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 		details,
 	)
 
-	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr, beneficiaryAddress)
 	return txf, msg, nil
 }
 

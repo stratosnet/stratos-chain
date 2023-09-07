@@ -434,7 +434,7 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 }
 
 func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
-	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) error {
+	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress) error {
 
 	node, found := k.GetMetaNode(ctx, networkAddr)
 	if !found {
@@ -444,6 +444,10 @@ func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !ownerAddrNode.Equals(ownerAddr) {
 		return types.ErrInvalidOwnerAddr
+	}
+
+	if len(beneficiaryAddr) > 0 {
+		node.BeneficiaryAddress = beneficiaryAddr.String()
 	}
 
 	node.Description = description

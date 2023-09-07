@@ -423,7 +423,15 @@ func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgUpdateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	err = k.UpdateMetaNode(ctx, msg.Description, networkAddr, ownerAddress)
+	beneficiaryAddress := sdk.AccAddress{}
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgUpdateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+	}
+
+	err = k.UpdateMetaNode(ctx, msg.Description, networkAddr, ownerAddress, beneficiaryAddress)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrUpdateMetaNode, err.Error())
 	}

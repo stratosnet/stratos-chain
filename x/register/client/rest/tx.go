@@ -96,11 +96,12 @@ type (
 	}
 
 	CreateMetaNodeRequest struct {
-		BaseReq     rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		NetworkAddr string            `json:"network_address" yaml:"network_address"`
-		PubKey      string            `json:"pubkey" yaml:"pubkey"` // in bech32
-		Amount      sdk.Coin          `json:"amount" yaml:"amount"`
-		Description types.Description `json:"description" yaml:"description"`
+		BaseReq            rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		NetworkAddr        string            `json:"network_address" yaml:"network_address"`
+		PubKey             string            `json:"pubkey" yaml:"pubkey"` // in bech32
+		Amount             sdk.Coin          `json:"amount" yaml:"amount"`
+		BeneficiaryAddress string            `json:"beneficiary_address" yaml:"beneficiary_address"`
+		Description        types.Description `json:"description" yaml:"description"`
 	}
 
 	RemoveMetaNodeRequest struct {
@@ -109,9 +110,10 @@ type (
 	}
 
 	UpdateMetaNodeRequest struct {
-		BaseReq        rest.BaseReq      `json:"base_req" yaml:"base_req"`
-		Description    types.Description `json:"description" yaml:"description"`
-		NetworkAddress string            `json:"network_address" yaml:"network_address"`
+		BaseReq            rest.BaseReq      `json:"base_req" yaml:"base_req"`
+		Description        types.Description `json:"description" yaml:"description"`
+		NetworkAddress     string            `json:"network_address" yaml:"network_address"`
+		BeneficiaryAddress string            `json:"beneficiary_address" yaml:"beneficiary_address"`
 	}
 
 	UpdateMetaNodeDepositRequest struct {
@@ -199,12 +201,19 @@ func postCreateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
+
+		beneficiaryAddr, err := sdk.AccAddressFromBech32(req.BeneficiaryAddress)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
+			return
+		}
+
 		networkAddr, err := stratos.SdsAddressFromBech32(req.NetworkAddr)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
 		}
-		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, req.Description)
+		msg, err := types.NewMsgCreateMetaNode(networkAddr, pubKey, req.Amount, ownerAddr, beneficiaryAddr, req.Description)
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
@@ -416,7 +425,16 @@ func postUpdateMetaNodeHandlerFn(cliCtx client.Context) http.HandlerFunc {
 			return
 		}
 
-		msg := types.NewMsgUpdateMetaNode(req.Description, networkAddr, ownerAddr)
+		beneficiaryAddress := sdk.AccAddress{}
+		if len(req.BeneficiaryAddress) > 0 {
+			beneficiaryAddress, err = sdk.AccAddressFromBech32(req.BeneficiaryAddress)
+			if err != nil {
+				rest.WriteErrorResponse(w, http.StatusBadRequest, er.Error())
+				return
+			}
+		}
+
+		msg := types.NewMsgUpdateMetaNode(req.Description, networkAddr, ownerAddr, beneficiaryAddress)
 		if err := msg.ValidateBasic(); err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())
 			return
