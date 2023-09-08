@@ -23,7 +23,7 @@ func migrateMetaNodes(store sdk.KVStore, cdc codec.Codec) error {
 
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
-		oldMetaNode := types.MustUnmarshalMetaNode(cdc, iterator.Value())
+		oldMetaNode := MustUnmarshalMetaNode(cdc, iterator.Value())
 		newMetaNode := types.MetaNode{
 			NetworkAddress:     oldMetaNode.NetworkAddress,
 			Pubkey:             oldMetaNode.Pubkey,
