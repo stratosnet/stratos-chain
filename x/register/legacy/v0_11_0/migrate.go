@@ -42,7 +42,7 @@ func migrateMetaNodes(store sdk.KVStore, cdc codec.Codec) error {
 			CreationTime: oldMetaNode.CreationTime,
 		}
 
-		newMetaNodeBz := cdc.MustMarshalLengthPrefixed(&newMetaNode)
+		newMetaNodeBz := types.MustMarshalMetaNode(cdc, newMetaNode)
 		storeKey := types.GetMetaNodeKey(key)
 
 		oldMetaNodeStore.Delete(iterator.Key())
