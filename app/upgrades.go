@@ -7,7 +7,7 @@ import (
 )
 
 // UpgradeName defines the on-chain upgrade name
-const UpgradeName = "v0_10_1"
+const UpgradeName = "v0_11_0"
 
 func (app *NewApp) RegisterUpgradeHandlers() {
 	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,

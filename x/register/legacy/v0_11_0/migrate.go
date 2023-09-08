@@ -1,4 +1,4 @@
-package v0_10_0
+package v0_11_0
 
 import (
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -23,7 +23,7 @@ func migrateMetaNodes(store sdk.KVStore, cdc codec.Codec) error {
 
 	for ; iterator.Valid(); iterator.Next() {
 		key := iterator.Key()
-		oldMetaNode := MustUnmarshalMetaNode(cdc, iterator.Value())
+		oldMetaNode := types.MustUnmarshalMetaNode(cdc, iterator.Value())
 		newMetaNode := types.MetaNode{
 			NetworkAddress:     oldMetaNode.NetworkAddress,
 			Pubkey:             oldMetaNode.Pubkey,
