@@ -43,6 +43,10 @@ service Query {
   rpc CirculationSupply(QueryCirculationSupplyRequest) returns (QueryCirculationSupplyResponse) {
     option (google.api.http).get = "/stratos/pot/v1/circulation-supply";
   }
+
+  rpc TotalVolumeRewardByEpoch(QueryTotalVolumeRewardByEpochRequest) returns (QueryTotalVolumeRewardByEpochResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/total-volume-reward/{epoch}";
+  }
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
@@ -142,4 +146,15 @@ message QueryCirculationSupplyResponse{
   ];
 }
 
+message QueryTotalVolumeRewardByEpochRequest {
+  int64 epoch = 1;
+}
+
+message QueryTotalVolumeRewardByEpochResponse {
+  cosmos.base.v1beta1.Coin            total_volume_reward = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_volume_reward",
+    (gogoproto.moretags) = "yaml:\"total_volume_reward\""
+  ];
+}
 
