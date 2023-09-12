@@ -44,8 +44,8 @@ service Query {
     option (google.api.http).get = "/stratos/pot/v1/circulation-supply";
   }
 
-  rpc TotalVolumeRewardByEpoch(QueryTotalVolumeRewardByEpochRequest) returns (QueryTotalVolumeRewardByEpochResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/total-volume-reward/{epoch}";
+  rpc TotalRewardByEpoch(QueryTotalRewardByEpochRequest) returns (QueryTotalRewardByEpochResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/total-reward/{epoch}";
   }
 }
 
@@ -146,15 +146,15 @@ message QueryCirculationSupplyResponse{
   ];
 }
 
-message QueryTotalVolumeRewardByEpochRequest {
+message QueryTotalRewardByEpochRequest {
   int64 epoch = 1;
 }
 
-message QueryTotalVolumeRewardByEpochResponse {
-  cosmos.base.v1beta1.Coin            total_volume_reward = 1 [
+message QueryTotalRewardByEpochResponse {
+  TotalReward total_reward = 1 [
     (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "total_volume_reward",
-    (gogoproto.moretags) = "yaml:\"total_volume_reward\""
+    (gogoproto.jsontag) = "total_reward",
+    (gogoproto.moretags) = "yaml:\"total_reward\""
   ];
 }
 

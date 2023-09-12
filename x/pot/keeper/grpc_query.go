@@ -388,15 +388,15 @@ func (q Querier) CirculationSupply(c context.Context, _ *types.QueryCirculationS
 	return &types.QueryCirculationSupplyResponse{CirculationSupply: circulationSupply}, nil
 }
 
-func (q Querier) TotalVolumeRewardByEpoch(c context.Context, req *types.QueryTotalVolumeRewardByEpochRequest) (
-	*types.QueryTotalVolumeRewardByEpochResponse, error) {
+func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewardByEpochRequest) (
+	*types.QueryTotalRewardByEpochResponse, error) {
 	if req == nil {
-		return &types.QueryTotalVolumeRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "empty request")
+		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "empty request")
 	}
 
 	epochInt64 := req.GetEpoch()
 	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
-		return &types.QueryTotalVolumeRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
+		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
 	}
 	epoch := sdk.NewInt(epochInt64)
 
@@ -405,7 +405,7 @@ func (q Querier) TotalVolumeRewardByEpoch(c context.Context, req *types.QueryTot
 	volumeReport := q.GetVolumeReport(ctx, epoch)
 
 	if volumeReport == (types.VolumeReportRecord{}) {
-		return &types.QueryTotalVolumeRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "no volume report at epoch "+strconv.FormatInt(req.GetEpoch(), 10))
+		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "no volume report at epoch "+strconv.FormatInt(req.GetEpoch(), 10))
 	}
 	hash, err := hex.DecodeString(volumeReport.TxHash)
 	if err != nil {
@@ -434,7 +434,7 @@ func (q Querier) TotalVolumeRewardByEpoch(c context.Context, req *types.QueryTot
 		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", registertypes.TotalUnissuedPrepay))
 	}
 
-	totalVolumeReward := sdk.NewCoin(q.BondDenom(ctx), sdk.ZeroInt())
+	trafficReward := sdk.NewCoin(q.BondDenom(ctx), sdk.ZeroInt())
 	txEvents := resTx.TxResult.GetEvents()
 	for _, event := range txEvents {
 		if event.Type == "coin_received" {
@@ -445,12 +445,16 @@ func (q Querier) TotalVolumeRewardByEpoch(c context.Context, req *types.QueryTot
 					if err != nil {
 						continue
 					}
-					totalVolumeReward = totalVolumeReward.Add(received)
+					trafficReward = trafficReward.Add(received)
 				}
 			}
 		}
 	}
 	miningReward := sdk.NewCoin(types.DefaultRewardDenom, sdk.NewInt(80).MulRaw(stratos.StosToWei))
-	totalVolumeReward = totalVolumeReward.Sub(miningReward)
-	return &types.QueryTotalVolumeRewardByEpochResponse{TotalVolumeReward: totalVolumeReward}, nil
+	trafficReward = trafficReward.Sub(miningReward)
+	totalReward := types.TotalReward{
+		MiningReward:  sdk.NewCoins(miningReward),
+		TrafficReward: sdk.NewCoins(trafficReward),
+	}
+	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward}, nil
 }
