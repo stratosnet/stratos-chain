@@ -2,26 +2,19 @@ package keeper
 
 import (
 	"context"
-	"encoding/hex"
 	"fmt"
-	"strconv"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
 
-	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
@@ -402,59 +395,6 @@ func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewa
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	volumeReport := q.GetVolumeReport(ctx, epoch)
-
-	if volumeReport == (types.VolumeReportRecord{}) {
-		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "no volume report at epoch "+strconv.FormatInt(req.GetEpoch(), 10))
-	}
-	hash, err := hex.DecodeString(volumeReport.TxHash)
-	if err != nil {
-		return nil, err
-	}
-
-	clientCtx := client.Context{}.WithViper("")
-	clientCtx, err = config.ReadFromClientConfig(clientCtx)
-	if err != nil {
-		return nil, err
-	}
-
-	node, err := clientCtx.GetNode()
-	if err != nil {
-		return nil, err
-	}
-
-	resTx, err := node.Tx(context.Background(), hash, true)
-	if err != nil {
-		return nil, err
-	}
-
-	senderAddr := q.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
-	if senderAddr == nil {
-
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", registertypes.TotalUnissuedPrepay))
-	}
-
-	trafficReward := sdk.NewCoin(q.BondDenom(ctx), sdk.ZeroInt())
-	txEvents := resTx.TxResult.GetEvents()
-	for _, event := range txEvents {
-		if event.Type == "coin_received" {
-			attributes := event.GetAttributes()
-			for _, attr := range attributes {
-				if string(attr.GetKey()) == "amount" {
-					received, err := sdk.ParseCoinNormalized(string(attr.GetValue()))
-					if err != nil {
-						continue
-					}
-					trafficReward = trafficReward.Add(received)
-				}
-			}
-		}
-	}
-	miningReward := sdk.NewCoin(types.DefaultRewardDenom, sdk.NewInt(80).MulRaw(stratos.StosToWei))
-	trafficReward = trafficReward.Sub(miningReward)
-	totalReward := types.TotalReward{
-		MiningReward:  sdk.NewCoins(miningReward),
-		TrafficReward: sdk.NewCoins(trafficReward),
-	}
+	totalReward := q.GetTotalReward(ctx, epoch)
 	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward}, nil
 }
