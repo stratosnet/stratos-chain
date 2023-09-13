@@ -128,3 +128,18 @@ message VolumeReportRecord {
     (gogoproto.moretags) = "yaml:\"tx_hash\""
   ];
 }
+
+message TotalReward {
+  repeated cosmos.base.v1beta1.Coin   mining_reward = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "mining_reward",
+    (gogoproto.moretags) = "yaml:\"mining_reward\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+  repeated cosmos.base.v1beta1.Coin   traffic_reward = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "traffic_reward",
+    (gogoproto.moretags) = "yaml:\"traffic_reward\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+  ];
+}
