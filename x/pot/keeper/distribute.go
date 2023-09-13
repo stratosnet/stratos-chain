@@ -145,6 +145,16 @@ func (k Keeper) saveRewardInfo(ctx sdk.Context, rewardDetailList []types.Reward,
 	newTotalMinedToken := oldTotalMinedToken.Add(newMinedTotal)
 	k.SetTotalMinedTokens(ctx, newTotalMinedToken)
 	k.SetLastDistributedEpoch(ctx, currentEpoch)
+
+	newTrafficRewardTotal := unissuedPrepayToFeeCollector.
+		Add(unissuedPrepayToReward).
+		Add(sdk.NewCoin(k.BondDenom(ctx), unissuedPrepayToCommunityPool.TruncateInt()))
+	totalReward := types.TotalReward{
+		MiningReward:  sdk.NewCoins(newMinedTotal),
+		TrafficReward: sdk.NewCoins(newTrafficRewardTotal),
+	}
+	k.SetTotalReward(ctx, currentEpoch, totalReward)
+
 	return nil
 }
 

@@ -22,6 +22,7 @@ func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/params", potParamsHandlerFn(clientCtx, types.QueryPotParams)).Methods("GET")
 	r.HandleFunc("/pot/total-mined-token", getTotalMinedTokenHandlerFn(clientCtx, types.QueryTotalMinedToken)).Methods("GET")
 	r.HandleFunc("/pot/circulation-supply", getCirculationSupplyHandlerFn(clientCtx, types.QueryCirculationSupply)).Methods("GET")
+	r.HandleFunc("/pot/total-reward/{epoch}", getTotalRewardByEpochHandlerFn(clientCtx, types.QueryTotalRewardByEpoch)).Methods("GET")
 }
 
 // GET request handler to query params of POT module
@@ -223,6 +224,37 @@ func getCirculationSupplyHandlerFn(clientCtx client.Context, queryPath string) h
 			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
 			return
 		}
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getTotalRewardByEpochHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+		epochStr := mux.Vars(r)["epoch"]
+		epoch, ok := sdk.NewIntFromString(epochStr)
+		if !ok {
+			return
+		}
+
+		params := types.NewQueryTotalRewardByEpochParams(epoch)
+		bz, err := cliCtx.LegacyAmino.MarshalJSON(params)
+		if err != nil {
+			rest.PostProcessResponse(w, cliCtx, err.Error())
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.QueryWithData(route, bz)
+		if err != nil {
+			rest.PostProcessResponse(w, cliCtx, err.Error())
+			return
+		}
+
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}

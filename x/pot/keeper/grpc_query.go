@@ -15,7 +15,6 @@ import (
 
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
@@ -132,7 +131,7 @@ func FilteredPaginate(cdc codec.Codec,
 	}
 
 	if limit == 0 {
-		limit = registertypes.QueryDefaultLimit
+		limit = types.QueryDefaultLimit
 
 		// count total results when the limit is zero/not supplied
 		countTotal = pageRequest.CountTotal
@@ -380,4 +379,21 @@ func (q Querier) CirculationSupply(c context.Context, _ *types.QueryCirculationS
 	circulationSupply := q.GetCirculationSupply(ctx)
 
 	return &types.QueryCirculationSupplyResponse{CirculationSupply: circulationSupply}, nil
+}
+
+func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewardByEpochRequest) (
+	*types.QueryTotalRewardByEpochResponse, error) {
+	if req == nil {
+		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	epochInt64 := req.GetEpoch()
+	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
+		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
+	}
+	epoch := sdk.NewInt(epochInt64)
+
+	ctx := sdk.UnwrapSDKContext(c)
+	totalReward := q.GetTotalReward(ctx, epoch)
+	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward}, nil
 }

@@ -32,6 +32,7 @@ func GetQueryCmd() *cobra.Command {
 		GetCmdQueryParams(),
 		GetCmdQueryTotalMinedTokens(),
 		GetCmdQueryCirculationSupply(),
+		GetCmdQueryTotalRewardByEpoch(),
 	)
 
 	return potQueryCmd
@@ -176,4 +177,43 @@ func checkFlagEpoch(epochStr string) (sdk.Int, error) {
 	}
 	epoch := sdk.NewInt(epochInt64)
 	return epoch, nil
+}
+
+func GetCmdQueryTotalRewardByEpoch() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "total-reward [flags]",
+		Short: "Query total reward by epoch",
+		Long: strings.TrimSpace(
+			fmt.Sprintf(`Query total reward by epoch.`),
+		),
+
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientQueryContext(cmd)
+			if err != nil {
+				return err
+			}
+			queryClient := types.NewQueryClient(clientCtx)
+
+			epochStr := viper.GetString(FlagEpoch)
+			epoch, err := checkFlagEpoch(epochStr)
+			if err != nil {
+				return err
+			}
+
+			result, err := queryClient.TotalRewardByEpoch(cmd.Context(), &types.QueryTotalRewardByEpochRequest{
+				Epoch: epoch.Int64(),
+			})
+			if err != nil {
+				return err
+			}
+
+			return clientCtx.PrintProto(result)
+		},
+	}
+	cmd.Flags().AddFlagSet(flagSetEpoch())
+	_ = cmd.MarkFlagRequired(FlagEpoch)
+
+	flags.AddQueryFlagsToCmd(cmd)
+
+	return cmd
 }

@@ -199,3 +199,20 @@ func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.
 	}
 	return prefixStore.Iterator(start, nil)
 }
+
+func (k Keeper) SetTotalReward(ctx sdk.Context, epoch sdk.Int, totalReward types.TotalReward) {
+	store := ctx.KVStore(k.storeKey)
+	storeKey := types.GetTotalRewardKey(epoch)
+	bz := k.cdc.MustMarshalLengthPrefixed(&totalReward)
+	store.Set(storeKey, bz)
+}
+
+func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdk.Int) (totalReward types.TotalReward) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetTotalRewardKey(epoch))
+	if bz == nil {
+		return types.TotalReward{}
+	}
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &totalReward)
+	return
+}
