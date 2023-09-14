@@ -187,8 +187,17 @@ func getTotalRewardByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	totalReward := k.GetTotalReward(ctx, params.Epoch)
+	var isLegacy = false
+	if totalReward.Size() == 0 {
+		totalReward = k.GetLegacyTotalReward(ctx, params.Epoch)
+		isLegacy = true
+	}
+	res := types.QueryTotalRewardByEpochResponse{
+		TotalReward: totalReward,
+		IsLegacy:    isLegacy,
+	}
 
-	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, totalReward)
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, res)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

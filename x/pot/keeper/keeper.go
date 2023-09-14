@@ -1,10 +1,15 @@
 package keeper
 
 import (
+	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"math"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/config"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -179,5 +184,63 @@ func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coi
 
 	circulationSupply = sdk.NewCoins(circulationSupplyStos)
 
+	return
+}
+
+func (k Keeper) GetLegacyTotalReward(ctx sdk.Context, epoch sdk.Int) (totalReward types.TotalReward) {
+	volumeReport := k.GetVolumeReport(ctx, epoch)
+
+	if volumeReport == (types.VolumeReportRecord{}) {
+		return types.TotalReward{}
+	}
+	hash, err := hex.DecodeString(volumeReport.TxHash)
+	if err != nil {
+		return types.TotalReward{}
+	}
+
+	clientCtx := client.Context{}.WithViper("")
+	clientCtx, err = config.ReadFromClientConfig(clientCtx)
+	if err != nil {
+		return types.TotalReward{}
+	}
+
+	node, err := clientCtx.GetNode()
+	if err != nil {
+		return types.TotalReward{}
+	}
+
+	resTx, err := node.Tx(context.Background(), hash, true)
+	if err != nil {
+		return types.TotalReward{}
+	}
+
+	senderAddr := k.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
+	if senderAddr == nil {
+
+		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", registertypes.TotalUnissuedPrepay))
+	}
+
+	trafficReward := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	txEvents := resTx.TxResult.GetEvents()
+	for _, event := range txEvents {
+		if event.Type == "coin_received" {
+			attributes := event.GetAttributes()
+			for _, attr := range attributes {
+				if string(attr.GetKey()) == "amount" {
+					received, err := sdk.ParseCoinNormalized(string(attr.GetValue()))
+					if err != nil {
+						continue
+					}
+					trafficReward = trafficReward.Add(received)
+				}
+			}
+		}
+	}
+	miningReward := sdk.NewCoin(types.DefaultRewardDenom, sdk.NewInt(80).MulRaw(stratos.StosToWei))
+	trafficReward = trafficReward.Sub(miningReward)
+	totalReward = types.TotalReward{
+		MiningReward:  sdk.NewCoins(miningReward),
+		TrafficReward: sdk.NewCoins(trafficReward),
+	}
 	return
 }

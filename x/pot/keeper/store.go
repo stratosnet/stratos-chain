@@ -216,3 +216,19 @@ func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdk.Int) (totalReward type
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &totalReward)
 	return
 }
+
+// IteratorMatureTotal Iteration for getting total mature reward
+func (k Keeper) IteratorTotalReward(ctx sdk.Context, handler func(epoch sdk.Int, totalReward types.TotalReward) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.TotalRewardKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		epochBytes := iter.Key()[len(types.TotalRewardKeyPrefix):]
+		epoch, _ := sdk.NewIntFromString(string(epochBytes))
+		var totalReward types.TotalReward
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &totalReward)
+		if handler(epoch, totalReward) {
+			break
+		}
+	}
+}

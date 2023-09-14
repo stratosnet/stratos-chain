@@ -7,7 +7,7 @@ import (
 // NewGenesisState creates a new GenesisState object
 func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpoch sdk.Int,
 	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
-	maturedEpoch sdk.Int,
+	maturedEpoch sdk.Int, rewardTotalInfo []RewardTotal,
 ) *GenesisState {
 
 	return &GenesisState{
@@ -18,6 +18,7 @@ func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpo
 		MatureTotalInfo:      matureTotalInfo,
 		IndividualRewardInfo: individualRewardInfo,
 		MaturedEpoch:         maturedEpoch,
+		RewardTotalInfo:      rewardTotalInfo,
 	}
 }
 
@@ -33,6 +34,7 @@ func DefaultGenesisState() *GenesisState {
 		MatureTotalInfo:      make([]MatureTotal, 0),
 		IndividualRewardInfo: make([]Reward, 0),
 		MaturedEpoch:         sdk.ZeroInt(),
+		RewardTotalInfo:      make([]RewardTotal, 0),
 	}
 }
 
@@ -52,5 +54,12 @@ func NewMatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) MatureTotal {
 	return MatureTotal{
 		WalletAddress: walletAddress.String(),
 		Value:         value,
+	}
+}
+
+func NewRewardTotal(epoch sdk.Int, reward TotalReward) RewardTotal {
+	return RewardTotal{
+		Epoch:       epoch,
+		TotalReward: reward,
 	}
 }
