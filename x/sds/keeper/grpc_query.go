@@ -58,13 +58,14 @@ func (q Querier) SimPrepay(c context.Context, request *types.QuerySimPrepayReque
 
 func (q Querier) NozPrice(c context.Context, _ *types.QueryNozPriceRequest) (*types.QueryNozPriceResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	nozPrice := q.registerKeeper.CurrNozPrice(ctx)
+	St, Pt, Lt := q.registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPrice := q.potKeeper.GetCurrentNozPrice(St, Pt, Lt)
 	return &types.QueryNozPriceResponse{Price: nozPrice}, nil
 }
 
 func (q Querier) NozSupply(c context.Context, request *types.QueryNozSupplyRequest) (*types.QueryNozSupplyResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
-	remaining, total := q.registerKeeper.NozSupply(ctx)
+	remaining, total := q.potKeeper.NozSupply(ctx)
 	return &types.QueryNozSupplyResponse{Remaining: remaining, Total: total}, nil
 }
 

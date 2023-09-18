@@ -1,8 +1,9 @@
 #!/usr/bin/make -f
 
 BUILDDIR ?= $(CURDIR)/build
+LEDGER_ENABLED ?= false
 
-APP_VER := v0.10.0
+APP_VER := v0.11.0
 COMMIT := $(GIT_COMMIT_HASH)
 TEST_DOCKER_REPO=stratos-chain-e2e
 
@@ -13,8 +14,25 @@ else
 endif
 
 ldflags= -X github.com/cosmos/cosmos-sdk/version.Version=$(VERSION)
+ldflags += -X github.com/cosmos/cosmos-sdk/version.Name=stchain
+ifeq ($(LEDGER_ENABLED),true)
+  build_tags += ledger
+endif
 
-BUILD_FLAGS := -tags "$(build_tags)" -ldflags '$(ldflags)'
+ifeq (cleveldb,$(findstring cleveldb,$(BUILD_OPTIONS)))
+  build_tags += gcc cleveldb
+  ldflags += -X github.com/cosmos/cosmos-sdk/types.DBBackend=cleveldb
+endif
+
+whitespace :=
+whitespace := $(whitespace) $(whitespace)
+comma := ,
+build_tags_comma_sep := $(subst $(whitespace),$(comma),$(build_tags))
+ldflags += -X "github.com/cosmos/cosmos-sdk/version.BuildTags=$(build_tags_comma_sep)"
+
+BUILD_FLAGS += -ldflags '$(ldflags)'
+BUILD_FLAGS += -tags "$(build_tags)"
+
 
 BUILD_TARGETS := build install
 
@@ -23,19 +41,22 @@ build: BUILD_ARGS=-o $(BUILDDIR)/
 $(BUILD_TARGETS): go.sum $(BUILDDIR)/
 # 	go $@ -mod=readonly $(BUILD_ARGS) $(VERSION) ./cmd/...
 	go $@ $(BUILD_ARGS) $(BUILD_FLAGS) ./cmd/...
-#	CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go $@ -mod=readonly $(BUILD_ARGS) $(VERSION) -tags "cleveldb" ./cmd/...
+#	CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go $@ -mod=readonly $(BUILD_ARGS) $(BUILD_FLAGS) ./cmd/...
 
 $(BUILDDIR)/:
 	mkdir -p $(BUILDDIR)/
 
 build-linux: go.sum
-	LEDGER_ENABLED=false GOOS=linux GOARCH=amd64 $(MAKE) build
+	GOOS=linux GOARCH=amd64 $(MAKE) build
 
 build-mac: go.sum
-	LEDGER_ENABLED=false GOOS=darwin GOARCH=amd64 $(MAKE) build
+	GOOS=darwin GOARCH=amd64 $(MAKE) build
 
 build-windows: go.sum
-	LEDGER_ENABLED=false GOOS=windows GOARCH=amd64 $(MAKE) build
+	GOOS=windows GOARCH=amd64 $(MAKE) build
+
+build-cleveldb: go.sum
+	 CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" BUILD_OPTIONS=cleveldb $(MAKE) build
 
 clean:
 	rm -rf $(BUILDDIR)/
@@ -73,4 +94,4 @@ build-docker:
 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:$(shell git rev-parse --abbrev-ref HEAD | sed 's#/#_#g')
 	@docker tag ${TEST_DOCKER_REPO}:$(shell git rev-parse --short HEAD) ${TEST_DOCKER_REPO}:latest
 
-.PHONY: build-linux build-mac build clean
+.PHONY: build-linux build-mac build-cleveldb build clean

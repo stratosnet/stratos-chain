@@ -38,6 +38,7 @@ type RegisterKeeper interface {
 	GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int)
 	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
 	GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin)
+	GetDepositNozRate(ctx sdk.Context) (depositNozRate sdk.Dec)
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
@@ -52,7 +53,6 @@ type RegisterKeeper interface {
 	IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int)
 	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int
 
-	NozSupply(ctx sdk.Context) (remaining, total sdk.Int)
 	OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) (found bool)
 }
 
