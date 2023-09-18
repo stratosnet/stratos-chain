@@ -17,6 +17,6 @@ func NewMigrator(keeper Keeper) Migrator {
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	//matureEpochParam := m.keeper.MatureEpoch(ctx)
-	//return v0_11_0.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, matureEpochParam)
+	//return v0_12_0.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc, matureEpochParam)
 	return nil
 }
