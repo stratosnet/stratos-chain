@@ -2,7 +2,7 @@ package keeper
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/x/register/legacy/v0_11_0"
+	"github.com/stratosnet/stratos-chain/x/register/legacy/v0_12_0"
 )
 
 // Migrator is a struct for handling in-place store migrations.
@@ -17,5 +17,5 @@ func NewMigrator(keeper Keeper) Migrator {
 
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
-	return v0_11_0.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
+	return v0_12_0.MigrateStore(ctx, m.keeper.storeKey, m.keeper.cdc)
 }
