@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
@@ -19,7 +17,7 @@ import (
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/go-bip39"
-
+	"github.com/spf13/cobra"
 	stratoshd "github.com/stratosnet/stratos-chain/crypto/hd"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -97,12 +95,13 @@ func runAddCmdPrepare(cmd *cobra.Command, args []string) error {
 
 /*
 input
-	- bip39 mnemonic
-	- bip39 passphrase
-	- bip44 path
-	- local encryption password
+  - bip39 mnemonic
+  - bip39 passphrase
+  - bip44 path
+  - local encryption password
+
 output
-	- armor encrypted private key (saved to file)
+  - armor encrypted private key (saved to file)
 */
 func RunAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *bufio.Reader) error {
 	var err error
@@ -207,7 +206,6 @@ func RunAddCmd(ctx client.Context, cmd *cobra.Command, args []string, inBuf *buf
 	// If we're using ledger, only thing we need is the path and the bech32 prefix.
 	if useLedger {
 		bech32PrefixAccAddr := sdk.GetConfig().GetBech32AccountAddrPrefix()
-
 		info, err := kb.SaveLedgerKey(name, algo, bech32PrefixAccAddr, coinType, account, index)
 		if err != nil {
 			return err

@@ -258,9 +258,10 @@ func TestOzPriceChange(t *testing.T) {
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
 
-	_, nozSupply := registerKeeper.NozSupply(ctx)
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+	_, nozSupply := potKeeper.NozSupply(ctx)
+	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
+		NOzonePrice:           potKeeper.GetCurrentNozPrice(St, Pt, Lt),
 		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -285,7 +286,7 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq1, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq0)
+	nozPriceFactorsSeq1, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq0)
 	require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
 	require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after PREPAY")
 	t.Log("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -305,7 +306,7 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq2, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq1)
+	nozPriceFactorsSeq2, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq1)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
 	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -333,7 +334,7 @@ func TestOzPriceChange(t *testing.T) {
 	t.Log("slashingAmtSetup=" + slashingAmtSetup.String())
 	require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
-	nozPriceFactorsSeq3, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq2)
+	nozPriceFactorsSeq3, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq2)
 	require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after UnsuspendResourceNode")
 	require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit should increase after UnsuspendResourceNode")
 	t.Log("********************************* Deliver UnsuspendResourceNode Tx (Slashing) END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -361,11 +362,11 @@ func TestOzPriceChange(t *testing.T) {
 	//t.Log("slashingAmtSetup=" + slashingAmtSetup.String())
 	//require.Equal(t, slashingAmtSetup, slashingAmtCheck.TruncateInt())
 
-	nozPriceFactorsSeq4, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq3)
+	nozPriceFactorsSeq4, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq3)
 	require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after SlashResourceNode")
 	require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after SlashResourceNode")
 
-	_, nozPricePercentage42, ozoneLimitPercentage42 := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq2)
+	_, nozPricePercentage42, ozoneLimitPercentage42 := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq2)
 	require.True(t, nozPricePercentage42.Equal(sdk.ZeroDec()), "noz price after SlashResourceNode should be same with the price when node hadn't been activated")
 	require.True(t, ozoneLimitPercentage42.Equal(sdk.ZeroDec()), "OzLimit after SlashResourceNode should be same with the ozLimit when node hadn't been activated")
 	t.Log("********************************* Deliver SuspendResourceNode Tx (Slashing) END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -380,18 +381,18 @@ func TestOzPriceChange(t *testing.T) {
 	require.Equal(t, ok, true)
 
 	totalConsumedNoz = potKeeper.GetTotalConsumedNoz(volumeReportMsg.WalletVolumes).ToDec()
-	remaining, total := registerKeeper.NozSupply(ctx)
+	remaining, total := potKeeper.NozSupply(ctx)
 	require.True(t, potKeeper.GetTotalConsumedNoz(volumeReportMsg.WalletVolumes).Add(remaining).LTE(total), "remaining+consumed Noz exceeds total Noz supply")
 
 	/********************* print info *********************/
 	t.Log("epoch " + volumeReportMsg.Epoch.String())
-	St := registerKeeper.GetEffectiveTotalDeposit(ctx).ToDec()
-	Pt := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
+	StDec := registerKeeper.GetEffectiveTotalDeposit(ctx).ToDec()
+	PtDec := registerKeeper.GetTotalUnissuedPrepay(ctx).Amount.ToDec()
 	Y := totalConsumedNoz
-	Lt := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
-	R := St.Add(Pt).Mul(Y).Quo(Lt.Add(Y))
+	LtDec := registerKeeper.GetRemainingOzoneLimit(ctx).ToDec()
+	R := StDec.Add(PtDec).Mul(Y).Quo(LtDec.Add(Y))
 	//t.Log("R = (S + Pt) * Y / (Lt + Y)")
-	t.Log("St=" + St.String() + "\nPt=" + Pt.String() + "\nY=" + Y.String() + "\nLt=" + Lt.String() + "\nR=" + R.String() + "\n")
+	t.Log("St=" + StDec.String() + "\nPt=" + PtDec.String() + "\nY=" + Y.String() + "\nLt=" + LtDec.String() + "\nR=" + R.String() + "\n")
 
 	t.Log("---------------------------")
 	potKeeper.InitVariable(ctx)
@@ -486,7 +487,7 @@ func TestOzPriceChange(t *testing.T) {
 		feeCollectorToFeePoolAtBeginBlock,
 	)
 
-	nozPriceFactorsSeq5, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq4)
+	nozPriceFactorsSeq5, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq4)
 	require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after VolumeReport")
 	require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit shouldn't change after VolumeReport")
 	t.Log("********************************* Deliver VolumeReport Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -506,7 +507,7 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq6, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq5)
+	nozPriceFactorsSeq6, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq5)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
 	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -526,7 +527,7 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq7, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq6)
+	nozPriceFactorsSeq7, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq6)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
 	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -546,7 +547,7 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq8, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq7)
+	nozPriceFactorsSeq8, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq7)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
 	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -566,7 +567,7 @@ func TestOzPriceChange(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	_, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, nozPriceFactorsSeq8)
+	_, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq8)
 	require.True(t, nozPricePercentage.Equal(sdk.ZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdk.ZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
 	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -686,15 +687,16 @@ func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
 	return createResourceNodeMsg
 }
 
-func printCurrNozPrice(t *testing.T, ctx sdk.Context, registerKeeper registerKeeper.Keeper, nozPriceFactorsBefore NozPriceFactors) (NozPriceFactors, sdk.Dec, sdk.Dec) {
+func printCurrNozPrice(t *testing.T, ctx sdk.Context, potKeeper potKeeper.Keeper, registerKeeper registerKeeper.Keeper, nozPriceFactorsBefore NozPriceFactors) (NozPriceFactors, sdk.Dec, sdk.Dec) {
 	nozPriceFactorsAfter := NozPriceFactors{}
 	nozPriceFactorsAfter.InitialTotalDeposit = registerKeeper.GetInitialGenesisDepositTotal(ctx)
 	nozPriceFactorsAfter.EffectiveTotalDeposit = registerKeeper.GetEffectiveTotalDeposit(ctx)
 	nozPriceFactorsAfter.TotalUnissuedPrepay = registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	nozPriceFactorsAfter.DepositAndPrepay = nozPriceFactorsAfter.InitialTotalDeposit.Add(nozPriceFactorsAfter.TotalUnissuedPrepay)
 	nozPriceFactorsAfter.OzoneLimit = registerKeeper.GetRemainingOzoneLimit(ctx)
-	nozPriceFactorsAfter.NOzonePrice = registerKeeper.CurrNozPrice(ctx)
-	_, nozPriceFactorsAfter.NozSupply = registerKeeper.NozSupply(ctx)
+	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPriceFactorsAfter.NOzonePrice = potKeeper.GetCurrentNozPrice(St, Pt, Lt)
+	_, nozPriceFactorsAfter.NozSupply = potKeeper.NozSupply(ctx)
 
 	nozPriceDelta := nozPriceFactorsAfter.NOzonePrice.Sub(nozPriceFactorsBefore.NOzonePrice)
 	initialTotalDepositDelta := nozPriceFactorsAfter.InitialTotalDeposit.Sub(nozPriceFactorsBefore.InitialTotalDeposit)
@@ -1147,7 +1149,7 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
-	//potKeeper := stApp.GetPotKeeper()
+	potKeeper := stApp.GetPotKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1189,9 +1191,10 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
-	_, nozSupply := registerKeeper.NozSupply(ctx)
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+	_, nozSupply := potKeeper.NozSupply(ctx)
+	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
+		NOzonePrice:           potKeeper.GetCurrentNozPrice(St, Pt, Lt),
 		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -1221,7 +1224,7 @@ func TestOzPriceChangePrepay(t *testing.T) {
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should not change after PREPAY")
@@ -1293,9 +1296,10 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
-	_, nozSupply := registerKeeper.NozSupply(ctx)
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+	_, nozSupply := potKeeper.NozSupply(ctx)
+	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
+		NOzonePrice:           potKeeper.GetCurrentNozPrice(St, Pt, Lt),
 		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -1325,7 +1329,7 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after PREPAY")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after PREPAY")
@@ -1434,7 +1438,7 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, priceBefore)
 		dataToExcel = append(dataToExcel, priceAfter)
 		priceBefore = priceAfter
 	}
@@ -1475,7 +1479,7 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
-	//potKeeper := stApp.GetPotKeeper()
+	potKeeper := stApp.GetPotKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1517,9 +1521,9 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
-	_, nozSupply := registerKeeper.NozSupply(ctx)
+	_, nozSupply := potKeeper.NozSupply(ctx)
 	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
+	//	NOzonePrice:          registerKeeper.GetCurrNozPriceParams(ctx),
 	//	InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 	//	EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -1545,8 +1549,9 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
+		NOzonePrice:           potKeeper.GetCurrentNozPrice(St, Pt, Lt),
 		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -1591,7 +1596,7 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
 
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.LT(sdk.ZeroDec()), "noz price should decrease after CreateResourceNode")
 		require.True(t, ozoneLimitPercentage.GT(sdk.ZeroDec()), "OzLimit should increase after CreateResourceNode")
 		t.Log("********************************* Deliver Create and unsuspend ResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -1629,7 +1634,7 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 		//stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		//ctx = stApp.BaseApp.NewContext(true, header)
 
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after RemoveResourceNode")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after RemoveResourceNode")
 		t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
@@ -1675,7 +1680,7 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
 	registerKeeper := stApp.GetRegisterKeeper()
-	//potKeeper := stApp.GetPotKeeper()
+	potKeeper := stApp.GetPotKeeper()
 
 	/********************* foundation account deposit *********************/
 	header := tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1717,9 +1722,9 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	validator := checkValidator(t, stApp, valOpValAddr1, true)
 	require.Equal(t, stakingtypes.Bonded, validator.Status)
 	require.True(sdk.IntEq(t, valInitialStake, validator.BondedTokens()))
-	_, nozSupply := registerKeeper.NozSupply(ctx)
+	_, nozSupply := potKeeper.NozSupply(ctx)
 	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-	//	NOzonePrice:          registerKeeper.CurrNozPrice(ctx),
+	//	NOzonePrice:          registerKeeper.GetCurrNozPriceParams(ctx),
 	//	InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 	//	EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -1761,9 +1766,9 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
-
-	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-		NOzonePrice:           registerKeeper.CurrNozPrice(ctx),
+	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
+	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
+		NOzonePrice:           potKeeper.GetCurrentNozPrice(St, Pt, Lt),
 		InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
 		EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
 		TotalUnissuedPrepay:   registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
@@ -1804,7 +1809,7 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 		//stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		//ctx = stApp.BaseApp.NewContext(true, header)
 
-		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, registerKeeper, priceBefore)
+		priceAfter, nozPricePercentage, ozoneLimitPercentage = printCurrNozPrice(t, ctx, potKeeper, registerKeeper, priceBefore)
 		require.True(t, nozPricePercentage.GT(sdk.ZeroDec()), "noz price should increase after RemoveResourceNode")
 		require.True(t, ozoneLimitPercentage.LT(sdk.ZeroDec()), "OzLimit should decrease after RemoveResourceNode")
 		t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")

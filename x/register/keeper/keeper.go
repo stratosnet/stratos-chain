@@ -3,7 +3,6 @@ package keeper
 import (
 	"errors"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/tendermint/tendermint/libs/log"
@@ -20,16 +19,13 @@ import (
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey                       sdk.StoreKey
-	cdc                            codec.Codec
-	paramSpace                     paramtypes.Subspace
-	accountKeeper                  types.AccountKeeper
-	bankKeeper                     types.BankKeeper
-	distrKeeper                    types.DistrKeeper
-	hooks                          types.RegisterHooks
-	metaNodeBitMapIndexCache       map[string]int
-	metaNodeBitMapIndexCacheStatus types.CacheStatus
-	cacheMutex                     sync.RWMutex
+	storeKey      sdk.StoreKey
+	cdc           codec.Codec
+	paramSpace    paramtypes.Subspace
+	accountKeeper types.AccountKeeper
+	bankKeeper    types.BankKeeper
+	distrKeeper   types.DistrKeeper
+	hooks         types.RegisterHooks
 }
 
 // NewKeeper creates a register keeper
@@ -37,16 +33,13 @@ func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace
 	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
 
 	keeper := Keeper{
-		storeKey:                       key,
-		cdc:                            cdc,
-		paramSpace:                     paramSpace.WithKeyTable(types.ParamKeyTable()),
-		accountKeeper:                  accountKeeper,
-		bankKeeper:                     bankKeeper,
-		distrKeeper:                    distrKeeper,
-		hooks:                          nil,
-		metaNodeBitMapIndexCache:       make(map[string]int),
-		metaNodeBitMapIndexCacheStatus: types.CACHE_DIRTY,
-		cacheMutex:                     sync.RWMutex{},
+		storeKey:      key,
+		cdc:           cdc,
+		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
+		accountKeeper: accountKeeper,
+		bankKeeper:    bankKeeper,
+		distrKeeper:   distrKeeper,
+		hooks:         nil,
 	}
 	return keeper
 }
@@ -438,21 +431,10 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.Sds
 	return balance
 }
 
-// CurrNozPrice calcs current noz price
-func (k Keeper) CurrNozPrice(ctx sdk.Context) sdk.Dec {
-	St := k.GetEffectiveTotalDeposit(ctx)
-	Pt := k.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.GetRemainingOzoneLimit(ctx)
-	currNozPrice := (St.Add(Pt)).ToDec().
-		Quo(Lt.ToDec())
-	return currNozPrice
-}
-
-// NozSupply calc remaining/total supply for noz
-func (k Keeper) NozSupply(ctx sdk.Context) (remaining, total sdk.Int) {
-	remaining = k.GetRemainingOzoneLimit(ctx) // Lt
-	depositNozRate := k.GetDepositNozRate(ctx)
-	St := k.GetEffectiveTotalDeposit(ctx)
-	total = St.ToDec().Quo(depositNozRate).TruncateInt()
-	return remaining, total
+// GetCurrNozPriceParams calcs current noz price
+func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdk.Int) {
+	St = k.GetEffectiveTotalDeposit(ctx)
+	Pt = k.GetTotalUnissuedPrepay(ctx).Amount
+	Lt = k.GetRemainingOzoneLimit(ctx)
+	return
 }

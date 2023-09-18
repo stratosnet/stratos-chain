@@ -12,6 +12,7 @@ const (
 	QueryPotParams                      = "query_pot_params"
 	QueryTotalMinedToken                = "query_total_mined_token"
 	QueryCirculationSupply              = "query_circulation_supply"
+	QueryTotalRewardByEpoch             = "total-reward"
 	QueryDefaultLimit                   = 100
 )
 
@@ -54,5 +55,15 @@ func NewQueryRewardsByWalletAddrParams(walletAddr sdk.AccAddress, height int64, 
 		WalletAddr: walletAddr,
 		Height:     height,
 		Epoch:      epoch,
+	}
+}
+
+type QueryTotalRewardByEpochParams struct {
+	Epoch sdk.Int
+}
+
+func NewQueryTotalRewardByEpochParams(epoch sdk.Int) QueryTotalRewardByEpochParams {
+	return QueryTotalRewardByEpochParams{
+		Epoch: epoch,
 	}
 }
