@@ -650,6 +650,18 @@ func (app *NewApp) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abc
 }
 
 func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	//todo: this is hotfix for voting power overflow of tendermint.
+	if ctx.BlockHeight() >= 16601 {
+		sdk.DefaultPowerReduction = sdk.NewIntFromUint64(1_000_000_000_000)
+	}
+
+	//todo: NOTE: fix the validator power store issue with mainnet launch
+	if ctx.BlockHeight() == 95000 {
+		err := app.stakingKeeper.FixValidatorByPowerIndexRecords(ctx)
+		if err != nil {
+			app.Logger().Error("An error occurred while fixing the ValidatorRecords", "ErrMsg", err.Error())
+		}
+	}
 	return app.mm.EndBlock(ctx, req)
 }
 
