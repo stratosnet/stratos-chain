@@ -21,13 +21,14 @@ var (
 	rewardDetailMap               map[string]types.Reward
 )
 
-func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch sdk.Int) (err error) {
+func (k Keeper) DistributePotReward(ctx sdk.Context, trafficList []types.SingleWalletVolume, epoch, totalUnusedOzone sdk.Int) (err error) {
 
 	k.InitVariable(ctx)
 
 	//1, calc traffic reward in total
-	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToDec()
 	remaining, total := k.NozSupply(ctx)
+	totalConsumedNozSds := k.GetTotalConsumedNoz(trafficList)
+	totalConsumedNoz := k.AdjustNozAmountForSDS(totalConsumedNozSds, remaining, totalUnusedOzone)
 	if totalConsumedNoz.Add(remaining.ToDec()).GT(total.ToDec()) {
 		return errors.New("remaining+consumed Noz exceeds total Noz supply")
 	}
@@ -275,6 +276,16 @@ func (k Keeper) GetTotalConsumedNoz(trafficList []types.SingleWalletVolume) sdk.
 		totalTraffic = totalTraffic.Add(toAdd)
 	}
 	return totalTraffic
+}
+
+// AdjustNozAmountForSDS adjusts the amount of ozone consumed during an epoch (Ysds)
+// based on the ratio between the remaining ozone limit (Lt) and the total ozone remaining in the SDS network (Lsds).
+// There should only be Lt usable ozone at this point, but the SDS network currently has Lsds + Ysds ozone in total.
+// The discrepancy comes when SP nodes reward traffic that wasn't paid for by prepay (Eg: auto-scale replicas)
+// Adjusted amount Y = Ysds * Lt / (Lsds + Y)
+func (k Keeper) AdjustNozAmountForSDS(consumedNoz, remainingOzoneLimit, totalUnusedOzone sdk.Int) sdk.Dec {
+	sdsTotalOzone := totalUnusedOzone.Add(consumedNoz).ToDec()
+	return consumedNoz.ToDec().Mul(remainingOzoneLimit.ToDec()).Quo(sdsTotalOzone)
 }
 
 func (k Keeper) transferTokensForDistribution(ctx sdk.Context) error {

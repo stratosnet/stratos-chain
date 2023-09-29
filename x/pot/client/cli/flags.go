@@ -5,19 +5,20 @@ import (
 )
 
 const (
-	FlagReporterAddr    = "reporter-addr"
-	FlagEpoch           = "epoch"
-	FlagReportReference = "reference"
-	FlagWalletVolumes   = "wallet-volumes"
-	FlagAmount          = "amount"
-	FlagWalletAddress   = "wallet-address"
-	FlagTargetAddress   = "target-address"
-	FlagReporters       = "reporters"
-	FlagReporterOwner   = "reporter-owner"
-	FlagNetworkAddress  = "network-address"
-	FlagSlashing        = "slashing"
-	FlagSuspend         = "suspend"
-	FlagBLSSignature    = "bls-signature"
+	FlagReporterAddr     = "reporter-addr"
+	FlagEpoch            = "epoch"
+	FlagReportReference  = "reference"
+	FlagWalletVolumes    = "wallet-volumes"
+	FlagAmount           = "amount"
+	FlagWalletAddress    = "wallet-address"
+	FlagTargetAddress    = "target-address"
+	FlagReporters        = "reporters"
+	FlagReporterOwner    = "reporter-owner"
+	FlagNetworkAddress   = "network-address"
+	FlagSlashing         = "slashing"
+	FlagSuspend          = "suspend"
+	FlagBLSSignature     = "bls-signature"
+	FlagTotalUnusedOzone = "unused-ozone"
 )
 
 // FlagSetAmount Returns the FlagSet for amount related operations.
@@ -35,6 +36,7 @@ func flagSetReportVolumes() *flag.FlagSet {
 	fs.String(FlagEpoch, "", "the epoch when this PoT message reported.")
 	fs.String(FlagReportReference, "", " the hash used as a reference to this PoT report")
 	fs.String(FlagBLSSignature, "", " BLS signature")
+	fs.String(FlagTotalUnusedOzone, "", "total unused ozone remaining in the sds network")
 
 	return fs
 }

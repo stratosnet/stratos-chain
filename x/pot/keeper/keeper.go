@@ -60,13 +60,13 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 }
 
 func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes, reporter stratos.SdsAddress,
-	epoch sdk.Int, reportReference string, txHash string) (err error) {
+	epoch, totalUnusedOzone sdk.Int, reportReference string, txHash string) (err error) {
 
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
 	k.SetVolumeReport(ctx, epoch, reportRecord)
 
-	err = k.DistributePotReward(ctx, walletVolumes.GetVolumes(), epoch)
+	err = k.DistributePotReward(ctx, walletVolumes.GetVolumes(), epoch, totalUnusedOzone)
 	if err != nil {
 		return err
 	}

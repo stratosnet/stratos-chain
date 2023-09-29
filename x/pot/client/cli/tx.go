@@ -2,6 +2,7 @@ package cli
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
 
@@ -197,10 +198,6 @@ func VolumeReportCmd() *cobra.Command {
 			//return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
-	//cmd.Flags().AddFlagSet(FsReporterAddr)
-	//cmd.Flags().AddFlagSet(FsEpoch)
-	//cmd.Flags().AddFlagSet(FsReportReference)
-	//cmd.Flags().AddFlagSet(FsWalletVolumes)
 	cmd.Flags().AddFlagSet(flagSetReportVolumes())
 
 	flags.AddTxFlagsToCmd(cmd)
@@ -209,6 +206,7 @@ func VolumeReportCmd() *cobra.Command {
 	_ = cmd.MarkFlagRequired(FlagEpoch)
 	_ = cmd.MarkFlagRequired(FlagReportReference)
 	_ = cmd.MarkFlagRequired(FlagWalletVolumes)
+	_ = cmd.MarkFlagRequired(FlagTotalUnusedOzone)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -290,6 +288,15 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 
 	signature := types.NewBLSSignatureInfo(pubKeys, []byte(sig.Signature), []byte(sig.TxData))
 
+	totalUnusedOzoneStr, err := fs.GetString(FlagTotalUnusedOzone)
+	if err != nil {
+		return txf, nil, err
+	}
+	totalUnusedOzone, ok := sdk.NewIntFromString(totalUnusedOzoneStr)
+	if !ok {
+		return txf, nil, errors.New("total unused ozone is not a valid integer: %v" + totalUnusedOzoneStr)
+	}
+
 	msg := types.NewMsgVolumeReport(
 		walletVolumes,
 		reporter,
@@ -297,6 +304,7 @@ func createVolumeReportMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 		reportReference,
 		reporterOwner,
 		signature,
+		totalUnusedOzone,
 	)
 	return txf, msg, nil
 }

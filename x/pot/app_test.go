@@ -129,7 +129,7 @@ func setupMsgVolumeReport(t *testing.T, newEpoch int64) *types.MsgVolumeReport {
 	reporterOwner := metaOwner1
 
 	signature := types.BLSSignatureInfo{}
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature, sdk.NewInt(1))
 
 	signBytes := volumeReportMsg.GetSignBytes()
 	signBytesHash := crypto.Keccak256(signBytes)

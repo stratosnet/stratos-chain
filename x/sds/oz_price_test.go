@@ -593,7 +593,7 @@ func setupMsgVolumeReport(newEpoch int64) *pottypes.MsgVolumeReport {
 
 	signature := pottypes.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
 
-	volumeReportMsg := pottypes.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
+	volumeReportMsg := pottypes.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature, sdk.NewInt(0))
 
 	return volumeReportMsg
 }
