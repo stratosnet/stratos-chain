@@ -23,6 +23,7 @@ func registerQueryRoutes(clientCtx client.Context, r *mux.Router) {
 	r.HandleFunc("/pot/total-mined-token", getTotalMinedTokenHandlerFn(clientCtx, types.QueryTotalMinedToken)).Methods("GET")
 	r.HandleFunc("/pot/circulation-supply", getCirculationSupplyHandlerFn(clientCtx, types.QueryCirculationSupply)).Methods("GET")
 	r.HandleFunc("/pot/total-reward/{epoch}", getTotalRewardByEpochHandlerFn(clientCtx, types.QueryTotalRewardByEpoch)).Methods("GET")
+	r.HandleFunc("/pot/metrics", getMetricsHandlerFn(clientCtx, types.QueryMetrics)).Methods("GET")
 }
 
 // GET request handler to query params of POT module
@@ -255,6 +256,24 @@ func getTotalRewardByEpochHandlerFn(clientCtx client.Context, queryPath string) 
 			return
 		}
 
+		cliCtx = cliCtx.WithHeight(height)
+		rest.PostProcessResponse(w, cliCtx, res)
+	}
+}
+
+func getMetricsHandlerFn(clientCtx client.Context, queryPath string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		cliCtx, ok := rest.ParseQueryHeightOrReturnBadRequest(w, clientCtx, r)
+		if !ok {
+			return
+		}
+
+		route := fmt.Sprintf("custom/%s/%s", types.QuerierRoute, queryPath)
+		res, height, err := cliCtx.Query(route)
+		if err != nil {
+			rest.WriteErrorResponse(w, http.StatusInternalServerError, err.Error())
+			return
+		}
 		cliCtx = cliCtx.WithHeight(height)
 		rest.PostProcessResponse(w, cliCtx, res)
 	}
