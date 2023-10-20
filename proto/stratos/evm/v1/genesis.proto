@@ -4,6 +4,7 @@ package stratos.evm.v1;
 import "gogoproto/gogo.proto";
 import "stratos/evm/v1/evm.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/evm/types";
 
 // GenesisState defines the evm module's genesis state.

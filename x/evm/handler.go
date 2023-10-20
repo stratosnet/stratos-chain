@@ -1,6 +1,7 @@
 package evm
 
 import (
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -19,7 +20,7 @@ func NewHandler(server types.MsgServer) sdk.Handler {
 			return sdk.WrapServiceResult(ctx, res, err)
 
 		default:
-			err := sdkerrors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
+			err := errors.Wrapf(sdkerrors.ErrUnknownRequest, "unrecognized %s message type: %T", types.ModuleName, msg)
 			return nil, err
 		}
 	}

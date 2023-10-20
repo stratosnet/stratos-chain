@@ -3,6 +3,7 @@ package keeper
 import (
 	"context"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -28,17 +29,17 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgFileUploadResponse{}, errors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	reporterOwner, err := sdk.AccAddressFromBech32(msg.GetFrom())
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgFileUploadResponse{}, errors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	uploader, err := sdk.AccAddressFromBech32(msg.Uploader)
 	if err != nil {
-		return &types.MsgFileUploadResponse{}, sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
+		return &types.MsgFileUploadResponse{}, errors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
 	err = k.FileUpload(ctx, msg.GetFileHash(), reporter, reporterOwner, uploader)
@@ -70,17 +71,17 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 
 	sender, err := sdk.AccAddressFromBech32(msg.GetSender())
 	if err != nil {
-		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(types.ErrInvalidSenderAddr, err.Error())
+		return &types.MsgPrepayResponse{}, errors.Wrap(types.ErrInvalidSenderAddr, err.Error())
 	}
 
 	_, err = sdk.AccAddressFromBech32(msg.GetBeneficiary())
 	if err != nil {
-		return &types.MsgPrepayResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		return &types.MsgPrepayResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
 	}
 
 	purchased, err := k.Prepay(ctx, sender, msg.GetAmount())
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrPrepayFailure, err.Error())
+		return nil, errors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
 
 	ctx.EventManager().EmitEvents(sdk.Events{

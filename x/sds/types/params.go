@@ -1,22 +1,19 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-// Default parameter namespace
 const (
 	DefaultBondDenom = stratos.Wei
 )
 
-// Parameter store keys
 var (
 	KeyBondDenom = []byte("BondDenom")
 )
@@ -53,7 +50,7 @@ func validateBondDenom(i interface{}) error {
 	}
 
 	if strings.TrimSpace(v) == "" {
-		return errors.New("bond denom cannot be blank")
+		return fmt.Errorf("bond denom cannot be blank")
 	}
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
@@ -64,7 +61,7 @@ func validateBondDenom(i interface{}) error {
 
 func (p Params) ValidateBasic() error {
 	if err := validateBondDenom(p.BondDenom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
+		return errors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
 	}
 	return nil
 }

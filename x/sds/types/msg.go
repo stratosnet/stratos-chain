@@ -3,6 +3,7 @@ package types
 import (
 	"github.com/ipfs/go-cid"
 
+	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
@@ -57,35 +58,35 @@ func (msg MsgFileUpload) GetSignBytes() []byte {
 func (msg MsgFileUpload) ValidateBasic() error {
 	_, err := cid.Decode(msg.FileHash)
 	if err != nil {
-		return sdkerrors.Wrap(ErrInvalidFileHash, "failed to validate file hash")
+		return errors.Wrap(ErrInvalidFileHash, "failed to validate file hash")
 	}
 
 	from, err := sdk.AccAddressFromBech32(msg.GetFrom())
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to validate from address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "failed to validate from address")
 	}
 
 	reporter, err := stratos.SdsAddressFromBech32(msg.GetReporter())
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse reporter address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse reporter address")
 	}
 
 	uploader, err := sdk.AccAddressFromBech32(msg.GetUploader())
 	if err != nil {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse uploader address")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "failed to parse uploader address")
 	}
 
 	if from.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx from")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx from")
 	}
 	if reporter.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx reporter")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of tx reporter")
 	}
 	if uploader.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of file uploader")
+		return errors.Wrap(sdkerrors.ErrInvalidAddress, "missing address of file uploader")
 	}
 	if len(msg.FileHash) == 0 {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "missing file hash")
+		return errors.Wrap(sdkerrors.ErrInvalidRequest, "missing file hash")
 	}
 	return nil
 }
@@ -135,7 +136,7 @@ func (msg MsgPrepay) ValidateBasic() error {
 	}
 
 	if msg.Amount.Empty() {
-		return sdkerrors.Wrap(sdkerrors.ErrInvalidCoins, "missing amount to send")
+		return errors.Wrap(sdkerrors.ErrInvalidCoins, "missing amount to send")
 	}
 
 	return nil

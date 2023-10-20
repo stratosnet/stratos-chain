@@ -15,8 +15,7 @@ const (
 )
 
 var (
-	// FileStorage prefix for sds store
-	FileStoreKeyPrefix = []byte{0x01}
+	FileStoreKeyPrefix = []byte{0x01} // FileStorage prefix for sds store
 )
 
 // FileStoreKey turn an address to key used to get it from the account store

@@ -2,7 +2,9 @@ syntax = "proto3";
 package stratos.sds.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // Params defines the Register module parameters
@@ -18,6 +20,7 @@ message FileInfo {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "height",
     (gogoproto.moretags) = "yaml:\"height\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   bytes             reporters = 2 [

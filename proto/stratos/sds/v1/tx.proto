@@ -5,6 +5,7 @@ import "gogoproto/gogo.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // Msg defines the sds module Msg service.

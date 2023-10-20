@@ -3,6 +3,7 @@ package keeper
 import (
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stratosnet/stratos-chain/x/evm/types"
@@ -37,5 +38,5 @@ func (k Keeper) GetBaseFeeParam(ctx sdk.Context) *big.Int {
 
 // SetBaseFeeParam set's the base fee in the paramSpace
 func (k Keeper) SetBaseFeeParam(ctx sdk.Context, baseFee *big.Int) {
-	k.paramSpace.Set(ctx, types.ParamStoreKeyBaseFee, sdk.NewIntFromBigInt(baseFee))
+	k.paramSpace.Set(ctx, types.ParamStoreKeyBaseFee, sdkmath.NewIntFromBigInt(baseFee))
 }

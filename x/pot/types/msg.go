@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -27,7 +28,7 @@ const (
 func NewMsgVolumeReport(
 	walletVolumes []SingleWalletVolume,
 	reporter stratos.SdsAddress,
-	epoch sdk.Int,
+	epoch sdkmath.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
 	blsSignature BLSSignatureInfo,
@@ -264,7 +265,7 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 }
 
 func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
-	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) *MsgSlashingResourceNode {
+	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdkmath.Int, suspend bool) *MsgSlashingResourceNode {
 
 	reporterStrSlice := make([]string, 0)
 	for _, reporter := range reporters {
@@ -313,7 +314,7 @@ func (m MsgSlashingResourceNode) ValidateBasic() error {
 		}
 	}
 
-	if m.Slashing.LT(sdk.ZeroInt()) {
+	if m.Slashing.LT(sdkmath.ZeroInt()) {
 		return ErrInvalidAmount
 	}
 	return nil

@@ -5,8 +5,10 @@ import (
 	"math/big"
 	"sync"
 
-	tmtypes "github.com/tendermint/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
@@ -38,18 +40,18 @@ func GasToRefund(availableRefund, gasConsumed, refundQuotient uint64) uint64 {
 
 // EVMConfig creates the EVMConfig based on current state
 func (k *Keeper) EVMConfig(ctx sdk.Context) (*types.EVMConfig, error) {
-	params := k.GetParams(ctx)
-	ethCfg := params.ChainConfig.EthereumConfig()
+	evmParams := k.GetParams(ctx)
+	ethCfg := evmParams.ChainConfig.EthereumConfig()
 
 	// get the coinbase address from the block proposer
 	coinbase, err := k.GetCoinbaseAddress(ctx)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to obtain coinbase address")
+		return nil, errors.Wrap(err, "failed to obtain coinbase address")
 	}
 
 	baseFee := k.GetBaseFee(ctx, ethCfg)
 	return &types.EVMConfig{
-		Params:      params,
+		Params:      evmParams,
 		ChainConfig: ethCfg,
 		CoinBase:    coinbase,
 		BaseFee:     baseFee,
@@ -99,7 +101,7 @@ func (k *Keeper) NewEVM(
 
 // VMConfig creates an EVM configuration from the debug setting and the extra EIPs enabled on the
 // module parameters. The config generated uses the default JumpTable from the EVM.
-func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig, tracer vm.EVMLogger) vm.Config {
+func (k Keeper) VMConfig(ctx sdk.Context, _ core.Message, cfg *types.EVMConfig, tracer vm.EVMLogger) vm.Config {
 	noBaseFee := true
 	if types.IsLondon(cfg.ChainConfig, ctx.BlockHeight()) {
 		noBaseFee = k.GetParams(ctx).FeeMarketParams.NoBaseFee
@@ -121,7 +123,7 @@ func (k Keeper) VMConfig(ctx sdk.Context, msg core.Message, cfg *types.EVMConfig
 
 // GetHashFn implements vm.GetHashFunc for stratos. It handles 3 cases:
 //  1. The requested height matches the current height from context (and thus same epoch number)
-//  2. The requested height is from an previous height from the same chain epoch
+//  2. The requested height is from a previous height from the same chain epoch
 //  3. The requested height is from a height greater than the latest one
 func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 	cache := make(map[int64]common.Hash)
@@ -136,7 +138,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 
 		switch {
 		case ctx.BlockHeight() == h:
-			// Case 1: The requested height matches the one from the context so we can retrieve the header
+			// Case 1: The requested height matches the one from the context, so we can retrieve the header
 			// hash directly from the context.
 			// Note: The headerHash is only set at begin block, it will be nil in case of a query context
 			headerHash := ctx.HeaderHash()
@@ -176,7 +178,7 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 	}
 }
 
-// ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e Message), that will
+// ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e. Message), that will
 // only be persisted (committed) to the underlying KVStore if the transaction does not fail.
 //
 // # Gas tracking
@@ -201,7 +203,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to load evm config")
+		return nil, errors.Wrap(err, "failed to load evm config")
 	}
 	txConfig := k.TxConfig(ctx, tx.Hash())
 
@@ -209,10 +211,10 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 	msg, err := tx.AsMessage(signer, cfg.BaseFee)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to return ethereum transaction as core message")
+		return nil, errors.Wrap(err, "failed to return ethereum transaction as core message")
 	}
 
-	// snapshot to contain the tx processing and post processing in same scope
+	// snapshot to contain the tx processing and post-processing in same scope
 	var commit func()
 	tmpCtx := ctx
 	if k.hooks != nil {
@@ -226,7 +228,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	// pass true to commit the StateDB
 	res, err := k.ApplyMessageWithConfig(tmpCtx, msg, nil, true, cfg, txConfig)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to apply ethereum core message")
+		return nil, errors.Wrap(err, "failed to apply ethereum core message")
 	}
 
 	logs := types.LogsToEthereum(res.Logs)
@@ -280,7 +282,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 	// refund gas in order to match the Ethereum gas consumption instead of the default SDK one.
 	if err = k.RefundGas(ctx, msg, msg.Gas()-res.GasUsed, cfg.Params.EvmDenom); err != nil {
-		return nil, sdkerrors.Wrapf(err, "failed to refund gas leftover gas to sender %s", msg.From())
+		return nil, errors.Wrapf(err, "failed to refund gas leftover gas to sender %s", msg.From())
 	}
 
 	if len(receipt.Logs) > 0 {
@@ -293,7 +295,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 
 	totalGasUsed, err := k.AddTransientGasUsed(ctx, res.GasUsed)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to add transient gas used")
+		return nil, errors.Wrap(err, "failed to add transient gas used")
 	}
 
 	// reset the gas meter for current cosmos transaction
@@ -347,9 +349,9 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 
 	// return error if contract creation or call are disabled through governance
 	if !cfg.Params.EnableCreate && msg.To() == nil {
-		return nil, sdkerrors.Wrap(types.ErrCreateDisabled, "failed to create new contract")
+		return nil, errors.Wrap(types.ErrCreateDisabled, "failed to create new contract")
 	} else if !cfg.Params.EnableCall && msg.To() != nil {
-		return nil, sdkerrors.Wrap(types.ErrCallDisabled, "failed to call contract")
+		return nil, errors.Wrap(types.ErrCallDisabled, "failed to call contract")
 	}
 
 	stateDB := statedb.New(ctx, k, txConfig)
@@ -362,12 +364,12 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	intrinsicGas, err := k.GetEthIntrinsicGas(ctx, msg, cfg.ChainConfig, contractCreation)
 	if err != nil {
 		// should have already been checked on Ante Handler
-		return nil, sdkerrors.Wrap(err, "intrinsic gas failed")
+		return nil, errors.Wrap(err, "intrinsic gas failed")
 	}
 	// Should check again even if it is checked on Ante Handler, because eth_call don't go through Ante Handler.
 	if msg.Gas() < intrinsicGas {
 		// eth_estimateGas will check for this exact error
-		return nil, sdkerrors.Wrap(core.ErrIntrinsicGas, "apply message")
+		return nil, errors.Wrap(core.ErrIntrinsicGas, "apply message")
 	}
 	leftoverGas := msg.Gas() - intrinsicGas
 
@@ -377,8 +379,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
 	}
 
-	// NOTE: In order to achive this, nonce should be checked in ante handler and increased, othervise
-	// it could make pottential nonce overide with double spend or contract rewrite
+	// NOTE: In order to achieve this, nonce should be checked in ante handler and increased, otherwise
+	// it could make potential nonce override with double spend or contract rewrite
 	// take over the nonce management from evm:
 	// reset sender's nonce to msg.Nonce() before calling evm on msg nonce
 	// as nonce already increased in db
@@ -390,7 +392,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		// - if IsEIP158 enabled, contract nonce will be set as 1
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
 	} else {
-		// should be incresed before call on nonce from msg so we make sure nonce remaining same as on init tx
+		// should be increased before call on nonce from msg, so we make sure nonce remaining same as on init tx
 		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
 	}
@@ -404,12 +406,12 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 
 	// calculate gas refund
 	if msg.Gas() < leftoverGas {
-		return nil, sdkerrors.Wrap(types.ErrGasOverflow, "apply message")
+		return nil, errors.Wrap(types.ErrGasOverflow, "apply message")
 	}
 	gasUsed := msg.Gas() - leftoverGas
 	refund := GasToRefund(stateDB.GetRefund(), gasUsed, refundQuotient)
 	if refund > gasUsed {
-		return nil, sdkerrors.Wrap(types.ErrGasOverflow, "apply message")
+		return nil, errors.Wrap(types.ErrGasOverflow, "apply message")
 	}
 	gasUsed -= refund
 
@@ -422,7 +424,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	// The dirty states in `StateDB` is either committed or discarded after return
 	if commit {
 		if err := stateDB.Commit(); err != nil {
-			return nil, sdkerrors.Wrap(err, "failed to commit stateDB")
+			return nil, errors.Wrap(err, "failed to commit stateDB")
 		}
 	}
 
@@ -439,7 +441,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 func (k *Keeper) ApplyMessage(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool) (*types.MsgEthereumTxResponse, error) {
 	cfg, err := k.EVMConfig(ctx)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to load evm config")
+		return nil, errors.Wrap(err, "failed to load evm config")
 	}
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 	return k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
@@ -465,17 +467,17 @@ func (k *Keeper) RefundGas(ctx sdk.Context, msg core.Message, leftoverGas uint64
 	switch remaining.Sign() {
 	case -1:
 		// negative refund errors
-		return sdkerrors.Wrapf(types.ErrInvalidRefund, "refunded amount value cannot be negative %d", remaining.Int64())
+		return errors.Wrapf(types.ErrInvalidRefund, "refunded amount value cannot be negative %d", remaining.Int64())
 	case 1:
 		// positive amount refund
-		refundedCoins := sdk.Coins{sdk.NewCoin(denom, sdk.NewIntFromBigInt(remaining))}
+		refundedCoins := sdk.Coins{sdk.NewCoin(denom, sdkmath.NewIntFromBigInt(remaining))}
 
 		// refund to sender from the fee collector module account, which is the escrow account in charge of collecting tx fees
 
 		err := k.bankKeeper.SendCoinsFromModuleToAccount(ctx, authtypes.FeeCollectorName, msg.From().Bytes(), refundedCoins)
 		if err != nil {
-			err = sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "fee collector account failed to refund fees: %s", err.Error())
-			return sdkerrors.Wrapf(err, "failed to refund %d leftover gas (%s)", leftoverGas, refundedCoins.String())
+			err = errors.Wrapf(sdkerrors.ErrInsufficientFunds, "fee collector account failed to refund fees: %s", err.Error())
+			return errors.Wrapf(err, "failed to refund %d leftover gas (%s)", leftoverGas, refundedCoins.String())
 		}
 	default:
 		// no refund, consume gas and update the tx gas meter
@@ -497,7 +499,7 @@ func (k Keeper) GetCoinbaseAddress(ctx sdk.Context) (common.Address, error) {
 	consAddr := sdk.ConsAddress(ctx.BlockHeader().ProposerAddress)
 	validator, found := k.stakingKeeper.GetValidatorByConsAddr(ctx, consAddr)
 	if !found {
-		return common.Address{}, sdkerrors.Wrapf(
+		return common.Address{}, errors.Wrapf(
 			stakingtypes.ErrNoValidatorFound,
 			"failed to retrieve validator from block proposer address %s",
 			consAddr.String(),

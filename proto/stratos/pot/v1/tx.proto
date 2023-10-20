@@ -2,11 +2,12 @@ syntax = "proto3";
 package stratos.pot.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "stratos/pot/v1/pot.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
-
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 
 // Msg defines the evm Msg service.
@@ -43,6 +44,7 @@ message MsgVolumeReport {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "epoch",
     (gogoproto.moretags) = "yaml:\"epoch\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                   report_reference = 4 [
@@ -141,6 +143,7 @@ message MsgSlashingResourceNode {
   string                   slashing        = 5 [
     (gogoproto.jsontag)  = "slashing",
     (gogoproto.moretags) = "yaml:\"slashing\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   bool suspend = 6 [

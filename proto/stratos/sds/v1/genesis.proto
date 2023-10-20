@@ -4,6 +4,7 @@ package stratos.sds.v1;
 import "gogoproto/gogo.proto";
 import "stratos/sds/v1/sds.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // GenesisState defines the register module's genesis state.

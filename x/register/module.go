@@ -5,37 +5,49 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
-
-	"github.com/gorilla/mux"
 	"github.com/spf13/cobra"
 
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
+	"cosmossdk.io/core/appmodule"
+	"cosmossdk.io/depinject"
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
+	simtypes "github.com/cosmos/cosmos-sdk/types/simulation"
+	authkeeper "github.com/cosmos/cosmos-sdk/x/auth/keeper"
+	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
+	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
+	distrkeeper "github.com/cosmos/cosmos-sdk/x/distribution/keeper"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
+
+	modulev1 "github.com/stratosnet/stratos-chain/api/stratos/register/module/v1"
 	"github.com/stratosnet/stratos-chain/x/register/client/cli"
-	"github.com/stratosnet/stratos-chain/x/register/client/rest"
 	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
+const (
+	consensusVersion = 1
+)
+
 // Type check to ensure the interface is properly implemented
 var (
-	_ module.AppModule      = AppModule{}
-	_ module.AppModuleBasic = AppModuleBasic{}
+	_ module.AppModule           = AppModule{}
+	_ module.AppModuleBasic      = AppModuleBasic{}
+	_ module.AppModuleSimulation = AppModule{}
+	_ appmodule.AppModule        = AppModule{}
+	_ depinject.OnePerModuleType = AppModule{}
 )
 
 // AppModuleBasic defines the basic application module used by the register module.
 type AppModuleBasic struct {
 	cdc codec.Codec
 }
-
-var _ module.AppModuleBasic = AppModuleBasic{}
 
 // Name returns the register module's name.
 func (AppModuleBasic) Name() string {
@@ -59,17 +71,12 @@ func (AppModuleBasic) DefaultGenesis(cdc codec.JSONCodec) json.RawMessage {
 }
 
 // ValidateGenesis performs genesis state validation for the register module.
-func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, config client.TxEncodingConfig, bz json.RawMessage) error {
+func (AppModuleBasic) ValidateGenesis(cdc codec.JSONCodec, _ client.TxEncodingConfig, bz json.RawMessage) error {
 	var data types.GenesisState
 	if err := cdc.UnmarshalJSON(bz, &data); err != nil {
 		return fmt.Errorf("failed to unmarshal %s genesis state: %w", types.ModuleName, err)
 	}
 	return types.ValidateGenesis(data)
-}
-
-// RegisterRESTRoutes registers the REST routes for the register module.
-func (AppModuleBasic) RegisterRESTRoutes(ctx client.Context, rtr *mux.Router) {
-	rest.RegisterHandlers(ctx, rtr)
 }
 
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the register module.
@@ -94,49 +101,27 @@ func (AppModuleBasic) GetQueryCmd() *cobra.Command {
 // AppModule implements an application module for the register module.
 type AppModule struct {
 	AppModuleBasic
-
 	keeper        keeper.Keeper
-	accountKeeper types.AccountKeeper
-	bankKeeper    types.BankKeeper
+	accountKeeper authkeeper.AccountKeeper
+	bankKeeper    bankkeeper.Keeper
+	distrKeeper   distrkeeper.Keeper
+
+	// legacySubspace is used solely for migration of x/params managed parameters
+	legacySubspace types.ParamsSubspace
 }
 
 // NewAppModule creates a new AppModule object
-func NewAppModule(k keeper.Keeper, accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper) AppModule {
+func NewAppModule(cdc codec.Codec, k keeper.Keeper, accountKeeper authkeeper.AccountKeeper, bankKeeper bankkeeper.Keeper,
+	distrKeeper distrkeeper.Keeper, legacySubspace types.ParamsSubspace,
+) AppModule {
 	return AppModule{
-		AppModuleBasic: AppModuleBasic{},
+		AppModuleBasic: AppModuleBasic{cdc: cdc},
 		keeper:         k,
 		accountKeeper:  accountKeeper,
 		bankKeeper:     bankKeeper,
+		distrKeeper:    distrKeeper,
+		legacySubspace: legacySubspace,
 	}
-}
-
-// RegisterInvariants registers the register module invariants.
-func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
-
-// NewHandler returns an sdk.Handler for the register module.
-func (am AppModule) NewHandler() sdk.Handler {
-	return NewHandler(am.keeper)
-}
-
-// QuerierRoute returns the register module's querier route name.
-func (AppModule) QuerierRoute() string {
-	return types.QuerierRoute
-}
-
-// NewQuerierHandler returns the register module sdk.Querier.
-func (am AppModule) NewQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
-}
-
-// BeginBlock returns the begin blocker for the register module.
-func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
-	BeginBlocker(ctx, req, am.keeper)
-}
-
-// EndBlock returns the end blocker for the register module. It returns no validator
-// updates.
-func (am AppModule) EndBlock(ctx sdk.Context, _ abci.RequestEndBlock) []abci.ValidatorUpdate {
-	return EndBlocker(ctx, am.keeper)
 }
 
 // RegisterServices registers module services.
@@ -149,27 +134,15 @@ func (am AppModule) RegisterServices(cfg module.Configurator) {
 	//_ = cfg.RegisterMigration(types.ModuleName, 1, m.Migrate1to2)
 }
 
-// ConsensusVersion implements AppModule/ConsensusVersion.
-func (AppModule) ConsensusVersion() uint64 { return 1 }
-
-// ProposalContents doesn't return any content functions for governance proposals.
-func (AppModule) ProposalContents(simState module.SimulationState) []simtypes.WeightedProposalContent {
-	return nil
-}
-
-// LegacyQuerierHandler returns the register module sdk.Querier.
-func (am AppModule) LegacyQuerierHandler(legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
-	return keeper.NewQuerier(am.keeper, legacyQuerierCdc)
-}
+// RegisterInvariants registers the register module invariants.
+func (am AppModule) RegisterInvariants(_ sdk.InvariantRegistry) {}
 
 // InitGenesis performs genesis initialization for the register module. It returns
 // no validator updates.
 func (am AppModule) InitGenesis(ctx sdk.Context, cdc codec.JSONCodec, data json.RawMessage) []abci.ValidatorUpdate {
 	var genesisState types.GenesisState
-
 	cdc.MustUnmarshalJSON(data, &genesisState)
 	InitGenesis(ctx, am.keeper, &genesisState)
-
 	return []abci.ValidatorUpdate{}
 }
 
@@ -180,7 +153,111 @@ func (am AppModule) ExportGenesis(ctx sdk.Context, cdc codec.JSONCodec) json.Raw
 	return cdc.MustMarshalJSON(gs)
 }
 
-// Route returns the message routing key for the register module.
-func (am AppModule) Route() sdk.Route {
-	return sdk.NewRoute(types.RouterKey, NewHandler(am.keeper))
+// BeginBlock returns the beginBlocker for the register module.
+func (am AppModule) BeginBlock(ctx sdk.Context, req abci.RequestBeginBlock) {
+	BeginBlocker(ctx, req, am.keeper)
+}
+
+// EndBlock returns the endBlocker for the register module. It returns no validator
+// updates.
+func (am AppModule) EndBlock(ctx sdk.Context, req abci.RequestEndBlock) []abci.ValidatorUpdate {
+	return EndBlocker(ctx, req, am.keeper)
+}
+
+// ConsensusVersion implements AppModule/ConsensusVersion.
+func (AppModule) ConsensusVersion() uint64 {
+	return consensusVersion
+}
+
+// IsOnePerModuleType implements depinject.OnePerModuleType
+func (am AppModule) IsOnePerModuleType() {
+}
+
+// IsAppModule implements appmodule.AppModule
+func (am AppModule) IsAppModule() {
+}
+
+//____________________________________________________________________________
+
+// AppModuleSimulation defines the module simulation functions used by the profiles module.
+type AppModuleSimulation struct{}
+
+// GenerateGenesisState implements AppModuleSimulation
+func (am AppModule) GenerateGenesisState(input *module.SimulationState) {
+}
+
+// RegisterStoreDecoder implements AppModuleSimulation
+func (am AppModule) RegisterStoreDecoder(registry sdk.StoreDecoderRegistry) {
+}
+
+// WeightedOperations implements AppModuleSimulation
+func (am AppModule) WeightedOperations(simState module.SimulationState) []simtypes.WeightedOperation {
+	return nil
+}
+
+// ProposalMsgs returns msgs used for governance proposals for simulations.
+func (AppModule) ProposalMsgs(simState module.SimulationState) []simtypes.WeightedProposalMsg {
+	return nil
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+// App Wiring Setup
+
+func init() {
+	appmodule.Register(
+		&modulev1.Module{},
+		appmodule.Provide(
+			ProvideModule,
+		),
+	)
+}
+
+type ModuleInputs struct {
+	depinject.In
+
+	Config        *modulev1.Module
+	Cdc           codec.Codec
+	Key           *storetypes.KVStoreKey
+	AccountKeeper authkeeper.AccountKeeper
+	BankKeeper    bankkeeper.Keeper
+	DistrKeeper   distrkeeper.Keeper
+
+	// LegacySubspace is used solely for migration of x/params managed parameters
+	LegacySubspace types.ParamsSubspace `optional:"true"`
+}
+
+type ModuleOutputs struct {
+	depinject.Out
+
+	RegisterKeeper keeper.Keeper
+	Module         appmodule.AppModule
+}
+
+func ProvideModule(in ModuleInputs) ModuleOutputs {
+	// default to governance authority if not provided
+	authority := authtypes.NewModuleAddress(govtypes.ModuleName)
+	if in.Config.Authority != "" {
+		authority = authtypes.NewModuleAddressOrBech32Address(in.Config.Authority)
+	}
+
+	k := keeper.NewKeeper(
+		in.Cdc,
+		in.Key,
+		in.AccountKeeper,
+		in.BankKeeper,
+		in.DistrKeeper,
+		authority.String(),
+	)
+
+	m := NewAppModule(
+		in.Cdc,
+		k,
+		in.AccountKeeper,
+		in.BankKeeper,
+		in.DistrKeeper,
+		in.LegacySubspace,
+	)
+
+	return ModuleOutputs{RegisterKeeper: k, Module: m}
 }

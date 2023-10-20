@@ -3,8 +3,8 @@ package types
 import (
 	"encoding/json"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewGenesisState creates a new GenesisState object
@@ -44,7 +44,7 @@ func ValidateGenesis(data GenesisState) error {
 			if len(file.FileHash) == 0 {
 				return ErrEmptyFileHash
 			}
-			if file.FileInfo.Height.LT(sdk.ZeroInt()) {
+			if file.FileInfo.Height.LT(sdkmath.ZeroInt()) {
 				return ErrInvalidHeight
 			}
 			if len(file.FileInfo.Reporters) == 0 {

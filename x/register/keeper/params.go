@@ -31,19 +31,16 @@ func (k Keeper) MaxEntries(ctx sdk.Context) (res uint32) {
 	return
 }
 
-// UnbondingThreasholdTime
 func (k Keeper) UnbondingThreasholdTime(ctx sdk.Context) (res time.Duration) {
 	k.paramSpace.Get(ctx, types.KeyUnbondingThreasholdTime, &res)
 	return
 }
 
-// UnbondingCompletionTime
 func (k Keeper) UnbondingCompletionTime(ctx sdk.Context) (res time.Duration) {
 	k.paramSpace.Get(ctx, types.KeyUnbondingCompletionTime, &res)
 	return
 }
 
-// ResourceNodeRegEnabled
 func (k Keeper) ResourceNodeRegEnabled(ctx sdk.Context) (res bool) {
 	k.paramSpace.Get(ctx, types.KeyResourceNodeRegEnabled, &res)
 	return
@@ -54,7 +51,6 @@ func (k Keeper) ResourceNodeMinDeposit(ctx sdk.Context) (res sdk.Coin) {
 	return
 }
 
-// VotingPeriod
 func (k Keeper) VotingPeriod(ctx sdk.Context) (res time.Duration) {
 	k.paramSpace.Get(ctx, types.KeyVotingPeriod, &res)
 	return

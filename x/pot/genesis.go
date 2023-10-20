@@ -3,6 +3,7 @@ package pot
 import (
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stratosnet/stratos-chain/x/pot/keeper"
@@ -13,7 +14,7 @@ import (
 // and the keeper's address to pubkey map
 func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
 	keeper.SetParams(ctx, data.Params)
-	keeper.SetTotalMinedTokens(ctx, sdk.NewCoin(keeper.RewardDenom(ctx), sdk.NewInt(0)))
+	keeper.SetTotalMinedTokens(ctx, sdk.NewCoin(keeper.RewardDenom(ctx), sdkmath.NewInt(0)))
 	keeper.SetLastDistributedEpoch(ctx, data.LastDistributedEpoch)
 
 	for _, immatureTotal := range data.ImmatureTotalInfo {
@@ -37,7 +38,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdk.NewInt(data.Params.MatureEpoch)), individual)
+		keeper.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdkmath.NewInt(data.Params.MatureEpoch)), individual)
 	}
 
 	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)

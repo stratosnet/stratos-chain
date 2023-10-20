@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -31,12 +32,12 @@ var (
 	KeyResourceNodeMinDeposit  = []byte("ResourceNodeMinDeposit")
 	KeyVotingPeriod            = []byte("VotingPeriod")
 
-	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour // threashold for unbonding - by default 180 days
-	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour  // lead time to complete unbonding - by default 14 days
-	DefaultVotingPeriod            = 7 * 24 * time.Hour   // expiration time of registration voting - by default 7 days
-	DefaultDepositNozRate          = sdk.NewDec(1000000)  // 0.001gwei -> 1noz = 1000000wei -> 1noz
-	DefaultRemainingNozLimit       = sdk.NewInt(0)
-	DefaultResourceNodeMinDeposit  = sdk.NewCoin(DefaultBondDenom, sdk.NewInt(1e18))
+	DefaultUnbondingThreasholdTime = 180 * 24 * time.Hour          // threashold for unbonding - by default 180 days
+	DefaultUnbondingCompletionTime = 14 * 24 * time.Hour           // lead time to complete unbonding - by default 14 days
+	DefaultVotingPeriod            = 7 * 24 * time.Hour            // expiration time of registration voting - by default 7 days
+	DefaultDepositNozRate          = sdkmath.LegacyNewDec(1000000) // 0.001gwei -> 1noz = 1000000wei -> 1noz
+	DefaultRemainingNozLimit       = sdkmath.NewInt(0)
+	DefaultResourceNodeMinDeposit  = sdk.NewCoin(DefaultBondDenom, sdkmath.NewInt(1e18))
 )
 
 // ParamKeyTable returns the parameter key table.

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -22,7 +23,7 @@ var (
 	cacheMutex                     = &sync.Mutex{}
 )
 
-// getMetaNode get a single meta node
+// GetMetaNode get a single meta node
 func (k Keeper) GetMetaNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (metaNode types.MetaNode, found bool) {
 	store := ctx.KVStore(k.storeKey)
 	value := store.Get(types.GetMetaNodeKey(p2pAddress))
@@ -71,7 +72,7 @@ func (k Keeper) GetAllValidMetaNodes(ctx sdk.Context) (metaNodes []types.MetaNod
 }
 
 func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, deposit sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
+	description types.Description, deposit sdk.Coin) (ozoneLimitChange sdkmath.Int, err error) {
 
 	if _, found := k.GetMetaNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Meta node already exist")
@@ -108,22 +109,22 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 
 // AddMetaNodeDeposit Update the tokens of an existing meta node
 func (k Keeper) AddMetaNodeDeposit(ctx sdk.Context, metaNode types.MetaNode, tokenToAdd sdk.Coin,
-) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, err error) {
+) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdkmath.Int, err error) {
 
 	coins := sdk.NewCoins(tokenToAdd)
 
 	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInvalidOwnerAddr
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInvalidOwnerAddr
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInvalidNetworkAddr
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInvalidNetworkAddr
 	}
 	// sub coins from owner's wallet
 	hasCoin := k.bankKeeper.HasBalance(ctx, ownerAddr, tokenToAdd)
 	if !hasCoin {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInsufficientBalance
 	}
 	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
 	availableTokenAmtBefore = metaNode.Tokens.Sub(unbondingDeposit)
@@ -136,13 +137,13 @@ func (k Keeper) AddMetaNodeDeposit(ctx sdk.Context, metaNode types.MetaNode, tok
 	case stakingtypes.Bonded:
 		targetModuleAccName = types.MetaNodeBondedPool
 	case stakingtypes.Unbonding:
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrUnbondingNode
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrUnbondingNode
 	}
 
 	if len(targetModuleAccName) > 0 {
 		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, ownerAddr, targetModuleAccName, coins)
 		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), err
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), err
 		}
 	}
 
@@ -153,7 +154,7 @@ func (k Keeper) AddMetaNodeDeposit(ctx sdk.Context, metaNode types.MetaNode, tok
 		ozoneLimitChange = k.IncreaseOzoneLimitByAddDeposit(ctx, tokenToAdd.Amount)
 	} else {
 		// if node is currently suspended, ozone limit will be increased upon unsuspension instead of NOW
-		ozoneLimitChange = sdk.ZeroInt()
+		ozoneLimitChange = sdkmath.ZeroInt()
 	}
 	availableTokenAmtAfter = availableTokenAmtBefore.Add(tokenToAdd.Amount)
 	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, nil
@@ -262,7 +263,7 @@ func (k Keeper) removeMetaNode(ctx sdk.Context, addr stratos.SdsAddress) error {
 	return nil
 }
 
-// getMetaNodeList get all meta nodes by networkAddr
+// GetMetaNodeList get all meta nodes by networkAddr
 func (k Keeper) GetMetaNodeList(ctx sdk.Context, networkAddr stratos.SdsAddress) (metaNodes []types.MetaNode, err error) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeKey)
@@ -316,7 +317,7 @@ func (k Keeper) WithdrawMetaNodeRegistrationDeposit(ctx sdk.Context, networkAddr
 	// check available_deposit (node_token - unbonding_token > amt_to_withdraw)
 	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
 	availableDeposit := node.Tokens.Sub(unbondingDeposit)
-	if availableDeposit.LTE(sdk.ZeroInt()) {
+	if availableDeposit.LTE(sdkmath.ZeroInt()) {
 		return time.Time{}, types.ErrInsufficientBalance
 	}
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
@@ -405,7 +406,7 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 		_ = k.IncreaseOzoneLimitByAddDeposit(ctx, candidateNode.Tokens)
 		// increase mata node count
 		v := k.GetBondedMetaNodeCnt(ctx)
-		count := v.Add(sdk.NewInt(1))
+		count := v.Add(sdkmath.NewInt(1))
 		k.SetBondedMetaNodeCnt(ctx, count)
 		// move deposit from not bonded pool to bonded pool
 		tokenToBond := sdk.NewCoin(k.BondDenom(ctx), candidateNode.Tokens)
@@ -454,20 +455,20 @@ func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
 }
 
 func (k Keeper) UpdateMetaNodeDeposit(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, depositDelta sdk.Coin) (
-	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, metaNode types.MetaNode, err error) {
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdkmath.Int, unbondingMatureTime time.Time, metaNode types.MetaNode, err error) {
 
 	if depositDelta.GetDenom() != k.BondDenom(ctx) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.MetaNode{}, types.ErrBadDenom
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.MetaNode{}, types.ErrBadDenom
 	}
 
 	node, found := k.GetMetaNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.MetaNode{}, types.ErrNoMetaNodeFound
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.MetaNode{}, types.ErrNoMetaNodeFound
 	}
 
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !ownerAddrNode.Equals(ownerAddr) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.MetaNode{}, types.ErrInvalidOwnerAddr
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.MetaNode{}, types.ErrInvalidOwnerAddr
 	}
 
 	// not allow to decrease deposit
@@ -475,11 +476,11 @@ func (k Keeper) UpdateMetaNodeDeposit(ctx sdk.Context, networkAddr stratos.SdsAd
 		blockTime := ctx.BlockHeader().Time
 		ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, err = k.AddMetaNodeDeposit(ctx, node, depositDelta)
 		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.MetaNode{}, err
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.MetaNode{}, err
 		}
 		return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, blockTime, node, nil
 	}
-	return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.MetaNode{}, err
+	return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.MetaNode{}, err
 }
 
 func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
@@ -488,7 +489,7 @@ func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 		ctx.Logger().Error("account address for meta node bonded pool does not exist.")
 		return sdk.Coin{
 			Denom:  k.BondDenom(ctx),
-			Amount: sdk.ZeroInt(),
+			Amount: sdkmath.ZeroInt(),
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, metaNodeBondedAccAddr, k.BondDenom(ctx))
@@ -500,7 +501,7 @@ func (k Keeper) GetMetaNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) {
 		ctx.Logger().Error("account address for meta node Not bonded pool does not exist.")
 		return sdk.Coin{
 			Denom:  k.BondDenom(ctx),
-			Amount: sdk.ZeroInt(),
+			Amount: sdkmath.ZeroInt(),
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, metaNodeNotBondedAccAddr, k.BondDenom(ctx))

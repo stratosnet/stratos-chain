@@ -11,7 +11,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-// Called in each EndBlock
+// BlockRegisteredNodesUpdates Called in each EndBlock
 func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 	// Remove all mature unbonding nodes from the ubd queue.
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")

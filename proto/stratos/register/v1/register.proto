@@ -9,6 +9,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
 // Params defines the Register module parameters
@@ -74,6 +75,7 @@ message ResourceNode {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                              owner_address = 6 [
@@ -99,6 +101,7 @@ message ResourceNode {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "effective_tokens",
     (gogoproto.moretags) = "yaml:\"effective_tokens\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
@@ -127,6 +130,7 @@ message MetaNode {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                              owner_address = 6 [
@@ -227,11 +231,13 @@ message UnbondingNodeEntry {
   string                              initial_balance = 3 [
     (gogoproto.jsontag) = "initial_balance",
     (gogoproto.moretags) = "yaml:\"initial_balance\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                              balance = 4 [
     (gogoproto.jsontag) = "balance",
     (gogoproto.moretags) = "yaml:\"balance\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }

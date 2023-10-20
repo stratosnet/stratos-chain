@@ -8,3 +8,9 @@ playground.go
 /tmp-swagger-gen/
 /github.com/
 .DS_Store
+/proto/amino/
+/proto/cosmos/
+/proto/cosmos_proto/
+/proto/gogoproto/
+/proto/google/
+/proto/tendermint/

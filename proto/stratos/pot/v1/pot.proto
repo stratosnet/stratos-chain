@@ -2,8 +2,10 @@ syntax = "proto3";
 package stratos.pot.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/v1beta1/coin.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 
 // Params defines the PoT module parameters
@@ -29,6 +31,7 @@ message Params {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "community_tax",
     (gogoproto.moretags) = "yaml:\"community_tax\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
   ];
   cosmos.base.v1beta1.Coin    initial_total_supply = 6 [
@@ -58,18 +61,21 @@ message MiningRewardParam {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "block_chain_percentage_in_bp",
     (gogoproto.moretags) = "yaml:\"block_chain_percentage_in_bp\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                    resource_node_percentage_in_bp = 5 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "resource_node_percentage_in_bp",
     (gogoproto.moretags) = "yaml:\"resource_node_percentage_in_bp\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                    meta_node_percentage_in_bp = 6 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "meta_node_percentage_in_bp",
     (gogoproto.moretags) = "yaml:\"meta_node_percentage_in_bp\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
@@ -102,6 +108,7 @@ message SingleWalletVolume {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "volume",
     (gogoproto.moretags) = "yaml:\"volume\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }

@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -48,7 +49,7 @@ func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk
 	return miningRewardParams[len(miningRewardParams)-1], types.ErrOutOfIssuance
 }
 
-func (k Keeper) GetCommunityTax(ctx sdk.Context) (res sdk.Dec) {
+func (k Keeper) GetCommunityTax(ctx sdk.Context) (res sdkmath.LegacyDec) {
 	k.paramSpace.Get(ctx, types.KeyCommunityTax, &res)
 	return
 }

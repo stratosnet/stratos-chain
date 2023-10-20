@@ -2,7 +2,9 @@ syntax = "proto3";
 package stratos.evm.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/evm/types";
 
 // Params defines the EVM module parameters
@@ -36,17 +38,20 @@ message ChainConfig {
   // chainId identifies the current chain and is used for replay protection
   string chain_id = 1 [
     (gogoproto.customname) = "ChainID",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"chain_id\""
   ];
   // Homestead switch block (nil no fork, 0 = already homestead)
   string homestead_block = 2 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"homestead_block\""
   ];
   // TheDAO hard-fork switch block (nil no fork)
   string dao_fork_block = 3 [
     (gogoproto.customname) = "DAOForkBlock",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"dao_fork_block\""
   ];
@@ -59,6 +64,7 @@ message ChainConfig {
   // (https://github.com/ethereum/EIPs/issues/150) EIP150 HF block (nil no fork)
   string eip150_block = 5 [
     (gogoproto.customname) = "EIP150Block",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"eip150_block\""
   ];
@@ -70,42 +76,50 @@ message ChainConfig {
   // EIP155Block HF block
   string eip155_block = 7 [
     (gogoproto.customname) = "EIP155Block",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"eip155_block\""
   ];
   // EIP158 HF block
   string eip158_block = 8 [
     (gogoproto.customname) = "EIP158Block",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"eip158_block\""
   ];
   // Byzantium switch block (nil no fork, 0 = already on byzantium)
   string byzantium_block = 9 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"byzantium_block\""
   ];
   // Constantinople switch block (nil no fork, 0 = already activated)
   string constantinople_block = 10 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"constantinople_block\""
   ];
   // Petersburg switch block (nil same as Constantinople)
   string petersburg_block = 11 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"petersburg_block\""
   ];
   // Istanbul switch block (nil no fork, 0 = already on istanbul)
   string istanbul_block = 12 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"istanbul_block\""
   ];
   // Eip-2384 (bomb delay) switch block (nil no fork, 0 = already activated)
   string muir_glacier_block = 13 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"muir_glacier_block\""
   ];
   // Berlin switch block (nil = no fork, 0 = already on berlin)
   string berlin_block = 14 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"berlin_block\""
   ];
@@ -114,16 +128,19 @@ message ChainConfig {
   reserved "yolo_v3_block", "ewasm_block", "catalyst_block";
   // London switch block (nil = no fork, 0 = already on london)
   string london_block = 18 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"london_block\""
   ];
   // Eip-4345 (bomb delay) switch block (nil = no fork, 0 = already activated)
   string arrow_glacier_block = 19 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"arrow_glacier_block\""
   ];
   // EIP-3675 (TheMerge) switch block (nil = no fork, 0 = already in merge proceedings)
   string merge_fork_block = 20 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.moretags) = "yaml:\"merge_fork_block\""
   ];
@@ -258,6 +275,7 @@ message FeeMarketParams {
   int64 enable_height = 5;
   // base fee for EIP-1559 blocks.
   string base_fee = 6 [
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.nullable) = false
   ];

@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -32,11 +33,11 @@ func NewRewardInfo(
 type QueryIndividualRewardsByReportEpochParams struct {
 	Page  int
 	Limit int
-	Epoch sdk.Int
+	Epoch sdkmath.Int
 }
 
 // NewQueryIndividualRewardsByEpochParams creates a new instance of QueryIndividualRewardsByReportEpochParams
-func NewQueryIndividualRewardsByEpochParams(page, limit int, epoch sdk.Int) QueryIndividualRewardsByReportEpochParams {
+func NewQueryIndividualRewardsByEpochParams(page, limit int, epoch sdkmath.Int) QueryIndividualRewardsByReportEpochParams {
 	return QueryIndividualRewardsByReportEpochParams{
 		Page:  page,
 		Limit: limit,
@@ -47,10 +48,10 @@ func NewQueryIndividualRewardsByEpochParams(page, limit int, epoch sdk.Int) Quer
 type QueryRewardsByWalletAddrParams struct {
 	WalletAddr sdk.AccAddress
 	Height     int64
-	Epoch      sdk.Int
+	Epoch      sdkmath.Int
 }
 
-func NewQueryRewardsByWalletAddrParams(walletAddr sdk.AccAddress, height int64, epoch sdk.Int) QueryRewardsByWalletAddrParams {
+func NewQueryRewardsByWalletAddrParams(walletAddr sdk.AccAddress, height int64, epoch sdkmath.Int) QueryRewardsByWalletAddrParams {
 	return QueryRewardsByWalletAddrParams{
 		WalletAddr: walletAddr,
 		Height:     height,
@@ -59,10 +60,10 @@ func NewQueryRewardsByWalletAddrParams(walletAddr sdk.AccAddress, height int64, 
 }
 
 type QueryTotalRewardByEpochParams struct {
-	Epoch sdk.Int
+	Epoch sdkmath.Int
 }
 
-func NewQueryTotalRewardByEpochParams(epoch sdk.Int) QueryTotalRewardByEpochParams {
+func NewQueryTotalRewardByEpochParams(epoch sdkmath.Int) QueryTotalRewardByEpochParams {
 	return QueryTotalRewardByEpochParams{
 		Epoch: epoch,
 	}

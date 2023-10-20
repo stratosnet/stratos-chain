@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -419,7 +420,7 @@ func (msg MsgUpdateResourceNodeDeposit) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.DepositDelta.Amount.LTE(sdk.ZeroInt()) {
+	if msg.DepositDelta.Amount.LTE(sdkmath.ZeroInt()) {
 		return ErrInvalidDepositChange
 	}
 	return nil
@@ -529,7 +530,7 @@ func (msg MsgUpdateMetaNodeDeposit) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.DepositDelta.Amount.LTE(sdk.ZeroInt()) {
+	if msg.DepositDelta.Amount.LTE(sdkmath.ZeroInt()) {
 		return ErrInvalidDepositChange
 	}
 	return nil
@@ -547,7 +548,7 @@ func NewMsgMetaNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, 
 	}
 }
 
-func (mmsg MsgMetaNodeRegistrationVote) Route() string { return RouterKey }
+func (msg MsgMetaNodeRegistrationVote) Route() string { return RouterKey }
 
 func (msg MsgMetaNodeRegistrationVote) Type() string { return TypeMsgMetaNodeRegistrationVote }
 
@@ -604,7 +605,7 @@ func (msg MsgMetaNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 }
 
 func NewMsgUpdateEffectiveDeposit(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
-	networkAddress stratos.SdsAddress, newEffectiveDeposit sdk.Int) *MsgUpdateEffectiveDeposit {
+	networkAddress stratos.SdsAddress, newEffectiveDeposit sdkmath.Int) *MsgUpdateEffectiveDeposit {
 
 	reporterStrSlice := make([]string, 0)
 	for _, reporter := range reporters {
@@ -654,7 +655,7 @@ func (m MsgUpdateEffectiveDeposit) ValidateBasic() error {
 		}
 	}
 
-	if m.EffectiveTokens.LT(sdk.ZeroInt()) {
+	if m.EffectiveTokens.LT(sdkmath.ZeroInt()) {
 		return ErrInvalidAmount
 	}
 	return nil
@@ -687,7 +688,7 @@ func NewMsgWithdrawMetaNodeRegistrationDeposit(networkAddress stratos.SdsAddress
 	}
 }
 
-func (mmsg MsgWithdrawMetaNodeRegistrationDeposit) Route() string { return RouterKey }
+func (msg MsgWithdrawMetaNodeRegistrationDeposit) Route() string { return RouterKey }
 
 func (msg MsgWithdrawMetaNodeRegistrationDeposit) Type() string {
 	return TypeMsgWithdrawMetaNodeRegistrationDeposit

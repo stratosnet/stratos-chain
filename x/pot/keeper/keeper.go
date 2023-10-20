@@ -3,19 +3,21 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	"errors"
-	"fmt"
 	"math"
 
+	"github.com/cometbft/cometbft/libs/log"
+
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/config"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-	"github.com/tendermint/tendermint/libs/log"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -24,43 +26,51 @@ import (
 
 // Keeper of the pot store
 type Keeper struct {
-	storeKey         sdk.StoreKey
-	cdc              codec.Codec
-	paramSpace       paramstypes.Subspace
-	feeCollectorName string // name of the FeeCollector ModuleAccount
-	bankKeeper       types.BankKeeper
-	accountKeeper    types.AccountKeeper
-	stakingKeeper    types.StakingKeeper
-	registerKeeper   types.RegisterKeeper
-	distrKeeper      types.DistrKeeper
+	storeKey       storetypes.StoreKey
+	cdc            codec.Codec
+	paramSpace     paramstypes.Subspace
+	accountKeeper  types.AccountKeeper
+	bankKeeper     types.BankKeeper
+	distrKeeper    types.DistrKeeper
+	registerKeeper types.RegisterKeeper
+	stakingKeeper  types.StakingKeeper
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a pot keeper
-func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramstypes.Subspace, feeCollectorName string,
-	bankKeeper types.BankKeeper, accountKeeper types.AccountKeeper, stakingKeeper types.StakingKeeper,
-	registerKeeper types.RegisterKeeper, distrKeeper types.DistrKeeper,
+func NewKeeper(
+	cdc codec.Codec,
+	key storetypes.StoreKey,
+	accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	distrKeeper types.DistrKeeper,
+	registerKeeper types.RegisterKeeper,
+	stakingKeeper types.StakingKeeper,
+	authority string,
 ) Keeper {
 	keeper := Keeper{
-		cdc:              cdc,
-		storeKey:         key,
-		paramSpace:       paramSpace.WithKeyTable(types.ParamKeyTable()),
-		feeCollectorName: feeCollectorName,
-		bankKeeper:       bankKeeper,
-		accountKeeper:    accountKeeper,
-		stakingKeeper:    stakingKeeper,
-		registerKeeper:   registerKeeper,
-		distrKeeper:      distrKeeper,
+		cdc:            cdc,
+		storeKey:       key,
+		accountKeeper:  accountKeeper,
+		bankKeeper:     bankKeeper,
+		distrKeeper:    distrKeeper,
+		registerKeeper: registerKeeper,
+		stakingKeeper:  stakingKeeper,
+		authority:      authority,
 	}
 	return keeper
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
 func (k Keeper) VolumeReport(ctx sdk.Context, walletVolumes types.WalletVolumes, reporter stratos.SdsAddress,
-	epoch sdk.Int, reportReference string, txHash string) (err error) {
+	epoch sdkmath.Int, reportReference string, txHash string) (err error) {
 
 	//record volume report
 	reportRecord := types.NewReportRecord(reporter, reportReference, txHash)
@@ -95,8 +105,8 @@ func (k Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins)
 	denom := k.BondDenom(ctx)
 	communityPollBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
 	availableCoinsCommunity := communityPollBalance.AmountOf(denom)
-	if amt.AmountOf(denom).ToDec().GT(availableCoinsCommunity) {
-		return errors.New("minting not completed because total supply cap is hit")
+	if amt.AmountOf(denom).ToLegacyDec().GT(availableCoinsCommunity) {
+		return types.ErrTotalSupplyCapHit
 	}
 	return k.bankKeeper.MintCoins(ctx, moduleName, amt)
 }
@@ -104,14 +114,14 @@ func (k Keeper) SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins)
 func (k Keeper) safeBurnCoinsFromCommunityPool(ctx sdk.Context, coins sdk.Coins) error {
 	communityPoolBalance := k.distrKeeper.GetFeePool(ctx).CommunityPool
 	//ctx.Logger().Info("------communityPoolBalance is " + communityPoolBalance.String())
-	if communityPoolBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToDec()) {
+	if communityPoolBalance.AmountOf(k.BondDenom(ctx)).GTE(coins.AmountOf(k.BondDenom(ctx)).ToLegacyDec()) {
 		k.bankKeeper.BurnCoins(ctx, distrtypes.ModuleName, coins)
 		return nil
 	}
-	return errors.New("burning not completed as a result of insufficient balance in community pool")
+	return types.ErrInsufficientCommunityPool
 }
 
-// Restore total supply to 100M stos
+// RestoreTotalSupply Restore total supply to 100M stos
 func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minted, burned sdk.Coins) {
 	InitialTotalSupply := k.InitialTotalSupply(ctx).Amount
 	currentTotalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx)).Amount
@@ -121,7 +131,7 @@ func (k Keeper) RestoreTotalSupply(ctx sdk.Context) (minted, burned sdk.Coins) {
 		return sdk.Coins{}, sdk.Coins{}
 	}
 	supplyDiff := currentTotalSupply.Sub(InitialTotalSupply)
-	if supplyDiff.GT(sdk.ZeroInt()) {
+	if supplyDiff.GT(sdkmath.ZeroInt()) {
 		// burn surplus if currentTotalSupply > InitialTotalSupply
 		amtToBurn := supplyDiff
 		coinToBurn := sdk.NewCoin(k.BondDenom(ctx), amtToBurn)
@@ -186,7 +196,7 @@ func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coi
 	return
 }
 
-func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdk.Int) (totalReward types.TotalReward) {
+func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalReward types.TotalReward) {
 	volumeReport := k.GetVolumeReport(ctx, epoch)
 
 	if volumeReport == (types.VolumeReportRecord{}) {
@@ -216,17 +226,17 @@ func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdk.Int) (totalReward type
 	senderAddr := k.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
 	if senderAddr == nil {
 
-		panic(sdkerrors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", registertypes.TotalUnissuedPrepay))
+		panic(errors.Wrapf(sdkerrors.ErrUnknownAddress, "module account %s does not exist", registertypes.TotalUnissuedPrepay))
 	}
 
-	trafficReward := sdk.NewCoin(k.BondDenom(ctx), sdk.ZeroInt())
+	trafficReward := sdk.NewCoin(k.BondDenom(ctx), sdkmath.ZeroInt())
 	txEvents := resTx.TxResult.GetEvents()
 	for _, event := range txEvents {
 		if event.Type == "coin_received" {
 			attributes := event.GetAttributes()
 			for _, attr := range attributes {
-				if string(attr.GetKey()) == "amount" {
-					received, err := sdk.ParseCoinNormalized(string(attr.GetValue()))
+				if attr.GetKey() == "amount" {
+					received, err := sdk.ParseCoinNormalized(attr.GetValue())
 					if err != nil {
 						continue
 					}
@@ -235,7 +245,7 @@ func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdk.Int) (totalReward type
 			}
 		}
 	}
-	miningReward := sdk.NewCoin(types.DefaultRewardDenom, sdk.NewInt(80).MulRaw(stratos.StosToWei))
+	miningReward := sdk.NewCoin(types.DefaultRewardDenom, sdkmath.NewInt(80).MulRaw(stratos.StosToWei))
 	trafficReward = trafficReward.Sub(miningReward)
 	totalReward = types.TotalReward{
 		MiningReward:  sdk.NewCoins(miningReward),

@@ -31,7 +31,7 @@ var (
 	initConfig    sync.Once
 )
 
-// New returns a new Config with default values.
+// NewConfig returns a new Config with default values.
 func NewConfig() *Config {
 	return &Config{
 		sealedch: make(chan struct{}),
@@ -91,7 +91,8 @@ func (config *Config) SetBech32PrefixForAccount(addressPrefix, pubKeyPrefix stri
 }
 
 // SetBech32PrefixForValidator builds the Config with Bech32 addressPrefix and publKeyPrefix for validators
-//  and returns the config instance
+//
+//	and returns the config instance
 func (config *Config) SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix string) {
 	sdkConfig := sdk.GetConfig()
 	sdkConfig.SetBech32PrefixForValidator(addressPrefix, pubKeyPrefix)
@@ -131,7 +132,7 @@ func (config *Config) SetAddressVerifier(addressVerifier func([]byte) error) {
 	config.addressVerifier = addressVerifier
 }
 
-// Set the BIP-0044 CoinType code on the config
+// SetCoinType Set the BIP-0044 CoinType code on the config
 func (config *Config) SetCoinType(coinType uint32) {
 	config.assertNotSealed()
 	config.coinType = coinType

@@ -3,6 +3,7 @@ package keeper
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -52,12 +53,12 @@ func (k Keeper) GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator {
 
 // AddResourceNodeDeposit Update the tokens of an existing resource node
 func (k Keeper) AddResourceNodeDeposit(ctx sdk.Context, resourceNode types.ResourceNode, tokenToAdd sdk.Coin,
-) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, err error) {
+) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdkmath.Int, err error) {
 
 	needAddCount := true
 	networkAddr, err := stratos.SdsAddressFromBech32(resourceNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInvalidNetworkAddr
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInvalidNetworkAddr
 	}
 	nodeStored, found := k.GetResourceNode(ctx, networkAddr)
 	if found && nodeStored.IsBonded() {
@@ -70,13 +71,13 @@ func (k Keeper) AddResourceNodeDeposit(ctx sdk.Context, resourceNode types.Resou
 
 	ownerAddr, err := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInvalidOwnerAddr
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInvalidOwnerAddr
 	}
 
 	// sub coins from owner's wallet
 	hasCoin := k.bankKeeper.HasBalance(ctx, ownerAddr, tokenToAdd)
 	if !hasCoin {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInsufficientBalance
 	}
 
 	targetModuleAccName := ""
@@ -87,13 +88,13 @@ func (k Keeper) AddResourceNodeDeposit(ctx sdk.Context, resourceNode types.Resou
 	case stakingtypes.Bonded:
 		targetModuleAccName = types.ResourceNodeBondedPool
 	case stakingtypes.Unbonding:
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrUnbondingNode
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrUnbondingNode
 	}
 
 	if len(targetModuleAccName) > 0 {
 		err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, ownerAddr, targetModuleAccName, coins)
 		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), err
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), err
 		}
 	}
 
@@ -109,17 +110,17 @@ func (k Keeper) AddResourceNodeDeposit(ctx sdk.Context, resourceNode types.Resou
 		nBondedResourceAccountAddr := k.accountKeeper.GetModuleAddress(types.ResourceNodeNotBondedPool)
 		if nBondedResourceAccountAddr == nil {
 			ctx.Logger().Error("not bonded account address for resource nodes does not exist.")
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrUnknownAccountAddress
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrUnknownAccountAddress
 		}
 
 		hasCoin := k.bankKeeper.HasBalance(ctx, nBondedResourceAccountAddr, tokenToTrasfer)
 		if !hasCoin {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInsufficientBalance
 		}
 
 		err := k.bankKeeper.SendCoinsFromModuleToModule(ctx, types.ResourceNodeNotBondedPool, types.ResourceNodeBondedPool, sdk.NewCoins(tokenToTrasfer))
 		if err != nil {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), types.ErrInsufficientBalance
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), types.ErrInsufficientBalance
 		}
 	}
 
@@ -128,12 +129,12 @@ func (k Keeper) AddResourceNodeDeposit(ctx sdk.Context, resourceNode types.Resou
 	if needAddCount {
 		// increase resource node count
 		v := k.GetBondedResourceNodeCnt(ctx)
-		count := v.Add(sdk.NewInt(1))
+		count := v.Add(sdkmath.NewInt(1))
 		k.SetBondedResourceNodeCnt(ctx, count)
 	}
 
 	availableTokenAmtAfter = availableTokenAmtBefore.Add(tokenToAdd.Amount)
-	return sdk.ZeroInt(), availableTokenAmtBefore, availableTokenAmtAfter, nil
+	return sdkmath.ZeroInt(), availableTokenAmtBefore, availableTokenAmtAfter, nil
 }
 
 func (k Keeper) RemoveTokenFromPoolWhileUnbondingResourceNode(ctx sdk.Context, resourceNode types.ResourceNode, tokenToSub sdk.Coin) error {
@@ -240,7 +241,7 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 }
 
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, nodeType types.NodeType, deposit sdk.Coin) (ozoneLimitChange sdk.Int, err error) {
+	description types.Description, nodeType types.NodeType, deposit sdk.Coin) (ozoneLimitChange sdkmath.Int, err error) {
 
 	if _, found := k.GetResourceNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Resource node already exist")
@@ -289,54 +290,54 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	return nil
 }
 
-// Add deposit only
+// UpdateResourceNodeDeposit Add deposit only
 func (k Keeper) UpdateResourceNodeDeposit(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, depositDelta sdk.Coin) (
-	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, completionTime time.Time, resourcenode types.ResourceNode, err error) {
+	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdkmath.Int, completionTime time.Time, resourcenode types.ResourceNode, err error) {
 
 	if depositDelta.GetDenom() != k.BondDenom(ctx) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrBadDenom
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrBadDenom
 	}
 
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrNoResourceNodeFound
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrNoResourceNodeFound
 	}
 
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !ownerAddrNode.Equals(ownerAddr) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrInvalidOwnerAddr
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ResourceNode{}, types.ErrInvalidOwnerAddr
 	}
 
 	completionTime = ctx.BlockHeader().Time
 	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, err = k.AddResourceNodeDeposit(ctx, node, depositDelta)
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ResourceNode{}, err
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ResourceNode{}, err
 	}
 	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, nil
 }
 
-func (k Keeper) UpdateEffectiveDeposit(ctx sdk.Context, networkAddr stratos.SdsAddress, effectiveDepositAfter sdk.Int) (
-	ozoneLimitChange, effectiveDepositChange sdk.Int, isUnsuspendedDuringUpdate bool, err error) {
+func (k Keeper) UpdateEffectiveDeposit(ctx sdk.Context, networkAddr stratos.SdsAddress, effectiveDepositAfter sdkmath.Int) (
+	ozoneLimitChange, effectiveDepositChange sdkmath.Int, isUnsuspendedDuringUpdate bool, err error) {
 
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrNoResourceNodeFound
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), false, types.ErrNoResourceNodeFound
 	}
 
 	// before calc ozone limit change, get unbonding deposit and calc effective deposit to trigger ozLimit change
 	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
 	// no effective deposit after subtracting unbonding deposit
 	if node.Tokens.LTE(unbondingDeposit) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrInsufficientBalance
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), false, types.ErrInsufficientBalance
 	}
 	availableDeposit := node.Tokens.Sub(unbondingDeposit)
 	if availableDeposit.LT(effectiveDepositAfter) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), false, types.ErrInsufficientBalance
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), false, types.ErrInsufficientBalance
 	}
 
-	isUnsuspendedDuringUpdate = node.Suspend == true && node.EffectiveTokens.Equal(sdk.ZeroInt()) && effectiveDepositAfter.GT(sdk.ZeroInt())
+	isUnsuspendedDuringUpdate = node.Suspend == true && node.EffectiveTokens.Equal(sdkmath.ZeroInt()) && effectiveDepositAfter.GT(sdkmath.ZeroInt())
 
-	effectiveDepositBefore := sdk.NewInt(0).Add(node.EffectiveTokens)
+	effectiveDepositBefore := sdkmath.NewInt(0).Add(node.EffectiveTokens)
 	effectiveDepositChange = effectiveDepositAfter.Sub(effectiveDepositBefore)
 
 	node.EffectiveTokens = effectiveDepositAfter
@@ -359,7 +360,7 @@ func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
 		ctx.Logger().Error("account address for resource node bonded pool does not exist.")
 		return sdk.Coin{
 			Denom:  k.BondDenom(ctx),
-			Amount: sdk.ZeroInt(),
+			Amount: sdkmath.ZeroInt(),
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, resourceNodeBondedAccAddr, k.BondDenom(ctx))
@@ -371,7 +372,7 @@ func (k Keeper) GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin) 
 		ctx.Logger().Error("account address for resource node Not bonded pool does not exist.")
 		return sdk.Coin{
 			Denom:  k.BondDenom(ctx),
-			Amount: sdk.ZeroInt(),
+			Amount: sdkmath.ZeroInt(),
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, resourceNodeNotBondedAccAddr, k.BondDenom(ctx))

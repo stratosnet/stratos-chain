@@ -62,12 +62,12 @@ func GetMetaNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(MetaNodeRegistrationVotesKey, nodeAddr.Bytes()...)
 }
 
-// GetURNKey gets the key for the unbonding Node with address
+// GetUBDNodeKey gets the key for the unbonding Node with address
 func GetUBDNodeKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(UBDNodeKey, nodeAddr.Bytes()...)
 }
 
-// gets the prefix for all unbonding Node
+// GetUBDTimeKey gets the prefix for all unbonding Node
 func GetUBDTimeKey(timestamp time.Time) []byte {
 	bz := sdk.FormatTimeBytes(timestamp)
 	return append(UBDNodeQueueKey, bz...)

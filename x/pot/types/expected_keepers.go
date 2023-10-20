@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
@@ -31,33 +32,33 @@ type RegisterKeeper interface {
 	GetResourceNode(ctx sdk.Context, p2pAddress stratos.SdsAddress) (resourceNode types.ResourceNode, found bool)
 	SetResourceNode(ctx sdk.Context, resourceNode types.ResourceNode)
 
-	GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res sdk.Int)
-	SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdk.Int)
+	GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res sdkmath.Int)
+	SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdkmath.Int)
 	DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, coins sdk.Coins, slashingDenom string) (remaining, deducted sdk.Coins)
 
-	GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int)
-	SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int)
+	GetRemainingOzoneLimit(ctx sdk.Context) (value sdkmath.Int)
+	SetRemainingOzoneLimit(ctx sdk.Context, value sdkmath.Int)
 	GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin)
-	GetDepositNozRate(ctx sdk.Context) (depositNozRate sdk.Dec)
+	GetDepositNozRate(ctx sdk.Context) (depositNozRate sdkmath.LegacyDec)
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 
-	GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdk.Int)
+	GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdkmath.Int)
 
 	GetResourceNodeIterator(ctx sdk.Context) sdk.Iterator
 	GetMetaNodeIterator(ctx sdk.Context) sdk.Iterator
-	GetBondedMetaNodeCnt(ctx sdk.Context) sdk.Int
+	GetBondedMetaNodeCnt(ctx sdk.Context) sdkmath.Int
 
-	DecreaseOzoneLimitBySubtractDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int)
-	IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int)
-	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int
+	DecreaseOzoneLimitBySubtractDeposit(ctx sdk.Context, deposit sdkmath.Int) (ozoneLimitChange sdkmath.Int)
+	IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdkmath.Int) (ozoneLimitChange sdkmath.Int)
+	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdkmath.Int
 
 	OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) (found bool)
 }
 
 type StakingKeeper interface {
-	TotalBondedTokens(ctx sdk.Context) sdk.Int
+	TotalBondedTokens(ctx sdk.Context) sdkmath.Int
 }
 
 type DistrKeeper interface {

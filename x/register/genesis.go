@@ -1,6 +1,7 @@
 package register
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
@@ -18,7 +19,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		keeper.GetMetaNodeNotBondedToken(ctx).IsZero() &&
 		keeper.GetMetaNodeBondedToken(ctx).IsZero()
 
-	initialDepositTotal := sdk.ZeroInt()
+	initialDepositTotal := sdkmath.ZeroInt()
 	lenOfGenesisBondedResourceNode := int64(0)
 
 	for _, resourceNode := range data.GetResourceNodes() {
@@ -53,7 +54,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		keeper.SetResourceNode(ctx, resourceNode)
 	}
 	// set initial genesis number of resource nodes
-	keeper.SetBondedResourceNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedResourceNode))
+	keeper.SetBondedResourceNodeCnt(ctx, sdkmath.NewInt(lenOfGenesisBondedResourceNode))
 
 	lenOfGenesisBondedMetaNode := int64(0)
 	for _, metaNode := range data.GetMetaNodes() {
@@ -88,19 +89,19 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		keeper.SetMetaNode(ctx, metaNode)
 	}
 	// set initial genesis number of meta nodes
-	keeper.SetBondedMetaNodeCnt(ctx, sdk.NewInt(lenOfGenesisBondedMetaNode))
+	keeper.SetBondedMetaNodeCnt(ctx, sdkmath.NewInt(lenOfGenesisBondedMetaNode))
 
 	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
 	keeper.SetInitialGenesisDepositTotal(ctx, initialDepositTotal)
 	keeper.SetEffectiveTotalDeposit(ctx, initialDepositTotal)
-	depositNozRate := sdk.ZeroDec()
+	depositNozRate := sdkmath.LegacyZeroDec()
 	depositNozRate = depositNozRate.Add(data.DepositNozRate)
 	keeper.SetDepositNozRate(ctx, depositNozRate)
 
 	// calc total noz supply with EffectiveGenesisDepositTotal and depositNozRate
-	totalNozSupply := initialDepositTotal.ToDec().Quo(depositNozRate).TruncateInt()
-	initOzoneLimit := sdk.ZeroInt()
-	if freshStart && totalUnissuedPrepay.Equal(sdk.ZeroInt()) {
+	totalNozSupply := initialDepositTotal.ToLegacyDec().Quo(depositNozRate).TruncateInt()
+	initOzoneLimit := sdkmath.ZeroInt()
+	if freshStart && totalUnissuedPrepay.Equal(sdkmath.ZeroInt()) {
 		// fresh start
 		initOzoneLimit = initOzoneLimit.Add(totalNozSupply)
 	} else {
@@ -115,7 +116,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 			panic(err)
 		}
 
-		keeper.SetSlashing(ctx, walletAddress, sdk.NewInt(slashing.Value))
+		keeper.SetSlashing(ctx, walletAddress, sdkmath.NewInt(slashing.Value))
 	}
 
 	keeper.ReloadMetaNodeBitMapIdxCache(ctx)
@@ -135,8 +136,8 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	depositNozRate := keeper.GetDepositNozRate(ctx)
 
 	var slashingInfo []types.Slashing
-	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdk.Int) (stop bool) {
-		if val.GT(sdk.ZeroInt()) {
+	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdkmath.Int) (stop bool) {
+		if val.GT(sdkmath.ZeroInt()) {
 			slashing := types.NewSlashing(walletAddress, val)
 			slashingInfo = append(slashingInfo, slashing)
 		}

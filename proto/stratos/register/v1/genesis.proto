@@ -7,6 +7,7 @@ import "cosmos_proto/cosmos.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 import "stratos/register/v1/register.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
 // GenesisState defines the register module's genesis state.
@@ -32,6 +33,7 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "remaining_noz_limit",
     (gogoproto.moretags) = "yaml:\"remaining_noz_limit\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ]; // remaining noz limit
   repeated Slashing       slashing = 5 [
@@ -43,6 +45,7 @@ message GenesisState {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "deposit_noz_rate",
     (gogoproto.moretags) = "yaml:\"deposit_noz_rate\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
   ]; //fixed rate of deposit over noz
 }

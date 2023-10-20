@@ -1,12 +1,14 @@
 package cli
 
 import (
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/tx"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -48,14 +50,12 @@ func CreateResourceNodeCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildCreateResourceNodeMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildCreateResourceNodeMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -87,14 +87,12 @@ func CreateMetaNodeCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildCreateMetaNodeMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildCreateMetaNodeMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 	cmd.Flags().AddFlagSet(flagSetPublicKey())
@@ -115,8 +113,7 @@ func CreateMetaNodeCmd() *cobra.Command {
 
 func RemoveResourceNodeCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use: "remove-resource-node [flag]",
-		//Args:  cobra.ExactArgs(1),
+		Use:   "remove-resource-node [flag]",
 		Short: "remove resource node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -124,9 +121,7 @@ func RemoveResourceNodeCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildRemoveResourceNodeMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildRemoveResourceNodeMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -144,10 +139,8 @@ func RemoveResourceNodeCmd() *cobra.Command {
 }
 
 func RemoveMetaNodeCmd() *cobra.Command {
-
 	cmd := &cobra.Command{
-		Use: "remove-meta-node [flag]",
-		//Args:  cobra.ExactArgs(1),
+		Use:   "remove-meta-node [flag]",
 		Short: "remove meta node",
 		RunE: func(cmd *cobra.Command, args []string) error {
 			clientCtx, err := client.GetClientTxContext(cmd)
@@ -155,9 +148,7 @@ func RemoveMetaNodeCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildRemoveMetaNodeMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildRemoveMetaNodeMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
@@ -184,14 +175,12 @@ func UpdateResourceNodeCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateResourceNodeMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildUpdateResourceNodeMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -202,8 +191,6 @@ func UpdateResourceNodeCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	//_ = cmd.MarkFlagRequired(FlagMoniker)
-	//_ = cmd.MarkFlagRequired(FlagNodeType)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
 	return cmd
@@ -219,14 +206,12 @@ func UpdateMetaNodeCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateMetaNodeMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildUpdateMetaNodeMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -236,7 +221,6 @@ func UpdateMetaNodeCmd() *cobra.Command {
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
-	//_ = cmd.MarkFlagRequired(FlagMoniker)
 	_ = cmd.MarkFlagRequired(FlagNetworkAddress)
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 
@@ -254,14 +238,12 @@ func UpdateResourceNodeDepositCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateResourceNodeDepositMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildUpdateResourceNodeDepositMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -287,14 +269,12 @@ func UpdateMetaNodeDepositCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildUpdateMetaNodeDepositMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildUpdateMetaNodeDepositMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -321,15 +301,12 @@ func MetaNodeRegistrationVoteCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildMetaNodeRegistrationVoteMsg(clientCtx, txf, cmd.Flags())
-
+			msg, err := newBuildMetaNodeRegistrationVoteMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -346,40 +323,40 @@ func MetaNodeRegistrationVoteCmd() *cobra.Command {
 }
 
 // makes a new CreateResourceNodeMsg.
-func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateResourceNode, error) {
+func newBuildCreateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgCreateResourceNode, error) {
 	flagAmountStr, err := fs.GetString(FlagAmount)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	amount, err := sdk.ParseCoinNormalized(flagAmountStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
 
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	pubKey, err := stratos.SdsPubKeyFromBech32(pkStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	moniker, _ := fs.GetString(FlagMoniker)
@@ -398,44 +375,44 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 	// validate nodeTypeVal
 	nodeType := types.NodeType(nodeTypeVal)
 	if t := nodeType.Type(); t == "UNKNOWN" {
-		return txf, nil, types.ErrNodeType
+		return nil, types.ErrNodeType
 	}
 	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, nodeTypeVal)
 	if er != nil {
-		return txf, nil, err
+		return nil, err
 	}
-	return txf, msg, nil
+	return msg, nil
 }
 
 // makes a new MsgCreateMetaNode.
-func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgCreateMetaNode, error) {
+func newBuildCreateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgCreateMetaNode, error) {
 	flagAmountStr, err := fs.GetString(FlagAmount)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	amount, err := sdk.ParseCoinNormalized(flagAmountStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
 
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	pubKey, er := stratos.SdsPubKeyFromBech32(pkStr)
 	if er != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	moniker, _ := fs.GetString(FlagMoniker)
@@ -452,20 +429,20 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 	)
 	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, description)
 	if er != nil {
-		return txf, nil, err
+		return nil, err
 	}
-	return txf, msg, nil
+	return msg, nil
 }
 
 // makes a new MsgUpdateResourceNode.
-func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateResourceNode, error) {
+func newBuildUpdateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgUpdateResourceNode, error) {
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
@@ -485,27 +462,27 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs 
 
 	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
 	if err != nil {
-		return txf, nil, types.ErrInvalidNodeType
+		return nil, types.ErrInvalidNodeType
 	}
 
 	// validate nodeTypeVal
 	nodeType := types.NodeType(nodeTypeVal)
 	if t := nodeType.Type(); t == "UNKNOWN" {
-		return txf, nil, types.ErrNodeType
+		return nil, types.ErrNodeType
 	}
 	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr)
-	return txf, msg, nil
+	return msg, nil
 }
 
 // makes a new MsgUpdateMetaNode.
-func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNode, error) {
+func newBuildUpdateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgUpdateMetaNode, error) {
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
@@ -524,126 +501,126 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *fla
 	)
 
 	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr)
-	return txf, msg, nil
+	return msg, nil
 }
 
 // newBuildUpdateResourceNodeDepositMsg makes a new MsgUpdateResourceNodeDeposit.
-func newBuildUpdateResourceNodeDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (
-	tx.Factory, *types.MsgUpdateResourceNodeDeposit, error) {
+func newBuildUpdateResourceNodeDepositMsg(clientCtx client.Context, fs *flag.FlagSet) (
+	*types.MsgUpdateResourceNodeDeposit, error) {
 
 	depositDeltaStr, err := fs.GetString(FlagDepositDelta)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	depositDelta, err := sdk.ParseCoinNormalized(depositDeltaStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
 
 	msg := types.NewMsgUpdateResourceNodeDeposit(networkAddr, ownerAddr, depositDelta)
-	return txf, msg, nil
+	return msg, nil
 }
 
 // newBuildUpdateMetaNodeDepositMsg makes a new MsgUpdateMetaNodeDeposit.
-func newBuildUpdateMetaNodeDepositMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgUpdateMetaNodeDeposit, error) {
+func newBuildUpdateMetaNodeDepositMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgUpdateMetaNodeDeposit, error) {
 	depositDeltaStr, err := fs.GetString(FlagDepositDelta)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	depositDelta, err := sdk.ParseCoinNormalized(depositDeltaStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	networkAddrStr, _ := fs.GetString(FlagNetworkAddress)
 	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
 
 	msg := types.NewMsgUpdateMetaNodeDeposit(networkAddr, ownerAddr, depositDelta)
-	return txf, msg, nil
+	return msg, nil
 }
 
-func newBuildMetaNodeRegistrationVoteMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgMetaNodeRegistrationVote, error) {
+func newBuildMetaNodeRegistrationVoteMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgMetaNodeRegistrationVote, error) {
 	candidateNetworkAddrStr, err := fs.GetString(FlagCandidateNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	candidateNetworkAddr, err := stratos.SdsAddressFromBech32(candidateNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	candidateOwnerAddrStr, err := fs.GetString(FlagCandidateOwnerAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	candidateOwnerAddr, err := sdk.AccAddressFromBech32(candidateOwnerAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	opinionVal, err := fs.GetBool(FlagOpinion)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	//opinion := types.VoteOpinionFromBool(opinionVal)
 	voterNetworkAddrStr, err := fs.GetString(FlagVoterNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	voterNetworkAddr, err := stratos.SdsAddressFromBech32(voterNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	voterOwnerAddr := clientCtx.GetFromAddress()
 
 	msg := types.NewMsgMetaNodeRegistrationVote(candidateNetworkAddr, candidateOwnerAddr, opinionVal, voterNetworkAddr, voterOwnerAddr)
-	return txf, msg, nil
+	return msg, nil
 }
 
-func newBuildRemoveResourceNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgRemoveResourceNode, error) {
+func newBuildRemoveResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgRemoveResourceNode, error) {
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
 
 	msg := types.NewMsgRemoveResourceNode(networkAddr, ownerAddr)
 
-	return txf, msg, nil
+	return msg, nil
 }
 
-func newBuildRemoveMetaNodeMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgRemoveMetaNode, error) {
+func newBuildRemoveMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgRemoveMetaNode, error) {
 	flagNetworkAddrStr, err := fs.GetString(FlagNetworkAddress)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	networkAddr, err := stratos.SdsAddressFromBech32(flagNetworkAddrStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
 
 	msg := types.NewMsgRemoveMetaNode(networkAddr, ownerAddr)
 
-	return txf, msg, nil
+	return msg, nil
 }

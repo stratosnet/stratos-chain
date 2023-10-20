@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cometbft/cometbft/libs/log"
+	tmpubsub "github.com/cometbft/cometbft/libs/pubsub"
+	tmquery "github.com/cometbft/cometbft/libs/pubsub/query"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/pkg/errors"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/big"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 
@@ -161,18 +162,18 @@ func IsLondon(ethConfig *params.ChainConfig, height int64) bool {
 	return ethConfig.IsLondon(big.NewInt(height))
 }
 
-// creates a new FeeMarketParams instance
+// NewFeeMarketParams creates a new FeeMarketParams instance
 func NewFeeMarketParams(noBaseFee bool, baseFeeChangeDenom, elasticityMultiplier uint32, baseFee uint64, enableHeight int64) FeeMarketParams {
 	return FeeMarketParams{
 		NoBaseFee:                noBaseFee,
 		BaseFeeChangeDenominator: baseFeeChangeDenom,
 		ElasticityMultiplier:     elasticityMultiplier,
-		BaseFee:                  sdk.NewIntFromUint64(baseFee),
+		BaseFee:                  sdkmath.NewIntFromUint64(baseFee),
 		EnableHeight:             enableHeight,
 	}
 }
 
-// DefaultParams returns default evm parameters
+// DefaultFeeMarketParams returns default evm parameters
 func DefaultFeeMarketParams() FeeMarketParams {
 	return NewFeeMarketParams(
 		false,
@@ -226,7 +227,7 @@ func validateElasticityMultiplier(i interface{}) error {
 }
 
 func validateBaseFee(i interface{}) error {
-	value, ok := i.(sdk.Int)
+	value, ok := i.(sdkmath.Int)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}

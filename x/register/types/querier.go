@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -10,9 +11,9 @@ import (
 )
 
 const (
-	QueryType_All     = 0
-	QueryType_SP      = 1
-	QueryType_PP      = 2
+	QueryTypeAll      = 0
+	QueryTypeSP       = 1
+	QueryTypePP       = 2
 	QueryDefaultLimit = 100
 )
 
@@ -49,7 +50,7 @@ func NewQueryNodeDepositParams(nodeAddr stratos.SdsAddress, queryType int64) Que
 
 // NewQueryDepositTotalInfo creates a new instance of QueryDepositTotalResponse
 func NewQueryDepositTotalInfo(bondDenom string, ResourceNodeTotalDeposit, MetaNodeTotalDeposit, totalBondedDeposit,
-	totalUnbondedDeposit, totalUnbondingDeposit sdk.Int) *QueryDepositTotalResponse {
+	totalUnbondedDeposit, totalUnbondingDeposit sdkmath.Int) *QueryDepositTotalResponse {
 
 	resValue := sdk.NewCoin(bondDenom, ResourceNodeTotalDeposit)
 	metaValue := sdk.NewCoin(bondDenom, MetaNodeTotalDeposit)
@@ -70,9 +71,9 @@ func NewQueryDepositTotalInfo(bondDenom string, ResourceNodeTotalDeposit, MetaNo
 func NewDepositInfoByResourceNodeAddr(
 	bondDenom string,
 	resourceNode ResourceNode,
-	unBondingDeposit sdk.Int,
-	unBondedDeposit sdk.Int,
-	bondedDeposit sdk.Int,
+	unBondingDeposit sdkmath.Int,
+	unBondedDeposit sdkmath.Int,
+	bondedDeposit sdkmath.Int,
 
 ) DepositInfo {
 	bonedValue := sdk.NewCoin(bondDenom, bondedDeposit)
@@ -99,9 +100,9 @@ func NewDepositInfoByResourceNodeAddr(
 func NewDepositInfoByMetaNodeAddr(
 	bondDenom string,
 	metaNode MetaNode,
-	unBondingDeposit sdk.Int,
-	unBondedDeposit sdk.Int,
-	bondedDeposit sdk.Int,
+	unBondingDeposit sdkmath.Int,
+	unBondedDeposit sdkmath.Int,
+	bondedDeposit sdkmath.Int,
 ) DepositInfo {
 	bonedValue := sdk.NewCoin(bondDenom, bondedDeposit)
 	unBondedValue := sdk.NewCoin(bondDenom, unBondedDeposit)

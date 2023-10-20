@@ -14,7 +14,7 @@ import (
 
 func initCodec() codec.Codec {
 	encodingConfig := app.MakeTestEncodingConfig()
-	cdc := encodingConfig.Marshaler
+	cdc := encodingConfig.Codec
 	return cdc
 }
 
