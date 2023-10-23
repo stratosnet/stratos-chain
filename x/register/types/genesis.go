@@ -85,11 +85,8 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 		return MetaNode{}, errors.Wrap(ErrInvalidNetworkAddr, err.Error())
 	}
 
-	tokens, err := sdk.ParseCoinsNormalized(v.Tokens)
-	if err != nil {
-		return MetaNode{}, errors.Wrap(ErrBadDenom, err.Error())
-	}
-	tokenAmt := tokens.AmountOf(DefaultBondDenom)
+	tokens := sdk.NormalizeCoin(v.Tokens)
+	tokenAmt := tokens.Amount
 
 	return MetaNode{
 		NetworkAddress: netAddr.String(),

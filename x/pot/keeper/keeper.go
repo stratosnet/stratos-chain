@@ -16,7 +16,6 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
-	paramstypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -28,7 +27,6 @@ import (
 type Keeper struct {
 	storeKey       storetypes.StoreKey
 	cdc            codec.Codec
-	paramSpace     paramstypes.Subspace
 	accountKeeper  types.AccountKeeper
 	bankKeeper     types.BankKeeper
 	distrKeeper    types.DistrKeeper

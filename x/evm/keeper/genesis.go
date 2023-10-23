@@ -1,4 +1,4 @@
-package evm
+package keeper
 
 import (
 	"bytes"
@@ -13,14 +13,12 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
-	"github.com/stratosnet/stratos-chain/x/evm/keeper"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 // InitGenesis initializes genesis state based on exported genesis
-func InitGenesis(
+func (k *Keeper) InitGenesis(
 	ctx sdk.Context,
-	k *keeper.Keeper,
 	accountKeeper types.AccountKeeper,
 	data types.GenesisState,
 ) []abci.ValidatorUpdate {
@@ -68,7 +66,7 @@ func InitGenesis(
 }
 
 // ExportGenesis exports genesis state of the EVM module
-func ExportGenesis(ctx sdk.Context, k *keeper.Keeper, ak types.AccountKeeper) *types.GenesisState {
+func (k *Keeper) ExportGenesis(ctx sdk.Context, ak types.AccountKeeper) *types.GenesisState {
 	var ethGenAccounts []types.GenesisAccount
 	ak.IterateAccounts(ctx, func(account authtypes.AccountI) bool {
 		ethAccount, ok := account.(stratos.EthAccountI)

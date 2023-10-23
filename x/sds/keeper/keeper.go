@@ -11,8 +11,6 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
@@ -21,9 +19,8 @@ import (
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
-	key            storetypes.StoreKey
+	storeKey       storetypes.StoreKey
 	cdc            codec.Codec
-	paramSpace     paramtypes.Subspace
 	bankKeeper     types.BankKeeper
 	registerKeeper types.RegisterKeeper
 	potKeeper      types.PotKeeper
@@ -38,14 +35,14 @@ type Keeper struct {
 // nolint
 func NewKeeper(
 	cdc codec.Codec,
-	key storetypes.StoreKey,
+	storeKey storetypes.StoreKey,
 	bankKeeper types.BankKeeper,
 	registerKeeper types.RegisterKeeper,
 	potKeeper types.PotKeeper,
 	authority string,
 ) Keeper {
 	return Keeper{
-		key:            key,
+		storeKey:       storeKey,
 		cdc:            cdc,
 		bankKeeper:     bankKeeper,
 		registerKeeper: registerKeeper,

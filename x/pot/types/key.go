@@ -14,9 +14,6 @@ const (
 
 	// RouterKey to be used for routing msgs
 	RouterKey = ModuleName
-
-	// QuerierRoute to be used for querier msgs
-	QuerierRoute = ModuleName
 )
 
 var (
@@ -27,6 +24,8 @@ var (
 	ImmatureTotalRewardKeyPrefix  = []byte{0x05} // key: prefix{address}
 	VolumeReportStoreKeyPrefix    = []byte{0x06} // VolumeReportStoreKeyPrefix prefix for volumeReport store
 	MaturedEpochKeyPrefix         = []byte{0x07}
+
+	ParamsKey = []byte{0x20}
 )
 
 func VolumeReportStoreKey(epoch sdkmath.Int) []byte {

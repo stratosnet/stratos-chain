@@ -15,8 +15,6 @@ const (
 	StoreKey = ModuleName
 	// RouterKey to be used for routing msgs
 	RouterKey = ModuleName
-	// QuerierRoute to be used for querier msgs
-	QuerierRoute = ModuleName
 	// ResourceNodeBondedPool stores the total balance of bonded resource nodes
 	ResourceNodeBondedPool = "resource_node_bonded_pool"
 	// ResourceNodeNotBondedPool stores the total balance of not bonded resource nodes
@@ -43,6 +41,7 @@ var (
 	UBDNodeKey                      = []byte{0x11} // prefix for each key to an unbonding node
 	UBDNodeQueueKey                 = []byte{0x12} // prefix for the timestamps in unbonding node queue
 
+	ParamsKey = []byte{0x20}
 )
 
 // GetResourceNodeKey gets the key for the resourceNode with address

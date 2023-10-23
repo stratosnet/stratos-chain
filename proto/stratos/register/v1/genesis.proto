@@ -4,6 +4,8 @@ package stratos.register.v1;
 import "google/protobuf/any.proto";
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
+import "cosmos/base/v1beta1/coin.proto";
 import "cosmos/staking/v1beta1/staking.proto";
 import "stratos/register/v1/register.proto";
 
@@ -14,23 +16,27 @@ option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 message GenesisState {
   Params                  params = 1 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "params",
     (gogoproto.moretags) = "yaml:\"params\""
   ];
   repeated ResourceNode   resource_nodes = 2 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "resource_nodes",
     (gogoproto.moretags) = "yaml:\"resource_nodes\"",
     (gogoproto.castrepeated) = "ResourceNodes"
   ];
   repeated MetaNode       meta_nodes = 3 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "meta_nodes",
     (gogoproto.moretags) = "yaml:\"meta_nodes\"",
     (gogoproto.castrepeated) = "MetaNodes"
   ];
   string                  remaining_noz_limit = 4 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "remaining_noz_limit",
     (gogoproto.moretags) = "yaml:\"remaining_noz_limit\"",
     (cosmos_proto.scalar) = "cosmos.Int",
@@ -38,11 +44,13 @@ message GenesisState {
   ]; // remaining noz limit
   repeated Slashing       slashing = 5 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "slashing",
     (gogoproto.moretags) = "yaml:\"slashing_info\""
   ];
   string                  deposit_noz_rate = 6 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "deposit_noz_rate",
     (gogoproto.moretags) = "yaml:\"deposit_noz_rate\"",
     (cosmos_proto.scalar) = "cosmos.Dec",
@@ -52,6 +60,7 @@ message GenesisState {
 
 message GenesisMetaNode {
   string                              network_address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ]; // network address of the meta node
@@ -68,16 +77,20 @@ message GenesisMetaNode {
     (gogoproto.jsontag) = "status",
     (gogoproto.moretags) = "yaml:\"status\""
   ];   // meta node status (Unspecified/Bonded/Unbonding/Unbonded)
-  string                              tokens = 5 [
+  cosmos.base.v1beta1.Coin            tokens = 5 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\""
   ]; // delegated tokens
   string                              owner_address = 6 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ]; // owner address of the meta node
   Description                         description = 7 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];  // description terms for the meta node
@@ -85,6 +98,7 @@ message GenesisMetaNode {
 
 message Slashing {
   string  wallet_address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "wallet_address",
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];

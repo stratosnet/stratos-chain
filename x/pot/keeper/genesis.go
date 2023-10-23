@@ -1,4 +1,4 @@
-package pot
+package keeper
 
 import (
 	"fmt"
@@ -6,23 +6,22 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/stratosnet/stratos-chain/x/pot/keeper"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
-	keeper.SetParams(ctx, data.Params)
-	keeper.SetTotalMinedTokens(ctx, sdk.NewCoin(keeper.RewardDenom(ctx), sdkmath.NewInt(0)))
-	keeper.SetLastDistributedEpoch(ctx, data.LastDistributedEpoch)
+func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
+	k.SetParams(ctx, data.Params)
+	k.SetTotalMinedTokens(ctx, sdk.NewCoin(k.RewardDenom(ctx), sdkmath.NewInt(0)))
+	k.SetLastDistributedEpoch(ctx, data.LastDistributedEpoch)
 
 	for _, immatureTotal := range data.ImmatureTotalInfo {
 		walletAddr, err := sdk.AccAddressFromBech32(immatureTotal.WalletAddress)
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetImmatureTotalReward(ctx, walletAddr, immatureTotal.Value)
+		k.SetImmatureTotalReward(ctx, walletAddr, immatureTotal.Value)
 	}
 
 	for _, matureTotal := range data.MatureTotalInfo {
@@ -30,7 +29,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetMatureTotalReward(ctx, walletAddr, matureTotal.Value)
+		k.SetMatureTotalReward(ctx, walletAddr, matureTotal.Value)
 	}
 
 	for _, individual := range data.IndividualRewardInfo {
@@ -38,15 +37,15 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		if err != nil {
 			panic("invliad wallet address when init genesis of PoT module")
 		}
-		keeper.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdkmath.NewInt(data.Params.MatureEpoch)), individual)
+		k.SetIndividualReward(ctx, walletAddr, data.LastDistributedEpoch.Add(sdkmath.NewInt(data.Params.MatureEpoch)), individual)
 	}
 
-	keeper.SetMaturedEpoch(ctx, data.MaturedEpoch)
+	k.SetMaturedEpoch(ctx, data.MaturedEpoch)
 	// ensure total supply of bank module is LT InitialTotalSupply
-	totalSupply := keeper.GetSupply(ctx)
-	if keeper.GetParams(ctx).InitialTotalSupply.IsLT(totalSupply) {
+	totalSupply := k.GetSupply(ctx)
+	if k.GetParams(ctx).InitialTotalSupply.IsLT(totalSupply) {
 		errMsg := fmt.Sprintf("current total supply[%v] is greater than total supply limit[%v]",
-			totalSupply.String(), keeper.GetParams(ctx).InitialTotalSupply.String())
+			totalSupply.String(), k.GetParams(ctx).InitialTotalSupply.String())
 		panic(errMsg)
 	}
 }
@@ -54,20 +53,20 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisState) {
-	params := keeper.GetParams(ctx)
-	totalMinedToken := keeper.GetTotalMinedTokens(ctx)
-	lastDistributedEpoch := keeper.GetLastDistributedEpoch(ctx)
+func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
+	params := k.GetParams(ctx)
+	totalMinedToken := k.GetTotalMinedTokens(ctx)
+	lastDistributedEpoch := k.GetLastDistributedEpoch(ctx)
 
 	var individualRewardInfo []types.Reward
 	var immatureTotalInfo []types.ImmatureTotal
-	keeper.IteratorImmatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
+	k.IteratorImmatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
 		if !reward.Empty() && !reward.IsZero() {
 			immatureTotal := types.NewImmatureTotal(walletAddress, reward)
 			immatureTotalInfo = append(immatureTotalInfo, immatureTotal)
 
-			miningReward := sdk.NewCoins(sdk.NewCoin(keeper.RewardDenom(ctx), reward.AmountOf(keeper.RewardDenom(ctx))))
-			trafficReward := sdk.NewCoins(sdk.NewCoin(keeper.BondDenom(ctx), reward.AmountOf(keeper.BondDenom(ctx))))
+			miningReward := sdk.NewCoins(sdk.NewCoin(k.RewardDenom(ctx), reward.AmountOf(k.RewardDenom(ctx))))
+			trafficReward := sdk.NewCoins(sdk.NewCoin(k.BondDenom(ctx), reward.AmountOf(k.BondDenom(ctx))))
 			individualReward := types.NewReward(walletAddress, miningReward, trafficReward)
 			individualRewardInfo = append(individualRewardInfo, individualReward)
 
@@ -76,7 +75,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 	})
 
 	var matureTotalInfo []types.MatureTotal
-	keeper.IteratorMatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
+	k.IteratorMatureTotal(ctx, func(walletAddress sdk.AccAddress, reward sdk.Coins) (stop bool) {
 		if !reward.Empty() && !reward.IsZero() {
 			matureTotal := types.NewMatureTotal(walletAddress, reward)
 			matureTotalInfo = append(matureTotalInfo, matureTotal)
@@ -84,7 +83,7 @@ func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisSt
 		return false
 	})
 
-	maturedEpoch := keeper.GetMaturedEpoch(ctx)
+	maturedEpoch := k.GetMaturedEpoch(ctx)
 
 	return types.NewGenesisState(
 		params,

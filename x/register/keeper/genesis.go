@@ -1,23 +1,22 @@
-package register
+package keeper
 
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/stratosnet/stratos-chain/x/register/keeper"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 // InitGenesis initialize default parameters
 // and the keeper's address to pubkey map
-func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState) {
-	keeper.SetParams(ctx, data.Params)
+func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
+	k.SetParams(ctx, data.Params)
 
-	freshStart := keeper.GetResourceNodeNotBondedToken(ctx).IsZero() &&
-		keeper.GetResourceNodeBondedToken(ctx).IsZero() &&
-		keeper.GetMetaNodeNotBondedToken(ctx).IsZero() &&
-		keeper.GetMetaNodeBondedToken(ctx).IsZero()
+	freshStart := k.GetResourceNodeNotBondedToken(ctx).IsZero() &&
+		k.GetResourceNodeBondedToken(ctx).IsZero() &&
+		k.GetMetaNodeNotBondedToken(ctx).IsZero() &&
+		k.GetMetaNodeBondedToken(ctx).IsZero()
 
 	initialDepositTotal := sdkmath.ZeroInt()
 	lenOfGenesisBondedResourceNode := int64(0)
@@ -34,16 +33,16 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 				initialDepositTotal = initialDepositTotal.Add(resourceNode.EffectiveTokens)
 			}
 			if freshStart {
-				amount := sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens)
-				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeBondedPool, sdk.NewCoins(amount))
+				amount := sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens)
+				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
 			}
 		case stakingtypes.Unbonded:
 			if freshStart {
-				amount := sdk.NewCoin(keeper.BondDenom(ctx), resourceNode.Tokens)
-				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeNotBondedPool, sdk.NewCoins(amount))
+				amount := sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens)
+				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeNotBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
@@ -51,10 +50,10 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		default:
 			panic(types.ErrInvalidNodeStat)
 		}
-		keeper.SetResourceNode(ctx, resourceNode)
+		k.SetResourceNode(ctx, resourceNode)
 	}
 	// set initial genesis number of resource nodes
-	keeper.SetBondedResourceNodeCnt(ctx, sdkmath.NewInt(lenOfGenesisBondedResourceNode))
+	k.SetBondedResourceNodeCnt(ctx, sdkmath.NewInt(lenOfGenesisBondedResourceNode))
 
 	lenOfGenesisBondedMetaNode := int64(0)
 	for _, metaNode := range data.GetMetaNodes() {
@@ -69,16 +68,16 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 				initialDepositTotal = initialDepositTotal.Add(metaNode.Tokens)
 			}
 			if freshStart {
-				amount := sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens)
-				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeBondedPool, sdk.NewCoins(amount))
+				amount := sdk.NewCoin(k.BondDenom(ctx), metaNode.Tokens)
+				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
 			}
 		case stakingtypes.Unbonded:
 			if freshStart {
-				amount := sdk.NewCoin(keeper.BondDenom(ctx), metaNode.Tokens)
-				err = keeper.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeNotBondedPool, sdk.NewCoins(amount))
+				amount := sdk.NewCoin(k.BondDenom(ctx), metaNode.Tokens)
+				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeNotBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
@@ -86,17 +85,17 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		default:
 			panic(types.ErrInvalidNodeStat)
 		}
-		keeper.SetMetaNode(ctx, metaNode)
+		k.SetMetaNode(ctx, metaNode)
 	}
 	// set initial genesis number of meta nodes
-	keeper.SetBondedMetaNodeCnt(ctx, sdkmath.NewInt(lenOfGenesisBondedMetaNode))
+	k.SetBondedMetaNodeCnt(ctx, sdkmath.NewInt(lenOfGenesisBondedMetaNode))
 
-	totalUnissuedPrepay := keeper.GetTotalUnissuedPrepay(ctx).Amount
-	keeper.SetInitialGenesisDepositTotal(ctx, initialDepositTotal)
-	keeper.SetEffectiveTotalDeposit(ctx, initialDepositTotal)
+	totalUnissuedPrepay := k.GetTotalUnissuedPrepay(ctx).Amount
+	k.SetInitialGenesisDepositTotal(ctx, initialDepositTotal)
+	k.SetEffectiveTotalDeposit(ctx, initialDepositTotal)
 	depositNozRate := sdkmath.LegacyZeroDec()
 	depositNozRate = depositNozRate.Add(data.DepositNozRate)
-	keeper.SetDepositNozRate(ctx, depositNozRate)
+	k.SetDepositNozRate(ctx, depositNozRate)
 
 	// calc total noz supply with EffectiveGenesisDepositTotal and depositNozRate
 	totalNozSupply := initialDepositTotal.ToLegacyDec().Quo(depositNozRate).TruncateInt()
@@ -108,7 +107,7 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 		// not fresh start
 		initOzoneLimit = initOzoneLimit.Add(data.RemainingNozLimit)
 	}
-	keeper.SetRemainingOzoneLimit(ctx, initOzoneLimit)
+	k.SetRemainingOzoneLimit(ctx, initOzoneLimit)
 
 	for _, slashing := range data.Slashing {
 		walletAddress, err := sdk.AccAddressFromBech32(slashing.GetWalletAddress())
@@ -116,10 +115,10 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 			panic(err)
 		}
 
-		keeper.SetSlashing(ctx, walletAddress, sdkmath.NewInt(slashing.Value))
+		k.SetSlashing(ctx, walletAddress, sdkmath.NewInt(slashing.Value))
 	}
 
-	keeper.ReloadMetaNodeBitMapIdxCache(ctx)
+	k.ReloadMetaNodeBitMapIdxCache(ctx)
 
 	return
 }
@@ -127,16 +126,16 @@ func InitGenesis(ctx sdk.Context, keeper keeper.Keeper, data *types.GenesisState
 // ExportGenesis writes the current store values
 // to a genesis file, which can be imported again
 // with InitGenesis
-func ExportGenesis(ctx sdk.Context, keeper keeper.Keeper) (data *types.GenesisState) {
-	params := keeper.GetParams(ctx)
+func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
+	params := k.GetParams(ctx)
 
-	resourceNodes := keeper.GetAllResourceNodes(ctx)
-	metaNodes := keeper.GetAllMetaNodes(ctx)
-	remainingNozLimit := keeper.GetRemainingOzoneLimit(ctx)
-	depositNozRate := keeper.GetDepositNozRate(ctx)
+	resourceNodes := k.GetAllResourceNodes(ctx)
+	metaNodes := k.GetAllMetaNodes(ctx)
+	remainingNozLimit := k.GetRemainingOzoneLimit(ctx)
+	depositNozRate := k.GetDepositNozRate(ctx)
 
 	var slashingInfo []types.Slashing
-	keeper.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdkmath.Int) (stop bool) {
+	k.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdkmath.Int) (stop bool) {
 		if val.GT(sdkmath.ZeroInt()) {
 			slashing := types.NewSlashing(walletAddress, val)
 			slashingInfo = append(slashingInfo, slashing)

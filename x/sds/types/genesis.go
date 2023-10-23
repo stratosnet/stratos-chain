@@ -8,8 +8,8 @@ import (
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params *Params, files []GenesisFileInfo) GenesisState {
-	return GenesisState{
+func NewGenesisState(params Params, files []GenesisFileInfo) *GenesisState {
+	return &GenesisState{
 		Params: params,
 		Files:  files,
 	}
@@ -35,7 +35,7 @@ func GetGenesisStateFromAppState(cdc codec.JSONCodec, appState map[string]json.R
 
 // ValidateGenesis validates the sds genesis parameters
 func ValidateGenesis(data GenesisState) error {
-	if err := data.Params.ValidateBasic(); err != nil {
+	if err := data.Params.Validate(); err != nil {
 		return err
 	}
 

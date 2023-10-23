@@ -3,12 +3,15 @@ package stratos.evm.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 
 option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/evm/types";
 
 // Params defines the EVM module parameters
 message Params {
+  option (gogoproto.goproto_stringer) = true;
+  option (amino.name) = "stratos/x/evm/Params";
   // evm denom represents the token denomination used to run the EVM state
   // transitions.
   string evm_denom = 1 [ (gogoproto.moretags) = "yaml:\"evm_denom\"" ];
@@ -23,12 +26,14 @@ message Params {
   ];
   // chain config defines the EVM chain configuration parameters
   ChainConfig chain_config = 5 [
-    (gogoproto.moretags) = "yaml:\"chain_config\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.moretags) = "yaml:\"chain_config\""
   ];
   FeeMarketParams fee_market_params = 6 [
-    (gogoproto.moretags) = "yaml:\"fee_market_params\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.moretags) = "yaml:\"fee_market_params\""
   ];
 }
 
@@ -207,8 +212,9 @@ message TxResult {
   // tx_logs contains the transaction hash and the proto-compatible ethereum
   // logs.
   TransactionLogs tx_logs = 3 [
-    (gogoproto.moretags) = "yaml:\"tx_logs\"",
-    (gogoproto.nullable) = false
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.moretags) = "yaml:\"tx_logs\""
   ];
   // ret defines the bytes from the execution.
   bytes ret = 4;
@@ -275,8 +281,9 @@ message FeeMarketParams {
   int64 enable_height = 5;
   // base fee for EIP-1559 blocks.
   string base_fee = 6 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
-    (gogoproto.nullable) = false
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }

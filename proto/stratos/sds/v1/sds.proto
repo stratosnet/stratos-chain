@@ -3,12 +3,16 @@ package stratos.sds.v1;
 
 import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 
 option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
-// Params defines the Register module parameters
+// Params defines the parameters for the sds module.
 message Params {
+  option (gogoproto.goproto_stringer) = true;
+  option (amino.name) = "stratos/x/sds/Params";
+
   string  bond_denom = 1 [
     (gogoproto.jsontag) = "bond_denom",
     (gogoproto.moretags) = "yaml:\"bond_denom\""
@@ -28,6 +32,7 @@ message FileInfo {
     (gogoproto.moretags) = "yaml:\"reporters\""
   ];
   string            uploader = 3 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "uploader",
     (gogoproto.moretags) = "yaml:\"uploader\""
   ];
