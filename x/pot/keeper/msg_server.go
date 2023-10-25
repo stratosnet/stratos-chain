@@ -3,17 +3,13 @@ package keeper
 import (
 	"bytes"
 	"context"
-	"encoding/hex"
 	"fmt"
-	"strconv"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/bech32"
 	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
 
@@ -92,18 +88,13 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 		return nil, errors.Wrap(types.ErrVolumeReport, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeVolumeReport,
-			sdk.NewAttribute(types.AttributeKeyReportReference, hex.EncodeToString([]byte(msg.ReportReference))),
-			sdk.NewAttribute(types.AttributeKeyEpoch, msg.Epoch.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.ReporterOwner),
-		),
+	err = ctx.EventManager().EmitTypedEvent(&types.EventVolumeReport{
+		ReportReference: msg.GetReportReference(),
+		Epoch:           msg.Epoch,
 	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgVolumeReportResponse{}, nil
 }
@@ -123,62 +114,16 @@ func (k msgServer) HandleMsgWithdraw(goCtx context.Context, msg *types.MsgWithdr
 		return &types.MsgWithdrawResponse{}, errors.Wrap(types.ErrWithdrawFailure, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeWithdraw,
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.WalletAddress),
-		),
+	err = ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
+		Amount:        msg.GetAmount(),
+		WalletAddress: msg.GetWalletAddress(),
+		TargetAddress: msg.GetTargetAddress(),
 	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgWithdrawResponse{}, nil
-}
-
-func (k msgServer) HandleMsgLegacyWithdraw(goCtx context.Context, msg *types.MsgLegacyWithdraw) (*types.MsgLegacyWithdrawResponse, error) {
-	ctx := sdk.UnwrapSDKContext(goCtx)
-
-	targetAddress, err := sdk.AccAddressFromBech32(msg.TargetAddress)
-	if err != nil {
-		return &types.MsgLegacyWithdrawResponse{}, errors.Wrap(types.ErrInvalidAddress, err.Error())
-	}
-
-	fromAddress, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		return &types.MsgLegacyWithdrawResponse{}, errors.Wrap(types.ErrInvalidAddress, err.Error())
-	}
-
-	fromAcc := k.accountKeeper.GetAccount(ctx, fromAddress)
-	pubKey := fromAcc.GetPubKey()
-	legacyPubKey := secp256k1.PubKey{Key: pubKey.Bytes()}
-	legacyWalletAddress := sdk.AccAddress(legacyPubKey.Address().Bytes())
-
-	legacyWalletAddrStr, err := bech32.ConvertAndEncode(stratos.AccountAddressPrefix, legacyWalletAddress.Bytes())
-	if err != nil {
-		return &types.MsgLegacyWithdrawResponse{}, errors.Wrap(types.ErrLegacyWithdrawFailure, err.Error())
-	}
-
-	err = k.Withdraw(ctx, msg.Amount, legacyWalletAddress, targetAddress)
-	if err != nil {
-		return &types.MsgLegacyWithdrawResponse{}, errors.Wrap(types.ErrLegacyWithdrawFailure, err.Error())
-	}
-
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeLegacyWithdraw,
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-			sdk.NewAttribute(types.AttributeKeyLegacyWalletAddress, legacyWalletAddrStr),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
-		),
-	})
-	return &types.MsgLegacyWithdrawResponse{}, nil
 }
 
 func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.MsgFoundationDeposit) (*types.MsgFoundationDepositResponse, error) {
@@ -192,17 +137,13 @@ func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.
 		return &types.MsgFoundationDepositResponse{}, errors.Wrap(types.ErrFoundationDepositFailure, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeFoundationDeposit,
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.Amount.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
-		),
+	err = ctx.EventManager().EmitTypedEvent(&types.EventFoundationDeposit{
+		Amount: msg.GetAmount(),
 	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgFoundationDepositResponse{}, nil
 }
 
@@ -244,15 +185,17 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 	if err != nil {
 		return &types.MsgSlashingResourceNodeResponse{}, errors.Wrap(types.ErrSlashingResourceNodeFailure, err.Error())
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeSlashing,
-			sdk.NewAttribute(types.AttributeKeyWalletAddress, msg.WalletAddress),
-			sdk.NewAttribute(types.AttributeKeyNodeP2PAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyAmount, tokenAmt.String()),
-			sdk.NewAttribute(types.AttributeKeySlashingNodeType, nodeType.String()),
-			sdk.NewAttribute(types.AttributeKeyNodeSuspended, strconv.FormatBool(msg.Suspend)),
-		),
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventSlashing{
+		WalletAddress:  msg.GetWalletAddress(),
+		NetworkAddress: msg.GetNetworkAddress(),
+		Amount:         tokenAmt,
+		SlashingType:   nodeType.String(),
+		Suspend:        msg.GetSuspend(),
 	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgSlashingResourceNodeResponse{}, nil
 }

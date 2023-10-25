@@ -97,13 +97,10 @@ func (k *Keeper) SetTracer(tracer string) {
 // ----------------------------------------------------------------------------
 
 // EmitBlockBloomEvent emit block bloom events
-func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) {
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeBlockBloom,
-			sdk.NewAttribute(types.AttributeKeyEthereumBloom, string(bloom.Bytes())),
-		),
-	)
+func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) error {
+	return ctx.EventManager().EmitTypedEvent(&types.EventBlockBloom{
+		Bloom: string(bloom.Bytes()),
+	})
 }
 
 // GetBlockBloomTransient returns bloom bytes for the current block height

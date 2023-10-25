@@ -22,21 +22,15 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 			continue
 		}
 		if isMetaNode {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeCompleteUnbondingMetaNode,
-					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
-				),
-			)
+			_ = ctx.EventManager().EmitTypedEvent(&types.EventCompleteUnBondingMetaNode{
+				Amount:         balances,
+				NetworkAddress: networkAddr,
+			})
 		} else {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeCompleteUnbondingResourceNode,
-					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
-				),
-			)
+			_ = ctx.EventManager().EmitTypedEvent(&types.EventCompleteUnBondingResourceNode{
+				Amount:         balances,
+				NetworkAddress: networkAddr,
+			})
 		}
 
 	}

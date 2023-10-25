@@ -36,7 +36,6 @@ func NewTxCmd() *cobra.Command {
 	potTxCmd.AddCommand(
 		VolumeReportCmd(),
 		WithdrawCmd(),
-		LegacyWithdrawCmd(),
 		FoundationDepositCmd(),
 		SlashingResourceNodeCmd(),
 	)
@@ -98,67 +97,6 @@ func buildWithdrawMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgWit
 	}
 
 	msg := types.NewMsgWithdraw(amount, walletAddress, targetAddress)
-
-	return msg, nil
-}
-
-func LegacyWithdrawCmd() *cobra.Command {
-	cmd := &cobra.Command{
-		Use:   "legacy-withdraw",
-		Short: "withdraw POT reward recorded by legacy wallet address",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientTxContext(cmd)
-			if err != nil {
-				return err
-			}
-
-			msg, err := buildLegacyWithdrawMsg(clientCtx, cmd.Flags())
-			if err != nil {
-				return err
-			}
-
-			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
-		},
-	}
-
-	cmd.Flags().AddFlagSet(flagSetAmount())
-	cmd.Flags().AddFlagSet(flagSetTargetAddress())
-	flags.AddTxFlagsToCmd(cmd)
-
-	_ = cmd.MarkFlagRequired(FlagAmount)
-	_ = cmd.MarkFlagRequired(flags.FlagFrom)
-
-	return cmd
-}
-
-// makes a new LegacyWithdrawMsg.
-func buildLegacyWithdrawMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgLegacyWithdraw, error) {
-	amountStr, err := fs.GetString(FlagAmount)
-	if err != nil {
-		return nil, err
-	}
-	amount, err := sdk.ParseCoinsNormalized(amountStr)
-	if err != nil {
-		return nil, err
-	}
-	from := clientCtx.GetFromAddress()
-
-	targetAddressStr, err := fs.GetString(FlagTargetAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	var targetAddress sdk.AccAddress
-	if targetAddressStr == "" {
-		targetAddress = from
-	} else {
-		targetAddress, err = sdk.AccAddressFromBech32(targetAddressStr)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	msg := types.NewMsgLegacyWithdraw(amount, from, targetAddress)
 
 	return msg, nil
 }

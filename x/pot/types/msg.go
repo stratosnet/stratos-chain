@@ -11,7 +11,6 @@ import (
 var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
-	_ sdk.Msg = &MsgLegacyWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
 	_ sdk.Msg = &MsgSlashingResourceNode{}
 )
@@ -19,7 +18,6 @@ var (
 const (
 	TypeMsgVolumeReport         = "volume_report"
 	TypeMsgWithdraw             = "withdraw"
-	TypeMsgLegacyWithdraw       = "legacy_withdraw"
 	TypeMsgFoundationDeposit    = "foundation_deposit"
 	TypeMsgSlashingResourceNode = "slashing_resource_node"
 )
@@ -170,55 +168,6 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgLegacyWithdraw(amount sdk.Coins, from sdk.AccAddress, targetAddress sdk.AccAddress) *MsgLegacyWithdraw {
-	return &MsgLegacyWithdraw{
-		Amount:        amount,
-		From:          from.String(),
-		TargetAddress: targetAddress.String(),
-	}
-}
-
-// Route Implement
-func (msg MsgLegacyWithdraw) Route() string { return RouterKey }
-
-// GetSigners Implement
-func (msg MsgLegacyWithdraw) GetSigners() []sdk.AccAddress {
-	var addrs []sdk.AccAddress
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	addrs = append(addrs, from)
-	return addrs
-}
-
-// Type Implement
-func (msg MsgLegacyWithdraw) Type() string { return TypeMsgLegacyWithdraw }
-
-// GetSignBytes gets the bytes for the message signer to sign on
-func (msg MsgLegacyWithdraw) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic validity check for the AnteHandler
-func (msg MsgLegacyWithdraw) ValidateBasic() error {
-	if !(msg.Amount.IsValid()) {
-		return ErrWithdrawAmountInvalid
-	}
-	if len(msg.From) == 0 {
-		return ErrEmptyFromAddr
-	}
-	if len(msg.TargetAddress) == 0 {
-		return ErrMissingTargetAddress
-	}
-	_, err := sdk.AccAddressFromBech32(msg.GetFrom())
-	if err != nil {
-		return ErrInvalidAddress
-	}
-	return nil
-}
-
 func NewMsgFoundationDeposit(amount sdk.Coins, from sdk.AccAddress) *MsgFoundationDeposit {
 	return &MsgFoundationDeposit{
 		Amount: amount,
@@ -281,7 +230,7 @@ func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []
 		ReporterOwner:  reporterOwnerStrSlice,
 		NetworkAddress: networkAddress.String(),
 		WalletAddress:  walletAddress.String(),
-		Slashing:       &slashing,
+		Slashing:       slashing,
 		Suspend:        suspend,
 	}
 }

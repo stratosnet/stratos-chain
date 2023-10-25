@@ -66,6 +66,7 @@ const (
 	codeErrInvalidAmount
 	codeErrReporterAddressOrOwner
 	codeErrInvalidEffectiveToken
+	codeErrEmitEvent
 )
 
 var (
@@ -130,4 +131,5 @@ var (
 	ErrInvalidAmount                      = errors.Register(ModuleName, codeErrInvalidAmount, "invalid amount")
 	ErrReporterAddressOrOwner             = errors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 	ErrInvalidEffectiveToken              = errors.Register(ModuleName, codeErrInvalidEffectiveToken, "invalid effective token")
+	ErrEmitEvent                          = errors.Register(ModuleName, codeErrEmitEvent, "failed to emit event")
 )

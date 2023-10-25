@@ -206,7 +206,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	london := ethCfg.IsLondon(blockHeight)
 	evmDenom := params.EvmDenom
 	gasWanted := uint64(0)
-	var events sdk.Events
+	var events []*evmtypes.EventTx
 
 	for _, msg := range tx.GetMsgs() {
 		msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
@@ -243,11 +243,12 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 			return ctx, errors.Wrapf(err, "failed to deduct transaction costs from user balance")
 		}
 
-		events = append(events, sdk.NewEvent(sdk.EventTypeTx, sdk.NewAttribute(sdk.AttributeKeyFee, fees.String())))
+		events = append(events, &evmtypes.EventTx{Fee: fees.String()})
 	}
 
-	// TODO: change to typed events
-	ctx.EventManager().EmitEvents(events)
+	for _, event := range events {
+		_ = ctx.EventManager().EmitTypedEvent(event)
+	}
 
 	// TODO: deprecate after https://github.com/cosmos/cosmos-sdk/issues/9514  is fixed on SDK
 	blockGasLimit := stratos.BlockGasLimit(ctx)

@@ -6,7 +6,6 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
@@ -47,20 +46,15 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, err
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeFileUpload,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.From),
-			sdk.NewAttribute(types.AttributeKeyReporter, msg.GetReporter()),
-			sdk.NewAttribute(types.AttributeKeyUploader, msg.GetUploader()),
-			sdk.NewAttribute(types.AttributeKeyFileHash, msg.GetFileHash()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetFrom()),
-		),
+	err = ctx.EventManager().EmitTypedEvent(&types.EventFileUpload{
+		Sender:   msg.GetFrom(),
+		Reporter: msg.GetReporter(),
+		Uploader: msg.GetUploader(),
+		FileHash: msg.GetFileHash(),
 	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgFileUploadResponse{}, nil
 }
@@ -84,20 +78,15 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		return nil, errors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypePrepay,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
-			sdk.NewAttribute(types.AttributeKeyBeneficiary, msg.GetBeneficiary()),
-			sdk.NewAttribute(types.AttributeKeyAmount, msg.GetAmount().String()),
-			sdk.NewAttribute(types.AttributeKeyPurchasedNoz, purchased.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.GetSender()),
-		),
+	err = ctx.EventManager().EmitTypedEvent(&types.EventPrePay{
+		Sender:       msg.GetSender(),
+		Beneficiary:  msg.GetBeneficiary(),
+		Amount:       msg.GetAmount(),
+		PurchasedNoz: purchased,
 	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgPrepayResponse{}, nil
 }

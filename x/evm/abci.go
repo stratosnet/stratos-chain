@@ -25,12 +25,13 @@ func BeginBlocker(ctx sdk.Context, _ abci.RequestBeginBlock, k *keeper.Keeper) {
 	k.SetBaseFeeParam(ctx, baseFee)
 
 	// Store current base fee in event
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeFeeMarket,
-			sdk.NewAttribute(types.AttributeKeyBaseFee, baseFee.String()),
-		),
+	err := ctx.EventManager().EmitTypedEvent(&types.EventFeeMarket{
+		BaseFee: baseFee.String(),
 	})
+	if err != nil {
+		k.Logger(ctx).Error(err.Error())
+	}
+
 }
 
 // EndBlocker also retrieves the bloom filter value from the transient store and commits it to the
@@ -46,17 +47,22 @@ func EndBlocker(ctx sdk.Context, _ abci.RequestEndBlock, k *keeper.Keeper) []abc
 
 	k.SetBlockGasUsed(ctx, gasUsed)
 
-	ctx.EventManager().EmitEvent(sdk.NewEvent(
-		"block_gas",
-		sdk.NewAttribute("height", fmt.Sprintf("%d", ctx.BlockHeight())),
-		sdk.NewAttribute("amount", fmt.Sprintf("%d", ctx.BlockGasMeter().GasConsumedToLimit())),
-	))
+	err := ctx.EventManager().EmitTypedEvent(&types.EventBlockGas{
+		Height: fmt.Sprintf("%d", ctx.BlockHeight()),
+		Amount: fmt.Sprintf("%d", ctx.BlockGasMeter().GasConsumedToLimit()),
+	})
+	if err != nil {
+		k.Logger(ctx).Error(err.Error())
+	}
 
 	// Gas costs are handled within msg handler so costs should be ignored
 	infCtx := ctx.WithGasMeter(sdk.NewInfiniteGasMeter())
 
 	bloom := ethtypes.BytesToBloom(k.GetBlockBloomTransient(infCtx).Bytes())
-	k.EmitBlockBloomEvent(infCtx, bloom)
+	err = k.EmitBlockBloomEvent(infCtx, bloom)
+	if err != nil {
+		k.Logger(ctx).Error(err.Error())
+	}
 
 	return []abci.ValidatorUpdate{}
 }
