@@ -398,3 +398,28 @@ func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewa
 	totalReward := q.GetTotalReward(ctx, epoch)
 	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward}, nil
 }
+
+func (q Querier) Metrics(c context.Context, req *types.QueryMetricsRequest) (
+	*types.QueryMetricsResponse, error) {
+	if req == nil {
+		return &types.QueryMetricsResponse{}, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	metrics := q.GetMetrics(ctx)
+	return &types.QueryMetricsResponse{
+		TotalSupply:               metrics.TotalSupply,
+		TotalMiningSupply:         metrics.TotalMiningSupply,
+		TotalMinedTokens:          metrics.TotalMinedTokens,
+		TotalResourceNodesDeposit: metrics.TotalResourceNodesDeposit,
+		TotalBondedDelegation:     metrics.TotalBondedDelegation,
+		TotalUnbondedDelegation:   metrics.TotalUnbondedDelegation,
+		TotalUnbondingDelegation:  metrics.TotalUnbondingDelegation,
+		CirculationSupply:         metrics.CirculationSupply,
+		TotalMiningReward:         metrics.TotalMiningReward,
+		ChainMiningReward:         metrics.ChainMiningReward,
+		ResourceMiningReward:      metrics.ResourceMiningReward,
+		MetaMiningReward:          metrics.MetaMiningReward,
+	}, nil
+}

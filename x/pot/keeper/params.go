@@ -48,6 +48,11 @@ func (k Keeper) GetMiningRewardParamByMinedToken(ctx sdk.Context, minedToken sdk
 	return miningRewardParams[len(miningRewardParams)-1], types.ErrOutOfIssuance
 }
 
+func (k Keeper) GetTotalMining(ctx sdk.Context) sdk.Coin {
+	miningRewardParams := k.MiningRewardParams(ctx)
+	return miningRewardParams[len(miningRewardParams)-1].TotalMinedValveEnd
+}
+
 func (k Keeper) GetCommunityTax(ctx sdk.Context) (res sdk.Dec) {
 	k.paramSpace.Get(ctx, types.KeyCommunityTax, &res)
 	return
