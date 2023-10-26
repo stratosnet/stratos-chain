@@ -19,6 +19,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgWithdraw{}, "pot/WithdrawTx", nil)
 	cdc.RegisterConcrete(MsgFoundationDeposit{}, "pot/FoundationDepositTx", nil)
 	cdc.RegisterConcrete(MsgSlashingResourceNode{}, "pot/SlashingResourceNodeTx", nil)
+	cdc.RegisterConcrete(MsgUpdateParams{}, "pot/UpdateParamsTx", nil)
 }
 
 // RegisterInterfaces registers the x/register interfaces types with the interface registry
@@ -28,6 +29,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgWithdraw{},
 		&MsgFoundationDeposit{},
 		&MsgSlashingResourceNode{},
+		&MsgUpdateParams{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

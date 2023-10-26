@@ -25,6 +25,7 @@ var (
 	_ sdk.Msg    = &MsgEthereumTx{}
 	_ sdk.Tx     = &MsgEthereumTx{}
 	_ ante.GasTx = &MsgEthereumTx{}
+	_ sdk.Msg    = &MsgUpdateParams{}
 
 	_ codectypes.UnpackInterfacesMessage = MsgEthereumTx{}
 )
@@ -345,4 +346,35 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, evmDenom string) (signing.
 	builder.SetGasLimit(msg.GetGas())
 	tx := builder.GetTx()
 	return tx, nil
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func NewMsgUpdateParams(params Params, authority string) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Params:    params,
+		Authority: authority,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return err
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSignBytes implements sdk.Msg
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	authority := sdk.MustAccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
+}
+
+// GetSigners implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }

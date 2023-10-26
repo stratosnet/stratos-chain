@@ -17,6 +17,7 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	// this line is used by starport scaffolding # 1
 	cdc.RegisterConcrete(MsgFileUpload{}, "sds/FileUploadTx", nil)
 	cdc.RegisterConcrete(MsgPrepay{}, "sds/PrepayTx", nil)
+	cdc.RegisterConcrete(MsgUpdateParams{}, "sds/UpdateParamsTx", nil)
 }
 
 // RegisterInterfaces registers the x/register interfaces types with the interface registry
@@ -24,6 +25,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterImplementations((*sdk.Msg)(nil),
 		&MsgFileUpload{},
 		&MsgPrepay{},
+		&MsgUpdateParams{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

@@ -14,11 +14,13 @@ import (
 var (
 	_ sdk.Msg = &MsgFileUpload{}
 	_ sdk.Msg = &MsgPrepay{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 const (
-	TypeMsgFileUpload = "FileUploadTx"
-	TypeMsgPrepay     = "SdsPrepayTx"
+	TypeMsgFileUpload   = "FileUploadTx"
+	TypeMsgPrepay       = "SdsPrepayTx"
+	TypeMsgUpdateParams = "update_params"
 )
 
 // NewMsgUpload creates a new Msg<Action> instance
@@ -91,6 +93,8 @@ func (msg MsgFileUpload) ValidateBasic() error {
 	return nil
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 // NewMsgPrepay NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgPrepay(sender string, beneficiary string, amount sdk.Coins) *MsgPrepay {
 	return &MsgPrepay{
@@ -140,4 +144,45 @@ func (msg MsgPrepay) ValidateBasic() error {
 	}
 
 	return nil
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func NewMsgUpdateParams(params Params, authority string) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Params:    params,
+		Authority: authority,
+	}
+}
+
+// Route implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) Route() string {
+	return RouterKey
+}
+
+// Type implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) Type() string {
+	return TypeMsgUpdateParams
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return err
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSignBytes implements sdk.Msg
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	authority := sdk.MustAccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
+}
+
+// GetSigners implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }

@@ -1,231 +1,117 @@
 syntax = "proto3";
 package stratos.register.v1;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
-import "cosmos/base/v1beta1/coin.proto";
-import "google/protobuf/any.proto";
-import "google/protobuf/timestamp.proto";
-import "cosmos/staking/v1beta1/staking.proto";
-
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 
 // EventCreateResourceNode is emitted on Msg/MsgCreateResourceNode
 message EventCreateResourceNode {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  google.protobuf.Any pubkey = 3 [
-    (cosmos_proto.accepts_interface) = "cosmos.crypto.PubKey"
-  ];
-  string ozone_limit_changes = 4 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  cosmos.base.v1beta1.Coin initial_deposit = 5 [
-    (gogoproto.nullable) = false
-  ];
+  string sender = 1;
+  string network_address = 2;
+  string pubkey = 3;
+  string ozone_limit_changes = 4;
+  string initial_deposit = 5;
 }
 
 // EventCreateMetaNode is emitted on Msg/MsgCreateMetaNode
 message EventCreateMetaNode {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string ozone_limit_changes = 3 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
+  string sender = 1;
+  string network_address = 2;
+  string ozone_limit_changes = 3;
 }
 
 // EventUnBondingResourceNode is emitted on Msg/MsgRemoveResourceNode
 message EventUnBondingResourceNode {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string resource_node = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  cosmos.base.v1beta1.Coin deposit_to_remove = 3 [
-    (gogoproto.nullable) = false
-  ];
-  google.protobuf.Timestamp unbonding_mature_time = 4 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true
-  ];
+  string sender = 1;
+  string resource_node = 2;
+  string deposit_to_remove = 3;
+  string unbonding_mature_time = 4;
 }
 
 // EventUnBondingResourceNode is emitted on Msg/MsgRemoveMetaNode
 message EventUnBondingMetaNode {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string meta_node = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string ozone_limit_changes = 3 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  cosmos.base.v1beta1.Coin deposit_to_remove = 4 [
-    (gogoproto.nullable) = false
-  ];
-  google.protobuf.Timestamp unbonding_mature_time = 5 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true
-  ];
+  string sender = 1;
+  string meta_node = 2;
+  string ozone_limit_changes = 3;
+  string deposit_to_remove = 4;
+  string unbonding_mature_time = 5;
 }
 
 // EventMetaNodeRegistrationVote is emitted on Msg/MsgMetaNodeRegistrationVote
 message EventMetaNodeRegistrationVote {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string voter_network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string candidate_network_address = 3 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  cosmos.staking.v1beta1.BondStatus candidate_status = 4;
+  string sender = 1;
+  string voter_network_address = 2;
+  string candidate_network_address = 3;
+  string candidate_status = 4;
 }
 
 // EventWithdrawMetaNodeRegistrationDeposit is emitted on Msg/MsgWithdrawMetaNodeRegistrationDeposit
 message EventWithdrawMetaNodeRegistrationDeposit {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  google.protobuf.Timestamp unbonding_mature_time = 3 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true
-  ];
+  string sender = 1;
+  string network_address = 2;
+  string unbonding_mature_time = 3;
 }
 
 // EventUpdateResourceNode is emitted on Msg/MsgUpdateResourceNode
 message EventUpdateResourceNode {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
+  string sender = 1;
+  string network_address = 2;
 }
 
 // EventUpdateResourceNodeDeposit is emitted on Msg/MsgUpdateResourceNodeDeposit
 message EventUpdateResourceNodeDeposit {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  cosmos.base.v1beta1.Coin deposit_delta = 3 [
-    (gogoproto.nullable) = false
-  ];
-  cosmos.base.v1beta1.Coin current_deposit = 4 [
-    (gogoproto.nullable) = false
-  ];
-  cosmos.base.v1beta1.Coin available_token_before = 5 [
-    (gogoproto.nullable) = false
-  ];
-  cosmos.base.v1beta1.Coin available_token_after = 6 [
-    (gogoproto.nullable) = false
-  ];
-  string ozone_limit_changes = 7 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  google.protobuf.Timestamp unbonding_mature_time = 8 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true
-  ];
+  string sender = 1;
+  string network_address = 2;
+  string deposit_delta = 3;
+  string current_deposit = 4;
+  string available_token_before = 5;
+  string available_token_after = 6;
+  string ozone_limit_changes = 7;
+  string unbonding_mature_time = 8;
 }
 
 // EventUpdateEffectiveDeposit is emitted on Msg/MsgUpdateEffectiveDeposit
 message EventUpdateEffectiveDeposit {
-  string network_address = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string effective_deposit_after = 2 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  bool is_unsuspended = 3;
+  string network_address = 1;
+  string effective_deposit_after = 2;
+  string is_unsuspended = 3;
 }
 
 // EventUpdateMetaNode is emitted on Msg/MsgUpdateMetaNode
 message EventUpdateMetaNode {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
+  string sender = 1;
+  string network_address = 2;
 }
 
 // EventUpdateMetaNodeDeposit is emitted on Msg/MsgUpdateMetaNodeDeposit
 message EventUpdateMetaNodeDeposit {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  cosmos.base.v1beta1.Coin deposit_delta = 3 [
-    (gogoproto.nullable) = false
-  ];
-  cosmos.base.v1beta1.Coin current_deposit = 4 [
-    (gogoproto.nullable) = false
-  ];
-  cosmos.base.v1beta1.Coin available_token_before = 5 [
-    (gogoproto.nullable) = false
-  ];
-  cosmos.base.v1beta1.Coin available_token_after = 6 [
-    (gogoproto.nullable) = false
-  ];
-  string ozone_limit_changes = 7 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
-  google.protobuf.Timestamp unbonding_mature_time = 8 [
-    (gogoproto.nullable) = false,
-    (gogoproto.stdtime) = true
-  ];
+  string sender = 1;
+  string network_address = 2;
+  string deposit_delta = 3;
+  string current_deposit = 4;
+  string available_token_before = 5;
+  string available_token_after = 6;
+  string ozone_limit_changes = 7;
+  string unbonding_mature_time = 8;
 }
 
 // EventCompleteUnBondingResourceNode is emitted on EndBlocker
 message EventCompleteUnBondingResourceNode{
-  repeated cosmos.base.v1beta1.Coin     amount = 1 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
+  string amount = 1;
+  string network_address = 2;
 }
 
 // EventCompleteUnBondingMetaNode is emitted on EndBlocker
 message EventCompleteUnBondingMetaNode{
-  repeated cosmos.base.v1beta1.Coin     amount = 1 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-  string network_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
+  string amount = 1;
+  string network_address = 2;
+}
+
+// EventMessage
+message EventMessage {
+  // module which emits the event
+  string module = 1;
+  // sender of the message
+  string sender = 2;
+  // tx_type is the type of the message
+  string action = 3;
 }

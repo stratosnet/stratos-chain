@@ -5,10 +5,9 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
-import "google/protobuf/any.proto";
-import "google/api/annotations.proto";
-import "stratos/register/v1/register.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "google/protobuf/any.proto";
+import "stratos/register/v1/register.proto";
 
 option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
@@ -18,41 +17,22 @@ service Msg {
   option (cosmos.msg.v1.service) = true;
 
   // CreateResourceNode defines a method for creating a new resource node.
-  rpc HandleMsgCreateResourceNode(MsgCreateResourceNode) returns (MsgCreateResourceNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/create_resource_node";
-  };
-  rpc HandleMsgRemoveResourceNode(MsgRemoveResourceNode) returns (MsgRemoveResourceNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/remove_resource_node";
-  };
-  rpc HandleMsgUpdateResourceNode(MsgUpdateResourceNode) returns (MsgUpdateResourceNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_resource_node";
-  };
-  rpc HandleMsgUpdateResourceNodeDeposit(MsgUpdateResourceNodeDeposit) returns (MsgUpdateResourceNodeDepositResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_resource_node_deposit";
-  };
-  rpc HandleMsgUpdateEffectiveDeposit(MsgUpdateEffectiveDeposit) returns (MsgUpdateEffectiveDepositResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_effective_deposit";
-  };
+  rpc HandleMsgCreateResourceNode(MsgCreateResourceNode) returns (MsgCreateResourceNodeResponse);
+  rpc HandleMsgRemoveResourceNode(MsgRemoveResourceNode) returns (MsgRemoveResourceNodeResponse);
+  rpc HandleMsgUpdateResourceNode(MsgUpdateResourceNode) returns (MsgUpdateResourceNodeResponse);
+  rpc HandleMsgUpdateResourceNodeDeposit(MsgUpdateResourceNodeDeposit) returns (MsgUpdateResourceNodeDepositResponse);
+  rpc HandleMsgUpdateEffectiveDeposit(MsgUpdateEffectiveDeposit) returns (MsgUpdateEffectiveDepositResponse);
 
-  rpc HandleMsgCreateMetaNode(MsgCreateMetaNode) returns (MsgCreateMetaNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/create_meta_node";
-  };
-  rpc HandleMsgRemoveMetaNode(MsgRemoveMetaNode) returns (MsgRemoveMetaNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/remove_meta_node";
-  };
-  rpc HandleMsgUpdateMetaNode(MsgUpdateMetaNode) returns (MsgUpdateMetaNodeResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_meta_node";
-  };
-  rpc HandleMsgUpdateMetaNodeDeposit(MsgUpdateMetaNodeDeposit) returns (MsgUpdateMetaNodeDepositResponse) {
-    option (google.api.http).post = "/stratos/register/v1/update_meta_node_deposit";
-  };
-  rpc HandleMsgMetaNodeRegistrationVote(MsgMetaNodeRegistrationVote) returns (MsgMetaNodeRegistrationVoteResponse) {
-    option (google.api.http).post = "/stratos/register/v1/meta_node_registration_vote";
-  };
-  rpc HandleMsgWithdrawMetaNodeRegistrationDeposit(MsgWithdrawMetaNodeRegistrationDeposit) returns (MsgWithdrawMetaNodeRegistrationDepositResponse) {
-    option (google.api.http).post = "/stratos/register/v1/withdraw_meta_node_registration_deposit";
-  };
+  rpc HandleMsgCreateMetaNode(MsgCreateMetaNode) returns (MsgCreateMetaNodeResponse);
+  rpc HandleMsgRemoveMetaNode(MsgRemoveMetaNode) returns (MsgRemoveMetaNodeResponse);
+  rpc HandleMsgUpdateMetaNode(MsgUpdateMetaNode) returns (MsgUpdateMetaNodeResponse);
+  rpc HandleMsgUpdateMetaNodeDeposit(MsgUpdateMetaNodeDeposit) returns (MsgUpdateMetaNodeDepositResponse);
+  rpc HandleMsgMetaNodeRegistrationVote(MsgMetaNodeRegistrationVote) returns (MsgMetaNodeRegistrationVoteResponse);
+  rpc HandleMsgWithdrawMetaNodeRegistrationDeposit(MsgWithdrawMetaNodeRegistrationDeposit) returns (MsgWithdrawMetaNodeRegistrationDepositResponse);
 
+  // UpdateParams defined a governance operation for updating the x/register module parameters.
+  // The authority is hard-coded to the Cosmos SDK x/gov module account
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgCreateResourceNode encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
@@ -372,3 +352,26 @@ message MsgWithdrawMetaNodeRegistrationDeposit {
 
 // MsgWithdrawMetaNodeRegistrationDepositResponse defines the Msg/WithdrawMetaNodeRegistrationDeposit response type.
 message MsgWithdrawMetaNodeRegistrationDepositResponse {}
+
+// MsgUpdateParams defines a Msg for updating the x/register module parameters.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "stratos/x/register/MsgUpdateParams";
+
+  // authority is the address of the governance account.
+  string authority = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+
+  // params defines the x/register parameters to update.
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
+

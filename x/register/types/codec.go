@@ -24,6 +24,8 @@ func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
 	cdc.RegisterConcrete(MsgUpdateMetaNode{}, "register/UpdateMetaNodeTx", nil)
 	cdc.RegisterConcrete(MsgUpdateMetaNodeDeposit{}, "register/UpdateMetaNodeDepositTx", nil)
 	cdc.RegisterConcrete(MsgMetaNodeRegistrationVote{}, "register/MsgMetaNodeRegistrationVote", nil)
+
+	cdc.RegisterConcrete(MsgUpdateParams{}, "register/UpdateParamsTx", nil)
 }
 
 // RegisterInterfaces registers the x/register interfaces types with the interface registry
@@ -38,6 +40,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgUpdateMetaNode{},
 		&MsgUpdateMetaNodeDeposit{},
 		&MsgMetaNodeRegistrationVote{},
+		&MsgUpdateParams{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

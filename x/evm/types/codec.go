@@ -21,6 +21,7 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgEthereumTx{},
+		&MsgUpdateParams{},
 	)
 	registry.RegisterInterface(
 		"stratos.evm.v1.ExtensionOptionsEthereumTx",

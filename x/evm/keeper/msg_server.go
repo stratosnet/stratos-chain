@@ -8,6 +8,7 @@ import (
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
 	tmtypes "github.com/cometbft/cometbft/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -74,4 +75,28 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	)
 
 	return response, nil
+}
+
+// UpdateParams updates the module parameters
+func (k *Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err := k.SetParams(ctx, msg.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
+		Module: types.ModuleName,
+		Sender: msg.Authority,
+		TxType: sdk.MsgTypeURL(msg),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

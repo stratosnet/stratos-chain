@@ -2,11 +2,15 @@ package keeper
 
 import (
 	"context"
+	"encoding/hex"
+	"strconv"
+	"time"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -52,13 +56,19 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 		return nil, errors.Wrap(types.ErrRegisterResourceNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventCreateResourceNode{
-		Sender:            msg.GetOwnerAddress(),
-		NetworkAddress:    msg.GetNetworkAddress(),
-		Pubkey:            msg.GetPubkey(),
-		OzoneLimitChanges: ozoneLimitChange,
-		InitialDeposit:    msg.GetValue(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventCreateResourceNode{
+			Sender:            msg.GetOwnerAddress(),
+			NetworkAddress:    msg.GetNetworkAddress(),
+			Pubkey:            hex.EncodeToString(pk.Bytes()),
+			OzoneLimitChanges: ozoneLimitChange.String(),
+			InitialDeposit:    msg.GetValue().String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -89,11 +99,17 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 		return nil, errors.Wrap(types.ErrRegisterMetaNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventCreateMetaNode{
-		Sender:            msg.GetOwnerAddress(),
-		NetworkAddress:    msg.GetNetworkAddress(),
-		OzoneLimitChanges: ozoneLimitChange,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventCreateMetaNode{
+			Sender:            msg.GetOwnerAddress(),
+			NetworkAddress:    msg.GetNetworkAddress(),
+			OzoneLimitChanges: ozoneLimitChange.String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -120,12 +136,18 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 		return &types.MsgRemoveResourceNodeResponse{}, errors.Wrap(types.ErrUnbondResourceNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUnBondingResourceNode{
-		Sender:              msg.GetOwnerAddress(),
-		ResourceNode:        msg.GetResourceNodeAddress(),
-		DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), depositToRemove),
-		UnbondingMatureTime: completionTime,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUnBondingResourceNode{
+			Sender:              msg.GetOwnerAddress(),
+			ResourceNode:        msg.GetResourceNodeAddress(),
+			DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), depositToRemove).String(),
+			UnbondingMatureTime: completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -158,13 +180,19 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgRemoveMetaNodeResponse{}, errors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUnBondingMetaNode{
-		Sender:              msg.GetOwnerAddress(),
-		MetaNode:            msg.GetMetaNodeAddress(),
-		OzoneLimitChanges:   ozoneLimitChange.Abs(),
-		DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), availableDeposit),
-		UnbondingMatureTime: completionTime,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUnBondingMetaNode{
+			Sender:              msg.GetOwnerAddress(),
+			MetaNode:            msg.GetMetaNodeAddress(),
+			OzoneLimitChanges:   ozoneLimitChange.Neg().String(),
+			DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), availableDeposit).String(),
+			UnbondingMatureTime: completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -198,12 +226,18 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 		return &types.MsgMetaNodeRegistrationVoteResponse{}, errors.Wrap(types.ErrVoteMetaNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventMetaNodeRegistrationVote{
-		Sender:                  msg.GetVoterOwnerAddress(),
-		VoterNetworkAddress:     msg.GetVoterNetworkAddress(),
-		CandidateNetworkAddress: msg.GetCandidateNetworkAddress(),
-		CandidateStatus:         nodeStatus,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventMetaNodeRegistrationVote{
+			Sender:                  msg.GetVoterOwnerAddress(),
+			VoterNetworkAddress:     msg.GetVoterNetworkAddress(),
+			CandidateNetworkAddress: msg.GetCandidateNetworkAddress(),
+			CandidateStatus:         nodeStatus.String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetVoterOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -230,11 +264,17 @@ func (k msgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(goCtx context.Co
 		return &types.MsgWithdrawMetaNodeRegistrationDepositResponse{}, errors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventWithdrawMetaNodeRegistrationDeposit{
-		Sender:              msg.GetOwnerAddress(),
-		NetworkAddress:      msg.GetNetworkAddress(),
-		UnbondingMatureTime: completionTime,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventWithdrawMetaNodeRegistrationDeposit{
+			Sender:              msg.GetOwnerAddress(),
+			NetworkAddress:      msg.GetNetworkAddress(),
+			UnbondingMatureTime: completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -259,10 +299,16 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 		return nil, errors.Wrap(types.ErrUpdateResourceNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateResourceNode{
-		Sender:         msg.GetOwnerAddress(),
-		NetworkAddress: msg.GetNetworkAddress(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateResourceNode{
+			Sender:         msg.GetOwnerAddress(),
+			NetworkAddress: msg.GetNetworkAddress(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -291,16 +337,22 @@ func (k msgServer) HandleMsgUpdateResourceNodeDeposit(goCtx context.Context, msg
 		return nil, errors.Wrap(types.ErrUpdateResourceNodeDeposit, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateResourceNodeDeposit{
-		Sender:               msg.GetOwnerAddress(),
-		NetworkAddress:       msg.GetNetworkAddress(),
-		DepositDelta:         msg.GetDepositDelta(),
-		CurrentDeposit:       sdk.NewCoin(k.BondDenom(ctx), node.Tokens),
-		AvailableTokenBefore: sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore),
-		AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter),
-		OzoneLimitChanges:    ozoneLimitChange,
-		UnbondingMatureTime:  completionTime,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateResourceNodeDeposit{
+			Sender:               msg.GetOwnerAddress(),
+			NetworkAddress:       msg.GetNetworkAddress(),
+			DepositDelta:         msg.GetDepositDelta().String(),
+			CurrentDeposit:       sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String(),
+			AvailableTokenBefore: sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String(),
+			AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String(),
+			OzoneLimitChanges:    ozoneLimitChange.String(),
+			UnbondingMatureTime:  completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -346,11 +398,13 @@ func (k msgServer) HandleMsgUpdateEffectiveDeposit(goCtx context.Context, msg *t
 		return nil, errors.Wrap(types.ErrUpdateResourceNodeDeposit, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateEffectiveDeposit{
-		NetworkAddress:        msg.GetNetworkAddress(),
-		EffectiveDepositAfter: msg.EffectiveTokens,
-		IsUnsuspended:         isUnsuspendedDuringUpdate,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateEffectiveDeposit{
+			NetworkAddress:        msg.GetNetworkAddress(),
+			EffectiveDepositAfter: msg.EffectiveTokens.String(),
+			IsUnsuspended:         strconv.FormatBool(isUnsuspendedDuringUpdate),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -376,10 +430,16 @@ func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.Msg
 		return nil, errors.Wrap(types.ErrUpdateMetaNode, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateMetaNode{
-		Sender:         msg.GetOwnerAddress(),
-		NetworkAddress: msg.GetNetworkAddress(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateMetaNode{
+			Sender:         msg.GetOwnerAddress(),
+			NetworkAddress: msg.GetNetworkAddress(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -411,19 +471,49 @@ func (k msgServer) HandleMsgUpdateMetaNodeDeposit(goCtx context.Context, msg *ty
 		return nil, errors.Wrap(types.ErrUpdateMetaNodeDeposit, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventUpdateMetaNodeDeposit{
-		Sender:               msg.GetOwnerAddress(),
-		NetworkAddress:       msg.GetNetworkAddress(),
-		DepositDelta:         msg.GetDepositDelta(),
-		CurrentDeposit:       sdk.NewCoin(k.BondDenom(ctx), node.Tokens),
-		AvailableTokenBefore: sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore),
-		AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter),
-		OzoneLimitChanges:    ozoneLimitChange,
-		UnbondingMatureTime:  completionTime,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateMetaNodeDeposit{
+			Sender:               msg.GetOwnerAddress(),
+			NetworkAddress:       msg.GetNetworkAddress(),
+			DepositDelta:         msg.GetDepositDelta().String(),
+			CurrentDeposit:       sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String(),
+			AvailableTokenBefore: sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String(),
+			AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String(),
+			OzoneLimitChanges:    ozoneLimitChange.String(),
+			UnbondingMatureTime:  completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
 	return &types.MsgUpdateMetaNodeDepositResponse{}, nil
+}
+
+// UpdateParams updates the module parameters
+func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err := k.SetParams(ctx, msg.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
+		Module: types.ModuleName,
+		Sender: msg.Authority,
+		Action: sdk.MsgTypeURL(msg),
+	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

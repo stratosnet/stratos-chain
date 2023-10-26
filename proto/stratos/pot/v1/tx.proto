@@ -5,9 +5,8 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
-import "google/api/annotations.proto";
-import "stratos/pot/v1/pot.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "stratos/pot/v1/pot.proto";
 
 option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
@@ -16,18 +15,14 @@ option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 service Msg {
   option (cosmos.msg.v1.service) = true;
 
-  rpc HandleMsgVolumeReport(MsgVolumeReport) returns (MsgVolumeReportResponse) {
-    option (google.api.http).post = "/stratos/pot/v1/volume_report";
-  };
-  rpc HandleMsgWithdraw(MsgWithdraw) returns (MsgWithdrawResponse) {
-    option (google.api.http).post = "/stratos/pot/v1/withdraw";
-  };
-  rpc HandleMsgFoundationDeposit(MsgFoundationDeposit) returns (MsgFoundationDepositResponse) {
-    option (google.api.http).post = "/stratos/pot/v1/foundation_deposit";
-  };
-  rpc HandleMsgSlashingResourceNode(MsgSlashingResourceNode) returns (MsgSlashingResourceNodeResponse) {
-    option (google.api.http).post = "/stratos/pot/v1/slashing_resource_node";
-  };
+  rpc HandleMsgVolumeReport(MsgVolumeReport) returns (MsgVolumeReportResponse);
+  rpc HandleMsgWithdraw(MsgWithdraw) returns (MsgWithdrawResponse);
+  rpc HandleMsgFoundationDeposit(MsgFoundationDeposit) returns (MsgFoundationDepositResponse);
+  rpc HandleMsgSlashingResourceNode(MsgSlashingResourceNode) returns (MsgSlashingResourceNodeResponse);
+
+  // UpdateParams defined a governance operation for updating the x/pot module parameters.
+  // The authority is hard-coded to the Cosmos SDK x/gov module account
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 // MsgVolumeReport encapsulates an VolumeReport transaction as an SDK message.
@@ -176,4 +171,26 @@ message BLSSignatureInfo {
     (gogoproto.moretags) = "yaml:\"tx_data\""
   ];
 }
+
+// MsgUpdateParams defines a Msg for updating the x/pot module parameters.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "stratos/x/pot/MsgUpdateParams";
+
+  // authority is the address of the governance account.
+  string authority = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+
+  // params defines the x/pot parameters to update.
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}
 

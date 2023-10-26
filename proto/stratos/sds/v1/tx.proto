@@ -5,8 +5,8 @@ import "gogoproto/gogo.proto";
 import "cosmos_proto/cosmos.proto";
 import "amino/amino.proto";
 import "cosmos/msg/v1/msg.proto";
-import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "stratos/sds/v1/sds.proto";
 
 option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
@@ -16,13 +16,13 @@ service Msg {
   option (cosmos.msg.v1.service) = true;
 
   // HandleMsgFileUpload defines a method for file uploading
-  rpc HandleMsgFileUpload(MsgFileUpload) returns (MsgFileUploadResponse) {
-    option (google.api.http).post = "/stratos/sds/v1/file_upload";
-  };
+  rpc HandleMsgFileUpload(MsgFileUpload) returns (MsgFileUploadResponse);
   // HandleMsgPrepay defines a method for prepay
-  rpc HandleMsgPrepay(MsgPrepay) returns (MsgPrepayResponse) {
-    option (google.api.http).post = "/stratos/sds/v1/prepay";
-  };
+  rpc HandleMsgPrepay(MsgPrepay) returns (MsgPrepayResponse);
+
+  // UpdateParams defined a governance operation for updating the x/sds module parameters.
+  // The authority is hard-coded to the Cosmos SDK x/gov module account
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 message MsgFileUpload {
@@ -76,3 +76,25 @@ message MsgPrepay {
 }
 
 message MsgPrepayResponse {}
+
+// MsgUpdateParams defines a Msg for updating the x/sds module parameters.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "stratos/x/sds/MsgUpdateParams";
+
+  // authority is the address of the governance account.
+  string authority = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+
+  // params defines the x/sds parameters to update.
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}

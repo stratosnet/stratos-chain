@@ -1,41 +1,31 @@
 syntax = "proto3";
 package stratos.sds.v1;
 
-import "gogoproto/gogo.proto";
-import "cosmos_proto/cosmos.proto";
-import "cosmos/base/v1beta1/coin.proto";
-
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // EventPrePay is emitted on Msg/MsgPrepay
 message EventPrePay {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string beneficiary = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  repeated cosmos.base.v1beta1.Coin amount = 3 [
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
-  string purchased_noz = 4 [
-    (gogoproto.nullable) = false,
-    (cosmos_proto.scalar) = "cosmos.Int",
-    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
-  ];
+  string sender = 1;
+  string beneficiary = 2;
+  string amount = 3;
+  string purchased_noz = 4;
 }
 
 // EventFileUpload is emitted on Msg/MsgFileUpload
 message EventFileUpload {
-  string sender = 1 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string reporter = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string uploader = 3 [
-    (cosmos_proto.scalar) = "cosmos.AddressString"
-  ];
-  string file_hash = 4 ;
+  string sender = 1;
+  string reporter = 2;
+  string uploader = 3;
+  string file_hash = 4;
 }
+
+// EventMessage
+message EventMessage {
+  // module which emits the event
+  string module = 1;
+  // sender of the message
+  string sender = 2;
+  // tx_type is the type of the message
+  string action = 3;
+}
+

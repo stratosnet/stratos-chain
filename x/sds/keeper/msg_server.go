@@ -6,6 +6,7 @@ import (
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
@@ -46,12 +47,18 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, err
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventFileUpload{
-		Sender:   msg.GetFrom(),
-		Reporter: msg.GetReporter(),
-		Uploader: msg.GetUploader(),
-		FileHash: msg.GetFileHash(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventFileUpload{
+			Sender:   msg.GetFrom(),
+			Reporter: msg.GetReporter(),
+			Uploader: msg.GetUploader(),
+			FileHash: msg.GetFileHash(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetFrom(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -78,15 +85,45 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		return nil, errors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventPrePay{
-		Sender:       msg.GetSender(),
-		Beneficiary:  msg.GetBeneficiary(),
-		Amount:       msg.GetAmount(),
-		PurchasedNoz: purchased,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventPrePay{
+			Sender:       msg.GetSender(),
+			Beneficiary:  msg.GetBeneficiary(),
+			Amount:       msg.GetAmount().String(),
+			PurchasedNoz: purchased.String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetSender(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
 	return &types.MsgPrepayResponse{}, nil
+}
+
+// UpdateParams updates the module parameters
+func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err := k.SetParams(ctx, msg.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
+		Module: types.ModuleName,
+		Sender: msg.Authority,
+		Action: sdk.MsgTypeURL(msg),
+	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

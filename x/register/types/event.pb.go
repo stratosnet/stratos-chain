@@ -5,26 +5,16 @@ package types
 
 import (
 	fmt "fmt"
-	_ "github.com/cosmos/cosmos-proto"
-	types "github.com/cosmos/cosmos-sdk/codec/types"
-	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
-	types1 "github.com/cosmos/cosmos-sdk/types"
-	types2 "github.com/cosmos/cosmos-sdk/x/staking/types"
-	_ "github.com/cosmos/gogoproto/gogoproto"
 	proto "github.com/cosmos/gogoproto/proto"
-	github_com_cosmos_gogoproto_types "github.com/cosmos/gogoproto/types"
-	_ "google.golang.org/protobuf/types/known/timestamppb"
 	io "io"
 	math "math"
 	math_bits "math/bits"
-	time "time"
 )
 
 // Reference imports to suppress errors if they are not otherwise used.
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-var _ = time.Kitchen
 
 // This is a compile-time assertion to ensure that this generated file
 // is compatible with the proto package it is being compiled against.
@@ -34,11 +24,11 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // EventCreateResourceNode is emitted on Msg/MsgCreateResourceNode
 type EventCreateResourceNode struct {
-	Sender            string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	NetworkAddress    string                                 `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
-	Pubkey            *types.Any                             `protobuf:"bytes,3,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
-	OzoneLimitChanges github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,4,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"ozone_limit_changes"`
-	InitialDeposit    types1.Coin                            `protobuf:"bytes,5,opt,name=initial_deposit,json=initialDeposit,proto3" json:"initial_deposit"`
+	Sender            string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress    string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	Pubkey            string `protobuf:"bytes,3,opt,name=pubkey,proto3" json:"pubkey,omitempty"`
+	OzoneLimitChanges string `protobuf:"bytes,4,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
+	InitialDeposit    string `protobuf:"bytes,5,opt,name=initial_deposit,json=initialDeposit,proto3" json:"initial_deposit,omitempty"`
 }
 
 func (m *EventCreateResourceNode) Reset()         { *m = EventCreateResourceNode{} }
@@ -88,25 +78,32 @@ func (m *EventCreateResourceNode) GetNetworkAddress() string {
 	return ""
 }
 
-func (m *EventCreateResourceNode) GetPubkey() *types.Any {
+func (m *EventCreateResourceNode) GetPubkey() string {
 	if m != nil {
 		return m.Pubkey
 	}
-	return nil
+	return ""
 }
 
-func (m *EventCreateResourceNode) GetInitialDeposit() types1.Coin {
+func (m *EventCreateResourceNode) GetOzoneLimitChanges() string {
+	if m != nil {
+		return m.OzoneLimitChanges
+	}
+	return ""
+}
+
+func (m *EventCreateResourceNode) GetInitialDeposit() string {
 	if m != nil {
 		return m.InitialDeposit
 	}
-	return types1.Coin{}
+	return ""
 }
 
 // EventCreateMetaNode is emitted on Msg/MsgCreateMetaNode
 type EventCreateMetaNode struct {
-	Sender            string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	NetworkAddress    string                                 `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
-	OzoneLimitChanges github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"ozone_limit_changes"`
+	Sender            string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress    string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	OzoneLimitChanges string `protobuf:"bytes,3,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
 }
 
 func (m *EventCreateMetaNode) Reset()         { *m = EventCreateMetaNode{} }
@@ -156,12 +153,19 @@ func (m *EventCreateMetaNode) GetNetworkAddress() string {
 	return ""
 }
 
+func (m *EventCreateMetaNode) GetOzoneLimitChanges() string {
+	if m != nil {
+		return m.OzoneLimitChanges
+	}
+	return ""
+}
+
 // EventUnBondingResourceNode is emitted on Msg/MsgRemoveResourceNode
 type EventUnBondingResourceNode struct {
-	Sender              string      `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	ResourceNode        string      `protobuf:"bytes,2,opt,name=resource_node,json=resourceNode,proto3" json:"resource_node,omitempty"`
-	DepositToRemove     types1.Coin `protobuf:"bytes,3,opt,name=deposit_to_remove,json=depositToRemove,proto3" json:"deposit_to_remove"`
-	UnbondingMatureTime time.Time   `protobuf:"bytes,4,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3,stdtime" json:"unbonding_mature_time"`
+	Sender              string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	ResourceNode        string `protobuf:"bytes,2,opt,name=resource_node,json=resourceNode,proto3" json:"resource_node,omitempty"`
+	DepositToRemove     string `protobuf:"bytes,3,opt,name=deposit_to_remove,json=depositToRemove,proto3" json:"deposit_to_remove,omitempty"`
+	UnbondingMatureTime string `protobuf:"bytes,4,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3" json:"unbonding_mature_time,omitempty"`
 }
 
 func (m *EventUnBondingResourceNode) Reset()         { *m = EventUnBondingResourceNode{} }
@@ -211,27 +215,27 @@ func (m *EventUnBondingResourceNode) GetResourceNode() string {
 	return ""
 }
 
-func (m *EventUnBondingResourceNode) GetDepositToRemove() types1.Coin {
+func (m *EventUnBondingResourceNode) GetDepositToRemove() string {
 	if m != nil {
 		return m.DepositToRemove
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUnBondingResourceNode) GetUnbondingMatureTime() time.Time {
+func (m *EventUnBondingResourceNode) GetUnbondingMatureTime() string {
 	if m != nil {
 		return m.UnbondingMatureTime
 	}
-	return time.Time{}
+	return ""
 }
 
 // EventUnBondingResourceNode is emitted on Msg/MsgRemoveMetaNode
 type EventUnBondingMetaNode struct {
-	Sender              string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	MetaNode            string                                 `protobuf:"bytes,2,opt,name=meta_node,json=metaNode,proto3" json:"meta_node,omitempty"`
-	OzoneLimitChanges   github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,3,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"ozone_limit_changes"`
-	DepositToRemove     types1.Coin                            `protobuf:"bytes,4,opt,name=deposit_to_remove,json=depositToRemove,proto3" json:"deposit_to_remove"`
-	UnbondingMatureTime time.Time                              `protobuf:"bytes,5,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3,stdtime" json:"unbonding_mature_time"`
+	Sender              string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	MetaNode            string `protobuf:"bytes,2,opt,name=meta_node,json=metaNode,proto3" json:"meta_node,omitempty"`
+	OzoneLimitChanges   string `protobuf:"bytes,3,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
+	DepositToRemove     string `protobuf:"bytes,4,opt,name=deposit_to_remove,json=depositToRemove,proto3" json:"deposit_to_remove,omitempty"`
+	UnbondingMatureTime string `protobuf:"bytes,5,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3" json:"unbonding_mature_time,omitempty"`
 }
 
 func (m *EventUnBondingMetaNode) Reset()         { *m = EventUnBondingMetaNode{} }
@@ -281,26 +285,33 @@ func (m *EventUnBondingMetaNode) GetMetaNode() string {
 	return ""
 }
 
-func (m *EventUnBondingMetaNode) GetDepositToRemove() types1.Coin {
+func (m *EventUnBondingMetaNode) GetOzoneLimitChanges() string {
+	if m != nil {
+		return m.OzoneLimitChanges
+	}
+	return ""
+}
+
+func (m *EventUnBondingMetaNode) GetDepositToRemove() string {
 	if m != nil {
 		return m.DepositToRemove
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUnBondingMetaNode) GetUnbondingMatureTime() time.Time {
+func (m *EventUnBondingMetaNode) GetUnbondingMatureTime() string {
 	if m != nil {
 		return m.UnbondingMatureTime
 	}
-	return time.Time{}
+	return ""
 }
 
 // EventMetaNodeRegistrationVote is emitted on Msg/MsgMetaNodeRegistrationVote
 type EventMetaNodeRegistrationVote struct {
-	Sender                  string            `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	VoterNetworkAddress     string            `protobuf:"bytes,2,opt,name=voter_network_address,json=voterNetworkAddress,proto3" json:"voter_network_address,omitempty"`
-	CandidateNetworkAddress string            `protobuf:"bytes,3,opt,name=candidate_network_address,json=candidateNetworkAddress,proto3" json:"candidate_network_address,omitempty"`
-	CandidateStatus         types2.BondStatus `protobuf:"varint,4,opt,name=candidate_status,json=candidateStatus,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"candidate_status,omitempty"`
+	Sender                  string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	VoterNetworkAddress     string `protobuf:"bytes,2,opt,name=voter_network_address,json=voterNetworkAddress,proto3" json:"voter_network_address,omitempty"`
+	CandidateNetworkAddress string `protobuf:"bytes,3,opt,name=candidate_network_address,json=candidateNetworkAddress,proto3" json:"candidate_network_address,omitempty"`
+	CandidateStatus         string `protobuf:"bytes,4,opt,name=candidate_status,json=candidateStatus,proto3" json:"candidate_status,omitempty"`
 }
 
 func (m *EventMetaNodeRegistrationVote) Reset()         { *m = EventMetaNodeRegistrationVote{} }
@@ -357,18 +368,18 @@ func (m *EventMetaNodeRegistrationVote) GetCandidateNetworkAddress() string {
 	return ""
 }
 
-func (m *EventMetaNodeRegistrationVote) GetCandidateStatus() types2.BondStatus {
+func (m *EventMetaNodeRegistrationVote) GetCandidateStatus() string {
 	if m != nil {
 		return m.CandidateStatus
 	}
-	return types2.Unspecified
+	return ""
 }
 
 // EventWithdrawMetaNodeRegistrationDeposit is emitted on Msg/MsgWithdrawMetaNodeRegistrationDeposit
 type EventWithdrawMetaNodeRegistrationDeposit struct {
-	Sender              string    `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	NetworkAddress      string    `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
-	UnbondingMatureTime time.Time `protobuf:"bytes,3,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3,stdtime" json:"unbonding_mature_time"`
+	Sender              string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress      string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	UnbondingMatureTime string `protobuf:"bytes,3,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3" json:"unbonding_mature_time,omitempty"`
 }
 
 func (m *EventWithdrawMetaNodeRegistrationDeposit) Reset() {
@@ -420,11 +431,11 @@ func (m *EventWithdrawMetaNodeRegistrationDeposit) GetNetworkAddress() string {
 	return ""
 }
 
-func (m *EventWithdrawMetaNodeRegistrationDeposit) GetUnbondingMatureTime() time.Time {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) GetUnbondingMatureTime() string {
 	if m != nil {
 		return m.UnbondingMatureTime
 	}
-	return time.Time{}
+	return ""
 }
 
 // EventUpdateResourceNode is emitted on Msg/MsgUpdateResourceNode
@@ -482,14 +493,14 @@ func (m *EventUpdateResourceNode) GetNetworkAddress() string {
 
 // EventUpdateResourceNodeDeposit is emitted on Msg/MsgUpdateResourceNodeDeposit
 type EventUpdateResourceNodeDeposit struct {
-	Sender               string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	NetworkAddress       string                                 `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
-	DepositDelta         types1.Coin                            `protobuf:"bytes,3,opt,name=deposit_delta,json=depositDelta,proto3" json:"deposit_delta"`
-	CurrentDeposit       types1.Coin                            `protobuf:"bytes,4,opt,name=current_deposit,json=currentDeposit,proto3" json:"current_deposit"`
-	AvailableTokenBefore types1.Coin                            `protobuf:"bytes,5,opt,name=available_token_before,json=availableTokenBefore,proto3" json:"available_token_before"`
-	AvailableTokenAfter  types1.Coin                            `protobuf:"bytes,6,opt,name=available_token_after,json=availableTokenAfter,proto3" json:"available_token_after"`
-	OzoneLimitChanges    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"ozone_limit_changes"`
-	UnbondingMatureTime  time.Time                              `protobuf:"bytes,8,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3,stdtime" json:"unbonding_mature_time"`
+	Sender               string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress       string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	DepositDelta         string `protobuf:"bytes,3,opt,name=deposit_delta,json=depositDelta,proto3" json:"deposit_delta,omitempty"`
+	CurrentDeposit       string `protobuf:"bytes,4,opt,name=current_deposit,json=currentDeposit,proto3" json:"current_deposit,omitempty"`
+	AvailableTokenBefore string `protobuf:"bytes,5,opt,name=available_token_before,json=availableTokenBefore,proto3" json:"available_token_before,omitempty"`
+	AvailableTokenAfter  string `protobuf:"bytes,6,opt,name=available_token_after,json=availableTokenAfter,proto3" json:"available_token_after,omitempty"`
+	OzoneLimitChanges    string `protobuf:"bytes,7,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
+	UnbondingMatureTime  string `protobuf:"bytes,8,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3" json:"unbonding_mature_time,omitempty"`
 }
 
 func (m *EventUpdateResourceNodeDeposit) Reset()         { *m = EventUpdateResourceNodeDeposit{} }
@@ -539,46 +550,53 @@ func (m *EventUpdateResourceNodeDeposit) GetNetworkAddress() string {
 	return ""
 }
 
-func (m *EventUpdateResourceNodeDeposit) GetDepositDelta() types1.Coin {
+func (m *EventUpdateResourceNodeDeposit) GetDepositDelta() string {
 	if m != nil {
 		return m.DepositDelta
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateResourceNodeDeposit) GetCurrentDeposit() types1.Coin {
+func (m *EventUpdateResourceNodeDeposit) GetCurrentDeposit() string {
 	if m != nil {
 		return m.CurrentDeposit
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateResourceNodeDeposit) GetAvailableTokenBefore() types1.Coin {
+func (m *EventUpdateResourceNodeDeposit) GetAvailableTokenBefore() string {
 	if m != nil {
 		return m.AvailableTokenBefore
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateResourceNodeDeposit) GetAvailableTokenAfter() types1.Coin {
+func (m *EventUpdateResourceNodeDeposit) GetAvailableTokenAfter() string {
 	if m != nil {
 		return m.AvailableTokenAfter
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateResourceNodeDeposit) GetUnbondingMatureTime() time.Time {
+func (m *EventUpdateResourceNodeDeposit) GetOzoneLimitChanges() string {
+	if m != nil {
+		return m.OzoneLimitChanges
+	}
+	return ""
+}
+
+func (m *EventUpdateResourceNodeDeposit) GetUnbondingMatureTime() string {
 	if m != nil {
 		return m.UnbondingMatureTime
 	}
-	return time.Time{}
+	return ""
 }
 
 // EventUpdateEffectiveDeposit is emitted on Msg/MsgUpdateEffectiveDeposit
 type EventUpdateEffectiveDeposit struct {
-	NetworkAddress        string                                 `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
-	EffectiveDepositAfter github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,2,opt,name=effective_deposit_after,json=effectiveDepositAfter,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"effective_deposit_after"`
-	IsUnsuspended         bool                                   `protobuf:"varint,3,opt,name=is_unsuspended,json=isUnsuspended,proto3" json:"is_unsuspended,omitempty"`
+	NetworkAddress        string `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	EffectiveDepositAfter string `protobuf:"bytes,2,opt,name=effective_deposit_after,json=effectiveDepositAfter,proto3" json:"effective_deposit_after,omitempty"`
+	IsUnsuspended         string `protobuf:"bytes,3,opt,name=is_unsuspended,json=isUnsuspended,proto3" json:"is_unsuspended,omitempty"`
 }
 
 func (m *EventUpdateEffectiveDeposit) Reset()         { *m = EventUpdateEffectiveDeposit{} }
@@ -621,11 +639,18 @@ func (m *EventUpdateEffectiveDeposit) GetNetworkAddress() string {
 	return ""
 }
 
-func (m *EventUpdateEffectiveDeposit) GetIsUnsuspended() bool {
+func (m *EventUpdateEffectiveDeposit) GetEffectiveDepositAfter() string {
+	if m != nil {
+		return m.EffectiveDepositAfter
+	}
+	return ""
+}
+
+func (m *EventUpdateEffectiveDeposit) GetIsUnsuspended() string {
 	if m != nil {
 		return m.IsUnsuspended
 	}
-	return false
+	return ""
 }
 
 // EventUpdateMetaNode is emitted on Msg/MsgUpdateMetaNode
@@ -683,14 +708,14 @@ func (m *EventUpdateMetaNode) GetNetworkAddress() string {
 
 // EventUpdateMetaNodeDeposit is emitted on Msg/MsgUpdateMetaNodeDeposit
 type EventUpdateMetaNodeDeposit struct {
-	Sender               string                                 `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	NetworkAddress       string                                 `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
-	DepositDelta         types1.Coin                            `protobuf:"bytes,3,opt,name=deposit_delta,json=depositDelta,proto3" json:"deposit_delta"`
-	CurrentDeposit       types1.Coin                            `protobuf:"bytes,4,opt,name=current_deposit,json=currentDeposit,proto3" json:"current_deposit"`
-	AvailableTokenBefore types1.Coin                            `protobuf:"bytes,5,opt,name=available_token_before,json=availableTokenBefore,proto3" json:"available_token_before"`
-	AvailableTokenAfter  types1.Coin                            `protobuf:"bytes,6,opt,name=available_token_after,json=availableTokenAfter,proto3" json:"available_token_after"`
-	OzoneLimitChanges    github_com_cosmos_cosmos_sdk_types.Int `protobuf:"bytes,7,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3,customtype=github.com/cosmos/cosmos-sdk/types.Int" json:"ozone_limit_changes"`
-	UnbondingMatureTime  time.Time                              `protobuf:"bytes,8,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3,stdtime" json:"unbonding_mature_time"`
+	Sender               string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress       string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	DepositDelta         string `protobuf:"bytes,3,opt,name=deposit_delta,json=depositDelta,proto3" json:"deposit_delta,omitempty"`
+	CurrentDeposit       string `protobuf:"bytes,4,opt,name=current_deposit,json=currentDeposit,proto3" json:"current_deposit,omitempty"`
+	AvailableTokenBefore string `protobuf:"bytes,5,opt,name=available_token_before,json=availableTokenBefore,proto3" json:"available_token_before,omitempty"`
+	AvailableTokenAfter  string `protobuf:"bytes,6,opt,name=available_token_after,json=availableTokenAfter,proto3" json:"available_token_after,omitempty"`
+	OzoneLimitChanges    string `protobuf:"bytes,7,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
+	UnbondingMatureTime  string `protobuf:"bytes,8,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3" json:"unbonding_mature_time,omitempty"`
 }
 
 func (m *EventUpdateMetaNodeDeposit) Reset()         { *m = EventUpdateMetaNodeDeposit{} }
@@ -740,45 +765,52 @@ func (m *EventUpdateMetaNodeDeposit) GetNetworkAddress() string {
 	return ""
 }
 
-func (m *EventUpdateMetaNodeDeposit) GetDepositDelta() types1.Coin {
+func (m *EventUpdateMetaNodeDeposit) GetDepositDelta() string {
 	if m != nil {
 		return m.DepositDelta
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateMetaNodeDeposit) GetCurrentDeposit() types1.Coin {
+func (m *EventUpdateMetaNodeDeposit) GetCurrentDeposit() string {
 	if m != nil {
 		return m.CurrentDeposit
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateMetaNodeDeposit) GetAvailableTokenBefore() types1.Coin {
+func (m *EventUpdateMetaNodeDeposit) GetAvailableTokenBefore() string {
 	if m != nil {
 		return m.AvailableTokenBefore
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateMetaNodeDeposit) GetAvailableTokenAfter() types1.Coin {
+func (m *EventUpdateMetaNodeDeposit) GetAvailableTokenAfter() string {
 	if m != nil {
 		return m.AvailableTokenAfter
 	}
-	return types1.Coin{}
+	return ""
 }
 
-func (m *EventUpdateMetaNodeDeposit) GetUnbondingMatureTime() time.Time {
+func (m *EventUpdateMetaNodeDeposit) GetOzoneLimitChanges() string {
+	if m != nil {
+		return m.OzoneLimitChanges
+	}
+	return ""
+}
+
+func (m *EventUpdateMetaNodeDeposit) GetUnbondingMatureTime() string {
 	if m != nil {
 		return m.UnbondingMatureTime
 	}
-	return time.Time{}
+	return ""
 }
 
 // EventCompleteUnBondingResourceNode is emitted on EndBlocker
 type EventCompleteUnBondingResourceNode struct {
-	Amount         github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
-	NetworkAddress string                                   `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	Amount         string `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	NetworkAddress string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
 }
 
 func (m *EventCompleteUnBondingResourceNode) Reset()         { *m = EventCompleteUnBondingResourceNode{} }
@@ -814,11 +846,11 @@ func (m *EventCompleteUnBondingResourceNode) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCompleteUnBondingResourceNode proto.InternalMessageInfo
 
-func (m *EventCompleteUnBondingResourceNode) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
+func (m *EventCompleteUnBondingResourceNode) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return nil
+	return ""
 }
 
 func (m *EventCompleteUnBondingResourceNode) GetNetworkAddress() string {
@@ -830,8 +862,8 @@ func (m *EventCompleteUnBondingResourceNode) GetNetworkAddress() string {
 
 // EventCompleteUnBondingMetaNode is emitted on EndBlocker
 type EventCompleteUnBondingMetaNode struct {
-	Amount         github_com_cosmos_cosmos_sdk_types.Coins `protobuf:"bytes,1,rep,name=amount,proto3,castrepeated=github.com/cosmos/cosmos-sdk/types.Coins" json:"amount"`
-	NetworkAddress string                                   `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	Amount         string `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	NetworkAddress string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
 }
 
 func (m *EventCompleteUnBondingMetaNode) Reset()         { *m = EventCompleteUnBondingMetaNode{} }
@@ -867,16 +899,80 @@ func (m *EventCompleteUnBondingMetaNode) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_EventCompleteUnBondingMetaNode proto.InternalMessageInfo
 
-func (m *EventCompleteUnBondingMetaNode) GetAmount() github_com_cosmos_cosmos_sdk_types.Coins {
+func (m *EventCompleteUnBondingMetaNode) GetAmount() string {
 	if m != nil {
 		return m.Amount
 	}
-	return nil
+	return ""
 }
 
 func (m *EventCompleteUnBondingMetaNode) GetNetworkAddress() string {
 	if m != nil {
 		return m.NetworkAddress
+	}
+	return ""
+}
+
+// EventMessage
+type EventMessage struct {
+	// module which emits the event
+	Module string `protobuf:"bytes,1,opt,name=module,proto3" json:"module,omitempty"`
+	// sender of the message
+	Sender string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
+	// tx_type is the type of the message
+	Action string `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
+}
+
+func (m *EventMessage) Reset()         { *m = EventMessage{} }
+func (m *EventMessage) String() string { return proto.CompactTextString(m) }
+func (*EventMessage) ProtoMessage()    {}
+func (*EventMessage) Descriptor() ([]byte, []int) {
+	return fileDescriptor_9f4bedab5b811f13, []int{13}
+}
+func (m *EventMessage) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventMessage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventMessage.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventMessage) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventMessage.Merge(m, src)
+}
+func (m *EventMessage) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventMessage) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventMessage.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventMessage proto.InternalMessageInfo
+
+func (m *EventMessage) GetModule() string {
+	if m != nil {
+		return m.Module
+	}
+	return ""
+}
+
+func (m *EventMessage) GetSender() string {
+	if m != nil {
+		return m.Sender
+	}
+	return ""
+}
+
+func (m *EventMessage) GetAction() string {
+	if m != nil {
+		return m.Action
 	}
 	return ""
 }
@@ -895,76 +991,62 @@ func init() {
 	proto.RegisterType((*EventUpdateMetaNodeDeposit)(nil), "stratos.register.v1.EventUpdateMetaNodeDeposit")
 	proto.RegisterType((*EventCompleteUnBondingResourceNode)(nil), "stratos.register.v1.EventCompleteUnBondingResourceNode")
 	proto.RegisterType((*EventCompleteUnBondingMetaNode)(nil), "stratos.register.v1.EventCompleteUnBondingMetaNode")
+	proto.RegisterType((*EventMessage)(nil), "stratos.register.v1.EventMessage")
 }
 
 func init() { proto.RegisterFile("stratos/register/v1/event.proto", fileDescriptor_9f4bedab5b811f13) }
 
 var fileDescriptor_9f4bedab5b811f13 = []byte{
-	// 1022 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0xcf, 0x6f, 0x1b, 0xc5,
-	0x17, 0xcf, 0xc6, 0x89, 0xbf, 0xe9, 0xb4, 0x71, 0xbe, 0xb5, 0x93, 0xc6, 0x09, 0xc2, 0x8e, 0x56,
-	0x80, 0x72, 0xc9, 0x6e, 0x13, 0xe0, 0x06, 0x87, 0x38, 0x29, 0xa2, 0x6a, 0x13, 0xa1, 0x4d, 0x02,
-	0x88, 0xcb, 0x6a, 0x76, 0xf7, 0xd9, 0x19, 0xd9, 0x3b, 0x63, 0xcd, 0xbc, 0x75, 0x31, 0x7f, 0x02,
-	0x87, 0xaa, 0x17, 0x90, 0xf8, 0x17, 0x38, 0xe7, 0x4f, 0xe0, 0x10, 0x21, 0x0e, 0x55, 0x4f, 0x88,
-	0x43, 0x8b, 0x92, 0x7f, 0x02, 0x0e, 0x48, 0x68, 0x77, 0x67, 0x9d, 0x9f, 0x26, 0x2e, 0x4e, 0x31,
-	0x48, 0x3d, 0xd9, 0xbb, 0xf3, 0x3e, 0x9f, 0x79, 0xef, 0x7d, 0xde, 0x7b, 0x33, 0x36, 0xa9, 0x2a,
-	0x94, 0x14, 0x85, 0xb2, 0x25, 0x34, 0x98, 0x42, 0x90, 0x76, 0x67, 0xd5, 0x86, 0x0e, 0x70, 0xb4,
-	0xda, 0x52, 0xa0, 0x28, 0x96, 0xb4, 0x81, 0x95, 0x19, 0x58, 0x9d, 0xd5, 0xc5, 0xd9, 0x86, 0x68,
-	0x88, 0x64, 0xdd, 0x8e, 0xbf, 0xa5, 0xa6, 0x8b, 0x0b, 0xbe, 0x50, 0xa1, 0x50, 0x6e, 0xba, 0x90,
-	0x3e, 0xe8, 0xa5, 0x4a, 0xfa, 0x64, 0x7b, 0x54, 0x81, 0xdd, 0x59, 0xf5, 0x00, 0xe9, 0xaa, 0xed,
-	0x0b, 0xc6, 0x33, 0x68, 0x43, 0x88, 0x46, 0x0b, 0xec, 0xe4, 0xc9, 0x8b, 0xea, 0x36, 0xe5, 0x5d,
-	0xbd, 0x54, 0x3d, 0xbf, 0x84, 0x2c, 0x04, 0x85, 0x34, 0x6c, 0x6b, 0x83, 0xb7, 0x34, 0xb7, 0x42,
-	0xda, 0x64, 0xbc, 0xd1, 0xa3, 0xd7, 0xcf, 0xa9, 0x95, 0xf9, 0x38, 0x47, 0xe6, 0xef, 0xc5, 0x71,
-	0x6d, 0x48, 0xa0, 0x08, 0x0e, 0x28, 0x11, 0x49, 0x1f, 0xb6, 0x45, 0x00, 0xc5, 0xbb, 0x24, 0xaf,
-	0x80, 0x07, 0x20, 0xcb, 0xc6, 0x92, 0xb1, 0x7c, 0xa3, 0x56, 0x7e, 0x76, 0xb0, 0x32, 0xab, 0xfd,
-	0x5f, 0x0f, 0x02, 0x09, 0x4a, 0xed, 0xa0, 0x64, 0xbc, 0xe1, 0x68, 0xbb, 0xe2, 0x3a, 0x99, 0xe1,
-	0x80, 0x8f, 0x84, 0x6c, 0xba, 0x34, 0x35, 0x28, 0x8f, 0x5f, 0x01, 0x2d, 0x68, 0x80, 0x7e, 0x5b,
-	0xfc, 0x88, 0xe4, 0xdb, 0x91, 0xd7, 0x84, 0x6e, 0x39, 0xb7, 0x64, 0x2c, 0xdf, 0x5c, 0x9b, 0xb5,
-	0xd2, 0x40, 0xad, 0x2c, 0x50, 0x6b, 0x9d, 0x77, 0x6b, 0xe5, 0x1f, 0x4f, 0xf8, 0x7c, 0xd9, 0x6d,
-	0xa3, 0xb0, 0x3e, 0x89, 0xbc, 0x07, 0xd0, 0x75, 0x34, 0xba, 0xd8, 0x22, 0x25, 0xf1, 0x95, 0xe0,
-	0xe0, 0xb6, 0x58, 0xc8, 0xd0, 0xf5, 0xf7, 0x29, 0x6f, 0x80, 0x2a, 0x4f, 0x24, 0xee, 0x7c, 0x70,
-	0xf8, 0xbc, 0x3a, 0xf6, 0xcb, 0xf3, 0xea, 0x3b, 0x0d, 0x86, 0xfb, 0x91, 0x67, 0xf9, 0x22, 0xd4,
-	0xc2, 0xe8, 0x8f, 0x15, 0x15, 0x34, 0x6d, 0xec, 0xb6, 0x41, 0x59, 0xf7, 0x39, 0x3e, 0x3b, 0x58,
-	0x21, 0x7a, 0xb3, 0xfb, 0x1c, 0x9d, 0xdb, 0x09, 0xf1, 0xc3, 0x98, 0x77, 0x23, 0xa5, 0x2d, 0x7e,
-	0x4c, 0x66, 0x18, 0x67, 0xc8, 0x68, 0xcb, 0x0d, 0xa0, 0x2d, 0x14, 0xc3, 0xf2, 0x64, 0xe2, 0xfe,
-	0x82, 0xa5, 0x81, 0xb1, 0xc4, 0x96, 0xd6, 0xc0, 0xda, 0x10, 0x8c, 0xd7, 0x26, 0x62, 0x27, 0x9c,
-	0x82, 0xc6, 0x6d, 0xa6, 0x30, 0xf3, 0x37, 0x83, 0x94, 0x4e, 0x09, 0xb2, 0x05, 0x48, 0x47, 0x27,
-	0x46, 0x9f, 0x24, 0xe6, 0x5e, 0x49, 0x12, 0xcd, 0x83, 0x71, 0xb2, 0x98, 0x84, 0xbe, 0xc7, 0x6b,
-	0x82, 0x07, 0xb1, 0x43, 0xc3, 0x95, 0xe3, 0x87, 0x64, 0x5a, 0x6a, 0x06, 0x97, 0x8b, 0x00, 0xae,
-	0x8c, 0xff, 0x96, 0x3c, 0xbd, 0xe1, 0x03, 0x72, 0x5b, 0x8b, 0xe9, 0xa2, 0x70, 0x25, 0x84, 0xa2,
-	0x03, 0xba, 0x2a, 0xaf, 0x94, 0x75, 0x46, 0x23, 0x77, 0x85, 0x93, 0xe0, 0x8a, 0x9f, 0x93, 0xb9,
-	0x88, 0x7b, 0x69, 0x58, 0x6e, 0x48, 0x31, 0x92, 0xe0, 0xc6, 0x2d, 0x9b, 0x54, 0xe4, 0xcd, 0xb5,
-	0xc5, 0x0b, 0x65, 0xbe, 0x9b, 0xf5, 0x73, 0x6d, 0x2a, 0x66, 0x7c, 0xf2, 0xa2, 0x6a, 0x38, 0xa5,
-	0x1e, 0xc5, 0x56, 0xc2, 0x10, 0xdb, 0x98, 0xdf, 0xe6, 0xc8, 0x9d, 0xb3, 0x69, 0x1b, 0xa2, 0x68,
-	0xde, 0x27, 0x37, 0x42, 0x40, 0x3a, 0x58, 0xba, 0xa6, 0xc2, 0x6c, 0xa3, 0x7f, 0xb4, 0x50, 0x2e,
-	0x17, 0x66, 0xe2, 0xba, 0x85, 0x99, 0x1c, 0x56, 0x98, 0x1f, 0xc6, 0xc9, 0x9b, 0x89, 0x30, 0x99,
-	0x1e, 0x4e, 0x72, 0x56, 0x48, 0x8a, 0x4c, 0xf0, 0x4f, 0x05, 0xfe, 0x1d, 0x7d, 0x1e, 0x92, 0xb9,
-	0x8e, 0x40, 0x90, 0xee, 0xcb, 0xb6, 0x76, 0x29, 0x81, 0x6d, 0x9f, 0xed, 0xef, 0x5d, 0xb2, 0xe0,
-	0x53, 0x1e, 0xb0, 0x80, 0x22, 0x5c, 0x60, 0xcc, 0x5d, 0xc1, 0x38, 0xdf, 0x83, 0x9e, 0x63, 0xdd,
-	0x22, 0xff, 0x3f, 0x61, 0x55, 0x48, 0x31, 0x4a, 0xe7, 0x6e, 0x61, 0xcd, 0xcc, 0xd4, 0xc9, 0x0e,
-	0xa1, 0x4c, 0xa0, 0xb8, 0x70, 0x77, 0x12, 0x4b, 0x67, 0xa6, 0x87, 0x4d, 0x5f, 0x98, 0xbf, 0x1b,
-	0x64, 0x39, 0x49, 0xe3, 0x67, 0x0c, 0xf7, 0x03, 0x49, 0x1f, 0x5d, 0x96, 0x4e, 0x3d, 0x3e, 0x47,
-	0x33, 0x26, 0xfb, 0x96, 0x50, 0x6e, 0xd8, 0x12, 0x7a, 0x6c, 0xe8, 0xe3, 0x79, 0xaf, 0x1d, 0xfc,
-	0x1b, 0x8e, 0x67, 0xf3, 0xbb, 0x49, 0x52, 0xe9, 0xe3, 0xd0, 0x48, 0x25, 0xd8, 0x24, 0xd3, 0xd9,
-	0x48, 0x08, 0xa0, 0x85, 0x74, 0xd0, 0x39, 0x7d, 0x4b, 0xa3, 0x36, 0x63, 0x50, 0x7c, 0x8c, 0xfb,
-	0x91, 0x94, 0xc0, 0xb1, 0x77, 0x8c, 0x0f, 0x38, 0x56, 0x0a, 0x1a, 0x97, 0x25, 0x61, 0x8f, 0xdc,
-	0xa1, 0x1d, 0xca, 0x5a, 0xd4, 0x6b, 0x81, 0x8b, 0xa2, 0x09, 0xdc, 0xf5, 0xa0, 0x2e, 0x24, 0x0c,
-	0x7a, 0x2f, 0x98, 0xed, 0xc1, 0x77, 0x63, 0x74, 0x2d, 0x01, 0x17, 0x77, 0xc8, 0xdc, 0x79, 0x5a,
-	0x5a, 0x47, 0x90, 0xe5, 0xfc, 0x60, 0xac, 0xa5, 0xb3, 0xac, 0xeb, 0x31, 0xb6, 0xdf, 0xf0, 0xfe,
-	0xdf, 0xab, 0x19, 0xde, 0x7d, 0x9b, 0x65, 0x6a, 0xd8, 0x66, 0xf9, 0xc3, 0x20, 0x6f, 0x9c, 0xaa,
-	0xcd, 0x7b, 0xf5, 0x3a, 0xf8, 0xc8, 0x3a, 0xbd, 0xc2, 0xbc, 0xa4, 0xcc, 0x8c, 0x97, 0x2c, 0x33,
-	0x24, 0xf3, 0x90, 0xd1, 0x66, 0x25, 0xa2, 0x15, 0x18, 0xbf, 0x86, 0x74, 0xcd, 0xc1, 0x39, 0x9f,
-	0x53, 0x81, 0xde, 0x26, 0x05, 0xa6, 0xdc, 0x88, 0xab, 0x48, 0xb5, 0xe3, 0x8e, 0x09, 0x92, 0xea,
-	0x9e, 0x72, 0xa6, 0x99, 0xda, 0x3b, 0x79, 0x69, 0x7e, 0x9d, 0x5d, 0x1d, 0xd3, 0xf8, 0x47, 0x7a,
-	0x75, 0x34, 0xbf, 0x99, 0xcc, 0x2e, 0x73, 0x67, 0x9c, 0x79, 0x3d, 0x24, 0x5e, 0x0f, 0x89, 0x91,
-	0x0e, 0x89, 0x9f, 0x0c, 0x62, 0xa6, 0xbf, 0xaf, 0x44, 0xd8, 0x6e, 0x01, 0xc2, 0xe5, 0x3f, 0x36,
-	0x7c, 0x92, 0xa7, 0xa1, 0x88, 0x38, 0x96, 0x8d, 0xa5, 0xdc, 0x5f, 0x27, 0xed, 0x6e, 0xbc, 0xe1,
-	0xf7, 0x2f, 0xaa, 0xcb, 0x03, 0x04, 0x1f, 0x03, 0x94, 0xa3, 0xa9, 0xaf, 0xa3, 0xcd, 0x0e, 0x0d,
-	0x7d, 0x1e, 0x5f, 0x08, 0xa7, 0xd7, 0xfe, 0xff, 0x91, 0x50, 0x6a, 0xdb, 0x87, 0x47, 0x15, 0xe3,
-	0xe9, 0x51, 0xc5, 0xf8, 0xf5, 0xa8, 0x62, 0x3c, 0x39, 0xae, 0x8c, 0x3d, 0x3d, 0xae, 0x8c, 0xfd,
-	0x7c, 0x5c, 0x19, 0xfb, 0xe2, 0xbd, 0x53, 0xee, 0xe8, 0xff, 0x5d, 0x38, 0x60, 0xf6, 0x75, 0xc5,
-	0xdf, 0xa7, 0x8c, 0xdb, 0x5f, 0x9e, 0xfc, 0x57, 0x93, 0x38, 0xe8, 0xe5, 0x93, 0xe2, 0x78, 0xf7,
-	0xcf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xd1, 0xf5, 0xa4, 0x1f, 0xcc, 0x11, 0x00, 0x00,
+	// 775 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xcb, 0x4e, 0x14, 0x4d,
+	0x14, 0xa6, 0x87, 0xcb, 0x0f, 0x15, 0x2e, 0x3f, 0x33, 0x3f, 0x30, 0xbf, 0xc4, 0xd1, 0x34, 0x31,
+	0xa2, 0x89, 0x33, 0x01, 0x89, 0x0b, 0x77, 0xdc, 0x76, 0xc2, 0x62, 0x04, 0x4c, 0xd8, 0x74, 0x6a,
+	0xba, 0xcf, 0xcc, 0x54, 0x98, 0xae, 0x9a, 0x54, 0x9d, 0x6e, 0xc4, 0x07, 0x70, 0xed, 0x1b, 0xb8,
+	0xf2, 0x21, 0x7c, 0x03, 0x13, 0x37, 0xc4, 0x95, 0x1b, 0x13, 0x03, 0x4f, 0xe1, 0xc2, 0xc4, 0x74,
+	0x57, 0xd5, 0x30, 0x03, 0xd3, 0x11, 0xc2, 0xc4, 0x95, 0xbb, 0xae, 0x73, 0xeb, 0xf3, 0x7d, 0xe7,
+	0x52, 0x45, 0xee, 0x29, 0x94, 0x14, 0x85, 0xaa, 0x48, 0x68, 0x30, 0x85, 0x20, 0x2b, 0xf1, 0x4a,
+	0x05, 0x62, 0xe0, 0x58, 0x6e, 0x4b, 0x81, 0x22, 0x5f, 0x30, 0x06, 0x65, 0x6b, 0x50, 0x8e, 0x57,
+	0xdc, 0xcf, 0x0e, 0x59, 0xd8, 0x4e, 0x8c, 0x36, 0x25, 0x50, 0x84, 0x2a, 0x28, 0x11, 0x49, 0x1f,
+	0x76, 0x45, 0x00, 0xf9, 0x79, 0x32, 0xa6, 0x80, 0x07, 0x20, 0x8b, 0xce, 0x7d, 0x67, 0x79, 0xa2,
+	0x6a, 0x4e, 0xf9, 0x87, 0x64, 0x86, 0x03, 0x1e, 0x0b, 0x79, 0xe4, 0xd1, 0x20, 0x90, 0xa0, 0x54,
+	0x31, 0x97, 0x1a, 0x4c, 0x1b, 0xf1, 0xba, 0x96, 0x26, 0x01, 0xda, 0x51, 0xed, 0x08, 0x4e, 0x8a,
+	0xc3, 0x3a, 0x80, 0x3e, 0xe5, 0xcb, 0xa4, 0x20, 0xde, 0x08, 0x0e, 0x5e, 0x8b, 0x85, 0x0c, 0x3d,
+	0xbf, 0x49, 0x79, 0x03, 0x54, 0x71, 0x24, 0x35, 0x9a, 0x4d, 0x55, 0x2f, 0x12, 0xcd, 0xa6, 0x56,
+	0x24, 0x3f, 0x64, 0x9c, 0x21, 0xa3, 0x2d, 0x2f, 0x80, 0xb6, 0x50, 0x0c, 0x8b, 0xa3, 0xfa, 0x87,
+	0x46, 0xbc, 0xa5, 0xa5, 0xee, 0x5b, 0x87, 0x14, 0xba, 0xd0, 0xec, 0x00, 0xd2, 0xc1, 0x20, 0xc9,
+	0xc8, 0x78, 0x38, 0x23, 0x63, 0xf7, 0xa3, 0x43, 0xee, 0xa4, 0x89, 0xec, 0xf3, 0x0d, 0xc1, 0x03,
+	0xc6, 0x1b, 0xd7, 0x62, 0x76, 0x89, 0x4c, 0x49, 0x63, 0xe7, 0x71, 0x11, 0x80, 0xc9, 0x66, 0x52,
+	0x76, 0x3b, 0x3f, 0x26, 0xb3, 0x86, 0x05, 0x0f, 0x85, 0x27, 0x21, 0x14, 0x31, 0x98, 0x4c, 0x66,
+	0x8c, 0x62, 0x4f, 0x54, 0x53, 0x71, 0x7e, 0x95, 0xcc, 0x45, 0xbc, 0xa6, 0x33, 0xf0, 0x42, 0x8a,
+	0x91, 0x04, 0x0f, 0x59, 0x08, 0x86, 0xeb, 0x42, 0x47, 0xb9, 0x93, 0xea, 0xf6, 0x58, 0x08, 0xee,
+	0x37, 0x87, 0xcc, 0xf7, 0xe6, 0xfe, 0x5b, 0x1e, 0x17, 0xc9, 0x44, 0x08, 0x48, 0xbb, 0x73, 0x1e,
+	0x0f, 0xad, 0xd3, 0x0d, 0xb9, 0xeb, 0x8f, 0x6f, 0xe4, 0x86, 0xf8, 0x46, 0xb3, 0xf1, 0x7d, 0x71,
+	0xc8, 0xdd, 0x14, 0x9f, 0x85, 0x55, 0x4d, 0xe7, 0x41, 0x52, 0x64, 0x82, 0x1f, 0x08, 0xcc, 0x86,
+	0xb9, 0x4a, 0xe6, 0x62, 0x81, 0x20, 0xbd, 0xfe, 0x4d, 0x53, 0x48, 0x95, 0xbb, 0xbd, 0x9d, 0xf3,
+	0x9c, 0xfc, 0xef, 0x53, 0x1e, 0xb0, 0x80, 0x22, 0x5c, 0xf1, 0xd3, 0x1c, 0x2c, 0x74, 0x0c, 0x2e,
+	0xf9, 0x3e, 0x22, 0xff, 0x5e, 0xf8, 0x2a, 0xa4, 0x18, 0xd9, 0x21, 0x99, 0xe9, 0xc8, 0x5f, 0xa6,
+	0x62, 0xf7, 0xbd, 0x43, 0x96, 0x53, 0x50, 0xaf, 0x18, 0x36, 0x03, 0x49, 0x8f, 0xfb, 0x81, 0x33,
+	0x63, 0x72, 0xfb, 0x71, 0xc8, 0xa4, 0x7d, 0x38, 0x9b, 0xf6, 0x43, 0xb3, 0x68, 0xf6, 0xdb, 0xc1,
+	0xa0, 0x17, 0x8d, 0xfb, 0x33, 0x47, 0x4a, 0x19, 0xc1, 0x07, 0x86, 0x79, 0x89, 0x4c, 0xd9, 0xb6,
+	0x0c, 0xa0, 0x85, 0xd4, 0x60, 0x9d, 0x34, 0xc2, 0xad, 0x44, 0x96, 0x44, 0xf3, 0x23, 0x29, 0x81,
+	0x63, 0x67, 0x53, 0xe9, 0x82, 0x4d, 0x1b, 0xb1, 0x4d, 0x67, 0x8d, 0xcc, 0xd3, 0x98, 0xb2, 0x16,
+	0xad, 0xb5, 0xc0, 0x43, 0x71, 0x04, 0xdc, 0xab, 0x41, 0x5d, 0x48, 0xdb, 0xb9, 0xff, 0x75, 0xb4,
+	0x7b, 0x89, 0x72, 0x23, 0xd5, 0x25, 0xbc, 0x5f, 0xf6, 0xa2, 0x75, 0x04, 0x59, 0x1c, 0xd3, 0xbc,
+	0xf7, 0x3a, 0xad, 0x27, 0xaa, 0xac, 0xf1, 0xfb, 0x27, 0x6b, 0xfc, 0x32, 0x6b, 0x3b, 0x9e, 0x5d,
+	0xdb, 0x0f, 0x0e, 0x59, 0xec, 0xe2, 0x7f, 0xbb, 0x5e, 0x07, 0x1f, 0x59, 0xdc, 0x21, 0xbf, 0x0f,
+	0xc9, 0x4e, 0x5f, 0x92, 0x9f, 0x91, 0x05, 0xb0, 0xce, 0x96, 0x41, 0x03, 0x51, 0x57, 0x65, 0x0e,
+	0x2e, 0xc5, 0xd6, 0x20, 0x1f, 0x90, 0x69, 0xa6, 0xbc, 0x88, 0xab, 0x48, 0xb5, 0x93, 0xba, 0x06,
+	0xa6, 0x3a, 0x53, 0x4c, 0xed, 0x5f, 0x08, 0xdd, 0x03, 0x73, 0x3d, 0xe8, 0x34, 0x07, 0x76, 0x3d,
+	0xb8, 0x3f, 0x72, 0x76, 0xdd, 0xf7, 0x04, 0xfe, 0xdb, 0x7b, 0x7f, 0xa0, 0xf7, 0x80, 0xb8, 0xfa,
+	0xca, 0x17, 0x61, 0xbb, 0x05, 0x08, 0x99, 0x37, 0x2e, 0x0d, 0x45, 0xc4, 0xd1, 0x96, 0x40, 0x9f,
+	0xae, 0x5f, 0x62, 0x6a, 0x36, 0xcc, 0x95, 0xdf, 0x74, 0x77, 0xd1, 0xed, 0x7e, 0x71, 0x40, 0x26,
+	0xcd, 0xbd, 0xa4, 0x14, 0x6d, 0xa4, 0x01, 0x43, 0x11, 0x44, 0x2d, 0xb0, 0x01, 0xf5, 0xa9, 0xab,
+	0x9d, 0x72, 0x3d, 0xed, 0x94, 0x24, 0xe0, 0x27, 0x7b, 0xde, 0x3e, 0xb7, 0xf4, 0x69, 0x63, 0xf7,
+	0xd3, 0x59, 0xc9, 0x39, 0x3d, 0x2b, 0x39, 0xdf, 0xcf, 0x4a, 0xce, 0xbb, 0xf3, 0xd2, 0xd0, 0xe9,
+	0x79, 0x69, 0xe8, 0xeb, 0x79, 0x69, 0xe8, 0x70, 0xad, 0xc1, 0xb0, 0x19, 0xd5, 0xca, 0xbe, 0x08,
+	0x2b, 0xe6, 0x75, 0xc8, 0x01, 0xed, 0xe7, 0x13, 0xbf, 0x49, 0x19, 0xaf, 0xbc, 0xbe, 0x78, 0x51,
+	0xe2, 0x49, 0x1b, 0x54, 0x6d, 0x2c, 0x7d, 0x4f, 0x3e, 0xfd, 0x15, 0x00, 0x00, 0xff, 0xff, 0x1b,
+	0xa7, 0x84, 0x36, 0x72, 0x0a, 0x00, 0x00,
 }
 
 func (m *EventCreateResourceNode) Marshal() (dAtA []byte, err error) {
@@ -987,35 +1069,24 @@ func (m *EventCreateResourceNode) MarshalToSizedBuffer(dAtA []byte) (int, error)
 	_ = i
 	var l int
 	_ = l
-	{
-		size, err := m.InitialDeposit.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.InitialDeposit) > 0 {
+		i -= len(m.InitialDeposit)
+		copy(dAtA[i:], m.InitialDeposit)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.InitialDeposit)))
+		i--
+		dAtA[i] = 0x2a
 	}
-	i--
-	dAtA[i] = 0x2a
-	{
-		size := m.OzoneLimitChanges.Size()
-		i -= size
-		if _, err := m.OzoneLimitChanges.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.OzoneLimitChanges) > 0 {
+		i -= len(m.OzoneLimitChanges)
+		copy(dAtA[i:], m.OzoneLimitChanges)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x22
-	if m.Pubkey != nil {
-		{
-			size, err := m.Pubkey.MarshalToSizedBuffer(dAtA[:i])
-			if err != nil {
-				return 0, err
-			}
-			i -= size
-			i = encodeVarintEvent(dAtA, i, uint64(size))
-		}
+	if len(m.Pubkey) > 0 {
+		i -= len(m.Pubkey)
+		copy(dAtA[i:], m.Pubkey)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.Pubkey)))
 		i--
 		dAtA[i] = 0x1a
 	}
@@ -1056,16 +1127,13 @@ func (m *EventCreateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	{
-		size := m.OzoneLimitChanges.Size()
-		i -= size
-		if _, err := m.OzoneLimitChanges.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.OzoneLimitChanges) > 0 {
+		i -= len(m.OzoneLimitChanges)
+		copy(dAtA[i:], m.OzoneLimitChanges)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
@@ -1103,24 +1171,20 @@ func (m *EventUnBondingResourceNode) MarshalToSizedBuffer(dAtA []byte) (int, err
 	_ = i
 	var l int
 	_ = l
-	n3, err3 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UnbondingMatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime):])
-	if err3 != nil {
-		return 0, err3
+	if len(m.UnbondingMatureTime) > 0 {
+		i -= len(m.UnbondingMatureTime)
+		copy(dAtA[i:], m.UnbondingMatureTime)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.UnbondingMatureTime)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i -= n3
-	i = encodeVarintEvent(dAtA, i, uint64(n3))
-	i--
-	dAtA[i] = 0x22
-	{
-		size, err := m.DepositToRemove.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.DepositToRemove) > 0 {
+		i -= len(m.DepositToRemove)
+		copy(dAtA[i:], m.DepositToRemove)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.DepositToRemove)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.ResourceNode) > 0 {
 		i -= len(m.ResourceNode)
 		copy(dAtA[i:], m.ResourceNode)
@@ -1158,34 +1222,27 @@ func (m *EventUnBondingMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) 
 	_ = i
 	var l int
 	_ = l
-	n5, err5 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UnbondingMatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime):])
-	if err5 != nil {
-		return 0, err5
+	if len(m.UnbondingMatureTime) > 0 {
+		i -= len(m.UnbondingMatureTime)
+		copy(dAtA[i:], m.UnbondingMatureTime)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.UnbondingMatureTime)))
+		i--
+		dAtA[i] = 0x2a
 	}
-	i -= n5
-	i = encodeVarintEvent(dAtA, i, uint64(n5))
-	i--
-	dAtA[i] = 0x2a
-	{
-		size, err := m.DepositToRemove.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.DepositToRemove) > 0 {
+		i -= len(m.DepositToRemove)
+		copy(dAtA[i:], m.DepositToRemove)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.DepositToRemove)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x22
-	{
-		size := m.OzoneLimitChanges.Size()
-		i -= size
-		if _, err := m.OzoneLimitChanges.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.OzoneLimitChanges) > 0 {
+		i -= len(m.OzoneLimitChanges)
+		copy(dAtA[i:], m.OzoneLimitChanges)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.MetaNode) > 0 {
 		i -= len(m.MetaNode)
 		copy(dAtA[i:], m.MetaNode)
@@ -1223,10 +1280,12 @@ func (m *EventMetaNodeRegistrationVote) MarshalToSizedBuffer(dAtA []byte) (int, 
 	_ = i
 	var l int
 	_ = l
-	if m.CandidateStatus != 0 {
-		i = encodeVarintEvent(dAtA, i, uint64(m.CandidateStatus))
+	if len(m.CandidateStatus) > 0 {
+		i -= len(m.CandidateStatus)
+		copy(dAtA[i:], m.CandidateStatus)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.CandidateStatus)))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x22
 	}
 	if len(m.CandidateNetworkAddress) > 0 {
 		i -= len(m.CandidateNetworkAddress)
@@ -1272,14 +1331,13 @@ func (m *EventWithdrawMetaNodeRegistrationDeposit) MarshalToSizedBuffer(dAtA []b
 	_ = i
 	var l int
 	_ = l
-	n7, err7 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UnbondingMatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime):])
-	if err7 != nil {
-		return 0, err7
+	if len(m.UnbondingMatureTime) > 0 {
+		i -= len(m.UnbondingMatureTime)
+		copy(dAtA[i:], m.UnbondingMatureTime)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.UnbondingMatureTime)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i -= n7
-	i = encodeVarintEvent(dAtA, i, uint64(n7))
-	i--
-	dAtA[i] = 0x1a
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
@@ -1354,64 +1412,48 @@ func (m *EventUpdateResourceNodeDeposit) MarshalToSizedBuffer(dAtA []byte) (int,
 	_ = i
 	var l int
 	_ = l
-	n8, err8 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UnbondingMatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime):])
-	if err8 != nil {
-		return 0, err8
+	if len(m.UnbondingMatureTime) > 0 {
+		i -= len(m.UnbondingMatureTime)
+		copy(dAtA[i:], m.UnbondingMatureTime)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.UnbondingMatureTime)))
+		i--
+		dAtA[i] = 0x42
 	}
-	i -= n8
-	i = encodeVarintEvent(dAtA, i, uint64(n8))
-	i--
-	dAtA[i] = 0x42
-	{
-		size := m.OzoneLimitChanges.Size()
-		i -= size
-		if _, err := m.OzoneLimitChanges.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.OzoneLimitChanges) > 0 {
+		i -= len(m.OzoneLimitChanges)
+		copy(dAtA[i:], m.OzoneLimitChanges)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
+		i--
+		dAtA[i] = 0x3a
 	}
-	i--
-	dAtA[i] = 0x3a
-	{
-		size, err := m.AvailableTokenAfter.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.AvailableTokenAfter) > 0 {
+		i -= len(m.AvailableTokenAfter)
+		copy(dAtA[i:], m.AvailableTokenAfter)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.AvailableTokenAfter)))
+		i--
+		dAtA[i] = 0x32
 	}
-	i--
-	dAtA[i] = 0x32
-	{
-		size, err := m.AvailableTokenBefore.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.AvailableTokenBefore) > 0 {
+		i -= len(m.AvailableTokenBefore)
+		copy(dAtA[i:], m.AvailableTokenBefore)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.AvailableTokenBefore)))
+		i--
+		dAtA[i] = 0x2a
 	}
-	i--
-	dAtA[i] = 0x2a
-	{
-		size, err := m.CurrentDeposit.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.CurrentDeposit) > 0 {
+		i -= len(m.CurrentDeposit)
+		copy(dAtA[i:], m.CurrentDeposit)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.CurrentDeposit)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x22
-	{
-		size, err := m.DepositDelta.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.DepositDelta) > 0 {
+		i -= len(m.DepositDelta)
+		copy(dAtA[i:], m.DepositDelta)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.DepositDelta)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
@@ -1449,26 +1491,20 @@ func (m *EventUpdateEffectiveDeposit) MarshalToSizedBuffer(dAtA []byte) (int, er
 	_ = i
 	var l int
 	_ = l
-	if m.IsUnsuspended {
+	if len(m.IsUnsuspended) > 0 {
+		i -= len(m.IsUnsuspended)
+		copy(dAtA[i:], m.IsUnsuspended)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.IsUnsuspended)))
 		i--
-		if m.IsUnsuspended {
-			dAtA[i] = 1
-		} else {
-			dAtA[i] = 0
-		}
+		dAtA[i] = 0x1a
+	}
+	if len(m.EffectiveDepositAfter) > 0 {
+		i -= len(m.EffectiveDepositAfter)
+		copy(dAtA[i:], m.EffectiveDepositAfter)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.EffectiveDepositAfter)))
 		i--
-		dAtA[i] = 0x18
+		dAtA[i] = 0x12
 	}
-	{
-		size := m.EffectiveDepositAfter.Size()
-		i -= size
-		if _, err := m.EffectiveDepositAfter.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvent(dAtA, i, uint64(size))
-	}
-	i--
-	dAtA[i] = 0x12
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
@@ -1536,64 +1572,48 @@ func (m *EventUpdateMetaNodeDeposit) MarshalToSizedBuffer(dAtA []byte) (int, err
 	_ = i
 	var l int
 	_ = l
-	n13, err13 := github_com_cosmos_gogoproto_types.StdTimeMarshalTo(m.UnbondingMatureTime, dAtA[i-github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime):])
-	if err13 != nil {
-		return 0, err13
+	if len(m.UnbondingMatureTime) > 0 {
+		i -= len(m.UnbondingMatureTime)
+		copy(dAtA[i:], m.UnbondingMatureTime)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.UnbondingMatureTime)))
+		i--
+		dAtA[i] = 0x42
 	}
-	i -= n13
-	i = encodeVarintEvent(dAtA, i, uint64(n13))
-	i--
-	dAtA[i] = 0x42
-	{
-		size := m.OzoneLimitChanges.Size()
-		i -= size
-		if _, err := m.OzoneLimitChanges.MarshalTo(dAtA[i:]); err != nil {
-			return 0, err
-		}
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.OzoneLimitChanges) > 0 {
+		i -= len(m.OzoneLimitChanges)
+		copy(dAtA[i:], m.OzoneLimitChanges)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
+		i--
+		dAtA[i] = 0x3a
 	}
-	i--
-	dAtA[i] = 0x3a
-	{
-		size, err := m.AvailableTokenAfter.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.AvailableTokenAfter) > 0 {
+		i -= len(m.AvailableTokenAfter)
+		copy(dAtA[i:], m.AvailableTokenAfter)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.AvailableTokenAfter)))
+		i--
+		dAtA[i] = 0x32
 	}
-	i--
-	dAtA[i] = 0x32
-	{
-		size, err := m.AvailableTokenBefore.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.AvailableTokenBefore) > 0 {
+		i -= len(m.AvailableTokenBefore)
+		copy(dAtA[i:], m.AvailableTokenBefore)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.AvailableTokenBefore)))
+		i--
+		dAtA[i] = 0x2a
 	}
-	i--
-	dAtA[i] = 0x2a
-	{
-		size, err := m.CurrentDeposit.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.CurrentDeposit) > 0 {
+		i -= len(m.CurrentDeposit)
+		copy(dAtA[i:], m.CurrentDeposit)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.CurrentDeposit)))
+		i--
+		dAtA[i] = 0x22
 	}
-	i--
-	dAtA[i] = 0x22
-	{
-		size, err := m.DepositDelta.MarshalToSizedBuffer(dAtA[:i])
-		if err != nil {
-			return 0, err
-		}
-		i -= size
-		i = encodeVarintEvent(dAtA, i, uint64(size))
+	if len(m.DepositDelta) > 0 {
+		i -= len(m.DepositDelta)
+		copy(dAtA[i:], m.DepositDelta)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.DepositDelta)))
+		i--
+		dAtA[i] = 0x1a
 	}
-	i--
-	dAtA[i] = 0x1a
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
@@ -1639,18 +1659,11 @@ func (m *EventCompleteUnBondingResourceNode) MarshalToSizedBuffer(dAtA []byte) (
 		dAtA[i] = 0x12
 	}
 	if len(m.Amount) > 0 {
-		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintEvent(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
+		i -= len(m.Amount)
+		copy(dAtA[i:], m.Amount)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.Amount)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1683,18 +1696,55 @@ func (m *EventCompleteUnBondingMetaNode) MarshalToSizedBuffer(dAtA []byte) (int,
 		dAtA[i] = 0x12
 	}
 	if len(m.Amount) > 0 {
-		for iNdEx := len(m.Amount) - 1; iNdEx >= 0; iNdEx-- {
-			{
-				size, err := m.Amount[iNdEx].MarshalToSizedBuffer(dAtA[:i])
-				if err != nil {
-					return 0, err
-				}
-				i -= size
-				i = encodeVarintEvent(dAtA, i, uint64(size))
-			}
-			i--
-			dAtA[i] = 0xa
-		}
+		i -= len(m.Amount)
+		copy(dAtA[i:], m.Amount)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.Amount)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *EventMessage) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventMessage) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventMessage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Action) > 0 {
+		i -= len(m.Action)
+		copy(dAtA[i:], m.Action)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.Action)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.Sender) > 0 {
+		i -= len(m.Sender)
+		copy(dAtA[i:], m.Sender)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.Sender)))
+		i--
+		dAtA[i] = 0x12
+	}
+	if len(m.Module) > 0 {
+		i -= len(m.Module)
+		copy(dAtA[i:], m.Module)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.Module)))
+		i--
+		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
@@ -1724,14 +1774,18 @@ func (m *EventCreateResourceNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	if m.Pubkey != nil {
-		l = m.Pubkey.Size()
+	l = len(m.Pubkey)
+	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.OzoneLimitChanges.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.InitialDeposit.Size()
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.OzoneLimitChanges)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.InitialDeposit)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1749,8 +1803,10 @@ func (m *EventCreateMetaNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.OzoneLimitChanges.Size()
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.OzoneLimitChanges)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1768,10 +1824,14 @@ func (m *EventUnBondingResourceNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.DepositToRemove.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime)
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.DepositToRemove)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.UnbondingMatureTime)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1789,12 +1849,18 @@ func (m *EventUnBondingMetaNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.OzoneLimitChanges.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.DepositToRemove.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime)
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.OzoneLimitChanges)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.DepositToRemove)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.UnbondingMatureTime)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1816,8 +1882,9 @@ func (m *EventMetaNodeRegistrationVote) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	if m.CandidateStatus != 0 {
-		n += 1 + sovEvent(uint64(m.CandidateStatus))
+	l = len(m.CandidateStatus)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
 	}
 	return n
 }
@@ -1836,8 +1903,10 @@ func (m *EventWithdrawMetaNodeRegistrationDeposit) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime)
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.UnbondingMatureTime)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1872,18 +1941,30 @@ func (m *EventUpdateResourceNodeDeposit) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.DepositDelta.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.CurrentDeposit.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.AvailableTokenBefore.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.AvailableTokenAfter.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.OzoneLimitChanges.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime)
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.DepositDelta)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.CurrentDeposit)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.AvailableTokenBefore)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.AvailableTokenAfter)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.OzoneLimitChanges)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.UnbondingMatureTime)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1897,10 +1978,13 @@ func (m *EventUpdateEffectiveDeposit) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.EffectiveDepositAfter.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	if m.IsUnsuspended {
-		n += 2
+	l = len(m.EffectiveDepositAfter)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.IsUnsuspended)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
 	}
 	return n
 }
@@ -1936,18 +2020,30 @@ func (m *EventUpdateMetaNodeDeposit) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = m.DepositDelta.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.CurrentDeposit.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.AvailableTokenBefore.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.AvailableTokenAfter.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = m.OzoneLimitChanges.Size()
-	n += 1 + l + sovEvent(uint64(l))
-	l = github_com_cosmos_gogoproto_types.SizeOfStdTime(m.UnbondingMatureTime)
-	n += 1 + l + sovEvent(uint64(l))
+	l = len(m.DepositDelta)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.CurrentDeposit)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.AvailableTokenBefore)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.AvailableTokenAfter)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.OzoneLimitChanges)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.UnbondingMatureTime)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
 	return n
 }
 
@@ -1957,11 +2053,9 @@ func (m *EventCompleteUnBondingResourceNode) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Amount) > 0 {
-		for _, e := range m.Amount {
-			l = e.Size()
-			n += 1 + l + sovEvent(uint64(l))
-		}
+	l = len(m.Amount)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
 	}
 	l = len(m.NetworkAddress)
 	if l > 0 {
@@ -1976,13 +2070,32 @@ func (m *EventCompleteUnBondingMetaNode) Size() (n int) {
 	}
 	var l int
 	_ = l
-	if len(m.Amount) > 0 {
-		for _, e := range m.Amount {
-			l = e.Size()
-			n += 1 + l + sovEvent(uint64(l))
-		}
+	l = len(m.Amount)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
 	}
 	l = len(m.NetworkAddress)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	return n
+}
+
+func (m *EventMessage) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Module)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.Sender)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.Action)
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
@@ -2092,7 +2205,7 @@ func (m *EventCreateResourceNode) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Pubkey", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2102,27 +2215,23 @@ func (m *EventCreateResourceNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if m.Pubkey == nil {
-				m.Pubkey = &types.Any{}
-			}
-			if err := m.Pubkey.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Pubkey = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
@@ -2154,15 +2263,13 @@ func (m *EventCreateResourceNode) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.OzoneLimitChanges.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field InitialDeposit", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2172,24 +2279,23 @@ func (m *EventCreateResourceNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.InitialDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.InitialDeposit = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2335,9 +2441,7 @@ func (m *EventCreateMetaNode) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.OzoneLimitChanges.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2457,7 +2561,7 @@ func (m *EventUnBondingResourceNode) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DepositToRemove", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2467,30 +2571,29 @@ func (m *EventUnBondingResourceNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.DepositToRemove.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.DepositToRemove = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingMatureTime", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2500,24 +2603,23 @@ func (m *EventUnBondingResourceNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UnbondingMatureTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UnbondingMatureTime = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2663,15 +2765,13 @@ func (m *EventUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.OzoneLimitChanges.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DepositToRemove", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2681,30 +2781,29 @@ func (m *EventUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.DepositToRemove.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.DepositToRemove = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingMatureTime", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2714,24 +2813,23 @@ func (m *EventUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UnbondingMatureTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UnbondingMatureTime = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2880,10 +2978,10 @@ func (m *EventMetaNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 			m.CandidateNetworkAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CandidateStatus", wireType)
 			}
-			m.CandidateStatus = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -2893,11 +2991,24 @@ func (m *EventMetaNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				m.CandidateStatus |= types2.BondStatus(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.CandidateStatus = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvent(dAtA[iNdEx:])
@@ -3016,7 +3127,7 @@ func (m *EventWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error 
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingMatureTime", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3026,24 +3137,23 @@ func (m *EventWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error 
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UnbondingMatureTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UnbondingMatureTime = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -3277,7 +3387,7 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DepositDelta", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3287,30 +3397,29 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.DepositDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.DepositDelta = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CurrentDeposit", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3320,30 +3429,29 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CurrentDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.CurrentDeposit = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AvailableTokenBefore", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3353,30 +3461,29 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.AvailableTokenBefore.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.AvailableTokenBefore = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AvailableTokenAfter", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3386,24 +3493,23 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.AvailableTokenAfter.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.AvailableTokenAfter = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
@@ -3435,15 +3541,13 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.OzoneLimitChanges.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingMatureTime", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3453,24 +3557,23 @@ func (m *EventUpdateResourceNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UnbondingMatureTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UnbondingMatureTime = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -3584,15 +3687,13 @@ func (m *EventUpdateEffectiveDeposit) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.EffectiveDepositAfter.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.EffectiveDepositAfter = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
-			if wireType != 0 {
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field IsUnsuspended", wireType)
 			}
-			var v int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3602,12 +3703,24 @@ func (m *EventUpdateEffectiveDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				v |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			m.IsUnsuspended = bool(v != 0)
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.IsUnsuspended = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvent(dAtA[iNdEx:])
@@ -3840,7 +3953,7 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field DepositDelta", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3850,30 +3963,29 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.DepositDelta.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.DepositDelta = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field CurrentDeposit", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3883,30 +3995,29 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.CurrentDeposit.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.CurrentDeposit = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AvailableTokenBefore", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3916,30 +4027,29 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.AvailableTokenBefore.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.AvailableTokenBefore = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field AvailableTokenAfter", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -3949,24 +4059,23 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.AvailableTokenAfter.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.AvailableTokenAfter = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 7:
 			if wireType != 2 {
@@ -3998,15 +4107,13 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := m.OzoneLimitChanges.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 8:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingMatureTime", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -4016,24 +4123,23 @@ func (m *EventUpdateMetaNodeDeposit) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			if err := github_com_cosmos_gogoproto_types.StdTimeUnmarshal(&m.UnbondingMatureTime, dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.UnbondingMatureTime = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4089,7 +4195,7 @@ func (m *EventCompleteUnBondingResourceNode) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -4099,25 +4205,23 @@ func (m *EventCompleteUnBondingResourceNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = append(m.Amount, types1.Coin{})
-			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Amount = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4205,7 +4309,7 @@ func (m *EventCompleteUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Amount", wireType)
 			}
-			var msglen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowEvent
@@ -4215,25 +4319,23 @@ func (m *EventCompleteUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 				}
 				b := dAtA[iNdEx]
 				iNdEx++
-				msglen |= int(b&0x7F) << shift
+				stringLen |= uint64(b&0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if msglen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthEvent
 			}
-			postIndex := iNdEx + msglen
+			postIndex := iNdEx + intStringLen
 			if postIndex < 0 {
 				return ErrInvalidLengthEvent
 			}
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Amount = append(m.Amount, types1.Coin{})
-			if err := m.Amount[len(m.Amount)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
-				return err
-			}
+			m.Amount = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
@@ -4266,6 +4368,152 @@ func (m *EventCompleteUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventMessage) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventMessage: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventMessage: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Module", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Module = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Sender = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Action = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

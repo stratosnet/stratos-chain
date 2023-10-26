@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/cometbft/cometbft/crypto/tmhash"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -88,10 +90,16 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 		return nil, errors.Wrap(types.ErrVolumeReport, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventVolumeReport{
-		ReportReference: msg.GetReportReference(),
-		Epoch:           msg.Epoch,
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventVolumeReport{
+			ReportReference: msg.GetReportReference(),
+			Epoch:           msg.Epoch.String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetReporterOwner(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -114,11 +122,17 @@ func (k msgServer) HandleMsgWithdraw(goCtx context.Context, msg *types.MsgWithdr
 		return &types.MsgWithdrawResponse{}, errors.Wrap(types.ErrWithdrawFailure, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventWithdraw{
-		Amount:        msg.GetAmount(),
-		WalletAddress: msg.GetWalletAddress(),
-		TargetAddress: msg.GetTargetAddress(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventWithdraw{
+			Amount:        msg.GetAmount().String(),
+			WalletAddress: msg.GetWalletAddress(),
+			TargetAddress: msg.GetTargetAddress(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetWalletAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -137,9 +151,15 @@ func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.
 		return &types.MsgFoundationDepositResponse{}, errors.Wrap(types.ErrFoundationDepositFailure, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventFoundationDeposit{
-		Amount: msg.GetAmount(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventFoundationDeposit{
+			Amount: msg.GetAmount().String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetFrom(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
@@ -186,16 +206,46 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 		return &types.MsgSlashingResourceNodeResponse{}, errors.Wrap(types.ErrSlashingResourceNodeFailure, err.Error())
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventSlashing{
-		WalletAddress:  msg.GetWalletAddress(),
-		NetworkAddress: msg.GetNetworkAddress(),
-		Amount:         tokenAmt,
-		SlashingType:   nodeType.String(),
-		Suspend:        msg.GetSuspend(),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventSlashing{
+			WalletAddress:  msg.GetWalletAddress(),
+			NetworkAddress: msg.GetNetworkAddress(),
+			Amount:         tokenAmt.String(),
+			SlashingType:   nodeType.String(),
+			Suspend:        strconv.FormatBool(msg.GetSuspend()),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetWalletAddress(),
+		},
+	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
 	return &types.MsgSlashingResourceNodeResponse{}, nil
+}
+
+// UpdateParams updates the module parameters
+func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err := k.SetParams(ctx, msg.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
+		Module: types.ModuleName,
+		Sender: msg.Authority,
+		Action: sdk.MsgTypeURL(msg),
+	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }
