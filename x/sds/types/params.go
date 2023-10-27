@@ -6,6 +6,7 @@ import (
 
 	"cosmossdk.io/errors"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
