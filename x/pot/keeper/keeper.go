@@ -269,7 +269,7 @@ func (k Keeper) GetMetrics(ctx sdk.Context) *types.Metrics {
 	validatorUnbondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.NotBondedPoolName)
 	unbondedDelegation := k.bankKeeper.GetBalance(ctx, validatorUnbondedPoolAcc, denom)
 
-	unbondingDelegation := sdk.NewCoin(denom, sdk.NewInt(0))
+	unbondingDelegation := sdk.NewCoin(denom, sdkmath.ZeroInt())
 	// NOTE: Uncomment to get all unboundings, not tested on performance
 	// k.stakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
 	// 	for _, entry := range ubd.Entries {
@@ -280,15 +280,15 @@ func (k Keeper) GetMetrics(ctx sdk.Context) *types.Metrics {
 
 	circulationSupply := k.GetCirculationSupply(ctx)
 
-	totalMiningReward := sdk.NewInt(0)
-	chainMiningReward := sdk.NewInt(0)
-	resourceMiningReward := sdk.NewInt(0)
-	metaMiningReward := sdk.NewInt(0)
+	totalMiningReward := sdkmath.ZeroInt()
+	chainMiningReward := sdkmath.ZeroInt()
+	resourceMiningReward := sdkmath.ZeroInt()
+	metaMiningReward := sdkmath.ZeroInt()
 	if miningParam, err := k.GetMiningRewardParamByMinedToken(ctx, totalMinedTokens); err == nil {
 		totalMiningReward = miningParam.MiningReward.Amount
-		chainMiningReward = totalMiningReward.Mul(miningParam.BlockChainPercentageInBp).Quo(sdk.NewInt(10000))
-		resourceMiningReward = totalMiningReward.Mul(miningParam.ResourceNodePercentageInBp).Quo(sdk.NewInt(10000))
-		metaMiningReward = totalMiningReward.Mul(miningParam.MetaNodePercentageInBp).Quo(sdk.NewInt(10000))
+		chainMiningReward = totalMiningReward.Mul(miningParam.BlockChainPercentageInBp).Quo(sdkmath.NewInt(10000))
+		resourceMiningReward = totalMiningReward.Mul(miningParam.ResourceNodePercentageInBp).Quo(sdkmath.NewInt(10000))
+		metaMiningReward = totalMiningReward.Mul(miningParam.MetaNodePercentageInBp).Quo(sdkmath.NewInt(10000))
 	}
 
 	return &types.Metrics{

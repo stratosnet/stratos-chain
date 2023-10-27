@@ -176,72 +176,96 @@ message TotalReward {
 message Metrics {
   string total_supply = 1 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_supply",
     (gogoproto.moretags) = "yaml:\"total_supply\""
   ];
   string total_mining_supply = 2 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_mining_supply",
     (gogoproto.moretags) = "yaml:\"total_mining_supply\""
   ];
   string total_mined_tokens = 3 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_mined_tokens",
     (gogoproto.moretags) = "yaml:\"total_mined_tokens\""
   ];
   string total_resource_nodes_deposit = 4 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_resource_nodes_deposit",
     (gogoproto.moretags) = "yaml:\"total_resource_nodes_deposit\""
   ];
   string total_bonded_delegation = 5 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_bonded_delegation",
     (gogoproto.moretags) = "yaml:\"total_bonded_delegation\""
   ];
   string total_unbonded_delegation = 6 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_unbonded_delegation",
     (gogoproto.moretags) = "yaml:\"total_unbonded_delegation\""
   ];
   string total_unbonding_delegation = 7 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_unbonding_delegation",
     (gogoproto.moretags) = "yaml:\"total_unbonding_delegation\""
   ];
   string circulation_supply = 8 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "circulation_supply",
     (gogoproto.moretags) = "yaml:\"circulation_supply\""
   ];
   string total_mining_reward = 9 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "total_mining_reward",
     (gogoproto.moretags) = "yaml:\"total_mining_reward\""
   ];
   string chain_mining_reward = 10 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "chain_mining_reward",
     (gogoproto.moretags) = "yaml:\"chain_mining_reward\""
   ];
   string resource_mining_reward = 11 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "resource_mining_reward",
     (gogoproto.moretags) = "yaml:\"resource_mining_reward\""
   ];
   string meta_mining_reward = 12 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
     (gogoproto.jsontag) = "meta_mining_reward",
     (gogoproto.moretags) = "yaml:\"meta_mining_reward\""
