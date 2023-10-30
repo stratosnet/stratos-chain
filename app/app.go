@@ -4,12 +4,11 @@ import (
 	"io"
 	"os"
 
+	"github.com/spf13/cast"
+
 	dbm "github.com/cometbft/cometbft-db"
 	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/cometbft/cometbft/libs/log"
-	"github.com/spf13/cast"
-	"github.com/stratosnet/stratos-chain/runtime"
-	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 
 	"cosmossdk.io/depinject"
 	"github.com/cosmos/cosmos-sdk/baseapp"
@@ -74,8 +73,11 @@ import (
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 
 	"github.com/stratosnet/stratos-chain/app/ante"
+	"github.com/stratosnet/stratos-chain/app/upgrades"
+	"github.com/stratosnet/stratos-chain/runtime"
 	srvflags "github.com/stratosnet/stratos-chain/server/flags"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
+	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
@@ -408,6 +410,7 @@ func NewStratosApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 		SignModeHandler:   app.txConfig.SignModeHandler(),
 		SigGasConsumer:    ante.DefaultSigVerificationGasConsumer,
 		MaxEthTxGasWanted: maxEthTxGasWanted,
+		TxFeeChecker:      ante.CheckTxFeeWithValidatorMinGasPrices,
 	}
 	if err := options.Validate(); err != nil {
 		panic(err)
@@ -458,6 +461,14 @@ func NewStratosApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 // Name returns the name of the App
 func (app *StratosApp) Name() string { return app.BaseApp.Name() }
 
+// LegacyAmino returns StratosApp's amino codec.
+//
+// NOTE: This is solely to be used for testing purposes as it may be desirable
+// for modules to register their own custom testing types.
+func (app *StratosApp) LegacyAmino() *codec.LegacyAmino {
+	return app.legacyAmino
+}
+
 // SimulationManager implements the SimulationApp interface
 func (app *StratosApp) SimulationManager() *module.SimulationManager {
 	return app.sm
@@ -473,12 +484,19 @@ func (app *StratosApp) RegisterAPIRoutes(apiSvr *api.Server, apiConfig config.AP
 	}
 }
 
-// LegacyAmino returns StratosApp's amino codec.
-//
-// NOTE: This is solely to be used for testing purposes as it may be desirable
-// for modules to register their own custom testing types.
-func (app *StratosApp) LegacyAmino() *codec.LegacyAmino {
-	return app.legacyAmino
+// registerUpgrade registers the given upgrade to be supported by the app
+func (app *StratosApp) registerUpgrade(upgrade upgrades.Upgrade) {
+	app.upgradeKeeper.SetUpgradeHandler(upgrade.Name(), upgrade.Handler())
+
+	upgradeInfo, err := app.upgradeKeeper.ReadUpgradeInfoFromDisk()
+	if err != nil {
+		panic(err)
+	}
+
+	if upgradeInfo.Name == upgrade.Name() && !app.upgradeKeeper.IsSkipHeight(upgradeInfo.Height) {
+		// Configure store loader that checks if version == upgradeHeight and applies store upgrades
+		app.SetStoreLoader(upgradetypes.UpgradeStoreLoader(upgradeInfo.Height, upgrade.StoreUpgrades()))
+	}
 }
 
 // AppCodec returns StratosApp's app codec.
@@ -544,6 +562,7 @@ func (app *StratosApp) GetPotKeeper() potkeeper.Keeper {
 func (app *StratosApp) GetDistrKeeper() distrkeeper.Keeper {
 	return app.distrKeeper
 }
+
 func (app *StratosApp) GetEVMKeeper() *evmkeeper.Keeper {
 	return app.evmKeeper
 }

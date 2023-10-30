@@ -7,17 +7,25 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 )
+
+var _ authante.TxFeeChecker = CheckTxFeeWithValidatorMinGasPrices
 
 // checkTxFeeWithValidatorMinGasPrices implements the default fee logic, where the minimum price per
 // unit of gas is fixed and set by each validator, can the tx priority is computed from the gas price.
-func checkTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
+func CheckTxFeeWithValidatorMinGasPrices(ctx sdk.Context, tx sdk.Tx) (sdk.Coins, int64, error) {
 	feeTx, ok := tx.(sdk.FeeTx)
 	if !ok {
 		return nil, 0, errors.Wrap(sdkerrors.ErrTxDecode, "Tx must be a FeeTx")
 	}
 
-	feeCoins := feeTx.GetFee()
+	parsedFee, err := sdk.ParseCoinsNormalized(feeTx.GetFee().String())
+	if err != nil {
+		return nil, 0, errors.Wrapf(sdkerrors.ErrInsufficientFee, "fee parsing error: %s", parsedFee)
+	}
+
+	feeCoins := parsedFee
 	gas := feeTx.GetGas()
 
 	// Ensure that the provided fees meet a minimum threshold for the validator,

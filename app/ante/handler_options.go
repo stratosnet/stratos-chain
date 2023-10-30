@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	"github.com/cosmos/cosmos-sdk/x/auth/ante"
+	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -20,14 +20,14 @@ import (
 type HandlerOptions struct {
 	AccountKeeper          evmtypes.AccountKeeper
 	BankKeeper             evmtypes.BankKeeper
-	ExtensionOptionChecker ante.ExtensionOptionChecker
+	ExtensionOptionChecker authante.ExtensionOptionChecker
 	IBCKeeper              *ibckeeper.Keeper
 	EvmKeeper              EVMKeeper
-	FeegrantKeeper         ante.FeegrantKeeper
+	FeegrantKeeper         authante.FeegrantKeeper
 	SignModeHandler        authsigning.SignModeHandler
 	SigGasConsumer         func(meter sdk.GasMeter, sig signing.SignatureV2, params authtypes.Params) error
 	MaxEthTxGasWanted      uint64
-	TxFeeChecker           TxFeeChecker
+	TxFeeChecker           authante.TxFeeChecker
 }
 
 func (options HandlerOptions) Validate() error {
@@ -63,19 +63,19 @@ func newEthAnteHandler(options HandlerOptions) sdk.AnteHandler {
 func newCosmosAnteHandler(options HandlerOptions) sdk.AnteHandler {
 	return sdk.ChainAnteDecorators(
 		RejectMessagesDecorator{}, // reject MsgEthereumTxs
-		ante.NewSetUpContextDecorator(),
-		ante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
-		ante.NewValidateBasicDecorator(),
-		ante.NewTxTimeoutHeightDecorator(),
-		ante.NewValidateMemoDecorator(options.AccountKeeper),
-		ante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
-		NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
+		authante.NewSetUpContextDecorator(),
+		authante.NewExtensionOptionsDecorator(options.ExtensionOptionChecker),
+		authante.NewValidateBasicDecorator(),
+		authante.NewTxTimeoutHeightDecorator(),
+		authante.NewValidateMemoDecorator(options.AccountKeeper),
+		authante.NewConsumeGasForTxSizeDecorator(options.AccountKeeper),
+		authante.NewDeductFeeDecorator(options.AccountKeeper, options.BankKeeper, options.FeegrantKeeper, options.TxFeeChecker),
 		// SetPubKeyDecorator must be called before all signature verification decorators
-		ante.NewSetPubKeyDecorator(options.AccountKeeper),
-		ante.NewValidateSigCountDecorator(options.AccountKeeper),
-		ante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
-		ante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
-		ante.NewIncrementSequenceDecorator(options.AccountKeeper),
+		authante.NewSetPubKeyDecorator(options.AccountKeeper),
+		authante.NewValidateSigCountDecorator(options.AccountKeeper),
+		authante.NewSigGasConsumeDecorator(options.AccountKeeper, options.SigGasConsumer),
+		authante.NewSigVerificationDecorator(options.AccountKeeper, options.SignModeHandler),
+		authante.NewIncrementSequenceDecorator(options.AccountKeeper),
 		ibcante.NewRedundantRelayDecorator(options.IBCKeeper),
 	)
 }

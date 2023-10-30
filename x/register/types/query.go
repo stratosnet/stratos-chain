@@ -5,9 +5,6 @@ import (
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	pagiquery "github.com/cosmos/cosmos-sdk/types/query"
-
-	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -16,37 +13,6 @@ const (
 	QueryTypePP       = 2
 	QueryDefaultLimit = 100
 )
-
-// QueryNodesParams Params for query 'custom/register/resource-nodes'
-type QueryNodesParams struct {
-	PageQuery   pagiquery.PageRequest
-	NetworkAddr stratos.SdsAddress
-	Moniker     string
-	OwnerAddr   sdk.AccAddress
-}
-
-// NewQueryNodesParams creates a new instance of QueryNodesParams
-func NewQueryNodesParams(networkAddr stratos.SdsAddress, moniker string, ownerAddr sdk.AccAddress, pageQuery pagiquery.PageRequest) QueryNodesParams {
-	return QueryNodesParams{
-		PageQuery:   pageQuery,
-		NetworkAddr: networkAddr,
-		Moniker:     moniker,
-		OwnerAddr:   ownerAddr,
-	}
-}
-
-type QueryNodeDepositParams struct {
-	AccAddr   stratos.SdsAddress
-	QueryType int64 //0:All(Default) 1: MetaNode; 2: ResourceNode
-}
-
-// NewQueryNodeDepositParams creates a new instance of QueryNodesParams
-func NewQueryNodeDepositParams(nodeAddr stratos.SdsAddress, queryType int64) QueryNodeDepositParams {
-	return QueryNodeDepositParams{
-		AccAddr:   nodeAddr,
-		QueryType: queryType,
-	}
-}
 
 // NewQueryDepositTotalInfo creates a new instance of QueryDepositTotalResponse
 func NewQueryDepositTotalInfo(bondDenom string, ResourceNodeTotalDeposit, MetaNodeTotalDeposit, totalBondedDeposit,
@@ -123,19 +89,8 @@ func NewDepositInfoByMetaNodeAddr(
 	}
 }
 
-type DepositInfos []DepositInfo
-
 // UnpackInterfaces implements UnpackInterfacesMessage.UnpackInterfaces
 func (v DepositInfo) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	var pk cryptotypes.PubKey
 	return unpacker.UnpackAny(v.Pubkey, &pk)
-}
-
-func (v DepositInfos) UnpackInterfaces(c codectypes.AnyUnpacker) error {
-	for i := range v {
-		if err := v[i].UnpackInterfaces(c); err != nil {
-			return err
-		}
-	}
-	return nil
 }
