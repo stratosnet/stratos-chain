@@ -252,7 +252,7 @@ func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalReward 
 	return
 }
 
-func (k Keeper) GetMetrics(ctx sdk.Context) *types.Metrics {
+func (k Keeper) GetMetrics(ctx sdk.Context) types.Metrics {
 	totalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
 	totalMining := k.GetTotalMining(ctx)
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
@@ -291,7 +291,7 @@ func (k Keeper) GetMetrics(ctx sdk.Context) *types.Metrics {
 		metaMiningReward = totalMiningReward.Mul(miningParam.MetaNodePercentageInBp).Quo(sdkmath.NewInt(10000))
 	}
 
-	return &types.Metrics{
+	return types.Metrics{
 		TotalSupply:               totalSupply.Amount,
 		TotalMiningSupply:         totalMining.Amount,
 		TotalMinedTokens:          totalMinedTokens.Amount,
