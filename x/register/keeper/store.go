@@ -3,23 +3,24 @@ package keeper
 import (
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k Keeper) SetInitialGenesisDepositTotal(ctx sdk.Context, deposit sdk.Int) {
+func (k Keeper) SetInitialGenesisDepositTotal(ctx sdk.Context, deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})
 	store.Set(types.InitialGenesisDepositTotalKey, b)
 }
 
-func (k Keeper) GetInitialGenesisDepositTotal(ctx sdk.Context) (deposit sdk.Int) {
+func (k Keeper) GetInitialGenesisDepositTotal(ctx sdk.Context) (deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.InitialGenesisDepositTotalKey)
 	if b == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	value := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(b, &value)
@@ -27,17 +28,17 @@ func (k Keeper) GetInitialGenesisDepositTotal(ctx sdk.Context) (deposit sdk.Int)
 	return
 }
 
-func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdk.Int) {
+func (k Keeper) SetRemainingOzoneLimit(ctx sdk.Context, value sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &value})
 	store.Set(types.UpperBoundOfTotalOzoneKey, b)
 }
 
-func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
+func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.UpperBoundOfTotalOzoneKey)
 	if b == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intVal := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(b, &intVal)
@@ -45,17 +46,17 @@ func (k Keeper) GetRemainingOzoneLimit(ctx sdk.Context) (value sdk.Int) {
 	return
 }
 
-func (k *Keeper) GetPrepayParams(ctx sdk.Context) (St, Pt, Lt sdk.Int) {
+func (k *Keeper) GetPrepayParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) {
 	St = k.GetEffectiveTotalDeposit(ctx)
 	Pt = k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt = k.GetRemainingOzoneLimit(ctx)
 	return
 }
 
-func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdk.Int) bool {
+func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdkmath.Int) bool {
 	remaining := k.GetRemainingOzoneLimit(ctx)
 	depositNozRate := k.GetDepositNozRate(ctx)
-	return remaining.ToDec().GTE(unbondAmt.ToDec().Quo(depositNozRate))
+	return remaining.ToLegacyDec().GTE(unbondAmt.ToLegacyDec().Quo(depositNozRate))
 }
 
 // SetUnbondingNode sets the unbonding node
@@ -117,17 +118,17 @@ func (k Keeper) UnbondingNodeQueueIterator(ctx sdk.Context, endTime time.Time) s
 	return store.Iterator(types.UBDNodeQueueKey, sdk.InclusiveEndBytes(types.GetUBDTimeKey(endTime)))
 }
 
-func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdk.Int) {
+func (k Keeper) SetBondedResourceNodeCnt(ctx sdk.Context, count sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &count})
 	store.Set(types.ResourceNodeCntKey, bz)
 }
 
-func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) (balance sdk.Int) {
+func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) (balance sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.ResourceNodeCntKey)
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intValue := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
@@ -135,17 +136,17 @@ func (k Keeper) GetBondedResourceNodeCnt(ctx sdk.Context) (balance sdk.Int) {
 	return
 }
 
-func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, count sdk.Int) {
+func (k Keeper) SetBondedMetaNodeCnt(ctx sdk.Context, count sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &count})
 	store.Set(types.MetaNodeCntKey, bz)
 }
 
-func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdk.Int) {
+func (k Keeper) GetBondedMetaNodeCnt(ctx sdk.Context) (balance sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.MetaNodeCntKey)
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intValue := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
@@ -175,17 +176,17 @@ func (k Keeper) GetMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr strato
 	return votePool, true
 }
 
-func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdk.Int) {
+func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})
 	store.Set(types.EffectiveGenesisDepositTotalKey, bz)
 }
 
-func (k Keeper) GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdk.Int) {
+func (k Keeper) GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.EffectiveGenesisDepositTotalKey)
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intValue := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
@@ -193,13 +194,13 @@ func (k Keeper) GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdk.Int) {
 	return
 }
 
-func (k Keeper) SetDepositNozRate(ctx sdk.Context, depositNozRate sdk.Dec) {
+func (k Keeper) SetDepositNozRate(ctx sdk.Context, depositNozRate sdkmath.LegacyDec) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Dec{Value: &depositNozRate})
 	store.Set(types.DepositNozRateKey, bz)
 }
 
-func (k Keeper) GetDepositNozRate(ctx sdk.Context) (depositNozRate sdk.Dec) {
+func (k Keeper) GetDepositNozRate(ctx sdk.Context) (depositNozRate sdkmath.LegacyDec) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.DepositNozRateKey)
 	if bz == nil {
@@ -212,7 +213,7 @@ func (k Keeper) GetDepositNozRate(ctx sdk.Context) (depositNozRate sdk.Dec) {
 }
 
 // IteratorSlashingInfo Iteration for each slashing
-func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, slashing sdk.Int) (stop bool)) {
+func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress sdk.AccAddress, slashing sdkmath.Int) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.SlashingPrefix)
 	defer iter.Close()
@@ -227,18 +228,18 @@ func (k Keeper) IteratorSlashingInfo(ctx sdk.Context, handler func(walletAddress
 	}
 }
 
-func (k Keeper) SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdk.Int) {
+func (k Keeper) SetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, slashing sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetSlashingKey(walletAddress)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &slashing})
 	store.Set(storeKey, bz)
 }
 
-func (k Keeper) GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res sdk.Int) {
+func (k Keeper) GetSlashing(ctx sdk.Context, walletAddress sdk.AccAddress) (res sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := store.Get(types.GetSlashingKey(walletAddress))
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intValue := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)

@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -26,11 +27,11 @@ const (
 	DefaultGasPrice = 20
 )
 
-func NewCoin(amount sdk.Int) sdk.Coin {
+func NewCoin(amount sdkmath.Int) sdk.Coin {
 	return sdk.NewCoin(Wei, amount)
 }
 
-func NewDecCoin(amount sdk.Int) sdk.DecCoin {
+func NewDecCoin(amount sdkmath.Int) sdk.DecCoin {
 	return sdk.NewDecCoin(Wei, amount)
 }
 

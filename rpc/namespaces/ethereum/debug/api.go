@@ -21,8 +21,8 @@ import (
 
 	"github.com/ethereum/go-ethereum/eth/tracers/logger"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -34,12 +34,12 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/rlp"
 
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	jstracers "github.com/stratosnet/stratos-chain/x/evm/tracers/js"
 	nativetracers "github.com/stratosnet/stratos-chain/x/evm/tracers/native"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
 
 const (

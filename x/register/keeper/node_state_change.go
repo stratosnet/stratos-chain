@@ -11,7 +11,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-// Called in each EndBlock
+// BlockRegisteredNodesUpdates Called in each EndBlock
 func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 	// Remove all mature unbonding nodes from the ubd queue.
 	ctx.Logger().Debug("Enter BlockRegisteredNodesUpdates")
@@ -22,21 +22,15 @@ func (k Keeper) BlockRegisteredNodesUpdates(ctx sdk.Context) {
 			continue
 		}
 		if isMetaNode {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeCompleteUnbondingMetaNode,
-					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
-				),
-			)
+			_ = ctx.EventManager().EmitTypedEvent(&types.EventCompleteUnBondingMetaNode{
+				Amount:         balances.String(),
+				NetworkAddress: networkAddr,
+			})
 		} else {
-			ctx.EventManager().EmitEvent(
-				sdk.NewEvent(
-					types.EventTypeCompleteUnbondingResourceNode,
-					sdk.NewAttribute(sdk.AttributeKeyAmount, balances.String()),
-					sdk.NewAttribute(types.AttributeKeyNetworkAddress, networkAddr),
-				),
-			)
+			_ = ctx.EventManager().EmitTypedEvent(&types.EventCompleteUnBondingResourceNode{
+				Amount:         balances.String(),
+				NetworkAddress: networkAddr,
+			})
 		}
 
 	}

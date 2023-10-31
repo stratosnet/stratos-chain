@@ -4,15 +4,16 @@ import (
 	"go/doc/comment"
 	"os"
 
-	"github.com/cosmos/cosmos-sdk/crypto/ledger"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 
 	"github.com/stratosnet/stratos-chain/app"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
+
+const EnvPrefix = ""
 
 var (
 	// Force to build with go1.19, because sorting algorithm has been rewritten since go1.19
@@ -22,10 +23,11 @@ var (
 
 func main() {
 	registerDenoms()
-	ledger.InitLedger(ethsecp256k1.MakePubKey, ledger.SignMode_SIGN_MODE_DIRECT)
+	//TODO: enable when customized cosmos-sdk pushed
+	//ledger.InitLedger(ethsecp256k1.MakePubKey, ledger.SignMode_SIGN_MODE_DIRECT)
 
 	rootCmd, _ := NewRootCmd()
-	if err := svrcmd.Execute(rootCmd, app.DefaultNodeHome); err != nil {
+	if err := svrcmd.Execute(rootCmd, EnvPrefix, app.DefaultNodeHome); err != nil {
 		switch e := err.(type) {
 		case server.ErrorCode:
 			os.Exit(e.Code)
@@ -38,15 +40,15 @@ func main() {
 
 // RegisterDenoms registers the base and display denominations to the SDK.
 func registerDenoms() {
-	if err := sdk.RegisterDenom(stratos.Stos, sdk.OneDec()); err != nil {
+	if err := sdk.RegisterDenom(stratos.Stos, sdkmath.LegacyOneDec()); err != nil {
 		panic(err)
 	}
 
-	if err := sdk.RegisterDenom(stratos.Gwei, sdk.NewDecWithPrec(1, stratos.GweiDenomUnit)); err != nil {
+	if err := sdk.RegisterDenom(stratos.Gwei, sdkmath.LegacyNewDecWithPrec(1, stratos.GweiDenomUnit)); err != nil {
 		panic(err)
 	}
 
-	if err := sdk.RegisterDenom(stratos.Wei, sdk.NewDecWithPrec(1, stratos.WeiDenomUnit)); err != nil {
+	if err := sdk.RegisterDenom(stratos.Wei, sdkmath.LegacyNewDecWithPrec(1, stratos.WeiDenomUnit)); err != nil {
 		panic(err)
 	}
 }

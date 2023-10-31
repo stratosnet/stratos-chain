@@ -1,7 +1,7 @@
 package register
 
 import (
-	abci "github.com/tendermint/tendermint/abci/types"
+	abci "github.com/cometbft/cometbft/abci/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -10,12 +10,12 @@ import (
 
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
-func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
+func BeginBlocker(ctx sdk.Context, _ abci.RequestBeginBlock, k keeper.Keeper) {
 	k.UpdateMetaNodeBitMapIdxCache(ctx)
 }
 
 // EndBlocker called every block, process inflation, update validator set.
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) []abci.ValidatorUpdate {
+func EndBlocker(ctx sdk.Context, _ abci.RequestEndBlock, k keeper.Keeper) []abci.ValidatorUpdate {
 	k.BlockRegisteredNodesUpdates(ctx)
 	return []abci.ValidatorUpdate{}
 }

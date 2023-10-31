@@ -8,8 +8,8 @@ import (
 
 // GetFileInfoByFileHash Returns the fileInfo
 func (k Keeper) GetFileInfoByFileHash(ctx sdk.Context, fileHash []byte) (fileInfo types.FileInfo, found bool) {
-	store := ctx.KVStore(k.key)
-	bz := store.Get(types.FileStoreKey(fileHash))
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetFileStoreKey(fileHash))
 	if bz == nil {
 		return fileInfo, false
 	}
@@ -18,8 +18,8 @@ func (k Keeper) GetFileInfoByFileHash(ctx sdk.Context, fileHash []byte) (fileInf
 }
 
 func (k Keeper) SetFileInfo(ctx sdk.Context, fileHash []byte, fileInfo types.FileInfo) {
-	store := ctx.KVStore(k.key)
-	storeKey := types.FileStoreKey(fileHash)
+	store := ctx.KVStore(k.storeKey)
+	storeKey := types.GetFileStoreKey(fileHash)
 	bz := k.cdc.MustMarshalLengthPrefixed(&fileInfo)
 	store.Set(storeKey, bz)
 }
@@ -27,7 +27,7 @@ func (k Keeper) SetFileInfo(ctx sdk.Context, fileHash []byte, fileInfo types.Fil
 // IterateFileInfo Iterate over all uploaded files.
 // Iteration for all uploaded files
 func (k Keeper) IterateFileInfo(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
-	store := ctx.KVStore(k.key)
+	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {

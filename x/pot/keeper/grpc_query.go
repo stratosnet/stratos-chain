@@ -7,6 +7,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -38,11 +39,11 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 
 	epochInt64 := req.GetEpoch()
 
-	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
+	if sdkmath.NewInt(epochInt64).LTE(sdkmath.ZeroInt()) {
 		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
 	}
 
-	epoch := sdk.NewInt(epochInt64)
+	epoch := sdkmath.NewInt(epochInt64)
 
 	ctx := sdk.UnwrapSDKContext(c)
 	height := ctx.BlockHeight()
@@ -64,9 +65,9 @@ func (q Querier) RewardsByEpoch(c context.Context, req *types.QueryRewardsByEpoc
 		return &types.QueryRewardsByEpochResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
-	queryEpoch := sdk.NewInt(req.GetEpoch())
+	queryEpoch := sdkmath.NewInt(req.GetEpoch())
 
-	if queryEpoch.LTE(sdk.ZeroInt()) {
+	if queryEpoch.LTE(sdkmath.ZeroInt()) {
 		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be equal to or lower than 0")
 	}
 
@@ -77,7 +78,7 @@ func (q Querier) RewardsByEpoch(c context.Context, req *types.QueryRewardsByEpoc
 
 	ctx := sdk.UnwrapSDKContext(c)
 
-	matureEpoch := queryEpoch.Add(sdk.NewInt(q.MatureEpoch(ctx)))
+	matureEpoch := queryEpoch.Add(sdkmath.NewInt(q.MatureEpoch(ctx)))
 	var res []*types.Reward
 
 	store := ctx.KVStore(q.storeKey)
@@ -388,10 +389,10 @@ func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewa
 	}
 
 	epochInt64 := req.GetEpoch()
-	if sdk.NewInt(epochInt64).LTE(sdk.ZeroInt()) {
+	if sdkmath.NewInt(epochInt64).LTE(sdkmath.ZeroInt()) {
 		return &types.QueryTotalRewardByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
 	}
-	epoch := sdk.NewInt(epochInt64)
+	epoch := sdkmath.NewInt(epochInt64)
 
 	ctx := sdk.UnwrapSDKContext(c)
 
@@ -402,4 +403,18 @@ func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewa
 		isLegacy = true
 	}
 	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward, IsLegacy: isLegacy}, nil
+}
+
+func (q Querier) Metrics(c context.Context, req *types.QueryMetricsRequest) (
+	*types.QueryMetricsResponse, error) {
+	if req == nil {
+		return &types.QueryMetricsResponse{}, status.Error(codes.InvalidArgument, "empty request")
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+
+	metrics := q.GetMetrics(ctx)
+	return &types.QueryMetricsResponse{
+		Metrics: *metrics,
+	}, nil
 }

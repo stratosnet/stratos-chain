@@ -1,0 +1,41 @@
+syntax = "proto3";
+package stratos.pot.v1;
+
+option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
+
+// EventVolumeReport is emitted on Msg/MsgVolumeReport
+message EventVolumeReport {
+  string report_reference = 1;
+  string epoch = 2;
+}
+
+// EventWithdraw is emitted on Msg/MsgWithdraw
+message EventWithdraw {
+  string amount = 1;
+  string wallet_address = 2;
+  string target_address = 3;
+}
+
+// EventFoundationDeposit is emitted on Msg/MsgFoundationDeposit
+message EventFoundationDeposit {
+  string amount = 1;
+}
+
+// EventSlashing is emitted on Msg/MsgSlashingResourceNode
+message EventSlashing {
+  string wallet_address = 1;
+  string network_address = 2;
+  string amount = 3;
+  string slashing_type = 4;
+  string suspend = 5;
+}
+
+// EventMessage
+message EventMessage {
+  // module which emits the event
+  string module = 1;
+  // sender of the message
+  string sender = 2;
+  // tx_type is the type of the message
+  string action = 3;
+}

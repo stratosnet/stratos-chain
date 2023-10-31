@@ -105,7 +105,7 @@ func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeR
 	}
 	depositInfo := types.DepositInfo{}
 
-	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
+	if queryType == types.QueryTypeAll || queryType == types.QueryTypeSP {
 		metaNode, found := q.GetMetaNode(ctx, networkAddr)
 		if found {
 			// Adding meta node deposit info
@@ -131,7 +131,7 @@ func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeR
 		}
 	}
 
-	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
+	if queryType == types.QueryTypeAll || queryType == types.QueryTypePP {
 		networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 		if err != nil {
 			return &types.QueryDepositByNodeResponse{}, err

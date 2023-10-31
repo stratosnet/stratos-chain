@@ -1,15 +1,15 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"math/big"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/x/auth/ante"
 	"github.com/cosmos/cosmos-sdk/x/auth/signing"
 	authtx "github.com/cosmos/cosmos-sdk/x/auth/tx"
@@ -25,6 +25,7 @@ var (
 	_ sdk.Msg    = &MsgEthereumTx{}
 	_ sdk.Tx     = &MsgEthereumTx{}
 	_ ante.GasTx = &MsgEthereumTx{}
+	_ sdk.Msg    = &MsgUpdateParams{}
 
 	_ codectypes.UnpackInterfacesMessage = MsgEthereumTx{}
 )
@@ -62,7 +63,7 @@ func newMsgEthereumTx(
 	gasLimit uint64, gasPrice, gasFeeCap, gasTipCap *big.Int, input []byte, accesses *ethtypes.AccessList,
 ) *MsgEthereumTx {
 	var (
-		cid, amt, gp *sdk.Int
+		cid, amt, gp *sdkmath.Int
 		toAddr       string
 		txData       TxData
 	)
@@ -72,17 +73,17 @@ func newMsgEthereumTx(
 	}
 
 	if amount != nil {
-		amountInt := sdk.NewIntFromBigInt(amount)
+		amountInt := sdkmath.NewIntFromBigInt(amount)
 		amt = &amountInt
 	}
 
 	if chainID != nil {
-		chainIDInt := sdk.NewIntFromBigInt(chainID)
+		chainIDInt := sdkmath.NewIntFromBigInt(chainID)
 		cid = &chainIDInt
 	}
 
 	if gasPrice != nil {
-		gasPriceInt := sdk.NewIntFromBigInt(gasPrice)
+		gasPriceInt := sdkmath.NewIntFromBigInt(gasPrice)
 		gp = &gasPriceInt
 	}
 
@@ -97,8 +98,8 @@ func newMsgEthereumTx(
 			Data:     input,
 		}
 	case accesses != nil && gasFeeCap != nil && gasTipCap != nil:
-		gtc := sdk.NewIntFromBigInt(gasTipCap)
-		gfc := sdk.NewIntFromBigInt(gasFeeCap)
+		gtc := sdkmath.NewIntFromBigInt(gasTipCap)
+		gfc := sdkmath.NewIntFromBigInt(gasFeeCap)
 
 		txData = &DynamicFeeTx{
 			ChainID:   cid,
@@ -133,7 +134,7 @@ func newMsgEthereumTx(
 	return &MsgEthereumTx{Data: dataAny}
 }
 
-// fromEthereumTx populates the message fields from the given ethereum transaction
+// FromEthereumTx populates the message fields from the given ethereum transaction
 func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) error {
 	txData, err := NewTxDataFromTx(tx)
 	if err != nil {
@@ -162,19 +163,19 @@ func (msg MsgEthereumTx) Type() string { return TypeMsgEthereumTx }
 func (msg MsgEthereumTx) ValidateBasic() error {
 	if msg.From != "" {
 		if err := types.ValidateHexAddress(msg.From); err != nil {
-			return sdkerrors.Wrap(err, "invalid from address")
+			return errors.Wrap(err, "invalid from address")
 		}
 	}
 
 	txData, err := UnpackTxData(msg.Data)
 	if err != nil {
-		return sdkerrors.Wrap(err, "failed to unpack tx data")
+		return errors.Wrap(err, "failed to unpack tx data")
 	}
 
 	return txData.Validate()
 }
 
-// GetMsgs returns a single MsgEthereumTx as an sdk.Msg.
+// GetMsgs returns a single MsgEthereumTx as a sdk.Msg.
 func (msg *MsgEthereumTx) GetMsgs() []sdk.Msg {
 	return []sdk.Msg{msg}
 }
@@ -245,7 +246,7 @@ func (msg MsgEthereumTx) GetGas() uint64 {
 	return txData.GetGas()
 }
 
-// GetFee returns the fee for non dynamic fee tx
+// GetFee returns the fee for non-dynamic fee tx
 func (msg MsgEthereumTx) GetFee() *big.Int {
 	txData, err := UnpackTxData(msg.Data)
 	if err != nil {
@@ -263,7 +264,7 @@ func (msg MsgEthereumTx) GetEffectiveFee(baseFee *big.Int) *big.Int {
 	return txData.EffectiveFee(baseFee)
 }
 
-// GetFrom loads the ethereum sender address from the sigcache and returns an
+// GetFrom loads the ethereum sender address from the sigcache and returns a
 // sdk.AccAddress from its bytes
 func (msg *MsgEthereumTx) GetFrom() sdk.AccAddress {
 	if msg.From == "" {
@@ -300,7 +301,7 @@ func (msg *MsgEthereumTx) GetSender(chainID *big.Int) (common.Address, error) {
 	return from, nil
 }
 
-// UnpackInterfaces implements UnpackInterfacesMesssage.UnpackInterfaces
+// UnpackInterfaces implements UnpackInterfaces Message.UnpackInterfaces
 func (msg MsgEthereumTx) UnpackInterfaces(unpacker codectypes.AnyUnpacker) error {
 	return unpacker.UnpackAny(msg.Data, new(TxData))
 }
@@ -318,7 +319,7 @@ func (msg *MsgEthereumTx) UnmarshalBinary(b []byte) error {
 func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, evmDenom string) (signing.Tx, error) {
 	builder, ok := b.(authtx.ExtensionOptionsTxBuilder)
 	if !ok {
-		return nil, errors.New("unsupported builder")
+		return nil, ErrUnSupportedBuilder
 	}
 
 	option, err := codectypes.NewAnyWithValue(&ExtensionOptionsEthereumTx{})
@@ -331,7 +332,7 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, evmDenom string) (signing.
 		return nil, err
 	}
 	fees := make(sdk.Coins, 0)
-	feeAmt := sdk.NewIntFromBigInt(txData.Fee())
+	feeAmt := sdkmath.NewIntFromBigInt(txData.Fee())
 	if feeAmt.Sign() > 0 {
 		fees = append(fees, sdk.NewCoin(evmDenom, feeAmt))
 	}
@@ -345,4 +346,35 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, evmDenom string) (signing.
 	builder.SetGasLimit(msg.GetGas())
 	tx := builder.GetTx()
 	return tx, nil
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func NewMsgUpdateParams(params Params, authority string) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Params:    params,
+		Authority: authority,
+	}
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return err
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSignBytes implements sdk.Msg
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	authority := sdk.MustAccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
+}
+
+// GetSigners implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }

@@ -6,16 +6,16 @@ import (
 
 	"github.com/gogo/protobuf/proto"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 
-	"github.com/pkg/errors"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmjsonrpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmjsonrpctypes "github.com/cometbft/cometbft/rpc/jsonrpc/types"
+
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 const maxBitLen = 256
@@ -38,7 +38,7 @@ func DecodeTxResponse(in []byte) (*MsgEthereumTxResponse, error) {
 
 	err := proto.Unmarshal(data[0].GetData(), &res)
 	if err != nil {
-		return nil, sdkerrors.Wrap(err, "failed to unmarshal tx response message data")
+		return nil, errors.Wrap(err, "failed to unmarshal tx response message data")
 	}
 
 	return &res, nil
@@ -49,7 +49,7 @@ func EncodeTransactionLogs(res *TransactionLogs) ([]byte, error) {
 	return proto.Marshal(res)
 }
 
-// DecodeTxResponse decodes an protobuf-encoded byte slice into TransactionLogs
+// DecodeTransactionLogs decodes a protobuf-encoded byte slice into TransactionLogs
 func DecodeTransactionLogs(data []byte) (TransactionLogs, error) {
 	var logs TransactionLogs
 	err := proto.Unmarshal(data, &logs)
@@ -85,7 +85,7 @@ func BinSearch(lo, hi uint64, executable func(uint64) (bool, *MsgEthereumTxRespo
 		failed, _, err := executable(mid)
 		// If the error is not nil(consensus error), it means the provided message
 		// call or transaction will never be accepted no matter how much gas it is
-		// assigned. Return the error directly, don't struggle any more.
+		// assigned. Return the error directly, don't struggle anymore.
 		if err != nil {
 			return 0, err
 		}
@@ -99,19 +99,19 @@ func BinSearch(lo, hi uint64, executable func(uint64) (bool, *MsgEthereumTxRespo
 }
 
 // SafeNewIntFromBigInt constructs Int from big.Int, return error if more than 256bits
-func SafeNewIntFromBigInt(i *big.Int) (sdk.Int, error) {
+func SafeNewIntFromBigInt(i *big.Int) (sdkmath.Int, error) {
 	if !IsValidInt256(i) {
-		return sdk.NewInt(0), fmt.Errorf("big int out of bound: %s", i)
+		return sdkmath.NewInt(0), fmt.Errorf("big int out of bound: %s", i)
 	}
-	return sdk.NewIntFromBigInt(i), nil
+	return sdkmath.NewIntFromBigInt(i), nil
 }
 
-// IsValidInt256 check the bound of 256 bit number
+// IsValidInt256 check the bound of 256-bit number
 func IsValidInt256(i *big.Int) bool {
 	return i == nil || i.BitLen() <= maxBitLen
 }
 
-// GetTmTxByHash return result tx in according of dynamic tx searching
+// GetTmTxByHash return result tx in according to dynamic tx searching
 func GetTmTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
 	resTx, err := tmrpccore.Tx(nil, hash.Bytes(), false)
 	if err != nil {
@@ -121,7 +121,7 @@ func GetTmTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
 			return nil, err
 		}
 		if len(resTxs.Txs) == 0 {
-			return nil, errors.Errorf("ethereum tx not found for hash %s", hash.Hex())
+			return nil, errors.Wrapf(ErrEthTxNotFound, "hash: %s", hash.Hex())
 		}
 		return resTxs.Txs[0], nil
 	}

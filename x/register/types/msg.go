@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -20,6 +21,7 @@ var (
 	_ sdk.Msg = &MsgUpdateMetaNode{}
 	_ sdk.Msg = &MsgUpdateMetaNodeDeposit{}
 	_ sdk.Msg = &MsgMetaNodeRegistrationVote{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 // message type and route constants
@@ -35,6 +37,7 @@ const (
 	TypeMsgUpdateMetaNodeDeposit               = "update_meta_node_deposit"
 	TypeMsgMetaNodeRegistrationVote            = "meta_node_registration_vote"
 	TypeMsgWithdrawMetaNodeRegistrationDeposit = "withdraw_meta_node_registration_deposit"
+	TypeMsgUpdateParams                        = "update_params"
 )
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
@@ -127,6 +130,8 @@ func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 // NewMsgCreateMetaNode creates a new Msg<Action> instance
 func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
 	value sdk.Coin, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress, description Description,
@@ -213,6 +218,8 @@ func (msg MsgCreateMetaNode) UnpackInterfaces(unpacker codectypes.AnyUnpacker) e
 	return unpacker.UnpackAny(msg.Pubkey, &pk)
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 // NewMsgRemoveResourceNode creates a new MsgRemoveResourceNode instance.
 func NewMsgRemoveResourceNode(resourceNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) *MsgRemoveResourceNode {
 	return &MsgRemoveResourceNode{
@@ -262,6 +269,8 @@ func (msg MsgRemoveResourceNode) ValidateBasic() error {
 	return nil
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 // NewMsgRemoveMetaNode creates a new MsgRemoveMetaNode instance.
 func NewMsgRemoveMetaNode(metaNodeAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) *MsgRemoveMetaNode {
 	return &MsgRemoveMetaNode{
@@ -310,6 +319,8 @@ func (msg MsgRemoveMetaNode) ValidateBasic() error {
 	}
 	return nil
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgUpdateResourceNode(description Description, nodeType uint32,
 	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgUpdateResourceNode {
@@ -361,16 +372,14 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	//if msg.Description.Moniker == "" {
-	//	return ErrEmptyMoniker
-	//}
-
 	nodeType := NodeType(msg.NodeType)
 	if nodeType.Type() == "UNKNOWN" {
 		return ErrInvalidNodeType
 	}
 	return nil
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgUpdateResourceNodeDeposit(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
 	depositDelta sdk.Coin) *MsgUpdateResourceNodeDeposit {
@@ -420,11 +429,13 @@ func (msg MsgUpdateResourceNodeDeposit) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.DepositDelta.Amount.LTE(sdk.ZeroInt()) {
+	if msg.DepositDelta.Amount.LTE(sdkmath.ZeroInt()) {
 		return ErrInvalidDepositChange
 	}
 	return nil
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgUpdateMetaNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
 	beneficiaryAddress sdk.AccAddress) *MsgUpdateMetaNode {
@@ -483,6 +494,8 @@ func (msg MsgUpdateMetaNode) ValidateBasic() error {
 	return nil
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewMsgUpdateMetaNodeDeposit(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
 	depositDelta sdk.Coin) *MsgUpdateMetaNodeDeposit {
 	return &MsgUpdateMetaNodeDeposit{
@@ -531,11 +544,13 @@ func (msg MsgUpdateMetaNodeDeposit) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if msg.DepositDelta.Amount.LTE(sdk.ZeroInt()) {
+	if msg.DepositDelta.Amount.LTE(sdkmath.ZeroInt()) {
 		return ErrInvalidDepositChange
 	}
 	return nil
 }
+
+// --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgMetaNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, candidateOwnerAddress sdk.AccAddress, opinion bool,
 	voterNetworkAddress stratos.SdsAddress, voterOwnerAddress sdk.AccAddress) *MsgMetaNodeRegistrationVote {
@@ -549,7 +564,7 @@ func NewMsgMetaNodeRegistrationVote(candidateNetworkAddress stratos.SdsAddress, 
 	}
 }
 
-func (mmsg MsgMetaNodeRegistrationVote) Route() string { return RouterKey }
+func (msg MsgMetaNodeRegistrationVote) Route() string { return RouterKey }
 
 func (msg MsgMetaNodeRegistrationVote) Type() string { return TypeMsgMetaNodeRegistrationVote }
 
@@ -605,8 +620,10 @@ func (msg MsgMetaNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 	return []sdk.AccAddress{addr.Bytes()}
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewMsgUpdateEffectiveDeposit(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
-	networkAddress stratos.SdsAddress, newEffectiveDeposit sdk.Int) *MsgUpdateEffectiveDeposit {
+	networkAddress stratos.SdsAddress, newEffectiveDeposit sdkmath.Int) *MsgUpdateEffectiveDeposit {
 
 	reporterStrSlice := make([]string, 0)
 	for _, reporter := range reporters {
@@ -625,51 +642,51 @@ func NewMsgUpdateEffectiveDeposit(reporters []stratos.SdsAddress, reporterOwner 
 	}
 }
 
-func (m MsgUpdateEffectiveDeposit) Route() string {
+func (msg MsgUpdateEffectiveDeposit) Route() string {
 	return RouterKey
 }
 
-func (m MsgUpdateEffectiveDeposit) Type() string {
+func (msg MsgUpdateEffectiveDeposit) Type() string {
 	return TypeMsgUpdateEffectiveDeposit
 }
 
-func (m MsgUpdateEffectiveDeposit) ValidateBasic() error {
-	if len(m.NetworkAddress) == 0 {
+func (msg MsgUpdateEffectiveDeposit) ValidateBasic() error {
+	if len(msg.NetworkAddress) == 0 {
 		return ErrInvalidNetworkAddr
 	}
-	if len(m.Reporters) == 0 {
+	if len(msg.Reporters) == 0 {
 		return ErrReporterAddress
 	}
-	if len(m.ReporterOwner) == 0 || len(m.Reporters) != len(m.ReporterOwner) {
+	if len(msg.ReporterOwner) == 0 || len(msg.Reporters) != len(msg.ReporterOwner) {
 		return ErrInvalidOwnerAddr
 	}
-	for _, r := range m.Reporters {
+	for _, r := range msg.Reporters {
 		if len(r) == 0 {
 			return ErrReporterAddress
 		}
 	}
 
-	for _, owner := range m.ReporterOwner {
+	for _, owner := range msg.ReporterOwner {
 		_, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
 			return ErrInvalidOwnerAddr
 		}
 	}
 
-	if m.EffectiveTokens.LT(sdk.ZeroInt()) {
+	if msg.EffectiveTokens.LT(sdkmath.ZeroInt()) {
 		return ErrInvalidAmount
 	}
 	return nil
 }
 
-func (m MsgUpdateEffectiveDeposit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
+func (msg MsgUpdateEffectiveDeposit) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (m MsgUpdateEffectiveDeposit) GetSigners() []sdk.AccAddress {
+func (msg MsgUpdateEffectiveDeposit) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
-	for _, owner := range m.ReporterOwner {
+	for _, owner := range msg.ReporterOwner {
 		reporterOwner, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
 			panic(err)
@@ -682,6 +699,8 @@ func (m MsgUpdateEffectiveDeposit) GetSigners() []sdk.AccAddress {
 	return addrs
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewMsgWithdrawMetaNodeRegistrationDeposit(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgWithdrawMetaNodeRegistrationDeposit {
 	return &MsgWithdrawMetaNodeRegistrationDeposit{
 		NetworkAddress: networkAddress.String(),
@@ -689,7 +708,7 @@ func NewMsgWithdrawMetaNodeRegistrationDeposit(networkAddress stratos.SdsAddress
 	}
 }
 
-func (mmsg MsgWithdrawMetaNodeRegistrationDeposit) Route() string { return RouterKey }
+func (msg MsgWithdrawMetaNodeRegistrationDeposit) Route() string { return RouterKey }
 
 func (msg MsgWithdrawMetaNodeRegistrationDeposit) Type() string {
 	return TypeMsgWithdrawMetaNodeRegistrationDeposit
@@ -717,4 +736,45 @@ func (msg MsgWithdrawMetaNodeRegistrationDeposit) GetSigners() []sdk.AccAddress 
 		panic(err)
 	}
 	return []sdk.AccAddress{addr.Bytes()}
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func NewMsgUpdateParams(params Params, authority string) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Params:    params,
+		Authority: authority,
+	}
+}
+
+// Route implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) Route() string {
+	return RouterKey
+}
+
+// Type implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) Type() string {
+	return TypeMsgUpdateParams
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return err
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSignBytes implements sdk.Msg
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	authority := sdk.MustAccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
+}
+
+// GetSigners implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }

@@ -5,15 +5,16 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
@@ -22,6 +23,7 @@ import (
 	"github.com/stratosnet/stratos-chain/app"
 	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
+	stratostestutil "github.com/stratosnet/stratos-chain/testutil/stratos"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -75,11 +77,11 @@ var (
 	accounts = make([]authtypes.GenesisAccount, 0)
 	balances = make([]banktypes.Balance, 0)
 
-	accInitBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
-	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdk.NewInt(40000000000000000).MulRaw(stratos.GweiToWei)))
+	accInitBalance        = sdkmath.NewInt(100).Mul(sdkmath.NewInt(stratos.StosToWei))
+	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdkmath.NewInt(40000000000000000)))
 
-	nodeInitDeposit  = sdk.NewInt(1 * stratos.StosToWei)
-	prepayAmt        = sdk.NewCoins(stratos.NewCoin(sdk.NewInt(20).Mul(sdk.NewInt(stratos.StosToWei))))
+	nodeInitDeposit  = sdkmath.NewInt(1 * stratos.StosToWei)
+	prepayAmt        = sdk.NewCoins(stratos.NewCoin(sdkmath.NewInt(20).Mul(sdkmath.NewInt(stratos.StosToWei))))
 	valP2PAddrBech32 string
 )
 
@@ -108,7 +110,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	senderAcc := accountKeeper.GetAccount(ctx, keysMap["foundationDepositorKey"].OwnerAddress())
 	accNum := senderAcc.GetAccountNumber()
 	accSeq := senderAcc.GetSequence()
-	_, _, err := app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap["foundationDepositorKey"].secp256k1PrivKey)
+	_, _, err := stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap["foundationDepositorKey"].secp256k1PrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(types.FoundationAccount)
 	app.CheckBalance(t, stApp, foundationAccountAddr, initFoundationDeposit)
@@ -121,7 +123,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	senderAcc = accountKeeper.GetAccount(ctx, keysMap[valP2PAddrBech32].OwnerAddress())
 	accNum = senderAcc.GetAccountNumber()
 	accSeq = senderAcc.GetSequence()
-	_, _, err = app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[valP2PAddrBech32].secp256k1PrivKey)
+	_, _, err = stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[valP2PAddrBech32].secp256k1PrivKey)
 	require.NoError(t, err)
 
 	/********************* prepay *********************/
@@ -133,7 +135,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 
 	accNum = senderAcc.GetAccountNumber()
 	accSeq = senderAcc.GetSequence()
-	_, _, err = app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[resourceNodes[0].NetworkAddress].secp256k1PrivKey)
+	_, _, err = stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[resourceNodes[0].NetworkAddress].secp256k1PrivKey)
 	require.NoError(t, err)
 
 	/********************** commit **********************/
@@ -142,7 +144,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	ctx = stApp.BaseApp.NewContext(true, header)
 
 	/********************* prepare tx data *********************/
-	volumeReportMsg := setupMsgVolumeReportBenchmark(t, sdk.NewInt(1), metaNodes, resourceNodes)
+	volumeReportMsg := setupMsgVolumeReportBenchmark(t, sdkmath.NewInt(1), metaNodes, resourceNodes)
 
 	/********************* deliver tx *********************/
 	idxOwnerAcc1 := accountKeeper.GetAccount(ctx, keysMap[metaNodes[0].NetworkAddress].OwnerAddress())
@@ -153,7 +155,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	require.NotNil(t, feePoolAccAddr)
 
 	t.Log("--------------------------- deliver volumeReportMsg")
-	gInfo, _, err := app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, testchainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, keysMap[metaNodes[0].NetworkAddress].secp256k1PrivKey)
+	gInfo, _, err := stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, testchainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, keysMap[metaNodes[0].NetworkAddress].secp256k1PrivKey)
 	require.NoError(t, err)
 	fmt.Println("##### volume nodes count:", len(volumeReportMsg.WalletVolumes))
 	fmt.Println("##### gInfo:", gInfo.String())
@@ -187,7 +189,7 @@ func setupKeysAndAccBalance(resNodeCnt int) {
 
 	foundationDepositorKey := NewKeyInfo()
 	foundationDepositorAcc := &authtypes.BaseAccount{Address: foundationDepositorKey.OwnerAddress().String()}
-	feeAmt, _ := sdk.NewIntFromString("50000000000000000000")
+	feeAmt, _ := sdkmath.NewIntFromString("50000000000000000000")
 	foundationDepositorBalance := banktypes.Balance{
 		Address: foundationDepositorKey.OwnerAddress().String(),
 		Coins:   append(initFoundationDeposit, sdk.NewCoin(stratos.Wei, feeAmt)),
@@ -205,7 +207,11 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 
 		if idx == 0 {
 			// first key is validator key
-			commission := stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
+			commission := stakingtypes.NewCommissionRates(
+				sdkmath.LegacyNewDecWithPrec(5, 1),
+				sdkmath.LegacyNewDecWithPrec(5, 1),
+				sdkmath.LegacyNewDec(0),
+			)
 			description := stakingtypes.NewDescription("foo_moniker", testchainID, "", "", "")
 			createValidatorMsg, _ = stakingtypes.NewMsgCreateValidator(
 				sdk.ValAddress(keyInfo.OwnerAddress()),
@@ -213,7 +219,7 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 				stratos.NewCoin(nodeInitDeposit),
 				description,
 				commission,
-				sdk.OneInt(),
+				sdkmath.OneInt(),
 			)
 		} else if idx < 4 {
 			// 1~3 keys are metaNode keys
@@ -252,8 +258,8 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 }
 
 // initialize data of volume report
-func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdk.Int, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) *types.MsgVolumeReport {
-	rsNodeVolume := sdk.NewInt(50000)
+func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdkmath.Int, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) *types.MsgVolumeReport {
+	rsNodeVolume := sdkmath.NewInt(50000)
 
 	nodesVolume := make([]types.SingleWalletVolume, 0)
 	for _, rsNode := range resourceNodes {

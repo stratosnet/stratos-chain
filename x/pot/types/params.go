@@ -1,47 +1,31 @@
 package types
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
-// DefaultParamSpace Default parameter namespace
 const (
 	DefaultBondDenom   = stratos.Wei
 	DefaultRewardDenom = stratos.Wei
 	DefaultMatureEpoch = 2016
 )
 
-// Parameter store keys
 var (
-	KeyBondDenom          = []byte("BondDenom")
-	KeyRewardDenom        = []byte("RewardDenom")
-	KeyMatureEpoch        = []byte("MatureEpoch")
-	KeyMiningRewardParams = []byte("MiningRewardParams")
-	KeyCommunityTax       = []byte("CommunityTax")
-	KeyInitialTotalSupply = []byte("InitialTotalSupply")
-
-	DefaultCommunityTax       = sdk.NewDecWithPrec(2, 2) // 2%
+	DefaultCommunityTax       = sdkmath.LegacyNewDecWithPrec(2, 2) // 2%
 	DefaultInitialTotalSupply = sdk.NewCoin(DefaultBondDenom,
-		sdk.NewInt(1e8).Mul(sdk.NewInt(stratos.StosToWei)),
+		sdkmath.NewInt(1e8).Mul(sdkmath.NewInt(stratos.StosToWei)),
 	) //100,000,000 stos
 )
 
-// ParamKeyTable for pot module
-func ParamKeyTable() paramtypes.KeyTable {
-	return paramtypes.NewKeyTable().RegisterParamSet(&Params{})
-}
-
 // NewParams creates a new Params object
 func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRewardParams []MiningRewardParam,
-	communityTax sdk.Dec, initialTotalSupply sdk.Coin) Params {
+	communityTax sdkmath.LegacyDec, initialTotalSupply sdk.Coin) Params {
 
 	return Params{
 		BondDenom:          bondDenom,
@@ -57,40 +41,40 @@ func NewParams(bondDenom string, rewardDenom string, matureEpoch int64, miningRe
 func DefaultParams() Params {
 	var miningRewardParams []MiningRewardParam
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(0)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(80).MulRaw(stratos.StosToWei)),
-		sdk.NewInt(6000), sdk.NewInt(2000), sdk.NewInt(2000)))
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(0)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(16819200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(80).MulRaw(stratos.StosToWei)),
+		sdkmath.NewInt(6000), sdkmath.NewInt(2000), sdkmath.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(16819200).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40).MulRaw(stratos.StosToWei)),
-		sdk.NewInt(6200), sdk.NewInt(1800), sdk.NewInt(2000)))
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(16819200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(25228800).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(40).MulRaw(stratos.StosToWei)),
+		sdkmath.NewInt(6200), sdkmath.NewInt(1800), sdkmath.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25228800).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(20).MulRaw(stratos.StosToWei)),
-		sdk.NewInt(6400), sdk.NewInt(1600), sdk.NewInt(2000)))
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(25228800).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(29433600).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(20).MulRaw(stratos.StosToWei)),
+		sdkmath.NewInt(6400), sdkmath.NewInt(1600), sdkmath.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(29433600).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(10).MulRaw(stratos.StosToWei)),
-		sdk.NewInt(6600), sdk.NewInt(1400), sdk.NewInt(2000)))
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(29433600).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(31536000).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(10).MulRaw(stratos.StosToWei)),
+		sdkmath.NewInt(6600), sdkmath.NewInt(1400), sdkmath.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(31536000).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(5).MulRaw(stratos.StosToWei)),
-		sdk.NewInt(6800), sdk.NewInt(1200), sdk.NewInt(2000)))
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(31536000).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(32587200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(5).MulRaw(stratos.StosToWei)),
+		sdkmath.NewInt(6800), sdkmath.NewInt(1200), sdkmath.NewInt(2000)))
 
 	miningRewardParams = append(miningRewardParams, NewMiningRewardParam(
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(32587200).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(40000000).MulRaw(stratos.StosToWei)),
-		sdk.NewCoin(DefaultRewardDenom, sdk.NewInt(25).MulRaw(1e17)),
-		sdk.NewInt(7000), sdk.NewInt(1000), sdk.NewInt(2000)))
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(32587200).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(40000000).MulRaw(stratos.StosToWei)),
+		sdk.NewCoin(DefaultRewardDenom, sdkmath.NewInt(25).MulRaw(1e17)),
+		sdkmath.NewInt(7000), sdkmath.NewInt(1000), sdkmath.NewInt(2000)))
 
 	return NewParams(
 		DefaultBondDenom,
@@ -102,28 +86,26 @@ func DefaultParams() Params {
 	)
 }
 
-// HrpString implements the stringer interface for Params
-func (p Params) HrpString() string {
-	return fmt.Sprintf(`Params:
-    BondDenom:          %s
-    RewardDenom:        %s
-    MatureEpoch:        %d
-    MiningRewardParams: %s
-    CommunitiyTax:      %v
-    InitialTotalSupply: %v`,
-		p.BondDenom, p.RewardDenom, p.MatureEpoch, p.MiningRewardParams, p.CommunityTax, p.InitialTotalSupply)
-}
-
-// ParamSetPairs - Implements params.ParamSet
-func (p *Params) ParamSetPairs() paramtypes.ParamSetPairs {
-	return paramtypes.ParamSetPairs{
-		paramtypes.NewParamSetPair(KeyBondDenom, &p.BondDenom, validateBondDenom),
-		paramtypes.NewParamSetPair(KeyRewardDenom, &p.RewardDenom, validateRewardDenom),
-		paramtypes.NewParamSetPair(KeyMatureEpoch, &p.MatureEpoch, validateMatureEpoch),
-		paramtypes.NewParamSetPair(KeyMiningRewardParams, &p.MiningRewardParams, validateMiningRewardParams),
-		paramtypes.NewParamSetPair(KeyCommunityTax, &p.CommunityTax, validateCommunityTax),
-		paramtypes.NewParamSetPair(KeyInitialTotalSupply, &p.InitialTotalSupply, validateInitialTotalSupply),
+func (p Params) Validate() error {
+	if err := validateBondDenom(p.BondDenom); err != nil {
+		return errors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
 	}
+	if err := validateRewardDenom(p.RewardDenom); err != nil {
+		return errors.Wrap(ErrInvalidDenom, "failed to validate reward denomination")
+	}
+	if err := validateMatureEpoch(p.MatureEpoch); err != nil {
+		return errors.Wrap(ErrMatureEpoch, "failed to validate mature epoch")
+	}
+	if err := validateMiningRewardParams(p.MiningRewardParams); err != nil {
+		return errors.Wrap(ErrMiningRewardParams, "failed to validate mining reward params")
+	}
+	if err := validateCommunityTax(p.CommunityTax); err != nil {
+		return errors.Wrap(ErrCommunityTax, "failed to validate community tax")
+	}
+	if err := validateInitialTotalSupply(p.InitialTotalSupply); err != nil {
+		return errors.Wrap(ErrInitialTotalSupply, err.Error())
+	}
+	return nil
 }
 
 func validateBondDenom(i interface{}) error {
@@ -133,7 +115,7 @@ func validateBondDenom(i interface{}) error {
 	}
 
 	if strings.TrimSpace(v) == "" {
-		return errors.New("bond denom cannot be blank")
+		return fmt.Errorf("bond denom cannot be blank")
 	}
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
@@ -149,7 +131,7 @@ func validateRewardDenom(i interface{}) error {
 	}
 
 	if strings.TrimSpace(v) == "" {
-		return errors.New("mining reward denom cannot be blank")
+		return fmt.Errorf("mining reward denom cannot be blank")
 	}
 	if err := sdk.ValidateDenom(v); err != nil {
 		return err
@@ -187,7 +169,7 @@ func validateMiningRewardParams(i interface{}) error {
 }
 
 func validateCommunityTax(i interface{}) error {
-	v, ok := i.(sdk.Dec)
+	v, ok := i.(sdkmath.LegacyDec)
 	if !ok {
 		return fmt.Errorf("invalid parameter type: %T", i)
 	}
@@ -198,7 +180,7 @@ func validateCommunityTax(i interface{}) error {
 	if v.IsNegative() {
 		return fmt.Errorf("pot community tax must be positive: %s", v)
 	}
-	if v.GT(sdk.OneDec()) {
+	if v.GT(sdkmath.LegacyOneDec()) {
 		return fmt.Errorf("pot community tax too large: %s", v)
 	}
 
@@ -215,28 +197,6 @@ func validateInitialTotalSupply(i interface{}) error {
 	}
 	if v.IsNegative() {
 		return fmt.Errorf("total supply must be positive: %s", v)
-	}
-	return nil
-}
-
-func (p Params) ValidateBasic() error {
-	if err := validateBondDenom(p.BondDenom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate bond denomination")
-	}
-	if err := validateRewardDenom(p.RewardDenom); err != nil {
-		return sdkerrors.Wrap(ErrInvalidDenom, "failed to validate reward denomination")
-	}
-	if err := validateMatureEpoch(p.MatureEpoch); err != nil {
-		return sdkerrors.Wrap(ErrMatureEpoch, "failed to validate mature epoch")
-	}
-	if err := validateMiningRewardParams(p.MiningRewardParams); err != nil {
-		return sdkerrors.Wrap(ErrMiningRewardParams, "failed to validate mining reward params")
-	}
-	if err := validateCommunityTax(p.CommunityTax); err != nil {
-		return sdkerrors.Wrap(ErrCommunityTax, "failed to validate community tax")
-	}
-	if err := validateInitialTotalSupply(p.InitialTotalSupply); err != nil {
-		return sdkerrors.Wrap(ErrInitialTotalSupply, err.Error())
 	}
 	return nil
 }

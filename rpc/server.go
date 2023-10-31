@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/ethereum/go-ethereum/node"
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/stratosnet/stratos-chain/server/config"
-	"github.com/tendermint/tendermint/libs/log"
 )
 
 type Web3Server struct {

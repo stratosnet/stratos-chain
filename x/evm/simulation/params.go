@@ -15,25 +15,25 @@ import (
 
 // ParamChanges defines the parameters that can be modified by param change proposals
 // on the simulation.
-func ParamChanges(r *rand.Rand) []simtypes.ParamChange {
-	return []simtypes.ParamChange{
-		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyExtraEIPs),
+func ParamChanges(r *rand.Rand) []simtypes.LegacyParamChange {
+	return []simtypes.LegacyParamChange{
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.ParamStoreKeyExtraEIPs),
 			func(r *rand.Rand) string {
 				extraEIPs := GenExtraEIPs(r)
-				amino := amino.NewLegacyAmino()
-				bz, err := amino.MarshalJSON(extraEIPs)
+				aminoCdc := amino.NewLegacyAmino()
+				bz, err := aminoCdc.MarshalJSON(extraEIPs)
 				if err != nil {
 					panic(err)
 				}
 				return string(bz)
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyEnableCreate),
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.ParamStoreKeyEnableCreate),
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("%v", GenEnableCreate(r))
 			},
 		),
-		simulation.NewSimParamChange(types.ModuleName, string(types.ParamStoreKeyEnableCall),
+		simulation.NewSimLegacyParamChange(types.ModuleName, string(types.ParamStoreKeyEnableCall),
 			func(r *rand.Rand) string {
 				return fmt.Sprintf("%v", GenEnableCall(r))
 			},
