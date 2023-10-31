@@ -52,7 +52,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 	for _, rewardTotal := range data.RewardTotalInfo {
 		epoch := rewardTotal.Epoch
 		reward := rewardTotal.TotalReward
-		keeper.SetTotalReward(ctx, epoch, reward)
+		k.SetTotalReward(ctx, epoch, reward)
 	}
 }
 
@@ -92,8 +92,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 	maturedEpoch := k.GetMaturedEpoch(ctx)
 
 	var rewardTotalInfo []types.RewardTotal
-	keeper.IteratorTotalReward(ctx, func(epoch sdk.Int, totalReward types.TotalReward) (stop bool) {
-		if epoch.GT(sdk.ZeroInt()) {
+	k.IteratorTotalReward(ctx, func(epoch sdkmath.Int, totalReward types.TotalReward) (stop bool) {
+		if epoch.GT(sdkmath.ZeroInt()) {
 			info := types.NewRewardTotal(epoch, totalReward)
 			rewardTotalInfo = append(rewardTotalInfo, info)
 		}

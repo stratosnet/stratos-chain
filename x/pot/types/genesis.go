@@ -58,7 +58,7 @@ func NewMatureTotal(walletAddress sdk.AccAddress, value sdk.Coins) MatureTotal {
 	}
 }
 
-func NewRewardTotal(epoch sdk.Int, reward TotalReward) RewardTotal {
+func NewRewardTotal(epoch sdkmath.Int, reward TotalReward) RewardTotal {
 	return RewardTotal{
 		Epoch:       epoch,
 		TotalReward: reward,

@@ -101,14 +101,14 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 	} else {
 		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
 		if err != nil {
-			return &types.MsgCreateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+			return &types.MsgCreateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
 		}
 		if beneficiaryAddress.Empty() {
 			beneficiaryAddress = ownerAddress
 		}
 	}
 
-	ozoneLimitChange, err := k.CreateMetaNode(ctx, networkAddr, pk, ownerAddress, beneficiaryAddress, msg.Description, msg.GetValue())
+	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, beneficiaryAddress, msg.Description, msg.GetValue())
 	if err != nil {
 		return nil, errors.Wrap(types.ErrRegisterMetaNode, err.Error())
 	}
@@ -443,7 +443,7 @@ func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.Msg
 	if len(strings.TrimSpace(msg.BeneficiaryAddress)) > 0 {
 		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
 		if err != nil {
-			return &types.MsgUpdateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+			return &types.MsgUpdateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
 		}
 	}
 
