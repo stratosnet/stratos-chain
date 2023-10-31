@@ -409,17 +409,6 @@ func (q Querier) Metrics(c context.Context, req *types.QueryMetricsRequest) (
 
 	metrics := q.GetMetrics(ctx)
 	return &types.QueryMetricsResponse{
-		TotalSupply:               metrics.TotalSupply,
-		TotalMiningSupply:         metrics.TotalMiningSupply,
-		TotalMinedTokens:          metrics.TotalMinedTokens,
-		TotalResourceNodesDeposit: metrics.TotalResourceNodesDeposit,
-		TotalBondedDelegation:     metrics.TotalBondedDelegation,
-		TotalUnbondedDelegation:   metrics.TotalUnbondedDelegation,
-		TotalUnbondingDelegation:  metrics.TotalUnbondingDelegation,
-		CirculationSupply:         metrics.CirculationSupply,
-		TotalMiningReward:         metrics.TotalMiningReward,
-		ChainMiningReward:         metrics.ChainMiningReward,
-		ResourceMiningReward:      metrics.ResourceMiningReward,
-		MetaMiningReward:          metrics.MetaMiningReward,
+		Metrics: metrics,
 	}, nil
 }
