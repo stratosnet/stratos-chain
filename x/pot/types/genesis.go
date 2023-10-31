@@ -1,13 +1,14 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpoch sdk.Int,
+func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpoch sdkmath.Int,
 	immatureTotalInfo []ImmatureTotal, matureTotalInfo []MatureTotal, individualRewardInfo []Reward,
-	maturedEpoch sdk.Int,
+	maturedEpoch sdkmath.Int,
 ) *GenesisState {
 
 	return &GenesisState{
@@ -24,20 +25,20 @@ func NewGenesisState(params Params, totalMinedToken sdk.Coin, lastDistributedEpo
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() *GenesisState {
 	params := DefaultParams()
-	coin := sdk.NewCoin(DefaultRewardDenom, sdk.ZeroInt())
+	coin := sdk.NewCoin(DefaultRewardDenom, sdkmath.ZeroInt())
 	return &GenesisState{
 		Params:               params,
 		TotalMinedToken:      coin,
-		LastDistributedEpoch: sdk.ZeroInt(),
+		LastDistributedEpoch: sdkmath.ZeroInt(),
 		ImmatureTotalInfo:    make([]ImmatureTotal, 0),
 		MatureTotalInfo:      make([]MatureTotal, 0),
 		IndividualRewardInfo: make([]Reward, 0),
-		MaturedEpoch:         sdk.ZeroInt(),
+		MaturedEpoch:         sdkmath.ZeroInt(),
 	}
 }
 
 // ValidateGenesis validates the pot genesis parameters
-func ValidateGenesis(data *GenesisState) error {
+func ValidateGenesis(data GenesisState) error {
 	return nil
 }
 

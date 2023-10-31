@@ -2,70 +2,88 @@ syntax = "proto3";
 package stratos.pot.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "stratos/pot/v1/pot.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 
 // GenesisState defines the register module's genesis state.
 message GenesisState {
   Params                    params = 1 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "params",
     (gogoproto.moretags) = "yaml:\"params\""
   ];
   cosmos.base.v1beta1.Coin  total_mined_token = 2 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "total_mined_token",
     (gogoproto.moretags) = "yaml:\"total_mined_token\""
   ];
   string                    last_distributed_epoch = 3 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "last_distributed_epoch",
     (gogoproto.moretags) = "yaml:\"last_distributed_epoch\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   repeated ImmatureTotal    immature_total_info = 4 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "immature_total_info",
     (gogoproto.moretags) = "yaml:\"immature_total_info\""
   ];
   repeated MatureTotal      mature_total_info = 5 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "mature_total_info",
     (gogoproto.moretags) = "yaml:\"mature_total_info\""
   ];
   repeated Reward           individual_reward_info = 6 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "individual_reward_info",
     (gogoproto.moretags) = "yaml:\"individual_reward_info\""
   ];
   string                    matured_epoch = 7 [
     (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "matured_epoch",
     (gogoproto.moretags) = "yaml:\"matured_epoch\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
 
 message ImmatureTotal {
   string                              wallet_address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "wallet_address",
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
   repeated cosmos.base.v1beta1.Coin   value = 2 [
     (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
   ];
 }
 
 message MatureTotal {
   string                              wallet_address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "wallet_address",
     (gogoproto.moretags) = "yaml:\"wallet_address\""
   ];
   repeated cosmos.base.v1beta1.Coin   value = 2 [
     (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
+    (gogoproto.jsontag) = "value",
+    (gogoproto.moretags) = "yaml:\"value\""
   ];
 }

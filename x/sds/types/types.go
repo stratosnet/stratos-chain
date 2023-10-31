@@ -1,11 +1,11 @@
 package types
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 )
 
 // NewFileInfo constructor
-func NewFileInfo(height sdk.Int, reporters []byte, uploader string) FileInfo {
+func NewFileInfo(height sdkmath.Int, reporters []byte, uploader string) FileInfo {
 	return FileInfo{
 		Height:    height,
 		Reporters: reporters,

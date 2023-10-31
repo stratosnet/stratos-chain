@@ -4,35 +4,35 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"math/big"
 	"sort"
 	"strconv"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/mempool"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
+	tmrpccoretypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/mempool"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	"github.com/tendermint/tendermint/proto/tendermint/crypto"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
-	tmrpccoretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
-var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
 var MempoolCapacity = 100
 
 // HashToUint64 used to convert string or hash string to uint64
@@ -50,11 +50,11 @@ func HashToUint64(s string) uint64 {
 	return result
 }
 
-// RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
+// RawTxToEthTx returns an evm MsgEthereum transaction from raw tx bytes.
 func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
 	tx, err := clientCtx.TxConfig.TxDecoder()(txBz)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	ethTxs := make([]*evmtypes.MsgEthereumTx, len(tx.GetMsgs()))
@@ -75,15 +75,16 @@ func GetBlockBloom(blockResults *tmrpccoretypes.ResultBlockResults) (ethtypes.Bl
 		}
 
 		for _, attr := range event.Attributes {
-			if bytes.Equal(attr.Key, bAttributeKeyEthereumBloom) {
-				return ethtypes.BytesToBloom(attr.Value), nil
+			if attr.GetKey() == evmtypes.AttributeKeyEthereumBloom {
+				bBloom := []byte(attr.Value)
+				return ethtypes.BytesToBloom(bBloom), nil
 			}
 		}
 	}
-	return ethtypes.Bloom{}, errors.New("block bloom event is not found")
+	return ethtypes.Bloom{}, fmt.Errorf("block bloom event is not found")
 }
 
-// EthHeaderFromTendermint is an util function that returns an Ethereum Header
+// EthHeaderFromTendermint is a util function that returns an Ethereum Header
 // from a tendermint Header.
 func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 	results, err := tmrpccore.BlockResults(nil, &header.Height)
@@ -335,7 +336,7 @@ func GetNonEVMSignatures(sig []byte) (v, r, s *big.Int) {
 	return
 }
 
-// GetTxHash get hash depends on what type, unfortunatelly system support two tx hash algo
+// GetTxHash get hash depends on what type, unfortunately system support two tx hash algo
 // in order to have opportunity for off chain tx hash computation
 func GetTxHash(txDecoder sdk.TxDecoder, tmTx tmtypes.Tx) (common.Hash, error) {
 	tx, err := txDecoder(tmTx)
@@ -343,7 +344,7 @@ func GetTxHash(txDecoder sdk.TxDecoder, tmTx tmtypes.Tx) (common.Hash, error) {
 		return common.Hash{}, err
 	}
 	if len(tx.GetMsgs()) == 0 {
-		return common.Hash{}, errors.New("tx contain empty msgs")
+		return common.Hash{}, fmt.Errorf("tx contain empty msgs")
 	}
 	msg := tx.GetMsgs()[0]
 	if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
@@ -447,14 +448,14 @@ func TmTxToEthTx(
 	}
 }
 
-// NewTransactionFromData returns a transaction that will serialize to the RPC
+// NewRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func NewRPCTransaction(
 	tx *ethtypes.Transaction, blockHash *common.Hash, blockNumber, index *uint64,
 ) (*Transaction, error) {
 	// Determine the signer. For replay-protected transactions, use the most permissive
 	// signer, because we assume that signers are backwards-compatible with old
-	// transactions. For non-protected transactions, the homestead signer signer is used
+	// transactions. For non-protected transactions, the homestead signer is used
 	// because the return value of ChainId is zero for those transactions.
 	var signer ethtypes.Signer
 	if tx.Protected() {
@@ -507,8 +508,8 @@ func BaseFeeFromEvents(events []abci.Event) *big.Int {
 		}
 
 		for _, attr := range event.Attributes {
-			if bytes.Equal(attr.Key, []byte(evmtypes.AttributeKeyBaseFee)) {
-				result, success := new(big.Int).SetString(string(attr.Value), 10)
+			if attr.GetKey() == evmtypes.AttributeKeyBaseFee {
+				result, success := new(big.Int).SetString(attr.Value, 10)
 				if success {
 					return result
 				}
@@ -531,15 +532,15 @@ func FindTxAttributes(events []abci.Event, txHash string) (int, map[string]strin
 
 		msgIndex++
 
-		value := FindAttribute(event.Attributes, []byte(evmtypes.AttributeKeyEthereumTxHash))
-		if !bytes.Equal(value, []byte(txHash)) {
+		value := FindAttribute(event.Attributes, evmtypes.AttributeKeyEthereumTxHash)
+		if value != txHash {
 			continue
 		}
 
 		// found, convert attributes to map for later lookup
 		attrs := make(map[string]string, len(event.Attributes))
 		for _, attr := range event.Attributes {
-			attrs[string(attr.Key)] = string(attr.Value)
+			attrs[attr.Key] = attr.Value
 		}
 		return msgIndex, attrs
 	}
@@ -550,8 +551,8 @@ func FindTxAttributes(events []abci.Event, txHash string) (int, map[string]strin
 // FindTxAttributesByIndex search the msg in tx events by txIndex
 // returns the msgIndex, returns -1 if not found.
 func FindTxAttributesByIndex(events []abci.Event, txIndex uint64) int {
-	strIndex := []byte(strconv.FormatUint(txIndex, 10))
-	txIndexKey := []byte(evmtypes.AttributeKeyTxIndex)
+	strIndex := strconv.FormatUint(txIndex, 10)
+	txIndexKey := evmtypes.AttributeKeyTxIndex
 	msgIndex := -1
 	for _, event := range events {
 		if event.Type != evmtypes.EventTypeEthereumTx {
@@ -561,7 +562,7 @@ func FindTxAttributesByIndex(events []abci.Event, txIndex uint64) int {
 		msgIndex++
 
 		value := FindAttribute(event.Attributes, txIndexKey)
-		if !bytes.Equal(value, strIndex) {
+		if value != strIndex {
 			continue
 		}
 
@@ -573,14 +574,14 @@ func FindTxAttributesByIndex(events []abci.Event, txIndex uint64) int {
 }
 
 // FindAttribute find event attribute with specified key, if not found returns nil.
-func FindAttribute(attrs []abci.EventAttribute, key []byte) []byte {
+func FindAttribute(attrs []abci.EventAttribute, key string) string {
 	for _, attr := range attrs {
-		if !bytes.Equal(attr.Key, key) {
+		if attr.GetKey() != key {
 			continue
 		}
 		return attr.Value
 	}
-	return nil
+	return ""
 }
 
 // GetUint64Attribute parses the uint64 value from event attributes
@@ -612,9 +613,9 @@ func AccumulativeGasUsedOfMsg(events []abci.Event, msgIndex int) (gasUsed uint64
 		}
 		msgIndex--
 
-		value := FindAttribute(event.Attributes, []byte(evmtypes.AttributeKeyTxGasUsed))
+		value := FindAttribute(event.Attributes, evmtypes.AttributeKeyTxGasUsed)
 		var result int64
-		result, err := strconv.ParseInt(string(value), 10, 64)
+		result, err := strconv.ParseInt(value, 10, 64)
 		if err != nil {
 			continue
 		}

@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"strings"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -16,9 +16,9 @@ import (
 func NewGenesisState(params Params,
 	resourceNodes ResourceNodes,
 	metaNodes MetaNodes,
-	remainingNozLimit sdk.Int,
+	remainingNozLimit sdkmath.Int,
 	slashingInfo []Slashing,
-	depositNozRate sdk.Dec,
+	depositNozRate sdkmath.LegacyDec,
 ) *GenesisState {
 	return &GenesisState{
 		Params:            params,
@@ -65,11 +65,11 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if (data.RemainingNozLimit).LT(sdk.ZeroInt()) {
+	if (data.RemainingNozLimit).LT(sdkmath.ZeroInt()) {
 		return ErrRemainingNozLimit
 	}
 
-	if (data.DepositNozRate).LTE(sdk.ZeroDec()) {
+	if (data.DepositNozRate).LTE(sdkmath.LegacyZeroDec()) {
 		return ErrDepositNozRate
 	}
 	return nil
@@ -78,7 +78,7 @@ func ValidateGenesis(data GenesisState) error {
 func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	ownerAddress, err := sdk.AccAddressFromBech32(v.OwnerAddress)
 	if err != nil {
-		return MetaNode{}, sdkerrors.Wrap(ErrInvalidOwnerAddr, err.Error())
+		return MetaNode{}, errors.Wrap(ErrInvalidOwnerAddr, err.Error())
 	}
 
 	beneficiaryAddress := ownerAddress
@@ -91,14 +91,11 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
-		return MetaNode{}, sdkerrors.Wrap(ErrInvalidNetworkAddr, err.Error())
+		return MetaNode{}, errors.Wrap(ErrInvalidNetworkAddr, err.Error())
 	}
 
-	tokens, err := sdk.ParseCoinsNormalized(v.Tokens)
-	if err != nil {
-		return MetaNode{}, sdkerrors.Wrap(ErrBadDenom, err.Error())
-	}
-	tokenAmt := tokens.AmountOf(DefaultBondDenom)
+	tokens := sdk.NormalizeCoin(v.Tokens)
+	tokenAmt := tokens.Amount
 
 	return MetaNode{
 		NetworkAddress:     netAddr.String(),
@@ -112,7 +109,7 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	}, nil
 }
 
-func NewSlashing(walletAddress sdk.AccAddress, value sdk.Int) Slashing {
+func NewSlashing(walletAddress sdk.AccAddress, value sdkmath.Int) Slashing {
 	return Slashing{
 		WalletAddress: walletAddress.String(),
 		Value:         value.Int64(),

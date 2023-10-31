@@ -2,6 +2,7 @@ syntax = "proto3";
 package stratos.sds.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "stratos/sds/v1/sds.proto";
@@ -58,6 +59,7 @@ message QuerySimPrepayResponse {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "noz",
     (gogoproto.moretags) = "yaml:\"noz\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
@@ -68,6 +70,7 @@ message QueryNozPriceResponse {
   string price = 1 [
     (gogoproto.jsontag) = "price",
     (gogoproto.moretags) = "yaml:\"price\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
@@ -80,12 +83,14 @@ message QueryNozSupplyResponse {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "remaining",
     (gogoproto.moretags) = "yaml:\"remaining\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string total = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "total",
     (gogoproto.moretags) = "yaml:\"total\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }

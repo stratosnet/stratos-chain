@@ -170,6 +170,7 @@ message DepositInfo {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "tokens",
     (gogoproto.moretags) = "yaml:\"tokens\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string                              owner_address = 6 [

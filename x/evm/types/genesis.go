@@ -31,11 +31,10 @@ func NewGenesisState(params Params, accounts []GenesisAccount) *GenesisState {
 	}
 }
 
-// Validate performs basic genesis state validation returning an error upon any
-// failure.
-func (gs GenesisState) Validate() error {
+// ValidateGenesis validates the evm genesis parameters
+func ValidateGenesis(data GenesisState) error {
 	seenAccounts := make(map[string]bool)
-	for _, acc := range gs.Accounts {
+	for _, acc := range data.Accounts {
 		if seenAccounts[acc.Address] {
 			return fmt.Errorf("duplicated genesis account %s", acc.Address)
 		}
@@ -45,5 +44,5 @@ func (gs GenesisState) Validate() error {
 		seenAccounts[acc.Address] = true
 	}
 
-	return gs.Params.Validate()
+	return data.Params.Validate()
 }

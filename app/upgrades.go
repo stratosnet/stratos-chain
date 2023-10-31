@@ -1,17 +1,10 @@
 package app
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/module"
-	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	v012 "github.com/stratosnet/stratos-chain/app/upgrades/v012"
 )
 
-// UpgradeName defines the on-chain upgrade name
-const UpgradeName = "v0_12_0"
-
-func (app *NewApp) RegisterUpgradeHandlers() {
-	app.upgradeKeeper.SetUpgradeHandler(UpgradeName,
-		func(ctx sdk.Context, plan upgradetypes.Plan, fromVM module.VersionMap) (module.VersionMap, error) {
-			return app.mm.RunMigrations(ctx, app.configurator, fromVM)
-		})
+// registerUpgradeHandlers registers all the upgrade handlers that are supported by the app
+func (app *StratosApp) registerUpgradeHandlers() {
+	app.registerUpgrade(v012.NewUpgrade(app.ModuleManager, app.Configurator(), app.paramsKeeper, app.consensusKeeper))
 }

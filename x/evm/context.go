@@ -3,13 +3,15 @@ package evm
 import (
 	"fmt"
 
+	"github.com/cometbft/cometbft/libs/log"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	"github.com/cometbft/cometbft/store"
+	tmtypes "github.com/cometbft/cometbft/types"
+
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/rpc/types"
-	"github.com/tendermint/tendermint/libs/log"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	"github.com/tendermint/tendermint/store"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 type Context struct {
