@@ -415,6 +415,6 @@ func (q Querier) Metrics(c context.Context, req *types.QueryMetricsRequest) (
 
 	metrics := q.GetMetrics(ctx)
 	return &types.QueryMetricsResponse{
-		Metrics: *metrics,
+		Metrics: metrics,
 	}, nil
 }
