@@ -85,7 +85,7 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	if len(strings.TrimSpace(v.BeneficiaryAddress)) > 0 {
 		beneficiaryAddress, err = sdk.AccAddressFromBech32(v.BeneficiaryAddress)
 		if err != nil {
-			return MetaNode{}, sdkerrors.Wrap(ErrInvalidBeneficiaryAddr, err.Error())
+			return MetaNode{}, errors.Wrap(ErrInvalidBeneficiaryAddr, err.Error())
 		}
 	}
 

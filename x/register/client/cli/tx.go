@@ -505,7 +505,7 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*typ
 	if len(strings.TrimSpace(flagBeneficiaryAddressStr)) > 0 {
 		beneficiaryAddress, err = sdk.AccAddressFromBech32(flagBeneficiaryAddressStr)
 		if err != nil {
-			return txf, nil, err
+			return nil, err
 		}
 	}
 
