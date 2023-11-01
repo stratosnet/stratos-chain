@@ -44,7 +44,7 @@ const (
 	chainID           = "testchain_1-1"
 	stos2wei          = stratos.StosToWei
 	StosToWeiSuffix   = "000000000000000000" // 1 Stos = 1e18 wei
-	rewardDenom       = stratos.Utros
+	rewardDenom       = stratos.Wei
 	depositNozRateStr = "100000"
 )
 
@@ -1039,9 +1039,9 @@ func setupAllMetaNodes() []registertypes.MetaNode {
 	var indexingNodes []registertypes.MetaNode
 
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	indexingNode1, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr1), idxNodePubKey1, idxOwner1, registertypes.NewDescription("sds://indexingNode1", "", "", "", ""), time)
-	indexingNode2, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr2), idxNodePubKey2, idxOwner2, registertypes.NewDescription("sds://indexingNode2", "", "", "", ""), time)
-	indexingNode3, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr3), idxNodePubKey3, idxOwner3, registertypes.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	indexingNode1, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr1), idxNodePubKey1, idxOwner1, idxOwner1, registertypes.NewDescription("sds://indexingNode1", "", "", "", ""), time)
+	indexingNode2, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr2), idxNodePubKey2, idxOwner2, idxOwner2, registertypes.NewDescription("sds://indexingNode2", "", "", "", ""), time)
+	indexingNode3, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr3), idxNodePubKey3, idxOwner3, idxOwner3, registertypes.NewDescription("sds://indexingNode3", "", "", "", ""), time)
 
 	indexingNode1.Suspend = false
 	indexingNode2.Suspend = false

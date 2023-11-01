@@ -34,6 +34,7 @@ const (
 	codeErrNoVoterMetaNodeFound
 	codeErrSameAddr
 	codeErrInvalidOwnerAddr
+	codeErrInvalidBeneficiaryAddr
 	codeErrInvalidVoterStatus
 	codeEcoderrNoRegistrationVotePoolFound
 	codeErrDuplicateVoting
@@ -99,6 +100,7 @@ var (
 	ErrNoVoterMetaNodeFound               = errors.Register(ModuleName, codeErrNoVoterMetaNodeFound, "voter meta node does not exist")
 	ErrSameAddr                           = errors.Register(ModuleName, codeErrSameAddr, "node address should not same as the voter address")
 	ErrInvalidOwnerAddr                   = errors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
+	ErrInvalidBeneficiaryAddr             = errors.Register(ModuleName, codeErrInvalidBeneficiaryAddr, "invalid beneficiary address")
 	ErrInvalidVoterStatus                 = errors.Register(ModuleName, codeErrInvalidVoterStatus, "invalid voter status")
 	ErrNoRegistrationVotePoolFound        = errors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
 	ErrDuplicateVoting                    = errors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")

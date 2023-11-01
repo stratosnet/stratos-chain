@@ -2,6 +2,7 @@ package types
 
 import (
 	"encoding/json"
+	"strings"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -80,6 +81,14 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 		return MetaNode{}, errors.Wrap(ErrInvalidOwnerAddr, err.Error())
 	}
 
+	beneficiaryAddress := ownerAddress
+	if len(strings.TrimSpace(v.BeneficiaryAddress)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(v.BeneficiaryAddress)
+		if err != nil {
+			return MetaNode{}, errors.Wrap(ErrInvalidBeneficiaryAddr, err.Error())
+		}
+	}
+
 	netAddr, err := stratos.SdsAddressFromBech32(v.GetNetworkAddress())
 	if err != nil {
 		return MetaNode{}, errors.Wrap(ErrInvalidNetworkAddr, err.Error())
@@ -89,13 +98,14 @@ func (v GenesisMetaNode) ToMetaNode() (MetaNode, error) {
 	tokenAmt := tokens.Amount
 
 	return MetaNode{
-		NetworkAddress: netAddr.String(),
-		Pubkey:         v.GetPubkey(),
-		Suspend:        v.GetSuspend(),
-		Status:         v.GetStatus(),
-		Tokens:         tokenAmt,
-		OwnerAddress:   ownerAddress.String(),
-		Description:    v.GetDescription(),
+		NetworkAddress:     netAddr.String(),
+		Pubkey:             v.GetPubkey(),
+		Suspend:            v.GetSuspend(),
+		Status:             v.GetStatus(),
+		Tokens:             tokenAmt,
+		OwnerAddress:       ownerAddress.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
+		Description:        v.GetDescription(),
 	}, nil
 }
 

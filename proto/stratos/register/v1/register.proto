@@ -151,12 +151,16 @@ message MetaNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  Description                         description = 7 [
+  string                              beneficiary_address = 7 [
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
+  ];
+  Description                         description = 8 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  google.protobuf.Timestamp           creation_time = 8 [
+  google.protobuf.Timestamp           creation_time = 9 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.stdtime) = true,

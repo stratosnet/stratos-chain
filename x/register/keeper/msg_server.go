@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"strconv"
+	"strings"
 	"time"
 
 	"cosmossdk.io/errors"
@@ -94,7 +95,20 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgCreateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, msg.Description, msg.GetValue())
+	var beneficiaryAddress sdk.AccAddress
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) == 0 {
+		beneficiaryAddress = ownerAddress
+	} else {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgCreateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+		if beneficiaryAddress.Empty() {
+			beneficiaryAddress = ownerAddress
+		}
+	}
+
+	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, beneficiaryAddress, msg.Description, msg.GetValue())
 	if err != nil {
 		return nil, errors.Wrap(types.ErrRegisterMetaNode, err.Error())
 	}
@@ -425,7 +439,15 @@ func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgUpdateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	err = k.UpdateMetaNode(ctx, msg.Description, networkAddr, ownerAddress)
+	beneficiaryAddress := sdk.AccAddress{}
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgUpdateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+	}
+
+	err = k.UpdateMetaNode(ctx, msg.Description, networkAddr, ownerAddress, beneficiaryAddress)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrUpdateMetaNode, err.Error())
 	}

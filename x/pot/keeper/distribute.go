@@ -3,6 +3,7 @@ package keeper
 import (
 	"errors"
 	"sort"
+	"strings"
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
@@ -229,7 +230,14 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 			continue
 		}
 
-		walletAddr, err := sdk.AccAddressFromBech32(node.OwnerAddress)
+		var walletAddrStr string
+		if len(strings.TrimSpace(node.BeneficiaryAddress)) == 0 {
+			walletAddrStr = node.OwnerAddress
+		} else {
+			walletAddrStr = node.BeneficiaryAddress
+		}
+
+		walletAddr, err := sdk.AccAddressFromBech32(walletAddrStr)
 		if err != nil {
 			continue
 		}

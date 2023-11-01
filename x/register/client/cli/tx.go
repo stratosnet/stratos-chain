@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"strings"
+
 	"github.com/spf13/cobra"
 	flag "github.com/spf13/pflag"
 
@@ -99,6 +101,7 @@ func CreateMetaNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetAmount())
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -217,6 +220,7 @@ func UpdateMetaNodeCmd() *cobra.Command {
 
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -406,6 +410,15 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*typ
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	beneficiaryAddr := ownerAddr
+	flagBeneficiaryAddrStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddrStr)) > 0 {
+		beneficiaryAddr, err = sdk.AccAddressFromBech32(flagBeneficiaryAddrStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
 		return nil, err
@@ -427,7 +440,7 @@ func newBuildCreateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*typ
 		security,
 		details,
 	)
-	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, description)
+	msg, er := types.NewMsgCreateMetaNode(networkAddr, pubKey, amount, ownerAddr, beneficiaryAddr, description)
 	if er != nil {
 		return nil, err
 	}
@@ -487,6 +500,15 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*typ
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	beneficiaryAddress := sdk.AccAddress{}
+	flagBeneficiaryAddressStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddressStr)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(flagBeneficiaryAddressStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	moniker, _ := fs.GetString(FlagMoniker)
 	identity, _ := fs.GetString(FlagIdentity)
 	website, _ := fs.GetString(FlagWebsite)
@@ -500,7 +522,7 @@ func newBuildUpdateMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*typ
 		details,
 	)
 
-	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateMetaNode(description, networkAddr, ownerAddr, beneficiaryAddress)
 	return msg, nil
 }
 

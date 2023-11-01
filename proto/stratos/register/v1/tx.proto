@@ -102,7 +102,12 @@ message MsgCreateMetaNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  Description                   description = 5 [
+  string                        beneficiary_address = 5 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
+  ];
+  Description                   description = 6 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "description",
@@ -197,12 +202,17 @@ message MsgUpdateMetaNode {
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  string      network_address   = 2 [
+  string      beneficiary_address = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
+  ];
+  string      network_address   = 3 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  string      owner_address = 3 [
+  string      owner_address = 4 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""

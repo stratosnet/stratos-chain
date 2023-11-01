@@ -72,7 +72,7 @@ func (k Keeper) GetAllValidMetaNodes(ctx sdk.Context) (metaNodes []types.MetaNod
 }
 
 func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, deposit sdk.Coin) (ozoneLimitChange sdkmath.Int, err error) {
+	beneficiaryAddress sdk.AccAddress, description types.Description, deposit sdk.Coin) (ozoneLimitChange sdkmath.Int, err error) {
 
 	if _, found := k.GetMetaNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Meta node already exist")
@@ -87,7 +87,7 @@ func (k Keeper) RegisterMetaNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 		return ozoneLimitChange, types.ErrBadDenom
 	}
 
-	metaNode, err := types.NewMetaNode(networkAddr, pubKey, ownerAddr, description, ctx.BlockHeader().Time)
+	metaNode, err := types.NewMetaNode(networkAddr, pubKey, ownerAddr, beneficiaryAddress, description, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -435,7 +435,7 @@ func (k Keeper) HandleVoteForMetaNodeRegistration(ctx sdk.Context, candidateNetw
 }
 
 func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
-	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) error {
+	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress) error {
 
 	node, found := k.GetMetaNode(ctx, networkAddr)
 	if !found {
@@ -445,6 +445,10 @@ func (k Keeper) UpdateMetaNode(ctx sdk.Context, description types.Description,
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !ownerAddrNode.Equals(ownerAddr) {
 		return types.ErrInvalidOwnerAddr
+	}
+
+	if len(beneficiaryAddr) > 0 {
+		node.BeneficiaryAddress = beneficiaryAddr.String()
 	}
 
 	node.Description = description

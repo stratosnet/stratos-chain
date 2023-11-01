@@ -134,7 +134,7 @@ func (msg MsgCreateResourceNode) UnpackInterfaces(unpacker codectypes.AnyUnpacke
 
 // NewMsgCreateMetaNode creates a new Msg<Action> instance
 func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description Description,
+	value sdk.Coin, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress, description Description,
 ) (*MsgCreateMetaNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -147,11 +147,12 @@ func NewMsgCreateMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.Pub
 	}
 
 	return &MsgCreateMetaNode{
-		NetworkAddress: networkAddr.String(),
-		Pubkey:         pkAny,
-		Value:          value,
-		OwnerAddress:   ownerAddr.String(),
-		Description:    description,
+		NetworkAddress:     networkAddr.String(),
+		Pubkey:             pkAny,
+		Value:              value,
+		OwnerAddress:       ownerAddr.String(),
+		BeneficiaryAddress: beneficiaryAddr.String(),
+		Description:        description,
 	}, nil
 }
 
@@ -437,12 +438,13 @@ func (msg MsgUpdateResourceNodeDeposit) ValidateBasic() error {
 // --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgUpdateMetaNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
-) *MsgUpdateMetaNode {
+	beneficiaryAddress sdk.AccAddress) *MsgUpdateMetaNode {
 
 	return &MsgUpdateMetaNode{
-		Description:    description,
-		NetworkAddress: networkAddress.String(),
-		OwnerAddress:   ownerAddress.String(),
+		Description:        description,
+		NetworkAddress:     networkAddress.String(),
+		OwnerAddress:       ownerAddress.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
 	}
 }
 
