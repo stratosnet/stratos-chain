@@ -48,6 +48,12 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 			totalSupply.String(), k.GetParams(ctx).InitialTotalSupply.String())
 		panic(errMsg)
 	}
+
+	for _, rewardTotal := range data.RewardTotalInfo {
+		epoch := rewardTotal.Epoch
+		reward := rewardTotal.TotalReward
+		k.SetTotalReward(ctx, epoch, reward)
+	}
 }
 
 // ExportGenesis writes the current store values
@@ -85,6 +91,15 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 
 	maturedEpoch := k.GetMaturedEpoch(ctx)
 
+	var rewardTotalInfo []types.RewardTotal
+	k.IteratorTotalReward(ctx, func(epoch sdkmath.Int, totalReward types.TotalReward) (stop bool) {
+		if epoch.GT(sdkmath.ZeroInt()) {
+			info := types.NewRewardTotal(epoch, totalReward)
+			rewardTotalInfo = append(rewardTotalInfo, info)
+		}
+		return false
+	})
+
 	return types.NewGenesisState(
 		params,
 		totalMinedToken,
@@ -92,5 +107,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 		immatureTotalInfo,
 		matureTotalInfo,
 		individualRewardInfo,
-		maturedEpoch)
+		maturedEpoch,
+		rewardTotalInfo)
 }

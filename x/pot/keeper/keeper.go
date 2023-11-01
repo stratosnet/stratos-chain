@@ -194,7 +194,7 @@ func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coi
 	return
 }
 
-func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalReward types.TotalReward) {
+func (k Keeper) GetLegacyTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalReward types.TotalReward) {
 	volumeReport := k.GetVolumeReport(ctx, epoch)
 
 	if volumeReport == (types.VolumeReportRecord{}) {

@@ -200,3 +200,36 @@ func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.
 	}
 	return prefixStore.Iterator(start, nil)
 }
+
+func (k Keeper) SetTotalReward(ctx sdk.Context, epoch sdkmath.Int, totalReward types.TotalReward) {
+	store := ctx.KVStore(k.storeKey)
+	storeKey := types.GetTotalRewardKey(epoch)
+	bz := k.cdc.MustMarshalLengthPrefixed(&totalReward)
+	store.Set(storeKey, bz)
+}
+
+func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalReward types.TotalReward) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetTotalRewardKey(epoch))
+	if bz == nil {
+		return types.TotalReward{}
+	}
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &totalReward)
+	return
+}
+
+// IteratorMatureTotal Iteration for getting total mature reward
+func (k Keeper) IteratorTotalReward(ctx sdk.Context, handler func(epoch sdkmath.Int, totalReward types.TotalReward) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.TotalRewardKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		epochBytes := iter.Key()[len(types.TotalRewardKeyPrefix):]
+		epoch, _ := sdk.NewIntFromString(string(epochBytes))
+		var totalReward types.TotalReward
+		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &totalReward)
+		if handler(epoch, totalReward) {
+			break
+		}
+	}
+}

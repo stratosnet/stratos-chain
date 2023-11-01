@@ -396,8 +396,13 @@ func (q Querier) TotalRewardByEpoch(c context.Context, req *types.QueryTotalRewa
 
 	ctx := sdk.UnwrapSDKContext(c)
 
+	var isLegacy = false
 	totalReward := q.GetTotalReward(ctx, epoch)
-	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward}, nil
+	if totalReward.Size() == 0 {
+		totalReward = q.GetLegacyTotalReward(ctx, epoch)
+		isLegacy = true
+	}
+	return &types.QueryTotalRewardByEpochResponse{TotalReward: totalReward, IsLegacy: isLegacy}, nil
 }
 
 func (q Querier) Metrics(c context.Context, req *types.QueryMetricsRequest) (

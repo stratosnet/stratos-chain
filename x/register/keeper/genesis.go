@@ -87,6 +87,7 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 		default:
 			panic(types.ErrInvalidNodeStat)
 		}
+
 		if len(strings.TrimSpace(metaNode.BeneficiaryAddress)) == 0 {
 			metaNode.BeneficiaryAddress = metaNode.OwnerAddress
 		}

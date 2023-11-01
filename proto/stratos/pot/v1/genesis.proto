@@ -12,19 +12,19 @@ option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 
 // GenesisState defines the register module's genesis state.
 message GenesisState {
-  Params                    params = 1 [
+  Params                        params = 1 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "params",
     (gogoproto.moretags) = "yaml:\"params\""
   ];
-  cosmos.base.v1beta1.Coin  total_mined_token = 2 [
+  cosmos.base.v1beta1.Coin      total_mined_token = 2 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "total_mined_token",
     (gogoproto.moretags) = "yaml:\"total_mined_token\""
   ];
-  string                    last_distributed_epoch = 3 [
+  string                        last_distributed_epoch = 3 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "last_distributed_epoch",
@@ -32,31 +32,36 @@ message GenesisState {
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
-  repeated ImmatureTotal    immature_total_info = 4 [
+  repeated ImmatureTotal        immature_total_info = 4 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "immature_total_info",
     (gogoproto.moretags) = "yaml:\"immature_total_info\""
   ];
-  repeated MatureTotal      mature_total_info = 5 [
+  repeated MatureTotal          mature_total_info = 5 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "mature_total_info",
     (gogoproto.moretags) = "yaml:\"mature_total_info\""
   ];
-  repeated Reward           individual_reward_info = 6 [
+  repeated Reward               individual_reward_info = 6 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "individual_reward_info",
     (gogoproto.moretags) = "yaml:\"individual_reward_info\""
   ];
-  string                    matured_epoch = 7 [
+  string                        matured_epoch = 7 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "matured_epoch",
     (gogoproto.moretags) = "yaml:\"matured_epoch\"",
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  repeated RewardTotal          reward_total_info = 8 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "reward_total_info",
+    (gogoproto.moretags) = "yaml:\"reward_total_info\""
   ];
 }
 
@@ -85,5 +90,19 @@ message MatureTotal {
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins",
     (gogoproto.jsontag) = "value",
     (gogoproto.moretags) = "yaml:\"value\""
+  ];
+}
+
+message RewardTotal {
+  string                    epoch = 1[
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "epoch",
+    (gogoproto.moretags) = "yaml:\"epoch\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  TotalReward               total_reward = 2 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "total_reward",
+    (gogoproto.moretags) = "yaml:\"total_reward\""
   ];
 }
