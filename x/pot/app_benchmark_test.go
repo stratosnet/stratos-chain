@@ -78,7 +78,7 @@ var (
 	balances = make([]banktypes.Balance, 0)
 
 	accInitBalance        = sdkmath.NewInt(100).Mul(sdkmath.NewInt(stratos.StosToWei))
-	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdkmath.NewInt(40000000000000000)))
+	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdkmath.NewInt(40000000000000000).MulRaw(stratos.GweiToWei)))
 
 	nodeInitDeposit  = sdkmath.NewInt(1 * stratos.StosToWei)
 	prepayAmt        = sdk.NewCoins(stratos.NewCoin(sdkmath.NewInt(20).Mul(sdkmath.NewInt(stratos.StosToWei))))
