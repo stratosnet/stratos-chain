@@ -13,6 +13,7 @@ const (
 	QueryTotalMinedToken                = "query_total_mined_token"
 	QueryCirculationSupply              = "query_circulation_supply"
 	QueryTotalRewardByEpoch             = "total-reward"
+	QueryMetrics                        = "metrics"
 	QueryDefaultLimit                   = 100
 )
 
