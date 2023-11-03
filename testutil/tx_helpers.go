@@ -1,4 +1,4 @@
-package stratos
+package testutil
 
 import (
 	"math/rand"
@@ -78,7 +78,7 @@ func SignCheckDeliverWithFee(
 	chainID string, accNums, accSeqs []uint64, expSimPass, expPass bool, priv ...cryptotypes.PrivKey,
 ) (sdk.GasInfo, *sdk.Result, error) {
 
-	feeAmount := sdkmath.NewInt(int64(config.DefaultMinGasPrices)).Mul(sdkmath.NewInt(DefaultGenTxGas))
+	feeAmount := sdkmath.NewInt(int64(config.DefaultMinGasPrices)).MulRaw(DefaultGenTxGas)
 
 	tx, err := simstestutil.GenSignedMockTx(
 		rand.New(rand.NewSource(time.Now().UnixNano())),

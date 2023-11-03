@@ -8,12 +8,13 @@ import (
 
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/stratosnet/stratos-chain/types"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // Default parameter namespace
 const (
-	DefaultBondDenom              = types.Wei
+	DefaultBondDenom              = stratos.Wei
 	DefaultMaxEntries             = uint32(16)
 	DefaultResourceNodeRegEnabled = true
 )
@@ -25,7 +26,7 @@ var (
 	DefaultVotingPeriod            = 7 * 24 * time.Hour        // expiration time of registration voting - by default 7 days
 	DefaultDepositNozRate          = sdkmath.LegacyNewDec(1e6) // 0.001gwei -> 1noz = 1000000wei -> 1noz
 	DefaultRemainingNozLimit       = sdkmath.ZeroInt()
-	DefaultResourceNodeMinDeposit  = sdk.NewCoin(DefaultBondDenom, sdkmath.NewInt(1e18))
+	DefaultResourceNodeMinDeposit  = sdk.NewCoin(DefaultBondDenom, sdkmath.NewInt(stratos.StosToWei))
 )
 
 // NewParams creates a new Params object

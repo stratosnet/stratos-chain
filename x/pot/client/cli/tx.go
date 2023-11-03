@@ -209,8 +209,10 @@ func createVolumeReportMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.M
 		epoch,
 		reportReference,
 		reporterOwner,
-		signature,
 	)
+
+	msg.BLSSignature = signature
+
 	return msg, nil
 }
 

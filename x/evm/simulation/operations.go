@@ -28,6 +28,7 @@ import (
 
 	"github.com/stratosnet/stratos-chain/encoding"
 	"github.com/stratosnet/stratos-chain/tests"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/keeper"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -122,7 +123,7 @@ func SimulateEthCreateContract(ak types.AccountKeeper, k *keeper.Keeper) simtype
 		from := common.BytesToAddress(simAccount.Address)
 		nonce := k.GetNonce(ctx, from)
 
-		ctorArgs, err := types.ERC20Contract.ABI.Pack("", from, sdkmath.NewInt(1000).Mul(sdkmath.NewInt(1e18)).BigInt())
+		ctorArgs, err := types.ERC20Contract.ABI.Pack("", from, sdkmath.NewInt(1000).MulRaw(stratos.StosToWei).BigInt())
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEthereumTx, "can not pack owner and supply"), nil, err
 		}

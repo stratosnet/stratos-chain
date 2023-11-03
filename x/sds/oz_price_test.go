@@ -14,6 +14,7 @@ import (
 	tmtypes "github.com/cometbft/cometbft/types"
 
 	sdkmath "cosmossdk.io/math"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -25,7 +26,7 @@ import (
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/stratosnet/stratos-chain/app"
-	stratostestutil "github.com/stratosnet/stratos-chain/testutil/stratos"
+	stratostestutil "github.com/stratosnet/stratos-chain/testutil"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
@@ -41,110 +42,89 @@ Test scenarios:
 */
 
 const (
-	chainID           = "testchain_1-1"
-	stos2wei          = stratos.StosToWei
-	StosToWeiSuffix   = "000000000000000000" // 1 Stos = 1e18 wei
-	rewardDenom       = stratos.Wei
-	depositNozRateStr = "100000"
+	chainID = "testchain_1-1"
 )
 
 var (
-	depositNozRateInt, _ = sdkmath.NewIntFromString(depositNozRateStr)
+	depositNozRateInt = sdkmath.NewInt(1e5)
 
 	paramSpecificMinedReward = sdk.NewCoins(stratos.NewCoinInt64(160000000000))
 	paramSpecificEpoch       = sdkmath.NewInt(10)
 
-	resNodeSlashingNOZAmt1            = sdkmath.NewInt(100000000000)
-	resNodeSlashingEffectiveTokenAmt1 = sdkmath.NewInt(1000000000000000000)
+	resNodeSlashingNOZAmt1            = sdkmath.NewInt(1e11)
+	resNodeSlashingEffectiveTokenAmt1 = sdkmath.NewInt(1).MulRaw(stratos.StosToWei)
 
 	resourceNodeVolume1 = sdkmath.NewInt(537500000000)
 	resourceNodeVolume2 = sdkmath.NewInt(200000000000)
 	resourceNodeVolume3 = sdkmath.NewInt(200000000000)
 
-	depositForSendingTx, _ = sdkmath.NewIntFromString("100000000000000000000000000000")
+	prepayAmount = sdk.NewCoins(stratos.NewCoin(sdkmath.NewInt(20).MulRaw(stratos.StosToWei)))
+
+	depositForSendingTx    = sdkmath.NewInt(1000).MulRaw(stratos.StosToWei)
 	totalUnissuedPrepayVal = sdkmath.ZeroInt()
 	totalUnissuedPrepay    = stratos.NewCoin(totalUnissuedPrepayVal)
 
 	foundationDepositorPrivKey = secp256k1.GenPrivKey()
 	foundationDepositorAccAddr = sdk.AccAddress(foundationDepositorPrivKey.PubKey().Address())
-	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(rewardDenom, sdkmath.NewInt(40000000000000000)))
+	foundationDeposit          = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdkmath.NewInt(4e7).MulRaw(stratos.StosToWei)))
 
-	resOwnerPrivKey1 = secp256k1.GenPrivKey()
-	resOwnerPrivKey2 = secp256k1.GenPrivKey()
-	resOwnerPrivKey3 = secp256k1.GenPrivKey()
-	resOwnerPrivKey4 = secp256k1.GenPrivKey()
-	resOwnerPrivKey5 = secp256k1.GenPrivKey()
-	idxOwnerPrivKey1 = secp256k1.GenPrivKey()
-	idxOwnerPrivKey2 = secp256k1.GenPrivKey()
-	idxOwnerPrivKey3 = secp256k1.GenPrivKey()
+	valInitialStake        = sdkmath.NewInt(15).MulRaw(stratos.StosToWei)
+	resNodeInitialDeposit  = sdkmath.NewInt(3).MulRaw(stratos.StosToWei)
+	metaNodeInitialDeposit = sdkmath.NewInt(1000).MulRaw(stratos.StosToWei)
 
-	resOwner1 = sdk.AccAddress(resOwnerPrivKey1.PubKey().Address())
-	resOwner2 = sdk.AccAddress(resOwnerPrivKey2.PubKey().Address())
-	resOwner3 = sdk.AccAddress(resOwnerPrivKey3.PubKey().Address())
-	resOwner4 = sdk.AccAddress(resOwnerPrivKey4.PubKey().Address())
-	resOwner5 = sdk.AccAddress(resOwnerPrivKey5.PubKey().Address())
-	idxOwner1 = sdk.AccAddress(idxOwnerPrivKey1.PubKey().Address())
-	idxOwner2 = sdk.AccAddress(idxOwnerPrivKey2.PubKey().Address())
-	idxOwner3 = sdk.AccAddress(idxOwnerPrivKey3.PubKey().Address())
+	// wallet private keys
+	resOwnerPrivKey1  = secp256k1.GenPrivKey()
+	resOwnerPrivKey2  = secp256k1.GenPrivKey()
+	resOwnerPrivKey3  = secp256k1.GenPrivKey()
+	resOwnerPrivKey4  = secp256k1.GenPrivKey()
+	resOwnerPrivKey5  = secp256k1.GenPrivKey()
+	metaOwnerPrivKey1 = secp256k1.GenPrivKey()
+	metaOwnerPrivKey2 = secp256k1.GenPrivKey()
+	metaOwnerPrivKey3 = secp256k1.GenPrivKey()
 
-	resNodeInitialDepositForMultipleNodes, _ = sdkmath.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialDepositForMultipleNodes = sdkmath.NewInt(3 * stos2wei)
+	// wallet addresses
+	resOwner1  = sdk.AccAddress(resOwnerPrivKey1.PubKey().Address())
+	resOwner2  = sdk.AccAddress(resOwnerPrivKey2.PubKey().Address())
+	resOwner3  = sdk.AccAddress(resOwnerPrivKey3.PubKey().Address())
+	resOwner4  = sdk.AccAddress(resOwnerPrivKey4.PubKey().Address())
+	resOwner5  = sdk.AccAddress(resOwnerPrivKey5.PubKey().Address())
+	metaOwner1 = sdk.AccAddress(metaOwnerPrivKey1.PubKey().Address())
+	metaOwner2 = sdk.AccAddress(metaOwnerPrivKey2.PubKey().Address())
+	metaOwner3 = sdk.AccAddress(metaOwnerPrivKey3.PubKey().Address())
 
-	resNodePubKey1            = ed25519.GenPrivKey().PubKey()
-	resNodeAddr1              = sdk.AccAddress(resNodePubKey1.Address())
-	resNodeNetworkId1         = stratos.SdsAddress(resNodePubKey1.Address())
-	resNodeInitialDeposit1, _ = sdkmath.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialDeposit1 = sdkmath.NewInt(3 * stos2wei)
+	// P2P public key of resource nodes
+	resNodeP2PPubKey1 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey2 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey3 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey4 = ed25519.GenPrivKey().PubKey()
+	resNodeP2PPubKey5 = ed25519.GenPrivKey().PubKey()
+	// P2P address of resource nodes
+	resNodeP2PAddr1 = stratos.SdsAddress(resNodeP2PPubKey1.Address())
+	resNodeP2PAddr2 = stratos.SdsAddress(resNodeP2PPubKey2.Address())
+	resNodeP2PAddr3 = stratos.SdsAddress(resNodeP2PPubKey3.Address())
+	resNodeP2PAddr4 = stratos.SdsAddress(resNodeP2PPubKey4.Address())
+	resNodeP2PAddr5 = stratos.SdsAddress(resNodeP2PPubKey5.Address())
 
-	resNodePubKey2            = ed25519.GenPrivKey().PubKey()
-	resNodeAddr2              = sdk.AccAddress(resNodePubKey2.Address())
-	resNodeNetworkId2         = stratos.SdsAddress(resNodePubKey2.Address())
-	resNodeInitialDeposit2, _ = sdkmath.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialDeposit2 = sdkmath.NewInt(3 * stos2wei)
-
-	resNodePubKey3            = ed25519.GenPrivKey().PubKey()
-	resNodeAddr3              = sdk.AccAddress(resNodePubKey3.Address())
-	resNodeNetworkId3         = stratos.SdsAddress(resNodePubKey3.Address())
-	resNodeInitialDeposit3, _ = sdkmath.NewIntFromString("3" + StosToWeiSuffix)
-	//resNodeInitialDeposit3 = sdkmath.NewInt(3 * stos2wei)
-
-	resNodePubKey4         = ed25519.GenPrivKey().PubKey()
-	resNodeAddr4           = sdk.AccAddress(resNodePubKey4.Address())
-	resNodeNetworkId4      = stratos.SdsAddress(resNodePubKey4.Address())
-	resNodeInitialDeposit4 = sdkmath.NewInt(3 * stos2wei)
-
-	resNodePubKey5         = ed25519.GenPrivKey().PubKey()
-	resNodeAddr5           = sdk.AccAddress(resNodePubKey5.Address())
-	resNodeNetworkId5      = stratos.SdsAddress(resNodePubKey5.Address())
-	resNodeInitialDeposit5 = sdkmath.NewInt(3 * stos2wei)
-
-	idxNodePrivKey1           = ed25519.GenPrivKey()
-	idxNodePubKey1            = idxNodePrivKey1.PubKey()
-	idxNodeAddr1              = sdk.AccAddress(idxNodePubKey1.Address())
-	idxNodeNetworkId1         = stratos.SdsAddress(idxNodePubKey1.Address())
-	idxNodeInitialDeposit1, _ = sdkmath.NewIntFromString("5" + StosToWeiSuffix)
-	//idxNodeInitialDeposit1 = sdkmath.NewInt(5 * stos2wei)
-
-	idxNodePubKey2            = ed25519.GenPrivKey().PubKey()
-	idxNodeAddr2              = sdk.AccAddress(idxNodePubKey2.Address())
-	idxNodeNetworkId2         = stratos.SdsAddress(idxNodePubKey2.Address())
-	idxNodeInitialDeposit2, _ = sdkmath.NewIntFromString("5" + StosToWeiSuffix)
-	//idxNodeInitialDeposit2 = sdkmath.NewInt(5 * stos2wei)
-
-	idxNodePubKey3            = ed25519.GenPrivKey().PubKey()
-	idxNodeAddr3              = sdk.AccAddress(idxNodePubKey3.Address())
-	idxNodeNetworkId3         = stratos.SdsAddress(idxNodePubKey3.Address())
-	idxNodeInitialDeposit3, _ = sdkmath.NewIntFromString("5" + StosToWeiSuffix)
-	//idxNodeInitialDeposit3 = sdkmath.NewInt(5 * stos2wei)
+	// P2P private key of meta nodes
+	metaNodeP2PPrivKey1 = ed25519.GenPrivKey()
+	metaNodeP2PPrivKey2 = ed25519.GenPrivKey()
+	metaNodeP2PPrivKey3 = ed25519.GenPrivKey()
+	// P2P public key of meta nodes
+	metaNodeP2PPubKey1 = metaNodeP2PPrivKey1.PubKey()
+	metaNodeP2PPubKey2 = metaNodeP2PPrivKey2.PubKey()
+	metaNodeP2PPubKey3 = metaNodeP2PPrivKey3.PubKey()
+	// P2P address of meta nodes
+	metaNodeP2PAddr1 = stratos.SdsAddress(metaNodeP2PPubKey1.Address())
+	metaNodeP2PAddr2 = stratos.SdsAddress(metaNodeP2PPubKey2.Address())
+	metaNodeP2PAddr3 = stratos.SdsAddress(metaNodeP2PPubKey3.Address())
 
 	valOpPrivKey1 = secp256k1.GenPrivKey()
 	valOpPubKey1  = valOpPrivKey1.PubKey()
 	valOpValAddr1 = sdk.ValAddress(valOpPubKey1.Address())
 	valOpAccAddr1 = sdk.AccAddress(valOpPubKey1.Address())
 
-	valConsPrivKey1    = ed25519.GenPrivKey()
-	valConsPubk1       = valConsPrivKey1.PubKey()
-	valInitialStake, _ = sdkmath.NewIntFromString("15" + StosToWeiSuffix)
+	valConsPrivKey1 = ed25519.GenPrivKey()
+	valConsPubk1    = valConsPrivKey1.PubKey()
 )
 
 type NozPriceFactors struct {
@@ -188,11 +168,11 @@ func TestPriceCurve(t *testing.T) {
 		if i > 50 && rand.Intn(5) >= 3 {
 			tempPrepaySign = -1
 		}
-		depositDeltaChange, _ := sdkmath.NewIntFromString(strconv.Itoa(depositChangePerm[i]) + StosToWeiSuffix)
-		unissuedPrepayDeltaChange, _ := sdkmath.NewIntFromString(strconv.Itoa(prepayChangePerm[i]) + StosToWeiSuffix)
+		depositDeltaChange := sdkmath.NewInt(int64(depositChangePerm[i])).MulRaw(stratos.StosToWei)
+		unissuedPrepayDeltaChange := sdkmath.NewInt(int64(prepayChangePerm[i])).MulRaw(stratos.StosToWei)
 		change := &PriceChangeEvent{
-			depositDelta:        depositDeltaChange.Mul(sdkmath.NewInt(int64(tempDepositSign))),
-			unissuedPrepayDelta: unissuedPrepayDeltaChange.Mul(sdkmath.NewInt(int64(tempPrepaySign))),
+			depositDelta:        depositDeltaChange.MulRaw(int64(tempDepositSign)),
+			unissuedPrepayDelta: unissuedPrepayDeltaChange.MulRaw(int64(tempPrepaySign)),
 		}
 		t.Logf("\ndepositDeltaOri: %d, unissuedPrepayDeltaOri: %d\n", depositChangePerm[i], prepayChangePerm[i])
 		t.Logf("\ndepositDelta: %v, unissuedPrepayDelta: %v\n", change.depositDelta.String(), change.unissuedPrepayDelta.String())
@@ -202,16 +182,18 @@ func TestPriceCurve(t *testing.T) {
 
 func TestOzPriceChange(t *testing.T) {
 	/********************* initialize mock app *********************/
-	//mApp, k, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper := getMockApp(t)
 	accs, balances := setupAccounts()
-	//stApp := app.SetupWithGenesisAccounts(accs, chainID, balances...)
-	validators := make([]*tmtypes.Validator, 0)
-	valSet := tmtypes.NewValidatorSet(validators)
+
+	// create validator set with single validator
+	consPubKey, err := cryptocodec.ToTmPubKeyInterface(valConsPubk1)
+	validator := tmtypes.NewValidator(consPubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+
 	metaNodes := setupAllMetaNodes()
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
+	stApp := stratostestutil.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accs, chainID, false, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	bankKeeper := stApp.GetBankKeeper()
@@ -225,44 +207,20 @@ func TestOzPriceChange(t *testing.T) {
 	ctx := stApp.BaseApp.NewContext(true, header)
 
 	foundationDepositMsg := pottypes.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
-	txGen := app.MakeTestEncodingConfig().TxConfig
+	txGen := stratostestutil.MakeTestEncodingConfig().TxConfig
 
-	foundationDepositorAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
-	accNum := foundationDepositorAcc.GetAccountNumber()
-	accSeq := foundationDepositorAcc.GetSequence()
-	_, _, err := stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
+	senderAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := senderAcc.GetAccountNumber()
+	accSeq := senderAcc.GetSequence()
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(pottypes.FoundationAccount)
-	app.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
-
-	/********************* create validator with 50% commission *********************/
-	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx = stApp.BaseApp.NewContext(true, header)
-
-	commission := stakingtypes.NewCommissionRates(
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDec(0),
-	)
-	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdkmath.OneInt())
-
-	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum = valOpAcc1.GetAccountNumber()
-	accSeq = valOpAcc1.GetSequence()
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
-	require.NoError(t, err)
-	app.CheckBalance(t, stApp, valOpAccAddr1, nil)
+	stratostestutil.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
-
-	validator := checkValidator(t, stApp, valOpValAddr1, true)
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdkmath.IntEq(t, valInitialStake, validator.BondedTokens()))
 
 	_, nozSupply := potKeeper.NozSupply(ctx)
 	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
@@ -281,13 +239,14 @@ func TestOzPriceChange(t *testing.T) {
 	prepayMsg := setupPrepayMsg()
 	/********************* deliver tx *********************/
 
-	resOwnerAcc := accountKeeper.GetAccount(ctx, resOwner1)
-	ownerAccNum := resOwnerAcc.GetAccountNumber()
-	ownerAccSeq := resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey1)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey1)
 	require.NoError(t, err)
-	/********************* commit & check result *********************/
+	t.Log("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	/********************* new height & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
@@ -295,19 +254,19 @@ func TestOzPriceChange(t *testing.T) {
 	nozPriceFactorsSeq1, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq0)
 	require.True(t, nozPricePercentage.GT(sdkmath.LegacyZeroDec()), "noz price should increase after PREPAY")
 	require.True(t, ozoneLimitPercentage.LT(sdkmath.LegacyZeroDec()), "OzLimit should decrease after PREPAY")
-	t.Log("********************************* Deliver Prepay Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
 
 	t.Log("********************************* Deliver CreateResourceNode Tx START ********************************************")
 	createResourceNodeMsg := setupMsgCreateResourceNode1()
 	/********************* deliver tx *********************/
 
-	resOwnerAcc = accountKeeper.GetAccount(ctx, resOwner1)
-	ownerAccNum = resOwnerAcc.GetAccountNumber()
-	ownerAccSeq = resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey1)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey1)
 	require.NoError(t, err)
-	/********************* commit & check result *********************/
+	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	/********************* new height & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
@@ -315,17 +274,31 @@ func TestOzPriceChange(t *testing.T) {
 	nozPriceFactorsSeq2, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, nozPriceFactorsSeq1)
 	require.True(t, nozPricePercentage.Equal(sdkmath.LegacyZeroDec()), "noz price shouldn't change after CreateResourceNode")
 	require.True(t, ozoneLimitPercentage.Equal(sdkmath.LegacyZeroDec()), "OzLimit shouldn't change  after CreateResourceNode")
-	t.Log("********************************* Deliver CreateResourceNode Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+
+	t.Log("********************************* Deliver UpdateEffectiveDeposit Tx START ********************************************")
+	updateEffectiveDepositMsg := setupMsgUpdateEffectiveDeposit1()
+	/********************* deliver tx *********************/
+
+	senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
+
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{updateEffectiveDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
+	require.NoError(t, err)
+	t.Log("********************************* Deliver UpdateEffectiveDeposit Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+	/********************* new height & check result *********************/
+	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	ctx = stApp.BaseApp.NewContext(true, header)
 
 	t.Log("********************************* Deliver UnsuspendResourceNode Tx (Slashing) START ********************************************")
 	unsuspendMsg := setupUnsuspendMsg()
+
 	/********************* deliver tx *********************/
-
-	idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
-	ownerAccNum = idxOwnerAcc.GetAccountNumber()
-	ownerAccSeq = idxOwnerAcc.GetSequence()
-
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+	senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -349,11 +322,11 @@ func TestOzPriceChange(t *testing.T) {
 	slashingMsg := setupSlashingMsg()
 	/********************* deliver tx *********************/
 
-	idxOwnerAcc = accountKeeper.GetAccount(ctx, idxOwner1)
-	ownerAccNum = idxOwnerAcc.GetAccountNumber()
-	ownerAccSeq = idxOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -379,7 +352,7 @@ func TestOzPriceChange(t *testing.T) {
 
 	t.Log("********************************* Deliver VolumeReport Tx START ********************************************")
 	/********************* prepare tx data *********************/
-	volumeReportMsg := setupMsgVolumeReport(1)
+	volumeReportMsg := setupMsgVolumeReport(t, 1)
 
 	lastTotalMinedToken := potKeeper.GetTotalMinedTokens(ctx)
 	t.Log("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
@@ -437,17 +410,17 @@ func TestOzPriceChange(t *testing.T) {
 	t.Log("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
 	t.Log("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-	t.Log("indexing_wallet1:  address = " + idxOwner1.String())
-	t.Log("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
-	t.Log("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
+	t.Log("meta_wallet1:      address = " + metaOwner1.String())
+	t.Log("              miningReward = " + rewardDetailMap[metaOwner1.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[metaOwner1.String()].RewardFromTrafficPool.String())
 
-	t.Log("indexing_wallet2:  address = " + idxOwner2.String())
-	t.Log("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
-	t.Log("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
+	t.Log("meta_wallet2:      address = " + metaOwner2.String())
+	t.Log("              miningReward = " + rewardDetailMap[metaOwner2.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[metaOwner2.String()].RewardFromTrafficPool.String())
 
-	t.Log("indexing_wallet3:  address = " + idxOwner3.String())
-	t.Log("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
-	t.Log("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
+	t.Log("meta_wallet3:      address = " + metaOwner3.String())
+	t.Log("              miningReward = " + rewardDetailMap[metaOwner3.String()].RewardFromMiningPool.String())
+	t.Log("             trafficReward = " + rewardDetailMap[metaOwner3.String()].RewardFromTrafficPool.String())
 	t.Log("---------------------------")
 
 	/********************* record data before delivering tx  *********************/
@@ -457,15 +430,15 @@ func TestOzPriceChange(t *testing.T) {
 	lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
 
 	/********************* deliver tx *********************/
-	idxOwnerAcc = accountKeeper.GetAccount(ctx, idxOwner1)
-	ownerAccNum = idxOwnerAcc.GetAccountNumber()
-	ownerAccSeq = idxOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
 	feePoolAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 	require.NotNil(t, feePoolAccAddr)
 	feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	stApp.EndBlock(abci.RequestEndBlock{Height: header.Height})
@@ -502,11 +475,11 @@ func TestOzPriceChange(t *testing.T) {
 	createResourceNodeMsg2 := setupMsgCreateResourceNode2()
 	/********************* deliver tx *********************/
 
-	resOwnerAcc = accountKeeper.GetAccount(ctx, resOwner2)
-	ownerAccNum = resOwnerAcc.GetAccountNumber()
-	ownerAccSeq = resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner2)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg2}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey2)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg2}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey2)
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -522,11 +495,11 @@ func TestOzPriceChange(t *testing.T) {
 	createResourceNodeMsg3 := setupMsgCreateResourceNode3()
 	/********************* deliver tx *********************/
 
-	resOwnerAcc = accountKeeper.GetAccount(ctx, resOwner3)
-	ownerAccNum = resOwnerAcc.GetAccountNumber()
-	ownerAccSeq = resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner3)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg3}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey3)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg3}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey3)
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -542,11 +515,11 @@ func TestOzPriceChange(t *testing.T) {
 	createResourceNodeMsg4 := setupMsgCreateResourceNode4()
 	/********************* deliver tx *********************/
 
-	resOwnerAcc = accountKeeper.GetAccount(ctx, resOwner4)
-	ownerAccNum = resOwnerAcc.GetAccountNumber()
-	ownerAccSeq = resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner4)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg4}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey4)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg4}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey4)
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -562,11 +535,11 @@ func TestOzPriceChange(t *testing.T) {
 	createResourceNodeMsg5 := setupMsgCreateResourceNode5()
 	/********************* deliver tx *********************/
 
-	resOwnerAcc = accountKeeper.GetAccount(ctx, resOwner5)
-	ownerAccNum = resOwnerAcc.GetAccountNumber()
-	ownerAccSeq = resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwner5)
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg5}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey5)
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg5}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey5)
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -581,58 +554,59 @@ func TestOzPriceChange(t *testing.T) {
 }
 
 // initialize data of volume report
-func setupMsgVolumeReport(newEpoch int64) *pottypes.MsgVolumeReport {
+func setupMsgVolumeReport(t *testing.T, newEpoch int64) *pottypes.MsgVolumeReport {
 	volume1 := pottypes.NewSingleWalletVolume(resOwner1, resourceNodeVolume1)
 	volume2 := pottypes.NewSingleWalletVolume(resOwner2, resourceNodeVolume2)
 	volume3 := pottypes.NewSingleWalletVolume(resOwner3, resourceNodeVolume3)
 
 	nodesVolume := []pottypes.SingleWalletVolume{volume1, volume2, volume3}
-	reporter := idxNodeNetworkId1
+	reporter := metaNodeP2PAddr1
 	epoch := sdkmath.NewInt(newEpoch)
 	reportReference := "report for epoch " + epoch.String()
-	reporterOwner := idxOwner1
+	reporterOwner := metaOwner1
 
-	pubKeys := make([][]byte, 1)
-	for i := range pubKeys {
-		pubKeys[i] = make([]byte, 1)
-	}
+	volumeReportMsg := pottypes.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
 
-	signature := pottypes.NewBLSSignatureInfo(pubKeys, []byte("signature"), []byte("txData"))
-
-	volumeReportMsg := pottypes.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
+	volumeReportMsg, err := stratostestutil.SignVolumeReport(
+		volumeReportMsg,
+		metaNodeP2PPrivKey1.Bytes(),
+		metaNodeP2PPrivKey2.Bytes(),
+		metaNodeP2PPrivKey3.Bytes(),
+	)
+	require.NoError(t, err)
 
 	return volumeReportMsg
 }
 
 func setupSlashingMsg() *pottypes.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
+	reporters = append(reporters, metaNodeP2PAddr1)
 	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, resNodeSlashingNOZAmt1, true)
+	reportOwner = append(reportOwner, metaOwner1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeP2PAddr1, resOwner1, resNodeSlashingNOZAmt1, true)
 	return slashingMsg
 }
 
 func setupSuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *pottypes.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
+	reporters = append(reporters, metaNodeP2PAddr1)
 	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
+	reportOwner = append(reportOwner, metaOwner1)
 	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, resNodeSlashingNOZAmt1, true)
 	return slashingMsg
 }
 
 func setupUnsuspendMsg() *pottypes.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
+	reporters = append(reporters, metaNodeP2PAddr1)
 	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
-	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId1, resOwner1, sdkmath.ZeroInt(), false)
+	reportOwner = append(reportOwner, metaOwner1)
+	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeP2PAddr1, resOwner1, sdkmath.ZeroInt(), false)
 	return slashingMsg
 }
 func setupPrepayMsg() *sdstypes.MsgPrepay {
 	sender := resOwner1
-	amount, _ := sdkmath.NewIntFromString("1" + StosToWeiSuffix)
+	amount := sdkmath.NewInt(1).MulRaw(stratos.StosToWei)
 	coin := sdk.NewCoin(stratos.Wei, amount)
 	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
@@ -640,7 +614,7 @@ func setupPrepayMsg() *sdstypes.MsgPrepay {
 
 func setupPrepayMsgWithResOwner(resOwner sdk.AccAddress) *sdstypes.MsgPrepay {
 	sender := resOwner
-	amount, _ := sdkmath.NewIntFromString("3" + StosToWeiSuffix)
+	amount := sdkmath.NewInt(3).MulRaw(stratos.StosToWei)
 	coin := sdk.NewCoin(stratos.Wei, amount)
 	prepayMsg := sdstypes.NewMsgPrepay(sender.String(), sender.String(), sdk.NewCoins(coin))
 	return prepayMsg
@@ -652,45 +626,63 @@ func setupMsgRemoveResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resO
 }
 func setupMsgCreateResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialDepositForMultipleNodes), resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
-func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *pottypes.MsgSlashingResourceNode {
+func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resOwner sdk.AccAddress) *pottypes.MsgSlashingResourceNode {
 	reporters := make([]stratos.SdsAddress, 0)
-	reporters = append(reporters, idxNodeNetworkId1)
+	reporters = append(reporters, metaNodeP2PAddr1)
 	reportOwner := make([]sdk.AccAddress, 0)
-	reportOwner = append(reportOwner, idxOwner1)
+	reportOwner = append(reportOwner, metaOwner1)
 	slashingMsg := pottypes.NewMsgSlashingResourceNode(reporters, reportOwner, resNodeNetworkId, resOwner, sdkmath.ZeroInt(), false)
 	return slashingMsg
 }
 
 func setupMsgCreateResourceNode1() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId1, resNodePubKey1, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit1), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 func setupMsgCreateResourceNode2() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId2, resNodePubKey2, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit2), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 func setupMsgCreateResourceNode3() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId3, resNodePubKey3, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit3), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
 func setupMsgCreateResourceNode4() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId4, resNodePubKey4, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit4), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
 func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId5, resNodePubKey5, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit5), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
+}
+
+func setupMsgUpdateEffectiveDeposit1() *registertypes.MsgUpdateEffectiveDeposit {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, metaNodeP2PAddr1)
+	reporterOwner := make([]sdk.AccAddress, 0)
+	reporterOwner = append(reporterOwner, metaOwner1)
+	msg := registertypes.NewMsgUpdateEffectiveDeposit(reporters, reporterOwner, resNodeP2PAddr1, resNodeInitialDeposit)
+	return msg
+}
+
+func setupMsgUpdateEffectiveDeposit(resNodeP2PAddr stratos.SdsAddress) *registertypes.MsgUpdateEffectiveDeposit {
+	reporters := make([]stratos.SdsAddress, 0)
+	reporters = append(reporters, metaNodeP2PAddr1)
+	reporterOwner := make([]sdk.AccAddress, 0)
+	reporterOwner = append(reporterOwner, metaOwner1)
+	msg := registertypes.NewMsgUpdateEffectiveDeposit(reporters, reporterOwner, resNodeP2PAddr, resNodeInitialDeposit)
+	return msg
 }
 
 func printCurrNozPrice(t *testing.T, ctx sdk.Context, potKeeper potKeeper.Keeper, registerKeeper registerKeeper.Keeper, nozPriceFactorsBefore NozPriceFactors) (NozPriceFactors, sdkmath.LegacyDec, sdkmath.LegacyDec) {
@@ -720,13 +712,13 @@ func printCurrNozPrice(t *testing.T, ctx sdk.Context, potKeeper potKeeper.Keeper
 	ozoneLimitPercentage := ozoneLimitDelta.ToLegacyDec().Quo(nozPriceFactorsBefore.OzoneLimit.ToLegacyDec()).MulInt(sdkmath.NewInt(100))
 
 	t.Log("===>>>>>>>>>>>>>>     Current noz Price    ===>>>>>>>>>>>>>>")
-	t.Log("NOzonePrice: 									" + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
-	t.Log("InitialTotalDeposit: 							" + nozPriceFactorsAfter.InitialTotalDeposit.String() + "(delta: " + initialTotalDepositDelta.String() + ")")
-	t.Log("EffectiveTotalDeposit: 							" + nozPriceFactorsAfter.EffectiveTotalDeposit.String() + "(delta: " + effectiveTotalDepositDelta.String() + ")")
-	t.Log("TotalUnissuedPrepay: 							" + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
-	t.Log("InitialTotalDeposit+TotalUnissuedPrepay:			" + nozPriceFactorsAfter.DepositAndPrepay.String() + "(delta: " + depositAndPrepayDelta.String() + ")")
-	t.Log("OzoneLimit: 									" + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
-	t.Log("NozSupply: 									    " + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
+	t.Log("NOzonePrice:                                   " + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
+	t.Log("InitialTotalDeposit:                           " + nozPriceFactorsAfter.InitialTotalDeposit.String() + "(delta: " + initialTotalDepositDelta.String() + ")")
+	t.Log("EffectiveTotalDeposit:                         " + nozPriceFactorsAfter.EffectiveTotalDeposit.String() + "(delta: " + effectiveTotalDepositDelta.String() + ")")
+	t.Log("TotalUnissuedPrepay:                           " + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
+	t.Log("InitialTotalDeposit+TotalUnissuedPrepay:       " + nozPriceFactorsAfter.DepositAndPrepay.String() + "(delta: " + depositAndPrepayDelta.String() + ")")
+	t.Log("OzoneLimit:                                    " + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
+	t.Log("NozSupply:                                     " + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
 
 	return nozPriceFactorsAfter, nozPricePercentage, ozoneLimitPercentage
 }
@@ -762,7 +754,7 @@ func checkResult(t *testing.T, ctx sdk.Context,
 	slashingAmtSetup sdkmath.Int,
 	feeCollectorToFeePoolAtBeginBlock sdk.Coin) {
 
-	currentSlashing := registerKeeper.GetSlashing(ctx, resNodeAddr2)
+	currentSlashing := registerKeeper.GetSlashing(ctx, resOwner2)
 	t.Log("currentSlashing					= " + currentSlashing.String())
 
 	individualRewardTotal := sdk.Coins{}
@@ -846,64 +838,58 @@ func setupAccounts() ([]authtypes.GenesisAccount, []banktypes.Balance) {
 	resOwnerAcc3 := &authtypes.BaseAccount{Address: resOwner3.String()}
 	resOwnerAcc4 := &authtypes.BaseAccount{Address: resOwner4.String()}
 	resOwnerAcc5 := &authtypes.BaseAccount{Address: resOwner5.String()}
-	//************************** setup indexing nodes owners' accounts **************************
-	idxOwnerAcc1 := &authtypes.BaseAccount{Address: idxOwner1.String()}
-	idxOwnerAcc2 := &authtypes.BaseAccount{Address: idxOwner2.String()}
-	idxOwnerAcc3 := &authtypes.BaseAccount{Address: idxOwner3.String()}
+	//************************** setup meta nodes owners' accounts **************************
+	metaOwnerAcc1 := &authtypes.BaseAccount{Address: metaOwner1.String()}
+	metaOwnerAcc2 := &authtypes.BaseAccount{Address: metaOwner2.String()}
+	metaOwnerAcc3 := &authtypes.BaseAccount{Address: metaOwner3.String()}
 	//************************** setup validator delegators' accounts **************************
 	valOwnerAcc1 := &authtypes.BaseAccount{Address: valOpAccAddr1.String()}
-	//************************** setup indexing nodes' accounts **************************
-	idxNodeAcc1 := &authtypes.BaseAccount{Address: idxNodeAddr1.String()}
+	//************************** setup meta nodes' accounts **************************
 	foundationDepositorAcc := &authtypes.BaseAccount{Address: foundationDepositorAccAddr.String()}
 
 	accs := []authtypes.GenesisAccount{
 		resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
-		idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3,
+		metaOwnerAcc1, metaOwnerAcc2, metaOwnerAcc3,
 		valOwnerAcc1,
 		foundationDepositorAcc,
-		idxNodeAcc1,
 	}
 
 	balances := []banktypes.Balance{
 		{
 			Address: resOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit1.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit.Add(depositForSendingTx))},
 		},
 		{
 			Address: resOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit2)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit)},
 		},
 		{
 			Address: resOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit3)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit)},
 		},
 		{
 			Address: resOwner4.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit4)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit)},
 		},
 		{
 			Address: resOwner5.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit5)},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit)},
 		},
 		{
-			Address: idxOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit1)},
+			Address: metaOwner1.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(metaNodeInitialDeposit)},
 		},
 		{
-			Address: idxOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit2)},
+			Address: metaOwner2.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(metaNodeInitialDeposit)},
 		},
 		{
-			Address: idxOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit3)},
+			Address: metaOwner3.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(metaNodeInitialDeposit)},
 		},
 		{
 			Address: valOpAccAddr1.String(),
 			Coins:   sdk.Coins{stratos.NewCoin(valInitialStake)},
-		},
-		{
-			Address: idxNodeAddr1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(sdkmath.ZeroInt())},
 		},
 		{
 			Address: foundationDepositorAccAddr.String(),
@@ -920,49 +906,40 @@ func setupAccountsMultipleResNodes(resOwners []sdk.AccAddress) ([]authtypes.Gene
 	for _, resOwner := range resOwners {
 		resOwnerAccs = append(resOwnerAccs, &authtypes.BaseAccount{Address: resOwner.String()})
 	}
-	//resOwnerAcc1 := &authtypes.BaseAccount{Address: resOwner1.String()}
-	//resOwnerAcc2 := &authtypes.BaseAccount{Address: resOwner2.String()}
-	//resOwnerAcc3 := &authtypes.BaseAccount{Address: resOwner3.String()}
-	//resOwnerAcc4 := &authtypes.BaseAccount{Address: resOwner4.String()}
-	//resOwnerAcc5 := &authtypes.BaseAccount{Address: resOwner5.String()}
-	//************************** setup indexing nodes owners' accounts **************************
-	idxOwnerAcc1 := &authtypes.BaseAccount{Address: idxOwner1.String()}
-	idxOwnerAcc2 := &authtypes.BaseAccount{Address: idxOwner2.String()}
-	idxOwnerAcc3 := &authtypes.BaseAccount{Address: idxOwner3.String()}
+	//************************** setup meta nodes owners' accounts **************************
+	idxOwnerAcc1 := &authtypes.BaseAccount{Address: metaOwner1.String()}
+	idxOwnerAcc2 := &authtypes.BaseAccount{Address: metaOwner2.String()}
+	idxOwnerAcc3 := &authtypes.BaseAccount{Address: metaOwner3.String()}
 	//************************** setup validator delegators' accounts **************************
 	valOwnerAcc1 := &authtypes.BaseAccount{Address: valOpAccAddr1.String()}
-	//************************** setup indexing nodes' accounts **************************
-	idxNodeAcc1 := &authtypes.BaseAccount{Address: idxNodeAddr1.String()}
+	//************************** setup meta nodes' accounts **************************
 	foundationDepositorAcc := &authtypes.BaseAccount{Address: foundationDepositorAccAddr.String()}
 
 	accs := []authtypes.GenesisAccount{
-		//resOwnerAcc1, resOwnerAcc2, resOwnerAcc3, resOwnerAcc4, resOwnerAcc5,
 		idxOwnerAcc1, idxOwnerAcc2, idxOwnerAcc3,
 		valOwnerAcc1,
 		foundationDepositorAcc,
-		idxNodeAcc1,
+	}
+	for _, resAcc := range resOwnerAccs {
+		accs = append(accs, resAcc)
 	}
 
 	balances := []banktypes.Balance{
 		{
-			Address: idxOwner1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit1)},
+			Address: metaOwner1.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(metaNodeInitialDeposit)},
 		},
 		{
-			Address: idxOwner2.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit2)},
+			Address: metaOwner2.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(metaNodeInitialDeposit)},
 		},
 		{
-			Address: idxOwner3.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(idxNodeInitialDeposit3)},
+			Address: metaOwner3.String(),
+			Coins:   sdk.Coins{stratos.NewCoin(metaNodeInitialDeposit)},
 		},
 		{
 			Address: valOpAccAddr1.String(),
 			Coins:   sdk.Coins{stratos.NewCoin(valInitialStake)},
-		},
-		{
-			Address: idxNodeAddr1.String(),
-			Coins:   sdk.Coins{stratos.NewCoin(sdkmath.ZeroInt())},
 		},
 		{
 			Address: foundationDepositorAccAddr.String(),
@@ -974,7 +951,7 @@ func setupAccountsMultipleResNodes(resOwners []sdk.AccAddress) ([]authtypes.Gene
 		accs = append(accs, resOwnerAcc)
 		balances = append(balances, banktypes.Balance{
 			Address: resOwnerAcc.Address,
-			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDepositForMultipleNodes.Add(depositForSendingTx))},
+			Coins:   sdk.Coins{stratos.NewCoin(resNodeInitialDeposit.Add(depositForSendingTx))},
 		})
 	}
 
@@ -983,25 +960,37 @@ func setupAccountsMultipleResNodes(resOwners []sdk.AccAddress) ([]authtypes.Gene
 
 func setupAllResourceNodes() []registertypes.ResourceNode {
 
-	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	createTime, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
-	resourceNode1, _ := registertypes.NewResourceNode(resNodeNetworkId1, resNodePubKey1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType, time)
-	resourceNode2, _ := registertypes.NewResourceNode(resNodeNetworkId2, resNodePubKey2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType, time)
-	resourceNode3, _ := registertypes.NewResourceNode(resNodeNetworkId3, resNodePubKey3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType, time)
-	resourceNode4, _ := registertypes.NewResourceNode(resNodeNetworkId4, resNodePubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, time)
-	resourceNode5, _ := registertypes.NewResourceNode(resNodeNetworkId5, resNodePubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, time)
+	resourceNode1, _ := registertypes.NewResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType, createTime)
+	resourceNode2, _ := registertypes.NewResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType, createTime)
+	resourceNode3, _ := registertypes.NewResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType, createTime)
+	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, createTime)
+	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, createTime)
 
-	resourceNode1 = resourceNode1.AddToken(resNodeInitialDeposit1)
-	resourceNode2 = resourceNode2.AddToken(resNodeInitialDeposit2)
-	resourceNode3 = resourceNode3.AddToken(resNodeInitialDeposit3)
-	resourceNode4 = resourceNode4.AddToken(resNodeInitialDeposit4)
-	resourceNode5 = resourceNode5.AddToken(resNodeInitialDeposit5)
+	resourceNode1 = resourceNode1.AddToken(resNodeInitialDeposit)
+	resourceNode2 = resourceNode2.AddToken(resNodeInitialDeposit)
+	resourceNode3 = resourceNode3.AddToken(resNodeInitialDeposit)
+	resourceNode4 = resourceNode4.AddToken(resNodeInitialDeposit)
+	resourceNode5 = resourceNode5.AddToken(resNodeInitialDeposit)
+
+	resourceNode1.EffectiveTokens = resNodeInitialDeposit
+	resourceNode2.EffectiveTokens = resNodeInitialDeposit
+	resourceNode3.EffectiveTokens = resNodeInitialDeposit
+	resourceNode4.EffectiveTokens = resNodeInitialDeposit
+	resourceNode5.EffectiveTokens = resNodeInitialDeposit
 
 	resourceNode1.Status = stakingtypes.Bonded
 	resourceNode2.Status = stakingtypes.Bonded
 	resourceNode3.Status = stakingtypes.Bonded
 	resourceNode4.Status = stakingtypes.Bonded
 	resourceNode5.Status = stakingtypes.Bonded
+
+	resourceNode1.Suspend = false
+	resourceNode2.Suspend = false
+	resourceNode3.Suspend = false
+	resourceNode4.Suspend = false
+	resourceNode5.Suspend = false
 
 	var resourceNodes []registertypes.ResourceNode
 	resourceNodes = append(resourceNodes, resourceNode1)
@@ -1012,23 +1001,24 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 	return resourceNodes
 }
 
-func setupMultipleResourceNodes(resOwnerPrivKeys []*secp256k1.PrivKey, resNodePubKeys []cryptotypes.PubKey, resOwners []sdk.AccAddress, resNodeNetworkIds []stratos.SdsAddress) []registertypes.ResourceNode {
-	if len(resOwnerPrivKeys) != len(resNodePubKeys) ||
-		len(resNodePubKeys) != len(resOwners) ||
-		len(resOwners) != len(resNodeNetworkIds) {
+func setupMultipleResourceNodes(resNodeP2PAddresses []stratos.SdsAddress, resNodeP2PPubKeys []cryptotypes.PubKey, resOwners []sdk.AccAddress) []registertypes.ResourceNode {
+	if len(resNodeP2PPubKeys) != len(resOwners) ||
+		len(resOwners) != len(resNodeP2PAddresses) {
 		return nil
 	}
 
-	numOfNodes := len(resOwnerPrivKeys)
+	numOfNodes := len(resNodeP2PPubKeys)
 	resourceNodes := make([]registertypes.ResourceNode, 0, numOfNodes)
 
-	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	createTime, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
 
-	for i, _ := range resOwnerPrivKeys {
-		resourceNodeTmp, _ := registertypes.NewResourceNode(resNodeNetworkIds[i], resNodePubKeys[i], resOwners[i], registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType, time)
-		resourceNodeTmp = resourceNodeTmp.AddToken(resNodeInitialDepositForMultipleNodes)
+	for i, _ := range resNodeP2PPubKeys {
+		resourceNodeTmp, _ := registertypes.NewResourceNode(resNodeP2PAddresses[i], resNodeP2PPubKeys[i], resOwners[i], registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType, createTime)
+		resourceNodeTmp = resourceNodeTmp.AddToken(resNodeInitialDeposit)
 		resourceNodeTmp.Status = stakingtypes.Bonded
+		resourceNodeTmp.EffectiveTokens = resNodeInitialDeposit
+		resourceNodeTmp.Suspend = false
 		resourceNodes = append(resourceNodes, resourceNodeTmp)
 	}
 
@@ -1036,30 +1026,30 @@ func setupMultipleResourceNodes(resOwnerPrivKeys []*secp256k1.PrivKey, resNodePu
 }
 
 func setupAllMetaNodes() []registertypes.MetaNode {
-	var indexingNodes []registertypes.MetaNode
+	var metaNodes []registertypes.MetaNode
 
-	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
-	indexingNode1, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr1), idxNodePubKey1, idxOwner1, idxOwner1, registertypes.NewDescription("sds://indexingNode1", "", "", "", ""), time)
-	indexingNode2, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr2), idxNodePubKey2, idxOwner2, idxOwner2, registertypes.NewDescription("sds://indexingNode2", "", "", "", ""), time)
-	indexingNode3, _ := registertypes.NewMetaNode(stratos.SdsAddress(idxNodeAddr3), idxNodePubKey3, idxOwner3, idxOwner3, registertypes.NewDescription("sds://indexingNode3", "", "", "", ""), time)
+	createTime, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
+	metaNode1, _ := registertypes.NewMetaNode(metaNodeP2PAddr1, metaNodeP2PPubKey1, metaOwner1, metaOwner1, registertypes.NewDescription("sds://metaNode1", "", "", "", ""), createTime)
+	metaNode2, _ := registertypes.NewMetaNode(metaNodeP2PAddr2, metaNodeP2PPubKey2, metaOwner2, metaOwner2, registertypes.NewDescription("sds://metaNode2", "", "", "", ""), createTime)
+	metaNode3, _ := registertypes.NewMetaNode(metaNodeP2PAddr3, metaNodeP2PPubKey3, metaOwner3, metaOwner3, registertypes.NewDescription("sds://metaNode3", "", "", "", ""), createTime)
 
-	indexingNode1.Suspend = false
-	indexingNode2.Suspend = false
-	indexingNode3.Suspend = false
+	metaNode1 = metaNode1.AddToken(metaNodeInitialDeposit)
+	metaNode2 = metaNode2.AddToken(metaNodeInitialDeposit)
+	metaNode3 = metaNode3.AddToken(metaNodeInitialDeposit)
 
-	indexingNode1 = indexingNode1.AddToken(idxNodeInitialDeposit1)
-	indexingNode2 = indexingNode2.AddToken(idxNodeInitialDeposit2)
-	indexingNode3 = indexingNode3.AddToken(idxNodeInitialDeposit3)
+	metaNode1.Status = stakingtypes.Bonded
+	metaNode2.Status = stakingtypes.Bonded
+	metaNode3.Status = stakingtypes.Bonded
 
-	indexingNode1.Status = stakingtypes.Bonded
-	indexingNode2.Status = stakingtypes.Bonded
-	indexingNode3.Status = stakingtypes.Bonded
+	metaNode1.Suspend = false
+	metaNode2.Suspend = false
+	metaNode3.Suspend = false
 
-	indexingNodes = append(indexingNodes, indexingNode1)
-	indexingNodes = append(indexingNodes, indexingNode2)
-	indexingNodes = append(indexingNodes, indexingNode3)
+	metaNodes = append(metaNodes, metaNode1)
+	metaNodes = append(metaNodes, metaNode2)
+	metaNodes = append(metaNodes, metaNode3)
 
-	return indexingNodes
+	return metaNodes
 }
 
 var (
@@ -1126,13 +1116,13 @@ func simulatePriceChange(t *testing.T, priceChangeEvent *PriceChangeEvent, nozPr
 	ozoneLimitPercentage := ozoneLimitDelta.ToLegacyDec().Quo(nozPriceFactorsBefore.OzoneLimit.ToLegacyDec()).MulInt(sdkmath.NewInt(100))
 
 	t.Log("===>>>>>>>>>>>>>>     Current noz Price    ===>>>>>>>>>>>>>>")
-	t.Log("NOzonePrice: 									" + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
-	t.Log("InitialTotalDeposit: 							" + nozPriceFactorsAfter.InitialTotalDeposit.String() + "(delta: " + initialTotalDepositDelta.String() + ")")
-	t.Log("EffectiveTotalDeposit: 							" + nozPriceFactorsAfter.EffectiveTotalDeposit.String() + "(delta: " + effectiveTotalDepositDelta.String() + ")")
-	t.Log("TotalUnissuedPrepay: 							" + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
-	t.Log("InitialTotalDeposit+TotalUnissuedPrepay:			" + nozPriceFactorsAfter.DepositAndPrepay.String() + "(delta: " + depositAndPrepayDelta.String() + ")")
-	t.Log("OzoneLimit: 									" + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
-	t.Log("NozSupply: 				     					" + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
+	t.Log("NOzonePrice:                                   " + nozPriceFactorsAfter.NOzonePrice.String() + "(delta: " + nozPriceDelta.String() + ", " + nozPricePercentage.String()[:5] + "%)")
+	t.Log("InitialTotalDeposit:                           " + nozPriceFactorsAfter.InitialTotalDeposit.String() + "(delta: " + initialTotalDepositDelta.String() + ")")
+	t.Log("EffectiveTotalDeposit:                         " + nozPriceFactorsAfter.EffectiveTotalDeposit.String() + "(delta: " + effectiveTotalDepositDelta.String() + ")")
+	t.Log("TotalUnissuedPrepay:                           " + nozPriceFactorsAfter.TotalUnissuedPrepay.String() + "(delta: " + totalUnissuedPrepayDelta.String() + ")")
+	t.Log("InitialTotalDeposit+TotalUnissuedPrepay:       " + nozPriceFactorsAfter.DepositAndPrepay.String() + "(delta: " + depositAndPrepayDelta.String() + ")")
+	t.Log("OzoneLimit:                                    " + nozPriceFactorsAfter.OzoneLimit.String() + "(delta: " + ozoneLimitDelta.String() + ", " + ozoneLimitPercentage.String()[:5] + "%)")
+	t.Log("NozSupply:                                     " + nozPriceFactorsAfter.NozSupply.String() + "(delta: " + nozSupplyDelta.String() + ")")
 
 	return nozPriceFactorsAfter, nozPricePercentage, ozoneLimitPercentage
 }
@@ -1141,16 +1131,18 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	NUM_OF_SAMPLE := 100
 	dataToExcel := make([]NozPriceFactors, 0, NUM_OF_SAMPLE)
 	/********************* initialize mock app *********************/
-	//mApp, k, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper := getMockApp(t)
 	accs, balances := setupAccounts()
-	//stApp := app.SetupWithGenesisAccounts(accs, chainID, balances...)
-	validators := make([]*tmtypes.Validator, 0)
-	valSet := tmtypes.NewValidatorSet(validators)
+
+	// create validator set with single validator
+	consPubKey, err := cryptocodec.ToTmPubKeyInterface(valConsPubk1)
+	validator := tmtypes.NewValidator(consPubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+
 	metaNodes := setupAllMetaNodes()
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
+	stApp := stratostestutil.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accs, chainID, false, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
@@ -1163,44 +1155,21 @@ func TestOzPriceChangePrepay(t *testing.T) {
 	ctx := stApp.BaseApp.NewContext(true, header)
 
 	foundationDepositMsg := pottypes.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
-	txGen := app.MakeTestEncodingConfig().TxConfig
+	txGen := stratostestutil.MakeTestEncodingConfig().TxConfig
 
-	foundationDepositorAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
-	accNum := foundationDepositorAcc.GetAccountNumber()
-	accSeq := foundationDepositorAcc.GetSequence()
-	_, _, err := stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
+	senderAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := senderAcc.GetAccountNumber()
+	accSeq := senderAcc.GetSequence()
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(pottypes.FoundationAccount)
-	app.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
-
-	/********************* create validator with 50% commission *********************/
-	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx = stApp.BaseApp.NewContext(true, header)
-
-	commission := stakingtypes.NewCommissionRates(
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDec(0),
-	)
-	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdkmath.OneInt())
-
-	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum = valOpAcc1.GetAccountNumber()
-	accSeq = valOpAcc1.GetSequence()
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
-	require.NoError(t, err)
-	app.CheckBalance(t, stApp, valOpAccAddr1, nil)
+	stratostestutil.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	validator := checkValidator(t, stApp, valOpValAddr1, true)
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdkmath.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := potKeeper.NozSupply(ctx)
 	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
@@ -1224,11 +1193,10 @@ func TestOzPriceChangePrepay(t *testing.T) {
 		prepayMsg := setupPrepayMsg()
 		/********************* deliver tx *********************/
 
-		resOwnerAcc := accountKeeper.GetAccount(ctx, resOwner1)
-		ownerAccNum := resOwnerAcc.GetAccountNumber()
-		ownerAccSeq := resOwnerAcc.GetSequence()
-
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey1)
+		senderAcc = accountKeeper.GetAccount(ctx, resOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey1)
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1249,16 +1217,18 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	NUM_OF_SAMPLE := 100
 	dataToExcel := make([]NozPriceFactors, 0, NUM_OF_SAMPLE)
 	/********************* initialize mock app *********************/
-	//mApp, k, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper := getMockApp(t)
 	accs, balances := setupAccounts()
-	//stApp := app.SetupWithGenesisAccounts(accs, chainID, balances...)
-	validators := make([]*tmtypes.Validator, 0)
-	valSet := tmtypes.NewValidatorSet(validators)
+
+	// create validator set with single validator
+	consPubKey, err := cryptocodec.ToTmPubKeyInterface(valConsPubk1)
+	validator := tmtypes.NewValidator(consPubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+
 	metaNodes := setupAllMetaNodes()
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
+	stApp := stratostestutil.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accs, chainID, false, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	bankKeeper := stApp.GetBankKeeper()
@@ -1272,44 +1242,22 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	ctx := stApp.BaseApp.NewContext(true, header)
 
 	foundationDepositMsg := pottypes.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
-	txGen := app.MakeTestEncodingConfig().TxConfig
+	txGen := stratostestutil.MakeTestEncodingConfig().TxConfig
 
-	foundationDepositorAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
-	accNum := foundationDepositorAcc.GetAccountNumber()
-	accSeq := foundationDepositorAcc.GetSequence()
-	_, _, err := stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
+	senderAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := senderAcc.GetAccountNumber()
+	accSeq := senderAcc.GetSequence()
+
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(pottypes.FoundationAccount)
-	app.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
-
-	/********************* create validator with 50% commission *********************/
-	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx = stApp.BaseApp.NewContext(true, header)
-
-	commission := stakingtypes.NewCommissionRates(
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDec(0),
-	)
-	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdkmath.OneInt())
-
-	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum = valOpAcc1.GetAccountNumber()
-	accSeq = valOpAcc1.GetSequence()
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
-	require.NoError(t, err)
-	app.CheckBalance(t, stApp, valOpAccAddr1, nil)
+	stratostestutil.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	validator := checkValidator(t, stApp, valOpValAddr1, true)
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdkmath.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := potKeeper.NozSupply(ctx)
 	St, Pt, Lt := registerKeeper.GetCurrNozPriceParams(ctx)
 	nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, potKeeper, registerKeeper, NozPriceFactors{
@@ -1333,11 +1281,10 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		prepayMsg := setupPrepayMsg()
 		/********************* deliver tx *********************/
 
-		resOwnerAcc := accountKeeper.GetAccount(ctx, resOwner1)
-		ownerAccNum := resOwnerAcc.GetAccountNumber()
-		ownerAccSeq := resOwnerAcc.GetSequence()
-
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKey1)
+		senderAcc = accountKeeper.GetAccount(ctx, resOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKey1)
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1355,7 +1302,7 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
 		t.Log("********************************* Deliver VolumeReport Tx START ********************************************")
 		/********************* prepare tx data *********************/
-		volumeReportMsg := setupMsgVolumeReport(int64(i + 1))
+		volumeReportMsg := setupMsgVolumeReport(t, int64(i+1))
 
 		lastTotalMinedToken := potKeeper.GetTotalMinedTokens(ctx)
 		t.Log("last committed TotalMinedTokens = " + lastTotalMinedToken.String())
@@ -1409,17 +1356,17 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		t.Log("              miningReward = " + rewardDetailMap[resOwner5.String()].RewardFromMiningPool.String())
 		t.Log("             trafficReward = " + rewardDetailMap[resOwner5.String()].RewardFromTrafficPool.String())
 
-		t.Log("indexing_wallet1:  address = " + idxOwner1.String())
-		t.Log("              miningReward = " + rewardDetailMap[idxOwner1.String()].RewardFromMiningPool.String())
-		t.Log("             trafficReward = " + rewardDetailMap[idxOwner1.String()].RewardFromTrafficPool.String())
+		t.Log("meta_wallet1:      address = " + metaOwner1.String())
+		t.Log("              miningReward = " + rewardDetailMap[metaOwner1.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[metaOwner1.String()].RewardFromTrafficPool.String())
 
-		t.Log("indexing_wallet2:  address = " + idxOwner2.String())
-		t.Log("              miningReward = " + rewardDetailMap[idxOwner2.String()].RewardFromMiningPool.String())
-		t.Log("             trafficReward = " + rewardDetailMap[idxOwner2.String()].RewardFromTrafficPool.String())
+		t.Log("meta_wallet2:      address = " + metaOwner2.String())
+		t.Log("              miningReward = " + rewardDetailMap[metaOwner2.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[metaOwner2.String()].RewardFromTrafficPool.String())
 
-		t.Log("indexing_wallet3:  address = " + idxOwner3.String())
-		t.Log("              miningReward = " + rewardDetailMap[idxOwner3.String()].RewardFromMiningPool.String())
-		t.Log("             trafficReward = " + rewardDetailMap[idxOwner3.String()].RewardFromTrafficPool.String())
+		t.Log("meta_wallet3:      address = " + metaOwner3.String())
+		t.Log("              miningReward = " + rewardDetailMap[metaOwner3.String()].RewardFromMiningPool.String())
+		t.Log("             trafficReward = " + rewardDetailMap[metaOwner3.String()].RewardFromTrafficPool.String())
 		t.Log("---------------------------")
 
 		/********************* record data before delivering tx  *********************/
@@ -1432,16 +1379,16 @@ func TestOzPriceChangeVolumeReport(t *testing.T) {
 		//lastCommunityPool := sdk.NewCoins(sdk.NewCoin(potKeeper.BondDenom(ctx), potKeeper.DistrKeeper.GetFeePool(ctx).CommunityPool.AmountOf(potKeeper.BondDenom(ctx)).TruncateInt()))
 		//lastMatureTotalOfResNode1 := potKeeper.GetMatureTotalReward(ctx, resOwner1)
 
-		resOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
-		ownerAccNum := resOwnerAcc.GetAccountNumber()
-		ownerAccSeq := resOwnerAcc.GetSequence()
-
 		feePoolAccAddr := accountKeeper.GetModuleAddress(authtypes.FeeCollectorName)
 		require.NotNil(t, feePoolAccAddr)
 		_ = bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 		//feeCollectorToFeePoolAtBeginBlock := bankKeeper.GetBalance(ctx, feePoolAccAddr, potKeeper.BondDenom(ctx))
 
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
+
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
@@ -1463,32 +1410,35 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	NUM_OF_SAMPLE := 100
 	dataToExcel := make([]NozPriceFactors, 0, NUM_OF_SAMPLE)
 
-	resOwners := make([]sdk.AccAddress, 0, NUM_OF_SAMPLE)
 	resOwnerPrivKeys := make([]*secp256k1.PrivKey, 0, NUM_OF_SAMPLE)
-	resOwnerPubkeys := make([]cryptotypes.PubKey, 0, NUM_OF_SAMPLE)
-	resNodeNetworkIds := make([]stratos.SdsAddress, 0, NUM_OF_SAMPLE)
+	resOwners := make([]sdk.AccAddress, 0, NUM_OF_SAMPLE)
+	resNodeP2PPubkeys := make([]cryptotypes.PubKey, 0, NUM_OF_SAMPLE)
+	resNodeP2PAddresses := make([]stratos.SdsAddress, 0, NUM_OF_SAMPLE)
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
 		resOwnerPrivKeyTmp := secp256k1.GenPrivKey()
 		resOwnerPrivKeys = append(resOwnerPrivKeys, resOwnerPrivKeyTmp)
-		resOwnerPubKeyTmp := resOwnerPrivKeyTmp.PubKey()
-		resOwnerPubkeys = append(resOwnerPubkeys, resOwnerPrivKeyTmp.PubKey())
-		resNodeAddrTmp := sdk.AccAddress(resOwnerPubKeyTmp.Address())
-		resOwners = append(resOwners, resNodeAddrTmp)
-		resNodeNetworkIds = append(resNodeNetworkIds, stratos.SdsAddress(resNodeAddrTmp))
+		resOwnerAddrTmp := sdk.AccAddress(resOwnerPrivKeyTmp.PubKey().Address())
+		resOwners = append(resOwners, resOwnerAddrTmp)
+
+		resNodeP2PPubkeyTmp := ed25519.GenPrivKey().PubKey()
+		resNodeP2PPubkeys = append(resNodeP2PPubkeys, resNodeP2PPubkeyTmp)
+		resNodeP2PAddresses = append(resNodeP2PAddresses, stratos.SdsAddress(resNodeP2PPubkeyTmp.Address()))
 	}
 
 	/********************* initialize mock app *********************/
-	//mApp, k, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper := getMockApp(t)
 	accs, balances := setupAccountsMultipleResNodes(resOwners)
-	//stApp := app.SetupWithGenesisAccounts(accs, chainID, balances...)
-	validators := make([]*tmtypes.Validator, 0)
-	valSet := tmtypes.NewValidatorSet(validators)
+
+	// create validator set with single validator
+	consPubKey, err := cryptocodec.ToTmPubKeyInterface(valConsPubk1)
+	validator := tmtypes.NewValidator(consPubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+
 	metaNodes := setupAllMetaNodes()
 	//resourceNodes := setupAllResourceNodes()
 	resourceNodes := make([]registertypes.ResourceNode, 0)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
+	stApp := stratostestutil.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accs, chainID, false, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
@@ -1501,44 +1451,22 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	ctx := stApp.BaseApp.NewContext(true, header)
 
 	foundationDepositMsg := pottypes.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
-	txGen := app.MakeTestEncodingConfig().TxConfig
+	txGen := stratostestutil.MakeTestEncodingConfig().TxConfig
 
-	foundationDepositorAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
-	accNum := foundationDepositorAcc.GetAccountNumber()
-	accSeq := foundationDepositorAcc.GetSequence()
-	_, _, err := stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
+	senderAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := senderAcc.GetAccountNumber()
+	accSeq := senderAcc.GetSequence()
+
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(pottypes.FoundationAccount)
-	app.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
-
-	/********************* create validator with 50% commission *********************/
-	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx = stApp.BaseApp.NewContext(true, header)
-
-	commission := stakingtypes.NewCommissionRates(
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDec(0),
-	)
-	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdkmath.OneInt())
-
-	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum = valOpAcc1.GetAccountNumber()
-	accSeq = valOpAcc1.GetSequence()
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
-	require.NoError(t, err)
-	app.CheckBalance(t, stApp, valOpAccAddr1, nil)
+	stratostestutil.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	validator := checkValidator(t, stApp, valOpValAddr1, true)
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdkmath.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := potKeeper.NozSupply(ctx)
 	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
 	//	NOzonePrice:          registerKeeper.GetCurrNozPriceParams(ctx),
@@ -1556,11 +1484,10 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	prepayMsg := setupPrepayMsgWithResOwner(resOwners[0])
 	/********************* deliver tx *********************/
 
-	resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[0])
-	ownerAccNum := resOwnerAcc.GetAccountNumber()
-	ownerAccSeq := resOwnerAcc.GetSequence()
-
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[0])
+	senderAcc = accountKeeper.GetAccount(ctx, resOwners[0])
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKeys[0])
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1586,30 +1513,45 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	//ownerAccSeq := resOwnerAcc.GetSequence()
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		createResourceNodeMsg := setupMsgCreateResourceNode(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
+		createResourceNodeMsg := setupMsgCreateResourceNode(i, resNodeP2PAddresses[i], resNodeP2PPubkeys[i], resOwners[i])
 		/********************* deliver tx *********************/
 
-		resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])
-		ownerAccNum := resOwnerAcc.GetAccountNumber()
-		ownerAccSeq := resOwnerAcc.GetSequence()
-
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[i])
+		senderAcc = accountKeeper.GetAccount(ctx, resOwners[i])
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createResourceNodeMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKeys[i])
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
 
-		unsuspendMsg := setupUnsuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
+		unsuspendMsg := setupUnsuspendMsgByIndex(i, resNodeP2PAddresses[i], resOwners[i])
 		/********************* deliver tx *********************/
 
-		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
-		ownerAccNum = idxOwnerAcc.GetAccountNumber()
-		ownerAccSeq = idxOwnerAcc.GetSequence()
+		senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
 
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
-		/********************* commit & check result *********************/
+		/********************* new height & check result *********************/
+		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+		ctx = stApp.BaseApp.NewContext(true, header)
+
+		t.Log("********************************* Deliver UpdateEffectiveDeposit Tx START ********************************************")
+		updateEffectiveDepositMsg := setupMsgUpdateEffectiveDeposit(resNodeP2PAddresses[i])
+		/********************* deliver tx *********************/
+
+		senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
+
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{updateEffectiveDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
+		require.NoError(t, err)
+		t.Log("********************************* Deliver UpdateEffectiveDeposit Tx END ********************************************\n\n...\n[NEXT TEST CASE]")
+		/********************* new height & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
@@ -1624,21 +1566,21 @@ func TestOzPriceChangeAddMultipleResourceNodeAndThenRemove(t *testing.T) {
 	}
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		slashingMsg := setupSuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
+		slashingMsg := setupSuspendMsgByIndex(i, resNodeP2PAddresses[i], resNodeP2PPubkeys[i], resOwners[i])
 		/********************* deliver tx *********************/
 
-		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
-		ownerAccNum = idxOwnerAcc.GetAccountNumber()
-		ownerAccSeq = idxOwnerAcc.GetSequence()
+		senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
 
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
 
-		//createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeNetworkIds[i], resOwners[i])
+		//createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeP2PAddresses[i], resOwners[i])
 		///********************* deliver tx *********************/
 		//
 		//resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])
@@ -1669,31 +1611,35 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	NUM_OF_SAMPLE := 100
 	dataToExcel := make([]NozPriceFactors, 0, NUM_OF_SAMPLE)
 
-	resOwners := make([]sdk.AccAddress, 0, NUM_OF_SAMPLE)
 	resOwnerPrivKeys := make([]*secp256k1.PrivKey, 0, NUM_OF_SAMPLE)
-	resOwnerPubkeys := make([]cryptotypes.PubKey, 0, NUM_OF_SAMPLE)
-	resNodeNetworkIds := make([]stratos.SdsAddress, 0, NUM_OF_SAMPLE)
+	resOwners := make([]sdk.AccAddress, 0, NUM_OF_SAMPLE)
+
+	resNodeP2PPubKeys := make([]cryptotypes.PubKey, 0, NUM_OF_SAMPLE)
+	resNodeP2PAddresses := make([]stratos.SdsAddress, 0, NUM_OF_SAMPLE)
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
 		resOwnerPrivKeyTmp := secp256k1.GenPrivKey()
 		resOwnerPrivKeys = append(resOwnerPrivKeys, resOwnerPrivKeyTmp)
-		resOwnerPubKeyTmp := resOwnerPrivKeyTmp.PubKey()
-		resOwnerPubkeys = append(resOwnerPubkeys, resOwnerPrivKeyTmp.PubKey())
-		resNodeAddrTmp := sdk.AccAddress(resOwnerPubKeyTmp.Address())
-		resOwners = append(resOwners, resNodeAddrTmp)
-		resNodeNetworkIds = append(resNodeNetworkIds, stratos.SdsAddress(resNodeAddrTmp))
+		resOwnerAddrTmp := sdk.AccAddress(resOwnerPrivKeyTmp.PubKey().Address())
+		resOwners = append(resOwners, resOwnerAddrTmp)
+
+		resNodeP2PPubKeyTmp := ed25519.GenPrivKey().PubKey()
+		resNodeP2PPubKeys = append(resNodeP2PPubKeys, resNodeP2PPubKeyTmp)
+		resNodeP2PAddresses = append(resNodeP2PAddresses, stratos.SdsAddress(resNodeP2PPubKeyTmp.Address()))
 	}
 
 	/********************* initialize mock app *********************/
-	//mApp, k, stakingKeeper, bankKeeper, supplyKeeper, registerKeeper := getMockApp(t)
 	accs, balances := setupAccountsMultipleResNodes(resOwners)
-	//stApp := app.SetupWithGenesisAccounts(accs, chainID, balances...)
-	validators := make([]*tmtypes.Validator, 0)
-	valSet := tmtypes.NewValidatorSet(validators)
-	metaNodes := setupAllMetaNodes()
-	resourceNodes := setupMultipleResourceNodes(resOwnerPrivKeys, resOwnerPubkeys, resOwners, resNodeNetworkIds)
 
-	stApp := app.SetupWithGenesisNodeSet(t, true, valSet, metaNodes, resourceNodes, accs, chainID, balances...)
+	// create validator set with single validator
+	consPubKey, err := cryptocodec.ToTmPubKeyInterface(valConsPubk1)
+	validator := tmtypes.NewValidator(consPubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
+
+	metaNodes := setupAllMetaNodes()
+	resourceNodes := setupMultipleResourceNodes(resNodeP2PAddresses, resNodeP2PPubKeys, resOwners)
+
+	stApp := stratostestutil.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accs, chainID, false, balances...)
 
 	accountKeeper := stApp.GetAccountKeeper()
 	//bankKeeper := stApp.GetBankKeeper()
@@ -1706,71 +1652,42 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	ctx := stApp.BaseApp.NewContext(true, header)
 
 	foundationDepositMsg := pottypes.NewMsgFoundationDeposit(foundationDeposit, foundationDepositorAccAddr)
-	txGen := app.MakeTestEncodingConfig().TxConfig
+	txGen := stratostestutil.MakeTestEncodingConfig().TxConfig
 
-	foundationDepositorAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
-	accNum := foundationDepositorAcc.GetAccountNumber()
-	accSeq := foundationDepositorAcc.GetSequence()
-	_, _, err := stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
+	senderAcc := accountKeeper.GetAccount(ctx, foundationDepositorAccAddr)
+	accNum := senderAcc.GetAccountNumber()
+	accSeq := senderAcc.GetSequence()
+
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, foundationDepositorPrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(pottypes.FoundationAccount)
-	app.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
-
-	/********************* create validator with 50% commission *********************/
-	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx = stApp.BaseApp.NewContext(true, header)
-
-	commission := stakingtypes.NewCommissionRates(
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDecWithPrec(5, 1),
-		sdkmath.LegacyNewDec(0),
-	)
-	description := stakingtypes.NewDescription("foo_moniker", chainID, "", "", "")
-	createValidatorMsg, err := stakingtypes.NewMsgCreateValidator(valOpValAddr1, valConsPubk1, stratos.NewCoin(valInitialStake), description, commission, sdkmath.OneInt())
-
-	valOpAcc1 := accountKeeper.GetAccount(ctx, valOpAccAddr1)
-	accNum = valOpAcc1.GetAccountNumber()
-	accSeq = valOpAcc1.GetSequence()
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, valOpPrivKey1)
-	require.NoError(t, err)
-	app.CheckBalance(t, stApp, valOpAccAddr1, nil)
+	stratostestutil.CheckBalance(t, stApp, foundationAccountAddr, foundationDeposit)
 
 	/********************** commit **********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx = stApp.BaseApp.NewContext(true, header)
 
-	validator := checkValidator(t, stApp, valOpValAddr1, true)
-	require.Equal(t, stakingtypes.Bonded, validator.Status)
-	require.True(sdkmath.IntEq(t, valInitialStake, validator.BondedTokens()))
 	_, nozSupply := potKeeper.NozSupply(ctx)
-	//nozPriceFactorsSeq0, nozPricePercentage, ozoneLimitPercentage := printCurrNozPrice(t, ctx, registerKeeper, NozPriceFactors{
-	//	NOzonePrice:          registerKeeper.GetCurrNozPriceParams(ctx),
-	//	InitialTotalDeposit:   registerKeeper.GetInitialGenesisDepositTotal(ctx),
-	//	EffectiveTotalDeposit: registerKeeper.GetEffectiveTotalDeposit(ctx),
-	//	TotalUnissuedPrepay:  registerKeeper.GetTotalUnissuedPrepay(ctx).Amount,
-	//	DepositAndPrepay:       registerKeeper.GetInitialGenesisDepositTotal(ctx).Add(registerKeeper.GetTotalUnissuedPrepay(ctx).Amount),
-	//	OzoneLimit:           registerKeeper.GetRemainingOzoneLimit(ctx),
-	//	NozSupply:            nozSupply,
-	//})
 
-	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		unsuspendMsg := setupUnsuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
-		/********************* deliver tx *********************/
-
-		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
-		ownerAccNum := idxOwnerAcc.GetAccountNumber()
-		ownerAccSeq := idxOwnerAcc.GetSequence()
-
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
-		require.NoError(t, err)
-		/********************* commit & check result *********************/
-		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
-		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-		ctx = stApp.BaseApp.NewContext(true, header)
-
-	}
+	//for i := 0; i < NUM_OF_SAMPLE; i++ {
+	//	unsuspendMsg := setupUnsuspendMsgByIndex(i, resNodeP2PAddresses[i], resOwners[i])
+	//	/********************* deliver tx *********************/
+	//
+	//	senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+	//	accNum = senderAcc.GetAccountNumber()
+	//	accSeq = senderAcc.GetSequence()
+	//
+	//	fmt.Println("!!!!!!!!!!!!!!!!! ------------- i = ", i)
+	//
+	//	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{unsuspendMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
+	//	require.NoError(t, err)
+	//	/********************* commit & check result *********************/
+	//	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
+	//	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
+	//	ctx = stApp.BaseApp.NewContext(true, header)
+	//
+	//}
 
 	// start testing
 	t.Log("********************************* Deliver RemoveResourceNode Tx START ********************************************")
@@ -1778,11 +1695,11 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	prepayMsg := setupPrepayMsgWithResOwner(resOwners[0])
 	/********************* deliver tx *********************/
 
-	resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[0])
-	ownerAccNum := resOwnerAcc.GetAccountNumber()
-	ownerAccSeq := resOwnerAcc.GetSequence()
+	senderAcc = accountKeeper.GetAccount(ctx, resOwners[0])
+	accNum = senderAcc.GetAccountNumber()
+	accSeq = senderAcc.GetSequence()
 
-	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, resOwnerPrivKeys[0])
+	_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, resOwnerPrivKeys[0])
 	require.NoError(t, err)
 	/********************* commit & check result *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
@@ -1804,20 +1721,19 @@ func TestOzPriceChangeRemoveMultipleResourceNodeAfterGenesis(t *testing.T) {
 	dataToExcel = append(dataToExcel, priceBefore)
 
 	for i := 0; i < NUM_OF_SAMPLE; i++ {
-		slashingMsg := setupSuspendMsgByIndex(i, resNodeNetworkIds[i], resOwnerPubkeys[i], resOwners[i])
+		slashingMsg := setupSuspendMsgByIndex(i, resNodeP2PAddresses[i], resNodeP2PPubKeys[i], resOwners[i])
 		/********************* deliver tx *********************/
 
-		idxOwnerAcc := accountKeeper.GetAccount(ctx, idxOwner1)
-		ownerAccNum = idxOwnerAcc.GetAccountNumber()
-		ownerAccSeq = idxOwnerAcc.GetSequence()
-
-		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, idxOwnerPrivKey1)
+		senderAcc = accountKeeper.GetAccount(ctx, metaOwner1)
+		accNum = senderAcc.GetAccountNumber()
+		accSeq = senderAcc.GetSequence()
+		_, _, err = stratostestutil.SignCheckDeliver(t, txGen, stApp.BaseApp, header, []sdk.Msg{slashingMsg}, chainID, []uint64{accNum}, []uint64{accSeq}, true, true, metaOwnerPrivKey1)
 		require.NoError(t, err)
 		/********************* commit & check result *********************/
 		header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: chainID}
 		stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 		ctx = stApp.BaseApp.NewContext(true, header)
-		//createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeNetworkIds[i], resOwners[i])
+		//createResourceNodeMsg := setupMsgRemoveResourceNode(i, resNodeP2PAddresses[i], resOwners[i])
 		///********************* deliver tx *********************/
 		//
 		//resOwnerAcc := accountKeeper.GetAccount(ctx, resOwners[i])

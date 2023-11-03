@@ -19,7 +19,7 @@ const (
 var (
 	DefaultCommunityTax       = sdkmath.LegacyNewDecWithPrec(2, 2) // 2%
 	DefaultInitialTotalSupply = sdk.NewCoin(DefaultBondDenom,
-		sdkmath.NewInt(1e8).Mul(sdkmath.NewInt(stratos.StosToWei)),
+		sdkmath.NewInt(1e8).MulRaw(stratos.StosToWei),
 	) //100,000,000 stos
 )
 

@@ -31,7 +31,6 @@ func NewMsgVolumeReport(
 	epoch sdkmath.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
-	blsSignature BLSSignatureInfo,
 ) *MsgVolumeReport {
 	return &MsgVolumeReport{
 		WalletVolumes:   walletVolumes,
@@ -39,7 +38,6 @@ func NewMsgVolumeReport(
 		Epoch:           epoch,
 		ReportReference: reportReference,
 		ReporterOwner:   reporterOwner.String(),
-		BLSSignature:    blsSignature,
 	}
 }
 

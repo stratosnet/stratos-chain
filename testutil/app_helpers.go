@@ -1,4 +1,4 @@
-package stratos
+package testutil
 
 import (
 	"time"
