@@ -34,18 +34,18 @@ import (
 
 	"github.com/stratosnet/stratos-chain/app"
 	stratosclient "github.com/stratosnet/stratos-chain/client"
-	"github.com/stratosnet/stratos-chain/crypto/hd"
-	"github.com/stratosnet/stratos-chain/encoding"
-	"github.com/stratosnet/stratos-chain/server"
-	servercfg "github.com/stratosnet/stratos-chain/server/config"
-	srvflags "github.com/stratosnet/stratos-chain/server/flags"
+	stratoshd "github.com/stratosnet/stratos-chain/crypto/hd"
+	stratosencoding "github.com/stratosnet/stratos-chain/encoding"
+	stratosserver "github.com/stratosnet/stratos-chain/server"
+	stratosservercfg "github.com/stratosnet/stratos-chain/server/config"
+	stratossrvflags "github.com/stratosnet/stratos-chain/server/flags"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 // NewRootCmd creates a new root command for simd. It is called once in the
 // main function.
 func NewRootCmd() (*cobra.Command, simappparams.EncodingConfig) {
-	encodingConfig := encoding.MakeEncodingConfig(app.ModuleBasics)
+	encodingConfig := stratosencoding.MakeEncodingConfig(app.ModuleBasics)
 	initClientCtx := client.Context{}.
 		WithCodec(encodingConfig.Codec).
 		WithInterfaceRegistry(encodingConfig.InterfaceRegistry).
@@ -54,7 +54,7 @@ func NewRootCmd() (*cobra.Command, simappparams.EncodingConfig) {
 		WithInput(os.Stdin).
 		WithAccountRetriever(authtypes.AccountRetriever{}).
 		WithHomeDir(app.DefaultNodeHome).
-		WithKeyringOptions(hd.EthSecp256k1Option()).
+		WithKeyringOptions(stratoshd.EthSecp256k1Option()).
 		WithBroadcastMode(flags.BroadcastSync).
 		WithViper("")
 
@@ -80,7 +80,7 @@ func NewRootCmd() (*cobra.Command, simappparams.EncodingConfig) {
 				return err
 			}
 
-			customAppTemplate, customAppConfig := servercfg.AppConfig(stratos.Wei)
+			customAppTemplate, customAppConfig := stratosservercfg.AppConfig(stratos.Wei)
 			customTMConfig := tmcfg.DefaultConfig()
 
 			return sdkserver.InterceptConfigsPreRunHandler(cmd, customAppTemplate, customAppConfig, customTMConfig)
@@ -114,7 +114,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig simappparams.EncodingCon
 		snapshot.Cmd(newApp),
 	)
 
-	server.AddCommands(rootCmd, app.DefaultNodeHome, newApp, createStratosAppAndExport, addModuleInitFlags)
+	stratosserver.AddCommands(rootCmd, app.DefaultNodeHome, newApp, createStratosAppAndExport, addModuleInitFlags)
 
 	// add keybase, auxiliary RPC, query, and tx child commands
 	rootCmd.AddCommand(
@@ -124,7 +124,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig simappparams.EncodingCon
 		stratosclient.KeyCommands(app.DefaultNodeHome),
 	)
 
-	rootCmd, err := srvflags.AddTxFlags(rootCmd)
+	rootCmd, err := stratossrvflags.AddTxFlags(rootCmd)
 	if err != nil {
 		panic(err)
 	}
@@ -134,7 +134,7 @@ func initRootCmd(rootCmd *cobra.Command, encodingConfig simappparams.EncodingCon
 }
 
 func newApp(logger log.Logger, db dbm.DB, traceStore io.Writer, appOpts sdkservertypes.AppOptions) sdkservertypes.Application {
-	baseAppOptions := server.DefaultBaseAppOptions(appOpts)
+	baseAppOptions := stratosserver.DefaultBaseAppOptions(appOpts)
 	return app.NewStratosApp(
 		logger,
 		db,

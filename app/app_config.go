@@ -29,7 +29,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/capability"
 	capabilitytypes "github.com/cosmos/cosmos-sdk/x/capability/types"
 	"github.com/cosmos/cosmos-sdk/x/consensus"
-	consensusparamtypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
+	consensustypes "github.com/cosmos/cosmos-sdk/x/consensus/types"
 	"github.com/cosmos/cosmos-sdk/x/crisis"
 	crisistypes "github.com/cosmos/cosmos-sdk/x/crisis/types"
 	distr "github.com/cosmos/cosmos-sdk/x/distribution"
@@ -167,7 +167,7 @@ var (
 		feegrant.ModuleName,
 		paramstypes.ModuleName,
 		vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName,
+		consensustypes.ModuleName,
 
 		// IBC modules
 		ibcexported.ModuleName,
@@ -202,7 +202,7 @@ var (
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName,
+		consensustypes.ModuleName,
 
 		// IBC modules
 		ibcexported.ModuleName,
@@ -233,7 +233,7 @@ var (
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName,
+		consensustypes.ModuleName,
 
 		// IBC modules
 		ibcexported.ModuleName,
@@ -270,7 +270,7 @@ var (
 		paramstypes.ModuleName,
 		upgradetypes.ModuleName,
 		vestingtypes.ModuleName,
-		consensusparamtypes.ModuleName,
+		consensustypes.ModuleName,
 
 		// IBC modules
 		ibcexported.ModuleName,

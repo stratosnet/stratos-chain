@@ -61,7 +61,7 @@ func NewUpgrade(
 
 // Name implements upgrades.Upgrade
 func (u *Upgrade) Name() string {
-	return "v0.12.0"
+	return "v012"
 }
 
 // Handler implements upgrades.Upgrade
@@ -144,7 +144,8 @@ func (u *Upgrade) StoreUpgrades() *storetypes.StoreUpgrades {
 			icahosttypes.StoreKey,
 
 			// Cosmos SDK v0.47.x upgrades
-			consensustypes.ModuleName,
+			consensustypes.StoreKey,
+			crisistypes.StoreKey,
 		},
 		Deleted: []string{},
 	}
