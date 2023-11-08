@@ -656,7 +656,7 @@ func (app *NewApp) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.Re
 	}
 
 	//todo: NOTE: fix the validator power store issue with mainnet launch
-	if ctx.BlockHeight() == 95000 {
+	if ctx.BlockHeight() == 1567767 {
 		err := app.stakingKeeper.FixValidatorByPowerIndexRecords(ctx)
 		if err != nil {
 			app.Logger().Error("An error occurred while fixing the ValidatorRecords", "ErrMsg", err.Error())
