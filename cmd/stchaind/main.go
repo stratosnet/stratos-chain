@@ -5,9 +5,11 @@ import (
 	"os"
 
 	sdkmath "cosmossdk.io/math"
+	"github.com/cosmos/cosmos-sdk/crypto/ledger"
 	"github.com/cosmos/cosmos-sdk/server"
 	svrcmd "github.com/cosmos/cosmos-sdk/server/cmd"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 
 	"github.com/stratosnet/stratos-chain/app"
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -23,8 +25,9 @@ var (
 
 func main() {
 	registerDenoms()
-	//TODO: enable when customized cosmos-sdk pushed
-	//ledger.InitLedger(ethsecp256k1.MakePubKey, ledger.SignMode_SIGN_MODE_DIRECT)
+
+	ledger.InitLedger(ethsecp256k1.MakePubKey, ledger.SignMode_SIGN_MODE_DIRECT)
+	ledger.SetAppName("stratos")
 
 	rootCmd, _ := NewRootCmd()
 	if err := svrcmd.Execute(rootCmd, EnvPrefix, app.DefaultNodeHome); err != nil {
