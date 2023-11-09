@@ -235,7 +235,7 @@ replace (
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 
 	// use stratos fork of cosmos-sdk
-	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.0-rc1.0.20231108205759-6d5c78bb6649
+	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.5-stratos
 
 	// dgrijalva/jwt-go is deprecated and doesn't receive security updates.
 	// TODO: remove it: https://github.com/cosmos/cosmos-sdk/issues/13134
