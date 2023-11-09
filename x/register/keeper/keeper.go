@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -19,29 +20,35 @@ import (
 
 // Keeper of the register store
 type Keeper struct {
-	storeKey      sdk.StoreKey
+	storeKey      storetypes.StoreKey
 	cdc           codec.Codec
-	paramSpace    paramtypes.Subspace
 	accountKeeper types.AccountKeeper
 	bankKeeper    types.BankKeeper
 	distrKeeper   types.DistrKeeper
 	hooks         types.RegisterHooks
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper creates a register keeper
-func NewKeeper(cdc codec.Codec, key sdk.StoreKey, paramSpace paramtypes.Subspace,
-	accountKeeper types.AccountKeeper, bankKeeper types.BankKeeper, distrKeeper types.DistrKeeper) Keeper {
-
-	keeper := Keeper{
+func NewKeeper(
+	cdc codec.Codec,
+	key storetypes.StoreKey,
+	accountKeeper types.AccountKeeper,
+	bankKeeper types.BankKeeper,
+	distrKeeper types.DistrKeeper,
+	authority string,
+) Keeper {
+	return Keeper{
 		storeKey:      key,
 		cdc:           cdc,
-		paramSpace:    paramSpace.WithKeyTable(types.ParamKeyTable()),
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 		distrKeeper:   distrKeeper,
-		hooks:         nil,
+		authority:     authority,
 	}
-	return keeper
 }
 
 func (k Keeper) GetBankKeeper() types.BankKeeper {
@@ -50,7 +57,7 @@ func (k Keeper) GetBankKeeper() types.BankKeeper {
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
 // SetHooks Set the register hooks
@@ -68,13 +75,13 @@ func (k Keeper) GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk
 		ctx.Logger().Error("account address for total unissued prepay does not exist.")
 		return sdk.Coin{
 			Denom:  k.BondDenom(ctx),
-			Amount: sdk.ZeroInt(),
+			Amount: sdkmath.ZeroInt(),
 		}
 	}
 	return k.bankKeeper.GetBalance(ctx, totalUnissuedPrepayAccAddr, k.BondDenom(ctx))
 }
 
-func (k Keeper) IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int) {
+func (k Keeper) IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdkmath.Int) (ozoneLimitChange sdkmath.Int) {
 	// get remainingOzoneLimit before adding deposit
 	remainingBefore := k.GetRemainingOzoneLimit(ctx)
 	depositNozRate := k.GetDepositNozRate(ctx)
@@ -84,14 +91,14 @@ func (k Keeper) IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdk.Int)
 	effectiveTotalDepositAfter := effectiveTotalDepositBefore.Add(deposit)
 	k.SetEffectiveTotalDeposit(ctx, effectiveTotalDepositAfter)
 
-	effectiveGenesisDeposit := effectiveTotalDepositBefore.ToDec() //wei
-	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+	effectiveGenesisDeposit := effectiveTotalDepositBefore.ToLegacyDec() //wei
+	if effectiveGenesisDeposit.Equal(sdkmath.LegacyZeroDec()) {
 		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 
-	limitToAdd := deposit.ToDec().Quo(depositNozRate)
-	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Add(limitToAdd).TruncateInt())
+	limitToAdd := deposit.ToLegacyDec().Quo(depositNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToLegacyDec().Add(limitToAdd).TruncateInt())
 
 	//ctx.Logger().Debug("----- IncreaseOzoneLimitByAddDeposit, ",
 	//	"effectiveTotalDepositBefore=", effectiveTotalDepositBefore.String(),
@@ -102,7 +109,7 @@ func (k Keeper) IncreaseOzoneLimitByAddDeposit(ctx sdk.Context, deposit sdk.Int)
 	return limitToAdd.TruncateInt()
 }
 
-func (k Keeper) DecreaseOzoneLimitBySubtractDeposit(ctx sdk.Context, deposit sdk.Int) (ozoneLimitChange sdk.Int) {
+func (k Keeper) DecreaseOzoneLimitBySubtractDeposit(ctx sdk.Context, deposit sdkmath.Int) (ozoneLimitChange sdkmath.Int) {
 	// get remainingOzoneLimit before adding deposit
 	remainingBefore := k.GetRemainingOzoneLimit(ctx)
 	depositNozRate := k.GetDepositNozRate(ctx)
@@ -112,13 +119,13 @@ func (k Keeper) DecreaseOzoneLimitBySubtractDeposit(ctx sdk.Context, deposit sdk
 	effectiveTotalDepositAfter := effectiveTotalDepositBefore.Sub(deposit)
 	k.SetEffectiveTotalDeposit(ctx, effectiveTotalDepositAfter)
 
-	effectiveGenesisDeposit := effectiveTotalDepositBefore.ToDec() //wei
-	if effectiveGenesisDeposit.Equal(sdk.ZeroDec()) {
+	effectiveGenesisDeposit := effectiveTotalDepositBefore.ToLegacyDec() //wei
+	if effectiveGenesisDeposit.Equal(sdkmath.LegacyZeroDec()) {
 		ctx.Logger().Info("effectiveGenesisDeposit is zero, increase ozone limit failed")
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
-	limitToSub := deposit.ToDec().Quo(depositNozRate)
-	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToDec().Sub(limitToSub).TruncateInt())
+	limitToSub := deposit.ToLegacyDec().Quo(depositNozRate)
+	k.SetRemainingOzoneLimit(ctx, remainingBefore.ToLegacyDec().Sub(limitToSub).TruncateInt())
 
 	//ctx.Logger().Debug("----- DecreaseOzoneLimitBySubtractDeposit, ",
 	//	"effectiveTotalDepositBefore=", effectiveTotalDepositBefore.String(),
@@ -138,10 +145,10 @@ func (k Keeper) HasMaxUnbondingNodeEntries(ctx sdk.Context, networkAddr stratos.
 	return len(ubd.Entries) >= int(k.MaxEntries(ctx))
 }
 
-// SetUnbondingMetaNodeEntry adds an entry to the unbonding MetaNode at
+// SetUnbondingNodeEntry adds an entry to the unbonding MetaNode at
 // the given addresses. It creates the unbonding MetaNode if it does not exist
 func (k Keeper) SetUnbondingNodeEntry(ctx sdk.Context, networkAddr stratos.SdsAddress, isMetaNode bool,
-	creationHeight int64, minTime time.Time, balance sdk.Int) types.UnbondingNode {
+	creationHeight int64, minTime time.Time, balance sdkmath.Int) types.UnbondingNode {
 
 	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
 	if found {
@@ -266,34 +273,34 @@ func (k Keeper) subtractUBDNodeDeposit(ctx sdk.Context, ubd types.UnbondingNode,
 	return k.SubtractResourceNodeDeposit(ctx, resourceNode, tokenToSub)
 }
 
-// Unbond all tokens of resource node
+// UnbondResourceNode Unbond all tokens of resource node
 func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
-) (depositToRemove sdk.Int, unbondingMatureTime time.Time, err error) {
+) (depositToRemove sdkmath.Int, unbondingMatureTime time.Time, err error) {
 
 	resourceNode, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
-		return sdk.ZeroInt(), time.Time{}, types.ErrNoResourceNodeFound
+		return sdkmath.ZeroInt(), time.Time{}, types.ErrNoResourceNodeFound
 	}
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
 	if !ownerAddrNode.Equals(ownerAddr) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidOwnerAddr
+		return sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidOwnerAddr
 	}
 	if resourceNode.GetStatus() != stakingtypes.Bonded {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidNodeStat
+		return sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidNodeStat
 	}
 	// suspended node cannot be unbonded (avoid dup deposit decrease with node suspension)
 	if resourceNode.GetSuspend() {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+		return sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdkmath.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
 	// check if node_token - unbonding_token > 0
 	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
 	depositToRemove = resourceNode.Tokens.Sub(unbondingDeposit)
-	if depositToRemove.LTE(sdk.ZeroInt()) {
-		return sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+	if depositToRemove.LTE(sdkmath.ZeroInt()) {
+		return sdkmath.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
 
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
@@ -305,7 +312,7 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddre
 	k.SetResourceNode(ctx, resourceNode)
 	// decrease resource node count
 	v := k.GetBondedResourceNodeCnt(ctx)
-	count := v.Sub(sdk.OneInt())
+	count := v.Sub(sdkmath.OneInt())
 	k.SetBondedResourceNodeCnt(ctx, count)
 
 	// set the unbonding mature time and completion height appropriately
@@ -321,40 +328,40 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddre
 	return depositToRemove, unbondingMatureTime, nil
 }
 
-func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk.Int,
-) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdk.Int, unbondingMatureTime time.Time, err error) {
+func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdkmath.Int,
+) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdkmath.Int, unbondingMatureTime time.Time, err error) {
 	if metaNode.GetStatus() == stakingtypes.Unbonding {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrUnbondingNode
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrUnbondingNode
 	}
 
 	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid network address")
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, errors.New("invalid network address")
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
 	if err != nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
 	}
 
 	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
 	if ownerAcc == nil {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
 	}
 
 	// suspended node cannot be unbonded (avoid dup deposit decrease with node suspension)
 	if metaNode.Suspend {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
 	}
 
 	// check if node_token - unbonding_token > amt_to_unbond
 	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
 	availableTokenAmtBefore = metaNode.Tokens.Sub(unbondingDeposit)
 	if availableTokenAmtBefore.LT(amt) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 	}
 
 	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
+		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
 	}
 
 	unbondingMatureTime = calcUnbondingMatureTime(ctx, metaNode.Status, metaNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
@@ -364,7 +371,7 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 	if metaNode.GetStatus() == stakingtypes.Bonded {
 		// to prevent remainingOzoneLimit from being negative value
 		if !k.IsUnbondable(ctx, amt) {
-			return sdk.ZeroInt(), sdk.ZeroInt(), sdk.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
+			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
 		}
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, metaNode, true, coin)
@@ -377,7 +384,7 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 		metaNode.Status = stakingtypes.Unbonding
 		// decrease meta node count
 		v := k.GetBondedMetaNodeCnt(ctx)
-		count := v.Sub(sdk.NewInt(1))
+		count := v.Sub(sdkmath.NewInt(1))
 		k.SetBondedMetaNodeCnt(ctx, count)
 		// set meta node
 		k.SetMetaNode(ctx, metaNode)
@@ -397,12 +404,12 @@ func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdk
 }
 
 // GetAllUnbondingNodesTotalBalance Iteration for getting the total balance of all unbonding nodes
-func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
+func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdkmath.Int {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
 	defer iterator.Close()
 
-	var ubdTotal = sdk.ZeroInt()
+	var ubdTotal = sdkmath.ZeroInt()
 	for ; iterator.Valid(); iterator.Next() {
 		node := types.UnbondingNode{}
 		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &node)
@@ -414,8 +421,8 @@ func (k Keeper) GetAllUnbondingNodesTotalBalance(ctx sdk.Context) sdk.Int {
 }
 
 // GetUnbondingNodeBalance returns an unbonding balance and an UnbondingNode
-func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdk.Int {
-	balance := sdk.ZeroInt()
+func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdkmath.Int {
+	balance := sdkmath.ZeroInt()
 
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetUBDNodeKey(networkAddr)
@@ -432,7 +439,7 @@ func (k Keeper) GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.Sds
 }
 
 // GetCurrNozPriceParams calcs current noz price
-func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdk.Int) {
+func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) {
 	St = k.GetEffectiveTotalDeposit(ctx)
 	Pt = k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt = k.GetRemainingOzoneLimit(ctx)

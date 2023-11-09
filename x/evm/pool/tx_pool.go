@@ -7,17 +7,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	mempl "github.com/cometbft/cometbft/mempool"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+
+	"github.com/cosmos/cosmos-sdk/client"
+
 	"github.com/stratosnet/stratos-chain/server/config"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	evm "github.com/stratosnet/stratos-chain/x/evm"
+	"github.com/stratosnet/stratos-chain/x/evm"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	mempl "github.com/tendermint/tendermint/mempool"
 )
 
 const (

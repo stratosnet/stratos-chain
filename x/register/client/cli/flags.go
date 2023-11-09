@@ -22,6 +22,7 @@ const (
 	FlagCandidateNetworkAddress = "candidate-network-address"
 	FlagOpinion                 = "opinion"
 	FlagVoterNetworkAddress     = "voter-network-address"
+	FlagBeneficiaryAddress      = "beneficiary-address"
 )
 
 func flagSetDescriptionCreate() *flag.FlagSet {
@@ -76,9 +77,16 @@ func flagSetDepositUpdate() *flag.FlagSet {
 func flagSetVoting() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagCandidateNetworkAddress, "The network address of the candidate PP node", "")
-	fs.String(FlagCandidateOwnerAddress, "The owner address of the candidate PP node", "")
+	fs.String(FlagCandidateNetworkAddress, "", "The network address of the candidate PP node")
+	fs.String(FlagCandidateOwnerAddress, "", "The owner address of the candidate PP node")
 	fs.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Meta node.")
-	fs.String(FlagVoterNetworkAddress, "The address of the PP node that made the vote.", "")
+	fs.String(FlagVoterNetworkAddress, "", "The address of the PP node that made the vote.")
+	return fs
+}
+
+func flagSetBeneficiaryAddress() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+
+	fs.String(FlagBeneficiaryAddress, "", "The beneficiary address of the meta node")
 	return fs
 }

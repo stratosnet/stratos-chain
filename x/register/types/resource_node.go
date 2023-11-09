@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -84,12 +85,12 @@ func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, 
 		Pubkey:          pkAny,
 		Suspend:         true,
 		Status:          stakingtypes.Unbonded,
-		Tokens:          sdk.ZeroInt(),
+		Tokens:          sdkmath.ZeroInt(),
 		OwnerAddress:    ownerAddr.String(),
 		Description:     description,
 		NodeType:        uint32(nodeType),
 		CreationTime:    creationTime,
-		EffectiveTokens: sdk.ZeroInt(),
+		EffectiveTokens: sdkmath.ZeroInt(),
 	}, nil
 }
 
@@ -121,13 +122,13 @@ func (v ResourceNode) ConvertToString() string {
 }
 
 // AddToken adds tokens to a resource node
-func (v ResourceNode) AddToken(amount sdk.Int) ResourceNode {
+func (v ResourceNode) AddToken(amount sdkmath.Int) ResourceNode {
 	v.Tokens = v.Tokens.Add(amount)
 	return v
 }
 
 // SubToken removes tokens from a resource node
-func (v ResourceNode) SubToken(amount sdk.Int) ResourceNode {
+func (v ResourceNode) SubToken(amount sdkmath.Int) ResourceNode {
 	if amount.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", amount))
 	}
@@ -171,7 +172,7 @@ func (v ResourceNode) Validate() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if v.Tokens.LT(sdk.ZeroInt()) {
+	if v.Tokens.LT(sdkmath.ZeroInt()) {
 		return ErrValueNegative
 	}
 	if v.GetDescription().Moniker == "" {

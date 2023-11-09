@@ -2,36 +2,49 @@ syntax = "proto3";
 package stratos.sds.v1;
 
 import "gogoproto/gogo.proto";
-import "google/api/annotations.proto";
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
+import "cosmos/msg/v1/msg.proto";
 import "cosmos/base/v1beta1/coin.proto";
+import "stratos/sds/v1/sds.proto";
 
+option (gogoproto.equal_all) = true;
 option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // Msg defines the sds module Msg service.
 service Msg {
-  // CreateResourceNode defines a method for creating a new resource node.
-  rpc HandleMsgFileUpload(MsgFileUpload) returns (MsgFileUploadResponse) {
-    option (google.api.http).post = "/stratos/sds/v1/file_upload";
-  };
-  rpc HandleMsgPrepay(MsgPrepay) returns (MsgPrepayResponse) {
-    option (google.api.http).post = "/stratos/sds/v1/prepay";
-  };
+  option (cosmos.msg.v1.service) = true;
+
+  // HandleMsgFileUpload defines a method for file uploading
+  rpc HandleMsgFileUpload(MsgFileUpload) returns (MsgFileUploadResponse);
+  // HandleMsgPrepay defines a method for prepay
+  rpc HandleMsgPrepay(MsgPrepay) returns (MsgPrepayResponse);
+
+  // UpdateParams defined a governance operation for updating the x/sds module parameters.
+  // The authority is hard-coded to the Cosmos SDK x/gov module account
+  rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
 }
 
 message MsgFileUpload {
+  option (cosmos.msg.v1.signer) = "from";
+  option (amino.name) = "stratos/MsgFileUpload";
+
   string           file_hash = 1 [
     (gogoproto.jsontag) = "file_hash",
     (gogoproto.moretags) = "yaml:\"file_hash\""
   ];
   string          from = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "from",
     (gogoproto.moretags) = "yaml:\"from\""
   ];
   string          reporter = 3 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "reporter",
     (gogoproto.moretags) = "yaml:\"reporter\""
   ];
   string          uploader = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "uploader",
     (gogoproto.moretags) = "yaml:\"uploader\""
   ];
@@ -40,20 +53,48 @@ message MsgFileUpload {
 message MsgFileUploadResponse {}
 
 message MsgPrepay {
+  option (cosmos.msg.v1.signer) = "sender";
+  option (amino.name) = "stratos/MsgPrepay";
+
   string                                sender = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "sender",
     (gogoproto.moretags) = "yaml:\"sender\""
   ];
   string                                beneficiary = 2 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "beneficiary",
     (gogoproto.moretags) = "yaml:\"beneficiary\""
   ];
   repeated cosmos.base.v1beta1.Coin     amount = 3 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "amount",
     (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false,
     (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
   ];
 }
 
 message MsgPrepayResponse {}
+
+// MsgUpdateParams defines a Msg for updating the x/sds module parameters.
+message MsgUpdateParams {
+  option (cosmos.msg.v1.signer) = "authority";
+  option (amino.name) = "stratos/x/sds/MsgUpdateParams";
+
+  // authority is the address of the governance account.
+  string authority = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+
+  // params defines the x/sds parameters to update.
+  // NOTE: All parameters must be supplied.
+  Params params = 2 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true
+  ];
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+message MsgUpdateParamsResponse {}

@@ -8,9 +8,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/version"
 
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -170,12 +170,12 @@ func GetCmdQueryVolumeReport() *cobra.Command {
 	return cmd
 }
 
-func checkFlagEpoch(epochStr string) (sdk.Int, error) {
+func checkFlagEpoch(epochStr string) (sdkmath.Int, error) {
 	epochInt64, err := strconv.ParseInt(epochStr, 10, 64)
 	if err != nil {
-		return sdk.NewInt(0), fmt.Errorf("invalid epoch: %w", err)
+		return sdkmath.NewInt(0), fmt.Errorf("invalid epoch: %w", err)
 	}
-	epoch := sdk.NewInt(epochInt64)
+	epoch := sdkmath.NewInt(epochInt64)
 	return epoch, nil
 }
 

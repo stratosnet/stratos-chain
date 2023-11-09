@@ -1,19 +1,20 @@
 package sds
 
 import (
+	abci "github.com/cometbft/cometbft/abci/types"
+
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/x/sds/keeper"
-	abci "github.com/tendermint/tendermint/abci/types"
-	// abci "github.com/tendermint/tendermint/abci/types"
 )
 
 // BeginBlocker check for infraction evidence or downtime of validators
 // on every begin block
-func BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock, k keeper.Keeper) {
-	// 	TODO: fill out if your application requires beginblock, if not you can delete this function
+func BeginBlocker(_ sdk.Context, _ abci.RequestBeginBlock, _ keeper.Keeper) {
+	// 	TODO: fill out if your application requires beginBlock, if not you can delete this function
 }
 
 // EndBlocker called every block, process inflation, update validator set.
-func EndBlocker(ctx sdk.Context, k keeper.Keeper) {
-	// 	TODO: fill out if your application requires endblock, if not you can delete this function
+func EndBlocker(_ sdk.Context, _ abci.RequestEndBlock, _ keeper.Keeper) []abci.ValidatorUpdate {
+	return []abci.ValidatorUpdate{}
 }

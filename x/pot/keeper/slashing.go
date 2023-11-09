@@ -1,13 +1,16 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 )
 
 /*
+SlashingResourceNode
 This function only record slashing amount.
 
 Deduct slashing amount when:
@@ -16,11 +19,11 @@ Deduct slashing amount when:
 3, resource node decrease deposit .
 */
 func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress, walletAddr sdk.AccAddress,
-	nozAmt sdk.Int, suspend bool) (tokenAmt sdk.Int, nodeType registertypes.NodeType, err error) {
+	nozAmt sdkmath.Int, suspend bool) (tokenAmt sdkmath.Int, nodeType registertypes.NodeType, err error) {
 
 	node, ok := k.registerKeeper.GetResourceNode(ctx, p2pAddr)
 	if !ok {
-		return sdk.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
+		return sdkmath.ZeroInt(), registertypes.NodeType(0), registertypes.ErrNoResourceNodeFound
 	}
 	toBeSuspended := node.Suspend == false && suspend == true
 	node.Suspend = suspend
@@ -30,7 +33,7 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 		WalletAddress: node.OwnerAddress,
 		Volume:        nozAmt,
 	}}
-	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToDec()
+	totalConsumedNoz := k.GetTotalConsumedNoz(trafficList).ToLegacyDec()
 	slashTokenAmt := k.GetTrafficReward(ctx, totalConsumedNoz)
 
 	oldSlashing := k.registerKeeper.GetSlashing(ctx, walletAddr)
@@ -40,8 +43,8 @@ func (k Keeper) SlashingResourceNode(ctx sdk.Context, p2pAddr stratos.SdsAddress
 
 	// directly change oz limit while node being suspended
 	if toBeSuspended {
-		effectiveDepositChange := sdk.ZeroInt().Sub(node.EffectiveTokens)
-		node.EffectiveTokens = sdk.ZeroInt()
+		effectiveDepositChange := sdkmath.ZeroInt().Sub(node.EffectiveTokens)
+		node.EffectiveTokens = sdkmath.ZeroInt()
 		k.registerKeeper.DecreaseOzoneLimitBySubtractDeposit(ctx, effectiveDepositChange.Abs())
 	}
 

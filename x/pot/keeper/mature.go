@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -16,7 +17,7 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 	maturedEpoch := k.GetMaturedEpoch(ctx)
 	// The first batch of reward is matured from the value of mature_epoch(param) + 1
 	if maturedEpoch.IsZero() {
-		maturedEpoch = sdk.NewInt(k.MatureEpoch(ctx))
+		maturedEpoch = sdkmath.NewInt(k.MatureEpoch(ctx))
 		k.SetMaturedEpoch(ctx, maturedEpoch)
 	}
 
@@ -31,7 +32,7 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 
 	processCount := 1
 	for i := matureStartEpochOffset; i <= matureEndEpochOffset; i++ {
-		processingEpoch := sdk.NewInt(i).Add(maturedEpoch)
+		processingEpoch := sdkmath.NewInt(i).Add(maturedEpoch)
 		totalSlashed := sdk.Coins{}
 
 		isBreak := true
@@ -54,7 +55,7 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			totalSlashed = totalSlashed.Add(deducted...)
 
 			matureTotal := oldMatureTotal.Add(remaining...)
-			immatureTotal := oldImmatureTotal.Sub(immatureToMature)
+			immatureTotal := oldImmatureTotal.Sub(immatureToMature...)
 
 			processCount++
 

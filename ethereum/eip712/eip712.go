@@ -8,10 +8,11 @@ import (
 	"reflect"
 	"strings"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -22,13 +23,13 @@ import (
 func ComputeTypedDataHash(typedData apitypes.TypedData) ([]byte, error) {
 	domainSeparator, err := typedData.HashStruct("EIP712Domain", typedData.Domain.Map())
 	if err != nil {
-		err = sdkerrors.Wrap(err, "failed to pack and hash typedData EIP712Domain")
+		err = errors.Wrap(err, "failed to pack and hash typedData EIP712Domain")
 		return nil, err
 	}
 
 	typedDataHash, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
 	if err != nil {
-		err = sdkerrors.Wrap(err, "failed to pack and hash typedData primary type")
+		err = errors.Wrap(err, "failed to pack and hash typedData primary type")
 		return nil, err
 	}
 
@@ -48,7 +49,7 @@ func WrapTxToTypedData(
 	txData := make(map[string]interface{})
 
 	if err := json.Unmarshal(data, &txData); err != nil {
-		return apitypes.TypedData{}, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, "failed to JSON unmarshal data")
+		return apitypes.TypedData{}, errors.Wrap(sdkerrors.ErrJSONUnmarshal, "failed to JSON unmarshal data")
 	}
 
 	domain := apitypes.TypedDataDomain{
@@ -67,7 +68,7 @@ func WrapTxToTypedData(
 	if feeDelegation != nil {
 		feeInfo, ok := txData["fee"].(map[string]interface{})
 		if !ok {
-			return apitypes.TypedData{}, sdkerrors.Wrap(sdkerrors.ErrInvalidType, "cannot parse fee from tx data")
+			return apitypes.TypedData{}, errors.Wrap(sdkerrors.ErrInvalidType, "cannot parse fee from tx data")
 		}
 
 		feeInfo["feePayer"] = feeDelegation.FeePayer.String()
@@ -209,17 +210,17 @@ func traverseFields(
 		fieldName := jsonNameFromTag(t.Field(i).Tag)
 
 		if fieldType == cosmosAnyType {
-			any, ok := field.Interface().(*codectypes.Any)
+			anyType, ok := field.Interface().(*codectypes.Any)
 			if !ok {
-				return sdkerrors.Wrapf(sdkerrors.ErrPackAny, "%T", field.Interface())
+				return errors.Wrapf(sdkerrors.ErrPackAny, "%T", field.Interface())
 			}
 
 			anyWrapper := &cosmosAnyWrapper{
-				Type: any.TypeUrl,
+				Type: anyType.TypeUrl,
 			}
 
-			if err := cdc.UnpackAny(any, &anyWrapper.Value); err != nil {
-				return sdkerrors.Wrap(err, "failed to unpack Any in msg struct")
+			if err := cdc.UnpackAny(anyType, &anyWrapper.Value); err != nil {
+				return errors.Wrap(err, "failed to unpack Any in msg struct")
 			}
 
 			fieldType = reflect.TypeOf(anyWrapper)
@@ -362,8 +363,8 @@ func sanitizeTypedef(str string) string {
 			continue
 		}
 
-		subparts := strings.Split(part, "_")
-		for _, subpart := range subparts {
+		subParts := strings.Split(part, "_")
+		for _, subpart := range subParts {
 			buf.WriteString(strings.Title(subpart))
 		}
 	}
@@ -375,7 +376,7 @@ var (
 	hashType      = reflect.TypeOf(common.Hash{})
 	addressType   = reflect.TypeOf(common.Address{})
 	bigIntType    = reflect.TypeOf(big.Int{})
-	cosmIntType   = reflect.TypeOf(sdk.Int{})
+	cosmIntType   = reflect.TypeOf(sdkmath.Int{})
 	cosmosAnyType = reflect.TypeOf(&codectypes.Any{})
 )
 
@@ -439,7 +440,7 @@ func typToEth(typ reflect.Type) string {
 func doRecover(err *error) {
 	if r := recover(); r != nil {
 		if e, ok := r.(error); ok {
-			e = sdkerrors.Wrap(e, "panicked with error")
+			e = errors.Wrap(e, "panicked with error")
 			*err = e
 			return
 		}

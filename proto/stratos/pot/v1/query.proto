@@ -160,6 +160,10 @@ message QueryTotalRewardByEpochResponse {
     (gogoproto.jsontag) = "total_reward",
     (gogoproto.moretags) = "yaml:\"total_reward\""
   ];
+  bool        is_legacy = 2 [
+    (gogoproto.jsontag) = "is_legacy",
+    (gogoproto.moretags) = "yaml:\"is_legacy\""
+  ];
 }
 
 message QueryMetricsRequest {}

@@ -3,14 +3,15 @@ package keeper
 import (
 	"context"
 	"encoding/hex"
-	"errors"
 	"strconv"
+	"strings"
 	"time"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -36,80 +37,97 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 		return &types.MsgCreateResourceNodeResponse{}, types.ErrResourceNodeRegDisabled
 	}
 
-	// check to see if the pubkey or sender has been registered before
+	// check to see if the pubKey or sender has been registered before
 	pkAny := msg.GetPubkey()
-	cachedPubkey := pkAny.GetCachedValue()
-	pk := cachedPubkey.(cryptotypes.PubKey)
+	cachedPubKey := pkAny.GetCachedValue()
+	pk := cachedPubKey.(cryptotypes.PubKey)
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgCreateResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgCreateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return &types.MsgCreateResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgCreateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
 	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, msg.Description, types.NodeType(msg.NodeType), msg.GetValue())
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrRegisterResourceNode, err.Error())
+		return nil, errors.Wrap(types.ErrRegisterResourceNode, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCreateResourceNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyPubKey, hex.EncodeToString(pk.Bytes())),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-			sdk.NewAttribute(types.AttributeKeyInitialDeposit, msg.Value.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventCreateResourceNode{
+			Sender:            msg.GetOwnerAddress(),
+			NetworkAddress:    msg.GetNetworkAddress(),
+			Pubkey:            hex.EncodeToString(pk.Bytes()),
+			OzoneLimitChanges: ozoneLimitChange.String(),
+			InitialDeposit:    msg.GetValue().String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgCreateResourceNodeResponse{}, nil
 }
 
 func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.MsgCreateMetaNode) (*types.MsgCreateMetaNodeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	// check to see if the pubkey or sender has been registered before
+	// check to see if the pubKey or sender has been registered before
 	pkAny := msg.GetPubkey()
-	cachedPubkey := pkAny.GetCachedValue()
-	pk := cachedPubkey.(cryptotypes.PubKey)
+	cachedPubKey := pkAny.GetCachedValue()
+	pk := cachedPubKey.(cryptotypes.PubKey)
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgCreateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgCreateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return &types.MsgCreateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgCreateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, msg.Description, msg.GetValue())
+	var beneficiaryAddress sdk.AccAddress
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) == 0 {
+		beneficiaryAddress = ownerAddress
+	} else {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgCreateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+		if beneficiaryAddress.Empty() {
+			beneficiaryAddress = ownerAddress
+		}
+	}
+
+	ozoneLimitChange, err := k.RegisterMetaNode(ctx, networkAddr, pk, ownerAddress, beneficiaryAddress, msg.Description, msg.GetValue())
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrRegisterMetaNode, err.Error())
+		return nil, errors.Wrap(types.ErrRegisterMetaNode, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeCreateMetaNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, pk.String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventCreateMetaNode{
+			Sender:            msg.GetOwnerAddress(),
+			NetworkAddress:    msg.GetNetworkAddress(),
+			OzoneLimitChanges: ozoneLimitChange.String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgCreateMetaNodeResponse{}, nil
 }
 
@@ -119,33 +137,34 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	p2pAddress, err := stratos.SdsAddressFromBech32(msg.GetResourceNodeAddress())
 	if err != nil {
-		return &types.MsgRemoveResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgRemoveResourceNodeResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
-		return &types.MsgRemoveResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgRemoveResourceNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
 	depositToRemove, completionTime, err := k.UnbondResourceNode(ctx, p2pAddress, ownerAddress)
 	if err != nil {
-		return &types.MsgRemoveResourceNodeResponse{}, sdkerrors.Wrap(types.ErrUnbondResourceNode, err.Error())
+		return &types.MsgRemoveResourceNodeResponse{}, errors.Wrap(types.ErrUnbondResourceNode, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUnbondingResourceNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyResourceNode, msg.ResourceNodeAddress),
-			sdk.NewAttribute(types.AttributeKeyDepositToRemove, sdk.NewCoin(k.BondDenom(ctx), depositToRemove).String()),
-			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUnBondingResourceNode{
+			Sender:              msg.GetOwnerAddress(),
+			ResourceNode:        msg.GetResourceNodeAddress(),
+			DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), depositToRemove).String(),
+			UnbondingMatureTime: completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgRemoveResourceNodeResponse{}, nil
 }
@@ -154,7 +173,7 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 	ctx := sdk.UnwrapSDKContext(goCtx)
 	p2pAddress, err := stratos.SdsAddressFromBech32(msg.MetaNodeAddress)
 	if err != nil {
-		return &types.MsgRemoveMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgRemoveMetaNodeResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 	metaNode, found := k.GetMetaNode(ctx, p2pAddress)
 	if !found {
@@ -164,32 +183,33 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 		return &types.MsgRemoveMetaNodeResponse{}, types.ErrInvalidOwnerAddr
 	}
 
-	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, p2pAddress)
-	availableDeposit := metaNode.Tokens.Sub(unbondingDeposit)
-	if availableDeposit.LTE(sdk.ZeroInt()) {
+	unBondingDeposit := k.GetUnbondingNodeBalance(ctx, p2pAddress)
+	availableDeposit := metaNode.Tokens.Sub(unBondingDeposit)
+	if availableDeposit.LTE(sdkmath.ZeroInt()) {
 		return &types.MsgRemoveMetaNodeResponse{}, types.ErrInsufficientBalance
 	}
 
 	ozoneLimitChange, _, _, completionTime, err := k.UnbondMetaNode(ctx, metaNode, availableDeposit)
 	if err != nil {
-		return &types.MsgRemoveMetaNodeResponse{}, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
+		return &types.MsgRemoveMetaNodeResponse{}, errors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUnbondingMetaNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyMetaNode, msg.MetaNodeAddress),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.Neg().String()),
-			sdk.NewAttribute(types.AttributeKeyDepositToRemove, sdk.NewCoin(k.BondDenom(ctx), availableDeposit).String()),
-			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUnBondingMetaNode{
+			Sender:              msg.GetOwnerAddress(),
+			MetaNode:            msg.GetMetaNodeAddress(),
+			OzoneLimitChanges:   ozoneLimitChange.Neg().String(),
+			DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), availableDeposit).String(),
+			UnbondingMatureTime: completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgRemoveMetaNodeResponse{}, nil
 }
@@ -199,7 +219,7 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 
 	candidateNetworkAddress, err := stratos.SdsAddressFromBech32(msg.GetCandidateNetworkAddress())
 	if err != nil {
-		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrInvalidCandidateNetworkAddr, err.Error())
+		return &types.MsgMetaNodeRegistrationVoteResponse{}, errors.Wrap(types.ErrInvalidCandidateNetworkAddr, err.Error())
 	}
 	candidateOwnerAddress, err := sdk.AccAddressFromBech32(msg.GetCandidateOwnerAddress())
 	if err != nil {
@@ -207,33 +227,34 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 	}
 	voterNetworkAddress, err := stratos.SdsAddressFromBech32(msg.GetVoterNetworkAddress())
 	if err != nil {
-		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrInvalidVoterNetworkAddr, err.Error())
+		return &types.MsgMetaNodeRegistrationVoteResponse{}, errors.Wrap(types.ErrInvalidVoterNetworkAddr, err.Error())
 	}
 	voterOwnerAddress, err := sdk.AccAddressFromBech32(msg.GetVoterOwnerAddress())
 	if err != nil {
-		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrInvalidVoterOwnerAddr, err.Error())
+		return &types.MsgMetaNodeRegistrationVoteResponse{}, errors.Wrap(types.ErrInvalidVoterOwnerAddr, err.Error())
 	}
 
 	nodeStatus, err := k.HandleVoteForMetaNodeRegistration(
 		ctx, candidateNetworkAddress, candidateOwnerAddress, types.VoteOpinion(msg.Opinion), voterNetworkAddress, voterOwnerAddress)
 	if err != nil {
-		return &types.MsgMetaNodeRegistrationVoteResponse{}, sdkerrors.Wrap(types.ErrVoteMetaNode, err.Error())
+		return &types.MsgMetaNodeRegistrationVoteResponse{}, errors.Wrap(types.ErrVoteMetaNode, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeMetaNodeRegistrationVote,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterOwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyVoterNetworkAddress, msg.VoterNetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyCandidateNetworkAddress, msg.CandidateNetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyCandidateStatus, nodeStatus.String()),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.VoterOwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventMetaNodeRegistrationVote{
+			Sender:                  msg.GetVoterOwnerAddress(),
+			VoterNetworkAddress:     msg.GetVoterNetworkAddress(),
+			CandidateNetworkAddress: msg.GetCandidateNetworkAddress(),
+			CandidateStatus:         nodeStatus.String(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetVoterOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgMetaNodeRegistrationVoteResponse{}, nil
 }
@@ -245,7 +266,7 @@ func (k msgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(goCtx context.Co
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.GetNetworkAddress())
 	if err != nil {
-		return &types.MsgWithdrawMetaNodeRegistrationDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgWithdrawMetaNodeRegistrationDepositResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 	ownerAddr, err := sdk.AccAddressFromBech32(msg.GetOwnerAddress())
 	if err != nil {
@@ -254,22 +275,23 @@ func (k msgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(goCtx context.Co
 
 	completionTime, err := k.WithdrawMetaNodeRegistrationDeposit(ctx, networkAddr, ownerAddr)
 	if err != nil {
-		return &types.MsgWithdrawMetaNodeRegistrationDepositResponse{}, sdkerrors.Wrap(types.ErrUnbondMetaNode, err.Error())
+		return &types.MsgWithdrawMetaNodeRegistrationDepositResponse{}, errors.Wrap(types.ErrUnbondMetaNode, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeWithdrawMetaNodeRegistrationDeposit,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventWithdrawMetaNodeRegistrationDeposit{
+			Sender:              msg.GetOwnerAddress(),
+			NetworkAddress:      msg.GetNetworkAddress(),
+			UnbondingMatureTime: completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
 
 	return &types.MsgWithdrawMetaNodeRegistrationDepositResponse{}, nil
 }
@@ -279,29 +301,32 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgUpdateResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgUpdateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return &types.MsgUpdateResourceNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgUpdateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
 	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(msg.NodeType), networkAddr, ownerAddress)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNode, err.Error())
+		return nil, errors.Wrap(types.ErrUpdateResourceNode, err.Error())
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateResourceNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateResourceNode{
+			Sender:         msg.GetOwnerAddress(),
+			NetworkAddress: msg.GetNetworkAddress(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgUpdateResourceNodeResponse{}, nil
 }
 
@@ -312,38 +337,40 @@ func (k msgServer) HandleMsgUpdateResourceNodeDeposit(goCtx context.Context, msg
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgUpdateResourceNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgUpdateResourceNodeDepositResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return &types.MsgUpdateResourceNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgUpdateResourceNodeDepositResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
 	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, err :=
 		k.UpdateResourceNodeDeposit(ctx, networkAddr, ownerAddress, msg.GetDepositDelta())
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeDeposit, err.Error())
+		return nil, errors.Wrap(types.ErrUpdateResourceNodeDeposit, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateResourceNodeDeposit,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyDepositDelta, msg.DepositDelta.String()),
-			sdk.NewAttribute(types.AttributeKeyCurrentDeposit, sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String()),
-			sdk.NewAttribute(types.AttributeKeyAvailableTokenBefore, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String()),
-			sdk.NewAttribute(types.AttributeKeyAvailableTokenAfter, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateResourceNodeDeposit{
+			Sender:               msg.GetOwnerAddress(),
+			NetworkAddress:       msg.GetNetworkAddress(),
+			DepositDelta:         msg.GetDepositDelta().String(),
+			CurrentDeposit:       sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String(),
+			AvailableTokenBefore: sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String(),
+			AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String(),
+			OzoneLimitChanges:    ozoneLimitChange.String(),
+			UnbondingMatureTime:  completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgUpdateResourceNodeDepositResponse{}, nil
 }
 
@@ -373,26 +400,29 @@ func (k msgServer) HandleMsgUpdateEffectiveDeposit(goCtx context.Context, msg *t
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgUpdateEffectiveDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgUpdateEffectiveDepositResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
-	if msg.EffectiveTokens.LTE(sdk.NewInt(0)) {
-		return &types.MsgUpdateEffectiveDepositResponse{}, errors.New("effective tokens should be greater than 0")
+	if msg.EffectiveTokens.LTE(sdkmath.NewInt(0)) {
+		return &types.MsgUpdateEffectiveDepositResponse{}, types.ErrInvalidEffectiveToken
 	}
 
 	_, _, isUnsuspendedDuringUpdate, err := k.UpdateEffectiveDeposit(ctx, networkAddr, msg.EffectiveTokens)
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUpdateResourceNodeDeposit, err.Error())
+		return nil, errors.Wrap(types.ErrUpdateResourceNodeDeposit, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateEffectiveDeposit,
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyEffectiveDepositAfter, msg.EffectiveTokens.String()),
-			sdk.NewAttribute(types.AttributeKeyIsUnsuspended, strconv.FormatBool(isUnsuspendedDuringUpdate)),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateEffectiveDeposit{
+			NetworkAddress:        msg.GetNetworkAddress(),
+			EffectiveDepositAfter: msg.EffectiveTokens.String(),
+			IsUnsuspended:         strconv.FormatBool(isUnsuspendedDuringUpdate),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgUpdateEffectiveDepositResponse{}, nil
 }
 
@@ -401,30 +431,41 @@ func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.Msg
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgUpdateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgUpdateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return &types.MsgUpdateMetaNodeResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgUpdateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	err = k.UpdateMetaNode(ctx, msg.Description, networkAddr, ownerAddress)
-	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUpdateMetaNode, err.Error())
+	beneficiaryAddress := sdk.AccAddress{}
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgUpdateMetaNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
 	}
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateMetaNode,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+
+	err = k.UpdateMetaNode(ctx, msg.Description, networkAddr, ownerAddress, beneficiaryAddress)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrUpdateMetaNode, err.Error())
+	}
+
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateMetaNode{
+			Sender:         msg.GetOwnerAddress(),
+			NetworkAddress: msg.GetNetworkAddress(),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgUpdateMetaNodeResponse{}, nil
 }
 
@@ -435,40 +476,66 @@ func (k msgServer) HandleMsgUpdateMetaNodeDeposit(goCtx context.Context, msg *ty
 
 	networkAddr, err := stratos.SdsAddressFromBech32(msg.NetworkAddress)
 	if err != nil {
-		return &types.MsgUpdateMetaNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
+		return &types.MsgUpdateMetaNodeDepositResponse{}, errors.Wrap(types.ErrInvalidNetworkAddr, err.Error())
 	}
 
 	ownerAddress, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
 	if err != nil {
-		return &types.MsgUpdateMetaNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
+		return &types.MsgUpdateMetaNodeDepositResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
 	if msg.DepositDelta.Amount.IsNegative() {
-		return &types.MsgUpdateMetaNodeDepositResponse{}, sdkerrors.Wrap(types.ErrInvalidDepositChange, err.Error())
+		return &types.MsgUpdateMetaNodeDepositResponse{}, errors.Wrap(types.ErrInvalidDepositChange, err.Error())
 	}
 
 	ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, completionTime, node, err := k.UpdateMetaNodeDeposit(ctx, networkAddr, ownerAddress, msg.GetDepositDelta())
 	if err != nil {
-		return nil, sdkerrors.Wrap(types.ErrUpdateMetaNodeDeposit, err.Error())
+		return nil, errors.Wrap(types.ErrUpdateMetaNodeDeposit, err.Error())
 	}
 
-	ctx.EventManager().EmitEvents(sdk.Events{
-		sdk.NewEvent(
-			types.EventTypeUpdateMetaNodeDeposit,
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-			sdk.NewAttribute(types.AttributeKeyNetworkAddress, msg.NetworkAddress),
-			sdk.NewAttribute(types.AttributeKeyDepositDelta, msg.DepositDelta.String()),
-			sdk.NewAttribute(types.AttributeKeyCurrentDeposit, sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String()),
-			sdk.NewAttribute(types.AttributeKeyAvailableTokenBefore, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String()),
-			sdk.NewAttribute(types.AttributeKeyAvailableTokenAfter, sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String()),
-			sdk.NewAttribute(types.AttributeKeyOZoneLimitChanges, ozoneLimitChange.String()),
-			sdk.NewAttribute(types.AttributeKeyUnbondingMatureTime, completionTime.Format(time.RFC3339)),
-		),
-		sdk.NewEvent(
-			sdk.EventTypeMessage,
-			sdk.NewAttribute(sdk.AttributeKeyModule, types.AttributeValueCategory),
-			sdk.NewAttribute(sdk.AttributeKeySender, msg.OwnerAddress),
-		),
-	})
+	err = ctx.EventManager().EmitTypedEvents(
+		&types.EventUpdateMetaNodeDeposit{
+			Sender:               msg.GetOwnerAddress(),
+			NetworkAddress:       msg.GetNetworkAddress(),
+			DepositDelta:         msg.GetDepositDelta().String(),
+			CurrentDeposit:       sdk.NewCoin(k.BondDenom(ctx), node.Tokens).String(),
+			AvailableTokenBefore: sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtBefore).String(),
+			AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String(),
+			OzoneLimitChanges:    ozoneLimitChange.String(),
+			UnbondingMatureTime:  completionTime.Format(time.RFC3339),
+		},
+		&types.EventMessage{
+			Module: types.ModuleName,
+			Sender: msg.GetOwnerAddress(),
+		},
+	)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
 	return &types.MsgUpdateMetaNodeDepositResponse{}, nil
+}
+
+// UpdateParams updates the module parameters
+func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams) (*types.MsgUpdateParamsResponse, error) {
+	if k.authority != msg.Authority {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	err := k.SetParams(ctx, msg.Params)
+	if err != nil {
+		return nil, err
+	}
+
+	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
+		Module: types.ModuleName,
+		Sender: msg.Authority,
+		Action: sdk.MsgTypeURL(msg),
+	})
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
+	return &types.MsgUpdateParamsResponse{}, nil
 }

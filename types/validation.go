@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"math"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
+
+	"cosmossdk.io/errors"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 )
 
 // IsEmptyHash returns true if the hash corresponds to an empty ethereum hex hash.
@@ -21,7 +23,7 @@ func IsZeroAddress(address string) bool {
 // ValidateHexAddress returns an error if the provided string is either not a hex formatted string address
 func ValidateHexAddress(address string) error {
 	if !common.IsHexAddress(address) {
-		return sdkerrors.Wrapf(
+		return errors.Wrapf(
 			sdkerrors.ErrInvalidAddress, "address '%s' is not a valid ethereum hex address",
 			address,
 		)
@@ -29,10 +31,10 @@ func ValidateHexAddress(address string) error {
 	return nil
 }
 
-// SafeInt64 checks for overflows while casting a uint64 to int64 value.
+// SafeInt64 checks for overflows while casting an uint64 to int64 value.
 func SafeInt64(value uint64) (int64, error) {
 	if value > uint64(math.MaxInt64) {
-		return 0, sdkerrors.Wrapf(sdkerrors.ErrInvalidHeight, "uint64 value %v cannot exceed %v", value, int64(math.MaxInt64))
+		return 0, errors.Wrapf(sdkerrors.ErrInvalidHeight, "uint64 value %v cannot exceed %v", value, int64(math.MaxInt64))
 	}
 
 	return int64(value), nil
