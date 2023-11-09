@@ -38,20 +38,22 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 	}
 
 	epochInt64 := req.GetEpoch()
-
-	if sdkmath.NewInt(epochInt64).LTE(sdkmath.ZeroInt()) {
-		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
-	}
-
 	epoch := sdkmath.NewInt(epochInt64)
 
 	ctx := sdk.UnwrapSDKContext(c)
+	if epoch.LT(sdkmath.ZeroInt()) {
+		return &types.QueryVolumeReportResponse{}, status.Error(codes.InvalidArgument, "epoch should be positive value")
+	}
+	if epoch.Equal(sdkmath.ZeroInt()) {
+		epoch = q.GetLastDistributedEpoch(ctx)
+	}
+
 	height := ctx.BlockHeight()
 	volumeReport := q.GetVolumeReport(ctx, epoch)
 
 	return &types.QueryVolumeReportResponse{
 		ReportInfo: &types.ReportInfo{
-			Epoch:     epochInt64,
+			Epoch:     epoch.Int64(),
 			Reference: volumeReport.ReportReference,
 			Reporter:  volumeReport.Reporter,
 			TxHash:    volumeReport.TxHash,
