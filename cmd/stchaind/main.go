@@ -1,7 +1,7 @@
 package main
 
 import (
-	"go/doc/comment"
+	"crypto/tls"
 	"os"
 
 	sdkmath "cosmossdk.io/math"
@@ -18,9 +18,8 @@ import (
 const EnvPrefix = ""
 
 var (
-	// Force to build with go1.19, because sorting algorithm has been rewritten since go1.19
-	// The order of sorted results will be different between go1.18 & go1.19 if the values of the compared elements are equal
-	doc comment.Doc
+	// Force to build with go1.20
+	noUsage tls.CertificateVerificationError
 )
 
 func main() {
