@@ -1,6 +1,6 @@
 # Simple usage with a mounted data directory:
 # > docker build -t stratos-chain-e2e --build-arg uid=$(id -u) --build-arg gid=$(id -g) -f tests/e2e/Dockerfile .
-FROM golang:1.19-alpine AS build-env
+FROM golang:1.20-alpine AS build-env
 
 # Set up dependencies
 ENV PACKAGES curl make git libc-dev bash gcc linux-headers eudev-dev python3
