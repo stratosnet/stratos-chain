@@ -34,6 +34,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return getCirculationSupply(ctx, req, k, legacyQuerierCdc)
 		case types.QueryTotalRewardByEpoch:
 			return getTotalRewardByEpoch(ctx, req, k, legacyQuerierCdc)
+		case types.QueryMetrics:
+			return getMetrics(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown pot query endpoint")
 		}
@@ -189,6 +191,16 @@ func getTotalRewardByEpoch(ctx sdk.Context, req abci.RequestQuery, k Keeper, leg
 	totalReward := k.GetTotalReward(ctx, params.Epoch)
 
 	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, totalReward)
+	if err != nil {
+		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+	return bz, nil
+}
+
+func getMetrics(ctx sdk.Context, req abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	metrics := k.GetMetrics(ctx)
+
+	bz, err := codec.MarshalJSONIndent(legacyQuerierCdc, metrics)
 	if err != nil {
 		return []byte{}, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}

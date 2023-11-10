@@ -1,6 +1,7 @@
 package pool
 
 import (
+	"errors"
 	"fmt"
 	"math/big"
 	"sync"
@@ -34,33 +35,29 @@ const (
 )
 
 var (
-	initInterval           = 5 * time.Second // Time interval to prepare some after tendermint initializations
 	evictionInterval       = time.Minute     // Time interval to check for evictable transactions
 	statsReportInterval    = 8 * time.Second // Time interval to report transaction pool stats
 	processQueueInterval   = 5 * time.Second // Time interval to process queue transactions in case if their ready and move to pending stage
 	processPendingInterval = 5 * time.Second // Time interval of pending tx broadcating to a tm mempool
 )
 
-type txpoolResetRequest struct {
-	oldHead, newHead *types.Header
-}
-
 // TxPool contains all currently known transactions. Transactions
 // enter the pool when they are received from the local network or submitted
 // locally. They exit the pool when they are included in the blockchain.
 type TxPool struct {
-	config    core.TxPoolConfig
-	srvCfg    config.Config
-	logger    log.Logger
-	clientCtx client.Context
-	evmCtx    *evm.Context
-	signer    types.Signer
-	mempool   mempl.Mempool
-	mu        sync.RWMutex
+	config      core.TxPoolConfig
+	srvCfg      config.Config
+	logger      log.Logger
+	clientCtx   client.Context
+	evmCtx      *evm.Context
+	signerCache types.Signer // should be loaded in dynamic as potentially will not exist during chain initialization
+	mempool     mempl.Mempool
+	mu          sync.RWMutex
+	imu         sync.Mutex // only for initializations
 
-	evmkeeper     *evmkeeper.Keeper // Active keeper to get current state
-	pendingNonces *txNoncer         // Pending state tracking virtual nonces
-	currentMaxGas uint64            // Current gas limit for transaction caps
+	evmkeeper        *evmkeeper.Keeper // Active keeper to get current state
+	pendingNonces    *txNoncer         // Pending state tracking virtual nonces
+	maxGasLimitCache uint64            // Current gas limit for transaction caps, only for cache
 
 	beats map[common.Address]time.Time // Last heartbeat from each known account
 
@@ -69,31 +66,33 @@ type TxPool struct {
 	all     *txLookup                  // All transactions to allow lookups
 }
 
+// catchInitPanic used only in methods which are dependent from the store and potentially could be down
+// due to not initialized chain
+func catchInitPanic(err *error) {
+	if errRec := recover(); errRec != nil {
+		log.Warn("storage still not initialized, value could not be loaded")
+		*err = errors.New("chain not started yet")
+	}
+}
+
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
 // transactions from the network.
 func NewTxPool(config core.TxPoolConfig, srvCfg config.Config, clientCtx client.Context, mempool mempl.Mempool, evmkeeper *evmkeeper.Keeper, evmCtx *evm.Context) (*TxPool, error) {
-	sdkCtx := evmCtx.GetSdkContext()
-	params := evmkeeper.GetParams(sdkCtx)
 	pool := &TxPool{
-		config:    config,
-		srvCfg:    srvCfg,
-		clientCtx: clientCtx,
-		evmCtx:    evmCtx,
-		signer:    types.LatestSignerForChainID(params.ChainConfig.ChainID.BigInt()),
-		mempool:   mempool,
-		evmkeeper: evmkeeper,
-		beats:     make(map[common.Address]time.Time),
-		pending:   make(map[common.Address]*txList),
-		queue:     make(map[common.Address]*txList),
-		all:       newTxLookup(),
+		config:           config,
+		srvCfg:           srvCfg,
+		clientCtx:        clientCtx,
+		evmCtx:           evmCtx,
+		mempool:          mempool,
+		evmkeeper:        evmkeeper,
+		signerCache:      nil,
+		maxGasLimitCache: 0,
+		beats:            make(map[common.Address]time.Time),
+		pending:          make(map[common.Address]*txList),
+		queue:            make(map[common.Address]*txList),
+		all:              newTxLookup(),
 	}
 	pool.pendingNonces = newTxNoncer(pool.evmCtx, pool.evmkeeper)
-
-	gasLimit, err := evmtypes.BlockMaxGasFromConsensusParams(nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get tx pool current max gas: %w (possible DB not started?)", err)
-	}
-	pool.currentMaxGas = uint64(gasLimit)
 
 	go pool.eventLoop()
 
@@ -161,6 +160,42 @@ func (pool *TxPool) eventLoop() {
 	}
 }
 
+// getSigner return signer for existing chain id
+func (pool *TxPool) getSigner() (_ types.Signer, err error) {
+	defer catchInitPanic(&err)
+
+	if pool.signerCache == nil {
+		pool.imu.Lock()
+		defer pool.imu.Unlock()
+
+		if pool.signerCache == nil {
+			sdkCtx := pool.evmCtx.GetSdkContext()
+			params := pool.evmkeeper.GetParams(sdkCtx)
+			pool.signerCache = types.LatestSignerForChainID(params.ChainConfig.ChainID.BigInt())
+		}
+	}
+	return pool.signerCache, nil
+}
+
+// getMaxGasLimit return current gas limit for transaction caps
+func (pool *TxPool) getMaxGasLimit() (_ uint64, err error) {
+	defer catchInitPanic(&err)
+
+	if pool.maxGasLimitCache == 0 {
+		pool.imu.Lock()
+		defer pool.imu.Unlock()
+
+		if pool.maxGasLimitCache == 0 {
+			gasLimit, err := evmtypes.BlockMaxGasFromConsensusParams(nil)
+			if err != nil {
+				return 0, fmt.Errorf("failed to get tx pool current max gas: %w (possible DB not started?)", err)
+			}
+			pool.maxGasLimitCache = uint64(gasLimit)
+		}
+	}
+	return pool.maxGasLimitCache, nil
+}
+
 // Get returns a transaction if it is contained in the pool and nil otherwise.
 func (pool *TxPool) Get(hash common.Hash) *types.Transaction {
 	return pool.all.Get(hash)
@@ -220,6 +255,16 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 	log.Trace("Validating tx", "hash", tx.Hash())
 	sdkCtx := pool.evmCtx.GetSdkContext()
 
+	currentMaxGas, err := pool.getMaxGasLimit()
+	if err != nil {
+		return err
+	}
+
+	signer, err := pool.getSigner()
+	if err != nil {
+		return err
+	}
+
 	// Accept only legacy transactions until EIP-2718/2930 activates.
 	if !tx.Protected() {
 		return core.ErrTxTypeNotSupported
@@ -238,7 +283,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return core.ErrNegativeValue
 	}
 	// Ensure the transaction doesn't exceed the current block limit gas.
-	if pool.currentMaxGas < tx.Gas() {
+	if currentMaxGas < tx.Gas() {
 		return core.ErrGasLimit
 	}
 	// Sanity check for extremely large numbers
@@ -253,7 +298,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return core.ErrTipAboveFeeCap
 	}
 	// Make sure the transaction is signed properly.
-	from, err := types.Sender(pool.signer, tx)
+	from, err := types.Sender(signer, tx)
 	if err != nil {
 		return core.ErrInvalidSender
 	}
@@ -327,8 +372,10 @@ func (pool *TxPool) Add(tx *types.Transaction) (replaced bool, err error) {
 	if err != nil {
 		return false, err
 	}
+
+	signer, _ := pool.getSigner()
 	// Try to replace an existing transaction in the pending pool
-	from, _ := types.Sender(pool.signer, tx) // already validated
+	from, _ := types.Sender(signer, tx) // already validated
 	if list := pool.pending[from]; list != nil && list.Overlaps(tx) {
 		log.Trace("Tx overlap", "hash", tx.Hash())
 		// Nonce already pending, check if required price bump is met
@@ -354,7 +401,9 @@ func (pool *TxPool) Add(tx *types.Transaction) (replaced bool, err error) {
 // Note, this method assumes the pool lock is held!
 func (pool *TxPool) enqueueTx(tx *types.Transaction, addAll bool) (bool, error) {
 	log.Trace("Tx enqeue", "hash", tx.Hash())
-	from, _ := types.Sender(pool.signer, tx) // already validated
+
+	signer, _ := pool.getSigner()
+	from, _ := types.Sender(signer, tx) // already validated
 	if pool.queue[from] == nil {
 		pool.queue[from] = newTxList(false)
 	}
@@ -389,7 +438,8 @@ func (pool *TxPool) removeTx(hash common.Hash) {
 		log.Error("Tx not found during removal", "hash", hash)
 		return
 	}
-	addr, _ := types.Sender(pool.signer, tx) // already validated during insertion
+	signer, _ := pool.getSigner()
+	addr, _ := types.Sender(signer, tx) // already validated during insertion
 
 	// Remove it from the list of known transactions
 	pool.all.Remove(hash)
@@ -477,6 +527,7 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) []*types.Trans
 	var promoted []*types.Transaction
 
 	sdkCtx := pool.evmCtx.GetSdkContext()
+	currentMaxGas, _ := pool.getMaxGasLimit()
 
 	// Iterate over all accounts and promote any executable transactions
 	for _, addr := range accounts {
@@ -492,7 +543,7 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) []*types.Trans
 		}
 		log.Trace("Removed old queued transactions", "count", len(forwards))
 		// Drop all transactions that are too costly (low balance or out of gas)
-		drops, _ := list.Filter(pool.evmkeeper.GetBalance(sdkCtx, addr), pool.currentMaxGas)
+		drops, _ := list.Filter(pool.evmkeeper.GetBalance(sdkCtx, addr), currentMaxGas)
 		for _, tx := range drops {
 			hash := tx.Hash()
 			pool.all.Remove(hash)
@@ -526,6 +577,8 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) []*types.Trans
 // to trigger a re-heap is this function
 func (pool *TxPool) demoteUnexecutables() {
 	sdkCtx := pool.evmCtx.GetSdkContext()
+	currentMaxGas, _ := pool.getMaxGasLimit()
+
 	// Iterate over all accounts and demote any non-executable transactions
 	for addr, list := range pool.pending {
 		nonce := pool.evmkeeper.GetNonce(sdkCtx, addr)
@@ -538,7 +591,7 @@ func (pool *TxPool) demoteUnexecutables() {
 			log.Trace("Removed old pending transaction", "hash", hash)
 		}
 		// Drop all transactions that are too costly (low balance or out of gas), and queue any invalids back for later
-		drops, invalids := list.Filter(pool.evmkeeper.GetBalance(sdkCtx, addr), pool.currentMaxGas)
+		drops, invalids := list.Filter(pool.evmkeeper.GetBalance(sdkCtx, addr), currentMaxGas)
 		for _, tx := range drops {
 			hash := tx.Hash()
 			log.Trace("Removed unpayable pending transaction", "hash", hash)

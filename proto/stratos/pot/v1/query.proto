@@ -47,6 +47,10 @@ service Query {
   rpc TotalRewardByEpoch(QueryTotalRewardByEpochRequest) returns (QueryTotalRewardByEpochResponse) {
     option (google.api.http).get = "/stratos/pot/v1/total-reward/{epoch}";
   }
+
+  rpc Metrics(QueryMetricsRequest) returns (QueryMetricsResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/metrics";
+  }
 }
 
 // QueryVolumeReportRequest is request type for the Query/VolumeReport RPC method
@@ -158,3 +162,10 @@ message QueryTotalRewardByEpochResponse {
   ];
 }
 
+message QueryMetricsRequest {}
+
+message QueryMetricsResponse {
+  Metrics metrics = 1 [
+    (gogoproto.nullable) = false
+  ];
+}

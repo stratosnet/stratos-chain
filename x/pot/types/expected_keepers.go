@@ -4,6 +4,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
+	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -41,6 +42,7 @@ type RegisterKeeper interface {
 	GetDepositNozRate(ctx sdk.Context) (depositNozRate sdk.Dec)
 
 	GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
+	GetResourceNodeNotBondedToken(ctx sdk.Context) (token sdk.Coin)
 	GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin)
 
 	GetEffectiveTotalDeposit(ctx sdk.Context) (deposit sdk.Int)
@@ -58,6 +60,7 @@ type RegisterKeeper interface {
 
 type StakingKeeper interface {
 	TotalBondedTokens(ctx sdk.Context) sdk.Int
+	IterateUnbondingDelegations(ctx sdk.Context, fn func(index int64, ubd stakingtypes.UnbondingDelegation) (stop bool))
 }
 
 type DistrKeeper interface {
