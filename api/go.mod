@@ -1,4 +1,4 @@
-module stratos-chain/api
+module stratos.io/api
 
 go 1.19
 
