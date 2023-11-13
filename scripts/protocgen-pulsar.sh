@@ -15,7 +15,7 @@ echo "Cleaning API directory"
 echo "Generating API"
 cd proto
 
-module_dirs=$(find ./stratos/ -path -prune -o -name 'module.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
+module_dirs=$(find ./stratos/ -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
 for dir in $module_dirs; do
   buf generate --template buf.gen.pulsar.yaml --path $dir
 done

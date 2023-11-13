@@ -3,11 +3,11 @@ package sdsv1
 
 import (
 	v1beta1 "cosmossdk.io/api/cosmos/base/v1beta1"
-	_ "cosmossdk.io/api/cosmos_proto"
-	_ "cosmossdk.io/api/gogoproto"
-	_ "cosmossdk.io/api/google/api"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	runtime "github.com/cosmos/cosmos-proto/runtime"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoiface "google.golang.org/protobuf/runtime/protoiface"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

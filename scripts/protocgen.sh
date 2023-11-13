@@ -6,9 +6,6 @@
 
 set -e
 
-echo "Generating protobuf dependency"
-# buf export buf.build/cosmos/cosmos-sdk:v0.47.0 --output ./proto
-
 echo "Generating gogo proto code"
 cd proto
 proto_dirs=$(find ./stratos -path -prune -o -name '*.proto' -print0 | xargs -0 -n1 dirname | sort | uniq)
