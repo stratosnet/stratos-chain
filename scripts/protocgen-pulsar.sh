@@ -3,8 +3,8 @@
 set -eo pipefail
 
 protoc_install_gopulsar() {
-  go install github.com/cosmos/cosmos-proto/cmd/protoc-gen-go-pulsar@v1.0.0-beta.2
-  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.1.0
+  go install github.com/cosmos/cosmos-proto/cmd/protoc-gen-go-pulsar@v1.0.0-beta.3
+  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 }
 
 protoc_install_gopulsar
