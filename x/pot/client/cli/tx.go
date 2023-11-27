@@ -197,6 +197,10 @@ func VolumeReportCmd() *cobra.Command {
 			//return utils.GenerateOrBroadcastMsgs(cliCtx, txBldr, []sdk.Msg{msg})
 		},
 	}
+	//cmd.Flags().AddFlagSet(FsReporterAddr)
+	//cmd.Flags().AddFlagSet(FsEpoch)
+	//cmd.Flags().AddFlagSet(FsReportReference)
+	//cmd.Flags().AddFlagSet(FsWalletVolumes)
 	cmd.Flags().AddFlagSet(flagSetReportVolumes())
 
 	flags.AddTxFlagsToCmd(cmd)

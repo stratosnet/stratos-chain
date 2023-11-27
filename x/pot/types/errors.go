@@ -41,7 +41,6 @@ const (
 	codeErrVolumeReport
 	codeErrLegacyWithdrawFailure
 	codeErrReporterAddressOrOwner
-	codeErrEmptyTotalUnusedOzone
 )
 
 var (
@@ -81,5 +80,4 @@ var (
 	ErrVolumeReport                   = sdkerrors.Register(ModuleName, codeErrVolumeReport, "volume report failed")
 	ErrLegacyWithdrawFailure          = sdkerrors.Register(ModuleName, codeErrLegacyWithdrawFailure, "failure during legacyWithdraw")
 	ErrReporterAddressOrOwner         = sdkerrors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
-	ErrEmptyTotalUnusedOzone          = sdkerrors.Register(ModuleName, codeErrEmptyTotalUnusedOzone, "total unused ozone is missing")
 )
