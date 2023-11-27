@@ -86,12 +86,7 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 
 	walletVolumes := types.WalletVolumes{Volumes: msg.WalletVolumes}
 
-	totalUnusedOzone, ok := sdk.NewIntFromString(msg.TotalUnusedOzone)
-	if !ok {
-		return &types.MsgVolumeReportResponse{}, types.ErrInvalid
-	}
-
-	err = k.VolumeReport(ctx, walletVolumes, reporter, epoch, totalUnusedOzone, msg.ReportReference, txhash)
+	err = k.VolumeReport(ctx, walletVolumes, reporter, epoch, msg.ReportReference, txhash)
 	if err != nil {
 		return nil, sdkerrors.Wrap(types.ErrVolumeReport, err.Error())
 	}

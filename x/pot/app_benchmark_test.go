@@ -142,7 +142,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	ctx = stApp.BaseApp.NewContext(true, header)
 
 	/********************* prepare tx data *********************/
-	volumeReportMsg := setupMsgVolumeReportBenchmark(t, sdk.NewInt(1), metaNodes, resourceNodes, sdk.NewInt(1))
+	volumeReportMsg := setupMsgVolumeReportBenchmark(t, sdk.NewInt(1), metaNodes, resourceNodes)
 
 	/********************* deliver tx *********************/
 	idxOwnerAcc1 := accountKeeper.GetAccount(ctx, keysMap[metaNodes[0].NetworkAddress].OwnerAddress())
@@ -251,7 +251,7 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 }
 
 // initialize data of volume report
-func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdk.Int, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode, totalUnusedOzone sdk.Int) *types.MsgVolumeReport {
+func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdk.Int, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) *types.MsgVolumeReport {
 	rsNodeVolume := sdk.NewInt(50000)
 
 	nodesVolume := make([]types.SingleWalletVolume, 0)
@@ -269,7 +269,7 @@ func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdk.Int, metaNodes []regi
 	reporterOwner := reporterKey.OwnerAddress()
 
 	signature := types.BLSSignatureInfo{}
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature, totalUnusedOzone)
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
 
 	signBytes := volumeReportMsg.GetBLSSignBytes()
 	signBytesHash := crypto.Keccak256(signBytes)

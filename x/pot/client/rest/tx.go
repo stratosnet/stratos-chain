@@ -35,13 +35,12 @@ type (
 	}
 
 	volumeReportReq struct {
-		BaseReq          rest.BaseReq               `json:"base_req" yaml:"base_req"`
-		WalletVolumes    []types.SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`         // volume report
-		Reporter         string                     `json:"reporter" yaml:"reporter"`                     // volume reporter
-		Epoch            int64                      `json:"epoch" yaml:"epoch"`                           // volume report epoch
-		ReportReference  string                     `json:"report_reference" yaml:"report_reference"`     // volume report reference
-		BLSSignature     types.BaseBLSSignatureInfo `json:"bls_signature" yaml:"bls_signature"`           // bls signature
-		TotalUnusedOzone string                     `json:"total_unused_ozone" yaml:"total_unused_ozone"` // total unused ozone remaining in the sds network
+		BaseReq         rest.BaseReq               `json:"base_req" yaml:"base_req"`
+		WalletVolumes   []types.SingleWalletVolume `json:"wallet_volumes" yaml:"wallet_volumes"`     // volume report
+		Reporter        string                     `json:"reporter" yaml:"reporter"`                 // volume reporter
+		Epoch           int64                      `json:"epoch" yaml:"epoch"`                       // volume report epoch
+		ReportReference string                     `json:"report_reference" yaml:"report_reference"` // volume report reference
+		BLSSignature    types.BaseBLSSignatureInfo `json:"bls_signature" yaml:"bls_signature"`       // bls signature
 	}
 
 	slashingResourceNodeReq struct {
@@ -110,13 +109,7 @@ func volumeReportRequestHandlerFn(cliCtx client.Context) http.HandlerFunc {
 		}
 		blsSignature := types.NewBLSSignatureInfo(pubKeys, []byte(sig.Signature), []byte(sig.TxData))
 
-		totalUnusedOzone, ok := sdk.NewIntFromString(req.TotalUnusedOzone)
-		if !ok {
-			rest.WriteErrorResponse(w, http.StatusBadRequest, "total unused ozone is not a valid integer: "+req.TotalUnusedOzone)
-			return
-		}
-
-		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner, blsSignature, totalUnusedOzone)
+		msg := types.NewMsgVolumeReport(walletVolumes, reporter, epoch, reportReference, reporterOwner, blsSignature)
 		err = msg.ValidateBasic()
 		if err != nil {
 			rest.WriteErrorResponse(w, http.StatusBadRequest, err.Error())

@@ -31,16 +31,14 @@ func NewMsgVolumeReport(
 	reportReference string,
 	reporterOwner sdk.AccAddress,
 	blsSignature BLSSignatureInfo,
-	totalUnusedOzone sdk.Int,
 ) *MsgVolumeReport {
 	return &MsgVolumeReport{
-		WalletVolumes:    walletVolumes,
-		Reporter:         reporter.String(),
-		Epoch:            epoch,
-		ReportReference:  reportReference,
-		ReporterOwner:    reporterOwner.String(),
-		BLSSignature:     blsSignature,
-		TotalUnusedOzone: totalUnusedOzone.String(),
+		WalletVolumes:   walletVolumes,
+		Reporter:        reporter.String(),
+		Epoch:           epoch,
+		ReportReference: reportReference,
+		ReporterOwner:   reporterOwner.String(),
+		BLSSignature:    blsSignature,
 	}
 }
 
@@ -117,9 +115,6 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 		if len(pubKey) == 0 {
 			return ErrBLSPubkeysInvalid
 		}
-	}
-	if len(msg.TotalUnusedOzone) == 0 {
-		return ErrEmptyTotalUnusedOzone
 	}
 
 	return nil

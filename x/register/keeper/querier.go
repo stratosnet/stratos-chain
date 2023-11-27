@@ -30,6 +30,7 @@ const (
 	QueryRegisterParams            = "register_params"
 	QueryResourceNodesCount        = "resource_nodes_count"
 	QueryMetaNodesCount            = "meta_nodes_count"
+	QueryRemainingOzoneLimit       = "remaining_ozone_limit"
 )
 
 // NewQuerier creates a new querier for register clients.
@@ -52,6 +53,8 @@ func NewQuerier(k Keeper, legacyQuerierCdc *codec.LegacyAmino) sdk.Querier {
 			return getResourceNodeCnt(ctx, req, k, legacyQuerierCdc)
 		case QueryMetaNodesCount:
 			return getMetaNodeCnt(ctx, req, k, legacyQuerierCdc)
+		case QueryRemainingOzoneLimit:
+			return getRemainingOzoneLimit(ctx, req, k, legacyQuerierCdc)
 		default:
 			return nil, sdkerrors.Wrap(sdkerrors.ErrUnknownRequest, "unknown register query endpoint "+req.String()+string(req.Data))
 		}
@@ -357,6 +360,16 @@ func getDepositInfoByOwnerAddr(ctx sdk.Context, req abci.RequestQuery, k Keeper,
 		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
 	}
 	return result, nil
+}
+
+func getRemainingOzoneLimit(ctx sdk.Context, _ abci.RequestQuery, k Keeper, legacyQuerierCdc *codec.LegacyAmino) ([]byte, error) {
+	limit := k.GetRemainingOzoneLimit(ctx).String()
+	res, err := codec.MarshalJSONIndent(legacyQuerierCdc, limit)
+	if err != nil {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONMarshal, err.Error())
+	}
+
+	return res, nil
 }
 
 func (k Keeper) getNodeDeposit(ctx sdk.Context, bondStatus stakingtypes.BondStatus, nodeAddress stratos.SdsAddress, tokens sdk.Int) (

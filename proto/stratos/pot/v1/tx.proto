@@ -58,10 +58,6 @@ message MsgVolumeReport {
     (gogoproto.jsontag) = "bls_signature",
     (gogoproto.moretags) = "yaml:\"bls_signature\""
   ];
-  string                   total_unused_ozone = 7 [
-    (gogoproto.jsontag) = "total_unused_ozone",
-    (gogoproto.moretags) = "yaml:\"total_unused_ozone\""
-  ];
 }
 // MsgVolumeReportResponse defines the MsgVolumeReport response type
 message MsgVolumeReportResponse {}
