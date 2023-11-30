@@ -286,7 +286,7 @@ func (q Querier) RemainingOzoneLimit(c context.Context, _ *types.QueryRemainingO
 
 	remainingOzoneLimit := q.GetRemainingOzoneLimit(ctx)
 	res := &types.QueryRemainingOzoneLimitResponse{
-		OzoneLimit: &remainingOzoneLimit,
+		OzoneLimit: remainingOzoneLimit,
 	}
 
 	return res, nil

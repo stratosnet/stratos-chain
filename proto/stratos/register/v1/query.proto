@@ -159,7 +159,12 @@ message QueryRemainingOzoneLimitRequest {}
 
 // QueryRemainingOzoneLimitResponse is response type for the Query/RemainingOzoneLimit RPC method.
 message QueryRemainingOzoneLimitResponse {
-  string ozone_limit = 1 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+  string ozone_limit = 1 [
+    (gogoproto.nullable) = false,
+    (gogoproto.jsontag) = "ozone_limit",
+    (gogoproto.moretags) = "yaml:\"ozone_limit\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }
 
 message DepositInfo {
