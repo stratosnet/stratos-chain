@@ -182,6 +182,15 @@ func (msg MsgCreateMetaNode) ValidateBasic() error {
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
+
+	beneficiaryAddress, err := sdk.AccAddressFromBech32(msg.GetBeneficiaryAddress())
+	if err != nil {
+		return ErrInvalidBeneficiaryAddr
+	}
+	if beneficiaryAddress.Empty() {
+		return ErrInvalidBeneficiaryAddr
+	}
+
 	if !msg.GetValue().IsPositive() {
 		return ErrValueNegative
 	}

@@ -3,6 +3,7 @@ package types
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -65,9 +66,12 @@ func (msg MsgVolumeReport) GetSignBytes() []byte {
 }
 
 func (msg MsgVolumeReport) GetBLSSignBytes() []byte {
-	msg.BLSSignature = NewBLSSignatureInfo(nil, nil, nil)
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	msg.BLSSignature = BLSSignatureInfo{}
+	bz, err := proto.Marshal(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 // ValidateBasic validity check for the AnteHandler

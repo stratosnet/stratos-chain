@@ -7,7 +7,7 @@ require (
 	cosmossdk.io/core v0.5.1
 	cosmossdk.io/depinject v1.0.0-alpha.4
 	cosmossdk.io/errors v1.0.0
-	cosmossdk.io/math v1.1.2
+	cosmossdk.io/math v1.2.0
 	cosmossdk.io/simapp v0.0.0-20230828070859-c9144f02dda8
 	cosmossdk.io/tools/rosetta v0.2.1
 	github.com/Nik-U/pbc v0.0.0-20181205041846-3e516ca0c5d6
@@ -38,7 +38,7 @@ require (
 	github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/exp v0.0.0-20230711153332-06a737ee72cb
 	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97
-	google.golang.org/grpc v1.58.2
+	google.golang.org/grpc v1.58.3
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/yaml.v2 v2.4.0
 )

@@ -211,14 +211,13 @@ $ %s query register get-meta-node --network-address=stsds1faej5w4q6hgnt0ft598dlm
 			}
 
 			result, err := queryClient.MetaNode(cmd.Context(), &types.QueryMetaNodeRequest{
-				// Leaving status empty on purpose to query all validators.
 				NetworkAddr: queryFlagNetworkAddr,
 			})
 			if err != nil {
 				return err
 			}
 
-			return clientCtx.PrintProto(result)
+			return clientCtx.PrintProto(result.GetNode())
 		},
 	}
 
