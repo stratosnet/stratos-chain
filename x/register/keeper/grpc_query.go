@@ -280,3 +280,14 @@ func (q Querier) DepositTotal(c context.Context, _ *types.QueryDepositTotalReque
 
 	return res, nil
 }
+
+func (q Querier) RemainingOzoneLimit(c context.Context, _ *types.QueryRemainingOzoneLimitRequest) (*types.QueryRemainingOzoneLimitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	remainingOzoneLimit := q.GetRemainingOzoneLimit(ctx)
+	res := &types.QueryRemainingOzoneLimitResponse{
+		OzoneLimit: remainingOzoneLimit,
+	}
+
+	return res, nil
+}

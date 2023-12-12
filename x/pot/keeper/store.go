@@ -218,7 +218,7 @@ func (k Keeper) GetTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalReward 
 	return
 }
 
-// IteratorMatureTotal Iteration for getting total mature reward
+// IteratorTotalReward Iteration for getting total mature reward
 func (k Keeper) IteratorTotalReward(ctx sdk.Context, handler func(epoch sdkmath.Int, totalReward types.TotalReward) (stop bool)) {
 	store := ctx.KVStore(k.storeKey)
 	iter := sdk.KVStorePrefixIterator(store, types.TotalRewardKeyPrefix)
