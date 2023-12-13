@@ -27,6 +27,7 @@ const (
 	Query_DepositTotal_FullMethodName            = "/stratos.register.v1.Query/DepositTotal"
 	Query_BondedResourceNodeCount_FullMethodName = "/stratos.register.v1.Query/BondedResourceNodeCount"
 	Query_BondedMetaNodeCount_FullMethodName     = "/stratos.register.v1.Query/BondedMetaNodeCount"
+	Query_RemainingOzoneLimit_FullMethodName     = "/stratos.register.v1.Query/RemainingOzoneLimit"
 )
 
 // QueryClient is the client API for Query service.
@@ -49,6 +50,8 @@ type QueryClient interface {
 	BondedResourceNodeCount(ctx context.Context, in *QueryBondedResourceNodeCountRequest, opts ...grpc.CallOption) (*QueryBondedResourceNodeCountResponse, error)
 	// BondedMetaNodeCount queries total number of MetaNodes.
 	BondedMetaNodeCount(ctx context.Context, in *QueryBondedMetaNodeCountRequest, opts ...grpc.CallOption) (*QueryBondedMetaNodeCountResponse, error)
+	// RemainingOzoneLimit returns the current remaining ozone limit.
+	RemainingOzoneLimit(ctx context.Context, in *QueryRemainingOzoneLimitRequest, opts ...grpc.CallOption) (*QueryRemainingOzoneLimitResponse, error)
 }
 
 type queryClient struct {
@@ -131,6 +134,15 @@ func (c *queryClient) BondedMetaNodeCount(ctx context.Context, in *QueryBondedMe
 	return out, nil
 }
 
+func (c *queryClient) RemainingOzoneLimit(ctx context.Context, in *QueryRemainingOzoneLimitRequest, opts ...grpc.CallOption) (*QueryRemainingOzoneLimitResponse, error) {
+	out := new(QueryRemainingOzoneLimitResponse)
+	err := c.cc.Invoke(ctx, Query_RemainingOzoneLimit_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -151,6 +163,8 @@ type QueryServer interface {
 	BondedResourceNodeCount(context.Context, *QueryBondedResourceNodeCountRequest) (*QueryBondedResourceNodeCountResponse, error)
 	// BondedMetaNodeCount queries total number of MetaNodes.
 	BondedMetaNodeCount(context.Context, *QueryBondedMetaNodeCountRequest) (*QueryBondedMetaNodeCountResponse, error)
+	// RemainingOzoneLimit returns the current remaining ozone limit.
+	RemainingOzoneLimit(context.Context, *QueryRemainingOzoneLimitRequest) (*QueryRemainingOzoneLimitResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -181,6 +195,9 @@ func (UnimplementedQueryServer) BondedResourceNodeCount(context.Context, *QueryB
 }
 func (UnimplementedQueryServer) BondedMetaNodeCount(context.Context, *QueryBondedMetaNodeCountRequest) (*QueryBondedMetaNodeCountResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BondedMetaNodeCount not implemented")
+}
+func (UnimplementedQueryServer) RemainingOzoneLimit(context.Context, *QueryRemainingOzoneLimitRequest) (*QueryRemainingOzoneLimitResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RemainingOzoneLimit not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -339,6 +356,24 @@ func _Query_BondedMetaNodeCount_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_RemainingOzoneLimit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRemainingOzoneLimitRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).RemainingOzoneLimit(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_RemainingOzoneLimit_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).RemainingOzoneLimit(ctx, req.(*QueryRemainingOzoneLimitRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -377,6 +412,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "BondedMetaNodeCount",
 			Handler:    _Query_BondedMetaNodeCount_Handler,
+		},
+		{
+			MethodName: "RemainingOzoneLimit",
+			Handler:    _Query_RemainingOzoneLimit_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
