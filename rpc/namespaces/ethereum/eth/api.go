@@ -12,6 +12,7 @@ import (
 
 	"github.com/spf13/viper"
 
+	abci "github.com/tendermint/tendermint/abci/types"
 	"github.com/tendermint/tendermint/libs/log"
 	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
 
@@ -801,7 +802,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 	)
 	// Set status codes based on tx result
 	status := ethtypes.ReceiptStatusSuccessful
-	if res.TxResult.GetCode() == 1 {
+	if res.TxResult.GetCode() != abci.CodeTypeOK {
 		status = ethtypes.ReceiptStatusFailed
 	} else {
 		// Get the transaction result from the log
