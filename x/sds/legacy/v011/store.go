@@ -7,7 +7,7 @@ import (
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
-func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, legacySubspace types.ParamsSubspace, cdc codec.BinaryCodec) error {
+func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, legacySubspace types.ParamsSubspace, cdc codec.Codec) error {
 	store := ctx.KVStore(storeKey)
 
 	// migrate params
@@ -19,7 +19,7 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, legacySubspace 
 }
 
 // migrateParams will set the params to store from legacySubspace
-func migrateParams(ctx sdk.Context, store storetypes.KVStore, cdc codec.BinaryCodec, legacySubspace types.ParamsSubspace) error {
+func migrateParams(ctx sdk.Context, store storetypes.KVStore, cdc codec.Codec, legacySubspace types.ParamsSubspace) error {
 	var legacyParams types.Params
 	legacySubspace.GetParamSet(ctx, &legacyParams)
 
