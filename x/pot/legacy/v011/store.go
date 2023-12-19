@@ -1,8 +1,6 @@
 package v011
 
 import (
-	"fmt"
-
 	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -44,16 +42,17 @@ func migrateParams(ctx sdk.Context, store storetypes.KVStore, cdc codec.Codec, l
 func fixTotalMinedToken(_ sdk.Context, store storetypes.KVStore, cdc codec.Codec) error {
 	var oldTotalMinedToken sdk.Coin
 
-	oldBz := store.Get(types.TotalRewardKeyPrefix)
-	if oldBz == nil {
-		return fmt.Errorf("total mined token should not be empty")
+	oldBz := store.Get(types.TotalMinedTokensKeyPrefix)
+	if oldBz == nil || len(oldBz) == 0 {
+		oldTotalMinedToken = sdk.NewCoin(stratos.Wei, sdkmath.ZeroInt())
+	} else {
+		cdc.MustUnmarshalLengthPrefixed(oldBz, &oldTotalMinedToken)
 	}
-	cdc.MustUnmarshalLengthPrefixed(oldBz, &oldTotalMinedToken)
 
 	initialTotalMinedAmount := sdkmath.NewInt(1e6).MulRaw(stratos.StosToWei)
-	newTotalMinedToken := oldTotalMinedToken.AddAmount(initialTotalMinedAmount)
+	newTotalMinedToken := oldTotalMinedToken.Add(sdk.NewCoin(stratos.Wei, initialTotalMinedAmount))
 	newBz := cdc.MustMarshalLengthPrefixed(&newTotalMinedToken)
 
-	store.Set(types.TotalRewardKeyPrefix, newBz)
+	store.Set(types.TotalMinedTokensKeyPrefix, newBz)
 	return nil
 }
