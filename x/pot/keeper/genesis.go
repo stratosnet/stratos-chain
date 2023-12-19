@@ -13,7 +13,7 @@ import (
 // and the keeper's address to pubkey map
 func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 	k.SetParams(ctx, data.Params)
-	k.SetTotalMinedTokens(ctx, sdk.NewCoin(k.RewardDenom(ctx), sdkmath.NewInt(0)))
+	k.SetTotalMinedTokens(ctx, data.GetTotalMinedToken())
 	k.SetLastDistributedEpoch(ctx, data.LastDistributedEpoch)
 
 	for _, immatureTotal := range data.ImmatureTotalInfo {

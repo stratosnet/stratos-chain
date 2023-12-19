@@ -1,12 +1,16 @@
 # Generate protobuf files
 
+## Install buf
+
+`go install github.com/bufbuild/buf/cmd/buf@v1.28.0`
+
 ## Install protobuf (Cosmos's fork of gogo/protobuf)
 
-https://github.com/cosmos/gogoproto/tree/v1.4.10
+https://github.com/cosmos/gogoproto/tree/v1.4.11
 
 ## Install protoc-gen-go-pulsar
 
-https://github.com/cosmos/cosmos-proto/tree/v1.0.0-beta.2
+https://github.com/cosmos/cosmos-proto/tree/v1.0.0-beta.3
 
 ## Install protoc-gen-go, protoc-gen-grpc-gateway, protoc-gen-swagger
 

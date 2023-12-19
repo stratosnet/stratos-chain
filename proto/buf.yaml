@@ -1,12 +1,11 @@
 version: v1
-name: buf.build/stratosnet/stratos
+name: buf.build/stratosnet/stratos-chain
 deps:
-  - buf.build/cosmos/cosmos-sdk:v0.47.5
+  - buf.build/cosmos/cosmos-sdk:v0.47.0
   - buf.build/cosmos/cosmos-proto
   - buf.build/cosmos/gogo-proto
   - buf.build/cosmos/ibc
   - buf.build/googleapis/googleapis
-  - buf.build/stratosnet/stratos
 lint:
   use:
     - DEFAULT
