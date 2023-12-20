@@ -75,22 +75,23 @@ func (v ResourceNodes) Validate() error {
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
+	beneficiaryAddress sdk.AccAddress, description Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return ResourceNode{}, err
 	}
 	return ResourceNode{
-		NetworkAddress:  networkAddr.String(),
-		Pubkey:          pkAny,
-		Suspend:         true,
-		Status:          stakingtypes.Unbonded,
-		Tokens:          sdkmath.ZeroInt(),
-		OwnerAddress:    ownerAddr.String(),
-		Description:     description,
-		NodeType:        uint32(nodeType),
-		CreationTime:    creationTime,
-		EffectiveTokens: sdkmath.ZeroInt(),
+		NetworkAddress:     networkAddr.String(),
+		Pubkey:             pkAny,
+		Suspend:            true,
+		Status:             stakingtypes.Unbonded,
+		Tokens:             sdkmath.ZeroInt(),
+		OwnerAddress:       ownerAddr.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
+		Description:        description,
+		NodeType:           uint32(nodeType),
+		CreationTime:       creationTime,
+		EffectiveTokens:    sdkmath.ZeroInt(),
 	}, nil
 }
 
@@ -114,11 +115,12 @@ func (v ResourceNode) ConvertToString() string {
 		Status:				%s
 		Tokens:				%s
 		Owner Address: 		%s
+        Beneficiary Address %s
 		NodeType:           %v
 		Description:		%s
 		CreationTime:		%s
 	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(), v.Tokens,
-		v.GetOwnerAddress(), v.NodeType, v.GetDescription(), v.GetCreationTime())
+		v.GetOwnerAddress(), v.GetBeneficiaryAddress(), v.NodeType, v.GetDescription(), v.GetCreationTime())
 }
 
 // AddToken adds tokens to a resource node
@@ -170,6 +172,11 @@ func (v ResourceNode) Validate() error {
 
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
+	}
+
+	_, err = sdk.AccAddressFromBech32(v.GetBeneficiaryAddress())
+	if err != nil {
+		return err
 	}
 
 	if v.Tokens.LT(sdkmath.ZeroInt()) {

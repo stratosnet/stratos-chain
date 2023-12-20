@@ -17,7 +17,13 @@ func MigrateStore(ctx sdk.Context, storeKey storetypes.StoreKey, legacySubspace 
 		return err
 	}
 
+	// add beneficiary address
 	if err := migrateMetaNodes(store, cdc); err != nil {
+		return err
+	}
+
+	// add beneficiary address
+	if err := migrateResourceNode(store, cdc); err != nil {
 		return err
 	}
 
@@ -69,6 +75,44 @@ func migrateMetaNodes(store sdk.KVStore, cdc codec.Codec) error {
 
 		oldMetaNodeStore.Delete(iterator.Key())
 		store.Set(storeKey, newMetaNodeBz)
+	}
+
+	return nil
+}
+
+func migrateResourceNode(store sdk.KVStore, cdc codec.Codec) error {
+	oldResourceNodeStore := prefix.NewStore(store, ResourceNodeKey)
+	iterator := oldResourceNodeStore.Iterator(nil, nil)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		key := iterator.Key()
+		oldResourceNode := MustUnmarshalResourceNode(cdc, iterator.Value())
+		newResourceNode := types.ResourceNode{
+			NetworkAddress:     oldResourceNode.NetworkAddress,
+			Pubkey:             oldResourceNode.Pubkey,
+			Suspend:            oldResourceNode.Suspend,
+			Status:             oldResourceNode.Status,
+			Tokens:             oldResourceNode.Tokens,
+			OwnerAddress:       oldResourceNode.OwnerAddress,
+			BeneficiaryAddress: oldResourceNode.OwnerAddress,
+			Description: types.Description{
+				Moniker:         oldResourceNode.Description.Moniker,
+				Identity:        oldResourceNode.Description.Identity,
+				Website:         oldResourceNode.Description.Website,
+				SecurityContact: oldResourceNode.Description.SecurityContact,
+				Details:         oldResourceNode.Description.Details,
+			},
+			CreationTime:    oldResourceNode.CreationTime,
+			NodeType:        oldResourceNode.NodeType,
+			EffectiveTokens: oldResourceNode.EffectiveTokens,
+		}
+
+		newResourceNodeBz := types.MustMarshalResourceNode(cdc, newResourceNode)
+		storeKey := types.GetResourceNodeKey(key)
+
+		oldResourceNodeStore.Delete(iterator.Key())
+		store.Set(storeKey, newResourceNodeBz)
 	}
 
 	return nil

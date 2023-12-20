@@ -87,6 +87,6 @@ func flagSetVoting() *flag.FlagSet {
 func flagSetBeneficiaryAddress() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
-	fs.String(FlagBeneficiaryAddress, "", "The beneficiary address of the meta node")
+	fs.String(FlagBeneficiaryAddress, "", "The beneficiary address of the node")
 	return fs
 }
