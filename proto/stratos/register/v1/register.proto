@@ -92,34 +92,34 @@ message ResourceNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  string                              beneficiary_address = 7 [
-    (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "beneficiary_address",
-    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
-  ];
-  Description                         description = 8 [
+  Description                         description = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  google.protobuf.Timestamp           creation_time = 9 [
+  google.protobuf.Timestamp           creation_time = 8 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
   ];
-  uint32                              node_type = 10 [
+  uint32                              node_type = 9 [
     (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
   ];
-  string                              effective_tokens = 11 [
+  string                              effective_tokens = 10 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "effective_tokens",
     (gogoproto.moretags) = "yaml:\"effective_tokens\"",
     (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+  string                              beneficiary_address = 11 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
   ];
 }
 
@@ -156,22 +156,22 @@ message MetaNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  string                              beneficiary_address = 7 [
-    (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "beneficiary_address",
-    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
-  ];
-  Description                         description = 8 [
+  Description                         description = 7 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  google.protobuf.Timestamp           creation_time = 9 [
+  google.protobuf.Timestamp           creation_time = 8 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.stdtime) = true,
     (gogoproto.jsontag) = "creation_time",
     (gogoproto.moretags) = "yaml:\"creation_time\""
+  ];
+  string                              beneficiary_address = 9 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
   ];
 }
 
