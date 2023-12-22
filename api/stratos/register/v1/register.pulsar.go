@@ -866,11 +866,11 @@ var (
 	fd_ResourceNode_status              protoreflect.FieldDescriptor
 	fd_ResourceNode_tokens              protoreflect.FieldDescriptor
 	fd_ResourceNode_owner_address       protoreflect.FieldDescriptor
-	fd_ResourceNode_beneficiary_address protoreflect.FieldDescriptor
 	fd_ResourceNode_description         protoreflect.FieldDescriptor
 	fd_ResourceNode_creation_time       protoreflect.FieldDescriptor
 	fd_ResourceNode_node_type           protoreflect.FieldDescriptor
 	fd_ResourceNode_effective_tokens    protoreflect.FieldDescriptor
+	fd_ResourceNode_beneficiary_address protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -882,11 +882,11 @@ func init() {
 	fd_ResourceNode_status = md_ResourceNode.Fields().ByName("status")
 	fd_ResourceNode_tokens = md_ResourceNode.Fields().ByName("tokens")
 	fd_ResourceNode_owner_address = md_ResourceNode.Fields().ByName("owner_address")
-	fd_ResourceNode_beneficiary_address = md_ResourceNode.Fields().ByName("beneficiary_address")
 	fd_ResourceNode_description = md_ResourceNode.Fields().ByName("description")
 	fd_ResourceNode_creation_time = md_ResourceNode.Fields().ByName("creation_time")
 	fd_ResourceNode_node_type = md_ResourceNode.Fields().ByName("node_type")
 	fd_ResourceNode_effective_tokens = md_ResourceNode.Fields().ByName("effective_tokens")
+	fd_ResourceNode_beneficiary_address = md_ResourceNode.Fields().ByName("beneficiary_address")
 }
 
 var _ protoreflect.Message = (*fastReflection_ResourceNode)(nil)
@@ -990,12 +990,6 @@ func (x *fastReflection_ResourceNode) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if x.BeneficiaryAddress != "" {
-		value := protoreflect.ValueOfString(x.BeneficiaryAddress)
-		if !f(fd_ResourceNode_beneficiary_address, value) {
-			return
-		}
-	}
 	if x.Description != nil {
 		value := protoreflect.ValueOfMessage(x.Description.ProtoReflect())
 		if !f(fd_ResourceNode_description, value) {
@@ -1017,6 +1011,12 @@ func (x *fastReflection_ResourceNode) Range(f func(protoreflect.FieldDescriptor,
 	if x.EffectiveTokens != "" {
 		value := protoreflect.ValueOfString(x.EffectiveTokens)
 		if !f(fd_ResourceNode_effective_tokens, value) {
+			return
+		}
+	}
+	if x.BeneficiaryAddress != "" {
+		value := protoreflect.ValueOfString(x.BeneficiaryAddress)
+		if !f(fd_ResourceNode_beneficiary_address, value) {
 			return
 		}
 	}
@@ -1047,8 +1047,6 @@ func (x *fastReflection_ResourceNode) Has(fd protoreflect.FieldDescriptor) bool 
 		return x.Tokens != ""
 	case "stratos.register.v1.ResourceNode.owner_address":
 		return x.OwnerAddress != ""
-	case "stratos.register.v1.ResourceNode.beneficiary_address":
-		return x.BeneficiaryAddress != ""
 	case "stratos.register.v1.ResourceNode.description":
 		return x.Description != nil
 	case "stratos.register.v1.ResourceNode.creation_time":
@@ -1057,6 +1055,8 @@ func (x *fastReflection_ResourceNode) Has(fd protoreflect.FieldDescriptor) bool 
 		return x.NodeType != uint32(0)
 	case "stratos.register.v1.ResourceNode.effective_tokens":
 		return x.EffectiveTokens != ""
+	case "stratos.register.v1.ResourceNode.beneficiary_address":
+		return x.BeneficiaryAddress != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.ResourceNode"))
@@ -1085,8 +1085,6 @@ func (x *fastReflection_ResourceNode) Clear(fd protoreflect.FieldDescriptor) {
 		x.Tokens = ""
 	case "stratos.register.v1.ResourceNode.owner_address":
 		x.OwnerAddress = ""
-	case "stratos.register.v1.ResourceNode.beneficiary_address":
-		x.BeneficiaryAddress = ""
 	case "stratos.register.v1.ResourceNode.description":
 		x.Description = nil
 	case "stratos.register.v1.ResourceNode.creation_time":
@@ -1095,6 +1093,8 @@ func (x *fastReflection_ResourceNode) Clear(fd protoreflect.FieldDescriptor) {
 		x.NodeType = uint32(0)
 	case "stratos.register.v1.ResourceNode.effective_tokens":
 		x.EffectiveTokens = ""
+	case "stratos.register.v1.ResourceNode.beneficiary_address":
+		x.BeneficiaryAddress = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.ResourceNode"))
@@ -1129,9 +1129,6 @@ func (x *fastReflection_ResourceNode) Get(descriptor protoreflect.FieldDescripto
 	case "stratos.register.v1.ResourceNode.owner_address":
 		value := x.OwnerAddress
 		return protoreflect.ValueOfString(value)
-	case "stratos.register.v1.ResourceNode.beneficiary_address":
-		value := x.BeneficiaryAddress
-		return protoreflect.ValueOfString(value)
 	case "stratos.register.v1.ResourceNode.description":
 		value := x.Description
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
@@ -1143,6 +1140,9 @@ func (x *fastReflection_ResourceNode) Get(descriptor protoreflect.FieldDescripto
 		return protoreflect.ValueOfUint32(value)
 	case "stratos.register.v1.ResourceNode.effective_tokens":
 		value := x.EffectiveTokens
+		return protoreflect.ValueOfString(value)
+	case "stratos.register.v1.ResourceNode.beneficiary_address":
+		value := x.BeneficiaryAddress
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
@@ -1176,8 +1176,6 @@ func (x *fastReflection_ResourceNode) Set(fd protoreflect.FieldDescriptor, value
 		x.Tokens = value.Interface().(string)
 	case "stratos.register.v1.ResourceNode.owner_address":
 		x.OwnerAddress = value.Interface().(string)
-	case "stratos.register.v1.ResourceNode.beneficiary_address":
-		x.BeneficiaryAddress = value.Interface().(string)
 	case "stratos.register.v1.ResourceNode.description":
 		x.Description = value.Message().Interface().(*Description)
 	case "stratos.register.v1.ResourceNode.creation_time":
@@ -1186,6 +1184,8 @@ func (x *fastReflection_ResourceNode) Set(fd protoreflect.FieldDescriptor, value
 		x.NodeType = uint32(value.Uint())
 	case "stratos.register.v1.ResourceNode.effective_tokens":
 		x.EffectiveTokens = value.Interface().(string)
+	case "stratos.register.v1.ResourceNode.beneficiary_address":
+		x.BeneficiaryAddress = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.ResourceNode"))
@@ -1231,12 +1231,12 @@ func (x *fastReflection_ResourceNode) Mutable(fd protoreflect.FieldDescriptor) p
 		panic(fmt.Errorf("field tokens of message stratos.register.v1.ResourceNode is not mutable"))
 	case "stratos.register.v1.ResourceNode.owner_address":
 		panic(fmt.Errorf("field owner_address of message stratos.register.v1.ResourceNode is not mutable"))
-	case "stratos.register.v1.ResourceNode.beneficiary_address":
-		panic(fmt.Errorf("field beneficiary_address of message stratos.register.v1.ResourceNode is not mutable"))
 	case "stratos.register.v1.ResourceNode.node_type":
 		panic(fmt.Errorf("field node_type of message stratos.register.v1.ResourceNode is not mutable"))
 	case "stratos.register.v1.ResourceNode.effective_tokens":
 		panic(fmt.Errorf("field effective_tokens of message stratos.register.v1.ResourceNode is not mutable"))
+	case "stratos.register.v1.ResourceNode.beneficiary_address":
+		panic(fmt.Errorf("field beneficiary_address of message stratos.register.v1.ResourceNode is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.ResourceNode"))
@@ -1263,8 +1263,6 @@ func (x *fastReflection_ResourceNode) NewField(fd protoreflect.FieldDescriptor) 
 		return protoreflect.ValueOfString("")
 	case "stratos.register.v1.ResourceNode.owner_address":
 		return protoreflect.ValueOfString("")
-	case "stratos.register.v1.ResourceNode.beneficiary_address":
-		return protoreflect.ValueOfString("")
 	case "stratos.register.v1.ResourceNode.description":
 		m := new(Description)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -1274,6 +1272,8 @@ func (x *fastReflection_ResourceNode) NewField(fd protoreflect.FieldDescriptor) 
 	case "stratos.register.v1.ResourceNode.node_type":
 		return protoreflect.ValueOfUint32(uint32(0))
 	case "stratos.register.v1.ResourceNode.effective_tokens":
+		return protoreflect.ValueOfString("")
+	case "stratos.register.v1.ResourceNode.beneficiary_address":
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
@@ -1366,10 +1366,6 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		l = len(x.BeneficiaryAddress)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		if x.Description != nil {
 			l = options.Size(x.Description)
 			n += 1 + l + runtime.Sov(uint64(l))
@@ -1382,6 +1378,10 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 			n += 1 + runtime.Sov(uint64(x.NodeType))
 		}
 		l = len(x.EffectiveTokens)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.BeneficiaryAddress)
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
@@ -1414,17 +1414,24 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+		if len(x.BeneficiaryAddress) > 0 {
+			i -= len(x.BeneficiaryAddress)
+			copy(dAtA[i:], x.BeneficiaryAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.BeneficiaryAddress)))
+			i--
+			dAtA[i] = 0x5a
+		}
 		if len(x.EffectiveTokens) > 0 {
 			i -= len(x.EffectiveTokens)
 			copy(dAtA[i:], x.EffectiveTokens)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.EffectiveTokens)))
 			i--
-			dAtA[i] = 0x5a
+			dAtA[i] = 0x52
 		}
 		if x.NodeType != 0 {
 			i = runtime.EncodeVarint(dAtA, i, uint64(x.NodeType))
 			i--
-			dAtA[i] = 0x50
+			dAtA[i] = 0x48
 		}
 		if x.CreationTime != nil {
 			encoded, err := options.Marshal(x.CreationTime)
@@ -1438,7 +1445,7 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x4a
+			dAtA[i] = 0x42
 		}
 		if x.Description != nil {
 			encoded, err := options.Marshal(x.Description)
@@ -1451,13 +1458,6 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 			i -= len(encoded)
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0x42
-		}
-		if len(x.BeneficiaryAddress) > 0 {
-			i -= len(x.BeneficiaryAddress)
-			copy(dAtA[i:], x.BeneficiaryAddress)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.BeneficiaryAddress)))
 			i--
 			dAtA[i] = 0x3a
 		}
@@ -1733,38 +1733,6 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 7:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 8:
-				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 				}
 				var msglen int
@@ -1799,7 +1767,7 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 9:
+			case 8:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field CreationTime", wireType)
 				}
@@ -1835,7 +1803,7 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 10:
+			case 9:
 				if wireType != 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
 				}
@@ -1854,7 +1822,7 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 						break
 					}
 				}
-			case 11:
+			case 10:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field EffectiveTokens", wireType)
 				}
@@ -1885,6 +1853,38 @@ func (x *fastReflection_ResourceNode) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				x.EffectiveTokens = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 11:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -1929,9 +1929,9 @@ var (
 	fd_MetaNode_status              protoreflect.FieldDescriptor
 	fd_MetaNode_tokens              protoreflect.FieldDescriptor
 	fd_MetaNode_owner_address       protoreflect.FieldDescriptor
-	fd_MetaNode_beneficiary_address protoreflect.FieldDescriptor
 	fd_MetaNode_description         protoreflect.FieldDescriptor
 	fd_MetaNode_creation_time       protoreflect.FieldDescriptor
+	fd_MetaNode_beneficiary_address protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -1943,9 +1943,9 @@ func init() {
 	fd_MetaNode_status = md_MetaNode.Fields().ByName("status")
 	fd_MetaNode_tokens = md_MetaNode.Fields().ByName("tokens")
 	fd_MetaNode_owner_address = md_MetaNode.Fields().ByName("owner_address")
-	fd_MetaNode_beneficiary_address = md_MetaNode.Fields().ByName("beneficiary_address")
 	fd_MetaNode_description = md_MetaNode.Fields().ByName("description")
 	fd_MetaNode_creation_time = md_MetaNode.Fields().ByName("creation_time")
+	fd_MetaNode_beneficiary_address = md_MetaNode.Fields().ByName("beneficiary_address")
 }
 
 var _ protoreflect.Message = (*fastReflection_MetaNode)(nil)
@@ -2049,12 +2049,6 @@ func (x *fastReflection_MetaNode) Range(f func(protoreflect.FieldDescriptor, pro
 			return
 		}
 	}
-	if x.BeneficiaryAddress != "" {
-		value := protoreflect.ValueOfString(x.BeneficiaryAddress)
-		if !f(fd_MetaNode_beneficiary_address, value) {
-			return
-		}
-	}
 	if x.Description != nil {
 		value := protoreflect.ValueOfMessage(x.Description.ProtoReflect())
 		if !f(fd_MetaNode_description, value) {
@@ -2064,6 +2058,12 @@ func (x *fastReflection_MetaNode) Range(f func(protoreflect.FieldDescriptor, pro
 	if x.CreationTime != nil {
 		value := protoreflect.ValueOfMessage(x.CreationTime.ProtoReflect())
 		if !f(fd_MetaNode_creation_time, value) {
+			return
+		}
+	}
+	if x.BeneficiaryAddress != "" {
+		value := protoreflect.ValueOfString(x.BeneficiaryAddress)
+		if !f(fd_MetaNode_beneficiary_address, value) {
 			return
 		}
 	}
@@ -2094,12 +2094,12 @@ func (x *fastReflection_MetaNode) Has(fd protoreflect.FieldDescriptor) bool {
 		return x.Tokens != ""
 	case "stratos.register.v1.MetaNode.owner_address":
 		return x.OwnerAddress != ""
-	case "stratos.register.v1.MetaNode.beneficiary_address":
-		return x.BeneficiaryAddress != ""
 	case "stratos.register.v1.MetaNode.description":
 		return x.Description != nil
 	case "stratos.register.v1.MetaNode.creation_time":
 		return x.CreationTime != nil
+	case "stratos.register.v1.MetaNode.beneficiary_address":
+		return x.BeneficiaryAddress != ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MetaNode"))
@@ -2128,12 +2128,12 @@ func (x *fastReflection_MetaNode) Clear(fd protoreflect.FieldDescriptor) {
 		x.Tokens = ""
 	case "stratos.register.v1.MetaNode.owner_address":
 		x.OwnerAddress = ""
-	case "stratos.register.v1.MetaNode.beneficiary_address":
-		x.BeneficiaryAddress = ""
 	case "stratos.register.v1.MetaNode.description":
 		x.Description = nil
 	case "stratos.register.v1.MetaNode.creation_time":
 		x.CreationTime = nil
+	case "stratos.register.v1.MetaNode.beneficiary_address":
+		x.BeneficiaryAddress = ""
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MetaNode"))
@@ -2168,15 +2168,15 @@ func (x *fastReflection_MetaNode) Get(descriptor protoreflect.FieldDescriptor) p
 	case "stratos.register.v1.MetaNode.owner_address":
 		value := x.OwnerAddress
 		return protoreflect.ValueOfString(value)
-	case "stratos.register.v1.MetaNode.beneficiary_address":
-		value := x.BeneficiaryAddress
-		return protoreflect.ValueOfString(value)
 	case "stratos.register.v1.MetaNode.description":
 		value := x.Description
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	case "stratos.register.v1.MetaNode.creation_time":
 		value := x.CreationTime
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "stratos.register.v1.MetaNode.beneficiary_address":
+		value := x.BeneficiaryAddress
+		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MetaNode"))
@@ -2209,12 +2209,12 @@ func (x *fastReflection_MetaNode) Set(fd protoreflect.FieldDescriptor, value pro
 		x.Tokens = value.Interface().(string)
 	case "stratos.register.v1.MetaNode.owner_address":
 		x.OwnerAddress = value.Interface().(string)
-	case "stratos.register.v1.MetaNode.beneficiary_address":
-		x.BeneficiaryAddress = value.Interface().(string)
 	case "stratos.register.v1.MetaNode.description":
 		x.Description = value.Message().Interface().(*Description)
 	case "stratos.register.v1.MetaNode.creation_time":
 		x.CreationTime = value.Message().Interface().(*timestamppb.Timestamp)
+	case "stratos.register.v1.MetaNode.beneficiary_address":
+		x.BeneficiaryAddress = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MetaNode"))
@@ -2288,14 +2288,14 @@ func (x *fastReflection_MetaNode) NewField(fd protoreflect.FieldDescriptor) prot
 		return protoreflect.ValueOfString("")
 	case "stratos.register.v1.MetaNode.owner_address":
 		return protoreflect.ValueOfString("")
-	case "stratos.register.v1.MetaNode.beneficiary_address":
-		return protoreflect.ValueOfString("")
 	case "stratos.register.v1.MetaNode.description":
 		m := new(Description)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	case "stratos.register.v1.MetaNode.creation_time":
 		m := new(timestamppb.Timestamp)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "stratos.register.v1.MetaNode.beneficiary_address":
+		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MetaNode"))
@@ -2387,16 +2387,16 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		l = len(x.BeneficiaryAddress)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		if x.Description != nil {
 			l = options.Size(x.Description)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.CreationTime != nil {
 			l = options.Size(x.CreationTime)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		l = len(x.BeneficiaryAddress)
+		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
@@ -2428,6 +2428,13 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
+		if len(x.BeneficiaryAddress) > 0 {
+			i -= len(x.BeneficiaryAddress)
+			copy(dAtA[i:], x.BeneficiaryAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.BeneficiaryAddress)))
+			i--
+			dAtA[i] = 0x4a
+		}
 		if x.CreationTime != nil {
 			encoded, err := options.Marshal(x.CreationTime)
 			if err != nil {
@@ -2440,7 +2447,7 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x4a
+			dAtA[i] = 0x42
 		}
 		if x.Description != nil {
 			encoded, err := options.Marshal(x.Description)
@@ -2453,13 +2460,6 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 			i -= len(encoded)
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0x42
-		}
-		if len(x.BeneficiaryAddress) > 0 {
-			i -= len(x.BeneficiaryAddress)
-			copy(dAtA[i:], x.BeneficiaryAddress)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.BeneficiaryAddress)))
 			i--
 			dAtA[i] = 0x3a
 		}
@@ -2735,38 +2735,6 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 7:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 8:
-				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 				}
 				var msglen int
@@ -2801,7 +2769,7 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 9:
+			case 8:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field CreationTime", wireType)
 				}
@@ -2836,6 +2804,38 @@ func (x *fastReflection_MetaNode) ProtoMethods() *protoiface.Methods {
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.CreationTime); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
+				iNdEx = postIndex
+			case 9:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -5680,11 +5680,11 @@ type ResourceNode struct {
 	Status             v1beta11.BondStatus    `protobuf:"varint,4,opt,name=status,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"status,omitempty"`
 	Tokens             string                 `protobuf:"bytes,5,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	OwnerAddress       string                 `protobuf:"bytes,6,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	BeneficiaryAddress string                 `protobuf:"bytes,7,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address,omitempty"`
-	Description        *Description           `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
-	CreationTime       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=creation_time,json=creationTime,proto3" json:"creation_time,omitempty"`
-	NodeType           uint32                 `protobuf:"varint,10,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
-	EffectiveTokens    string                 `protobuf:"bytes,11,opt,name=effective_tokens,json=effectiveTokens,proto3" json:"effective_tokens,omitempty"`
+	Description        *Description           `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	CreationTime       *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=creation_time,json=creationTime,proto3" json:"creation_time,omitempty"`
+	NodeType           uint32                 `protobuf:"varint,9,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
+	EffectiveTokens    string                 `protobuf:"bytes,10,opt,name=effective_tokens,json=effectiveTokens,proto3" json:"effective_tokens,omitempty"`
+	BeneficiaryAddress string                 `protobuf:"bytes,11,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address,omitempty"`
 }
 
 func (x *ResourceNode) Reset() {
@@ -5749,13 +5749,6 @@ func (x *ResourceNode) GetOwnerAddress() string {
 	return ""
 }
 
-func (x *ResourceNode) GetBeneficiaryAddress() string {
-	if x != nil {
-		return x.BeneficiaryAddress
-	}
-	return ""
-}
-
 func (x *ResourceNode) GetDescription() *Description {
 	if x != nil {
 		return x.Description
@@ -5784,6 +5777,13 @@ func (x *ResourceNode) GetEffectiveTokens() string {
 	return ""
 }
 
+func (x *ResourceNode) GetBeneficiaryAddress() string {
+	if x != nil {
+		return x.BeneficiaryAddress
+	}
+	return ""
+}
+
 type MetaNode struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -5795,9 +5795,9 @@ type MetaNode struct {
 	Status             v1beta11.BondStatus    `protobuf:"varint,4,opt,name=status,proto3,enum=cosmos.staking.v1beta1.BondStatus" json:"status,omitempty"`
 	Tokens             string                 `protobuf:"bytes,5,opt,name=tokens,proto3" json:"tokens,omitempty"`
 	OwnerAddress       string                 `protobuf:"bytes,6,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	BeneficiaryAddress string                 `protobuf:"bytes,7,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address,omitempty"`
-	Description        *Description           `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
-	CreationTime       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=creation_time,json=creationTime,proto3" json:"creation_time,omitempty"`
+	Description        *Description           `protobuf:"bytes,7,opt,name=description,proto3" json:"description,omitempty"`
+	CreationTime       *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=creation_time,json=creationTime,proto3" json:"creation_time,omitempty"`
+	BeneficiaryAddress string                 `protobuf:"bytes,9,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address,omitempty"`
 }
 
 func (x *MetaNode) Reset() {
@@ -5862,13 +5862,6 @@ func (x *MetaNode) GetOwnerAddress() string {
 	return ""
 }
 
-func (x *MetaNode) GetBeneficiaryAddress() string {
-	if x != nil {
-		return x.BeneficiaryAddress
-	}
-	return ""
-}
-
 func (x *MetaNode) GetDescription() *Description {
 	if x != nil {
 		return x.Description
@@ -5881,6 +5874,13 @@ func (x *MetaNode) GetCreationTime() *timestamppb.Timestamp {
 		return x.CreationTime
 	}
 	return nil
+}
+
+func (x *MetaNode) GetBeneficiaryAddress() string {
+	if x != nil {
+		return x.BeneficiaryAddress
+	}
+	return ""
 }
 
 type MetaNodeRegistrationVotePool struct {
@@ -6246,34 +6246,26 @@ var file_stratos_register_v1_register_proto_rawDesc = []byte{
 	0x65, 0x72, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63,
 	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72,
 	0x69, 0x6e, 0x67, 0x52, 0x0c, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
-	0x73, 0x12, 0x7e, 0x0a, 0x13, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79,
-	0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x42, 0x4d,
-	0xea, 0xde, 0x1f, 0x13, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x5f,
-	0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0xf2, 0xde, 0x1f, 0x1a, 0x79, 0x61, 0x6d, 0x6c, 0x3a,
-	0x22, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e,
-	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x12, 0x62,
-	0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73,
 	0x73, 0x12, 0x6d, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
-	0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
+	0x18, 0x07, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x20, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
 	0x2e, 0x72, 0x65, 0x67, 0x69, 0x73, 0x74, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x73,
 	0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x29, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde,
 	0x1f, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0xf2, 0xde, 0x1f,
 	0x12, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69,
 	0x6f, 0x6e, 0x22, 0x52, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e,
 	0x12, 0x77, 0x0a, 0x0d, 0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d,
-	0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
+	0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65,
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74,
 	0x61, 0x6d, 0x70, 0x42, 0x36, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x0d, 0x63, 0x72, 0x65,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0xf2, 0xde, 0x1f, 0x14, 0x79, 0x61,
 	0x6d, 0x6c, 0x3a, 0x22, 0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d,
 	0x65, 0x22, 0x90, 0xdf, 0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0c, 0x63, 0x72, 0x65,
 	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x3e, 0x0a, 0x09, 0x6e, 0x6f, 0x64,
-	0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x0a, 0x20, 0x01, 0x28, 0x0d, 0x42, 0x21, 0xea, 0xde,
+	0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x09, 0x20, 0x01, 0x28, 0x0d, 0x42, 0x21, 0xea, 0xde,
 	0x1f, 0x09, 0x6e, 0x6f, 0x64, 0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0xf2, 0xde, 0x1f, 0x10, 0x79,
 	0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x6e, 0x6f, 0x64, 0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x22, 0x52,
 	0x08, 0x6e, 0x6f, 0x64, 0x65, 0x54, 0x79, 0x70, 0x65, 0x12, 0x9b, 0x01, 0x0a, 0x10, 0x65, 0x66,
-	0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x18, 0x0b,
+	0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x18, 0x0a,
 	0x20, 0x01, 0x28, 0x09, 0x42, 0x70, 0xc8, 0xde, 0x1f, 0x00, 0xda, 0xde, 0x1f, 0x26, 0x67, 0x69,
 	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f,
 	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73,
@@ -6282,7 +6274,15 @@ var file_stratos_register_v1_register_proto_rawDesc = []byte{
 	0x3a, 0x22, 0x65, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76, 0x65, 0x5f, 0x74, 0x6f, 0x6b, 0x65,
 	0x6e, 0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e,
 	0x74, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0f, 0x65, 0x66, 0x66, 0x65, 0x63, 0x74, 0x69, 0x76,
-	0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x3a, 0x04, 0x98, 0xa0, 0x1f, 0x01, 0x22, 0xbb, 0x07,
+	0x65, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x73, 0x12, 0x7e, 0x0a, 0x13, 0x62, 0x65, 0x6e, 0x65, 0x66,
+	0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x0b,
+	0x20, 0x01, 0x28, 0x09, 0x42, 0x4d, 0xea, 0xde, 0x1f, 0x13, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69,
+	0x63, 0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0xf2, 0xde, 0x1f,
+	0x1a, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61,
+	0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72,
+	0x69, 0x6e, 0x67, 0x52, 0x12, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79,
+	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x3a, 0x04, 0x98, 0xa0, 0x1f, 0x01, 0x22, 0xbb, 0x07,
 	0x0a, 0x08, 0x4d, 0x65, 0x74, 0x61, 0x4e, 0x6f, 0x64, 0x65, 0x12, 0x6e, 0x0a, 0x0f, 0x6e, 0x65,
 	0x74, 0x77, 0x6f, 0x72, 0x6b, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x09, 0x42, 0x45, 0xea, 0xde, 0x1f, 0x0f, 0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b,
@@ -6319,30 +6319,30 @@ var file_stratos_register_v1_register_proto_rawDesc = []byte{
 	0xde, 0x1f, 0x14, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x5f, 0x61,
 	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
 	0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52,
-	0x0c, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x7e, 0x0a,
-	0x13, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64,
-	0x72, 0x65, 0x73, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x42, 0x4d, 0xea, 0xde, 0x1f, 0x13,
-	0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72,
-	0x65, 0x73, 0x73, 0xf2, 0xde, 0x1f, 0x1a, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x62, 0x65, 0x6e,
-	0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73,
-	0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72,
-	0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x12, 0x62, 0x65, 0x6e, 0x65, 0x66,
-	0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x6d, 0x0a,
-	0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x08, 0x20, 0x01,
+	0x0c, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x6d, 0x0a,
+	0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x07, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x20, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x72, 0x65, 0x67,
 	0x69, 0x73, 0x74, 0x65, 0x72, 0x2e, 0x76, 0x31, 0x2e, 0x44, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70,
 	0x74, 0x69, 0x6f, 0x6e, 0x42, 0x29, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x0b, 0x64, 0x65,
 	0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0xf2, 0xde, 0x1f, 0x12, 0x79, 0x61, 0x6d,
 	0x6c, 0x3a, 0x22, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x52,
 	0x0b, 0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x12, 0x77, 0x0a, 0x0d,
-	0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x09, 0x20,
+	0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x18, 0x08, 0x20,
 	0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x67, 0x6f, 0x6f, 0x67, 0x6c, 0x65, 0x2e, 0x70, 0x72, 0x6f,
 	0x74, 0x6f, 0x62, 0x75, 0x66, 0x2e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x42,
 	0x36, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x0d, 0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f,
 	0x6e, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0xf2, 0xde, 0x1f, 0x14, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22,
 	0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x22, 0x90, 0xdf,
 	0x1f, 0x01, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0c, 0x63, 0x72, 0x65, 0x61, 0x74, 0x69, 0x6f,
-	0x6e, 0x54, 0x69, 0x6d, 0x65, 0x3a, 0x04, 0x98, 0xa0, 0x1f, 0x01, 0x22, 0xe6, 0x03, 0x0a, 0x1c,
+	0x6e, 0x54, 0x69, 0x6d, 0x65, 0x12, 0x7e, 0x0a, 0x13, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63,
+	0x69, 0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x09, 0x20, 0x01,
+	0x28, 0x09, 0x42, 0x4d, 0xea, 0xde, 0x1f, 0x13, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69,
+	0x61, 0x72, 0x79, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0xf2, 0xde, 0x1f, 0x1a, 0x79,
+	0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79,
+	0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73,
+	0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e,
+	0x67, 0x52, 0x12, 0x62, 0x65, 0x6e, 0x65, 0x66, 0x69, 0x63, 0x69, 0x61, 0x72, 0x79, 0x41, 0x64,
+	0x64, 0x72, 0x65, 0x73, 0x73, 0x3a, 0x04, 0x98, 0xa0, 0x1f, 0x01, 0x22, 0xe6, 0x03, 0x0a, 0x1c,
 	0x4d, 0x65, 0x74, 0x61, 0x4e, 0x6f, 0x64, 0x65, 0x52, 0x65, 0x67, 0x69, 0x73, 0x74, 0x72, 0x61,
 	0x74, 0x69, 0x6f, 0x6e, 0x56, 0x6f, 0x74, 0x65, 0x50, 0x6f, 0x6f, 0x6c, 0x12, 0x6e, 0x0a, 0x0f,
 	0x6e, 0x65, 0x74, 0x77, 0x6f, 0x72, 0x6b, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18,
