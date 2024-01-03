@@ -411,20 +411,36 @@ func TmTxToEthTx(
 		to := new(common.Address)
 		value := new(big.Int).SetInt64(0)
 
-		// cosmos.bank.v1beta1.MsgSend
-		sendTx, ok := msg.(*banktypes.MsgSend)
-		if ok {
-			bFrom, err := sdk.AccAddressFromBech32(sendTx.FromAddress)
+		switch sdkTx := msg.(type) {
+		case stratos.Web3MsgType:
+			web3Msg, err := sdkTx.GetWeb3Msg()
 			if err != nil {
 				return nil, err
 			}
-			bTo, err := sdk.AccAddressFromBech32(sendTx.ToAddress)
+			if web3Msg.From != nil {
+				from = *web3Msg.From
+			}
+			if web3Msg.To != nil {
+				to = web3Msg.To
+			}
+			if web3Msg.Value != nil {
+				value = web3Msg.Value
+			}
+
+			// NOTE: As we could not add GetWeb3Msg method, it will be handled directly here
+			// cosmos.bank.v1beta1.MsgSend
+		case *banktypes.MsgSend:
+			bFrom, err := sdk.AccAddressFromBech32(sdkTx.FromAddress)
+			if err != nil {
+				return nil, err
+			}
+			bTo, err := sdk.AccAddressFromBech32(sdkTx.ToAddress)
 			if err != nil {
 				return nil, err
 			}
 			from = common.BytesToAddress(bFrom.Bytes())
 			*to = common.BytesToAddress(bTo.Bytes())
-			value = sendTx.Amount.AmountOf(stratos.Wei).BigInt()
+			value = sdkTx.Amount.AmountOf(stratos.Wei).BigInt()
 		}
 
 		return &Transaction{
