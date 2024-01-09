@@ -13,7 +13,6 @@ import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
@@ -61,8 +60,7 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 	blsSignature := msg.GetBLSSignature()
 
 	// verify txDataHash
-	signBytes := msg.GetBLSSignBytes()
-	txDataHash := crypto.Keccak256(signBytes)
+	txDataHash := msg.GetBLSSignBytes()
 	if !bytes.Equal(txDataHash, blsSignature.GetTxData()) {
 		return &types.MsgVolumeReportResponse{}, types.ErrBLSTxDataInvalid
 	}

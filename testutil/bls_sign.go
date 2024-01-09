@@ -3,7 +3,6 @@ package testutil
 import (
 	"fmt"
 
-	"github.com/stratosnet/stratos-chain/crypto"
 	"github.com/stratosnet/stratos-chain/crypto/bls"
 	pottypes "github.com/stratosnet/stratos-chain/x/pot/types"
 )
@@ -14,8 +13,7 @@ func SignVolumeReport(volumeReportMsg *pottypes.MsgVolumeReport, privKeys ...[]b
 		return nil, fmt.Errorf("No private keys, failed to sign. ")
 	}
 
-	signBytes := volumeReportMsg.GetBLSSignBytes()
-	signBytesHash := crypto.Keccak256(signBytes)
+	signBytesHash := volumeReportMsg.GetBLSSignBytes()
 
 	var blsSignatures = make([][]byte, len(privKeys))
 	var blsPrivKeys = make([][]byte, len(privKeys))

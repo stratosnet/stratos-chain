@@ -5,6 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/gogoproto/proto"
 
+	"github.com/stratosnet/stratos-chain/crypto"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -67,11 +68,17 @@ func (msg MsgVolumeReport) GetSignBytes() []byte {
 
 func (msg MsgVolumeReport) GetBLSSignBytes() []byte {
 	msg.BLSSignature = BLSSignatureInfo{}
+
+	msg.WalletVolumes = append([]SingleWalletVolume{}, msg.WalletVolumes...)
+	for i := range msg.WalletVolumes {
+		msg.WalletVolumes[i].Volume = sdkmath.ZeroInt()
+	}
+
 	bz, err := proto.Marshal(&msg)
 	if err != nil {
 		panic(err)
 	}
-	return bz
+	return crypto.Keccak256(bz)
 }
 
 // ValidateBasic validity check for the AnteHandler
