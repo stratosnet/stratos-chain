@@ -6,6 +6,7 @@ import (
 	"math/big"
 	"time"
 
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -42,13 +43,7 @@ func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
 	return hexutil.Uint64(res.Block.Height), nil
 }
 
-// GetBlockByNumber returns the block identified by number.
-func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error) {
-	resBlock, err := b.GetTendermintBlockByNumber(blockNum)
-	if err != nil {
-		return nil, err
-	}
-
+func (b *Backend) getBlockFromResultBlock(resBlock *tmrpctypes.ResultBlock, fullTx bool) (*types.Block, error) {
 	// return if requested block height is greater than the current one
 	if resBlock == nil || resBlock.Block == nil {
 		return nil, nil
@@ -56,20 +51,20 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 
 	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
 	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint failed", "height", blockNum, "error", err.Error())
+		b.logger.Debug("EthBlockFromTendermint failed", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
 		return nil, nil
 	}
 
 	// override dynamicly miner address
 	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "height", blockNum, "error", err.Error())
+		b.logger.Debug("GetSdkContextWithHeader context", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
 		return nil, err
 	}
 
-	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
+	validator, err := b.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
 	if err != nil {
-		b.logger.Debug("GetCoinbaseAddress no validator", "height", blockNum, "error", err.Error())
+		b.logger.Debug("GetCoinbaseAddress no validator", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
 		return nil, err
 	}
 	res.Miner = validator
@@ -83,6 +78,15 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 	return res, nil
 }
 
+// GetBlockByNumber returns the block identified by number.
+func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*types.Block, error) {
+	resBlock, err := b.GetTendermintBlockByNumber(blockNum)
+	if err != nil {
+		return nil, err
+	}
+	return b.getBlockFromResultBlock(resBlock, fullTx)
+}
+
 // GetBlockByHash returns the block identified by hash.
 func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, error) {
 	resBlock, err := tmrpccore.BlockByHash(nil, hash.Bytes())
@@ -90,39 +94,7 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 		b.logger.Debug("BlockByHash block not found", "hash", hash.Hex(), "error", err.Error())
 		return nil, err
 	}
-
-	if resBlock == nil || resBlock.Block == nil {
-		b.logger.Debug("BlockByHash block not found", "hash", hash.Hex())
-		return nil, nil
-	}
-
-	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
-	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint failed", "hash", hash.Hex(), "error", err.Error())
-		return nil, nil
-	}
-
-	// override dynamicly miner address
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
-	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "hash", hash.Hex(), "error", err.Error())
-		return nil, err
-	}
-
-	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
-	if err != nil {
-		b.logger.Debug("GetCoinbaseAddress no validator", "hash", hash.Hex(), "error", err.Error())
-		return nil, err
-	}
-	res.Miner = validator
-
-	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
-	if err != nil {
-		return nil, err
-	}
-	res.BaseFee = (*hexutil.Big)(feeResp.BaseFee.BigInt())
-
-	return res, nil
+	return b.getBlockFromResultBlock(resBlock, fullTx)
 }
 
 // GetTendermintBlockByNumber returns a Tendermint format block by block number
@@ -508,7 +480,7 @@ func (b *Backend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash, e
 	// NOTE: If error is encountered on the node, the broadcast will not return an error
 	syncCtx := b.clientCtx.WithBroadcastMode(flags.BroadcastSync)
 	rsp, err := syncCtx.BroadcastTx(txBytes)
-	if rsp != nil && rsp.Code != 0 {
+	if rsp != nil && rsp.Code != abci.CodeTypeOK {
 		err = errors.ABCIError(rsp.Codespace, rsp.Code, rsp.RawLog)
 	}
 	if err != nil {

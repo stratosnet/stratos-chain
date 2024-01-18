@@ -350,7 +350,11 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 			case ev := <-logsCh:
 				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
 				if !isMsgEthereumTx {
-					continue
+					// >v011
+					_, isMsgEthereumTx = ev.Events[fmt.Sprintf("%s.%s", "stratos.evm.v1.EventEthereumTx", "eth_hash")]
+					if !isMsgEthereumTx {
+						continue
+					}
 				}
 
 				// get transaction result data
@@ -430,7 +434,11 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 			case ev := <-eventCh:
 				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
 				if !isMsgEthereumTx {
-					continue
+					// >v011
+					_, isMsgEthereumTx = ev.Events[fmt.Sprintf("%s.%s", "stratos.evm.v1.EventEthereumTx", "eth_hash")]
+					if !isMsgEthereumTx {
+						continue
+					}
 				}
 
 				dataTx, ok := ev.Data.(tmtypes.EventDataTx)

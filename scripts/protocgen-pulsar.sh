@@ -3,8 +3,8 @@
 set -eo pipefail
 
 protoc_install_gopulsar() {
-  go install github.com/cosmos/cosmos-proto/cmd/protoc-gen-go-pulsar@v1.0.0-beta.3
-  go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
+  go${GO_VERSION} install github.com/cosmos/cosmos-proto/cmd/protoc-gen-go-pulsar@v1.0.0-beta.3
+  go${GO_VERSION} install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3.0
 }
 
 protoc_install_gopulsar
@@ -20,7 +20,7 @@ for dir in $module_dirs; do
   buf generate --template buf.gen.pulsar.yaml --path $dir
 done
 
-chmod 755 ../api -R
+chmod -R 755 ../api
 
 
 #

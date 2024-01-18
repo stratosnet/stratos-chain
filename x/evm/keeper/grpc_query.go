@@ -588,9 +588,16 @@ func (k *Keeper) traceTx(
 func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	params := k.GetParams(ctx)
+	params := k.GetParamsV011(ctx)
+	if params.EvmDenom == "" {
+		params = k.GetParams(ctx)
+	}
+
 	ethCfg := params.ChainConfig.EthereumConfig()
-	baseFee := k.GetBaseFee(ctx, ethCfg)
+	baseFee := k.GetBaseFeeV011(ctx, ethCfg)
+	if baseFee == nil {
+		baseFee = k.GetBaseFee(ctx, ethCfg)
+	}
 
 	res := &types.QueryBaseFeeResponse{}
 	if baseFee != nil {
@@ -606,7 +613,10 @@ func (k Keeper) BaseFeeParam(c context.Context, _ *types.QueryBaseFeeRequest) (*
 	ctx := sdk.UnwrapSDKContext(c)
 
 	res := &types.QueryBaseFeeResponse{}
-	baseFee := k.GetBaseFeeParam(ctx)
+	baseFee := k.GetBaseFeeParamV011(ctx)
+	if baseFee == nil {
+		baseFee = k.GetBaseFeeParam(ctx)
+	}
 
 	if baseFee != nil {
 		aux := sdkmath.NewIntFromBigInt(baseFee)

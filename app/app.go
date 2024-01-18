@@ -243,6 +243,8 @@ func NewStratosApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	// Add the EVM transient store key
 	evmTransientKey := sdk.NewTransientStoreKey(evmtypes.TransientKey)
 	app.evmKeeper.SetTransientKey(evmTransientKey)
+	// Before v012 for legacy read
+	app.evmKeeper.SetParamSpace(app.GetSubspace(evmtypes.ModuleName))
 	err := app.RegisterStores(evmTransientKey)
 	if err != nil {
 		panic(err)

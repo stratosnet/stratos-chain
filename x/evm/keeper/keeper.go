@@ -3,6 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	"reflect"
+
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/errors"
@@ -10,6 +12,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -31,6 +34,10 @@ type Keeper struct {
 	// - storing transaction Logs
 	// - storing Bloom filters by block height. Needed for the Web3 API.
 	storeKey storetypes.StoreKey
+
+	// LEGACY: Required for <v012 data read
+	// module specific parameter space that can be configured through governance
+	paramSpace paramtypes.Subspace
 
 	// key to access the transient store, which is reset on every block during Commit
 	transientKey storetypes.StoreKey
@@ -87,6 +94,18 @@ func (k *Keeper) SetTransientKey(transientKey storetypes.StoreKey) {
 	k.transientKey = transientKey
 }
 
+// LEGACY BUT REQUIRED
+func (k *Keeper) SetParamSpace(paramSpace paramtypes.Subspace) {
+	if !reflect.DeepEqual(k.paramSpace, paramtypes.Subspace{}) {
+		return
+	}
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
+	k.paramSpace = paramSpace
+}
+
 func (k *Keeper) SetTracer(tracer string) {
 	k.tracer = tracer
 }
@@ -99,7 +118,7 @@ func (k *Keeper) SetTracer(tracer string) {
 // EmitBlockBloomEvent emit block bloom events
 func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) error {
 	return ctx.EventManager().EmitTypedEvent(&types.EventBlockBloom{
-		Bloom: string(bloom.Bytes()),
+		Bloom: bloom.Bytes(),
 	})
 }
 

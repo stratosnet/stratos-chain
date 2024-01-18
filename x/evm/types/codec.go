@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
+	tx "github.com/cosmos/cosmos-sdk/types/tx"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -34,6 +35,12 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&DynamicFeeTx{},
 		&AccessListTx{},
 		&LegacyTx{},
+	)
+	// for tx decoder handling
+	registry.RegisterImplementations(
+		(*tx.TxExtensionOptionI)(nil),
+		&MsgEthereumTx{},
+		&ExtensionOptionsEthereumTx{},
 	)
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
