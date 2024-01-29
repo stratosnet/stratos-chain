@@ -95,10 +95,6 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 			ReportReference: msg.GetReportReference(),
 			Epoch:           msg.Epoch.String(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetReporterOwner(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -128,10 +124,6 @@ func (k msgServer) HandleMsgWithdraw(goCtx context.Context, msg *types.MsgWithdr
 			WalletAddress: msg.GetWalletAddress(),
 			TargetAddress: msg.GetTargetAddress(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetWalletAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -154,10 +146,6 @@ func (k msgServer) HandleMsgFoundationDeposit(goCtx context.Context, msg *types.
 	err = ctx.EventManager().EmitTypedEvents(
 		&types.EventFoundationDeposit{
 			Amount: msg.GetAmount().String(),
-		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetFrom(),
 		},
 	)
 	if err != nil {
@@ -214,10 +202,6 @@ func (k msgServer) HandleMsgSlashingResourceNode(goCtx context.Context, msg *typ
 			SlashingType:   nodeType.String(),
 			Suspend:        strconv.FormatBool(msg.GetSuspend()),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetWalletAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -236,15 +220,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	err := k.SetParams(ctx, msg.Params)
 	if err != nil {
 		return nil, err
-	}
-
-	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
-		Module: types.ModuleName,
-		Sender: msg.Authority,
-		Action: sdk.MsgTypeURL(msg),
-	})
-	if err != nil {
-		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil

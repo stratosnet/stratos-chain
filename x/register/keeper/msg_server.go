@@ -65,10 +65,6 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 			OzoneLimitChanges: ozoneLimitChange.String(),
 			InitialDeposit:    msg.GetValue().String(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -119,10 +115,6 @@ func (k msgServer) HandleMsgCreateMetaNode(goCtx context.Context, msg *types.Msg
 			NetworkAddress:    msg.GetNetworkAddress(),
 			OzoneLimitChanges: ozoneLimitChange.String(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -156,10 +148,6 @@ func (k msgServer) HandleMsgRemoveResourceNode(goCtx context.Context, msg *types
 			ResourceNode:        msg.GetResourceNodeAddress(),
 			DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), depositToRemove).String(),
 			UnbondingMatureTime: completionTime.Format(time.RFC3339),
-		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
 		},
 	)
 	if err != nil {
@@ -202,10 +190,6 @@ func (k msgServer) HandleMsgRemoveMetaNode(goCtx context.Context, msg *types.Msg
 			DepositToRemove:     sdk.NewCoin(k.BondDenom(ctx), availableDeposit).String(),
 			UnbondingMatureTime: completionTime.Format(time.RFC3339),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -247,10 +231,6 @@ func (k msgServer) HandleMsgMetaNodeRegistrationVote(goCtx context.Context, msg 
 			CandidateNetworkAddress: msg.GetCandidateNetworkAddress(),
 			CandidateStatus:         nodeStatus.String(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetVoterOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -284,10 +264,6 @@ func (k msgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(goCtx context.Co
 			NetworkAddress:      msg.GetNetworkAddress(),
 			UnbondingMatureTime: completionTime.Format(time.RFC3339),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -317,10 +293,6 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 		&types.EventUpdateResourceNode{
 			Sender:         msg.GetOwnerAddress(),
 			NetworkAddress: msg.GetNetworkAddress(),
-		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
 		},
 	)
 	if err != nil {
@@ -361,10 +333,6 @@ func (k msgServer) HandleMsgUpdateResourceNodeDeposit(goCtx context.Context, msg
 			AvailableTokenAfter:  sdk.NewCoin(k.BondDenom(ctx), availableTokenAmtAfter).String(),
 			OzoneLimitChanges:    ozoneLimitChange.String(),
 			UnbondingMatureTime:  completionTime.Format(time.RFC3339),
-		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
 		},
 	)
 	if err != nil {
@@ -457,10 +425,6 @@ func (k msgServer) HandleMsgUpdateMetaNode(goCtx context.Context, msg *types.Msg
 			Sender:         msg.GetOwnerAddress(),
 			NetworkAddress: msg.GetNetworkAddress(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -504,10 +468,6 @@ func (k msgServer) HandleMsgUpdateMetaNodeDeposit(goCtx context.Context, msg *ty
 			OzoneLimitChanges:    ozoneLimitChange.String(),
 			UnbondingMatureTime:  completionTime.Format(time.RFC3339),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetOwnerAddress(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -526,15 +486,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	err := k.SetParams(ctx, msg.Params)
 	if err != nil {
 		return nil, err
-	}
-
-	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
-		Module: types.ModuleName,
-		Sender: msg.Authority,
-		Action: sdk.MsgTypeURL(msg),
-	})
-	if err != nil {
-		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
