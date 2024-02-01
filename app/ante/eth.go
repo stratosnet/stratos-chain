@@ -10,6 +10,7 @@ import (
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	"github.com/ethereum/go-ethereum/common"
+	ethcore "github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
@@ -460,6 +461,12 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 			txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 			if err != nil {
 				return ctx, errors.Wrap(err, "failed to unpack MsgEthereumTx Data")
+			}
+
+			ethTx := ethtypes.NewTx(txData.AsEthereumData())
+			// Reject transactions over defined size to prevent DOS attacks
+			if uint64(ethTx.Size()) > evmtypes.TxMaxSize {
+				return ctx, errors.Wrapf(sdkerrors.ErrInvalidRequest, ethcore.ErrOversizedData.Error())
 			}
 
 			// return error if contract creation or call are disabled through governance
