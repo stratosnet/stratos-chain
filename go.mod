@@ -232,8 +232,10 @@ require (
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	// use stratos fork of cometbft
+	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.2-fix-search
 	// use stratos fork of cosmos-sdk
-	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.6-0.20240123192745-50a7f83bc99d
+	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.5-stratos
 	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.
 	// TODO Remove it: https://github.com/cosmos/cosmos-sdk/issues/10409
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
