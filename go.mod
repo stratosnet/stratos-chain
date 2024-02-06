@@ -26,6 +26,7 @@ require (
 	github.com/gogo/protobuf v1.3.2
 	github.com/golang/protobuf v1.5.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
+	github.com/huandu/skiplist v1.2.0
 	github.com/ipfs/go-cid v0.1.0
 	github.com/kelindar/bitmap v1.4.1
 	github.com/pkg/errors v0.9.1
@@ -135,7 +136,6 @@ require (
 	github.com/hdevalence/ed25519consensus v0.1.0 // indirect
 	github.com/holiman/bloomfilter/v2 v2.0.3 // indirect
 	github.com/holiman/uint256 v1.2.0 // indirect
-	github.com/huandu/skiplist v1.2.0 // indirect
 	github.com/huin/goupnp v1.0.3 // indirect
 	github.com/improbable-eng/grpc-web v0.15.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect

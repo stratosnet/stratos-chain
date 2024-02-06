@@ -588,16 +588,26 @@ func (k *Keeper) traceTx(
 func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
 	ctx := sdk.UnwrapSDKContext(c)
 
-	params := k.GetParamsV011(ctx)
-	if params.EvmDenom == "" {
-		params = k.GetParams(ctx)
+	params := k.GetParams(ctx)
+	ethCfg := params.ChainConfig.EthereumConfig()
+	baseFee := k.GetBaseFee(ctx, ethCfg)
+
+	res := &types.QueryBaseFeeResponse{}
+	if baseFee != nil {
+		aux := sdkmath.NewIntFromBigInt(baseFee)
+		res.BaseFee = &aux
 	}
 
+	return res, nil
+}
+
+// BaseFeeV011 implements the Query/BaseFee gRPC method for old blocks
+func (k Keeper) BaseFeeV011(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	params := k.GetParamsV011(ctx)
 	ethCfg := params.ChainConfig.EthereumConfig()
 	baseFee := k.GetBaseFeeV011(ctx, ethCfg)
-	if baseFee == nil {
-		baseFee = k.GetBaseFee(ctx, ethCfg)
-	}
 
 	res := &types.QueryBaseFeeResponse{}
 	if baseFee != nil {
@@ -613,10 +623,22 @@ func (k Keeper) BaseFeeParam(c context.Context, _ *types.QueryBaseFeeRequest) (*
 	ctx := sdk.UnwrapSDKContext(c)
 
 	res := &types.QueryBaseFeeResponse{}
-	baseFee := k.GetBaseFeeParamV011(ctx)
-	if baseFee == nil {
-		baseFee = k.GetBaseFeeParam(ctx)
+	baseFee := k.GetBaseFeeParam(ctx)
+
+	if baseFee != nil {
+		aux := sdkmath.NewIntFromBigInt(baseFee)
+		res.BaseFee = &aux
 	}
+
+	return res, nil
+}
+
+// BaseFeeParamV011 implements the Query/BaseFeeParam gRPC method for old blocks
+func (k Keeper) BaseFeeParamV011(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	res := &types.QueryBaseFeeResponse{}
+	baseFee := k.GetBaseFeeParamV011(ctx)
 
 	if baseFee != nil {
 		aux := sdkmath.NewIntFromBigInt(baseFee)

@@ -11,6 +11,11 @@ import (
 
 // GetParams returns the total set of evm parameters.
 func (k Keeper) GetParamsV011(ctx sdk.Context) (params types.Params) {
+	// cover as it does not exist in new blocks
+	defer func() {
+		_ = recover()
+	}()
+
 	k.paramSpace.GetParamSet(ctx, &params)
 	return params
 }
@@ -23,7 +28,7 @@ func (k Keeper) GetParamsV011(ctx sdk.Context) (params types.Params) {
 // GetBaseFeeParam get's the base fee from the paramSpace
 // return nil if base fee is not enabled
 func (k Keeper) GetBaseFeeParamV011(ctx sdk.Context) *big.Int {
-	params := k.GetParams(ctx)
+	params := k.GetParamsV011(ctx)
 	if params.FeeMarketParams.NoBaseFee {
 		return nil
 	}

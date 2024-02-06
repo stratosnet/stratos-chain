@@ -130,7 +130,7 @@ func GetTmTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
 		resTxs, err := tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
 		// NOTE: How to add migration switcher to prevent double call?
 		if err != nil || len(resTxs.Txs) == 0 {
-			query = fmt.Sprintf("%s.%s='%s'", "stratos.evm.v1.EventEthereumTx", "eth_hash", hash.Hex())
+			query = fmt.Sprintf("%s.%s='\"%s\"'", "stratos.evm.v1.EventEthereumTx", "eth_hash", hash.Hex())
 			resTxs, err = tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
 			if err != nil {
 				return nil, err
