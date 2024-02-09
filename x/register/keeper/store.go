@@ -176,6 +176,24 @@ func (k Keeper) GetMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr strato
 	return votePool, true
 }
 
+func (k Keeper) SetKickMetaNodeVotePool(ctx sdk.Context, votePool types.KickMetaNodeVotePool) {
+	targetNetworkAddr := votePool.GetTargetNetworkAddress()
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalLengthPrefixed(&votePool)
+	node, _ := stratos.SdsAddressFromBech32(targetNetworkAddr)
+	store.Set(types.GetKickMetaNodeVotesKey(node), bz)
+}
+
+func (k Keeper) GetKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr stratos.SdsAddress) (votePool types.KickMetaNodeVotePool, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetKickMetaNodeVotesKey(targetNetworkAddr))
+	if bz == nil {
+		return votePool, false
+	}
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &votePool)
+	return votePool, true
+}
+
 func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})

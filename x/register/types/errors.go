@@ -36,7 +36,7 @@ const (
 	codeErrInvalidOwnerAddr
 	codeErrInvalidBeneficiaryAddr
 	codeErrInvalidVoterStatus
-	codeEcoderrNoRegistrationVotePoolFound
+	codeErrNoRegistrationVotePoolFound
 	codeErrDuplicateVoting
 	codeErrVoteExpired
 	codeErrInsufficientBalanceOfNotBondedPool
@@ -68,6 +68,9 @@ const (
 	codeErrReporterAddressOrOwner
 	codeErrInvalidEffectiveToken
 	codeErrEmitEvent
+	codeErrInvalidTargetNetworkAddr
+	codeErrNoActiveTargetMetaNodeFound
+	codeErrNoActiveVoterMetaNodeFound
 )
 
 var (
@@ -102,7 +105,7 @@ var (
 	ErrInvalidOwnerAddr                   = errors.Register(ModuleName, codeErrInvalidOwnerAddr, "invalid owner address")
 	ErrInvalidBeneficiaryAddr             = errors.Register(ModuleName, codeErrInvalidBeneficiaryAddr, "invalid beneficiary address")
 	ErrInvalidVoterStatus                 = errors.Register(ModuleName, codeErrInvalidVoterStatus, "invalid voter status")
-	ErrNoRegistrationVotePoolFound        = errors.Register(ModuleName, codeEcoderrNoRegistrationVotePoolFound, "registration pool does not exist")
+	ErrNoRegistrationVotePoolFound        = errors.Register(ModuleName, codeErrNoRegistrationVotePoolFound, "registration pool does not exist")
 	ErrDuplicateVoting                    = errors.Register(ModuleName, codeErrDuplicateVoting, "duplicate voting")
 	ErrVoteExpired                        = errors.Register(ModuleName, codeErrVoteExpired, "vote expired")
 	ErrInsufficientBalanceOfNotBondedPool = errors.Register(ModuleName, codeErrInsufficientBalanceOfNotBondedPool, "insufficient balance of not bonded pool")
@@ -134,4 +137,7 @@ var (
 	ErrReporterAddressOrOwner             = errors.Register(ModuleName, codeErrReporterAddressOrOwner, "invalid reporter address or owner address")
 	ErrInvalidEffectiveToken              = errors.Register(ModuleName, codeErrInvalidEffectiveToken, "invalid effective token")
 	ErrEmitEvent                          = errors.Register(ModuleName, codeErrEmitEvent, "failed to emit event")
+	ErrInvalidTargetNetworkAddr           = errors.Register(ModuleName, codeErrInvalidTargetNetworkAddr, "invalid target network address")
+	ErrNoActiveTargetMetaNodeFound        = errors.Register(ModuleName, codeErrNoActiveTargetMetaNodeFound, "target meta node does not exist or not active")
+	ErrNoActiveVoterMetaNodeFound         = errors.Register(ModuleName, codeErrNoActiveVoterMetaNodeFound, "voter meta node does not exist or not active")
 )

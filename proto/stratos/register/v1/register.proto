@@ -196,6 +196,33 @@ message MetaNodeRegistrationVotePool {
   ];
 }
 
+message KickMetaNodeVotePool {
+  string                      target_network_address = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "target_network_address",
+    (gogoproto.moretags) = "yaml:\"target_network_address\""
+  ];
+  repeated string             approve_list = 2 [
+    (gogoproto.jsontag) = "approve_list",
+    (gogoproto.moretags) = "yaml:\"approve_list\""
+  ];
+  repeated string             reject_list = 3 [
+    (gogoproto.jsontag) = "reject_list",
+    (gogoproto.moretags) = "yaml:\"reject_list\""
+  ];
+  google.protobuf.Timestamp   expire_time = 4 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.stdtime) = true,
+    (gogoproto.jsontag) = "expire_time",
+    (gogoproto.moretags) = "yaml:\"expire_time\""
+  ];
+  bool                        is_vote_passed = 5 [
+    (gogoproto.jsontag) = "is_vote_passed",
+    (gogoproto.moretags) = "yaml:\"is_vote_passed\""
+  ];
+}
+
 message Description {
   option (gogoproto.goproto_stringer) = true;
 

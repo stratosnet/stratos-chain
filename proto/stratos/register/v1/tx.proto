@@ -28,7 +28,7 @@ service Msg {
   rpc HandleMsgUpdateMetaNode(MsgUpdateMetaNode) returns (MsgUpdateMetaNodeResponse);
   rpc HandleMsgUpdateMetaNodeDeposit(MsgUpdateMetaNodeDeposit) returns (MsgUpdateMetaNodeDepositResponse);
   rpc HandleMsgMetaNodeRegistrationVote(MsgMetaNodeRegistrationVote) returns (MsgMetaNodeRegistrationVoteResponse);
-  rpc HandleMsgWithdrawMetaNodeRegistrationDeposit(MsgWithdrawMetaNodeRegistrationDeposit) returns (MsgWithdrawMetaNodeRegistrationDepositResponse);
+  rpc HandleMsgKickMetaNodeVote(MsgKickMetaNodeVote) returns (MsgKickMetaNodeVoteResponse);
 
   // UpdateParams defined a governance operation for updating the x/register module parameters.
   // The authority is hard-coded to the Cosmos SDK x/gov module account
@@ -343,25 +343,32 @@ message MsgMetaNodeRegistrationVote {
 // MsgMetaNodeRegistrationVoteResponse defines the Msg/MetaNodeRegistrationVote response type.
 message MsgMetaNodeRegistrationVoteResponse {}
 
-// MsgWithdrawMetaNodeRegistrationDeposit defines a SDK message for withdrawing registration deposit of meta node.
-message MsgWithdrawMetaNodeRegistrationDeposit {
-  option (cosmos.msg.v1.signer) = "owner_address";
-  option (amino.name) = "stratos/MsgWithdrawMetaNodeRegistrationDeposit";
+message MsgKickMetaNodeVote {
+  option (cosmos.msg.v1.signer) = "voter_owner_address";
+  option (amino.name) = "stratos/MsgKickMetaNodeVote";
 
-  string           network_address = 1 [
+  string           target_network_address = 1 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "network_address",
-    (gogoproto.moretags) = "yaml:\"network_address\""
-  ]; // node address of meta node
-  string           owner_address = 2 [
+    (gogoproto.jsontag) = "target_network_address",
+    (gogoproto.moretags) = "yaml:\"target_network_address\""
+  ];
+  bool             opinion = 2 [
+    (gogoproto.jsontag) = "opinion",
+    (gogoproto.moretags) = "yaml:\"opinion\""
+  ];
+  string           voter_network_address = 3 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "owner_address",
-    (gogoproto.moretags) = "yaml:\"owner_address\""
-  ]; // owner address of meta node
+    (gogoproto.jsontag) = "voter_network_address",
+    (gogoproto.moretags) = "yaml:\"voter_network_address\""
+  ];
+  string           voter_owner_address = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "voter_owner_address",
+    (gogoproto.moretags) = "yaml:\"voter_owner_address\""
+  ];
 }
 
-// MsgWithdrawMetaNodeRegistrationDepositResponse defines the Msg/WithdrawMetaNodeRegistrationDeposit response type.
-message MsgWithdrawMetaNodeRegistrationDepositResponse {}
+message MsgKickMetaNodeVoteResponse {}
 
 // MsgUpdateParams defines a Msg for updating the x/register module parameters.
 message MsgUpdateParams {

@@ -22,6 +22,7 @@ const (
 	FlagCandidateNetworkAddress = "candidate-network-address"
 	FlagOpinion                 = "opinion"
 	FlagVoterNetworkAddress     = "voter-network-address"
+	FlagTargetNetworkAddress    = "target-network-address"
 	FlagBeneficiaryAddress      = "beneficiary-address"
 )
 
@@ -74,13 +75,22 @@ func flagSetDepositUpdate() *flag.FlagSet {
 	return fs
 }
 
-func flagSetVoting() *flag.FlagSet {
+func flagSetMetaNodeRegVoting() *flag.FlagSet {
 	fs := flag.NewFlagSet("", flag.ContinueOnError)
 
 	fs.String(FlagCandidateNetworkAddress, "", "The network address of the candidate PP node")
 	fs.String(FlagCandidateOwnerAddress, "", "The owner address of the candidate PP node")
 	fs.Bool(FlagOpinion, false, "Opinion of the vote for the registration of Meta node.")
-	fs.String(FlagVoterNetworkAddress, "", "The address of the PP node that made the vote.")
+	fs.String(FlagVoterNetworkAddress, "", "The address of the meta node that made the vote.")
+	return fs
+}
+
+func flagSetKickMetaNodeVoting() *flag.FlagSet {
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
+
+	fs.String(FlagTargetNetworkAddress, "", "The network address of the meta node to be kicked")
+	fs.String(FlagVoterNetworkAddress, "", "The network address of the meta node that made the vote")
+	fs.Bool(FlagOpinion, false, "Opinion of the vote for kicking meta node.")
 	return fs
 }
 

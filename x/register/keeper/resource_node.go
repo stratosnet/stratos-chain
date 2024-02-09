@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -352,6 +353,68 @@ func (k Keeper) UpdateEffectiveDeposit(ctx sdk.Context, networkAddr stratos.SdsA
 		ozoneLimitChange = k.IncreaseOzoneLimitByAddDeposit(ctx, effectiveDepositChange)
 	}
 	return ozoneLimitChange, effectiveDepositChange, isUnsuspendedDuringUpdate, nil
+}
+
+// UnbondResourceNode Unbond all tokens of resource node
+func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
+) (depositToRemove sdk.Coin, unbondingMatureTime time.Time, err error) {
+
+	resourceNode, found := k.GetResourceNode(ctx, networkAddr)
+	if !found {
+		err = types.ErrNoResourceNodeFound
+		return
+	}
+	if ownerAddr.String() != resourceNode.GetOwnerAddress() {
+		err = types.ErrInvalidOwnerAddr
+		return
+	}
+	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
+		err = types.ErrMaxUnbondingNodeEntries
+		return
+	}
+
+	// check if node_token - unbonding_token > 0
+	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
+	availableDeposit := resourceNode.Tokens.Sub(unbondingDeposit)
+	if availableDeposit.LTE(sdkmath.ZeroInt()) {
+		err = types.ErrInsufficientBalance
+		return
+	}
+
+	switch resourceNode.GetStatus() {
+
+	case stakingtypes.Bonded:
+		if resourceNode.GetSuspend() {
+			err = types.ErrInvalidSuspensionStatForUnbondNode
+			return
+		}
+		depositToRemove = sdk.NewCoin(k.BondDenom(ctx), availableDeposit)
+		// transfer the node tokens to the not bonded pool
+		k.bondedToUnbonding(ctx, resourceNode, false, depositToRemove)
+		// decrease resource node count
+		newBondedResourceNodeCnt := k.GetBondedResourceNodeCnt(ctx).Sub(sdkmath.OneInt())
+		k.SetBondedResourceNodeCnt(ctx, newBondedResourceNodeCnt)
+
+	default:
+		err = types.ErrInvalidNodeStat
+		return
+	}
+
+	unbondingMatureTime = k.calcUnbondingMatureTime(ctx, resourceNode.GetStatus(), resourceNode.GetCreationTime())
+	// set the unbonding mature time and completion height appropriately
+	ctx.Logger().Info(fmt.Sprintf("Calculating mature time: creationTime[%s], threasholdTime[%s], completionTime[%s], matureTime[%s]",
+		resourceNode.GetCreationTime(), k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx), unbondingMatureTime,
+	))
+	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, false, ctx.BlockHeight(), unbondingMatureTime, availableDeposit)
+	// Add to unbonding node queue
+	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
+	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
+
+	// change node status to unbonding if unbonding all available tokens
+	resourceNode.Status = stakingtypes.Unbonding
+	k.SetResourceNode(ctx, resourceNode)
+
+	return depositToRemove, unbondingMatureTime, nil
 }
 
 func (k Keeper) GetResourceNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
