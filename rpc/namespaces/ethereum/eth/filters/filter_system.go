@@ -29,7 +29,7 @@ var (
 	// base tm tx event
 	txEvents = tmtypes.QueryForEvent(tmtypes.EventTx).String()
 	// listen only evm txs
-	evmEvents = tmquery.MustParse(fmt.Sprintf("%s='%s' AND %s.%s='%s'", tmtypes.EventTypeKey, tmtypes.EventTx, sdk.EventTypeMessage, sdk.AttributeKeyModule, evmtypes.ModuleName)).String()
+	evmEvents = tmquery.MustCompile(fmt.Sprintf("%s='%s' AND %s.%s='%s'", tmtypes.EventTypeKey, tmtypes.EventTx, sdk.EventTypeMessage, sdk.AttributeKeyModule, evmtypes.ModuleName)).String()
 	// specify to listen a blocks instead of heads as it contain more details about the block header including current block hash
 	headerEvents = tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
 	// for tendermint subscribe channel capacity to make it buffered
