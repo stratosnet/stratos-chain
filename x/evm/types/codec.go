@@ -8,6 +8,7 @@ import (
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/msgservice"
 	tx "github.com/cosmos/cosmos-sdk/types/tx"
+	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	"github.com/gogo/protobuf/proto"
 )
 
@@ -17,12 +18,18 @@ type (
 	ExtensionOptionsEthereumTxI interface{}
 )
 
+// RegisterLegacyAminoCodec RegisterCodec registers concrete types on codec
+func RegisterLegacyAminoCodec(cdc *codec.LegacyAmino) {
+	cdc.RegisterConcrete(&UpdateImplmentationProposal{}, "cosmos-sdk/UpdateImplmentationProposal", nil)
+}
+
 // RegisterInterfaces registers the client interfaces to protobuf Any.
 func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
 		&MsgEthereumTx{},
 		&MsgUpdateParams{},
+		&MsgUpdateImplmentationProposal{},
 	)
 	registry.RegisterInterface(
 		"stratos.evm.v1.ExtensionOptionsEthereumTx",
@@ -42,6 +49,14 @@ func RegisterInterfaces(registry codectypes.InterfaceRegistry) {
 		&MsgEthereumTx{},
 		&ExtensionOptionsEthereumTx{},
 	)
+	// --- START for gov START ---
+	// legacy
+	registry.RegisterInterface(
+		"cosmos.gov.v1beta1.Content",
+		(*govtypes.Content)(nil),
+		&UpdateImplmentationProposal{},
+	)
+	// --- END for gov END ---
 
 	msgservice.RegisterMsgServiceDesc(registry, &_Msg_serviceDesc)
 }

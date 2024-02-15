@@ -1,0 +1,19 @@
+{
+  "name": "@stratosnet/stratos-chain",
+  "private": true,
+  "workspaces": [
+    "packages/gov"
+  ],
+  "scripts": {
+    "gov": "yarn workspace @stratosnet/stratos-chain-gov hh",
+    "compile": "yarn gov compile",
+    "test": "yarn gov test"
+  },
+  "packageManager": "yarn@3.2.0",
+  "version": "1.0.0",
+  "description": "Stratoschain base launcher for workspace packages",
+  "main": "index.js",
+  "repository": "https://github.com/stratosnet/stratos-chain.git",
+  "author": "BoThe1K <bohdan@thestratos.org>",
+  "license": "MIT OR Apache-2.0"
+}

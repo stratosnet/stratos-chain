@@ -76,6 +76,7 @@ import (
 	"github.com/stratosnet/stratos-chain/app/upgrades"
 	"github.com/stratosnet/stratos-chain/runtime"
 	srvflags "github.com/stratosnet/stratos-chain/server/flags"
+	"github.com/stratosnet/stratos-chain/x/evm"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 	potkeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
@@ -294,7 +295,8 @@ func NewStratosApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	govRouter.AddRoute(govtypes.RouterKey, govv1beta1.ProposalHandler).
 		AddRoute(paramproposal.RouterKey, params.NewParamChangeProposalHandler(app.paramsKeeper)). // This should be removed. It is still in place to avoid failures of modules that have not yet been upgraded.
 		AddRoute(upgradetypes.RouterKey, upgrade.NewSoftwareUpgradeProposalHandler(app.upgradeKeeper)).
-		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper))
+		AddRoute(ibcclienttypes.RouterKey, ibcclient.NewClientProposalHandler(app.ibcKeeper.ClientKeeper)).
+		AddRoute(evmtypes.RouterKey, evm.NewEVMChangeProposalHandler(app.evmKeeper))
 
 	app.ibcFeeKeeper = ibcfeekeeper.NewKeeper(
 		app.appCodec, app.GetKey(ibcfeetypes.StoreKey),
