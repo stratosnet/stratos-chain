@@ -56,6 +56,18 @@ message GenesisState {
     (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec"
   ]; //fixed rate of deposit over noz
+  repeated MetaNodeRegistrationVotePool meta_node_reg_vote_pool = 7 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "meta_node_reg_vote_pool",
+    (gogoproto.moretags) = "yaml:\"meta_node_reg_vote_pool\""
+  ];
+  repeated UnbondingNode unbonding_nodes = 8 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "unbonding_nodes",
+    (gogoproto.moretags) = "yaml:\"unbonding_nodes\""
+  ];
 }
 
 message GenesisMetaNode {

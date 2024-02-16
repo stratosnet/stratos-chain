@@ -10,12 +10,14 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
+// deprecated
 func (k Keeper) SetInitialGenesisDepositTotal(ctx sdk.Context, deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})
 	store.Set(types.InitialGenesisDepositTotalKey, b)
 }
 
+// deprecated
 func (k Keeper) GetInitialGenesisDepositTotal(ctx sdk.Context) (deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	b := store.Get(types.InitialGenesisDepositTotalKey)
@@ -88,6 +90,20 @@ func (k Keeper) GetUnbondingNode(ctx sdk.Context, networkAddr stratos.SdsAddress
 	}
 	k.cdc.MustUnmarshalLengthPrefixed(value, &ubd)
 	return ubd, true
+}
+
+func (k Keeper) GetAllUnbondingNode(ctx sdk.Context) (unbondingNodes []types.UnbondingNode) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.UBDNodeKey)
+	defer iterator.Close()
+
+	unbondingNodes = make([]types.UnbondingNode, 0)
+	for ; iterator.Valid(); iterator.Next() {
+		node := types.UnbondingNode{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &node)
+		unbondingNodes = append(unbondingNodes, node)
+	}
+	return
 }
 
 // SetUnbondingNodeQueueTimeSlice sets a specific unbonding queue timeslice.
@@ -174,6 +190,19 @@ func (k Keeper) GetMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr strato
 	}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &votePool)
 	return votePool, true
+}
+
+func (k Keeper) GetAllMetaNodeRegVotePool(ctx sdk.Context) (votePools []types.MetaNodeRegistrationVotePool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.MetaNodeRegistrationVotesKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		voteInfo := types.MetaNodeRegistrationVotePool{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &voteInfo)
+		votePools = append(votePools, voteInfo)
+	}
+	return
 }
 
 func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdkmath.Int) {
