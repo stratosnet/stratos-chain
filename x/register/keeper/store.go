@@ -194,6 +194,26 @@ func (k Keeper) GetKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr strat
 	return votePool, true
 }
 
+func (k Keeper) GetAllExpiredKickMetaNodeVotePool(ctx sdk.Context) (votePools []types.KickMetaNodeVotePool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KickMetaNodeVotesKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		votePool := types.KickMetaNodeVotePool{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &votePool)
+		if votePool.GetExpireTime().Before(ctx.BlockTime()) {
+			votePools = append(votePools, votePool)
+		}
+	}
+	return
+}
+
+func (k Keeper) DeleteKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr stratos.SdsAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetKickMetaNodeVotesKey(targetNetworkAddr))
+}
+
 func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})

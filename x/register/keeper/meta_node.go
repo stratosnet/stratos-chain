@@ -16,6 +16,10 @@ import (
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
+const (
+	KICK_VOTING_POOL_CLEANUP_INTERVAL = 10000 //every 10000 blocks
+)
+
 var (
 	metaNodeBitMapIndexCache       = make(map[string]int)
 	metaNodeBitMapIndexCacheStatus = &types.CacheStatus{Status: types.CACHE_DIRTY}
@@ -542,10 +546,30 @@ func (k Keeper) HandleVoteForKickMetaNode(ctx sdk.Context, targetNetworkAddr str
 
 		votePool.IsVotePassed = true
 		k.SetKickMetaNodeVotePool(ctx, votePool)
+
+		// meta node status is already updated to the store by UnbondMetaNode() func
+		targetMetaNode.Status = stakingtypes.Unbonding
+	}
+
+	voteCountRequiredToReject := activeMetaNodeCount / 3
+	//vote is rejected, delete the vote pool data to allow the next round of voting
+	if len(votePool.RejectList) >= voteCountRequiredToReject {
+		k.DeleteKickMetaNodeVotePool(ctx, targetNetworkAddr)
 	}
 	nodeStatus = targetMetaNode.Status
 
 	return
+}
+
+// delete all expired vote pool data to allow the next round of voting
+func (k Keeper) RemoveExpiredKickMetaNodeVotePool(ctx sdk.Context) {
+	if ctx.BlockHeight()%KICK_VOTING_POOL_CLEANUP_INTERVAL == 0 {
+		expiredVotePools := k.GetAllExpiredKickMetaNodeVotePool(ctx)
+		for _, votePool := range expiredVotePools {
+			targetNetworkAddr, _ := stratos.SdsAddressFromBech32(votePool.GetTargetNetworkAddress())
+			k.DeleteKickMetaNodeVotePool(ctx, targetNetworkAddr)
+		}
+	}
 }
 
 func (k Keeper) GetMetaNodeBondedToken(ctx sdk.Context) (token sdk.Coin) {
