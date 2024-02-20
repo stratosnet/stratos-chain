@@ -29,14 +29,25 @@ func DecodeTxResponse(in []byte) (*MsgEthereumTxResponse, error) {
 		return nil, err
 	}
 
-	data := txMsgData.GetData()
-	if len(data) == 0 {
+	data := txMsgData.GetData() // support for tx before <v012
+	var value []byte
+	if len(data) != 0 {
+		value = data[0].GetData()
+	} else {
+		msgs := txMsgData.GetMsgResponses()
+		if len(msgs) == 0 {
+			return &MsgEthereumTxResponse{}, nil
+		}
+		value = msgs[0].Value
+	}
+
+	if len(value) == 0 {
 		return &MsgEthereumTxResponse{}, nil
 	}
 
 	var res MsgEthereumTxResponse
 
-	err := proto.Unmarshal(data[0].GetData(), &res)
+	err := proto.Unmarshal(value, &res)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal tx response message data")
 	}
@@ -115,10 +126,15 @@ func IsValidInt256(i *big.Int) bool {
 func GetTmTxByHash(hash common.Hash) (*tmrpctypes.ResultTx, error) {
 	resTx, err := tmrpccore.Tx(nil, hash.Bytes(), false)
 	if err != nil {
-		query := fmt.Sprintf("%s.%s='%s'", TypeMsgEthereumTx, AttributeKeyEthereumTxHash, hash.Hex())
+		query := fmt.Sprintf("%s.%s='%s'", EventTypeEthereumTx, AttributeKeyEthereumTxHash, hash.Hex())
 		resTxs, err := tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
-		if err != nil {
-			return nil, err
+		// NOTE: How to add migration switcher to prevent double call?
+		if err != nil || len(resTxs.Txs) == 0 {
+			query = fmt.Sprintf("%s.%s='\"%s\"'", "stratos.evm.v1.EventEthereumTx", "eth_hash", hash.Hex())
+			resTxs, err = tmrpccore.TxSearch(new(tmjsonrpctypes.Context), query, false, nil, nil, "")
+			if err != nil {
+				return nil, err
+			}
 		}
 		if len(resTxs.Txs) == 0 {
 			return nil, errors.Wrapf(ErrEthTxNotFound, "hash: %s", hash.Hex())

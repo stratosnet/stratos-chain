@@ -3,6 +3,8 @@ package keeper
 import (
 	"math/big"
 
+	"reflect"
+
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/errors"
@@ -10,15 +12,19 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+
 	"github.com/ethereum/go-ethereum/params"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
@@ -32,6 +38,10 @@ type Keeper struct {
 	// - storing Bloom filters by block height. Needed for the Web3 API.
 	storeKey storetypes.StoreKey
 
+	// LEGACY: Required for <v012 data read
+	// module specific parameter space that can be configured through governance
+	paramSpace paramtypes.Subspace
+
 	// key to access the transient store, which is reset on every block during Commit
 	transientKey storetypes.StoreKey
 
@@ -41,9 +51,16 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
+	// access for registry functionality with related keeper
+	registerKeeper types.RegisterKeeper
+	// access for sds functionality with related keeper
+	sdsKeeper types.SdsKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
+
+	// genesisContractVerifier verifies is contract is trusted in order to allow curtain opcodes
+	verifier *vm.GenesisContractVerifier
 
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
@@ -51,16 +68,16 @@ type Keeper struct {
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
+	// cosmos events to execute when all execution passed
+	events sdk.Events
 }
 
 // NewKeeper generates new evm module keeper
 func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
-	ak types.AccountKeeper,
-	bankKeeper types.BankKeeper,
-	sk types.StakingKeeper,
-	authority string,
+	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
+	rk types.RegisterKeeper, sdsKeeper types.SdsKeeper, authority string,
 ) *Keeper {
 	// ensure evm module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -69,12 +86,16 @@ func NewKeeper(
 
 	// NOTE: we pass in the parameter space to the CommitStateDB in order to use custom denominations for the EVM operations
 	return &Keeper{
-		cdc:           cdc,
-		accountKeeper: ak,
-		bankKeeper:    bankKeeper,
-		stakingKeeper: sk,
-		storeKey:      storeKey,
-		authority:     authority,
+		cdc:            cdc,
+		accountKeeper:  ak,
+		bankKeeper:     bankKeeper,
+		stakingKeeper:  sk,
+		registerKeeper: rk,
+		sdsKeeper:      sdsKeeper,
+		storeKey:       storeKey,
+		events:         make(sdk.Events, 0, 12),
+		authority:      authority,
+		verifier:       vm.NewGenesisContractVerifier(),
 	}
 }
 
@@ -87,8 +108,46 @@ func (k *Keeper) SetTransientKey(transientKey storetypes.StoreKey) {
 	k.transientKey = transientKey
 }
 
+// LEGACY BUT REQUIRED
+func (k *Keeper) SetParamSpace(paramSpace paramtypes.Subspace) {
+	if !reflect.DeepEqual(k.paramSpace, paramtypes.Subspace{}) {
+		return
+	}
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
+	k.paramSpace = paramSpace
+}
+
 func (k *Keeper) SetTracer(tracer string) {
 	k.tracer = tracer
+}
+
+// cosmos events
+func (k *Keeper) AddEvents(events sdk.Events) {
+	k.events = append(k.events, events...)
+}
+
+func (k *Keeper) AddTypedEvents(tevs []proto.Message) error {
+	tmpEvts := make(sdk.Events, len(tevs))
+	for i, tev := range tevs {
+		res, err := sdk.TypedEventToEvent(tev)
+		if err != nil {
+			return err
+		}
+		tmpEvts[i] = res
+	}
+
+	k.events = append(k.events, tmpEvts...)
+	return nil
+}
+
+func (k *Keeper) ApplyEvents(ctx sdk.Context, isVmError bool) {
+	if len(k.events) > 0 && !isVmError {
+		ctx.EventManager().EmitEvents(k.events)
+	}
+	k.events = k.events[:0] // clear prvious events to avoid conflicts
 }
 
 // ----------------------------------------------------------------------------
@@ -99,7 +158,7 @@ func (k *Keeper) SetTracer(tracer string) {
 // EmitBlockBloomEvent emit block bloom events
 func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) error {
 	return ctx.EventManager().EmitTypedEvent(&types.EventBlockBloom{
-		Bloom: string(bloom.Bytes()),
+		Bloom: bloom.Bytes(),
 	})
 }
 
@@ -207,7 +266,7 @@ func (k *Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *et
 
 // Tracer return a default vm.Tracer based on current keeper state
 func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *params.ChainConfig) vm.EVMLogger {
-	return types.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
+	return tracers.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
 }
 
 // GetAccountWithoutBalance load nonce and  codehash without balance,

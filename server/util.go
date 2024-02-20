@@ -15,8 +15,8 @@ import (
 	snapshottypes "github.com/cosmos/cosmos-sdk/snapshots/types"
 	"github.com/cosmos/cosmos-sdk/store"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/mempool"
 	"github.com/cosmos/cosmos-sdk/version"
+	stmempool "github.com/stratosnet/stratos-chain/app/mempool"
 
 	servercfg "github.com/stratosnet/stratos-chain/server/config"
 )
@@ -98,8 +98,8 @@ func DefaultBaseAppOptions(appOpts sdkservertypes.AppOptions) []func(*baseapp.Ba
 		baseapp.SetIAVLCacheSize(cast.ToInt(appOpts.Get(sdkserver.FlagIAVLCacheSize))),
 		baseapp.SetIAVLDisableFastNode(cast.ToBool(appOpts.Get(sdkserver.FlagDisableIAVLFastNode))),
 		baseapp.SetMempool(
-			mempool.NewSenderNonceMempool(
-				mempool.SenderNonceMaxTxOpt(cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))),
+			stmempool.NewEvmSenderNonceMempool(
+				stmempool.SenderNonceMaxTxOpt(cast.ToInt(appOpts.Get(sdkserver.FlagMempoolMaxTxs))),
 			),
 		),
 		baseapp.SetIAVLLazyLoading(cast.ToBool(appOpts.Get(sdkserver.FlagIAVLLazyLoading))),

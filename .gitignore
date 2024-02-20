@@ -14,3 +14,4 @@ playground.go
 /proto/gogoproto/
 /proto/google/
 /proto/tendermint/
+node_modules/

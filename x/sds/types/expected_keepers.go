@@ -20,6 +20,7 @@ type RegisterKeeper interface {
 	GetTotalUnissuedPrepay(ctx sdk.Context) (totalUnissuedPrepay sdk.Coin)
 	SetRemainingOzoneLimit(ctx sdk.Context, value sdkmath.Int)
 	OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) bool
+	CalculatePurchaseAmount(ctx sdk.Context, amount sdkmath.Int) (sdkmath.Int, sdkmath.Int, error)
 }
 
 type PotKeeper interface {
