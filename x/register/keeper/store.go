@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"fmt"
 	"time"
 
 	sdkmath "cosmossdk.io/math"
@@ -51,6 +52,23 @@ func (k *Keeper) GetPrepayParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) {
 	Pt = k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt = k.GetRemainingOzoneLimit(ctx)
 	return
+}
+
+func (k *Keeper) CalculatePurchaseAmount(ctx sdk.Context, amount sdkmath.Int) (sdkmath.Int, sdkmath.Int, error) {
+	St, Pt, Lt := k.GetPrepayParams(ctx)
+
+	purchase := Lt.ToLegacyDec().
+		Mul(amount.ToLegacyDec()).
+		Quo((St.
+			Add(Pt).
+			Add(amount)).ToLegacyDec()).
+		TruncateInt()
+	if purchase.GT(Lt) {
+		return sdk.NewInt(0), sdk.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
+	}
+	remaining := Lt.Sub(purchase)
+
+	return purchase, remaining, nil
 }
 
 func (k Keeper) IsUnbondable(ctx sdk.Context, unbondAmt sdkmath.Int) bool {

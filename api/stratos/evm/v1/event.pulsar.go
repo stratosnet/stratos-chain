@@ -816,52 +816,6 @@ func (x *fastReflection_EventEthereumTx) ProtoMethods() *protoiface.Methods {
 	}
 }
 
-var _ protoreflect.List = (*_EventTxLog_1_list)(nil)
-
-type _EventTxLog_1_list struct {
-	list *[]string
-}
-
-func (x *_EventTxLog_1_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_EventTxLog_1_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfString((*x.list)[i])
-}
-
-func (x *_EventTxLog_1_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_EventTxLog_1_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.String()
-	concreteValue := valueUnwrapped
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_EventTxLog_1_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message EventTxLog at list field TxLogs as it is not of Message kind"))
-}
-
-func (x *_EventTxLog_1_list) Truncate(n int) {
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_EventTxLog_1_list) NewElement() protoreflect.Value {
-	v := ""
-	return protoreflect.ValueOfString(v)
-}
-
-func (x *_EventTxLog_1_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
 	md_EventTxLog         protoreflect.MessageDescriptor
 	fd_EventTxLog_tx_logs protoreflect.FieldDescriptor
@@ -939,7 +893,7 @@ func (x *fastReflection_EventTxLog) Interface() protoreflect.ProtoMessage {
 // on the current field descriptor.
 func (x *fastReflection_EventTxLog) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if len(x.TxLogs) != 0 {
-		value := protoreflect.ValueOfList(&_EventTxLog_1_list{list: &x.TxLogs})
+		value := protoreflect.ValueOfBytes(x.TxLogs)
 		if !f(fd_EventTxLog_tx_logs, value) {
 			return
 		}
@@ -996,11 +950,8 @@ func (x *fastReflection_EventTxLog) Clear(fd protoreflect.FieldDescriptor) {
 func (x *fastReflection_EventTxLog) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
 	case "stratos.evm.v1.EventTxLog.tx_logs":
-		if len(x.TxLogs) == 0 {
-			return protoreflect.ValueOfList(&_EventTxLog_1_list{})
-		}
-		listValue := &_EventTxLog_1_list{list: &x.TxLogs}
-		return protoreflect.ValueOfList(listValue)
+		value := x.TxLogs
+		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventTxLog"))
@@ -1022,9 +973,7 @@ func (x *fastReflection_EventTxLog) Get(descriptor protoreflect.FieldDescriptor)
 func (x *fastReflection_EventTxLog) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventTxLog.tx_logs":
-		lv := value.List()
-		clv := lv.(*_EventTxLog_1_list)
-		x.TxLogs = *clv.list
+		x.TxLogs = value.Bytes()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventTxLog"))
@@ -1046,11 +995,7 @@ func (x *fastReflection_EventTxLog) Set(fd protoreflect.FieldDescriptor, value p
 func (x *fastReflection_EventTxLog) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventTxLog.tx_logs":
-		if x.TxLogs == nil {
-			x.TxLogs = []string{}
-		}
-		value := &_EventTxLog_1_list{list: &x.TxLogs}
-		return protoreflect.ValueOfList(value)
+		panic(fmt.Errorf("field tx_logs of message stratos.evm.v1.EventTxLog is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventTxLog"))
@@ -1065,8 +1010,7 @@ func (x *fastReflection_EventTxLog) Mutable(fd protoreflect.FieldDescriptor) pro
 func (x *fastReflection_EventTxLog) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventTxLog.tx_logs":
-		list := []string{}
-		return protoreflect.ValueOfList(&_EventTxLog_1_list{list: &list})
+		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventTxLog"))
@@ -1136,11 +1080,9 @@ func (x *fastReflection_EventTxLog) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		if len(x.TxLogs) > 0 {
-			for _, s := range x.TxLogs {
-				l = len(s)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
+		l = len(x.TxLogs)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
@@ -1172,13 +1114,11 @@ func (x *fastReflection_EventTxLog) ProtoMethods() *protoiface.Methods {
 			copy(dAtA[i:], x.unknownFields)
 		}
 		if len(x.TxLogs) > 0 {
-			for iNdEx := len(x.TxLogs) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.TxLogs[iNdEx])
-				copy(dAtA[i:], x.TxLogs[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.TxLogs[iNdEx])))
-				i--
-				dAtA[i] = 0xa
-			}
+			i -= len(x.TxLogs)
+			copy(dAtA[i:], x.TxLogs)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.TxLogs)))
+			i--
+			dAtA[i] = 0xa
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -1233,7 +1173,7 @@ func (x *fastReflection_EventTxLog) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TxLogs", wireType)
 				}
-				var stringLen uint64
+				var byteLen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -1243,571 +1183,25 @@ func (x *fastReflection_EventTxLog) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					byteLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
+				if byteLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + intStringLen
+				postIndex := iNdEx + byteLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.TxLogs = append(x.TxLogs, string(dAtA[iNdEx:postIndex]))
-				iNdEx = postIndex
-			default:
-				iNdEx = preIndex
-				skippy, err := runtime.Skip(dAtA[iNdEx:])
-				if err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				x.TxLogs = append(x.TxLogs[:0], dAtA[iNdEx:postIndex]...)
+				if x.TxLogs == nil {
+					x.TxLogs = []byte{}
 				}
-				if (skippy < 0) || (iNdEx+skippy) < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if (iNdEx + skippy) > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				if !options.DiscardUnknown {
-					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
-				}
-				iNdEx += skippy
-			}
-		}
-
-		if iNdEx > l {
-			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-		}
-		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
-	}
-	return &protoiface.Methods{
-		NoUnkeyedLiterals: struct{}{},
-		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
-		Size:              size,
-		Marshal:           marshal,
-		Unmarshal:         unmarshal,
-		Merge:             nil,
-		CheckInitialized:  nil,
-	}
-}
-
-var (
-	md_EventMessage         protoreflect.MessageDescriptor
-	fd_EventMessage_module  protoreflect.FieldDescriptor
-	fd_EventMessage_sender  protoreflect.FieldDescriptor
-	fd_EventMessage_tx_type protoreflect.FieldDescriptor
-)
-
-func init() {
-	file_stratos_evm_v1_event_proto_init()
-	md_EventMessage = File_stratos_evm_v1_event_proto.Messages().ByName("EventMessage")
-	fd_EventMessage_module = md_EventMessage.Fields().ByName("module")
-	fd_EventMessage_sender = md_EventMessage.Fields().ByName("sender")
-	fd_EventMessage_tx_type = md_EventMessage.Fields().ByName("tx_type")
-}
-
-var _ protoreflect.Message = (*fastReflection_EventMessage)(nil)
-
-type fastReflection_EventMessage EventMessage
-
-func (x *EventMessage) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_EventMessage)(x)
-}
-
-func (x *EventMessage) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_evm_v1_event_proto_msgTypes[2]
-	if protoimpl.UnsafeEnabled && x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-var _fastReflection_EventMessage_messageType fastReflection_EventMessage_messageType
-var _ protoreflect.MessageType = fastReflection_EventMessage_messageType{}
-
-type fastReflection_EventMessage_messageType struct{}
-
-func (x fastReflection_EventMessage_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_EventMessage)(nil)
-}
-func (x fastReflection_EventMessage_messageType) New() protoreflect.Message {
-	return new(fastReflection_EventMessage)
-}
-func (x fastReflection_EventMessage_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_EventMessage
-}
-
-// Descriptor returns message descriptor, which contains only the protobuf
-// type information for the message.
-func (x *fastReflection_EventMessage) Descriptor() protoreflect.MessageDescriptor {
-	return md_EventMessage
-}
-
-// Type returns the message type, which encapsulates both Go and protobuf
-// type information. If the Go type information is not needed,
-// it is recommended that the message descriptor be used instead.
-func (x *fastReflection_EventMessage) Type() protoreflect.MessageType {
-	return _fastReflection_EventMessage_messageType
-}
-
-// New returns a newly allocated and mutable empty message.
-func (x *fastReflection_EventMessage) New() protoreflect.Message {
-	return new(fastReflection_EventMessage)
-}
-
-// Interface unwraps the message reflection interface and
-// returns the underlying ProtoMessage interface.
-func (x *fastReflection_EventMessage) Interface() protoreflect.ProtoMessage {
-	return (*EventMessage)(x)
-}
-
-// Range iterates over every populated field in an undefined order,
-// calling f for each field descriptor and value encountered.
-// Range returns immediately if f returns false.
-// While iterating, mutating operations may only be performed
-// on the current field descriptor.
-func (x *fastReflection_EventMessage) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Module != "" {
-		value := protoreflect.ValueOfString(x.Module)
-		if !f(fd_EventMessage_module, value) {
-			return
-		}
-	}
-	if x.Sender != "" {
-		value := protoreflect.ValueOfString(x.Sender)
-		if !f(fd_EventMessage_sender, value) {
-			return
-		}
-	}
-	if x.TxType != "" {
-		value := protoreflect.ValueOfString(x.TxType)
-		if !f(fd_EventMessage_tx_type, value) {
-			return
-		}
-	}
-}
-
-// Has reports whether a field is populated.
-//
-// Some fields have the property of nullability where it is possible to
-// distinguish between the default value of a field and whether the field
-// was explicitly populated with the default value. Singular message fields,
-// member fields of a oneof, and proto2 scalar fields are nullable. Such
-// fields are populated only if explicitly set.
-//
-// In other cases (aside from the nullable cases above),
-// a proto3 scalar field is populated if it contains a non-zero value, and
-// a repeated field is populated if it is non-empty.
-func (x *fastReflection_EventMessage) Has(fd protoreflect.FieldDescriptor) bool {
-	switch fd.FullName() {
-	case "stratos.evm.v1.EventMessage.module":
-		return x.Module != ""
-	case "stratos.evm.v1.EventMessage.sender":
-		return x.Sender != ""
-	case "stratos.evm.v1.EventMessage.tx_type":
-		return x.TxType != ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventMessage"))
-		}
-		panic(fmt.Errorf("message stratos.evm.v1.EventMessage does not contain field %s", fd.FullName()))
-	}
-}
-
-// Clear clears the field such that a subsequent Has call reports false.
-//
-// Clearing an extension field clears both the extension type and value
-// associated with the given field number.
-//
-// Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventMessage) Clear(fd protoreflect.FieldDescriptor) {
-	switch fd.FullName() {
-	case "stratos.evm.v1.EventMessage.module":
-		x.Module = ""
-	case "stratos.evm.v1.EventMessage.sender":
-		x.Sender = ""
-	case "stratos.evm.v1.EventMessage.tx_type":
-		x.TxType = ""
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventMessage"))
-		}
-		panic(fmt.Errorf("message stratos.evm.v1.EventMessage does not contain field %s", fd.FullName()))
-	}
-}
-
-// Get retrieves the value for a field.
-//
-// For unpopulated scalars, it returns the default value, where
-// the default value of a bytes scalar is guaranteed to be a copy.
-// For unpopulated composite types, it returns an empty, read-only view
-// of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_EventMessage) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
-	switch descriptor.FullName() {
-	case "stratos.evm.v1.EventMessage.module":
-		value := x.Module
-		return protoreflect.ValueOfString(value)
-	case "stratos.evm.v1.EventMessage.sender":
-		value := x.Sender
-		return protoreflect.ValueOfString(value)
-	case "stratos.evm.v1.EventMessage.tx_type":
-		value := x.TxType
-		return protoreflect.ValueOfString(value)
-	default:
-		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventMessage"))
-		}
-		panic(fmt.Errorf("message stratos.evm.v1.EventMessage does not contain field %s", descriptor.FullName()))
-	}
-}
-
-// Set stores the value for a field.
-//
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType.
-// When setting a composite type, it is unspecified whether the stored value
-// aliases the source's memory in any way. If the composite value is an
-// empty, read-only value, then it panics.
-//
-// Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventMessage) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
-	switch fd.FullName() {
-	case "stratos.evm.v1.EventMessage.module":
-		x.Module = value.Interface().(string)
-	case "stratos.evm.v1.EventMessage.sender":
-		x.Sender = value.Interface().(string)
-	case "stratos.evm.v1.EventMessage.tx_type":
-		x.TxType = value.Interface().(string)
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventMessage"))
-		}
-		panic(fmt.Errorf("message stratos.evm.v1.EventMessage does not contain field %s", fd.FullName()))
-	}
-}
-
-// Mutable returns a mutable reference to a composite type.
-//
-// If the field is unpopulated, it may allocate a composite value.
-// For a field belonging to a oneof, it implicitly clears any other field
-// that may be currently set within the same oneof.
-// For extension fields, it implicitly stores the provided ExtensionType
-// if not already stored.
-// It panics if the field does not contain a composite type.
-//
-// Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventMessage) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "stratos.evm.v1.EventMessage.module":
-		panic(fmt.Errorf("field module of message stratos.evm.v1.EventMessage is not mutable"))
-	case "stratos.evm.v1.EventMessage.sender":
-		panic(fmt.Errorf("field sender of message stratos.evm.v1.EventMessage is not mutable"))
-	case "stratos.evm.v1.EventMessage.tx_type":
-		panic(fmt.Errorf("field tx_type of message stratos.evm.v1.EventMessage is not mutable"))
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventMessage"))
-		}
-		panic(fmt.Errorf("message stratos.evm.v1.EventMessage does not contain field %s", fd.FullName()))
-	}
-}
-
-// NewField returns a new value that is assignable to the field
-// for the given descriptor. For scalars, this returns the default value.
-// For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_EventMessage) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
-	switch fd.FullName() {
-	case "stratos.evm.v1.EventMessage.module":
-		return protoreflect.ValueOfString("")
-	case "stratos.evm.v1.EventMessage.sender":
-		return protoreflect.ValueOfString("")
-	case "stratos.evm.v1.EventMessage.tx_type":
-		return protoreflect.ValueOfString("")
-	default:
-		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventMessage"))
-		}
-		panic(fmt.Errorf("message stratos.evm.v1.EventMessage does not contain field %s", fd.FullName()))
-	}
-}
-
-// WhichOneof reports which field within the oneof is populated,
-// returning nil if none are populated.
-// It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_EventMessage) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
-	switch d.FullName() {
-	default:
-		panic(fmt.Errorf("%s is not a oneof field in stratos.evm.v1.EventMessage", d.FullName()))
-	}
-	panic("unreachable")
-}
-
-// GetUnknown retrieves the entire list of unknown fields.
-// The caller may only mutate the contents of the RawFields
-// if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_EventMessage) GetUnknown() protoreflect.RawFields {
-	return x.unknownFields
-}
-
-// SetUnknown stores an entire list of unknown fields.
-// The raw fields must be syntactically valid according to the wire format.
-// An implementation may panic if this is not the case.
-// Once stored, the caller must not mutate the content of the RawFields.
-// An empty RawFields may be passed to clear the fields.
-//
-// SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_EventMessage) SetUnknown(fields protoreflect.RawFields) {
-	x.unknownFields = fields
-}
-
-// IsValid reports whether the message is valid.
-//
-// An invalid message is an empty, read-only value.
-//
-// An invalid message often corresponds to a nil pointer of the concrete
-// message type, but the details are implementation dependent.
-// Validity is not part of the protobuf data model, and may not
-// be preserved in marshaling or other operations.
-func (x *fastReflection_EventMessage) IsValid() bool {
-	return x != nil
-}
-
-// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
-// This method may return nil.
-//
-// The returned methods type is identical to
-// "google.golang.org/protobuf/runtime/protoiface".Methods.
-// Consult the protoiface package documentation for details.
-func (x *fastReflection_EventMessage) ProtoMethods() *protoiface.Methods {
-	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*EventMessage)
-		if x == nil {
-			return protoiface.SizeOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Size:              0,
-			}
-		}
-		options := runtime.SizeInputToOptions(input)
-		_ = options
-		var n int
-		var l int
-		_ = l
-		l = len(x.Module)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.Sender)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		l = len(x.TxType)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
-		if x.unknownFields != nil {
-			n += len(x.unknownFields)
-		}
-		return protoiface.SizeOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Size:              n,
-		}
-	}
-
-	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*EventMessage)
-		if x == nil {
-			return protoiface.MarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Buf:               input.Buf,
-			}, nil
-		}
-		options := runtime.MarshalInputToOptions(input)
-		_ = options
-		size := options.Size(x)
-		dAtA := make([]byte, size)
-		i := len(dAtA)
-		_ = i
-		var l int
-		_ = l
-		if x.unknownFields != nil {
-			i -= len(x.unknownFields)
-			copy(dAtA[i:], x.unknownFields)
-		}
-		if len(x.TxType) > 0 {
-			i -= len(x.TxType)
-			copy(dAtA[i:], x.TxType)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.TxType)))
-			i--
-			dAtA[i] = 0x1a
-		}
-		if len(x.Sender) > 0 {
-			i -= len(x.Sender)
-			copy(dAtA[i:], x.Sender)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Sender)))
-			i--
-			dAtA[i] = 0x12
-		}
-		if len(x.Module) > 0 {
-			i -= len(x.Module)
-			copy(dAtA[i:], x.Module)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Module)))
-			i--
-			dAtA[i] = 0xa
-		}
-		if input.Buf != nil {
-			input.Buf = append(input.Buf, dAtA...)
-		} else {
-			input.Buf = dAtA
-		}
-		return protoiface.MarshalOutput{
-			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-			Buf:               input.Buf,
-		}, nil
-	}
-	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*EventMessage)
-		if x == nil {
-			return protoiface.UnmarshalOutput{
-				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-				Flags:             input.Flags,
-			}, nil
-		}
-		options := runtime.UnmarshalInputToOptions(input)
-		_ = options
-		dAtA := input.Buf
-		l := len(dAtA)
-		iNdEx := 0
-		for iNdEx < l {
-			preIndex := iNdEx
-			var wire uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-				}
-				if iNdEx >= l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				wire |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			fieldNum := int32(wire >> 3)
-			wireType := int(wire & 0x7)
-			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventMessage: wiretype end group for non-group")
-			}
-			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventMessage: illegal tag %d (wire type %d)", fieldNum, wire)
-			}
-			switch fieldNum {
-			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Module", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Module = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 2:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Sender = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field TxType", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.TxType = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -1864,7 +1258,7 @@ func (x *EventBlockBloom) ProtoReflect() protoreflect.Message {
 }
 
 func (x *EventBlockBloom) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_evm_v1_event_proto_msgTypes[3]
+	mi := &file_stratos_evm_v1_event_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1920,8 +1314,8 @@ func (x *fastReflection_EventBlockBloom) Interface() protoreflect.ProtoMessage {
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
 func (x *fastReflection_EventBlockBloom) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.Bloom != "" {
-		value := protoreflect.ValueOfString(x.Bloom)
+	if len(x.Bloom) != 0 {
+		value := protoreflect.ValueOfBytes(x.Bloom)
 		if !f(fd_EventBlockBloom_bloom, value) {
 			return
 		}
@@ -1942,7 +1336,7 @@ func (x *fastReflection_EventBlockBloom) Range(f func(protoreflect.FieldDescript
 func (x *fastReflection_EventBlockBloom) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventBlockBloom.bloom":
-		return x.Bloom != ""
+		return len(x.Bloom) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventBlockBloom"))
@@ -1960,7 +1354,7 @@ func (x *fastReflection_EventBlockBloom) Has(fd protoreflect.FieldDescriptor) bo
 func (x *fastReflection_EventBlockBloom) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventBlockBloom.bloom":
-		x.Bloom = ""
+		x.Bloom = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventBlockBloom"))
@@ -1979,7 +1373,7 @@ func (x *fastReflection_EventBlockBloom) Get(descriptor protoreflect.FieldDescri
 	switch descriptor.FullName() {
 	case "stratos.evm.v1.EventBlockBloom.bloom":
 		value := x.Bloom
-		return protoreflect.ValueOfString(value)
+		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventBlockBloom"))
@@ -2001,7 +1395,7 @@ func (x *fastReflection_EventBlockBloom) Get(descriptor protoreflect.FieldDescri
 func (x *fastReflection_EventBlockBloom) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventBlockBloom.bloom":
-		x.Bloom = value.Interface().(string)
+		x.Bloom = value.Bytes()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventBlockBloom"))
@@ -2038,7 +1432,7 @@ func (x *fastReflection_EventBlockBloom) Mutable(fd protoreflect.FieldDescriptor
 func (x *fastReflection_EventBlockBloom) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
 	case "stratos.evm.v1.EventBlockBloom.bloom":
-		return protoreflect.ValueOfString("")
+		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.evm.v1.EventBlockBloom"))
@@ -2201,7 +1595,7 @@ func (x *fastReflection_EventBlockBloom) ProtoMethods() *protoiface.Methods {
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Bloom", wireType)
 				}
-				var stringLen uint64
+				var byteLen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -2211,23 +1605,25 @@ func (x *fastReflection_EventBlockBloom) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					byteLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
+				if byteLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + intStringLen
+				postIndex := iNdEx + byteLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Bloom = string(dAtA[iNdEx:postIndex])
+				x.Bloom = append(x.Bloom[:0], dAtA[iNdEx:postIndex]...)
+				if x.Bloom == nil {
+					x.Bloom = []byte{}
+				}
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -2286,7 +1682,7 @@ func (x *EventBlockGas) ProtoReflect() protoreflect.Message {
 }
 
 func (x *EventBlockGas) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_evm_v1_event_proto_msgTypes[4]
+	mi := &file_stratos_evm_v1_event_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2768,7 +2164,7 @@ func (x *EventFeeMarket) ProtoReflect() protoreflect.Message {
 }
 
 func (x *EventFeeMarket) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_evm_v1_event_proto_msgTypes[5]
+	mi := &file_stratos_evm_v1_event_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3188,7 +2584,7 @@ func (x *EventTx) ProtoReflect() protoreflect.Message {
 }
 
 func (x *EventTx) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_evm_v1_event_proto_msgTypes[6]
+	mi := &file_stratos_evm_v1_event_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3699,7 +3095,7 @@ type EventTxLog struct {
 	unknownFields protoimpl.UnknownFields
 
 	// tx_logs is an array of transaction logs
-	TxLogs []string `protobuf:"bytes,1,rep,name=tx_logs,json=txLogs,proto3" json:"tx_logs,omitempty"`
+	TxLogs []byte `protobuf:"bytes,1,opt,name=tx_logs,json=txLogs,proto3" json:"tx_logs,omitempty"`
 }
 
 func (x *EventTxLog) Reset() {
@@ -3722,66 +3118,11 @@ func (*EventTxLog) Descriptor() ([]byte, []int) {
 	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *EventTxLog) GetTxLogs() []string {
+func (x *EventTxLog) GetTxLogs() []byte {
 	if x != nil {
 		return x.TxLogs
 	}
 	return nil
-}
-
-// EventMessage
-type EventMessage struct {
-	state         protoimpl.MessageState
-	sizeCache     protoimpl.SizeCache
-	unknownFields protoimpl.UnknownFields
-
-	// module which emits the event
-	Module string `protobuf:"bytes,1,opt,name=module,proto3" json:"module,omitempty"`
-	// sender of the message
-	Sender string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	// tx_type is the type of the message
-	TxType string `protobuf:"bytes,3,opt,name=tx_type,json=txType,proto3" json:"tx_type,omitempty"`
-}
-
-func (x *EventMessage) Reset() {
-	*x = EventMessage{}
-	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_evm_v1_event_proto_msgTypes[2]
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		ms.StoreMessageInfo(mi)
-	}
-}
-
-func (x *EventMessage) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*EventMessage) ProtoMessage() {}
-
-// Deprecated: Use EventMessage.ProtoReflect.Descriptor instead.
-func (*EventMessage) Descriptor() ([]byte, []int) {
-	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *EventMessage) GetModule() string {
-	if x != nil {
-		return x.Module
-	}
-	return ""
-}
-
-func (x *EventMessage) GetSender() string {
-	if x != nil {
-		return x.Sender
-	}
-	return ""
-}
-
-func (x *EventMessage) GetTxType() string {
-	if x != nil {
-		return x.TxType
-	}
-	return ""
 }
 
 // EventBlockBloom defines an Ethereum block bloom filter event
@@ -3791,13 +3132,13 @@ type EventBlockBloom struct {
 	unknownFields protoimpl.UnknownFields
 
 	// bloom is the bloom filter of the block
-	Bloom string `protobuf:"bytes,1,opt,name=bloom,proto3" json:"bloom,omitempty"`
+	Bloom []byte `protobuf:"bytes,1,opt,name=bloom,proto3" json:"bloom,omitempty"`
 }
 
 func (x *EventBlockBloom) Reset() {
 	*x = EventBlockBloom{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_evm_v1_event_proto_msgTypes[3]
+		mi := &file_stratos_evm_v1_event_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3811,14 +3152,14 @@ func (*EventBlockBloom) ProtoMessage() {}
 
 // Deprecated: Use EventBlockBloom.ProtoReflect.Descriptor instead.
 func (*EventBlockBloom) Descriptor() ([]byte, []int) {
-	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{3}
+	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *EventBlockBloom) GetBloom() string {
+func (x *EventBlockBloom) GetBloom() []byte {
 	if x != nil {
 		return x.Bloom
 	}
-	return ""
+	return nil
 }
 
 type EventBlockGas struct {
@@ -3833,7 +3174,7 @@ type EventBlockGas struct {
 func (x *EventBlockGas) Reset() {
 	*x = EventBlockGas{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_evm_v1_event_proto_msgTypes[4]
+		mi := &file_stratos_evm_v1_event_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3847,7 +3188,7 @@ func (*EventBlockGas) ProtoMessage() {}
 
 // Deprecated: Use EventBlockGas.ProtoReflect.Descriptor instead.
 func (*EventBlockGas) Descriptor() ([]byte, []int) {
-	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{4}
+	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *EventBlockGas) GetHeight() string {
@@ -3875,7 +3216,7 @@ type EventFeeMarket struct {
 func (x *EventFeeMarket) Reset() {
 	*x = EventFeeMarket{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_evm_v1_event_proto_msgTypes[5]
+		mi := &file_stratos_evm_v1_event_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3889,7 +3230,7 @@ func (*EventFeeMarket) ProtoMessage() {}
 
 // Deprecated: Use EventFeeMarket.ProtoReflect.Descriptor instead.
 func (*EventFeeMarket) Descriptor() ([]byte, []int) {
-	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{5}
+	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *EventFeeMarket) GetBaseFee() string {
@@ -3910,7 +3251,7 @@ type EventTx struct {
 func (x *EventTx) Reset() {
 	*x = EventTx{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_evm_v1_event_proto_msgTypes[6]
+		mi := &file_stratos_evm_v1_event_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -3924,7 +3265,7 @@ func (*EventTx) ProtoMessage() {}
 
 // Deprecated: Use EventTx.ProtoReflect.Descriptor instead.
 func (*EventTx) Descriptor() ([]byte, []int) {
-	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{6}
+	return file_stratos_evm_v1_event_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *EventTx) GetFee() string {
@@ -3954,35 +3295,30 @@ var file_stratos_evm_v1_event_proto_rawDesc = []byte{
 	0x5f, 0x66, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x65,
 	0x74, 0x68, 0x54, 0x78, 0x46, 0x61, 0x69, 0x6c, 0x65, 0x64, 0x22, 0x25, 0x0a, 0x0a, 0x45, 0x76,
 	0x65, 0x6e, 0x74, 0x54, 0x78, 0x4c, 0x6f, 0x67, 0x12, 0x17, 0x0a, 0x07, 0x74, 0x78, 0x5f, 0x6c,
-	0x6f, 0x67, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x09, 0x52, 0x06, 0x74, 0x78, 0x4c, 0x6f, 0x67,
-	0x73, 0x22, 0x57, 0x0a, 0x0c, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67,
-	0x65, 0x12, 0x16, 0x0a, 0x06, 0x6d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x06, 0x6d, 0x6f, 0x64, 0x75, 0x6c, 0x65, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x65, 0x6e,
-	0x64, 0x65, 0x72, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x73, 0x65, 0x6e, 0x64, 0x65,
-	0x72, 0x12, 0x17, 0x0a, 0x07, 0x74, 0x78, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x03, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x06, 0x74, 0x78, 0x54, 0x79, 0x70, 0x65, 0x22, 0x27, 0x0a, 0x0f, 0x45, 0x76,
-	0x65, 0x6e, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x42, 0x6c, 0x6f, 0x6f, 0x6d, 0x12, 0x14, 0x0a,
-	0x05, 0x62, 0x6c, 0x6f, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x05, 0x62, 0x6c,
-	0x6f, 0x6f, 0x6d, 0x22, 0x3f, 0x0a, 0x0d, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x6f, 0x63,
-	0x6b, 0x47, 0x61, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x01,
-	0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x16, 0x0a, 0x06,
-	0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x6d,
-	0x6f, 0x75, 0x6e, 0x74, 0x22, 0x2b, 0x0a, 0x0e, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x46, 0x65, 0x65,
-	0x4d, 0x61, 0x72, 0x6b, 0x65, 0x74, 0x12, 0x19, 0x0a, 0x08, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x66,
-	0x65, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x62, 0x61, 0x73, 0x65, 0x46, 0x65,
-	0x65, 0x22, 0x1b, 0x0a, 0x07, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x54, 0x78, 0x12, 0x10, 0x0a, 0x03,
-	0x66, 0x65, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x66, 0x65, 0x65, 0x42, 0xa1,
-	0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x65,
-	0x76, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x74,
-	0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69,
-	0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x65, 0x76,
-	0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x76, 0x6d, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x53, 0x45, 0x58,
-	0xaa, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x45, 0x76, 0x6d, 0x2e, 0x56,
-	0x31, 0xca, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c,
-	0x56, 0x31, 0xe2, 0x02, 0x1a, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d,
-	0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea,
-	0x02, 0x10, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x3a, 0x3a, 0x45, 0x76, 0x6d, 0x3a, 0x3a,
-	0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x67, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x06, 0x74, 0x78, 0x4c, 0x6f, 0x67,
+	0x73, 0x22, 0x27, 0x0a, 0x0f, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x42,
+	0x6c, 0x6f, 0x6f, 0x6d, 0x12, 0x14, 0x0a, 0x05, 0x62, 0x6c, 0x6f, 0x6f, 0x6d, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x05, 0x62, 0x6c, 0x6f, 0x6f, 0x6d, 0x22, 0x3f, 0x0a, 0x0d, 0x45, 0x76,
+	0x65, 0x6e, 0x74, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x47, 0x61, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x68,
+	0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x68, 0x65, 0x69,
+	0x67, 0x68, 0x74, 0x12, 0x16, 0x0a, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x06, 0x61, 0x6d, 0x6f, 0x75, 0x6e, 0x74, 0x22, 0x2b, 0x0a, 0x0e, 0x45,
+	0x76, 0x65, 0x6e, 0x74, 0x46, 0x65, 0x65, 0x4d, 0x61, 0x72, 0x6b, 0x65, 0x74, 0x12, 0x19, 0x0a,
+	0x08, 0x62, 0x61, 0x73, 0x65, 0x5f, 0x66, 0x65, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x07, 0x62, 0x61, 0x73, 0x65, 0x46, 0x65, 0x65, 0x22, 0x1b, 0x0a, 0x07, 0x45, 0x76, 0x65, 0x6e,
+	0x74, 0x54, 0x78, 0x12, 0x10, 0x0a, 0x03, 0x66, 0x65, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x03, 0x66, 0x65, 0x65, 0x42, 0xa1, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x73, 0x74,
+	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x65, 0x76, 0x6d, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x45, 0x76,
+	0x65, 0x6e, 0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74, 0x72,
+	0x61, 0x74, 0x6f, 0x73, 0x2f, 0x65, 0x76, 0x6d, 0x2f, 0x76, 0x31, 0x3b, 0x65, 0x76, 0x6d, 0x76,
+	0x31, 0xa2, 0x02, 0x03, 0x53, 0x45, 0x58, 0xaa, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f,
+	0x73, 0x2e, 0x45, 0x76, 0x6d, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74,
+	0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1a, 0x53, 0x74, 0x72, 0x61,
+	0x74, 0x6f, 0x73, 0x5c, 0x45, 0x76, 0x6d, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65,
+	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
+	0x3a, 0x3a, 0x45, 0x76, 0x6d, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f,
+	0x33,
 }
 
 var (
@@ -3997,15 +3333,14 @@ func file_stratos_evm_v1_event_proto_rawDescGZIP() []byte {
 	return file_stratos_evm_v1_event_proto_rawDescData
 }
 
-var file_stratos_evm_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_stratos_evm_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_stratos_evm_v1_event_proto_goTypes = []interface{}{
 	(*EventEthereumTx)(nil), // 0: stratos.evm.v1.EventEthereumTx
 	(*EventTxLog)(nil),      // 1: stratos.evm.v1.EventTxLog
-	(*EventMessage)(nil),    // 2: stratos.evm.v1.EventMessage
-	(*EventBlockBloom)(nil), // 3: stratos.evm.v1.EventBlockBloom
-	(*EventBlockGas)(nil),   // 4: stratos.evm.v1.EventBlockGas
-	(*EventFeeMarket)(nil),  // 5: stratos.evm.v1.EventFeeMarket
-	(*EventTx)(nil),         // 6: stratos.evm.v1.EventTx
+	(*EventBlockBloom)(nil), // 2: stratos.evm.v1.EventBlockBloom
+	(*EventBlockGas)(nil),   // 3: stratos.evm.v1.EventBlockGas
+	(*EventFeeMarket)(nil),  // 4: stratos.evm.v1.EventFeeMarket
+	(*EventTx)(nil),         // 5: stratos.evm.v1.EventTx
 }
 var file_stratos_evm_v1_event_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -4046,18 +3381,6 @@ func file_stratos_evm_v1_event_proto_init() {
 			}
 		}
 		file_stratos_evm_v1_event_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*EventMessage); i {
-			case 0:
-				return &v.state
-			case 1:
-				return &v.sizeCache
-			case 2:
-				return &v.unknownFields
-			default:
-				return nil
-			}
-		}
-		file_stratos_evm_v1_event_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EventBlockBloom); i {
 			case 0:
 				return &v.state
@@ -4069,7 +3392,7 @@ func file_stratos_evm_v1_event_proto_init() {
 				return nil
 			}
 		}
-		file_stratos_evm_v1_event_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+		file_stratos_evm_v1_event_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EventBlockGas); i {
 			case 0:
 				return &v.state
@@ -4081,7 +3404,7 @@ func file_stratos_evm_v1_event_proto_init() {
 				return nil
 			}
 		}
-		file_stratos_evm_v1_event_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+		file_stratos_evm_v1_event_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EventFeeMarket); i {
 			case 0:
 				return &v.state
@@ -4093,7 +3416,7 @@ func file_stratos_evm_v1_event_proto_init() {
 				return nil
 			}
 		}
-		file_stratos_evm_v1_event_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+		file_stratos_evm_v1_event_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*EventTx); i {
 			case 0:
 				return &v.state
@@ -4112,7 +3435,7 @@ func file_stratos_evm_v1_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_stratos_evm_v1_event_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

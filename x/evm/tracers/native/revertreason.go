@@ -25,9 +25,9 @@ import (
 
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 func init() {

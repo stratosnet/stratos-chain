@@ -71,7 +71,9 @@ var (
 		registertypes.ResourceNodeNotBondedPool,
 		registertypes.MetaNodeBondedPool,
 		registertypes.MetaNodeNotBondedPool,
-		registertypes.TotalUnissuedPrepay,
+		// NOTE: Used by evm.Context.Transfer to prepay module address, so this should be commented
+		// it means that anybody could send right now on this address
+		// registertypes.TotalUnissuedPrepay,
 		pottypes.ModuleName,
 		pottypes.FoundationAccount,
 		pottypes.TotalRewardPool,

@@ -19,7 +19,7 @@ require (
 	github.com/cosmos/cosmos-sdk v0.47.5
 	github.com/cosmos/go-bip39 v1.0.0
 	github.com/cosmos/gogoproto v1.4.10
-	github.com/cosmos/ibc-go/v7 v7.3.0
+	github.com/cosmos/ibc-go/v7 v7.3.1
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dop251/goja v0.0.0-20220405120441-9037c2b61cbf
 	github.com/ethereum/go-ethereum v1.10.26
@@ -232,6 +232,8 @@ require (
 replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
+	// use stratos fork of cometbft
+	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.2-fix-search
 	// use stratos fork of cosmos-sdk
 	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.5-stratos
 	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.

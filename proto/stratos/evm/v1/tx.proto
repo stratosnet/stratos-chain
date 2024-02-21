@@ -20,6 +20,9 @@ service Msg {
   // UpdateParams defined a governance operation for updating the x/evm module parameters.
   // The authority is hard-coded to the Cosmos SDK x/gov module account
   rpc UpdateParams(MsgUpdateParams) returns (MsgUpdateParamsResponse);
+
+  // UpdateImplmentationProposal defines a method for the new implemntation update for proposal.
+  rpc UpdateImplmentationProposal(MsgUpdateImplmentationProposal) returns (MsgUpdateImplmentationProposalResponse);
 }
 
 // MsgEthereumTx encapsulates an Ethereum transaction as an SDK message.
@@ -209,3 +212,29 @@ message MsgUpdateParams {
 // MsgUpdateParams message.
 message MsgUpdateParamsResponse {}
 
+
+// MsgUpdateImplmentationProposal used to update implemntation for genesis proxies
+message MsgUpdateImplmentationProposal {
+  option (cosmos.msg.v1.signer) = "authority";
+
+  // authority is the address of the governance account.
+  string authority = 1 [
+    (cosmos_proto.scalar) = "cosmos.AddressString"
+  ];
+
+  // proxy address where data will be executed
+  string proxy_address = 2;
+  // implmentation address as API for a storage
+  string implementation_address = 3;
+  // data for execution
+  bytes data = 4;
+  // value for proxy func call
+  string value = 5 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.customname) = "Amount"
+  ];
+}
+
+// MsgUpdateImplmentationProposalResponse defines the response structure for executing a
+// MsgUpdateImplmentationProposal message.
+message MsgUpdateImplmentationProposalResponse {}

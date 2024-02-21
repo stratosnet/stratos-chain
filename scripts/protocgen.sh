@@ -22,4 +22,4 @@ cd ..
 cp -r github.com/stratosnet/stratos-chain/* ./
 rm -rf github.com
 
-#./scripts/protocgen-pulsar.sh
+sh ./scripts/protocgen-pulsar.sh
