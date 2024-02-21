@@ -167,10 +167,6 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 			Amount:       sdk.NewIntFromBigInt(amount).String(),
 			PurchasedNoz: purchased.String(),
 		})
-		tevs[1] = (proto.Message)(&sdstypes.EventMessage{
-			Module: sdstypes.ModuleName,
-			Sender: accFrom.String(),
-		})
 		k.AddTypedEvents(tevs)
 
 		return purchased.BigInt(), returnGas, nil
