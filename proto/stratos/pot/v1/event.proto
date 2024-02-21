@@ -29,13 +29,3 @@ message EventSlashing {
   string slashing_type = 4;
   string suspend = 5;
 }
-
-// EventMessage
-message EventMessage {
-  // module which emits the event
-  string module = 1;
-  // sender of the message
-  string sender = 2;
-  // tx_type is the type of the message
-  string action = 3;
-}

@@ -18,14 +18,3 @@ message EventFileUpload {
   string uploader = 3;
   string file_hash = 4;
 }
-
-// EventMessage
-message EventMessage {
-  // module which emits the event
-  string module = 1;
-  // sender of the message
-  string sender = 2;
-  // tx_type is the type of the message
-  string action = 3;
-}
-

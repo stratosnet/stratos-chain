@@ -101,8 +101,9 @@ func (m *EventCreateResourceNode) GetInitialDeposit() string {
 
 // EventCreateMetaNode is emitted on Msg/MsgCreateMetaNode
 type EventCreateMetaNode struct {
-	Sender         string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	NetworkAddress string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	Sender            string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress    string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	OzoneLimitChanges string `protobuf:"bytes,3,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
 }
 
 func (m *EventCreateMetaNode) Reset()         { *m = EventCreateMetaNode{} }
@@ -148,6 +149,13 @@ func (m *EventCreateMetaNode) GetSender() string {
 func (m *EventCreateMetaNode) GetNetworkAddress() string {
 	if m != nil {
 		return m.NetworkAddress
+	}
+	return ""
+}
+
+func (m *EventCreateMetaNode) GetOzoneLimitChanges() string {
+	if m != nil {
+		return m.OzoneLimitChanges
 	}
 	return ""
 }
@@ -304,7 +312,6 @@ type EventMetaNodeRegistrationVote struct {
 	VoterNetworkAddress     string `protobuf:"bytes,2,opt,name=voter_network_address,json=voterNetworkAddress,proto3" json:"voter_network_address,omitempty"`
 	CandidateNetworkAddress string `protobuf:"bytes,3,opt,name=candidate_network_address,json=candidateNetworkAddress,proto3" json:"candidate_network_address,omitempty"`
 	CandidateStatus         string `protobuf:"bytes,4,opt,name=candidate_status,json=candidateStatus,proto3" json:"candidate_status,omitempty"`
-	OzoneLimitChanges       string `protobuf:"bytes,5,opt,name=ozone_limit_changes,json=ozoneLimitChanges,proto3" json:"ozone_limit_changes,omitempty"`
 }
 
 func (m *EventMetaNodeRegistrationVote) Reset()         { *m = EventMetaNodeRegistrationVote{} }
@@ -368,32 +375,27 @@ func (m *EventMetaNodeRegistrationVote) GetCandidateStatus() string {
 	return ""
 }
 
-func (m *EventMetaNodeRegistrationVote) GetOzoneLimitChanges() string {
-	if m != nil {
-		return m.OzoneLimitChanges
-	}
-	return ""
+// EventWithdrawMetaNodeRegistrationDeposit is emitted on Msg/MsgWithdrawMetaNodeRegistrationDeposit
+type EventWithdrawMetaNodeRegistrationDeposit struct {
+	Sender              string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
+	NetworkAddress      string `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
+	UnbondingMatureTime string `protobuf:"bytes,3,opt,name=unbonding_mature_time,json=unbondingMatureTime,proto3" json:"unbonding_mature_time,omitempty"`
 }
 
-type EventKickMetaNodeVote struct {
-	Sender               string `protobuf:"bytes,1,opt,name=sender,proto3" json:"sender,omitempty"`
-	VoterNetworkAddress  string `protobuf:"bytes,2,opt,name=voter_network_address,json=voterNetworkAddress,proto3" json:"voter_network_address,omitempty"`
-	TargetNetworkAddress string `protobuf:"bytes,3,opt,name=target_network_address,json=targetNetworkAddress,proto3" json:"target_network_address,omitempty"`
-	TargetStatus         string `protobuf:"bytes,4,opt,name=target_status,json=targetStatus,proto3" json:"target_status,omitempty"`
+func (m *EventWithdrawMetaNodeRegistrationDeposit) Reset() {
+	*m = EventWithdrawMetaNodeRegistrationDeposit{}
 }
-
-func (m *EventKickMetaNodeVote) Reset()         { *m = EventKickMetaNodeVote{} }
-func (m *EventKickMetaNodeVote) String() string { return proto.CompactTextString(m) }
-func (*EventKickMetaNodeVote) ProtoMessage()    {}
-func (*EventKickMetaNodeVote) Descriptor() ([]byte, []int) {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) String() string { return proto.CompactTextString(m) }
+func (*EventWithdrawMetaNodeRegistrationDeposit) ProtoMessage()    {}
+func (*EventWithdrawMetaNodeRegistrationDeposit) Descriptor() ([]byte, []int) {
 	return fileDescriptor_9f4bedab5b811f13, []int{5}
 }
-func (m *EventKickMetaNodeVote) XXX_Unmarshal(b []byte) error {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *EventKickMetaNodeVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_EventKickMetaNodeVote.Marshal(b, m, deterministic)
+		return xxx_messageInfo_EventWithdrawMetaNodeRegistrationDeposit.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -403,42 +405,35 @@ func (m *EventKickMetaNodeVote) XXX_Marshal(b []byte, deterministic bool) ([]byt
 		return b[:n], nil
 	}
 }
-func (m *EventKickMetaNodeVote) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventKickMetaNodeVote.Merge(m, src)
+func (m *EventWithdrawMetaNodeRegistrationDeposit) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventWithdrawMetaNodeRegistrationDeposit.Merge(m, src)
 }
-func (m *EventKickMetaNodeVote) XXX_Size() int {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) XXX_Size() int {
 	return m.Size()
 }
-func (m *EventKickMetaNodeVote) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventKickMetaNodeVote.DiscardUnknown(m)
+func (m *EventWithdrawMetaNodeRegistrationDeposit) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventWithdrawMetaNodeRegistrationDeposit.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_EventKickMetaNodeVote proto.InternalMessageInfo
+var xxx_messageInfo_EventWithdrawMetaNodeRegistrationDeposit proto.InternalMessageInfo
 
-func (m *EventKickMetaNodeVote) GetSender() string {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) GetSender() string {
 	if m != nil {
 		return m.Sender
 	}
 	return ""
 }
 
-func (m *EventKickMetaNodeVote) GetVoterNetworkAddress() string {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) GetNetworkAddress() string {
 	if m != nil {
-		return m.VoterNetworkAddress
+		return m.NetworkAddress
 	}
 	return ""
 }
 
-func (m *EventKickMetaNodeVote) GetTargetNetworkAddress() string {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) GetUnbondingMatureTime() string {
 	if m != nil {
-		return m.TargetNetworkAddress
-	}
-	return ""
-}
-
-func (m *EventKickMetaNodeVote) GetTargetStatus() string {
-	if m != nil {
-		return m.TargetStatus
+		return m.UnbondingMatureTime
 	}
 	return ""
 }
@@ -918,77 +913,13 @@ func (m *EventCompleteUnBondingMetaNode) GetNetworkAddress() string {
 	return ""
 }
 
-// EventMessage
-type EventMessage struct {
-	// module which emits the event
-	Module string `protobuf:"bytes,1,opt,name=module,proto3" json:"module,omitempty"`
-	// sender of the message
-	Sender string `protobuf:"bytes,2,opt,name=sender,proto3" json:"sender,omitempty"`
-	// tx_type is the type of the message
-	Action string `protobuf:"bytes,3,opt,name=action,proto3" json:"action,omitempty"`
-}
-
-func (m *EventMessage) Reset()         { *m = EventMessage{} }
-func (m *EventMessage) String() string { return proto.CompactTextString(m) }
-func (*EventMessage) ProtoMessage()    {}
-func (*EventMessage) Descriptor() ([]byte, []int) {
-	return fileDescriptor_9f4bedab5b811f13, []int{13}
-}
-func (m *EventMessage) XXX_Unmarshal(b []byte) error {
-	return m.Unmarshal(b)
-}
-func (m *EventMessage) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	if deterministic {
-		return xxx_messageInfo_EventMessage.Marshal(b, m, deterministic)
-	} else {
-		b = b[:cap(b)]
-		n, err := m.MarshalToSizedBuffer(b)
-		if err != nil {
-			return nil, err
-		}
-		return b[:n], nil
-	}
-}
-func (m *EventMessage) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_EventMessage.Merge(m, src)
-}
-func (m *EventMessage) XXX_Size() int {
-	return m.Size()
-}
-func (m *EventMessage) XXX_DiscardUnknown() {
-	xxx_messageInfo_EventMessage.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_EventMessage proto.InternalMessageInfo
-
-func (m *EventMessage) GetModule() string {
-	if m != nil {
-		return m.Module
-	}
-	return ""
-}
-
-func (m *EventMessage) GetSender() string {
-	if m != nil {
-		return m.Sender
-	}
-	return ""
-}
-
-func (m *EventMessage) GetAction() string {
-	if m != nil {
-		return m.Action
-	}
-	return ""
-}
-
 func init() {
 	proto.RegisterType((*EventCreateResourceNode)(nil), "stratos.register.v1.EventCreateResourceNode")
 	proto.RegisterType((*EventCreateMetaNode)(nil), "stratos.register.v1.EventCreateMetaNode")
 	proto.RegisterType((*EventUnBondingResourceNode)(nil), "stratos.register.v1.EventUnBondingResourceNode")
 	proto.RegisterType((*EventUnBondingMetaNode)(nil), "stratos.register.v1.EventUnBondingMetaNode")
 	proto.RegisterType((*EventMetaNodeRegistrationVote)(nil), "stratos.register.v1.EventMetaNodeRegistrationVote")
-	proto.RegisterType((*EventKickMetaNodeVote)(nil), "stratos.register.v1.EventKickMetaNodeVote")
+	proto.RegisterType((*EventWithdrawMetaNodeRegistrationDeposit)(nil), "stratos.register.v1.EventWithdrawMetaNodeRegistrationDeposit")
 	proto.RegisterType((*EventUpdateResourceNode)(nil), "stratos.register.v1.EventUpdateResourceNode")
 	proto.RegisterType((*EventUpdateResourceNodeDeposit)(nil), "stratos.register.v1.EventUpdateResourceNodeDeposit")
 	proto.RegisterType((*EventUpdateEffectiveDeposit)(nil), "stratos.register.v1.EventUpdateEffectiveDeposit")
@@ -996,63 +927,59 @@ func init() {
 	proto.RegisterType((*EventUpdateMetaNodeDeposit)(nil), "stratos.register.v1.EventUpdateMetaNodeDeposit")
 	proto.RegisterType((*EventCompleteUnBondingResourceNode)(nil), "stratos.register.v1.EventCompleteUnBondingResourceNode")
 	proto.RegisterType((*EventCompleteUnBondingMetaNode)(nil), "stratos.register.v1.EventCompleteUnBondingMetaNode")
-	proto.RegisterType((*EventMessage)(nil), "stratos.register.v1.EventMessage")
 }
 
 func init() { proto.RegisterFile("stratos/register/v1/event.proto", fileDescriptor_9f4bedab5b811f13) }
 
 var fileDescriptor_9f4bedab5b811f13 = []byte{
-	// 794 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xcd, 0x4e, 0x1b, 0x49,
-	0x10, 0x66, 0xcc, 0xcf, 0x42, 0xcb, 0x86, 0xc5, 0xc6, 0xc6, 0xbb, 0x68, 0xbd, 0xab, 0x41, 0xab,
-	0xdd, 0x44, 0x8a, 0x2d, 0x08, 0xca, 0x21, 0x37, 0xfe, 0x4e, 0x09, 0x1c, 0x1c, 0xe0, 0xc0, 0x65,
-	0xd4, 0x9e, 0x29, 0x9b, 0x96, 0x3d, 0xdd, 0x56, 0x77, 0x8d, 0x13, 0x72, 0xcc, 0x13, 0xe4, 0x25,
-	0xf2, 0x10, 0xb9, 0xe4, 0x1c, 0x29, 0x17, 0x8e, 0xb9, 0x44, 0x8a, 0xe0, 0x29, 0x72, 0x88, 0x14,
-	0xcd, 0x74, 0xb7, 0xb1, 0x8d, 0x47, 0x21, 0xc2, 0xca, 0x29, 0xb7, 0xe9, 0xfa, 0xaa, 0x6a, 0xfa,
-	0xfb, 0xaa, 0xba, 0xab, 0xc9, 0xdf, 0x0a, 0x25, 0x45, 0xa1, 0x6a, 0x12, 0x5a, 0x4c, 0x21, 0xc8,
-	0x5a, 0x6f, 0xa3, 0x06, 0x3d, 0xe0, 0x58, 0xed, 0x4a, 0x81, 0x22, 0x5f, 0x30, 0x0e, 0x55, 0xeb,
-	0x50, 0xed, 0x6d, 0xb8, 0x1f, 0x1c, 0xb2, 0xba, 0x1f, 0x3b, 0xed, 0x4a, 0xa0, 0x08, 0x75, 0x50,
-	0x22, 0x92, 0x3e, 0x1c, 0x8a, 0x00, 0xf2, 0x25, 0x32, 0xa7, 0x80, 0x07, 0x20, 0xcb, 0xce, 0x3f,
-	0xce, 0xff, 0x0b, 0x75, 0xb3, 0xca, 0xff, 0x47, 0x96, 0x38, 0xe0, 0x73, 0x21, 0xdb, 0x1e, 0x0d,
-	0x02, 0x09, 0x4a, 0x95, 0x33, 0x89, 0xc3, 0xa2, 0x31, 0x6f, 0x6b, 0x6b, 0x9c, 0xa0, 0x1b, 0x35,
-	0xda, 0x70, 0x5e, 0x9e, 0xd6, 0x09, 0xf4, 0x2a, 0x5f, 0x25, 0x05, 0xf1, 0x52, 0x70, 0xf0, 0x3a,
-	0x2c, 0x64, 0xe8, 0xf9, 0x67, 0x94, 0xb7, 0x40, 0x95, 0x67, 0x12, 0xa7, 0xe5, 0x04, 0x7a, 0x1a,
-	0x23, 0xbb, 0x1a, 0x88, 0x7f, 0xc8, 0x38, 0x43, 0x46, 0x3b, 0x5e, 0x00, 0x5d, 0xa1, 0x18, 0x96,
-	0x67, 0xf5, 0x0f, 0x8d, 0x79, 0x4f, 0x5b, 0xdd, 0x13, 0x52, 0x18, 0x20, 0x73, 0x00, 0x48, 0x27,
-	0x42, 0xc4, 0x7d, 0xeb, 0x90, 0x3f, 0x93, 0xc4, 0xc7, 0x7c, 0x47, 0xf0, 0x80, 0xf1, 0xd6, 0xad,
-	0x84, 0x5a, 0x27, 0x39, 0x69, 0xfc, 0x3c, 0x2e, 0x02, 0x30, 0xd9, 0xb3, 0x72, 0x30, 0xf8, 0x3e,
-	0x59, 0x36, 0xa4, 0x3c, 0x14, 0x9e, 0x84, 0x50, 0xf4, 0xc0, 0xe8, 0xb5, 0x64, 0x80, 0x23, 0x51,
-	0x4f, 0xcc, 0xf9, 0x4d, 0x52, 0x8c, 0x78, 0x43, 0xef, 0xc0, 0x0b, 0x29, 0x46, 0x12, 0x3c, 0x64,
-	0x21, 0x18, 0xe9, 0x0a, 0x7d, 0xf0, 0x20, 0xc1, 0x8e, 0x58, 0x08, 0xee, 0x27, 0x87, 0x94, 0x86,
-	0xf7, 0xfe, 0x5d, 0x5d, 0xd6, 0xc8, 0x42, 0x08, 0x48, 0x07, 0xf7, 0x3c, 0x1f, 0xda, 0xa0, 0x94,
-	0xe2, 0x4d, 0xa7, 0x15, 0x6f, 0x2c, 0xbf, 0x99, 0x1f, 0xe4, 0x37, 0x9b, 0xce, 0xef, 0x55, 0x86,
-	0xfc, 0x95, 0xf0, 0xb3, 0xb4, 0xea, 0x49, 0x7b, 0x4b, 0x8a, 0x4c, 0xf0, 0x13, 0x81, 0xe9, 0x34,
-	0x37, 0x49, 0xb1, 0x27, 0x10, 0xa4, 0x37, 0xbe, 0x09, 0x0a, 0x09, 0x78, 0x38, 0xdc, 0xd2, 0x8f,
-	0xc9, 0x1f, 0x3e, 0xe5, 0x01, 0x0b, 0x28, 0xc2, 0x8d, 0x38, 0xad, 0xc1, 0x6a, 0xdf, 0x61, 0x24,
-	0xf6, 0x1e, 0xf9, 0xfd, 0x3a, 0x56, 0x21, 0xc5, 0xc8, 0xf6, 0xfc, 0x52, 0xdf, 0xfe, 0x2c, 0x31,
-	0xa7, 0x89, 0x3c, 0x9b, 0x22, 0xb2, 0xfb, 0xce, 0x21, 0xc5, 0x44, 0x84, 0x27, 0xcc, 0x6f, 0x5b,
-	0x21, 0x26, 0x4e, 0x7e, 0x8b, 0x94, 0x90, 0xca, 0x16, 0x60, 0x0a, 0xf3, 0x15, 0x8d, 0x8e, 0x44,
-	0xad, 0x93, 0x9c, 0x89, 0x1a, 0xe2, 0x9c, 0xd5, 0x46, 0x4d, 0xd8, 0x3d, 0x35, 0xd7, 0xd0, 0x71,
-	0x37, 0x98, 0xf4, 0x35, 0xe4, 0x7e, 0xcd, 0x90, 0x4a, 0x4a, 0x72, 0x73, 0x71, 0xdc, 0xfd, 0xaa,
-	0x5b, 0x27, 0x39, 0xdb, 0xe5, 0x01, 0x74, 0x90, 0x1a, 0x45, 0xb2, 0xc6, 0xb8, 0x17, 0xdb, 0xe2,
-	0x6c, 0x7e, 0x24, 0x25, 0x70, 0xec, 0xdf, 0x63, 0x5a, 0x8b, 0x45, 0x63, 0xb6, 0xdb, 0xd9, 0x22,
-	0x25, 0xda, 0xa3, 0xac, 0x43, 0x1b, 0x1d, 0xf0, 0x50, 0xb4, 0x81, 0x7b, 0x0d, 0x68, 0x0a, 0x69,
-	0x0f, 0xc2, 0x4a, 0x1f, 0x3d, 0x8a, 0xc1, 0x9d, 0x04, 0x8b, 0x4b, 0x3a, 0x1a, 0x45, 0x9b, 0x08,
-	0xb2, 0x3c, 0xa7, 0x4b, 0x3a, 0x1c, 0xb4, 0x1d, 0x43, 0x69, 0x8d, 0xf6, 0x5b, 0xda, 0x69, 0x4e,
-	0x3d, 0xa1, 0xf3, 0xe9, 0x27, 0xf4, 0x8d, 0x43, 0xd6, 0x06, 0xf4, 0xdf, 0x6f, 0x36, 0xc1, 0x47,
-	0xd6, 0xeb, 0x8b, 0x3f, 0x46, 0x64, 0x67, 0xac, 0xc8, 0x8f, 0xc8, 0x2a, 0xd8, 0x60, 0xab, 0xa0,
-	0xa1, 0xa8, 0xab, 0x52, 0x84, 0x91, 0xdc, 0x9a, 0xe4, 0xbf, 0x64, 0x91, 0x29, 0x2f, 0xe2, 0x2a,
-	0x52, 0xdd, 0xb8, 0xae, 0x81, 0xa9, 0x4e, 0x8e, 0xa9, 0xe3, 0x6b, 0x63, 0x7f, 0x7a, 0xe8, 0x6d,
-	0x4e, 0x6e, 0x7a, 0x7c, 0xc9, 0xd8, 0xe9, 0x31, 0x94, 0xf8, 0x57, 0xef, 0xfd, 0x84, 0xde, 0x03,
-	0xe2, 0xea, 0x17, 0x81, 0x08, 0xbb, 0x1d, 0x40, 0x48, 0x1d, 0xe0, 0x34, 0x14, 0x11, 0x47, 0x5b,
-	0x02, 0xbd, 0xba, 0x7d, 0x89, 0xa9, 0xb9, 0x61, 0x6e, 0xfc, 0x66, 0xb0, 0x8b, 0xee, 0xf6, 0x8b,
-	0x13, 0x92, 0x35, 0x63, 0x4e, 0x29, 0xda, 0x4a, 0x12, 0x86, 0x22, 0x88, 0x3a, 0x60, 0x13, 0xea,
-	0xd5, 0x40, 0x3b, 0x65, 0x86, 0xda, 0x29, 0xde, 0x80, 0x1f, 0xcf, 0x44, 0xfb, 0x18, 0xd3, 0xab,
-	0x9d, 0xc3, 0xf7, 0x97, 0x15, 0xe7, 0xe2, 0xb2, 0xe2, 0x7c, 0xbe, 0xac, 0x38, 0xaf, 0xaf, 0x2a,
-	0x53, 0x17, 0x57, 0x95, 0xa9, 0x8f, 0x57, 0x95, 0xa9, 0xd3, 0xad, 0x16, 0xc3, 0xb3, 0xa8, 0x51,
-	0xf5, 0x45, 0x58, 0x33, 0x6f, 0x47, 0x0e, 0x68, 0x3f, 0x1f, 0xf8, 0x67, 0x94, 0xf1, 0xda, 0x8b,
-	0xeb, 0xf7, 0x26, 0x9e, 0x77, 0x41, 0x35, 0xe6, 0x92, 0xd7, 0xe6, 0xc3, 0x6f, 0x01, 0x00, 0x00,
-	0xff, 0xff, 0x7f, 0xb5, 0xdf, 0xb1, 0x90, 0x0a, 0x00, 0x00,
+	// 742 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x56, 0xcd, 0x4e, 0x14, 0x41,
+	0x10, 0x66, 0xf8, 0x13, 0x3a, 0xfc, 0xc8, 0xae, 0xc0, 0x2a, 0x71, 0x34, 0x43, 0x8c, 0x68, 0xe2,
+	0x6e, 0x40, 0xe2, 0xc1, 0x1b, 0x7f, 0x37, 0xe1, 0xb0, 0x02, 0x26, 0x5c, 0x26, 0xbd, 0x33, 0xb5,
+	0xbb, 0x1d, 0x76, 0xba, 0x27, 0xdd, 0x35, 0x83, 0xf8, 0x00, 0x9e, 0x7d, 0x03, 0x4f, 0x3e, 0x84,
+	0x6f, 0x60, 0xe2, 0x85, 0x78, 0xf2, 0x62, 0x62, 0xe0, 0x29, 0x3c, 0x98, 0x98, 0x99, 0xee, 0x59,
+	0x76, 0x61, 0x27, 0x42, 0xd8, 0x78, 0xf2, 0x36, 0x53, 0x5f, 0x55, 0x77, 0x7d, 0x5f, 0x55, 0x75,
+	0x37, 0x79, 0xa0, 0x50, 0x52, 0x14, 0xaa, 0x22, 0xa1, 0xc1, 0x14, 0x82, 0xac, 0xc4, 0xcb, 0x15,
+	0x88, 0x81, 0x63, 0x39, 0x94, 0x02, 0x45, 0xa1, 0x68, 0x1c, 0xca, 0x99, 0x43, 0x39, 0x5e, 0x76,
+	0xbe, 0x5a, 0x64, 0x7e, 0x2b, 0x71, 0xda, 0x90, 0x40, 0x11, 0xaa, 0xa0, 0x44, 0x24, 0x3d, 0xd8,
+	0x11, 0x3e, 0x14, 0xe6, 0xc8, 0xa8, 0x02, 0xee, 0x83, 0x2c, 0x59, 0x0f, 0xad, 0xa5, 0xf1, 0xaa,
+	0xf9, 0x2b, 0x3c, 0x26, 0xd3, 0x1c, 0xf0, 0x48, 0xc8, 0x43, 0x97, 0xfa, 0xbe, 0x04, 0xa5, 0x4a,
+	0x83, 0xa9, 0xc3, 0x94, 0x31, 0xaf, 0x69, 0x6b, 0xb2, 0x40, 0x18, 0xd5, 0x0e, 0xe1, 0xb8, 0x34,
+	0xa4, 0x17, 0xd0, 0x7f, 0x85, 0x32, 0x29, 0x8a, 0x77, 0x82, 0x83, 0xdb, 0x62, 0x01, 0x43, 0xd7,
+	0x6b, 0x52, 0xde, 0x00, 0x55, 0x1a, 0x4e, 0x9d, 0x66, 0x52, 0xe8, 0x55, 0x82, 0x6c, 0x68, 0x20,
+	0xd9, 0x90, 0x71, 0x86, 0x8c, 0xb6, 0x5c, 0x1f, 0x42, 0xa1, 0x18, 0x96, 0x46, 0xf4, 0x86, 0xc6,
+	0xbc, 0xa9, 0xad, 0xce, 0x7b, 0x8b, 0x14, 0x3b, 0xd8, 0x6c, 0x03, 0xd2, 0xfe, 0x30, 0xc9, 0xc9,
+	0x78, 0x28, 0x27, 0x63, 0xe7, 0xb3, 0x45, 0xee, 0xa5, 0x89, 0xec, 0xf1, 0x75, 0xc1, 0x7d, 0xc6,
+	0x1b, 0x57, 0x52, 0x76, 0x91, 0x4c, 0x4a, 0xe3, 0xe7, 0x72, 0xe1, 0x83, 0xc9, 0x66, 0x42, 0x76,
+	0x06, 0x3f, 0x25, 0x33, 0x46, 0x05, 0x17, 0x85, 0x2b, 0x21, 0x10, 0x31, 0x98, 0x4c, 0xa6, 0x0d,
+	0xb0, 0x2b, 0xaa, 0xa9, 0xb9, 0xb0, 0x42, 0x66, 0x23, 0x5e, 0xd3, 0x19, 0xb8, 0x01, 0xc5, 0x48,
+	0x82, 0x8b, 0x2c, 0x00, 0xa3, 0x75, 0xb1, 0x0d, 0x6e, 0xa7, 0xd8, 0x2e, 0x0b, 0xc0, 0xf9, 0x61,
+	0x91, 0xb9, 0xee, 0xdc, 0xff, 0xaa, 0xe3, 0x02, 0x19, 0x0f, 0x00, 0x69, 0x67, 0xce, 0x63, 0x41,
+	0x16, 0x74, 0x4d, 0xed, 0x7a, 0xf3, 0x1b, 0xbe, 0x26, 0xbf, 0x91, 0x7c, 0x7e, 0xdf, 0x2c, 0x72,
+	0x3f, 0xe5, 0x97, 0xd1, 0xaa, 0xa6, 0xf3, 0x20, 0x29, 0x32, 0xc1, 0xf7, 0x05, 0xe6, 0xd3, 0x5c,
+	0x21, 0xb3, 0xb1, 0x40, 0x90, 0x6e, 0xef, 0xa6, 0x29, 0xa6, 0xe0, 0x4e, 0x77, 0xe7, 0xbc, 0x24,
+	0x77, 0x3d, 0xca, 0x7d, 0xe6, 0x53, 0x84, 0x4b, 0x71, 0x5a, 0x83, 0xf9, 0xb6, 0xc3, 0x85, 0xd8,
+	0x27, 0xe4, 0xf6, 0x79, 0xac, 0x42, 0x8a, 0x51, 0x36, 0x24, 0xd3, 0x6d, 0xfb, 0xeb, 0xd4, 0xec,
+	0x7c, 0xb4, 0xc8, 0x52, 0x4a, 0xea, 0x0d, 0xc3, 0xa6, 0x2f, 0xe9, 0x51, 0x2f, 0x72, 0x66, 0x4c,
+	0x6e, 0x3e, 0x0e, 0xb9, 0xb2, 0x0f, 0xe5, 0xcb, 0x7e, 0x60, 0x0e, 0x9a, 0xbd, 0xd0, 0xef, 0xf7,
+	0x41, 0xe3, 0xfc, 0x1e, 0x24, 0x76, 0xce, 0xe2, 0x7d, 0xe3, 0xbc, 0x48, 0x26, 0xb3, 0xb6, 0xf4,
+	0xa1, 0x85, 0xd4, 0x70, 0x9d, 0x30, 0xc6, 0xcd, 0xc4, 0x96, 0xac, 0xe6, 0x45, 0x52, 0x02, 0xc7,
+	0xf6, 0x49, 0xa5, 0x0b, 0x36, 0x65, 0xcc, 0x59, 0x3a, 0xab, 0x64, 0x8e, 0xc6, 0x94, 0xb5, 0x68,
+	0xad, 0x05, 0x2e, 0x8a, 0x43, 0xe0, 0x6e, 0x0d, 0xea, 0x42, 0x66, 0x9d, 0x7b, 0xa7, 0x8d, 0xee,
+	0x26, 0xe0, 0x7a, 0x8a, 0x25, 0xba, 0x5f, 0x8c, 0xa2, 0x75, 0x04, 0x59, 0x1a, 0xd5, 0xba, 0x77,
+	0x07, 0xad, 0x25, 0x50, 0xde, 0xf8, 0xdd, 0xca, 0x1b, 0xbf, 0xdc, 0xda, 0x8e, 0xe5, 0xd7, 0xf6,
+	0x93, 0x45, 0x16, 0x3a, 0xf4, 0xdf, 0xaa, 0xd7, 0xc1, 0x43, 0x16, 0xb7, 0xc5, 0xef, 0x21, 0xb2,
+	0xd5, 0x53, 0xe4, 0x17, 0x64, 0x1e, 0xb2, 0xe0, 0x4c, 0x41, 0x43, 0x51, 0x57, 0x65, 0x16, 0x2e,
+	0xac, 0xad, 0x49, 0x3e, 0x22, 0x53, 0x4c, 0xb9, 0x11, 0x57, 0x91, 0x0a, 0x93, 0xba, 0xfa, 0xa6,
+	0x3a, 0x93, 0x4c, 0xed, 0x9d, 0x1b, 0x9d, 0x7d, 0x73, 0x3d, 0xe8, 0x34, 0xfb, 0x76, 0x3d, 0x38,
+	0xbf, 0x06, 0xb3, 0xe3, 0xbe, 0x6b, 0xe1, 0xff, 0xbd, 0xf7, 0x0f, 0x7a, 0x0f, 0x88, 0xa3, 0xaf,
+	0x7c, 0x11, 0x84, 0x2d, 0x40, 0xc8, 0xbd, 0x71, 0x69, 0x20, 0x22, 0x8e, 0x59, 0x09, 0xf4, 0xdf,
+	0xd5, 0x4b, 0x4c, 0xcd, 0x09, 0x73, 0x69, 0x9b, 0xce, 0x2e, 0xba, 0xd1, 0x16, 0xeb, 0x3b, 0x5f,
+	0x4e, 0x6d, 0xeb, 0xe4, 0xd4, 0xb6, 0x7e, 0x9e, 0xda, 0xd6, 0x87, 0x33, 0x7b, 0xe0, 0xe4, 0xcc,
+	0x1e, 0xf8, 0x7e, 0x66, 0x0f, 0x1c, 0xac, 0x36, 0x18, 0x36, 0xa3, 0x5a, 0xd9, 0x13, 0x41, 0xc5,
+	0xbc, 0xe2, 0x38, 0x60, 0xf6, 0xf9, 0xcc, 0x6b, 0x52, 0xc6, 0x2b, 0x6f, 0xcf, 0x5f, 0x7e, 0x78,
+	0x1c, 0x82, 0xaa, 0x8d, 0xa6, 0xef, 0xbe, 0xe7, 0x7f, 0x02, 0x00, 0x00, 0xff, 0xff, 0x1e, 0xc5,
+	0xde, 0x43, 0x1a, 0x0a, 0x00, 0x00,
 }
 
 func (m *EventCreateResourceNode) Marshal() (dAtA []byte, err error) {
@@ -1133,6 +1060,13 @@ func (m *EventCreateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
+	if len(m.OzoneLimitChanges) > 0 {
+		i -= len(m.OzoneLimitChanges)
+		copy(dAtA[i:], m.OzoneLimitChanges)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
+		i--
+		dAtA[i] = 0x1a
+	}
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
@@ -1279,13 +1213,6 @@ func (m *EventMetaNodeRegistrationVote) MarshalToSizedBuffer(dAtA []byte) (int, 
 	_ = i
 	var l int
 	_ = l
-	if len(m.OzoneLimitChanges) > 0 {
-		i -= len(m.OzoneLimitChanges)
-		copy(dAtA[i:], m.OzoneLimitChanges)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.OzoneLimitChanges)))
-		i--
-		dAtA[i] = 0x2a
-	}
 	if len(m.CandidateStatus) > 0 {
 		i -= len(m.CandidateStatus)
 		copy(dAtA[i:], m.CandidateStatus)
@@ -1317,7 +1244,7 @@ func (m *EventMetaNodeRegistrationVote) MarshalToSizedBuffer(dAtA []byte) (int, 
 	return len(dAtA) - i, nil
 }
 
-func (m *EventKickMetaNodeVote) Marshal() (dAtA []byte, err error) {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -1327,34 +1254,27 @@ func (m *EventKickMetaNodeVote) Marshal() (dAtA []byte, err error) {
 	return dAtA[:n], nil
 }
 
-func (m *EventKickMetaNodeVote) MarshalTo(dAtA []byte) (int, error) {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *EventKickMetaNodeVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.TargetStatus) > 0 {
-		i -= len(m.TargetStatus)
-		copy(dAtA[i:], m.TargetStatus)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.TargetStatus)))
-		i--
-		dAtA[i] = 0x22
-	}
-	if len(m.TargetNetworkAddress) > 0 {
-		i -= len(m.TargetNetworkAddress)
-		copy(dAtA[i:], m.TargetNetworkAddress)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.TargetNetworkAddress)))
+	if len(m.UnbondingMatureTime) > 0 {
+		i -= len(m.UnbondingMatureTime)
+		copy(dAtA[i:], m.UnbondingMatureTime)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.UnbondingMatureTime)))
 		i--
 		dAtA[i] = 0x1a
 	}
-	if len(m.VoterNetworkAddress) > 0 {
-		i -= len(m.VoterNetworkAddress)
-		copy(dAtA[i:], m.VoterNetworkAddress)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.VoterNetworkAddress)))
+	if len(m.NetworkAddress) > 0 {
+		i -= len(m.NetworkAddress)
+		copy(dAtA[i:], m.NetworkAddress)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.NetworkAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -1718,50 +1638,6 @@ func (m *EventCompleteUnBondingMetaNode) MarshalToSizedBuffer(dAtA []byte) (int,
 	return len(dAtA) - i, nil
 }
 
-func (m *EventMessage) Marshal() (dAtA []byte, err error) {
-	size := m.Size()
-	dAtA = make([]byte, size)
-	n, err := m.MarshalToSizedBuffer(dAtA[:size])
-	if err != nil {
-		return nil, err
-	}
-	return dAtA[:n], nil
-}
-
-func (m *EventMessage) MarshalTo(dAtA []byte) (int, error) {
-	size := m.Size()
-	return m.MarshalToSizedBuffer(dAtA[:size])
-}
-
-func (m *EventMessage) MarshalToSizedBuffer(dAtA []byte) (int, error) {
-	i := len(dAtA)
-	_ = i
-	var l int
-	_ = l
-	if len(m.Action) > 0 {
-		i -= len(m.Action)
-		copy(dAtA[i:], m.Action)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.Action)))
-		i--
-		dAtA[i] = 0x1a
-	}
-	if len(m.Sender) > 0 {
-		i -= len(m.Sender)
-		copy(dAtA[i:], m.Sender)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.Sender)))
-		i--
-		dAtA[i] = 0x12
-	}
-	if len(m.Module) > 0 {
-		i -= len(m.Module)
-		copy(dAtA[i:], m.Module)
-		i = encodeVarintEvent(dAtA, i, uint64(len(m.Module)))
-		i--
-		dAtA[i] = 0xa
-	}
-	return len(dAtA) - i, nil
-}
-
 func encodeVarintEvent(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvent(v)
 	base := offset
@@ -1813,6 +1689,10 @@ func (m *EventCreateMetaNode) Size() (n int) {
 		n += 1 + l + sovEvent(uint64(l))
 	}
 	l = len(m.NetworkAddress)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	l = len(m.OzoneLimitChanges)
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
@@ -1895,14 +1775,10 @@ func (m *EventMetaNodeRegistrationVote) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = len(m.OzoneLimitChanges)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
 	return n
 }
 
-func (m *EventKickMetaNodeVote) Size() (n int) {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -1912,15 +1788,11 @@ func (m *EventKickMetaNodeVote) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = len(m.VoterNetworkAddress)
+	l = len(m.NetworkAddress)
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
-	l = len(m.TargetNetworkAddress)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	l = len(m.TargetStatus)
+	l = len(m.UnbondingMatureTime)
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
@@ -2092,27 +1964,6 @@ func (m *EventCompleteUnBondingMetaNode) Size() (n int) {
 		n += 1 + l + sovEvent(uint64(l))
 	}
 	l = len(m.NetworkAddress)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	return n
-}
-
-func (m *EventMessage) Size() (n int) {
-	if m == nil {
-		return 0
-	}
-	var l int
-	_ = l
-	l = len(m.Module)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	l = len(m.Sender)
-	if l > 0 {
-		n += 1 + l + sovEvent(uint64(l))
-	}
-	l = len(m.Action)
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
 	}
@@ -2427,6 +2278,38 @@ func (m *EventCreateMetaNode) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field OzoneLimitChanges", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -2994,38 +2877,6 @@ func (m *EventMetaNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 			}
 			m.CandidateStatus = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 5:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OzoneLimitChanges", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.OzoneLimitChanges = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipEvent(dAtA[iNdEx:])
@@ -3047,7 +2898,7 @@ func (m *EventMetaNodeRegistrationVote) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *EventKickMetaNodeVote) Unmarshal(dAtA []byte) error {
+func (m *EventWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -3070,10 +2921,10 @@ func (m *EventKickMetaNodeVote) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: EventKickMetaNodeVote: wiretype end group for non-group")
+			return fmt.Errorf("proto: EventWithdrawMetaNodeRegistrationDeposit: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventKickMetaNodeVote: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: EventWithdrawMetaNodeRegistrationDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
@@ -3110,7 +2961,7 @@ func (m *EventKickMetaNodeVote) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field VoterNetworkAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3138,11 +2989,11 @@ func (m *EventKickMetaNodeVote) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.VoterNetworkAddress = string(dAtA[iNdEx:postIndex])
+			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TargetNetworkAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field UnbondingMatureTime", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -3170,39 +3021,7 @@ func (m *EventKickMetaNodeVote) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.TargetNetworkAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 4:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field TargetStatus", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.TargetStatus = string(dAtA[iNdEx:postIndex])
+			m.UnbondingMatureTime = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -4417,152 +4236,6 @@ func (m *EventCompleteUnBondingMetaNode) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		default:
-			iNdEx = preIndex
-			skippy, err := skipEvent(dAtA[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if (iNdEx + skippy) > l {
-				return io.ErrUnexpectedEOF
-			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *EventMessage) Unmarshal(dAtA []byte) error {
-	l := len(dAtA)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowEvent
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := dAtA[iNdEx]
-			iNdEx++
-			wire |= uint64(b&0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: EventMessage: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: EventMessage: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Module", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Module = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 2:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Sender", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Sender = string(dAtA[iNdEx:postIndex])
-			iNdEx = postIndex
-		case 3:
-			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Action", wireType)
-			}
-			var stringLen uint64
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowEvent
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := dAtA[iNdEx]
-				iNdEx++
-				stringLen |= uint64(b&0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-			intStringLen := int(stringLen)
-			if intStringLen < 0 {
-				return ErrInvalidLengthEvent
-			}
-			postIndex := iNdEx + intStringLen
-			if postIndex < 0 {
-				return ErrInvalidLengthEvent
-			}
-			if postIndex > l {
-				return io.ErrUnexpectedEOF
-			}
-			m.Action = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

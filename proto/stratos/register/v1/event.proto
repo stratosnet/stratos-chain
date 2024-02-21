@@ -105,13 +105,3 @@ message EventCompleteUnBondingMetaNode{
   string amount = 1;
   string network_address = 2;
 }
-
-// EventMessage
-message EventMessage {
-  // module which emits the event
-  string module = 1;
-  // sender of the message
-  string sender = 2;
-  // tx_type is the type of the message
-  string action = 3;
-}
