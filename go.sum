@@ -1043,8 +1043,8 @@ github.com/stratosnet/cosmos-sdk v0.47.5-stratos h1:g0qhd8SurXdq6UttDL6h3+G8N/fh
 github.com/stratosnet/cosmos-sdk v0.47.5-stratos/go.mod h1:WDWuv5LQB7RzVwlD1WEaYOZZZk0DzQf9o8CMD3NHrPI=
 github.com/stratosnet/ledger-stratos-go v0.0.0-20230728192009-175657d24cb0 h1:Y8vzNO2ieC7ViVbge7v0eT/ft3nzwVCH78soFeqSJr4=
 github.com/stratosnet/ledger-stratos-go v0.0.0-20230728192009-175657d24cb0/go.mod h1:9T0Ii/AMWWnJRtvKYKB4kDdraaOP76J+K5/IbRXQgyc=
-github.com/stratosnet/stratos-chain/api v0.0.0-20231213144458-496a5e4754ff h1:kl0o0UufsWz5t4VypjaRjVlGyevH4v/AnVLLd59+yrw=
-github.com/stratosnet/stratos-chain/api v0.0.0-20231213144458-496a5e4754ff/go.mod h1:cmd+23oKQApo0M9aooZL3+DY9/XiiXCGOQBOoNa95CM=
+github.com/stratosnet/stratos-chain/api v0.0.0-20231220214043-682f174b1c21 h1:aVfwtoQ4dCAXbzfQ9k4rLKkT4UAeWudH8OxNb3WXQm8=
+github.com/stratosnet/stratos-chain/api v0.0.0-20231220214043-682f174b1c21/go.mod h1:FN6crwtoVjf2errz8Nsj0y/zRxuIRtxs5w8qLHKVBqA=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/amqp v0.0.0-20190827072141-edfb9018d271/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=
 github.com/streadway/handy v0.0.0-20190108123426-d5acb3125c2a/go.mod h1:qNTQ5P5JnDBl6z3cMAg/SywNDC5ABu5ApDIw6lUbRmI=
