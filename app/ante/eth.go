@@ -10,11 +10,13 @@ import (
 	authante "github.com/cosmos/cosmos-sdk/x/auth/ante"
 
 	"github.com/ethereum/go-ethereum/common"
+	ethcore "github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -314,7 +316,7 @@ func (ctd CanTransferDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate 
 			BaseFee:     baseFee,
 		}
 		stateDB := statedb.New(ctx, ctd.evmKeeper, statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes())))
-		evm := ctd.evmKeeper.NewEVM(ctx, coreMsg, cfg, evmtypes.NewNoOpTracer(), stateDB)
+		evm := ctd.evmKeeper.NewEVM(ctx, coreMsg, cfg, tracers.NewNoOpTracer(), stateDB)
 
 		// check that caller has enough balance to cover asset transfer for **topmost** call
 		// NOTE: here the gas consumed is from the context with the infinite gas meter
@@ -460,6 +462,12 @@ func (vbd EthValidateBasicDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simu
 			txData, err := evmtypes.UnpackTxData(msgEthTx.Data)
 			if err != nil {
 				return ctx, errors.Wrap(err, "failed to unpack MsgEthereumTx Data")
+			}
+
+			ethTx := ethtypes.NewTx(txData.AsEthereumData())
+			// Reject transactions over defined size to prevent DOS attacks
+			if uint64(ethTx.Size()) > evmtypes.TxMaxSize {
+				return ctx, errors.Wrapf(sdkerrors.ErrInvalidRequest, ethcore.ErrOversizedData.Error())
 			}
 
 			// return error if contract creation or call are disabled through governance

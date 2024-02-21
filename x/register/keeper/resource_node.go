@@ -242,7 +242,8 @@ func (k Keeper) removeResourceNode(ctx sdk.Context, addr stratos.SdsAddress) err
 }
 
 func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description types.Description, nodeType types.NodeType, deposit sdk.Coin) (ozoneLimitChange sdkmath.Int, err error) {
+	beneficiaryAddress sdk.AccAddress, description types.Description, nodeType types.NodeType, deposit sdk.Coin,
+) (ozoneLimitChange sdkmath.Int, err error) {
 
 	if _, found := k.GetResourceNode(ctx, networkAddr); found {
 		ctx.Logger().Error("Resource node already exist")
@@ -260,7 +261,7 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 		return ozoneLimitChange, types.ErrInsufficientDeposit
 	}
 
-	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, description, nodeType, ctx.BlockHeader().Time)
+	resourceNode, err := types.NewResourceNode(networkAddr, pubKey, ownerAddr, beneficiaryAddress, description, nodeType, ctx.BlockHeader().Time)
 	if err != nil {
 		return ozoneLimitChange, err
 	}
@@ -269,7 +270,7 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 }
 
 func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Description, nodeType types.NodeType,
-	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress) error {
+	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress) error {
 
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
@@ -279,6 +280,10 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	ownerAddrNode, _ := sdk.AccAddressFromBech32(node.GetOwnerAddress())
 	if !ownerAddrNode.Equals(ownerAddr) {
 		return types.ErrInvalidOwnerAddr
+	}
+
+	if len(beneficiaryAddr) > 0 {
+		node.BeneficiaryAddress = beneficiaryAddr.String()
 	}
 
 	node.Description = description

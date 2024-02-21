@@ -160,7 +160,7 @@ func (v MetaNode) IsActivate() bool {
 
 // MustMarshalMetaNode returns the metaNode bytes. Panics if fails
 func MustMarshalMetaNode(cdc codec.Codec, metaNode MetaNode) []byte {
-	return cdc.MustMarshal(&metaNode)
+	return cdc.MustMarshalLengthPrefixed(&metaNode)
 }
 
 // MustUnmarshalMetaNode unmarshal an meta node from a store value. Panics if fails
@@ -174,7 +174,7 @@ func MustUnmarshalMetaNode(cdc codec.Codec, value []byte) MetaNode {
 
 // UnmarshalMetaNode unmarshal an meta node from a store value
 func UnmarshalMetaNode(cdc codec.Codec, value []byte) (metaNode MetaNode, err error) {
-	err = cdc.Unmarshal(value, &metaNode)
+	err = cdc.UnmarshalLengthPrefixed(value, &metaNode)
 	return metaNode, err
 }
 

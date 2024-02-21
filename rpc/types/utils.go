@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math/big"
 	"sort"
-	"strconv"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -70,15 +69,25 @@ func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEth
 
 func GetBlockBloom(blockResults *tmrpccoretypes.ResultBlockResults) (ethtypes.Bloom, error) {
 	for _, event := range blockResults.EndBlockEvents {
-		if event.Type != evmtypes.EventTypeBlockBloom {
-			continue
-		}
-
-		for _, attr := range event.Attributes {
-			if attr.GetKey() == evmtypes.AttributeKeyEthereumBloom {
-				bBloom := []byte(attr.Value)
-				return ethtypes.BytesToBloom(bBloom), nil
+		// <v012 support
+		if event.GetType() == evmtypes.EventTypeBlockBloom {
+			for _, attr := range event.Attributes {
+				if attr.Key == evmtypes.AttributeKeyEthereumBloom {
+					return ethtypes.BytesToBloom([]byte(attr.Value)), nil
+				}
 			}
+		} else {
+			msg, err := sdk.ParseTypedEvent(event)
+			if err != nil {
+				// ignore in case of not typed event (in case of not migrated code)
+				continue
+			}
+
+			bloomEvt, ok := msg.(*evmtypes.EventBlockBloom)
+			if !ok {
+				continue
+			}
+			return ethtypes.BytesToBloom([]byte(bloomEvt.Bloom)), nil
 		}
 	}
 	return ethtypes.Bloom{}, fmt.Errorf("block bloom event is not found")
@@ -516,77 +525,55 @@ func NewRPCTransaction(
 	return result, nil
 }
 
-// BaseFeeFromEvents parses the feemarket basefee from cosmos events
-func BaseFeeFromEvents(events []abci.Event) *big.Int {
-	for _, event := range events {
-		if event.Type != evmtypes.EventTypeFeeMarket {
-			continue
-		}
-
-		for _, attr := range event.Attributes {
-			if attr.GetKey() == evmtypes.AttributeKeyBaseFee {
-				result, success := new(big.Int).SetString(attr.Value, 10)
-				if success {
-					return result
-				}
-
-				return nil
-			}
-		}
-	}
-	return nil
-}
-
-// FindTxAttributes returns the msg index of the eth tx in cosmos tx, and the attributes,
+// FindEthereumTxEvent returns the msg index of the eth tx in cosmos tx, and the tx evt,
 // returns -1 and nil if not found.
-func FindTxAttributes(events []abci.Event, txHash string) (int, map[string]string) {
+func FindEthereumTxEvent(events []abci.Event, txHash string) (int, *evmtypes.EventEthereumTx) {
 	msgIndex := -1
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
-			continue
+		var evtEthTx *evmtypes.EventEthereumTx
+		// <v012 support
+		if event.GetType() == evmtypes.EventTypeEthereumTx {
+			msgIndex++
+
+			value := FindAttribute(event.Attributes, evmtypes.AttributeKeyEthereumTxHash)
+			if value != txHash {
+				continue
+			}
+
+			// found, convert attributes to map for later lookup
+			attrs := make(map[string]string, len(event.Attributes))
+			for _, attr := range event.Attributes {
+				attrs[attr.Key] = attr.Value
+			}
+
+			evtEthTx = &evmtypes.EventEthereumTx{
+				EthHash:     value,
+				EthTxFailed: attrs[evmtypes.AttributeKeyEthereumTxFailed],
+			}
+		} else {
+			msg, err := sdk.ParseTypedEvent(event)
+			if err != nil {
+				// ignore in case of not typed event (in case of not migrated code)
+				continue
+			}
+
+			var ok bool
+			evtEthTx, ok = msg.(*evmtypes.EventEthereumTx)
+			if !ok {
+				continue
+			}
+
+			msgIndex++
+
+			if evtEthTx.EthHash != txHash {
+				continue
+			}
 		}
 
-		msgIndex++
-
-		value := FindAttribute(event.Attributes, evmtypes.AttributeKeyEthereumTxHash)
-		if value != txHash {
-			continue
-		}
-
-		// found, convert attributes to map for later lookup
-		attrs := make(map[string]string, len(event.Attributes))
-		for _, attr := range event.Attributes {
-			attrs[attr.Key] = attr.Value
-		}
-		return msgIndex, attrs
+		return msgIndex, evtEthTx
 	}
 	// not found
 	return -1, nil
-}
-
-// FindTxAttributesByIndex search the msg in tx events by txIndex
-// returns the msgIndex, returns -1 if not found.
-func FindTxAttributesByIndex(events []abci.Event, txIndex uint64) int {
-	strIndex := strconv.FormatUint(txIndex, 10)
-	txIndexKey := evmtypes.AttributeKeyTxIndex
-	msgIndex := -1
-	for _, event := range events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
-			continue
-		}
-
-		msgIndex++
-
-		value := FindAttribute(event.Attributes, txIndexKey)
-		if value != strIndex {
-			continue
-		}
-
-		// found, convert attributes to map for later lookup
-		return msgIndex
-	}
-	// not found
-	return -1
 }
 
 // FindAttribute find event attribute with specified key, if not found returns nil.
@@ -598,44 +585,4 @@ func FindAttribute(attrs []abci.EventAttribute, key string) string {
 		return attr.Value
 	}
 	return ""
-}
-
-// GetUint64Attribute parses the uint64 value from event attributes
-func GetUint64Attribute(attrs map[string]string, key string) (uint64, error) {
-	value, found := attrs[key]
-	if !found {
-		return 0, fmt.Errorf("tx index attribute not found: %s", key)
-	}
-	var result int64
-	result, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	if result < 0 {
-		return 0, fmt.Errorf("negative tx index: %d", result)
-	}
-	return uint64(result), nil
-}
-
-// AccumulativeGasUsedOfMsg accumulate the gas used by msgs before `msgIndex`.
-func AccumulativeGasUsedOfMsg(events []abci.Event, msgIndex int) (gasUsed uint64) {
-	for _, event := range events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
-			continue
-		}
-
-		if msgIndex < 0 {
-			break
-		}
-		msgIndex--
-
-		value := FindAttribute(event.Attributes, evmtypes.AttributeKeyTxGasUsed)
-		var result int64
-		result, err := strconv.ParseInt(value, 10, 64)
-		if err != nil {
-			continue
-		}
-		gasUsed += uint64(result)
-	}
-	return
 }

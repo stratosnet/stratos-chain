@@ -67,6 +67,7 @@ func CreateResourceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetNodeType())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -191,6 +192,7 @@ func UpdateResourceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetNodeType())
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -376,6 +378,15 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	beneficiaryAddr := ownerAddr
+	flagBeneficiaryAddrStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddrStr)) > 0 {
+		beneficiaryAddr, err = sdk.AccAddressFromBech32(flagBeneficiaryAddrStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
 		return nil, err
@@ -409,7 +420,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 	if t := nodeType.Type(); t == "UNKNOWN" {
 		return nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, nodeTypeVal)
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, beneficiaryAddr, description, nodeTypeVal)
 	if er != nil {
 		return nil, err
 	}
@@ -488,6 +499,15 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	beneficiaryAddress := sdk.AccAddress{}
+	flagBeneficiaryAddressStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddressStr)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(flagBeneficiaryAddressStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	moniker, _ := fs.GetString(FlagMoniker)
 	identity, _ := fs.GetString(FlagIdentity)
 	website, _ := fs.GetString(FlagWebsite)
@@ -511,7 +531,7 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 	if t := nodeType.Type(); t == "UNKNOWN" {
 		return nil, types.ErrNodeType
 	}
-	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr, beneficiaryAddress)
 	return msg, nil
 }
 

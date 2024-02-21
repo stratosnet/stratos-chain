@@ -53,7 +53,22 @@ func (k msgServer) HandleMsgCreateResourceNode(goCtx context.Context, msg *types
 		return &types.MsgCreateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, msg.Description, types.NodeType(msg.NodeType), msg.GetValue())
+	var beneficiaryAddress sdk.AccAddress
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) == 0 {
+		beneficiaryAddress = ownerAddress
+	} else {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgCreateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+		if beneficiaryAddress.Empty() {
+			beneficiaryAddress = ownerAddress
+		}
+	}
+
+	ozoneLimitChange, err := k.RegisterResourceNode(ctx, networkAddr, pk, ownerAddress, beneficiaryAddress,
+		msg.Description, types.NodeType(msg.NodeType), msg.GetValue())
+
 	if err != nil {
 		return nil, errors.Wrap(types.ErrRegisterResourceNode, err.Error())
 	}
@@ -312,7 +327,15 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 		return &types.MsgUpdateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidOwnerAddr, err.Error())
 	}
 
-	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(msg.NodeType), networkAddr, ownerAddress)
+	beneficiaryAddress := sdk.AccAddress{}
+	if len(strings.TrimSpace(msg.BeneficiaryAddress)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(msg.BeneficiaryAddress)
+		if err != nil {
+			return &types.MsgUpdateResourceNodeResponse{}, errors.Wrap(types.ErrInvalidBeneficiaryAddr, err.Error())
+		}
+	}
+
+	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(msg.NodeType), networkAddr, ownerAddress, beneficiaryAddress)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrUpdateResourceNode, err.Error())
 	}

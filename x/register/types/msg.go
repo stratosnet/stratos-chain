@@ -41,7 +41,7 @@ const (
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
 func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, //nolint:interfacer
-	value sdk.Coin, ownerAddr sdk.AccAddress, description Description, nodeType uint32,
+	value sdk.Coin, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress, description Description, nodeType uint32,
 ) (*MsgCreateResourceNode, error) {
 	var pkAny *codectypes.Any
 	if pubKey != nil {
@@ -54,12 +54,13 @@ func NewMsgCreateResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes
 	}
 
 	return &MsgCreateResourceNode{
-		NetworkAddress: networkAddr.String(),
-		Pubkey:         pkAny,
-		Value:          value,
-		OwnerAddress:   ownerAddr.String(),
-		Description:    description,
-		NodeType:       nodeType,
+		NetworkAddress:     networkAddr.String(),
+		Pubkey:             pkAny,
+		Value:              value,
+		OwnerAddress:       ownerAddr.String(),
+		BeneficiaryAddress: beneficiaryAddr.String(),
+		Description:        description,
+		NodeType:           nodeType,
 	}, nil
 }
 
@@ -331,13 +332,14 @@ func (msg MsgRemoveMetaNode) ValidateBasic() error {
 // --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgUpdateResourceNode(description Description, nodeType uint32,
-	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgUpdateResourceNode {
+	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress, beneficiaryAddr sdk.AccAddress) *MsgUpdateResourceNode {
 
 	return &MsgUpdateResourceNode{
-		Description:    description,
-		NodeType:       nodeType,
-		NetworkAddress: networkAddress.String(),
-		OwnerAddress:   ownerAddress.String(),
+		Description:        description,
+		NodeType:           nodeType,
+		NetworkAddress:     networkAddress.String(),
+		OwnerAddress:       ownerAddress.String(),
+		BeneficiaryAddress: beneficiaryAddr.String(),
 	}
 }
 

@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_EthereumTx_FullMethodName   = "/stratos.evm.v1.Msg/EthereumTx"
-	Msg_UpdateParams_FullMethodName = "/stratos.evm.v1.Msg/UpdateParams"
+	Msg_EthereumTx_FullMethodName                  = "/stratos.evm.v1.Msg/EthereumTx"
+	Msg_UpdateParams_FullMethodName                = "/stratos.evm.v1.Msg/UpdateParams"
+	Msg_UpdateImplmentationProposal_FullMethodName = "/stratos.evm.v1.Msg/UpdateImplmentationProposal"
 )
 
 // MsgClient is the client API for Msg service.
@@ -32,6 +33,8 @@ type MsgClient interface {
 	// UpdateParams defined a governance operation for updating the x/evm module parameters.
 	// The authority is hard-coded to the Cosmos SDK x/gov module account
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
+	// UpdateImplmentationProposal defines a method for the new implemntation update for proposal.
+	UpdateImplmentationProposal(ctx context.Context, in *MsgUpdateImplmentationProposal, opts ...grpc.CallOption) (*MsgUpdateImplmentationProposalResponse, error)
 }
 
 type msgClient struct {
@@ -60,6 +63,15 @@ func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts 
 	return out, nil
 }
 
+func (c *msgClient) UpdateImplmentationProposal(ctx context.Context, in *MsgUpdateImplmentationProposal, opts ...grpc.CallOption) (*MsgUpdateImplmentationProposalResponse, error) {
+	out := new(MsgUpdateImplmentationProposalResponse)
+	err := c.cc.Invoke(ctx, Msg_UpdateImplmentationProposal_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MsgServer is the server API for Msg service.
 // All implementations must embed UnimplementedMsgServer
 // for forward compatibility
@@ -69,6 +81,8 @@ type MsgServer interface {
 	// UpdateParams defined a governance operation for updating the x/evm module parameters.
 	// The authority is hard-coded to the Cosmos SDK x/gov module account
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
+	// UpdateImplmentationProposal defines a method for the new implemntation update for proposal.
+	UpdateImplmentationProposal(context.Context, *MsgUpdateImplmentationProposal) (*MsgUpdateImplmentationProposalResponse, error)
 	mustEmbedUnimplementedMsgServer()
 }
 
@@ -81,6 +95,9 @@ func (UnimplementedMsgServer) EthereumTx(context.Context, *MsgEthereumTx) (*MsgE
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
+}
+func (UnimplementedMsgServer) UpdateImplmentationProposal(context.Context, *MsgUpdateImplmentationProposal) (*MsgUpdateImplmentationProposalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateImplmentationProposal not implemented")
 }
 func (UnimplementedMsgServer) mustEmbedUnimplementedMsgServer() {}
 
@@ -131,6 +148,24 @@ func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(in
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Msg_UpdateImplmentationProposal_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateImplmentationProposal)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateImplmentationProposal(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Msg_UpdateImplmentationProposal_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateImplmentationProposal(ctx, req.(*MsgUpdateImplmentationProposal))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Msg_ServiceDesc is the grpc.ServiceDesc for Msg service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -145,6 +180,10 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateParams",
 			Handler:    _Msg_UpdateParams_Handler,
+		},
+		{
+			MethodName: "UpdateImplmentationProposal",
+			Handler:    _Msg_UpdateImplmentationProposal_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

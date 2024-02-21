@@ -24,23 +24,13 @@ message EventEthereumTx {
 // EventTxLog defines the event for an Ethereum transaction log
 message EventTxLog {
   // tx_logs is an array of transaction logs
-  repeated string tx_logs = 1;
-}
-
-// EventMessage
-message EventMessage {
-  // module which emits the event
-  string module = 1;
-  // sender of the message
-  string sender = 2;
-  // tx_type is the type of the message
-  string tx_type = 3;
+  bytes tx_logs = 1;
 }
 
 // EventBlockBloom defines an Ethereum block bloom filter event
 message EventBlockBloom {
   // bloom is the bloom filter of the block
-  string bloom = 1;
+  bytes bloom = 1;
 }
 
 message EventBlockGas {
