@@ -26,18 +26,17 @@ var (
 
 // message type and route constants
 const (
-	TypeMsgCreateResourceNode                  = "create_resource_node"
-	TypeMsgRemoveResourceNode                  = "remove_resource_node"
-	TypeMsgUpdateResourceNode                  = "update_resource_node"
-	TypeMsgUpdateResourceNodeDeposit           = "update_resource_node_deposit"
-	TypeMsgUpdateEffectiveDeposit              = "update_effective_deposit"
-	TypeMsgCreateMetaNode                      = "create_meta_node"
-	TypeMsgRemoveMetaNode                      = "remove_meta_node"
-	TypeMsgUpdateMetaNode                      = "update_meta_node"
-	TypeMsgUpdateMetaNodeDeposit               = "update_meta_node_deposit"
-	TypeMsgMetaNodeRegistrationVote            = "meta_node_registration_vote"
-	TypeMsgWithdrawMetaNodeRegistrationDeposit = "withdraw_meta_node_registration_deposit"
-	TypeMsgUpdateParams                        = "update_params"
+	TypeMsgCreateResourceNode        = "create_resource_node"
+	TypeMsgRemoveResourceNode        = "remove_resource_node"
+	TypeMsgUpdateResourceNode        = "update_resource_node"
+	TypeMsgUpdateResourceNodeDeposit = "update_resource_node_deposit"
+	TypeMsgUpdateEffectiveDeposit    = "update_effective_deposit"
+	TypeMsgCreateMetaNode            = "create_meta_node"
+	TypeMsgRemoveMetaNode            = "remove_meta_node"
+	TypeMsgUpdateMetaNode            = "update_meta_node"
+	TypeMsgUpdateMetaNodeDeposit     = "update_meta_node_deposit"
+	TypeMsgMetaNodeRegistrationVote  = "meta_node_registration_vote"
+	TypeMsgUpdateParams              = "update_params"
 )
 
 // NewMsgCreateResourceNode NewMsg<Action> creates a new Msg<Action> instance
@@ -633,6 +632,55 @@ func (msg MsgMetaNodeRegistrationVote) GetSigners() []sdk.AccAddress {
 
 // --------------------------------------------------------------------------------------------------------------------
 
+func NewMsgKickMetaNodeVote(targetNetworkAddress stratos.SdsAddress, opinion bool, voterNetworkAddress stratos.SdsAddress,
+	voterOwnerAddress sdk.AccAddress) *MsgKickMetaNodeVote {
+
+	return &MsgKickMetaNodeVote{
+		TargetNetworkAddress: targetNetworkAddress.String(),
+		Opinion:              opinion,
+		VoterNetworkAddress:  voterNetworkAddress.String(),
+		VoterOwnerAddress:    voterOwnerAddress.String(),
+	}
+}
+
+func (msg MsgKickMetaNodeVote) ValidateBasic() error {
+	targetNetworkAddress, err := stratos.SdsAddressFromBech32(msg.GetTargetNetworkAddress())
+	if err != nil {
+		return ErrInvalidTargetNetworkAddr
+	}
+	if targetNetworkAddress.Empty() {
+		return ErrInvalidTargetNetworkAddr
+	}
+
+	voterNetworkAddress, err := stratos.SdsAddressFromBech32(msg.GetVoterNetworkAddress())
+	if err != nil {
+		return ErrInvalidVoterNetworkAddr
+	}
+	if voterNetworkAddress.Empty() {
+		return ErrInvalidVoterNetworkAddr
+	}
+
+	voterOwnerAddress, err := sdk.AccAddressFromBech32(msg.GetVoterOwnerAddress())
+	if err != nil {
+		return ErrInvalidVoterOwnerAddr
+	}
+	if voterOwnerAddress.Empty() {
+		return ErrInvalidVoterOwnerAddr
+	}
+
+	return nil
+}
+
+func (msg MsgKickMetaNodeVote) GetSigners() []sdk.AccAddress {
+	addr, err := sdk.AccAddressFromBech32(msg.GetVoterOwnerAddress())
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{addr.Bytes()}
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewMsgUpdateEffectiveDeposit(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
 	networkAddress stratos.SdsAddress, newEffectiveDeposit sdkmath.Int) *MsgUpdateEffectiveDeposit {
 
@@ -708,45 +756,6 @@ func (msg MsgUpdateEffectiveDeposit) GetSigners() []sdk.AccAddress {
 		panic("no valid signer for MsgUpdateEffectiveDeposit")
 	}
 	return addrs
-}
-
-// --------------------------------------------------------------------------------------------------------------------
-
-func NewMsgWithdrawMetaNodeRegistrationDeposit(networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress) *MsgWithdrawMetaNodeRegistrationDeposit {
-	return &MsgWithdrawMetaNodeRegistrationDeposit{
-		NetworkAddress: networkAddress.String(),
-		OwnerAddress:   ownerAddress.String(),
-	}
-}
-
-func (msg MsgWithdrawMetaNodeRegistrationDeposit) Route() string { return RouterKey }
-
-func (msg MsgWithdrawMetaNodeRegistrationDeposit) Type() string {
-	return TypeMsgWithdrawMetaNodeRegistrationDeposit
-}
-
-func (msg MsgWithdrawMetaNodeRegistrationDeposit) ValidateBasic() error {
-	ownerAddr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
-	if err != nil {
-		return ErrInvalidOwnerAddr
-	}
-	if ownerAddr.Empty() {
-		return ErrEmptyOwnerAddr
-	}
-	return nil
-}
-
-func (msg MsgWithdrawMetaNodeRegistrationDeposit) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(&msg)
-	return sdk.MustSortJSON(bz)
-}
-
-func (msg MsgWithdrawMetaNodeRegistrationDeposit) GetSigners() []sdk.AccAddress {
-	addr, err := sdk.AccAddressFromBech32(msg.OwnerAddress)
-	if err != nil {
-		panic(err)
-	}
-	return []sdk.AccAddress{addr.Bytes()}
 }
 
 // --------------------------------------------------------------------------------------------------------------------

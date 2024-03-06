@@ -19,18 +19,18 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Msg_HandleMsgCreateResourceNode_FullMethodName                  = "/stratos.register.v1.Msg/HandleMsgCreateResourceNode"
-	Msg_HandleMsgRemoveResourceNode_FullMethodName                  = "/stratos.register.v1.Msg/HandleMsgRemoveResourceNode"
-	Msg_HandleMsgUpdateResourceNode_FullMethodName                  = "/stratos.register.v1.Msg/HandleMsgUpdateResourceNode"
-	Msg_HandleMsgUpdateResourceNodeDeposit_FullMethodName           = "/stratos.register.v1.Msg/HandleMsgUpdateResourceNodeDeposit"
-	Msg_HandleMsgUpdateEffectiveDeposit_FullMethodName              = "/stratos.register.v1.Msg/HandleMsgUpdateEffectiveDeposit"
-	Msg_HandleMsgCreateMetaNode_FullMethodName                      = "/stratos.register.v1.Msg/HandleMsgCreateMetaNode"
-	Msg_HandleMsgRemoveMetaNode_FullMethodName                      = "/stratos.register.v1.Msg/HandleMsgRemoveMetaNode"
-	Msg_HandleMsgUpdateMetaNode_FullMethodName                      = "/stratos.register.v1.Msg/HandleMsgUpdateMetaNode"
-	Msg_HandleMsgUpdateMetaNodeDeposit_FullMethodName               = "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeDeposit"
-	Msg_HandleMsgMetaNodeRegistrationVote_FullMethodName            = "/stratos.register.v1.Msg/HandleMsgMetaNodeRegistrationVote"
-	Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_FullMethodName = "/stratos.register.v1.Msg/HandleMsgWithdrawMetaNodeRegistrationDeposit"
-	Msg_UpdateParams_FullMethodName                                 = "/stratos.register.v1.Msg/UpdateParams"
+	Msg_HandleMsgCreateResourceNode_FullMethodName        = "/stratos.register.v1.Msg/HandleMsgCreateResourceNode"
+	Msg_HandleMsgRemoveResourceNode_FullMethodName        = "/stratos.register.v1.Msg/HandleMsgRemoveResourceNode"
+	Msg_HandleMsgUpdateResourceNode_FullMethodName        = "/stratos.register.v1.Msg/HandleMsgUpdateResourceNode"
+	Msg_HandleMsgUpdateResourceNodeDeposit_FullMethodName = "/stratos.register.v1.Msg/HandleMsgUpdateResourceNodeDeposit"
+	Msg_HandleMsgUpdateEffectiveDeposit_FullMethodName    = "/stratos.register.v1.Msg/HandleMsgUpdateEffectiveDeposit"
+	Msg_HandleMsgCreateMetaNode_FullMethodName            = "/stratos.register.v1.Msg/HandleMsgCreateMetaNode"
+	Msg_HandleMsgRemoveMetaNode_FullMethodName            = "/stratos.register.v1.Msg/HandleMsgRemoveMetaNode"
+	Msg_HandleMsgUpdateMetaNode_FullMethodName            = "/stratos.register.v1.Msg/HandleMsgUpdateMetaNode"
+	Msg_HandleMsgUpdateMetaNodeDeposit_FullMethodName     = "/stratos.register.v1.Msg/HandleMsgUpdateMetaNodeDeposit"
+	Msg_HandleMsgMetaNodeRegistrationVote_FullMethodName  = "/stratos.register.v1.Msg/HandleMsgMetaNodeRegistrationVote"
+	Msg_HandleMsgKickMetaNodeVote_FullMethodName          = "/stratos.register.v1.Msg/HandleMsgKickMetaNodeVote"
+	Msg_UpdateParams_FullMethodName                       = "/stratos.register.v1.Msg/UpdateParams"
 )
 
 // MsgClient is the client API for Msg service.
@@ -48,7 +48,7 @@ type MsgClient interface {
 	HandleMsgUpdateMetaNode(ctx context.Context, in *MsgUpdateMetaNode, opts ...grpc.CallOption) (*MsgUpdateMetaNodeResponse, error)
 	HandleMsgUpdateMetaNodeDeposit(ctx context.Context, in *MsgUpdateMetaNodeDeposit, opts ...grpc.CallOption) (*MsgUpdateMetaNodeDepositResponse, error)
 	HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *MsgMetaNodeRegistrationVote, opts ...grpc.CallOption) (*MsgMetaNodeRegistrationVoteResponse, error)
-	HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, in *MsgWithdrawMetaNodeRegistrationDeposit, opts ...grpc.CallOption) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error)
+	HandleMsgKickMetaNodeVote(ctx context.Context, in *MsgKickMetaNodeVote, opts ...grpc.CallOption) (*MsgKickMetaNodeVoteResponse, error)
 	// UpdateParams defined a governance operation for updating the x/register module parameters.
 	// The authority is hard-coded to the Cosmos SDK x/gov module account
 	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
@@ -152,9 +152,9 @@ func (c *msgClient) HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *M
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, in *MsgWithdrawMetaNodeRegistrationDeposit, opts ...grpc.CallOption) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error) {
-	out := new(MsgWithdrawMetaNodeRegistrationDepositResponse)
-	err := c.cc.Invoke(ctx, Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_FullMethodName, in, out, opts...)
+func (c *msgClient) HandleMsgKickMetaNodeVote(ctx context.Context, in *MsgKickMetaNodeVote, opts ...grpc.CallOption) (*MsgKickMetaNodeVoteResponse, error) {
+	out := new(MsgKickMetaNodeVoteResponse)
+	err := c.cc.Invoke(ctx, Msg_HandleMsgKickMetaNodeVote_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +185,7 @@ type MsgServer interface {
 	HandleMsgUpdateMetaNode(context.Context, *MsgUpdateMetaNode) (*MsgUpdateMetaNodeResponse, error)
 	HandleMsgUpdateMetaNodeDeposit(context.Context, *MsgUpdateMetaNodeDeposit) (*MsgUpdateMetaNodeDepositResponse, error)
 	HandleMsgMetaNodeRegistrationVote(context.Context, *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error)
-	HandleMsgWithdrawMetaNodeRegistrationDeposit(context.Context, *MsgWithdrawMetaNodeRegistrationDeposit) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error)
+	HandleMsgKickMetaNodeVote(context.Context, *MsgKickMetaNodeVote) (*MsgKickMetaNodeVoteResponse, error)
 	// UpdateParams defined a governance operation for updating the x/register module parameters.
 	// The authority is hard-coded to the Cosmos SDK x/gov module account
 	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
@@ -226,8 +226,8 @@ func (UnimplementedMsgServer) HandleMsgUpdateMetaNodeDeposit(context.Context, *M
 func (UnimplementedMsgServer) HandleMsgMetaNodeRegistrationVote(context.Context, *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgMetaNodeRegistrationVote not implemented")
 }
-func (UnimplementedMsgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(context.Context, *MsgWithdrawMetaNodeRegistrationDeposit) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgWithdrawMetaNodeRegistrationDeposit not implemented")
+func (UnimplementedMsgServer) HandleMsgKickMetaNodeVote(context.Context, *MsgKickMetaNodeVote) (*MsgKickMetaNodeVoteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgKickMetaNodeVote not implemented")
 }
 func (UnimplementedMsgServer) UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
@@ -425,20 +425,20 @@ func _Msg_HandleMsgMetaNodeRegistrationVote_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgWithdrawMetaNodeRegistrationDeposit)
+func _Msg_HandleMsgKickMetaNodeVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgKickMetaNodeVote)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, in)
+		return srv.(MsgServer).HandleMsgKickMetaNodeVote(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_FullMethodName,
+		FullMethod: Msg_HandleMsgKickMetaNodeVote_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, req.(*MsgWithdrawMetaNodeRegistrationDeposit))
+		return srv.(MsgServer).HandleMsgKickMetaNodeVote(ctx, req.(*MsgKickMetaNodeVote))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -509,8 +509,8 @@ var Msg_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_HandleMsgMetaNodeRegistrationVote_Handler,
 		},
 		{
-			MethodName: "HandleMsgWithdrawMetaNodeRegistrationDeposit",
-			Handler:    _Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_Handler,
+			MethodName: "HandleMsgKickMetaNodeVote",
+			Handler:    _Msg_HandleMsgKickMetaNodeVote_Handler,
 		},
 		{
 			MethodName: "UpdateParams",

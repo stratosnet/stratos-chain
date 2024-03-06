@@ -194,6 +194,44 @@ func (k Keeper) GetMetaNodeRegistrationVotePool(ctx sdk.Context, nodeAddr strato
 	return votePool, true
 }
 
+func (k Keeper) SetKickMetaNodeVotePool(ctx sdk.Context, votePool types.KickMetaNodeVotePool) {
+	targetNetworkAddr := votePool.GetTargetNetworkAddress()
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshalLengthPrefixed(&votePool)
+	node, _ := stratos.SdsAddressFromBech32(targetNetworkAddr)
+	store.Set(types.GetKickMetaNodeVotesKey(node), bz)
+}
+
+func (k Keeper) GetKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr stratos.SdsAddress) (votePool types.KickMetaNodeVotePool, found bool) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.GetKickMetaNodeVotesKey(targetNetworkAddr))
+	if bz == nil {
+		return votePool, false
+	}
+	k.cdc.MustUnmarshalLengthPrefixed(bz, &votePool)
+	return votePool, true
+}
+
+func (k Keeper) GetAllExpiredKickMetaNodeVotePool(ctx sdk.Context) (votePools []types.KickMetaNodeVotePool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KickMetaNodeVotesKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		votePool := types.KickMetaNodeVotePool{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &votePool)
+		if votePool.GetExpireTime().Before(ctx.BlockTime()) {
+			votePools = append(votePools, votePool)
+		}
+	}
+	return
+}
+
+func (k Keeper) DeleteKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr stratos.SdsAddress) {
+	store := ctx.KVStore(k.storeKey)
+	store.Delete(types.GetKickMetaNodeVotesKey(targetNetworkAddr))
+}
+
 func (k Keeper) SetEffectiveTotalDeposit(ctx sdk.Context, deposit sdkmath.Int) {
 	store := ctx.KVStore(k.storeKey)
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &deposit})
