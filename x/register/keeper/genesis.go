@@ -60,6 +60,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 		default:
 			panic(types.ErrInvalidNodeStat)
 		}
+
+		if len(strings.TrimSpace(resourceNode.BeneficiaryAddress)) == 0 {
+			resourceNode.BeneficiaryAddress = resourceNode.OwnerAddress
+		}
 		k.SetResourceNode(ctx, resourceNode)
 	}
 	// set initial genesis number of resource nodes

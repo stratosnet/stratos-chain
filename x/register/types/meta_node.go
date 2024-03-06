@@ -153,9 +153,14 @@ func (v MetaNode) IsUnBonding() bool {
 	return v.GetStatus() == stakingtypes.Unbonding
 }
 
+// IsActivate get active state defined in MetaNode
+func (v MetaNode) IsActivate() bool {
+	return v.GetStatus() == stakingtypes.Bonded && !v.GetSuspend()
+}
+
 // MustMarshalMetaNode returns the metaNode bytes. Panics if fails
 func MustMarshalMetaNode(cdc codec.Codec, metaNode MetaNode) []byte {
-	return cdc.MustMarshal(&metaNode)
+	return cdc.MustMarshalLengthPrefixed(&metaNode)
 }
 
 // MustUnmarshalMetaNode unmarshal an meta node from a store value. Panics if fails
@@ -169,7 +174,7 @@ func MustUnmarshalMetaNode(cdc codec.Codec, value []byte) MetaNode {
 
 // UnmarshalMetaNode unmarshal an meta node from a store value
 func UnmarshalMetaNode(cdc codec.Codec, value []byte) (metaNode MetaNode, err error) {
-	err = cdc.Unmarshal(value, &metaNode)
+	err = cdc.UnmarshalLengthPrefixed(value, &metaNode)
 	return metaNode, err
 }
 
@@ -230,21 +235,27 @@ func (v VoteOpinion) String() string {
 	}
 }
 
-func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []stratos.SdsAddress, rejectList []stratos.SdsAddress, expireTime time.Time) MetaNodeRegistrationVotePool {
-	approveSlice := make([]string, len(approveList))
-	rejectSlice := make([]string, len(rejectList))
-	for _, approval := range approveList {
-		approveSlice = append(approveSlice, approval.String())
-	}
-	for _, reject := range rejectList {
-		rejectSlice = append(rejectSlice, reject.String())
-	}
+func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, expireTime time.Time) MetaNodeRegistrationVotePool {
+	var approveList = make([]string, 0)
+	var rejectList = make([]string, 0)
 	return MetaNodeRegistrationVotePool{
 		NetworkAddress: nodeAddress.String(),
-		ApproveList:    approveSlice,
-		RejectList:     rejectSlice,
+		ApproveList:    approveList,
+		RejectList:     rejectList,
 		ExpireTime:     expireTime,
 		IsVotePassed:   false,
+	}
+}
+
+func NewKickMetaNodeVotePool(targetNetworkAddress stratos.SdsAddress, expireTime time.Time) KickMetaNodeVotePool {
+	var approveList = make([]string, 0)
+	var rejectList = make([]string, 0)
+	return KickMetaNodeVotePool{
+		TargetNetworkAddress: targetNetworkAddress.String(),
+		ApproveList:          approveList,
+		RejectList:           rejectList,
+		ExpireTime:           expireTime,
+		IsVotePassed:         false,
 	}
 }
 

@@ -16,7 +16,6 @@ message EventCreateResourceNode {
 message EventCreateMetaNode {
   string sender = 1;
   string network_address = 2;
-  string ozone_limit_changes = 3;
 }
 
 // EventUnBondingResourceNode is emitted on Msg/MsgRemoveResourceNode
@@ -42,13 +41,14 @@ message EventMetaNodeRegistrationVote {
   string voter_network_address = 2;
   string candidate_network_address = 3;
   string candidate_status = 4;
+  string ozone_limit_changes = 5;
 }
 
-// EventWithdrawMetaNodeRegistrationDeposit is emitted on Msg/MsgWithdrawMetaNodeRegistrationDeposit
-message EventWithdrawMetaNodeRegistrationDeposit {
+message EventKickMetaNodeVote {
   string sender = 1;
-  string network_address = 2;
-  string unbonding_mature_time = 3;
+  string voter_network_address = 2;
+  string target_network_address = 3;
+  string target_status = 4;
 }
 
 // EventUpdateResourceNode is emitted on Msg/MsgUpdateResourceNode
@@ -104,14 +104,4 @@ message EventCompleteUnBondingResourceNode{
 message EventCompleteUnBondingMetaNode{
   string amount = 1;
   string network_address = 2;
-}
-
-// EventMessage
-message EventMessage {
-  // module which emits the event
-  string module = 1;
-  // sender of the message
-  string sender = 2;
-  // tx_type is the type of the message
-  string action = 3;
 }

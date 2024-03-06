@@ -1,5 +1,6 @@
 package v011
 
 var (
-	MetaNodeKey = []byte{0x02}
+	ResourceNodeKey = []byte{0x01}
+	MetaNodeKey     = []byte{0x02}
 )

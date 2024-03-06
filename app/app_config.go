@@ -55,6 +55,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/upgrade"
 	upgradeclient "github.com/cosmos/cosmos-sdk/x/upgrade/client"
 	upgradetypes "github.com/cosmos/cosmos-sdk/x/upgrade/types"
+	evmclient "github.com/stratosnet/stratos-chain/x/evm/client"
 
 	"github.com/stratosnet/stratos-chain/x/evm"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -90,6 +91,7 @@ var (
 				upgradeclient.LegacyCancelProposalHandler,
 				ibcclientclient.UpdateClientProposalHandler,
 				ibcclientclient.UpgradeProposalHandler,
+				evmclient.EVMChangeProxyImplementationHandler,
 			},
 		),
 		params.AppModuleBasic{},

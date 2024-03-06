@@ -40,6 +40,7 @@ var (
 	EffectiveGenesisDepositTotalKey = []byte{0x10} // key of effective(ongoing) genesis deposit by all resource nodes and meta nodes at time t
 	UBDNodeKey                      = []byte{0x11} // prefix for each key to an unbonding node
 	UBDNodeQueueKey                 = []byte{0x12} // prefix for the timestamps in unbonding node queue
+	KickMetaNodeVotesKey            = []byte{0x13} // prefix for the key to the vote for kicking meta node
 
 	ParamsKey = []byte{0x20}
 )
@@ -59,6 +60,11 @@ func GetMetaNodeKey(nodeAddr stratos.SdsAddress) []byte {
 // GetMetaNodeRegistrationVotesKey get the key for the vote for Meta node registration
 func GetMetaNodeRegistrationVotesKey(nodeAddr stratos.SdsAddress) []byte {
 	return append(MetaNodeRegistrationVotesKey, nodeAddr.Bytes()...)
+}
+
+// GetKickMetaNodeVotesKey get the key prefix for kicking meta node vote pool
+func GetKickMetaNodeVotesKey(nodeAddr stratos.SdsAddress) []byte {
+	return append(KickMetaNodeVotesKey, nodeAddr.Bytes()...)
 }
 
 // GetUBDNodeKey gets the key for the unbonding Node with address

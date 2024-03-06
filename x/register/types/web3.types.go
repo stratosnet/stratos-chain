@@ -40,10 +40,6 @@ func (m *MsgMetaNodeRegistrationVote) GetWeb3Msg() (*stratos.Web3Msg, error) {
 	return nil, nil // SKIP
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) GetWeb3Msg() (*stratos.Web3Msg, error) {
-	return nil, nil // SKIP
-}
-
 func (m *MsgUpdateResourceNodeResponse) GetWeb3Msg() (*stratos.Web3Msg, error) {
 	return nil, nil // SKIP
 }
@@ -61,5 +57,9 @@ func (m *MsgUpdateMetaNode) GetWeb3Msg() (*stratos.Web3Msg, error) {
 }
 
 func (m *MsgUpdateMetaNodeDeposit) GetWeb3Msg() (*stratos.Web3Msg, error) {
+	return nil, nil // SKIP
+}
+
+func (m *MsgKickMetaNodeVote) GetWeb3Msg() (*stratos.Web3Msg, error) {
 	return nil, nil // SKIP
 }

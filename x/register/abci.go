@@ -17,5 +17,6 @@ func BeginBlocker(ctx sdk.Context, _ abci.RequestBeginBlock, k keeper.Keeper) {
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, _ abci.RequestEndBlock, k keeper.Keeper) []abci.ValidatorUpdate {
 	k.BlockRegisteredNodesUpdates(ctx)
+	k.RemoveExpiredKickMetaNodeVotePool(ctx)
 	return []abci.ValidatorUpdate{}
 }

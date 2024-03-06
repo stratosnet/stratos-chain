@@ -1,7 +1,6 @@
 package keeper
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -11,8 +10,6 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -202,56 +199,6 @@ func (k Keeper) DequeueAllMatureUBDQueue(ctx sdk.Context, currTime time.Time) (m
 	return matureUnbonds
 }
 
-// CompleteUnbondingWithAmount completes the unbonding of all mature entries in
-// the retrieved unbonding delegation object and returns the total unbonding
-// balance or an error upon failure.
-func (k Keeper) CompleteUnbondingWithAmount(ctx sdk.Context, networkAddrBech32 string) (sdk.Coins, bool, error) {
-	networkAddr, err := stratos.SdsAddressFromBech32(networkAddrBech32)
-	if err != nil {
-		ctx.Logger().Error(fmt.Sprintf("NetworAddr: %s is invalid", networkAddrBech32))
-		return nil, false, types.ErrInvalidNetworkAddr
-	}
-
-	ubd, found := k.GetUnbondingNode(ctx, networkAddr)
-	if !found {
-		ctx.Logger().Info(fmt.Sprintf("NetworAddr: %s not found while completing UnbondingWithAmount", networkAddr))
-		return nil, false, types.ErrNoUnbondingNode
-	}
-
-	bondDenom := k.GetParams(ctx).BondDenom
-	balances := sdk.NewCoins()
-	ctxTime := ctx.BlockHeader().Time
-	ctx.Logger().Debug(fmt.Sprintf("Completing UnbondingWithAmount, networAddr: %s", networkAddr))
-	// loop through all the entries and complete unbonding mature entries
-	for i := 0; i < len(ubd.Entries); i++ {
-		entry := ubd.Entries[i]
-		if entry.IsMature(ctxTime) {
-			ubd.RemoveEntry(int64(i))
-			i--
-
-			// track undelegation only when remaining or truncated shares are non-zero
-			if !entry.Balance.IsZero() {
-				amt := sdk.NewCoin(bondDenom, *entry.Balance)
-				err := k.subtractUBDNodeDeposit(ctx, ubd, amt)
-				if err != nil {
-					return nil, false, err
-				}
-
-				balances = balances.Add(amt)
-			}
-		}
-	}
-
-	// set the unbonding node or remove it if there are no more entries
-	if len(ubd.Entries) == 0 {
-		k.RemoveUnbondingNode(ctx, networkAddr)
-	} else {
-		k.SetUnbondingNode(ctx, ubd)
-	}
-
-	return balances, ubd.IsMetaNode, nil
-}
-
 func (k Keeper) subtractUBDNodeDeposit(ctx sdk.Context, ubd types.UnbondingNode, tokenToSub sdk.Coin) error {
 	// case of meta node
 	networkAddr, err := stratos.SdsAddressFromBech32(ubd.GetNetworkAddr())
@@ -271,136 +218,6 @@ func (k Keeper) subtractUBDNodeDeposit(ctx sdk.Context, ubd types.UnbondingNode,
 		return types.ErrNoMetaNodeFound
 	}
 	return k.SubtractResourceNodeDeposit(ctx, resourceNode, tokenToSub)
-}
-
-// UnbondResourceNode Unbond all tokens of resource node
-func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress,
-) (depositToRemove sdkmath.Int, unbondingMatureTime time.Time, err error) {
-
-	resourceNode, found := k.GetResourceNode(ctx, networkAddr)
-	if !found {
-		return sdkmath.ZeroInt(), time.Time{}, types.ErrNoResourceNodeFound
-	}
-	ownerAddrNode, _ := sdk.AccAddressFromBech32(resourceNode.GetOwnerAddress())
-	if !ownerAddrNode.Equals(ownerAddr) {
-		return sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidOwnerAddr
-	}
-	if resourceNode.GetStatus() != stakingtypes.Bonded {
-		return sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidNodeStat
-	}
-	// suspended node cannot be unbonded (avoid dup deposit decrease with node suspension)
-	if resourceNode.GetSuspend() {
-		return sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
-	}
-	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdkmath.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
-	}
-
-	// check if node_token - unbonding_token > 0
-	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
-	depositToRemove = resourceNode.Tokens.Sub(unbondingDeposit)
-	if depositToRemove.LTE(sdkmath.ZeroInt()) {
-		return sdkmath.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
-	}
-
-	unbondingMatureTime = calcUnbondingMatureTime(ctx, resourceNode.Status, resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
-
-	// transfer the node tokens to the not bonded pool
-	k.bondedToUnbonding(ctx, resourceNode, false, sdk.NewCoin(k.BondDenom(ctx), depositToRemove))
-	// change node status to unbonding if unbonding all available tokens
-	resourceNode.Status = stakingtypes.Unbonding
-	k.SetResourceNode(ctx, resourceNode)
-	// decrease resource node count
-	v := k.GetBondedResourceNodeCnt(ctx)
-	count := v.Sub(sdkmath.OneInt())
-	k.SetBondedResourceNodeCnt(ctx, count)
-
-	// set the unbonding mature time and completion height appropriately
-	ctx.Logger().Info(fmt.Sprintf("Calculating mature time: creationTime[%s], threasholdTime[%s], completionTime[%s], matureTime[%s]",
-		resourceNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx), unbondingMatureTime,
-	))
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, false, ctx.BlockHeight(), unbondingMatureTime, depositToRemove)
-
-	// Add to unbonding node queue
-	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
-	ctx.Logger().Info("Unbonding resource node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
-
-	return depositToRemove, unbondingMatureTime, nil
-}
-
-func (k Keeper) UnbondMetaNode(ctx sdk.Context, metaNode types.MetaNode, amt sdkmath.Int,
-) (ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter sdkmath.Int, unbondingMatureTime time.Time, err error) {
-	if metaNode.GetStatus() == stakingtypes.Unbonding {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrUnbondingNode
-	}
-
-	networkAddr, err := stratos.SdsAddressFromBech32(metaNode.GetNetworkAddress())
-	if err != nil {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, errors.New("invalid network address")
-	}
-	ownerAddr, err := sdk.AccAddressFromBech32(metaNode.GetOwnerAddress())
-	if err != nil {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, errors.New("invalid wallet address")
-	}
-
-	ownerAcc := k.accountKeeper.GetAccount(ctx, ownerAddr)
-	if ownerAcc == nil {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrNoOwnerAccountFound
-	}
-
-	// suspended node cannot be unbonded (avoid dup deposit decrease with node suspension)
-	if metaNode.Suspend {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrInvalidSuspensionStatForUnbondNode
-	}
-
-	// check if node_token - unbonding_token > amt_to_unbond
-	unbondingDeposit := k.GetUnbondingNodeBalance(ctx, networkAddr)
-	availableTokenAmtBefore = metaNode.Tokens.Sub(unbondingDeposit)
-	if availableTokenAmtBefore.LT(amt) {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
-	}
-
-	if k.HasMaxUnbondingNodeEntries(ctx, networkAddr) {
-		return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrMaxUnbondingNodeEntries
-	}
-
-	unbondingMatureTime = calcUnbondingMatureTime(ctx, metaNode.Status, metaNode.CreationTime, k.UnbondingThreasholdTime(ctx), k.UnbondingCompletionTime(ctx))
-
-	bondDenom := k.GetParams(ctx).BondDenom
-	coin := sdk.NewCoin(bondDenom, amt)
-	if metaNode.GetStatus() == stakingtypes.Bonded {
-		// to prevent remainingOzoneLimit from being negative value
-		if !k.IsUnbondable(ctx, amt) {
-			return sdkmath.ZeroInt(), sdkmath.ZeroInt(), sdkmath.ZeroInt(), time.Time{}, types.ErrInsufficientBalance
-		}
-		// transfer the node tokens to the not bonded pool
-		k.bondedToUnbonding(ctx, metaNode, true, coin)
-		availableTokenAmtAfter = availableTokenAmtBefore.Sub(amt)
-		// adjust ozone limit
-		ozoneLimitChange = k.DecreaseOzoneLimitBySubtractDeposit(ctx, amt)
-	}
-	// change node status to unbonding if unbonding all available tokens
-	if amt.Equal(availableTokenAmtBefore) {
-		metaNode.Status = stakingtypes.Unbonding
-		// decrease meta node count
-		v := k.GetBondedMetaNodeCnt(ctx)
-		count := v.Sub(sdkmath.NewInt(1))
-		k.SetBondedMetaNodeCnt(ctx, count)
-		// set meta node
-		k.SetMetaNode(ctx, metaNode)
-		// remove record from vote pool
-		if _, found := k.GetMetaNodeRegistrationVotePool(ctx, networkAddr); found {
-			ctx.Logger().Info("DeleteMetaNodeRegistrationVotePool of meta node " + networkAddr.String())
-			k.DeleteMetaNodeRegistrationVotePool(ctx, networkAddr)
-		}
-	}
-
-	// Set the unbonding mature time and completion height appropriately
-	unbondingNode := k.SetUnbondingNodeEntry(ctx, networkAddr, true, ctx.BlockHeight(), unbondingMatureTime, amt)
-	// Add to unbonding node queue
-	k.InsertUnbondingNodeQueue(ctx, unbondingNode, unbondingMatureTime)
-	ctx.Logger().Info("Unbonding meta node " + unbondingNode.String() + "\n after mature time" + unbondingMatureTime.String())
-	return ozoneLimitChange, availableTokenAmtBefore, availableTokenAmtAfter, unbondingMatureTime, nil
 }
 
 // GetAllUnbondingNodesTotalBalance Iteration for getting the total balance of all unbonding nodes

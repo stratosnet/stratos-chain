@@ -18,4 +18,4 @@ https://github.com/grpc-ecosystem/grpc-gateway/tree/v1.16.0
 
 ## Export proto dependency
 
-`$ buf export buf.build/cosmos/cosmos-sdk:v0.47.0 --output ./proto`
+`/stratos-chain$ buf export buf.build/cosmos/cosmos-sdk:v0.47.0 --output ./proto`

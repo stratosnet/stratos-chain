@@ -36,6 +36,7 @@ func NewTxCmd() *cobra.Command {
 		UpdateMetaNodeCmd(),
 		UpdateMetaNodeDepositCmd(),
 		MetaNodeRegistrationVoteCmd(),
+		KickMetaNodeVoteCmd(),
 	)
 
 	return registerTxCmd
@@ -66,6 +67,7 @@ func CreateResourceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetNodeType())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -190,6 +192,7 @@ func UpdateResourceNodeCmd() *cobra.Command {
 	cmd.Flags().AddFlagSet(flagSetNodeType())
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
+	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
 
 	flags.AddTxFlagsToCmd(cmd)
 
@@ -314,13 +317,40 @@ func MetaNodeRegistrationVoteCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(flagSetVoting())
+	cmd.Flags().AddFlagSet(flagSetMetaNodeRegVoting())
 
 	flags.AddTxFlagsToCmd(cmd)
 
 	_ = cmd.MarkFlagRequired(flags.FlagFrom)
 	_ = cmd.MarkFlagRequired(FlagCandidateNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagCandidateOwnerAddress)
+	_ = cmd.MarkFlagRequired(FlagOpinion)
+	_ = cmd.MarkFlagRequired(FlagVoterNetworkAddress)
+	return cmd
+}
+
+func KickMetaNodeVoteCmd() *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "kick-meta-node-vote [flags]",
+		Short: "vote for kicking a meta node",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			clientCtx, err := client.GetClientTxContext(cmd)
+			if err != nil {
+				return err
+			}
+
+			msg, err := newBuildKickMetaNodeVoteMsg(clientCtx, cmd.Flags())
+			if err != nil {
+				return err
+			}
+
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
+		},
+	}
+	cmd.Flags().AddFlagSet(flagSetKickMetaNodeVoting())
+	flags.AddTxFlagsToCmd(cmd)
+	_ = cmd.MarkFlagRequired(flags.FlagFrom)
+	_ = cmd.MarkFlagRequired(FlagTargetNetworkAddress)
 	_ = cmd.MarkFlagRequired(FlagOpinion)
 	_ = cmd.MarkFlagRequired(FlagVoterNetworkAddress)
 	return cmd
@@ -347,6 +377,15 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 	}
 
 	ownerAddr := clientCtx.GetFromAddress()
+
+	beneficiaryAddr := ownerAddr
+	flagBeneficiaryAddrStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddrStr)) > 0 {
+		beneficiaryAddr, err = sdk.AccAddressFromBech32(flagBeneficiaryAddrStr)
+		if err != nil {
+			return nil, err
+		}
+	}
 
 	pkStr, err := fs.GetString(FlagPubKey)
 	if err != nil {
@@ -381,7 +420,7 @@ func newBuildCreateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 	if t := nodeType.Type(); t == "UNKNOWN" {
 		return nil, types.ErrNodeType
 	}
-	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, description, nodeTypeVal)
+	msg, er := types.NewMsgCreateResourceNode(networkAddr, pubKey, amount, ownerAddr, beneficiaryAddr, description, nodeTypeVal)
 	if er != nil {
 		return nil, err
 	}
@@ -460,6 +499,15 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 
 	ownerAddr := clientCtx.GetFromAddress()
 
+	beneficiaryAddress := sdk.AccAddress{}
+	flagBeneficiaryAddressStr, _ := fs.GetString(FlagBeneficiaryAddress)
+	if len(strings.TrimSpace(flagBeneficiaryAddressStr)) > 0 {
+		beneficiaryAddress, err = sdk.AccAddressFromBech32(flagBeneficiaryAddressStr)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	moniker, _ := fs.GetString(FlagMoniker)
 	identity, _ := fs.GetString(FlagIdentity)
 	website, _ := fs.GetString(FlagWebsite)
@@ -483,7 +531,7 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 	if t := nodeType.Type(); t == "UNKNOWN" {
 		return nil, types.ErrNodeType
 	}
-	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr)
+	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr, beneficiaryAddress)
 	return msg, nil
 }
 
@@ -644,5 +692,35 @@ func newBuildRemoveMetaNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (*typ
 
 	msg := types.NewMsgRemoveMetaNode(networkAddr, ownerAddr)
 
+	return msg, nil
+}
+
+func newBuildKickMetaNodeVoteMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgKickMetaNodeVote, error) {
+	targetNetworkAddrStr, err := fs.GetString(FlagTargetNetworkAddress)
+	if err != nil {
+		return nil, err
+	}
+	targetNetworkAddress, err := stratos.SdsAddressFromBech32(targetNetworkAddrStr)
+	if err != nil {
+		return nil, err
+	}
+
+	opinionVal, err := fs.GetBool(FlagOpinion)
+	if err != nil {
+		return nil, err
+	}
+
+	voterNetworkAddrStr, err := fs.GetString(FlagVoterNetworkAddress)
+	if err != nil {
+		return nil, err
+	}
+	voterNetworkAddr, err := stratos.SdsAddressFromBech32(voterNetworkAddrStr)
+	if err != nil {
+		return nil, err
+	}
+
+	voterOwnerAddr := clientCtx.GetFromAddress()
+
+	msg := types.NewMsgKickMetaNodeVote(targetNetworkAddress, opinionVal, voterNetworkAddr, voterOwnerAddr)
 	return msg, nil
 }

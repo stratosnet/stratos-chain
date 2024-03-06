@@ -3,7 +3,6 @@ package keeper
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"strconv"
 
 	tmbytes "github.com/cometbft/cometbft/libs/bytes"
@@ -26,7 +25,6 @@ var _ types.MsgServer = &Keeper{}
 func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*types.MsgEthereumTxResponse, error) {
 	ctx := sdk.UnwrapSDKContext(goCtx)
 
-	sender := msg.From
 	tx := msg.AsTransaction()
 	txIndex := k.GetTxIndexTransient(ctx)
 
@@ -55,24 +53,19 @@ func (k *Keeper) EthereumTx(goCtx context.Context, msg *types.MsgEthereumTx) (*t
 	}
 
 	eventTxLog := &types.EventTxLog{}
-	for i, log := range response.Logs {
-		value, err := json.Marshal(log)
-		if err != nil {
-			return nil, errors.Wrap(sdkerrors.ErrJSONMarshal, "failed to encode log")
-		}
-		eventTxLog.TxLogs[i] = string(value)
+	value, err := json.Marshal(response.Logs)
+	if err != nil {
+		return nil, errors.Wrap(sdkerrors.ErrJSONMarshal, "failed to encode log")
 	}
+	eventTxLog.TxLogs = value
 
 	// emit events
-	err = ctx.EventManager().EmitTypedEvents(
+	if err := ctx.EventManager().EmitTypedEvents(
 		eventEthereumTx,
 		eventTxLog,
-		&types.EventMessage{
-			Module: types.AttributeValueCategory,
-			Sender: sender,
-			TxType: fmt.Sprintf("%d", tx.Type()),
-		},
-	)
+	); err != nil {
+		return nil, err
+	}
 
 	return response, nil
 }
@@ -89,14 +82,24 @@ func (k *Keeper) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParams)
 		return nil, err
 	}
 
-	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
-		Module: types.ModuleName,
-		Sender: msg.Authority,
-		TxType: sdk.MsgTypeURL(msg),
-	})
+	return &types.MsgUpdateParamsResponse{}, nil
+}
+
+// UpdateImplmentationProposal update proxy with new implementation for counsil addresses
+func (k *Keeper) UpdateImplmentationProposal(goCtx context.Context, msg *types.MsgUpdateImplmentationProposal) (*types.MsgUpdateImplmentationProposalResponse, error) {
+	if !k.accountKeeper.GetModuleAddress(govtypes.ModuleName).Equals(msg.GetSigners()[0]) {
+		return nil, errors.Wrapf(govtypes.ErrInvalidSigner, "invalid authority; expected %s, got %s", k.authority, msg.Authority)
+	}
+
+	ctx := sdk.UnwrapSDKContext(goCtx)
+	pc, err := NewProposalCounsil(k, ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.MsgUpdateParamsResponse{}, nil
+	if err := pc.UpdateProxyImplementation(msg.AsLegacyV0().(*types.UpdateImplmentationProposal)); err != nil {
+		return nil, err
+	}
+
+	return &types.MsgUpdateImplmentationProposalResponse{}, nil
 }

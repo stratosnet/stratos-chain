@@ -54,10 +54,6 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 			Uploader: msg.GetUploader(),
 			FileHash: msg.GetFileHash(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetFrom(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -92,10 +88,6 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 			Amount:       msg.GetAmount().String(),
 			PurchasedNoz: purchased.String(),
 		},
-		&types.EventMessage{
-			Module: types.ModuleName,
-			Sender: msg.GetSender(),
-		},
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
@@ -114,15 +106,6 @@ func (k msgServer) UpdateParams(goCtx context.Context, msg *types.MsgUpdateParam
 	err := k.SetParams(ctx, msg.Params)
 	if err != nil {
 		return nil, err
-	}
-
-	err = ctx.EventManager().EmitTypedEvent(&types.EventMessage{
-		Module: types.ModuleName,
-		Sender: msg.Authority,
-		Action: sdk.MsgTypeURL(msg),
-	})
-	if err != nil {
-		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
 	return &types.MsgUpdateParamsResponse{}, nil
