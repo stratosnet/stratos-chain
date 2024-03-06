@@ -49,6 +49,14 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 					panic(err)
 				}
 			}
+		case stakingtypes.Unbonding:
+			if freshStart {
+				amount := sdk.NewCoin(k.BondDenom(ctx), resourceNode.Tokens)
+				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.ResourceNodeBondedPool, sdk.NewCoins(amount))
+				if err != nil {
+					panic(err)
+				}
+			}
 		default:
 			panic(types.ErrInvalidNodeStat)
 		}
@@ -84,6 +92,14 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 			if freshStart {
 				amount := sdk.NewCoin(k.BondDenom(ctx), metaNode.Tokens)
 				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeNotBondedPool, sdk.NewCoins(amount))
+				if err != nil {
+					panic(err)
+				}
+			}
+		case stakingtypes.Unbonding:
+			if freshStart {
+				amount := sdk.NewCoin(k.BondDenom(ctx), metaNode.Tokens)
+				err = k.GetBankKeeper().SendCoinsFromAccountToModule(ctx, ownerAddr, types.MetaNodeBondedPool, sdk.NewCoins(amount))
 				if err != nil {
 					panic(err)
 				}
@@ -130,6 +146,17 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 
 	k.ReloadMetaNodeBitMapIdxCache(ctx)
 
+	for _, regVoteInfo := range data.GetMetaNodeRegVotePool() {
+		k.SetMetaNodeRegistrationVotePool(ctx, regVoteInfo)
+	}
+
+	for _, ubdNode := range data.GetUnbondingNodes() {
+		k.SetUnbondingNode(ctx, ubdNode)
+		for _, ubdEntry := range ubdNode.GetEntries() {
+			k.InsertUnbondingNodeQueue(ctx, ubdNode, ubdEntry.GetCompletionTime())
+		}
+	}
+
 	return
 }
 
@@ -143,6 +170,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 	metaNodes := k.GetAllMetaNodes(ctx)
 	remainingNozLimit := k.GetRemainingOzoneLimit(ctx)
 	depositNozRate := k.GetDepositNozRate(ctx)
+	metaNodeRegVotePool := k.GetAllMetaNodeRegVotePool(ctx)
+	unbondingNodes := k.GetAllUnbondingNode(ctx)
 
 	var slashingInfo []types.Slashing
 	k.IteratorSlashingInfo(ctx, func(walletAddress sdk.AccAddress, val sdkmath.Int) (stop bool) {
@@ -153,5 +182,6 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 		return false
 	})
 
-	return types.NewGenesisState(params, resourceNodes, metaNodes, remainingNozLimit, slashingInfo, depositNozRate)
+	return types.NewGenesisState(params, resourceNodes, metaNodes, remainingNozLimit, slashingInfo, depositNozRate,
+		metaNodeRegVotePool, unbondingNodes)
 }

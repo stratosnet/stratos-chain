@@ -33,10 +33,10 @@ var (
 	MetaNodeRegistrationVotesKey    = []byte{0x03} // prefix for each key to the vote for meta node registration
 	UpperBoundOfTotalOzoneKey       = []byte{0x04}
 	SlashingPrefix                  = []byte{0x05}
-	InitialGenesisDepositTotalKey   = []byte{0x06} // key of initial genesis deposit by all resource nodes and meta nodes at t=0
+	InitialGenesisDepositTotalKey   = []byte{0x06} // deprecated. key of initial genesis deposit by all resource nodes and meta nodes at t=0
 	DepositNozRateKey               = []byte{0x07} // key of fixed rate of deposit unit over Noz unit
-	MetaNodeCntKey                  = []byte{0x08} // the number of all meta nodes
-	ResourceNodeCntKey              = []byte{0x09} // the number of all resource nodes
+	MetaNodeCntKey                  = []byte{0x08} // the number of bonded meta nodes
+	ResourceNodeCntKey              = []byte{0x09} // the number of bonded resource nodes
 	EffectiveGenesisDepositTotalKey = []byte{0x10} // key of effective(ongoing) genesis deposit by all resource nodes and meta nodes at time t
 	UBDNodeKey                      = []byte{0x11} // prefix for each key to an unbonding node
 	UBDNodeQueueKey                 = []byte{0x12} // prefix for the timestamps in unbonding node queue

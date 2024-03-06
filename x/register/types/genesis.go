@@ -19,26 +19,32 @@ func NewGenesisState(params Params,
 	remainingNozLimit sdkmath.Int,
 	slashingInfo []Slashing,
 	depositNozRate sdkmath.LegacyDec,
+	metaNodeRegVotePool []MetaNodeRegistrationVotePool,
+	unbondingNodes []UnbondingNode,
 ) *GenesisState {
 	return &GenesisState{
-		Params:            params,
-		ResourceNodes:     resourceNodes,
-		MetaNodes:         metaNodes,
-		RemainingNozLimit: remainingNozLimit,
-		Slashing:          slashingInfo,
-		DepositNozRate:    depositNozRate,
+		Params:              params,
+		ResourceNodes:       resourceNodes,
+		MetaNodes:           metaNodes,
+		RemainingNozLimit:   remainingNozLimit,
+		Slashing:            slashingInfo,
+		DepositNozRate:      depositNozRate,
+		MetaNodeRegVotePool: metaNodeRegVotePool,
+		UnbondingNodes:      unbondingNodes,
 	}
 }
 
 // DefaultGenesisState - default GenesisState used by Cosmos Hub
 func DefaultGenesisState() *GenesisState {
 	return &GenesisState{
-		Params:            DefaultParams(),
-		ResourceNodes:     ResourceNodes{},
-		MetaNodes:         MetaNodes{},
-		RemainingNozLimit: DefaultRemainingNozLimit,
-		Slashing:          make([]Slashing, 0),
-		DepositNozRate:    DefaultDepositNozRate,
+		Params:              DefaultParams(),
+		ResourceNodes:       ResourceNodes{},
+		MetaNodes:           MetaNodes{},
+		RemainingNozLimit:   DefaultRemainingNozLimit,
+		Slashing:            make([]Slashing, 0),
+		DepositNozRate:      DefaultDepositNozRate,
+		MetaNodeRegVotePool: make([]MetaNodeRegistrationVotePool, 0),
+		UnbondingNodes:      make([]UnbondingNode, 0),
 	}
 }
 
