@@ -389,10 +389,6 @@ func (k Keeper) UnbondResourceNode(ctx sdk.Context, networkAddr stratos.SdsAddre
 	switch resourceNode.GetStatus() {
 
 	case stakingtypes.Bonded:
-		if resourceNode.GetSuspend() {
-			err = types.ErrInvalidSuspensionStatForUnbondNode
-			return
-		}
 		depositToRemove = sdk.NewCoin(k.BondDenom(ctx), availableDeposit)
 		// transfer the node tokens to the not bonded pool
 		k.bondedToUnbonding(ctx, resourceNode, false, depositToRemove)
