@@ -13,7 +13,7 @@ option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 service Query {
   // VolumeReport queries VolumeReport info for given epoch.
   rpc VolumeReport(QueryVolumeReportRequest) returns (QueryVolumeReportResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/volume-report/{epoch}";
+    option (google.api.http).get = "/stratos/pot/v1/volume_report/{epoch}";
   }
 
   // RewardsByEpoch queries Pot rewards by a given epoch.
@@ -37,15 +37,15 @@ service Query {
   }
 
   rpc TotalMinedToken(QueryTotalMinedTokenRequest) returns (QueryTotalMinedTokenResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/total-mined-token";
+    option (google.api.http).get = "/stratos/pot/v1/total_mined_token";
   }
 
   rpc CirculationSupply(QueryCirculationSupplyRequest) returns (QueryCirculationSupplyResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/circulation-supply";
+    option (google.api.http).get = "/stratos/pot/v1/circulation_supply";
   }
 
   rpc TotalRewardByEpoch(QueryTotalRewardByEpochRequest) returns (QueryTotalRewardByEpochResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/total-reward/{epoch}";
+    option (google.api.http).get = "/stratos/pot/v1/total_reward/{epoch}";
   }
 
   rpc Metrics(QueryMetricsRequest) returns (QueryMetricsResponse) {

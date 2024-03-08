@@ -831,7 +831,7 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_VolumeReport_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "pot", "v1", "volume-report", "epoch"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_VolumeReport_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "pot", "v1", "volume_report", "epoch"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_RewardsByEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4, 1, 0, 4, 1, 5, 4}, []string{"stratos", "pot", "v1", "rewards", "epoch"}, "", runtime.AssumeColonVerbOpt(false)))
 
@@ -841,11 +841,11 @@ var (
 
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "pot", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_TotalMinedToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "pot", "v1", "total-mined-token"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_TotalMinedToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "pot", "v1", "total_mined_token"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_CirculationSupply_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "pot", "v1", "circulation-supply"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_CirculationSupply_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "pot", "v1", "circulation_supply"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_TotalRewardByEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "pot", "v1", "total-reward", "epoch"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_TotalRewardByEpoch_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "pot", "v1", "total_reward", "epoch"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_Metrics_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "pot", "v1", "metrics"}, "", runtime.AssumeColonVerbOpt(false)))
 )
