@@ -423,14 +423,12 @@ func (x *fastReflection_QueryVolumeReportRequest) ProtoMethods() *protoiface.Met
 var (
 	md_QueryVolumeReportResponse             protoreflect.MessageDescriptor
 	fd_QueryVolumeReportResponse_report_info protoreflect.FieldDescriptor
-	fd_QueryVolumeReportResponse_height      protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_query_proto_init()
 	md_QueryVolumeReportResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QueryVolumeReportResponse")
 	fd_QueryVolumeReportResponse_report_info = md_QueryVolumeReportResponse.Fields().ByName("report_info")
-	fd_QueryVolumeReportResponse_height = md_QueryVolumeReportResponse.Fields().ByName("height")
 }
 
 var _ protoreflect.Message = (*fastReflection_QueryVolumeReportResponse)(nil)
@@ -504,12 +502,6 @@ func (x *fastReflection_QueryVolumeReportResponse) Range(f func(protoreflect.Fie
 			return
 		}
 	}
-	if x.Height != int64(0) {
-		value := protoreflect.ValueOfInt64(x.Height)
-		if !f(fd_QueryVolumeReportResponse_height, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -527,8 +519,6 @@ func (x *fastReflection_QueryVolumeReportResponse) Has(fd protoreflect.FieldDesc
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryVolumeReportResponse.report_info":
 		return x.ReportInfo != nil
-	case "stratos.pot.v1.QueryVolumeReportResponse.height":
-		return x.Height != int64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryVolumeReportResponse"))
@@ -547,8 +537,6 @@ func (x *fastReflection_QueryVolumeReportResponse) Clear(fd protoreflect.FieldDe
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryVolumeReportResponse.report_info":
 		x.ReportInfo = nil
-	case "stratos.pot.v1.QueryVolumeReportResponse.height":
-		x.Height = int64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryVolumeReportResponse"))
@@ -568,9 +556,6 @@ func (x *fastReflection_QueryVolumeReportResponse) Get(descriptor protoreflect.F
 	case "stratos.pot.v1.QueryVolumeReportResponse.report_info":
 		value := x.ReportInfo
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "stratos.pot.v1.QueryVolumeReportResponse.height":
-		value := x.Height
-		return protoreflect.ValueOfInt64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryVolumeReportResponse"))
@@ -593,8 +578,6 @@ func (x *fastReflection_QueryVolumeReportResponse) Set(fd protoreflect.FieldDesc
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryVolumeReportResponse.report_info":
 		x.ReportInfo = value.Message().Interface().(*ReportInfo)
-	case "stratos.pot.v1.QueryVolumeReportResponse.height":
-		x.Height = value.Int()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryVolumeReportResponse"))
@@ -620,8 +603,6 @@ func (x *fastReflection_QueryVolumeReportResponse) Mutable(fd protoreflect.Field
 			x.ReportInfo = new(ReportInfo)
 		}
 		return protoreflect.ValueOfMessage(x.ReportInfo.ProtoReflect())
-	case "stratos.pot.v1.QueryVolumeReportResponse.height":
-		panic(fmt.Errorf("field height of message stratos.pot.v1.QueryVolumeReportResponse is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryVolumeReportResponse"))
@@ -638,8 +619,6 @@ func (x *fastReflection_QueryVolumeReportResponse) NewField(fd protoreflect.Fiel
 	case "stratos.pot.v1.QueryVolumeReportResponse.report_info":
 		m := new(ReportInfo)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	case "stratos.pot.v1.QueryVolumeReportResponse.height":
-		return protoreflect.ValueOfInt64(int64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryVolumeReportResponse"))
@@ -713,9 +692,6 @@ func (x *fastReflection_QueryVolumeReportResponse) ProtoMethods() *protoiface.Me
 			l = options.Size(x.ReportInfo)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.Height != 0 {
-			n += 1 + runtime.Sov(uint64(x.Height))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -744,11 +720,6 @@ func (x *fastReflection_QueryVolumeReportResponse) ProtoMethods() *protoiface.Me
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.Height != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
-			i--
-			dAtA[i] = 0x10
 		}
 		if x.ReportInfo != nil {
 			encoded, err := options.Marshal(x.ReportInfo)
@@ -849,25 +820,6 @@ func (x *fastReflection_QueryVolumeReportResponse) ProtoMethods() *protoiface.Me
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 2:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-				}
-				x.Height = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.Height |= int64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -2291,17 +2243,15 @@ func (x *fastReflection_QueryParamsResponse) ProtoMethods() *protoiface.Methods 
 }
 
 var (
-	md_QueryRewardsByEpochRequest                protoreflect.MessageDescriptor
-	fd_QueryRewardsByEpochRequest_epoch          protoreflect.FieldDescriptor
-	fd_QueryRewardsByEpochRequest_wallet_address protoreflect.FieldDescriptor
-	fd_QueryRewardsByEpochRequest_pagination     protoreflect.FieldDescriptor
+	md_QueryRewardsByEpochRequest            protoreflect.MessageDescriptor
+	fd_QueryRewardsByEpochRequest_epoch      protoreflect.FieldDescriptor
+	fd_QueryRewardsByEpochRequest_pagination protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_query_proto_init()
 	md_QueryRewardsByEpochRequest = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByEpochRequest")
 	fd_QueryRewardsByEpochRequest_epoch = md_QueryRewardsByEpochRequest.Fields().ByName("epoch")
-	fd_QueryRewardsByEpochRequest_wallet_address = md_QueryRewardsByEpochRequest.Fields().ByName("wallet_address")
 	fd_QueryRewardsByEpochRequest_pagination = md_QueryRewardsByEpochRequest.Fields().ByName("pagination")
 }
 
@@ -2376,12 +2326,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) Range(f func(protoreflect.Fi
 			return
 		}
 	}
-	if x.WalletAddress != "" {
-		value := protoreflect.ValueOfString(x.WalletAddress)
-		if !f(fd_QueryRewardsByEpochRequest_wallet_address, value) {
-			return
-		}
-	}
 	if x.Pagination != nil {
 		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 		if !f(fd_QueryRewardsByEpochRequest_pagination, value) {
@@ -2405,8 +2349,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) Has(fd protoreflect.FieldDes
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.epoch":
 		return x.Epoch != int64(0)
-	case "stratos.pot.v1.QueryRewardsByEpochRequest.wallet_address":
-		return x.WalletAddress != ""
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.pagination":
 		return x.Pagination != nil
 	default:
@@ -2427,8 +2369,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) Clear(fd protoreflect.FieldD
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.epoch":
 		x.Epoch = int64(0)
-	case "stratos.pot.v1.QueryRewardsByEpochRequest.wallet_address":
-		x.WalletAddress = ""
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.pagination":
 		x.Pagination = nil
 	default:
@@ -2450,9 +2390,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) Get(descriptor protoreflect.
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.epoch":
 		value := x.Epoch
 		return protoreflect.ValueOfInt64(value)
-	case "stratos.pot.v1.QueryRewardsByEpochRequest.wallet_address":
-		value := x.WalletAddress
-		return protoreflect.ValueOfString(value)
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.pagination":
 		value := x.Pagination
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
@@ -2478,8 +2415,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) Set(fd protoreflect.FieldDes
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.epoch":
 		x.Epoch = value.Int()
-	case "stratos.pot.v1.QueryRewardsByEpochRequest.wallet_address":
-		x.WalletAddress = value.Interface().(string)
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.pagination":
 		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
@@ -2509,8 +2444,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) Mutable(fd protoreflect.Fiel
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.epoch":
 		panic(fmt.Errorf("field epoch of message stratos.pot.v1.QueryRewardsByEpochRequest is not mutable"))
-	case "stratos.pot.v1.QueryRewardsByEpochRequest.wallet_address":
-		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.QueryRewardsByEpochRequest is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByEpochRequest"))
@@ -2526,8 +2459,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) NewField(fd protoreflect.Fie
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.epoch":
 		return protoreflect.ValueOfInt64(int64(0))
-	case "stratos.pot.v1.QueryRewardsByEpochRequest.wallet_address":
-		return protoreflect.ValueOfString("")
 	case "stratos.pot.v1.QueryRewardsByEpochRequest.pagination":
 		m := new(v1beta1.PageRequest)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -2603,10 +2534,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) ProtoMethods() *protoiface.M
 		if x.Epoch != 0 {
 			n += 1 + runtime.Sov(uint64(x.Epoch))
 		}
-		l = len(x.WalletAddress)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
-		}
 		if x.Pagination != nil {
 			l = options.Size(x.Pagination)
 			n += 1 + l + runtime.Sov(uint64(l))
@@ -2651,13 +2578,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) ProtoMethods() *protoiface.M
 			i -= len(encoded)
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
-			i--
-			dAtA[i] = 0x1a
-		}
-		if len(x.WalletAddress) > 0 {
-			i -= len(x.WalletAddress)
-			copy(dAtA[i:], x.WalletAddress)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.WalletAddress)))
 			i--
 			dAtA[i] = 0x12
 		}
@@ -2735,38 +2655,6 @@ func (x *fastReflection_QueryRewardsByEpochRequest) ProtoMethods() *protoiface.M
 					}
 				}
 			case 2:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
-				}
-				var stringLen uint64
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.WalletAddress = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 3:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
 				}
@@ -2891,7 +2779,6 @@ func (x *_QueryRewardsByEpochResponse_1_list) IsValid() bool {
 var (
 	md_QueryRewardsByEpochResponse            protoreflect.MessageDescriptor
 	fd_QueryRewardsByEpochResponse_rewards    protoreflect.FieldDescriptor
-	fd_QueryRewardsByEpochResponse_height     protoreflect.FieldDescriptor
 	fd_QueryRewardsByEpochResponse_pagination protoreflect.FieldDescriptor
 )
 
@@ -2899,7 +2786,6 @@ func init() {
 	file_stratos_pot_v1_query_proto_init()
 	md_QueryRewardsByEpochResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByEpochResponse")
 	fd_QueryRewardsByEpochResponse_rewards = md_QueryRewardsByEpochResponse.Fields().ByName("rewards")
-	fd_QueryRewardsByEpochResponse_height = md_QueryRewardsByEpochResponse.Fields().ByName("height")
 	fd_QueryRewardsByEpochResponse_pagination = md_QueryRewardsByEpochResponse.Fields().ByName("pagination")
 }
 
@@ -2974,12 +2860,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) Range(f func(protoreflect.F
 			return
 		}
 	}
-	if x.Height != int64(0) {
-		value := protoreflect.ValueOfInt64(x.Height)
-		if !f(fd_QueryRewardsByEpochResponse_height, value) {
-			return
-		}
-	}
 	if x.Pagination != nil {
 		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
 		if !f(fd_QueryRewardsByEpochResponse_pagination, value) {
@@ -3003,8 +2883,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) Has(fd protoreflect.FieldDe
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.rewards":
 		return len(x.Rewards) != 0
-	case "stratos.pot.v1.QueryRewardsByEpochResponse.height":
-		return x.Height != int64(0)
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.pagination":
 		return x.Pagination != nil
 	default:
@@ -3025,8 +2903,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) Clear(fd protoreflect.Field
 	switch fd.FullName() {
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.rewards":
 		x.Rewards = nil
-	case "stratos.pot.v1.QueryRewardsByEpochResponse.height":
-		x.Height = int64(0)
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.pagination":
 		x.Pagination = nil
 	default:
@@ -3051,9 +2927,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) Get(descriptor protoreflect
 		}
 		listValue := &_QueryRewardsByEpochResponse_1_list{list: &x.Rewards}
 		return protoreflect.ValueOfList(listValue)
-	case "stratos.pot.v1.QueryRewardsByEpochResponse.height":
-		value := x.Height
-		return protoreflect.ValueOfInt64(value)
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.pagination":
 		value := x.Pagination
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
@@ -3081,8 +2954,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) Set(fd protoreflect.FieldDe
 		lv := value.List()
 		clv := lv.(*_QueryRewardsByEpochResponse_1_list)
 		x.Rewards = *clv.list
-	case "stratos.pot.v1.QueryRewardsByEpochResponse.height":
-		x.Height = value.Int()
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.pagination":
 		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
 	default:
@@ -3116,8 +2987,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) Mutable(fd protoreflect.Fie
 			x.Pagination = new(v1beta1.PageResponse)
 		}
 		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
-	case "stratos.pot.v1.QueryRewardsByEpochResponse.height":
-		panic(fmt.Errorf("field height of message stratos.pot.v1.QueryRewardsByEpochResponse is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByEpochResponse"))
@@ -3134,8 +3003,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) NewField(fd protoreflect.Fi
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.rewards":
 		list := []*Reward{}
 		return protoreflect.ValueOfList(&_QueryRewardsByEpochResponse_1_list{list: &list})
-	case "stratos.pot.v1.QueryRewardsByEpochResponse.height":
-		return protoreflect.ValueOfInt64(int64(0))
 	case "stratos.pot.v1.QueryRewardsByEpochResponse.pagination":
 		m := new(v1beta1.PageResponse)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
@@ -3214,9 +3081,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) ProtoMethods() *protoiface.
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
 		}
-		if x.Height != 0 {
-			n += 1 + runtime.Sov(uint64(x.Height))
-		}
 		if x.Pagination != nil {
 			l = options.Size(x.Pagination)
 			n += 1 + l + runtime.Sov(uint64(l))
@@ -3262,12 +3126,7 @@ func (x *fastReflection_QueryRewardsByEpochResponse) ProtoMethods() *protoiface.
 			copy(dAtA[i:], encoded)
 			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 			i--
-			dAtA[i] = 0x1a
-		}
-		if x.Height != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
-			i--
-			dAtA[i] = 0x10
+			dAtA[i] = 0x12
 		}
 		if len(x.Rewards) > 0 {
 			for iNdEx := len(x.Rewards) - 1; iNdEx >= 0; iNdEx-- {
@@ -3369,25 +3228,6 @@ func (x *fastReflection_QueryRewardsByEpochResponse) ProtoMethods() *protoiface.
 				}
 				iNdEx = postIndex
 			case 2:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-				}
-				x.Height = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.Height |= int64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-			case 3:
 				if wireType != 2 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
 				}
@@ -3459,25 +3299,25 @@ func (x *fastReflection_QueryRewardsByEpochResponse) ProtoMethods() *protoiface.
 }
 
 var (
-	md_QueryRewardsByOwnerRequest                protoreflect.MessageDescriptor
-	fd_QueryRewardsByOwnerRequest_wallet_address protoreflect.FieldDescriptor
+	md_QueryRewardsByWalletRequest                protoreflect.MessageDescriptor
+	fd_QueryRewardsByWalletRequest_wallet_address protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_query_proto_init()
-	md_QueryRewardsByOwnerRequest = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByOwnerRequest")
-	fd_QueryRewardsByOwnerRequest_wallet_address = md_QueryRewardsByOwnerRequest.Fields().ByName("wallet_address")
+	md_QueryRewardsByWalletRequest = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByWalletRequest")
+	fd_QueryRewardsByWalletRequest_wallet_address = md_QueryRewardsByWalletRequest.Fields().ByName("wallet_address")
 }
 
-var _ protoreflect.Message = (*fastReflection_QueryRewardsByOwnerRequest)(nil)
+var _ protoreflect.Message = (*fastReflection_QueryRewardsByWalletRequest)(nil)
 
-type fastReflection_QueryRewardsByOwnerRequest QueryRewardsByOwnerRequest
+type fastReflection_QueryRewardsByWalletRequest QueryRewardsByWalletRequest
 
-func (x *QueryRewardsByOwnerRequest) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryRewardsByOwnerRequest)(x)
+func (x *QueryRewardsByWalletRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletRequest)(x)
 }
 
-func (x *QueryRewardsByOwnerRequest) slowProtoReflect() protoreflect.Message {
+func (x *QueryRewardsByWalletRequest) slowProtoReflect() protoreflect.Message {
 	mi := &file_stratos_pot_v1_query_proto_msgTypes[7]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3489,43 +3329,43 @@ func (x *QueryRewardsByOwnerRequest) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryRewardsByOwnerRequest_messageType fastReflection_QueryRewardsByOwnerRequest_messageType
-var _ protoreflect.MessageType = fastReflection_QueryRewardsByOwnerRequest_messageType{}
+var _fastReflection_QueryRewardsByWalletRequest_messageType fastReflection_QueryRewardsByWalletRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryRewardsByWalletRequest_messageType{}
 
-type fastReflection_QueryRewardsByOwnerRequest_messageType struct{}
+type fastReflection_QueryRewardsByWalletRequest_messageType struct{}
 
-func (x fastReflection_QueryRewardsByOwnerRequest_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryRewardsByOwnerRequest)(nil)
+func (x fastReflection_QueryRewardsByWalletRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletRequest)(nil)
 }
-func (x fastReflection_QueryRewardsByOwnerRequest_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryRewardsByOwnerRequest)
+func (x fastReflection_QueryRewardsByWalletRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletRequest)
 }
-func (x fastReflection_QueryRewardsByOwnerRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryRewardsByOwnerRequest
+func (x fastReflection_QueryRewardsByWalletRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletRequest
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryRewardsByOwnerRequest
+func (x *fastReflection_QueryRewardsByWalletRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletRequest
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Type() protoreflect.MessageType {
-	return _fastReflection_QueryRewardsByOwnerRequest_messageType
+func (x *fastReflection_QueryRewardsByWalletRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryRewardsByWalletRequest_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryRewardsByOwnerRequest) New() protoreflect.Message {
-	return new(fastReflection_QueryRewardsByOwnerRequest)
+func (x *fastReflection_QueryRewardsByWalletRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletRequest)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Interface() protoreflect.ProtoMessage {
-	return (*QueryRewardsByOwnerRequest)(x)
+func (x *fastReflection_QueryRewardsByWalletRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryRewardsByWalletRequest)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -3533,10 +3373,10 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) Interface() protoreflect.Pro
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_QueryRewardsByWalletRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.WalletAddress != "" {
 		value := protoreflect.ValueOfString(x.WalletAddress)
-		if !f(fd_QueryRewardsByOwnerRequest_wallet_address, value) {
+		if !f(fd_QueryRewardsByWalletRequest_wallet_address, value) {
 			return
 		}
 	}
@@ -3553,15 +3393,15 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) Range(f func(protoreflect.Fi
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_QueryRewardsByWalletRequest) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerRequest.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletRequest.wallet_address":
 		return x.WalletAddress != ""
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerRequest"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerRequest does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletRequest does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -3571,15 +3411,15 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) Has(fd protoreflect.FieldDes
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_QueryRewardsByWalletRequest) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerRequest.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletRequest.wallet_address":
 		x.WalletAddress = ""
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerRequest"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerRequest does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletRequest does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -3589,16 +3429,16 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) Clear(fd protoreflect.FieldD
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerRequest.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletRequest.wallet_address":
 		value := x.WalletAddress
 		return protoreflect.ValueOfString(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerRequest"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerRequest does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletRequest does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -3612,15 +3452,15 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) Get(descriptor protoreflect.
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_QueryRewardsByWalletRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerRequest.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletRequest.wallet_address":
 		x.WalletAddress = value.Interface().(string)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerRequest"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerRequest does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletRequest does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -3634,40 +3474,40 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) Set(fd protoreflect.FieldDes
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerRequest.wallet_address":
-		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.QueryRewardsByOwnerRequest is not mutable"))
+	case "stratos.pot.v1.QueryRewardsByWalletRequest.wallet_address":
+		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.QueryRewardsByWalletRequest is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerRequest"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerRequest does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletRequest does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_QueryRewardsByOwnerRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerRequest.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletRequest.wallet_address":
 		return protoreflect.ValueOfString("")
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerRequest"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerRequest does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletRequest does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_QueryRewardsByOwnerRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_QueryRewardsByWalletRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByOwnerRequest", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByWalletRequest", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -3675,7 +3515,7 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) WhichOneof(d protoreflect.On
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_QueryRewardsByOwnerRequest) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_QueryRewardsByWalletRequest) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -3686,7 +3526,7 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) GetUnknown() protoreflect.Ra
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerRequest) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_QueryRewardsByWalletRequest) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -3698,7 +3538,7 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) SetUnknown(fields protorefle
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_QueryRewardsByOwnerRequest) IsValid() bool {
+func (x *fastReflection_QueryRewardsByWalletRequest) IsValid() bool {
 	return x != nil
 }
 
@@ -3708,9 +3548,9 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_QueryRewardsByOwnerRequest) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_QueryRewardsByWalletRequest) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryRewardsByOwnerRequest)
+		x := input.Message.Interface().(*QueryRewardsByWalletRequest)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -3736,7 +3576,7 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) ProtoMethods() *protoiface.M
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*QueryRewardsByOwnerRequest)
+		x := input.Message.Interface().(*QueryRewardsByWalletRequest)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -3773,7 +3613,7 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) ProtoMethods() *protoiface.M
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*QueryRewardsByOwnerRequest)
+		x := input.Message.Interface().(*QueryRewardsByWalletRequest)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -3805,10 +3645,10 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) ProtoMethods() *protoiface.M
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByOwnerRequest: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletRequest: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByOwnerRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletRequest: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -3879,27 +3719,25 @@ func (x *fastReflection_QueryRewardsByOwnerRequest) ProtoMethods() *protoiface.M
 }
 
 var (
-	md_QueryRewardsByOwnerResponse         protoreflect.MessageDescriptor
-	fd_QueryRewardsByOwnerResponse_rewards protoreflect.FieldDescriptor
-	fd_QueryRewardsByOwnerResponse_height  protoreflect.FieldDescriptor
+	md_QueryRewardsByWalletResponse         protoreflect.MessageDescriptor
+	fd_QueryRewardsByWalletResponse_rewards protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_query_proto_init()
-	md_QueryRewardsByOwnerResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByOwnerResponse")
-	fd_QueryRewardsByOwnerResponse_rewards = md_QueryRewardsByOwnerResponse.Fields().ByName("rewards")
-	fd_QueryRewardsByOwnerResponse_height = md_QueryRewardsByOwnerResponse.Fields().ByName("height")
+	md_QueryRewardsByWalletResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByWalletResponse")
+	fd_QueryRewardsByWalletResponse_rewards = md_QueryRewardsByWalletResponse.Fields().ByName("rewards")
 }
 
-var _ protoreflect.Message = (*fastReflection_QueryRewardsByOwnerResponse)(nil)
+var _ protoreflect.Message = (*fastReflection_QueryRewardsByWalletResponse)(nil)
 
-type fastReflection_QueryRewardsByOwnerResponse QueryRewardsByOwnerResponse
+type fastReflection_QueryRewardsByWalletResponse QueryRewardsByWalletResponse
 
-func (x *QueryRewardsByOwnerResponse) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_QueryRewardsByOwnerResponse)(x)
+func (x *QueryRewardsByWalletResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletResponse)(x)
 }
 
-func (x *QueryRewardsByOwnerResponse) slowProtoReflect() protoreflect.Message {
+func (x *QueryRewardsByWalletResponse) slowProtoReflect() protoreflect.Message {
 	mi := &file_stratos_pot_v1_query_proto_msgTypes[8]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -3911,43 +3749,43 @@ func (x *QueryRewardsByOwnerResponse) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_QueryRewardsByOwnerResponse_messageType fastReflection_QueryRewardsByOwnerResponse_messageType
-var _ protoreflect.MessageType = fastReflection_QueryRewardsByOwnerResponse_messageType{}
+var _fastReflection_QueryRewardsByWalletResponse_messageType fastReflection_QueryRewardsByWalletResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryRewardsByWalletResponse_messageType{}
 
-type fastReflection_QueryRewardsByOwnerResponse_messageType struct{}
+type fastReflection_QueryRewardsByWalletResponse_messageType struct{}
 
-func (x fastReflection_QueryRewardsByOwnerResponse_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_QueryRewardsByOwnerResponse)(nil)
+func (x fastReflection_QueryRewardsByWalletResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletResponse)(nil)
 }
-func (x fastReflection_QueryRewardsByOwnerResponse_messageType) New() protoreflect.Message {
-	return new(fastReflection_QueryRewardsByOwnerResponse)
+func (x fastReflection_QueryRewardsByWalletResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletResponse)
 }
-func (x fastReflection_QueryRewardsByOwnerResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryRewardsByOwnerResponse
+func (x fastReflection_QueryRewardsByWalletResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletResponse
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Descriptor() protoreflect.MessageDescriptor {
-	return md_QueryRewardsByOwnerResponse
+func (x *fastReflection_QueryRewardsByWalletResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletResponse
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Type() protoreflect.MessageType {
-	return _fastReflection_QueryRewardsByOwnerResponse_messageType
+func (x *fastReflection_QueryRewardsByWalletResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryRewardsByWalletResponse_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_QueryRewardsByOwnerResponse) New() protoreflect.Message {
-	return new(fastReflection_QueryRewardsByOwnerResponse)
+func (x *fastReflection_QueryRewardsByWalletResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletResponse)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Interface() protoreflect.ProtoMessage {
-	return (*QueryRewardsByOwnerResponse)(x)
+func (x *fastReflection_QueryRewardsByWalletResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryRewardsByWalletResponse)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -3955,16 +3793,10 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) Interface() protoreflect.Pr
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_QueryRewardsByWalletResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.Rewards != nil {
 		value := protoreflect.ValueOfMessage(x.Rewards.ProtoReflect())
-		if !f(fd_QueryRewardsByOwnerResponse_rewards, value) {
-			return
-		}
-	}
-	if x.Height != int64(0) {
-		value := protoreflect.ValueOfInt64(x.Height)
-		if !f(fd_QueryRewardsByOwnerResponse_height, value) {
+		if !f(fd_QueryRewardsByWalletResponse_rewards, value) {
 			return
 		}
 	}
@@ -3981,17 +3813,15 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) Range(f func(protoreflect.F
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_QueryRewardsByWalletResponse) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.rewards":
+	case "stratos.pot.v1.QueryRewardsByWalletResponse.rewards":
 		return x.Rewards != nil
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.height":
-		return x.Height != int64(0)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletResponse"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletResponse does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4001,17 +3831,15 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) Has(fd protoreflect.FieldDe
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_QueryRewardsByWalletResponse) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.rewards":
+	case "stratos.pot.v1.QueryRewardsByWalletResponse.rewards":
 		x.Rewards = nil
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.height":
-		x.Height = int64(0)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletResponse"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletResponse does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4021,19 +3849,16 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) Clear(fd protoreflect.Field
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.rewards":
+	case "stratos.pot.v1.QueryRewardsByWalletResponse.rewards":
 		value := x.Rewards
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.height":
-		value := x.Height
-		return protoreflect.ValueOfInt64(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletResponse"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerResponse does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletResponse does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -4047,17 +3872,15 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) Get(descriptor protoreflect
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_QueryRewardsByWalletResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.rewards":
-		x.Rewards = value.Message().Interface().(*RewardByOwner)
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.height":
-		x.Height = value.Int()
+	case "stratos.pot.v1.QueryRewardsByWalletResponse.rewards":
+		x.Rewards = value.Message().Interface().(*RewardByWallet)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletResponse"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletResponse does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4071,48 +3894,44 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) Set(fd protoreflect.FieldDe
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.rewards":
+	case "stratos.pot.v1.QueryRewardsByWalletResponse.rewards":
 		if x.Rewards == nil {
-			x.Rewards = new(RewardByOwner)
+			x.Rewards = new(RewardByWallet)
 		}
 		return protoreflect.ValueOfMessage(x.Rewards.ProtoReflect())
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.height":
-		panic(fmt.Errorf("field height of message stratos.pot.v1.QueryRewardsByOwnerResponse is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletResponse"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletResponse does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_QueryRewardsByOwnerResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.rewards":
-		m := new(RewardByOwner)
+	case "stratos.pot.v1.QueryRewardsByWalletResponse.rewards":
+		m := new(RewardByWallet)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	case "stratos.pot.v1.QueryRewardsByOwnerResponse.height":
-		return protoreflect.ValueOfInt64(int64(0))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByOwnerResponse"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletResponse"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByOwnerResponse does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletResponse does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_QueryRewardsByOwnerResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_QueryRewardsByWalletResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByOwnerResponse", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByWalletResponse", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -4120,7 +3939,7 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) WhichOneof(d protoreflect.O
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_QueryRewardsByOwnerResponse) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_QueryRewardsByWalletResponse) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -4131,7 +3950,7 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) GetUnknown() protoreflect.R
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_QueryRewardsByOwnerResponse) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_QueryRewardsByWalletResponse) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -4143,7 +3962,7 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) SetUnknown(fields protorefl
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_QueryRewardsByOwnerResponse) IsValid() bool {
+func (x *fastReflection_QueryRewardsByWalletResponse) IsValid() bool {
 	return x != nil
 }
 
@@ -4153,9 +3972,9 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_QueryRewardsByWalletResponse) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*QueryRewardsByOwnerResponse)
+		x := input.Message.Interface().(*QueryRewardsByWalletResponse)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4171,9 +3990,6 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 			l = options.Size(x.Rewards)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.Height != 0 {
-			n += 1 + runtime.Sov(uint64(x.Height))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -4184,7 +4000,7 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*QueryRewardsByOwnerResponse)
+		x := input.Message.Interface().(*QueryRewardsByWalletResponse)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4202,11 +4018,6 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.Height != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
-			i--
-			dAtA[i] = 0x10
 		}
 		if x.Rewards != nil {
 			encoded, err := options.Marshal(x.Rewards)
@@ -4233,7 +4044,7 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*QueryRewardsByOwnerResponse)
+		x := input.Message.Interface().(*QueryRewardsByWalletResponse)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4265,10 +4076,10 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByOwnerResponse: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletResponse: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByOwnerResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -4301,31 +4112,12 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
 				if x.Rewards == nil {
-					x.Rewards = &RewardByOwner{}
+					x.Rewards = &RewardByWallet{}
 				}
 				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Rewards); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
-			case 2:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-				}
-				x.Height = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.Height |= int64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -4361,132 +4153,30 @@ func (x *fastReflection_QueryRewardsByOwnerResponse) ProtoMethods() *protoiface.
 	}
 }
 
-var _ protoreflect.List = (*_RewardByOwner_2_list)(nil)
-
-type _RewardByOwner_2_list struct {
-	list *[]*v1beta11.Coin
-}
-
-func (x *_RewardByOwner_2_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_RewardByOwner_2_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_RewardByOwner_2_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_RewardByOwner_2_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_RewardByOwner_2_list) AppendMutable() protoreflect.Value {
-	v := new(v1beta11.Coin)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_RewardByOwner_2_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_RewardByOwner_2_list) NewElement() protoreflect.Value {
-	v := new(v1beta11.Coin)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_RewardByOwner_2_list) IsValid() bool {
-	return x.list != nil
-}
-
-var _ protoreflect.List = (*_RewardByOwner_3_list)(nil)
-
-type _RewardByOwner_3_list struct {
-	list *[]*v1beta11.Coin
-}
-
-func (x *_RewardByOwner_3_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_RewardByOwner_3_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
-}
-
-func (x *_RewardByOwner_3_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_RewardByOwner_3_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_RewardByOwner_3_list) AppendMutable() protoreflect.Value {
-	v := new(v1beta11.Coin)
-	*x.list = append(*x.list, v)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_RewardByOwner_3_list) Truncate(n int) {
-	for i := n; i < len(*x.list); i++ {
-		(*x.list)[i] = nil
-	}
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_RewardByOwner_3_list) NewElement() protoreflect.Value {
-	v := new(v1beta11.Coin)
-	return protoreflect.ValueOfMessage(v.ProtoReflect())
-}
-
-func (x *_RewardByOwner_3_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
-	md_RewardByOwner                       protoreflect.MessageDescriptor
-	fd_RewardByOwner_wallet_address        protoreflect.FieldDescriptor
-	fd_RewardByOwner_mature_total_reward   protoreflect.FieldDescriptor
-	fd_RewardByOwner_immature_total_reward protoreflect.FieldDescriptor
+	md_QueryRewardsByWalletAndHeightRequest                protoreflect.MessageDescriptor
+	fd_QueryRewardsByWalletAndHeightRequest_wallet_address protoreflect.FieldDescriptor
+	fd_QueryRewardsByWalletAndHeightRequest_height         protoreflect.FieldDescriptor
+	fd_QueryRewardsByWalletAndHeightRequest_pagination     protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_query_proto_init()
-	md_RewardByOwner = File_stratos_pot_v1_query_proto.Messages().ByName("RewardByOwner")
-	fd_RewardByOwner_wallet_address = md_RewardByOwner.Fields().ByName("wallet_address")
-	fd_RewardByOwner_mature_total_reward = md_RewardByOwner.Fields().ByName("mature_total_reward")
-	fd_RewardByOwner_immature_total_reward = md_RewardByOwner.Fields().ByName("immature_total_reward")
+	md_QueryRewardsByWalletAndHeightRequest = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByWalletAndHeightRequest")
+	fd_QueryRewardsByWalletAndHeightRequest_wallet_address = md_QueryRewardsByWalletAndHeightRequest.Fields().ByName("wallet_address")
+	fd_QueryRewardsByWalletAndHeightRequest_height = md_QueryRewardsByWalletAndHeightRequest.Fields().ByName("height")
+	fd_QueryRewardsByWalletAndHeightRequest_pagination = md_QueryRewardsByWalletAndHeightRequest.Fields().ByName("pagination")
 }
 
-var _ protoreflect.Message = (*fastReflection_RewardByOwner)(nil)
+var _ protoreflect.Message = (*fastReflection_QueryRewardsByWalletAndHeightRequest)(nil)
 
-type fastReflection_RewardByOwner RewardByOwner
+type fastReflection_QueryRewardsByWalletAndHeightRequest QueryRewardsByWalletAndHeightRequest
 
-func (x *RewardByOwner) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_RewardByOwner)(x)
+func (x *QueryRewardsByWalletAndHeightRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndHeightRequest)(x)
 }
 
-func (x *RewardByOwner) slowProtoReflect() protoreflect.Message {
+func (x *QueryRewardsByWalletAndHeightRequest) slowProtoReflect() protoreflect.Message {
 	mi := &file_stratos_pot_v1_query_proto_msgTypes[9]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -4498,43 +4188,43 @@ func (x *RewardByOwner) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_RewardByOwner_messageType fastReflection_RewardByOwner_messageType
-var _ protoreflect.MessageType = fastReflection_RewardByOwner_messageType{}
+var _fastReflection_QueryRewardsByWalletAndHeightRequest_messageType fastReflection_QueryRewardsByWalletAndHeightRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryRewardsByWalletAndHeightRequest_messageType{}
 
-type fastReflection_RewardByOwner_messageType struct{}
+type fastReflection_QueryRewardsByWalletAndHeightRequest_messageType struct{}
 
-func (x fastReflection_RewardByOwner_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_RewardByOwner)(nil)
+func (x fastReflection_QueryRewardsByWalletAndHeightRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndHeightRequest)(nil)
 }
-func (x fastReflection_RewardByOwner_messageType) New() protoreflect.Message {
-	return new(fastReflection_RewardByOwner)
+func (x fastReflection_QueryRewardsByWalletAndHeightRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndHeightRequest)
 }
-func (x fastReflection_RewardByOwner_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_RewardByOwner
+func (x fastReflection_QueryRewardsByWalletAndHeightRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndHeightRequest
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_RewardByOwner) Descriptor() protoreflect.MessageDescriptor {
-	return md_RewardByOwner
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndHeightRequest
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_RewardByOwner) Type() protoreflect.MessageType {
-	return _fastReflection_RewardByOwner_messageType
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryRewardsByWalletAndHeightRequest_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_RewardByOwner) New() protoreflect.Message {
-	return new(fastReflection_RewardByOwner)
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndHeightRequest)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_RewardByOwner) Interface() protoreflect.ProtoMessage {
-	return (*RewardByOwner)(x)
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryRewardsByWalletAndHeightRequest)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -4542,22 +4232,22 @@ func (x *fastReflection_RewardByOwner) Interface() protoreflect.ProtoMessage {
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_RewardByOwner) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
 	if x.WalletAddress != "" {
 		value := protoreflect.ValueOfString(x.WalletAddress)
-		if !f(fd_RewardByOwner_wallet_address, value) {
+		if !f(fd_QueryRewardsByWalletAndHeightRequest_wallet_address, value) {
 			return
 		}
 	}
-	if len(x.MatureTotalReward) != 0 {
-		value := protoreflect.ValueOfList(&_RewardByOwner_2_list{list: &x.MatureTotalReward})
-		if !f(fd_RewardByOwner_mature_total_reward, value) {
+	if x.Height != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Height)
+		if !f(fd_QueryRewardsByWalletAndHeightRequest_height, value) {
 			return
 		}
 	}
-	if len(x.ImmatureTotalReward) != 0 {
-		value := protoreflect.ValueOfList(&_RewardByOwner_3_list{list: &x.ImmatureTotalReward})
-		if !f(fd_RewardByOwner_immature_total_reward, value) {
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryRewardsByWalletAndHeightRequest_pagination, value) {
 			return
 		}
 	}
@@ -4574,19 +4264,19 @@ func (x *fastReflection_RewardByOwner) Range(f func(protoreflect.FieldDescriptor
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_RewardByOwner) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "stratos.pot.v1.RewardByOwner.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.wallet_address":
 		return x.WalletAddress != ""
-	case "stratos.pot.v1.RewardByOwner.mature_total_reward":
-		return len(x.MatureTotalReward) != 0
-	case "stratos.pot.v1.RewardByOwner.immature_total_reward":
-		return len(x.ImmatureTotalReward) != 0
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.height":
+		return x.Height != int64(0)
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination":
+		return x.Pagination != nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByOwner"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.RewardByOwner does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4596,19 +4286,19 @@ func (x *fastReflection_RewardByOwner) Has(fd protoreflect.FieldDescriptor) bool
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_RewardByOwner) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "stratos.pot.v1.RewardByOwner.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.wallet_address":
 		x.WalletAddress = ""
-	case "stratos.pot.v1.RewardByOwner.mature_total_reward":
-		x.MatureTotalReward = nil
-	case "stratos.pot.v1.RewardByOwner.immature_total_reward":
-		x.ImmatureTotalReward = nil
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.height":
+		x.Height = int64(0)
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination":
+		x.Pagination = nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByOwner"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.RewardByOwner does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4618,28 +4308,22 @@ func (x *fastReflection_RewardByOwner) Clear(fd protoreflect.FieldDescriptor) {
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_RewardByOwner) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "stratos.pot.v1.RewardByOwner.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.wallet_address":
 		value := x.WalletAddress
 		return protoreflect.ValueOfString(value)
-	case "stratos.pot.v1.RewardByOwner.mature_total_reward":
-		if len(x.MatureTotalReward) == 0 {
-			return protoreflect.ValueOfList(&_RewardByOwner_2_list{})
-		}
-		listValue := &_RewardByOwner_2_list{list: &x.MatureTotalReward}
-		return protoreflect.ValueOfList(listValue)
-	case "stratos.pot.v1.RewardByOwner.immature_total_reward":
-		if len(x.ImmatureTotalReward) == 0 {
-			return protoreflect.ValueOfList(&_RewardByOwner_3_list{})
-		}
-		listValue := &_RewardByOwner_3_list{list: &x.ImmatureTotalReward}
-		return protoreflect.ValueOfList(listValue)
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.height":
+		value := x.Height
+		return protoreflect.ValueOfInt64(value)
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByOwner"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.RewardByOwner does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -4653,23 +4337,19 @@ func (x *fastReflection_RewardByOwner) Get(descriptor protoreflect.FieldDescript
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_RewardByOwner) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "stratos.pot.v1.RewardByOwner.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.wallet_address":
 		x.WalletAddress = value.Interface().(string)
-	case "stratos.pot.v1.RewardByOwner.mature_total_reward":
-		lv := value.List()
-		clv := lv.(*_RewardByOwner_2_list)
-		x.MatureTotalReward = *clv.list
-	case "stratos.pot.v1.RewardByOwner.immature_total_reward":
-		lv := value.List()
-		clv := lv.(*_RewardByOwner_3_list)
-		x.ImmatureTotalReward = *clv.list
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.height":
+		x.Height = value.Int()
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByOwner"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.RewardByOwner does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -4683,58 +4363,52 @@ func (x *fastReflection_RewardByOwner) Set(fd protoreflect.FieldDescriptor, valu
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_RewardByOwner) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.RewardByOwner.mature_total_reward":
-		if x.MatureTotalReward == nil {
-			x.MatureTotalReward = []*v1beta11.Coin{}
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageRequest)
 		}
-		value := &_RewardByOwner_2_list{list: &x.MatureTotalReward}
-		return protoreflect.ValueOfList(value)
-	case "stratos.pot.v1.RewardByOwner.immature_total_reward":
-		if x.ImmatureTotalReward == nil {
-			x.ImmatureTotalReward = []*v1beta11.Coin{}
-		}
-		value := &_RewardByOwner_3_list{list: &x.ImmatureTotalReward}
-		return protoreflect.ValueOfList(value)
-	case "stratos.pot.v1.RewardByOwner.wallet_address":
-		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.RewardByOwner is not mutable"))
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.wallet_address":
+		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest is not mutable"))
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.height":
+		panic(fmt.Errorf("field height of message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByOwner"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.RewardByOwner does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_RewardByOwner) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.RewardByOwner.wallet_address":
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.wallet_address":
 		return protoreflect.ValueOfString("")
-	case "stratos.pot.v1.RewardByOwner.mature_total_reward":
-		list := []*v1beta11.Coin{}
-		return protoreflect.ValueOfList(&_RewardByOwner_2_list{list: &list})
-	case "stratos.pot.v1.RewardByOwner.immature_total_reward":
-		list := []*v1beta11.Coin{}
-		return protoreflect.ValueOfList(&_RewardByOwner_3_list{list: &list})
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.height":
+		return protoreflect.ValueOfInt64(int64(0))
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination":
+		m := new(v1beta1.PageRequest)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByOwner"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest"))
 		}
-		panic(fmt.Errorf("message stratos.pot.v1.RewardByOwner does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightRequest does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_RewardByOwner) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.RewardByOwner", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByWalletAndHeightRequest", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -4742,7 +4416,7 @@ func (x *fastReflection_RewardByOwner) WhichOneof(d protoreflect.OneofDescriptor
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_RewardByOwner) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -4753,7 +4427,7 @@ func (x *fastReflection_RewardByOwner) GetUnknown() protoreflect.RawFields {
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_RewardByOwner) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -4765,7 +4439,7 @@ func (x *fastReflection_RewardByOwner) SetUnknown(fields protoreflect.RawFields)
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_RewardByOwner) IsValid() bool {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) IsValid() bool {
 	return x != nil
 }
 
@@ -4775,9 +4449,2229 @@ func (x *fastReflection_RewardByOwner) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_RewardByOwner) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_QueryRewardsByWalletAndHeightRequest) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*RewardByOwner)
+		x := input.Message.Interface().(*QueryRewardsByWalletAndHeightRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.WalletAddress)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.Height != 0 {
+			n += 1 + runtime.Sov(uint64(x.Height))
+		}
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndHeightRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if x.Height != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
+			i--
+			dAtA[i] = 0x10
+		}
+		if len(x.WalletAddress) > 0 {
+			i -= len(x.WalletAddress)
+			copy(dAtA[i:], x.WalletAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.WalletAddress)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndHeightRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndHeightRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndHeightRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.WalletAddress = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+				}
+				x.Height = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Height |= int64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageRequest{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryRewardsByWalletAndHeightResponse         protoreflect.MessageDescriptor
+	fd_QueryRewardsByWalletAndHeightResponse_rewards protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_stratos_pot_v1_query_proto_init()
+	md_QueryRewardsByWalletAndHeightResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByWalletAndHeightResponse")
+	fd_QueryRewardsByWalletAndHeightResponse_rewards = md_QueryRewardsByWalletAndHeightResponse.Fields().ByName("rewards")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryRewardsByWalletAndHeightResponse)(nil)
+
+type fastReflection_QueryRewardsByWalletAndHeightResponse QueryRewardsByWalletAndHeightResponse
+
+func (x *QueryRewardsByWalletAndHeightResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndHeightResponse)(x)
+}
+
+func (x *QueryRewardsByWalletAndHeightResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryRewardsByWalletAndHeightResponse_messageType fastReflection_QueryRewardsByWalletAndHeightResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryRewardsByWalletAndHeightResponse_messageType{}
+
+type fastReflection_QueryRewardsByWalletAndHeightResponse_messageType struct{}
+
+func (x fastReflection_QueryRewardsByWalletAndHeightResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndHeightResponse)(nil)
+}
+func (x fastReflection_QueryRewardsByWalletAndHeightResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndHeightResponse)
+}
+func (x fastReflection_QueryRewardsByWalletAndHeightResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndHeightResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndHeightResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryRewardsByWalletAndHeightResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndHeightResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryRewardsByWalletAndHeightResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Rewards != nil {
+		value := protoreflect.ValueOfMessage(x.Rewards.ProtoReflect())
+		if !f(fd_QueryRewardsByWalletAndHeightResponse_rewards, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards":
+		return x.Rewards != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards":
+		x.Rewards = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards":
+		value := x.Rewards
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards":
+		x.Rewards = value.Message().Interface().(*RewardByWallet)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards":
+		if x.Rewards == nil {
+			x.Rewards = new(RewardByWallet)
+		}
+		return protoreflect.ValueOfMessage(x.Rewards.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards":
+		m := new(RewardByWallet)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndHeightResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByWalletAndHeightResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryRewardsByWalletAndHeightResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndHeightResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Rewards != nil {
+			l = options.Size(x.Rewards)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndHeightResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Rewards != nil {
+			encoded, err := options.Marshal(x.Rewards)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndHeightResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndHeightResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndHeightResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Rewards", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Rewards == nil {
+					x.Rewards = &RewardByWallet{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Rewards); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var (
+	md_QueryRewardsByWalletAndEpochRequest                protoreflect.MessageDescriptor
+	fd_QueryRewardsByWalletAndEpochRequest_wallet_address protoreflect.FieldDescriptor
+	fd_QueryRewardsByWalletAndEpochRequest_epoch          protoreflect.FieldDescriptor
+	fd_QueryRewardsByWalletAndEpochRequest_pagination     protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_stratos_pot_v1_query_proto_init()
+	md_QueryRewardsByWalletAndEpochRequest = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByWalletAndEpochRequest")
+	fd_QueryRewardsByWalletAndEpochRequest_wallet_address = md_QueryRewardsByWalletAndEpochRequest.Fields().ByName("wallet_address")
+	fd_QueryRewardsByWalletAndEpochRequest_epoch = md_QueryRewardsByWalletAndEpochRequest.Fields().ByName("epoch")
+	fd_QueryRewardsByWalletAndEpochRequest_pagination = md_QueryRewardsByWalletAndEpochRequest.Fields().ByName("pagination")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryRewardsByWalletAndEpochRequest)(nil)
+
+type fastReflection_QueryRewardsByWalletAndEpochRequest QueryRewardsByWalletAndEpochRequest
+
+func (x *QueryRewardsByWalletAndEpochRequest) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndEpochRequest)(x)
+}
+
+func (x *QueryRewardsByWalletAndEpochRequest) slowProtoReflect() protoreflect.Message {
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryRewardsByWalletAndEpochRequest_messageType fastReflection_QueryRewardsByWalletAndEpochRequest_messageType
+var _ protoreflect.MessageType = fastReflection_QueryRewardsByWalletAndEpochRequest_messageType{}
+
+type fastReflection_QueryRewardsByWalletAndEpochRequest_messageType struct{}
+
+func (x fastReflection_QueryRewardsByWalletAndEpochRequest_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndEpochRequest)(nil)
+}
+func (x fastReflection_QueryRewardsByWalletAndEpochRequest_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndEpochRequest)
+}
+func (x fastReflection_QueryRewardsByWalletAndEpochRequest_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndEpochRequest
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndEpochRequest
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Type() protoreflect.MessageType {
+	return _fastReflection_QueryRewardsByWalletAndEpochRequest_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndEpochRequest)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Interface() protoreflect.ProtoMessage {
+	return (*QueryRewardsByWalletAndEpochRequest)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.WalletAddress != "" {
+		value := protoreflect.ValueOfString(x.WalletAddress)
+		if !f(fd_QueryRewardsByWalletAndEpochRequest_wallet_address, value) {
+			return
+		}
+	}
+	if x.Epoch != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Epoch)
+		if !f(fd_QueryRewardsByWalletAndEpochRequest_epoch, value) {
+			return
+		}
+	}
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryRewardsByWalletAndEpochRequest_pagination, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.wallet_address":
+		return x.WalletAddress != ""
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.epoch":
+		return x.Epoch != int64(0)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination":
+		return x.Pagination != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.wallet_address":
+		x.WalletAddress = ""
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.epoch":
+		x.Epoch = int64(0)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination":
+		x.Pagination = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.wallet_address":
+		value := x.WalletAddress
+		return protoreflect.ValueOfString(value)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.epoch":
+		value := x.Epoch
+		return protoreflect.ValueOfInt64(value)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.wallet_address":
+		x.WalletAddress = value.Interface().(string)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.epoch":
+		x.Epoch = value.Int()
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageRequest)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageRequest)
+		}
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.wallet_address":
+		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest is not mutable"))
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.epoch":
+		panic(fmt.Errorf("field epoch of message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.wallet_address":
+		return protoreflect.ValueOfString("")
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.epoch":
+		return protoreflect.ValueOfInt64(int64(0))
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination":
+		m := new(v1beta1.PageRequest)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochRequest does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByWalletAndEpochRequest", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryRewardsByWalletAndEpochRequest) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndEpochRequest)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.WalletAddress)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.Epoch != 0 {
+			n += 1 + runtime.Sov(uint64(x.Epoch))
+		}
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndEpochRequest)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x1a
+		}
+		if x.Epoch != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Epoch))
+			i--
+			dAtA[i] = 0x10
+		}
+		if len(x.WalletAddress) > 0 {
+			i -= len(x.WalletAddress)
+			copy(dAtA[i:], x.WalletAddress)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.WalletAddress)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndEpochRequest)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndEpochRequest: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndEpochRequest: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field WalletAddress", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.WalletAddress = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Epoch", wireType)
+				}
+				x.Epoch = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Epoch |= int64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageRequest{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var _ protoreflect.List = (*_QueryRewardsByWalletAndEpochResponse_1_list)(nil)
+
+type _QueryRewardsByWalletAndEpochResponse_1_list struct {
+	list *[]*Reward
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*Reward)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*Reward)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) AppendMutable() protoreflect.Value {
+	v := new(Reward)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) NewElement() protoreflect.Value {
+	v := new(Reward)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_QueryRewardsByWalletAndEpochResponse_1_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_QueryRewardsByWalletAndEpochResponse            protoreflect.MessageDescriptor
+	fd_QueryRewardsByWalletAndEpochResponse_rewards    protoreflect.FieldDescriptor
+	fd_QueryRewardsByWalletAndEpochResponse_pagination protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_stratos_pot_v1_query_proto_init()
+	md_QueryRewardsByWalletAndEpochResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QueryRewardsByWalletAndEpochResponse")
+	fd_QueryRewardsByWalletAndEpochResponse_rewards = md_QueryRewardsByWalletAndEpochResponse.Fields().ByName("rewards")
+	fd_QueryRewardsByWalletAndEpochResponse_pagination = md_QueryRewardsByWalletAndEpochResponse.Fields().ByName("pagination")
+}
+
+var _ protoreflect.Message = (*fastReflection_QueryRewardsByWalletAndEpochResponse)(nil)
+
+type fastReflection_QueryRewardsByWalletAndEpochResponse QueryRewardsByWalletAndEpochResponse
+
+func (x *QueryRewardsByWalletAndEpochResponse) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndEpochResponse)(x)
+}
+
+func (x *QueryRewardsByWalletAndEpochResponse) slowProtoReflect() protoreflect.Message {
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_QueryRewardsByWalletAndEpochResponse_messageType fastReflection_QueryRewardsByWalletAndEpochResponse_messageType
+var _ protoreflect.MessageType = fastReflection_QueryRewardsByWalletAndEpochResponse_messageType{}
+
+type fastReflection_QueryRewardsByWalletAndEpochResponse_messageType struct{}
+
+func (x fastReflection_QueryRewardsByWalletAndEpochResponse_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_QueryRewardsByWalletAndEpochResponse)(nil)
+}
+func (x fastReflection_QueryRewardsByWalletAndEpochResponse_messageType) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndEpochResponse)
+}
+func (x fastReflection_QueryRewardsByWalletAndEpochResponse_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndEpochResponse
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Descriptor() protoreflect.MessageDescriptor {
+	return md_QueryRewardsByWalletAndEpochResponse
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Type() protoreflect.MessageType {
+	return _fastReflection_QueryRewardsByWalletAndEpochResponse_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) New() protoreflect.Message {
+	return new(fastReflection_QueryRewardsByWalletAndEpochResponse)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Interface() protoreflect.ProtoMessage {
+	return (*QueryRewardsByWalletAndEpochResponse)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if len(x.Rewards) != 0 {
+		value := protoreflect.ValueOfList(&_QueryRewardsByWalletAndEpochResponse_1_list{list: &x.Rewards})
+		if !f(fd_QueryRewardsByWalletAndEpochResponse_rewards, value) {
+			return
+		}
+	}
+	if x.Pagination != nil {
+		value := protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+		if !f(fd_QueryRewardsByWalletAndEpochResponse_pagination, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards":
+		return len(x.Rewards) != 0
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination":
+		return x.Pagination != nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards":
+		x.Rewards = nil
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination":
+		x.Pagination = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards":
+		if len(x.Rewards) == 0 {
+			return protoreflect.ValueOfList(&_QueryRewardsByWalletAndEpochResponse_1_list{})
+		}
+		listValue := &_QueryRewardsByWalletAndEpochResponse_1_list{list: &x.Rewards}
+		return protoreflect.ValueOfList(listValue)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination":
+		value := x.Pagination
+		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochResponse does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards":
+		lv := value.List()
+		clv := lv.(*_QueryRewardsByWalletAndEpochResponse_1_list)
+		x.Rewards = *clv.list
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination":
+		x.Pagination = value.Message().Interface().(*v1beta1.PageResponse)
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards":
+		if x.Rewards == nil {
+			x.Rewards = []*Reward{}
+		}
+		value := &_QueryRewardsByWalletAndEpochResponse_1_list{list: &x.Rewards}
+		return protoreflect.ValueOfList(value)
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination":
+		if x.Pagination == nil {
+			x.Pagination = new(v1beta1.PageResponse)
+		}
+		return protoreflect.ValueOfMessage(x.Pagination.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards":
+		list := []*Reward{}
+		return protoreflect.ValueOfList(&_QueryRewardsByWalletAndEpochResponse_1_list{list: &list})
+	case "stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination":
+		m := new(v1beta1.PageResponse)
+		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.QueryRewardsByWalletAndEpochResponse does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.QueryRewardsByWalletAndEpochResponse", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_QueryRewardsByWalletAndEpochResponse) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndEpochResponse)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if len(x.Rewards) > 0 {
+			for _, e := range x.Rewards {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.Pagination != nil {
+			l = options.Size(x.Pagination)
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndEpochResponse)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if x.Pagination != nil {
+			encoded, err := options.Marshal(x.Pagination)
+			if err != nil {
+				return protoiface.MarshalOutput{
+					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+					Buf:               input.Buf,
+				}, err
+			}
+			i -= len(encoded)
+			copy(dAtA[i:], encoded)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+			i--
+			dAtA[i] = 0x12
+		}
+		if len(x.Rewards) > 0 {
+			for iNdEx := len(x.Rewards) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Rewards[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0xa
+			}
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*QueryRewardsByWalletAndEpochResponse)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndEpochResponse: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: QueryRewardsByWalletAndEpochResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Rewards", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Rewards = append(x.Rewards, &Reward{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Rewards[len(x.Rewards)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Pagination", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if x.Pagination == nil {
+					x.Pagination = &v1beta1.PageResponse{}
+				}
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Pagination); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var _ protoreflect.List = (*_RewardByWallet_2_list)(nil)
+
+type _RewardByWallet_2_list struct {
+	list *[]*v1beta11.Coin
+}
+
+func (x *_RewardByWallet_2_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_RewardByWallet_2_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_RewardByWallet_2_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_RewardByWallet_2_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_RewardByWallet_2_list) AppendMutable() protoreflect.Value {
+	v := new(v1beta11.Coin)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_RewardByWallet_2_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_RewardByWallet_2_list) NewElement() protoreflect.Value {
+	v := new(v1beta11.Coin)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_RewardByWallet_2_list) IsValid() bool {
+	return x.list != nil
+}
+
+var _ protoreflect.List = (*_RewardByWallet_3_list)(nil)
+
+type _RewardByWallet_3_list struct {
+	list *[]*v1beta11.Coin
+}
+
+func (x *_RewardByWallet_3_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_RewardByWallet_3_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_RewardByWallet_3_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_RewardByWallet_3_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*v1beta11.Coin)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_RewardByWallet_3_list) AppendMutable() protoreflect.Value {
+	v := new(v1beta11.Coin)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_RewardByWallet_3_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_RewardByWallet_3_list) NewElement() protoreflect.Value {
+	v := new(v1beta11.Coin)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_RewardByWallet_3_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_RewardByWallet                       protoreflect.MessageDescriptor
+	fd_RewardByWallet_wallet_address        protoreflect.FieldDescriptor
+	fd_RewardByWallet_mature_total_reward   protoreflect.FieldDescriptor
+	fd_RewardByWallet_immature_total_reward protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_stratos_pot_v1_query_proto_init()
+	md_RewardByWallet = File_stratos_pot_v1_query_proto.Messages().ByName("RewardByWallet")
+	fd_RewardByWallet_wallet_address = md_RewardByWallet.Fields().ByName("wallet_address")
+	fd_RewardByWallet_mature_total_reward = md_RewardByWallet.Fields().ByName("mature_total_reward")
+	fd_RewardByWallet_immature_total_reward = md_RewardByWallet.Fields().ByName("immature_total_reward")
+}
+
+var _ protoreflect.Message = (*fastReflection_RewardByWallet)(nil)
+
+type fastReflection_RewardByWallet RewardByWallet
+
+func (x *RewardByWallet) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_RewardByWallet)(x)
+}
+
+func (x *RewardByWallet) slowProtoReflect() protoreflect.Message {
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_RewardByWallet_messageType fastReflection_RewardByWallet_messageType
+var _ protoreflect.MessageType = fastReflection_RewardByWallet_messageType{}
+
+type fastReflection_RewardByWallet_messageType struct{}
+
+func (x fastReflection_RewardByWallet_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_RewardByWallet)(nil)
+}
+func (x fastReflection_RewardByWallet_messageType) New() protoreflect.Message {
+	return new(fastReflection_RewardByWallet)
+}
+func (x fastReflection_RewardByWallet_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_RewardByWallet
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_RewardByWallet) Descriptor() protoreflect.MessageDescriptor {
+	return md_RewardByWallet
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_RewardByWallet) Type() protoreflect.MessageType {
+	return _fastReflection_RewardByWallet_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_RewardByWallet) New() protoreflect.Message {
+	return new(fastReflection_RewardByWallet)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_RewardByWallet) Interface() protoreflect.ProtoMessage {
+	return (*RewardByWallet)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_RewardByWallet) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.WalletAddress != "" {
+		value := protoreflect.ValueOfString(x.WalletAddress)
+		if !f(fd_RewardByWallet_wallet_address, value) {
+			return
+		}
+	}
+	if len(x.MatureTotalReward) != 0 {
+		value := protoreflect.ValueOfList(&_RewardByWallet_2_list{list: &x.MatureTotalReward})
+		if !f(fd_RewardByWallet_mature_total_reward, value) {
+			return
+		}
+	}
+	if len(x.ImmatureTotalReward) != 0 {
+		value := protoreflect.ValueOfList(&_RewardByWallet_3_list{list: &x.ImmatureTotalReward})
+		if !f(fd_RewardByWallet_immature_total_reward, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_RewardByWallet) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "stratos.pot.v1.RewardByWallet.wallet_address":
+		return x.WalletAddress != ""
+	case "stratos.pot.v1.RewardByWallet.mature_total_reward":
+		return len(x.MatureTotalReward) != 0
+	case "stratos.pot.v1.RewardByWallet.immature_total_reward":
+		return len(x.ImmatureTotalReward) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByWallet"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.RewardByWallet does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_RewardByWallet) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.RewardByWallet.wallet_address":
+		x.WalletAddress = ""
+	case "stratos.pot.v1.RewardByWallet.mature_total_reward":
+		x.MatureTotalReward = nil
+	case "stratos.pot.v1.RewardByWallet.immature_total_reward":
+		x.ImmatureTotalReward = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByWallet"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.RewardByWallet does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_RewardByWallet) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "stratos.pot.v1.RewardByWallet.wallet_address":
+		value := x.WalletAddress
+		return protoreflect.ValueOfString(value)
+	case "stratos.pot.v1.RewardByWallet.mature_total_reward":
+		if len(x.MatureTotalReward) == 0 {
+			return protoreflect.ValueOfList(&_RewardByWallet_2_list{})
+		}
+		listValue := &_RewardByWallet_2_list{list: &x.MatureTotalReward}
+		return protoreflect.ValueOfList(listValue)
+	case "stratos.pot.v1.RewardByWallet.immature_total_reward":
+		if len(x.ImmatureTotalReward) == 0 {
+			return protoreflect.ValueOfList(&_RewardByWallet_3_list{})
+		}
+		listValue := &_RewardByWallet_3_list{list: &x.ImmatureTotalReward}
+		return protoreflect.ValueOfList(listValue)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByWallet"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.RewardByWallet does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_RewardByWallet) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "stratos.pot.v1.RewardByWallet.wallet_address":
+		x.WalletAddress = value.Interface().(string)
+	case "stratos.pot.v1.RewardByWallet.mature_total_reward":
+		lv := value.List()
+		clv := lv.(*_RewardByWallet_2_list)
+		x.MatureTotalReward = *clv.list
+	case "stratos.pot.v1.RewardByWallet.immature_total_reward":
+		lv := value.List()
+		clv := lv.(*_RewardByWallet_3_list)
+		x.ImmatureTotalReward = *clv.list
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByWallet"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.RewardByWallet does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_RewardByWallet) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.RewardByWallet.mature_total_reward":
+		if x.MatureTotalReward == nil {
+			x.MatureTotalReward = []*v1beta11.Coin{}
+		}
+		value := &_RewardByWallet_2_list{list: &x.MatureTotalReward}
+		return protoreflect.ValueOfList(value)
+	case "stratos.pot.v1.RewardByWallet.immature_total_reward":
+		if x.ImmatureTotalReward == nil {
+			x.ImmatureTotalReward = []*v1beta11.Coin{}
+		}
+		value := &_RewardByWallet_3_list{list: &x.ImmatureTotalReward}
+		return protoreflect.ValueOfList(value)
+	case "stratos.pot.v1.RewardByWallet.wallet_address":
+		panic(fmt.Errorf("field wallet_address of message stratos.pot.v1.RewardByWallet is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByWallet"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.RewardByWallet does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_RewardByWallet) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.pot.v1.RewardByWallet.wallet_address":
+		return protoreflect.ValueOfString("")
+	case "stratos.pot.v1.RewardByWallet.mature_total_reward":
+		list := []*v1beta11.Coin{}
+		return protoreflect.ValueOfList(&_RewardByWallet_2_list{list: &list})
+	case "stratos.pot.v1.RewardByWallet.immature_total_reward":
+		list := []*v1beta11.Coin{}
+		return protoreflect.ValueOfList(&_RewardByWallet_3_list{list: &list})
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.RewardByWallet"))
+		}
+		panic(fmt.Errorf("message stratos.pot.v1.RewardByWallet does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_RewardByWallet) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in stratos.pot.v1.RewardByWallet", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_RewardByWallet) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_RewardByWallet) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_RewardByWallet) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_RewardByWallet) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*RewardByWallet)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4815,7 +6709,7 @@ func (x *fastReflection_RewardByOwner) ProtoMethods() *protoiface.Methods {
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*RewardByOwner)
+		x := input.Message.Interface().(*RewardByWallet)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4884,7 +6778,7 @@ func (x *fastReflection_RewardByOwner) ProtoMethods() *protoiface.Methods {
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*RewardByOwner)
+		x := input.Message.Interface().(*RewardByWallet)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -4916,10 +6810,10 @@ func (x *fastReflection_RewardByOwner) ProtoMethods() *protoiface.Methods {
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: RewardByOwner: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: RewardByWallet: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: RewardByOwner: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: RewardByWallet: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
@@ -5077,7 +6971,7 @@ func (x *QuerySlashingByOwnerRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QuerySlashingByOwnerRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[10]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[14]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5480,14 +7374,12 @@ func (x *fastReflection_QuerySlashingByOwnerRequest) ProtoMethods() *protoiface.
 var (
 	md_QuerySlashingByOwnerResponse          protoreflect.MessageDescriptor
 	fd_QuerySlashingByOwnerResponse_slashing protoreflect.FieldDescriptor
-	fd_QuerySlashingByOwnerResponse_height   protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_query_proto_init()
 	md_QuerySlashingByOwnerResponse = File_stratos_pot_v1_query_proto.Messages().ByName("QuerySlashingByOwnerResponse")
 	fd_QuerySlashingByOwnerResponse_slashing = md_QuerySlashingByOwnerResponse.Fields().ByName("slashing")
-	fd_QuerySlashingByOwnerResponse_height = md_QuerySlashingByOwnerResponse.Fields().ByName("height")
 }
 
 var _ protoreflect.Message = (*fastReflection_QuerySlashingByOwnerResponse)(nil)
@@ -5499,7 +7391,7 @@ func (x *QuerySlashingByOwnerResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QuerySlashingByOwnerResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[11]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[15]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -5561,12 +7453,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) Range(f func(protoreflect.
 			return
 		}
 	}
-	if x.Height != int64(0) {
-		value := protoreflect.ValueOfInt64(x.Height)
-		if !f(fd_QuerySlashingByOwnerResponse_height, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -5584,8 +7470,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) Has(fd protoreflect.FieldD
 	switch fd.FullName() {
 	case "stratos.pot.v1.QuerySlashingByOwnerResponse.slashing":
 		return x.Slashing != ""
-	case "stratos.pot.v1.QuerySlashingByOwnerResponse.height":
-		return x.Height != int64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QuerySlashingByOwnerResponse"))
@@ -5604,8 +7488,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) Clear(fd protoreflect.Fiel
 	switch fd.FullName() {
 	case "stratos.pot.v1.QuerySlashingByOwnerResponse.slashing":
 		x.Slashing = ""
-	case "stratos.pot.v1.QuerySlashingByOwnerResponse.height":
-		x.Height = int64(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QuerySlashingByOwnerResponse"))
@@ -5625,9 +7507,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) Get(descriptor protoreflec
 	case "stratos.pot.v1.QuerySlashingByOwnerResponse.slashing":
 		value := x.Slashing
 		return protoreflect.ValueOfString(value)
-	case "stratos.pot.v1.QuerySlashingByOwnerResponse.height":
-		value := x.Height
-		return protoreflect.ValueOfInt64(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QuerySlashingByOwnerResponse"))
@@ -5650,8 +7529,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) Set(fd protoreflect.FieldD
 	switch fd.FullName() {
 	case "stratos.pot.v1.QuerySlashingByOwnerResponse.slashing":
 		x.Slashing = value.Interface().(string)
-	case "stratos.pot.v1.QuerySlashingByOwnerResponse.height":
-		x.Height = value.Int()
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QuerySlashingByOwnerResponse"))
@@ -5674,8 +7551,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) Mutable(fd protoreflect.Fi
 	switch fd.FullName() {
 	case "stratos.pot.v1.QuerySlashingByOwnerResponse.slashing":
 		panic(fmt.Errorf("field slashing of message stratos.pot.v1.QuerySlashingByOwnerResponse is not mutable"))
-	case "stratos.pot.v1.QuerySlashingByOwnerResponse.height":
-		panic(fmt.Errorf("field height of message stratos.pot.v1.QuerySlashingByOwnerResponse is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QuerySlashingByOwnerResponse"))
@@ -5691,8 +7566,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) NewField(fd protoreflect.F
 	switch fd.FullName() {
 	case "stratos.pot.v1.QuerySlashingByOwnerResponse.slashing":
 		return protoreflect.ValueOfString("")
-	case "stratos.pot.v1.QuerySlashingByOwnerResponse.height":
-		return protoreflect.ValueOfInt64(int64(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.QuerySlashingByOwnerResponse"))
@@ -5766,9 +7639,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) ProtoMethods() *protoiface
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.Height != 0 {
-			n += 1 + runtime.Sov(uint64(x.Height))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -5797,11 +7667,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) ProtoMethods() *protoiface
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.Height != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
-			i--
-			dAtA[i] = 0x10
 		}
 		if len(x.Slashing) > 0 {
 			i -= len(x.Slashing)
@@ -5891,25 +7756,6 @@ func (x *fastReflection_QuerySlashingByOwnerResponse) ProtoMethods() *protoiface
 				}
 				x.Slashing = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
-			case 2:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
-				}
-				x.Height = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.Height |= int64(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -5963,7 +7809,7 @@ func (x *QueryTotalMinedTokenRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryTotalMinedTokenRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[12]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[16]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6321,7 +8167,7 @@ func (x *QueryTotalMinedTokenResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryTotalMinedTokenResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[13]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[17]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -6754,7 +8600,7 @@ func (x *QueryCirculationSupplyRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryCirculationSupplyRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[14]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[18]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7163,7 +9009,7 @@ func (x *QueryCirculationSupplyResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryCirculationSupplyResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[15]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[19]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -7606,7 +9452,7 @@ func (x *QueryTotalRewardByEpochRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryTotalRewardByEpochRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[16]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[20]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8012,7 +9858,7 @@ func (x *QueryTotalRewardByEpochResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryTotalRewardByEpochResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[17]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[21]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8497,7 +10343,7 @@ func (x *QueryMetricsRequest) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryMetricsRequest) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[18]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[22]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -8855,7 +10701,7 @@ func (x *QueryMetricsResponse) ProtoReflect() protoreflect.Message {
 }
 
 func (x *QueryMetricsResponse) slowProtoReflect() protoreflect.Message {
-	mi := &file_stratos_pot_v1_query_proto_msgTypes[19]
+	mi := &file_stratos_pot_v1_query_proto_msgTypes[23]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -9328,7 +11174,6 @@ type QueryVolumeReportResponse struct {
 
 	// node defines the the volumeReport info.
 	ReportInfo *ReportInfo `protobuf:"bytes,1,opt,name=report_info,json=reportInfo,proto3" json:"report_info,omitempty"`
-	Height     int64       `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
 }
 
 func (x *QueryVolumeReportResponse) Reset() {
@@ -9356,13 +11201,6 @@ func (x *QueryVolumeReportResponse) GetReportInfo() *ReportInfo {
 		return x.ReportInfo
 	}
 	return nil
-}
-
-func (x *QueryVolumeReportResponse) GetHeight() int64 {
-	if x != nil {
-		return x.Height
-	}
-	return 0
 }
 
 type ReportInfo struct {
@@ -9494,9 +11332,8 @@ type QueryRewardsByEpochRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Epoch         int64                `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	WalletAddress string               `protobuf:"bytes,2,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
-	Pagination    *v1beta1.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Epoch      int64                `protobuf:"varint,1,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	Pagination *v1beta1.PageRequest `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryRewardsByEpochRequest) Reset() {
@@ -9526,13 +11363,6 @@ func (x *QueryRewardsByEpochRequest) GetEpoch() int64 {
 	return 0
 }
 
-func (x *QueryRewardsByEpochRequest) GetWalletAddress() string {
-	if x != nil {
-		return x.WalletAddress
-	}
-	return ""
-}
-
 func (x *QueryRewardsByEpochRequest) GetPagination() *v1beta1.PageRequest {
 	if x != nil {
 		return x.Pagination
@@ -9547,8 +11377,7 @@ type QueryRewardsByEpochResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Rewards    []*Reward             `protobuf:"bytes,1,rep,name=rewards,proto3" json:"rewards,omitempty"`
-	Height     int64                 `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
-	Pagination *v1beta1.PageResponse `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 }
 
 func (x *QueryRewardsByEpochResponse) Reset() {
@@ -9578,13 +11407,6 @@ func (x *QueryRewardsByEpochResponse) GetRewards() []*Reward {
 	return nil
 }
 
-func (x *QueryRewardsByEpochResponse) GetHeight() int64 {
-	if x != nil {
-		return x.Height
-	}
-	return 0
-}
-
 func (x *QueryRewardsByEpochResponse) GetPagination() *v1beta1.PageResponse {
 	if x != nil {
 		return x.Pagination
@@ -9593,7 +11415,7 @@ func (x *QueryRewardsByEpochResponse) GetPagination() *v1beta1.PageResponse {
 }
 
 // QueryRewardsByOwnerRequest is request type for the Query/RewardsByOwner by a given owner RPC method
-type QueryRewardsByOwnerRequest struct {
+type QueryRewardsByWalletRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -9601,8 +11423,8 @@ type QueryRewardsByOwnerRequest struct {
 	WalletAddress string `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
 }
 
-func (x *QueryRewardsByOwnerRequest) Reset() {
-	*x = QueryRewardsByOwnerRequest{}
+func (x *QueryRewardsByWalletRequest) Reset() {
+	*x = QueryRewardsByWalletRequest{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_stratos_pot_v1_query_proto_msgTypes[7]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -9610,18 +11432,18 @@ func (x *QueryRewardsByOwnerRequest) Reset() {
 	}
 }
 
-func (x *QueryRewardsByOwnerRequest) String() string {
+func (x *QueryRewardsByWalletRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*QueryRewardsByOwnerRequest) ProtoMessage() {}
+func (*QueryRewardsByWalletRequest) ProtoMessage() {}
 
-// Deprecated: Use QueryRewardsByOwnerRequest.ProtoReflect.Descriptor instead.
-func (*QueryRewardsByOwnerRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use QueryRewardsByWalletRequest.ProtoReflect.Descriptor instead.
+func (*QueryRewardsByWalletRequest) Descriptor() ([]byte, []int) {
 	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{7}
 }
 
-func (x *QueryRewardsByOwnerRequest) GetWalletAddress() string {
+func (x *QueryRewardsByWalletRequest) GetWalletAddress() string {
 	if x != nil {
 		return x.WalletAddress
 	}
@@ -9629,17 +11451,16 @@ func (x *QueryRewardsByOwnerRequest) GetWalletAddress() string {
 }
 
 // QueryRewardsByOwnerResponse is response type for the Query/RewardsByOwner RPC method
-type QueryRewardsByOwnerResponse struct {
+type QueryRewardsByWalletResponse struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Rewards *RewardByOwner `protobuf:"bytes,1,opt,name=rewards,proto3" json:"rewards,omitempty"`
-	Height  int64          `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
+	Rewards *RewardByWallet `protobuf:"bytes,1,opt,name=rewards,proto3" json:"rewards,omitempty"`
 }
 
-func (x *QueryRewardsByOwnerResponse) Reset() {
-	*x = QueryRewardsByOwnerResponse{}
+func (x *QueryRewardsByWalletResponse) Reset() {
+	*x = QueryRewardsByWalletResponse{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_stratos_pot_v1_query_proto_msgTypes[8]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -9647,32 +11468,205 @@ func (x *QueryRewardsByOwnerResponse) Reset() {
 	}
 }
 
-func (x *QueryRewardsByOwnerResponse) String() string {
+func (x *QueryRewardsByWalletResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*QueryRewardsByOwnerResponse) ProtoMessage() {}
+func (*QueryRewardsByWalletResponse) ProtoMessage() {}
 
-// Deprecated: Use QueryRewardsByOwnerResponse.ProtoReflect.Descriptor instead.
-func (*QueryRewardsByOwnerResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use QueryRewardsByWalletResponse.ProtoReflect.Descriptor instead.
+func (*QueryRewardsByWalletResponse) Descriptor() ([]byte, []int) {
 	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *QueryRewardsByOwnerResponse) GetRewards() *RewardByOwner {
+func (x *QueryRewardsByWalletResponse) GetRewards() *RewardByWallet {
 	if x != nil {
 		return x.Rewards
 	}
 	return nil
 }
 
-func (x *QueryRewardsByOwnerResponse) GetHeight() int64 {
+type QueryRewardsByWalletAndHeightRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	WalletAddress string               `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
+	Height        int64                `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
+	Pagination    *v1beta1.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryRewardsByWalletAndHeightRequest) Reset() {
+	*x = QueryRewardsByWalletAndHeightRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryRewardsByWalletAndHeightRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryRewardsByWalletAndHeightRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryRewardsByWalletAndHeightRequest.ProtoReflect.Descriptor instead.
+func (*QueryRewardsByWalletAndHeightRequest) Descriptor() ([]byte, []int) {
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *QueryRewardsByWalletAndHeightRequest) GetWalletAddress() string {
+	if x != nil {
+		return x.WalletAddress
+	}
+	return ""
+}
+
+func (x *QueryRewardsByWalletAndHeightRequest) GetHeight() int64 {
 	if x != nil {
 		return x.Height
 	}
 	return 0
 }
 
-type RewardByOwner struct {
+func (x *QueryRewardsByWalletAndHeightRequest) GetPagination() *v1beta1.PageRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type QueryRewardsByWalletAndHeightResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Rewards *RewardByWallet `protobuf:"bytes,1,opt,name=rewards,proto3" json:"rewards,omitempty"`
+}
+
+func (x *QueryRewardsByWalletAndHeightResponse) Reset() {
+	*x = QueryRewardsByWalletAndHeightResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryRewardsByWalletAndHeightResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryRewardsByWalletAndHeightResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryRewardsByWalletAndHeightResponse.ProtoReflect.Descriptor instead.
+func (*QueryRewardsByWalletAndHeightResponse) Descriptor() ([]byte, []int) {
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *QueryRewardsByWalletAndHeightResponse) GetRewards() *RewardByWallet {
+	if x != nil {
+		return x.Rewards
+	}
+	return nil
+}
+
+type QueryRewardsByWalletAndEpochRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	WalletAddress string               `protobuf:"bytes,1,opt,name=wallet_address,json=walletAddress,proto3" json:"wallet_address,omitempty"`
+	Epoch         int64                `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	Pagination    *v1beta1.PageRequest `protobuf:"bytes,3,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryRewardsByWalletAndEpochRequest) Reset() {
+	*x = QueryRewardsByWalletAndEpochRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryRewardsByWalletAndEpochRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryRewardsByWalletAndEpochRequest) ProtoMessage() {}
+
+// Deprecated: Use QueryRewardsByWalletAndEpochRequest.ProtoReflect.Descriptor instead.
+func (*QueryRewardsByWalletAndEpochRequest) Descriptor() ([]byte, []int) {
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *QueryRewardsByWalletAndEpochRequest) GetWalletAddress() string {
+	if x != nil {
+		return x.WalletAddress
+	}
+	return ""
+}
+
+func (x *QueryRewardsByWalletAndEpochRequest) GetEpoch() int64 {
+	if x != nil {
+		return x.Epoch
+	}
+	return 0
+}
+
+func (x *QueryRewardsByWalletAndEpochRequest) GetPagination() *v1beta1.PageRequest {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type QueryRewardsByWalletAndEpochResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Rewards    []*Reward             `protobuf:"bytes,1,rep,name=rewards,proto3" json:"rewards,omitempty"`
+	Pagination *v1beta1.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
+}
+
+func (x *QueryRewardsByWalletAndEpochResponse) Reset() {
+	*x = QueryRewardsByWalletAndEpochResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *QueryRewardsByWalletAndEpochResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*QueryRewardsByWalletAndEpochResponse) ProtoMessage() {}
+
+// Deprecated: Use QueryRewardsByWalletAndEpochResponse.ProtoReflect.Descriptor instead.
+func (*QueryRewardsByWalletAndEpochResponse) Descriptor() ([]byte, []int) {
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *QueryRewardsByWalletAndEpochResponse) GetRewards() []*Reward {
+	if x != nil {
+		return x.Rewards
+	}
+	return nil
+}
+
+func (x *QueryRewardsByWalletAndEpochResponse) GetPagination() *v1beta1.PageResponse {
+	if x != nil {
+		return x.Pagination
+	}
+	return nil
+}
+
+type RewardByWallet struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -9682,41 +11676,41 @@ type RewardByOwner struct {
 	ImmatureTotalReward []*v1beta11.Coin `protobuf:"bytes,3,rep,name=immature_total_reward,json=immatureTotalReward,proto3" json:"immature_total_reward,omitempty"`
 }
 
-func (x *RewardByOwner) Reset() {
-	*x = RewardByOwner{}
+func (x *RewardByWallet) Reset() {
+	*x = RewardByWallet{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[9]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
 }
 
-func (x *RewardByOwner) String() string {
+func (x *RewardByWallet) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RewardByOwner) ProtoMessage() {}
+func (*RewardByWallet) ProtoMessage() {}
 
-// Deprecated: Use RewardByOwner.ProtoReflect.Descriptor instead.
-func (*RewardByOwner) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{9}
+// Deprecated: Use RewardByWallet.ProtoReflect.Descriptor instead.
+func (*RewardByWallet) Descriptor() ([]byte, []int) {
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{13}
 }
 
-func (x *RewardByOwner) GetWalletAddress() string {
+func (x *RewardByWallet) GetWalletAddress() string {
 	if x != nil {
 		return x.WalletAddress
 	}
 	return ""
 }
 
-func (x *RewardByOwner) GetMatureTotalReward() []*v1beta11.Coin {
+func (x *RewardByWallet) GetMatureTotalReward() []*v1beta11.Coin {
 	if x != nil {
 		return x.MatureTotalReward
 	}
 	return nil
 }
 
-func (x *RewardByOwner) GetImmatureTotalReward() []*v1beta11.Coin {
+func (x *RewardByWallet) GetImmatureTotalReward() []*v1beta11.Coin {
 	if x != nil {
 		return x.ImmatureTotalReward
 	}
@@ -9735,7 +11729,7 @@ type QuerySlashingByOwnerRequest struct {
 func (x *QuerySlashingByOwnerRequest) Reset() {
 	*x = QuerySlashingByOwnerRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[10]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[14]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9749,7 +11743,7 @@ func (*QuerySlashingByOwnerRequest) ProtoMessage() {}
 
 // Deprecated: Use QuerySlashingByOwnerRequest.ProtoReflect.Descriptor instead.
 func (*QuerySlashingByOwnerRequest) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{10}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *QuerySlashingByOwnerRequest) GetWalletAddress() string {
@@ -9766,13 +11760,12 @@ type QuerySlashingByOwnerResponse struct {
 	unknownFields protoimpl.UnknownFields
 
 	Slashing string `protobuf:"bytes,1,opt,name=slashing,proto3" json:"slashing,omitempty"`
-	Height   int64  `protobuf:"varint,2,opt,name=height,proto3" json:"height,omitempty"`
 }
 
 func (x *QuerySlashingByOwnerResponse) Reset() {
 	*x = QuerySlashingByOwnerResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[11]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[15]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9786,7 +11779,7 @@ func (*QuerySlashingByOwnerResponse) ProtoMessage() {}
 
 // Deprecated: Use QuerySlashingByOwnerResponse.ProtoReflect.Descriptor instead.
 func (*QuerySlashingByOwnerResponse) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{11}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *QuerySlashingByOwnerResponse) GetSlashing() string {
@@ -9794,13 +11787,6 @@ func (x *QuerySlashingByOwnerResponse) GetSlashing() string {
 		return x.Slashing
 	}
 	return ""
-}
-
-func (x *QuerySlashingByOwnerResponse) GetHeight() int64 {
-	if x != nil {
-		return x.Height
-	}
-	return 0
 }
 
 type QueryTotalMinedTokenRequest struct {
@@ -9812,7 +11798,7 @@ type QueryTotalMinedTokenRequest struct {
 func (x *QueryTotalMinedTokenRequest) Reset() {
 	*x = QueryTotalMinedTokenRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[12]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[16]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9826,7 +11812,7 @@ func (*QueryTotalMinedTokenRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryTotalMinedTokenRequest.ProtoReflect.Descriptor instead.
 func (*QueryTotalMinedTokenRequest) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{12}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{16}
 }
 
 type QueryTotalMinedTokenResponse struct {
@@ -9840,7 +11826,7 @@ type QueryTotalMinedTokenResponse struct {
 func (x *QueryTotalMinedTokenResponse) Reset() {
 	*x = QueryTotalMinedTokenResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[13]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[17]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9854,7 +11840,7 @@ func (*QueryTotalMinedTokenResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryTotalMinedTokenResponse.ProtoReflect.Descriptor instead.
 func (*QueryTotalMinedTokenResponse) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{13}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *QueryTotalMinedTokenResponse) GetTotalMinedToken() *v1beta11.Coin {
@@ -9873,7 +11859,7 @@ type QueryCirculationSupplyRequest struct {
 func (x *QueryCirculationSupplyRequest) Reset() {
 	*x = QueryCirculationSupplyRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[14]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[18]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9887,7 +11873,7 @@ func (*QueryCirculationSupplyRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryCirculationSupplyRequest.ProtoReflect.Descriptor instead.
 func (*QueryCirculationSupplyRequest) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{14}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{18}
 }
 
 type QueryCirculationSupplyResponse struct {
@@ -9901,7 +11887,7 @@ type QueryCirculationSupplyResponse struct {
 func (x *QueryCirculationSupplyResponse) Reset() {
 	*x = QueryCirculationSupplyResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[15]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[19]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9915,7 +11901,7 @@ func (*QueryCirculationSupplyResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryCirculationSupplyResponse.ProtoReflect.Descriptor instead.
 func (*QueryCirculationSupplyResponse) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{15}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *QueryCirculationSupplyResponse) GetCirculationSupply() []*v1beta11.Coin {
@@ -9936,7 +11922,7 @@ type QueryTotalRewardByEpochRequest struct {
 func (x *QueryTotalRewardByEpochRequest) Reset() {
 	*x = QueryTotalRewardByEpochRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[16]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[20]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9950,7 +11936,7 @@ func (*QueryTotalRewardByEpochRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryTotalRewardByEpochRequest.ProtoReflect.Descriptor instead.
 func (*QueryTotalRewardByEpochRequest) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{16}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *QueryTotalRewardByEpochRequest) GetEpoch() int64 {
@@ -9972,7 +11958,7 @@ type QueryTotalRewardByEpochResponse struct {
 func (x *QueryTotalRewardByEpochResponse) Reset() {
 	*x = QueryTotalRewardByEpochResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[17]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[21]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -9986,7 +11972,7 @@ func (*QueryTotalRewardByEpochResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryTotalRewardByEpochResponse.ProtoReflect.Descriptor instead.
 func (*QueryTotalRewardByEpochResponse) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{17}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *QueryTotalRewardByEpochResponse) GetTotalReward() *TotalReward {
@@ -10012,7 +11998,7 @@ type QueryMetricsRequest struct {
 func (x *QueryMetricsRequest) Reset() {
 	*x = QueryMetricsRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[18]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[22]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10026,7 +12012,7 @@ func (*QueryMetricsRequest) ProtoMessage() {}
 
 // Deprecated: Use QueryMetricsRequest.ProtoReflect.Descriptor instead.
 func (*QueryMetricsRequest) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{18}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{22}
 }
 
 type QueryMetricsResponse struct {
@@ -10040,7 +12026,7 @@ type QueryMetricsResponse struct {
 func (x *QueryMetricsResponse) Reset() {
 	*x = QueryMetricsResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_stratos_pot_v1_query_proto_msgTypes[19]
+		mi := &file_stratos_pot_v1_query_proto_msgTypes[23]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -10054,7 +12040,7 @@ func (*QueryMetricsResponse) ProtoMessage() {}
 
 // Deprecated: Use QueryMetricsResponse.ProtoReflect.Descriptor instead.
 func (*QueryMetricsResponse) Descriptor() ([]byte, []int) {
-	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{19}
+	return file_stratos_pot_v1_query_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *QueryMetricsResponse) GetMetrics() *Metrics {
@@ -10082,89 +12068,119 @@ var file_stratos_pot_v1_query_proto_rawDesc = []byte{
 	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x22, 0x30, 0x0a, 0x18, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56,
 	0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65,
 	0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28,
-	0x03, 0x52, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x22, 0x70, 0x0a, 0x19, 0x51, 0x75, 0x65, 0x72,
+	0x03, 0x52, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x22, 0x58, 0x0a, 0x19, 0x51, 0x75, 0x65, 0x72,
 	0x79, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x52, 0x65, 0x73,
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x3b, 0x0a, 0x0b, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x5f,
 	0x69, 0x6e, 0x66, 0x6f, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x73, 0x74, 0x72,
 	0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x70, 0x6f,
 	0x72, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x0a, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x49, 0x6e,
-	0x66, 0x6f, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x22, 0x75, 0x0a, 0x0a, 0x52, 0x65,
-	0x70, 0x6f, 0x72, 0x74, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x70, 0x6f, 0x63,
-	0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x1c,
-	0x0a, 0x09, 0x72, 0x65, 0x66, 0x65, 0x72, 0x65, 0x6e, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x09, 0x72, 0x65, 0x66, 0x65, 0x72, 0x65, 0x6e, 0x63, 0x65, 0x12, 0x17, 0x0a, 0x07,
-	0x74, 0x78, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74,
-	0x78, 0x48, 0x61, 0x73, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x65,
-	0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x65,
-	0x72, 0x22, 0x14, 0x0a, 0x12, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73,
-	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x45, 0x0a, 0x13, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2e,
-	0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16,
-	0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e,
-	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0xa1,
-	0x01, 0x0a, 0x1a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42,
-	0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a,
-	0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x65, 0x70,
-	0x6f, 0x63, 0x68, 0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x77, 0x61, 0x6c,
-	0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61,
-	0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26,
+	0x66, 0x6f, 0x22, 0x75, 0x0a, 0x0a, 0x52, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x49, 0x6e, 0x66, 0x6f,
+	0x12, 0x14, 0x0a, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x1c, 0x0a, 0x09, 0x72, 0x65, 0x66, 0x65, 0x72, 0x65,
+	0x6e, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x72, 0x65, 0x66, 0x65, 0x72,
+	0x65, 0x6e, 0x63, 0x65, 0x12, 0x17, 0x0a, 0x07, 0x74, 0x78, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18,
+	0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74, 0x78, 0x48, 0x61, 0x73, 0x68, 0x12, 0x1a, 0x0a,
+	0x08, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x72, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x08, 0x72, 0x65, 0x70, 0x6f, 0x72, 0x74, 0x65, 0x72, 0x22, 0x14, 0x0a, 0x12, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22,
+	0x45, 0x0a, 0x13, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x2e, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
+	0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x06,
+	0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0x7a, 0x0a, 0x1a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52,
+	0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61,
+	0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26,
 	0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65,
 	0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x22, 0xb0, 0x01, 0x0a, 0x1b, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61,
+	0x6f, 0x6e, 0x22, 0x98, 0x01, 0x0a, 0x1b, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61,
 	0x72, 0x64, 0x73, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
 	0x73, 0x65, 0x12, 0x30, 0x0a, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20,
 	0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f,
 	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x52, 0x07, 0x72, 0x65, 0x77,
-	0x61, 0x72, 0x64, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x02,
-	0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x47, 0x0a, 0x0a,
-	0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x27, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71,
-	0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67,
-	0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e,
-	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x43, 0x0a, 0x1a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65,
-	0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64,
-	0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x77, 0x61, 0x6c,
-	0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x6e, 0x0a, 0x1b, 0x51, 0x75,
-	0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65,
-	0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x37, 0x0a, 0x07, 0x72, 0x65, 0x77,
-	0x61, 0x72, 0x64, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1d, 0x2e, 0x73, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x77, 0x61,
-	0x72, 0x64, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72,
-	0x64, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x02, 0x20, 0x01,
-	0x28, 0x03, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x22, 0xb4, 0x02, 0x0a, 0x0d, 0x52,
-	0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x12, 0x25, 0x0a, 0x0e,
+	0x61, 0x72, 0x64, 0x73, 0x12, 0x47, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69,
+	0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31, 0x62,
+	0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x44, 0x0a,
+	0x1b, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57,
+	0x61, 0x6c, 0x6c, 0x65, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e,
 	0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01,
 	0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72,
-	0x65, 0x73, 0x73, 0x12, 0x7b, 0x0a, 0x13, 0x6d, 0x61, 0x74, 0x75, 0x72, 0x65, 0x5f, 0x74, 0x6f,
-	0x74, 0x61, 0x6c, 0x5f, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b,
-	0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76,
-	0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x30, 0xc8, 0xde, 0x1f,
-	0x00, 0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f,
-	0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2d, 0x73, 0x64,
-	0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x73, 0x52, 0x11, 0x6d,
-	0x61, 0x74, 0x75, 0x72, 0x65, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64,
-	0x12, 0x7f, 0x0a, 0x15, 0x69, 0x6d, 0x6d, 0x61, 0x74, 0x75, 0x72, 0x65, 0x5f, 0x74, 0x6f, 0x74,
-	0x61, 0x6c, 0x5f, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32,
-	0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31,
-	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x42, 0x30, 0xc8, 0xde, 0x1f, 0x00,
-	0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63,
-	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b,
-	0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43, 0x6f, 0x69, 0x6e, 0x73, 0x52, 0x13, 0x69, 0x6d,
-	0x6d, 0x61, 0x74, 0x75, 0x72, 0x65, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61, 0x72,
-	0x64, 0x22, 0x44, 0x0a, 0x1b, 0x51, 0x75, 0x65, 0x72, 0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69,
-	0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65,
-	0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74,
-	0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22, 0x52, 0x0a, 0x1c, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52,
-	0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x6c, 0x61, 0x73, 0x68,
-	0x69, 0x6e, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x73, 0x6c, 0x61, 0x73, 0x68,
-	0x69, 0x6e, 0x67, 0x12, 0x16, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x02, 0x20,
-	0x01, 0x28, 0x03, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x22, 0x1d, 0x0a, 0x1b, 0x51,
+	0x65, 0x73, 0x73, 0x22, 0x58, 0x0a, 0x1c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61,
+	0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x12, 0x38, 0x0a, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70,
+	0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x57, 0x61,
+	0x6c, 0x6c, 0x65, 0x74, 0x52, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x22, 0xad, 0x01,
+	0x0a, 0x24, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79,
+	0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x48, 0x65, 0x69, 0x67, 0x68, 0x74, 0x52,
+	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74,
+	0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d,
+	0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x16, 0x0a,
+	0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x68,
+	0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0x61, 0x0a,
+	0x25, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57,
+	0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x48, 0x65, 0x69, 0x67, 0x68, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x38, 0x0a, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64,
+	0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x1e, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f,
+	0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42,
+	0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x52, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73,
+	0x22, 0xaa, 0x01, 0x0a, 0x23, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64,
+	0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x45, 0x70, 0x6f, 0x63,
+	0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c,
+	0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0d, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12,
+	0x14, 0x0a, 0x05, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05,
+	0x65, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x46, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79, 0x2e, 0x76, 0x31,
+	0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x22, 0xa1, 0x01,
+	0x0a, 0x24, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79,
+	0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x30, 0x0a, 0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64,
+	0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x16, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f,
+	0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x52,
+	0x07, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x12, 0x47, 0x0a, 0x0a, 0x70, 0x61, 0x67, 0x69,
+	0x6e, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x27, 0x2e, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x71, 0x75, 0x65, 0x72, 0x79,
+	0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x50, 0x61, 0x67, 0x65, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x52, 0x0a, 0x70, 0x61, 0x67, 0x69, 0x6e, 0x61, 0x74, 0x69, 0x6f,
+	0x6e, 0x22, 0xb5, 0x02, 0x0a, 0x0e, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x57, 0x61,
+	0x6c, 0x6c, 0x65, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61,
+	0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x77, 0x61,
+	0x6c, 0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x7b, 0x0a, 0x13, 0x6d,
+	0x61, 0x74, 0x75, 0x72, 0x65, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x72, 0x65, 0x77, 0x61,
+	0x72, 0x64, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f,
+	0x73, 0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43,
+	0x6f, 0x69, 0x6e, 0x42, 0x30, 0xc8, 0xde, 0x1f, 0x00, 0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74,
+	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63,
+	0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e,
+	0x43, 0x6f, 0x69, 0x6e, 0x73, 0x52, 0x11, 0x6d, 0x61, 0x74, 0x75, 0x72, 0x65, 0x54, 0x6f, 0x74,
+	0x61, 0x6c, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x12, 0x7f, 0x0a, 0x15, 0x69, 0x6d, 0x6d, 0x61,
+	0x74, 0x75, 0x72, 0x65, 0x5f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x72, 0x65, 0x77, 0x61, 0x72,
+	0x64, 0x18, 0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
+	0x2e, 0x62, 0x61, 0x73, 0x65, 0x2e, 0x76, 0x31, 0x62, 0x65, 0x74, 0x61, 0x31, 0x2e, 0x43, 0x6f,
+	0x69, 0x6e, 0x42, 0x30, 0xc8, 0xde, 0x1f, 0x00, 0xaa, 0xdf, 0x1f, 0x28, 0x67, 0x69, 0x74, 0x68,
+	0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2f, 0x63, 0x6f,
+	0x73, 0x6d, 0x6f, 0x73, 0x2d, 0x73, 0x64, 0x6b, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x2e, 0x43,
+	0x6f, 0x69, 0x6e, 0x73, 0x52, 0x13, 0x69, 0x6d, 0x6d, 0x61, 0x74, 0x75, 0x72, 0x65, 0x54, 0x6f,
+	0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x22, 0x44, 0x0a, 0x1b, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65,
+	0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x77, 0x61, 0x6c, 0x6c,
+	0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0d, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x22,
+	0x3a, 0x0a, 0x1c, 0x51, 0x75, 0x65, 0x72, 0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67,
+	0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
+	0x1a, 0x0a, 0x08, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x08, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x22, 0x1d, 0x0a, 0x1b, 0x51,
 	0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x69, 0x6e, 0x65, 0x64, 0x54, 0x6f,
 	0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x9c, 0x01, 0x0a, 0x1c, 0x51,
 	0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x69, 0x6e, 0x65, 0x64, 0x54, 0x6f,
@@ -10211,7 +12227,7 @@ var file_stratos_pot_v1_query_proto_rawDesc = []byte{
 	0x65, 0x12, 0x37, 0x0a, 0x07, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x17, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74,
 	0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x42, 0x04, 0xc8, 0xde, 0x1f,
-	0x00, 0x52, 0x07, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x32, 0xc9, 0x0a, 0x0a, 0x05, 0x51,
+	0x00, 0x52, 0x07, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x32, 0xed, 0x0d, 0x0a, 0x05, 0x51,
 	0x75, 0x65, 0x72, 0x79, 0x12, 0x92, 0x01, 0x0a, 0x0c, 0x56, 0x6f, 0x6c, 0x75, 0x6d, 0x65, 0x52,
 	0x65, 0x70, 0x6f, 0x72, 0x74, 0x12, 0x28, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e,
 	0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x56, 0x6f, 0x6c, 0x75,
@@ -10231,83 +12247,109 @@ var file_stratos_pot_v1_query_proto_rawDesc = []byte{
 	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2d, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x27, 0x12, 0x25, 0x2f,
 	0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x72,
 	0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x2f, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x2f, 0x7b, 0x65, 0x70,
-	0x6f, 0x63, 0x68, 0x7d, 0x12, 0xa2, 0x01, 0x0a, 0x0e, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73,
-	0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x12, 0x2a, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f,
-	0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65,
-	0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75,
-	0x65, 0x73, 0x74, 0x1a, 0x2b, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f,
-	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64,
-	0x73, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65,
-	0x22, 0x37, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x31, 0x12, 0x2f, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74,
-	0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64,
-	0x73, 0x2f, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x2f, 0x7b, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74,
-	0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x7d, 0x12, 0x9f, 0x01, 0x0a, 0x0f, 0x53, 0x6c,
-	0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x12, 0x2b, 0x2e,
-	0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77,
-	0x6e, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x73, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72,
-	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x31, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x2b,
-	0x12, 0x29, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76,
-	0x31, 0x2f, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x2f, 0x7b, 0x77, 0x61, 0x6c, 0x6c,
-	0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x7d, 0x12, 0x71, 0x0a, 0x06, 0x50,
-	0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x22, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e,
-	0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61,
-	0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x73, 0x74, 0x72, 0x61,
+	0x6f, 0x63, 0x68, 0x7d, 0x12, 0xa5, 0x01, 0x0a, 0x0f, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73,
+	0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x12, 0x2b, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74,
+	0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52,
+	0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e,
+	0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61,
+	0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x52, 0x65, 0x73, 0x70, 0x6f,
+	0x6e, 0x73, 0x65, 0x22, 0x37, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x31, 0x12, 0x2f, 0x2f, 0x73, 0x74,
+	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x72, 0x65, 0x77,
+	0x61, 0x72, 0x64, 0x73, 0x2f, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x2f, 0x7b, 0x77, 0x61, 0x6c,
+	0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x7d, 0x12, 0xd0, 0x01, 0x0a,
+	0x18, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74,
+	0x41, 0x6e, 0x64, 0x48, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x34, 0x2e, 0x73, 0x74, 0x72, 0x61,
 	0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
-	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1e,
-	0x82, 0xd3, 0xe4, 0x93, 0x02, 0x18, 0x12, 0x16, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
-	0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x97,
-	0x01, 0x0a, 0x0f, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x69, 0x6e, 0x65, 0x64, 0x54, 0x6f, 0x6b,
-	0x65, 0x6e, 0x12, 0x2b, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74,
-	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x69,
-	0x6e, 0x65, 0x64, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x2c, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31,
-	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x69, 0x6e, 0x65, 0x64,
-	0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x29, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x23, 0x12, 0x21, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f,
-	0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x6d, 0x69, 0x6e,
-	0x65, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x9e, 0x01, 0x0a, 0x11, 0x43, 0x69, 0x72,
-	0x63, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x12, 0x2d,
+	0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41,
+	0x6e, 0x64, 0x48, 0x65, 0x69, 0x67, 0x68, 0x74, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
+	0x35, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31,
+	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57,
+	0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x48, 0x65, 0x69, 0x67, 0x68, 0x74, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x47, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x41, 0x12, 0x3f,
+	0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f,
+	0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x2f, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x2f, 0x7b,
+	0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x7d, 0x2f,
+	0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x2f, 0x7b, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x7d, 0x12,
+	0xcb, 0x01, 0x0a, 0x17, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c,
+	0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x12, 0x33, 0x2e, 0x73, 0x74,
+	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65,
+	0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79, 0x57, 0x61, 0x6c, 0x6c, 0x65,
+	0x74, 0x41, 0x6e, 0x64, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x1a, 0x34, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76,
+	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x42, 0x79,
+	0x57, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x41, 0x6e, 0x64, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65,
+	0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x45, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x3f, 0x12, 0x3d,
+	0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f,
+	0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x73, 0x2f, 0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x2f, 0x7b,
+	0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x7d, 0x2f,
+	0x65, 0x70, 0x6f, 0x63, 0x68, 0x2f, 0x7b, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x7d, 0x12, 0x9f, 0x01,
+	0x0a, 0x0f, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65,
+	0x72, 0x12, 0x2b, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e,
+	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67,
+	0x42, 0x79, 0x4f, 0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2c,
 	0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e,
-	0x51, 0x75, 0x65, 0x72, 0x79, 0x43, 0x69, 0x72, 0x63, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x2e, 0x2e,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x53, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x42, 0x79, 0x4f,
+	0x77, 0x6e, 0x65, 0x72, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x31, 0x82, 0xd3,
+	0xe4, 0x93, 0x02, 0x2b, 0x12, 0x29, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70,
+	0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x73, 0x6c, 0x61, 0x73, 0x68, 0x69, 0x6e, 0x67, 0x2f, 0x7b,
+	0x77, 0x61, 0x6c, 0x6c, 0x65, 0x74, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x7d, 0x12,
+	0x71, 0x0a, 0x06, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x22, 0x2e, 0x73, 0x74, 0x72, 0x61,
+	0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79,
+	0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e,
 	0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x43, 0x69, 0x72, 0x63, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53,
-	0x75, 0x70, 0x70, 0x6c, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2a, 0x82,
-	0xd3, 0xe4, 0x93, 0x02, 0x24, 0x12, 0x22, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f,
-	0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x69, 0x72, 0x63, 0x75, 0x6c, 0x61, 0x74, 0x69,
-	0x6f, 0x6e, 0x5f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x12, 0xa3, 0x01, 0x0a, 0x12, 0x54, 0x6f,
-	0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68,
-	0x12, 0x2e, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61,
-	0x72, 0x64, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
-	0x1a, 0x2f, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76,
-	0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61,
-	0x72, 0x64, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x22, 0x2c, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x26, 0x12, 0x24, 0x2f, 0x73, 0x74, 0x72, 0x61,
+	0x75, 0x65, 0x72, 0x79, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
+	0x73, 0x65, 0x22, 0x1e, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x18, 0x12, 0x16, 0x2f, 0x73, 0x74, 0x72,
+	0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x70, 0x61, 0x72, 0x61,
+	0x6d, 0x73, 0x12, 0x97, 0x01, 0x0a, 0x0f, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d, 0x69, 0x6e, 0x65,
+	0x64, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x2b, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
+	0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74,
+	0x61, 0x6c, 0x4d, 0x69, 0x6e, 0x65, 0x64, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x2c, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f,
+	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x4d,
+	0x69, 0x6e, 0x65, 0x64, 0x54, 0x6f, 0x6b, 0x65, 0x6e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x29, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x23, 0x12, 0x21, 0x2f, 0x73, 0x74, 0x72, 0x61,
 	0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x74, 0x6f, 0x74, 0x61, 0x6c,
-	0x5f, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x2f, 0x7b, 0x65, 0x70, 0x6f, 0x63, 0x68, 0x7d, 0x12,
-	0x75, 0x0a, 0x07, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x12, 0x23, 0x2e, 0x73, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72,
-	0x79, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a,
-	0x24, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31,
-	0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x52, 0x65, 0x73,
-	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1f, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x19, 0x12, 0x17, 0x2f,
-	0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x6d,
-	0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x42, 0xa1, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x73,
-	0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x51,
-	0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74,
-	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x70, 0x6f, 0x74,
-	0x76, 0x31, 0xa2, 0x02, 0x03, 0x53, 0x50, 0x58, 0xaa, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74,
-	0x6f, 0x73, 0x2e, 0x50, 0x6f, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61,
-	0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1a, 0x53, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f,
-	0x73, 0x3a, 0x3a, 0x50, 0x6f, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x5f, 0x6d, 0x69, 0x6e, 0x65, 0x64, 0x5f, 0x74, 0x6f, 0x6b, 0x65, 0x6e, 0x12, 0x9e, 0x01, 0x0a,
+	0x11, 0x43, 0x69, 0x72, 0x63, 0x75, 0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x70, 0x70,
+	0x6c, 0x79, 0x12, 0x2d, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74,
+	0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x43, 0x69, 0x72, 0x63, 0x75, 0x6c, 0x61,
+	0x74, 0x69, 0x6f, 0x6e, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73,
+	0x74, 0x1a, 0x2e, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e,
+	0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x43, 0x69, 0x72, 0x63, 0x75, 0x6c, 0x61, 0x74,
+	0x69, 0x6f, 0x6e, 0x53, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
+	0x65, 0x22, 0x2a, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x24, 0x12, 0x22, 0x2f, 0x73, 0x74, 0x72, 0x61,
+	0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x63, 0x69, 0x72, 0x63, 0x75,
+	0x6c, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x73, 0x75, 0x70, 0x70, 0x6c, 0x79, 0x12, 0xa3, 0x01,
+	0x0a, 0x12, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x45,
+	0x70, 0x6f, 0x63, 0x68, 0x12, 0x2e, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70,
+	0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c,
+	0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x2f, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70,
+	0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x54, 0x6f, 0x74, 0x61, 0x6c,
+	0x52, 0x65, 0x77, 0x61, 0x72, 0x64, 0x42, 0x79, 0x45, 0x70, 0x6f, 0x63, 0x68, 0x52, 0x65, 0x73,
+	0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x2c, 0x82, 0xd3, 0xe4, 0x93, 0x02, 0x26, 0x12, 0x24, 0x2f,
+	0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x2f, 0x74,
+	0x6f, 0x74, 0x61, 0x6c, 0x5f, 0x72, 0x65, 0x77, 0x61, 0x72, 0x64, 0x2f, 0x7b, 0x65, 0x70, 0x6f,
+	0x63, 0x68, 0x7d, 0x12, 0x75, 0x0a, 0x07, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x12, 0x23,
+	0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x2e,
+	0x51, 0x75, 0x65, 0x72, 0x79, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x1a, 0x24, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f,
+	0x74, 0x2e, 0x76, 0x31, 0x2e, 0x51, 0x75, 0x65, 0x72, 0x79, 0x4d, 0x65, 0x74, 0x72, 0x69, 0x63,
+	0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x22, 0x1f, 0x82, 0xd3, 0xe4, 0x93, 0x02,
+	0x19, 0x12, 0x17, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f,
+	0x76, 0x31, 0x2f, 0x6d, 0x65, 0x74, 0x72, 0x69, 0x63, 0x73, 0x42, 0xa1, 0x01, 0x0a, 0x12, 0x63,
+	0x6f, 0x6d, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76,
+	0x31, 0x42, 0x0a, 0x51, 0x75, 0x65, 0x72, 0x79, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a,
+	0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70,
+	0x69, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31,
+	0x3b, 0x70, 0x6f, 0x74, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x53, 0x50, 0x58, 0xaa, 0x02, 0x0e, 0x53,
+	0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x50, 0x6f, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0e,
+	0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02,
+	0x1a, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0x5c,
+	0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x53, 0x74,
+	0x72, 0x61, 0x74, 0x6f, 0x73, 0x3a, 0x3a, 0x50, 0x6f, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -10322,72 +12364,85 @@ func file_stratos_pot_v1_query_proto_rawDescGZIP() []byte {
 	return file_stratos_pot_v1_query_proto_rawDescData
 }
 
-var file_stratos_pot_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
+var file_stratos_pot_v1_query_proto_msgTypes = make([]protoimpl.MessageInfo, 24)
 var file_stratos_pot_v1_query_proto_goTypes = []interface{}{
-	(*QueryVolumeReportRequest)(nil),        // 0: stratos.pot.v1.QueryVolumeReportRequest
-	(*QueryVolumeReportResponse)(nil),       // 1: stratos.pot.v1.QueryVolumeReportResponse
-	(*ReportInfo)(nil),                      // 2: stratos.pot.v1.ReportInfo
-	(*QueryParamsRequest)(nil),              // 3: stratos.pot.v1.QueryParamsRequest
-	(*QueryParamsResponse)(nil),             // 4: stratos.pot.v1.QueryParamsResponse
-	(*QueryRewardsByEpochRequest)(nil),      // 5: stratos.pot.v1.QueryRewardsByEpochRequest
-	(*QueryRewardsByEpochResponse)(nil),     // 6: stratos.pot.v1.QueryRewardsByEpochResponse
-	(*QueryRewardsByOwnerRequest)(nil),      // 7: stratos.pot.v1.QueryRewardsByOwnerRequest
-	(*QueryRewardsByOwnerResponse)(nil),     // 8: stratos.pot.v1.QueryRewardsByOwnerResponse
-	(*RewardByOwner)(nil),                   // 9: stratos.pot.v1.RewardByOwner
-	(*QuerySlashingByOwnerRequest)(nil),     // 10: stratos.pot.v1.QuerySlashingByOwnerRequest
-	(*QuerySlashingByOwnerResponse)(nil),    // 11: stratos.pot.v1.QuerySlashingByOwnerResponse
-	(*QueryTotalMinedTokenRequest)(nil),     // 12: stratos.pot.v1.QueryTotalMinedTokenRequest
-	(*QueryTotalMinedTokenResponse)(nil),    // 13: stratos.pot.v1.QueryTotalMinedTokenResponse
-	(*QueryCirculationSupplyRequest)(nil),   // 14: stratos.pot.v1.QueryCirculationSupplyRequest
-	(*QueryCirculationSupplyResponse)(nil),  // 15: stratos.pot.v1.QueryCirculationSupplyResponse
-	(*QueryTotalRewardByEpochRequest)(nil),  // 16: stratos.pot.v1.QueryTotalRewardByEpochRequest
-	(*QueryTotalRewardByEpochResponse)(nil), // 17: stratos.pot.v1.QueryTotalRewardByEpochResponse
-	(*QueryMetricsRequest)(nil),             // 18: stratos.pot.v1.QueryMetricsRequest
-	(*QueryMetricsResponse)(nil),            // 19: stratos.pot.v1.QueryMetricsResponse
-	(*Params)(nil),                          // 20: stratos.pot.v1.Params
-	(*v1beta1.PageRequest)(nil),             // 21: cosmos.base.query.v1beta1.PageRequest
-	(*Reward)(nil),                          // 22: stratos.pot.v1.Reward
-	(*v1beta1.PageResponse)(nil),            // 23: cosmos.base.query.v1beta1.PageResponse
-	(*v1beta11.Coin)(nil),                   // 24: cosmos.base.v1beta1.Coin
-	(*TotalReward)(nil),                     // 25: stratos.pot.v1.TotalReward
-	(*Metrics)(nil),                         // 26: stratos.pot.v1.Metrics
+	(*QueryVolumeReportRequest)(nil),              // 0: stratos.pot.v1.QueryVolumeReportRequest
+	(*QueryVolumeReportResponse)(nil),             // 1: stratos.pot.v1.QueryVolumeReportResponse
+	(*ReportInfo)(nil),                            // 2: stratos.pot.v1.ReportInfo
+	(*QueryParamsRequest)(nil),                    // 3: stratos.pot.v1.QueryParamsRequest
+	(*QueryParamsResponse)(nil),                   // 4: stratos.pot.v1.QueryParamsResponse
+	(*QueryRewardsByEpochRequest)(nil),            // 5: stratos.pot.v1.QueryRewardsByEpochRequest
+	(*QueryRewardsByEpochResponse)(nil),           // 6: stratos.pot.v1.QueryRewardsByEpochResponse
+	(*QueryRewardsByWalletRequest)(nil),           // 7: stratos.pot.v1.QueryRewardsByWalletRequest
+	(*QueryRewardsByWalletResponse)(nil),          // 8: stratos.pot.v1.QueryRewardsByWalletResponse
+	(*QueryRewardsByWalletAndHeightRequest)(nil),  // 9: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest
+	(*QueryRewardsByWalletAndHeightResponse)(nil), // 10: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse
+	(*QueryRewardsByWalletAndEpochRequest)(nil),   // 11: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest
+	(*QueryRewardsByWalletAndEpochResponse)(nil),  // 12: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse
+	(*RewardByWallet)(nil),                        // 13: stratos.pot.v1.RewardByWallet
+	(*QuerySlashingByOwnerRequest)(nil),           // 14: stratos.pot.v1.QuerySlashingByOwnerRequest
+	(*QuerySlashingByOwnerResponse)(nil),          // 15: stratos.pot.v1.QuerySlashingByOwnerResponse
+	(*QueryTotalMinedTokenRequest)(nil),           // 16: stratos.pot.v1.QueryTotalMinedTokenRequest
+	(*QueryTotalMinedTokenResponse)(nil),          // 17: stratos.pot.v1.QueryTotalMinedTokenResponse
+	(*QueryCirculationSupplyRequest)(nil),         // 18: stratos.pot.v1.QueryCirculationSupplyRequest
+	(*QueryCirculationSupplyResponse)(nil),        // 19: stratos.pot.v1.QueryCirculationSupplyResponse
+	(*QueryTotalRewardByEpochRequest)(nil),        // 20: stratos.pot.v1.QueryTotalRewardByEpochRequest
+	(*QueryTotalRewardByEpochResponse)(nil),       // 21: stratos.pot.v1.QueryTotalRewardByEpochResponse
+	(*QueryMetricsRequest)(nil),                   // 22: stratos.pot.v1.QueryMetricsRequest
+	(*QueryMetricsResponse)(nil),                  // 23: stratos.pot.v1.QueryMetricsResponse
+	(*Params)(nil),                                // 24: stratos.pot.v1.Params
+	(*v1beta1.PageRequest)(nil),                   // 25: cosmos.base.query.v1beta1.PageRequest
+	(*Reward)(nil),                                // 26: stratos.pot.v1.Reward
+	(*v1beta1.PageResponse)(nil),                  // 27: cosmos.base.query.v1beta1.PageResponse
+	(*v1beta11.Coin)(nil),                         // 28: cosmos.base.v1beta1.Coin
+	(*TotalReward)(nil),                           // 29: stratos.pot.v1.TotalReward
+	(*Metrics)(nil),                               // 30: stratos.pot.v1.Metrics
 }
 var file_stratos_pot_v1_query_proto_depIdxs = []int32{
 	2,  // 0: stratos.pot.v1.QueryVolumeReportResponse.report_info:type_name -> stratos.pot.v1.ReportInfo
-	20, // 1: stratos.pot.v1.QueryParamsResponse.params:type_name -> stratos.pot.v1.Params
-	21, // 2: stratos.pot.v1.QueryRewardsByEpochRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
-	22, // 3: stratos.pot.v1.QueryRewardsByEpochResponse.rewards:type_name -> stratos.pot.v1.Reward
-	23, // 4: stratos.pot.v1.QueryRewardsByEpochResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
-	9,  // 5: stratos.pot.v1.QueryRewardsByOwnerResponse.rewards:type_name -> stratos.pot.v1.RewardByOwner
-	24, // 6: stratos.pot.v1.RewardByOwner.mature_total_reward:type_name -> cosmos.base.v1beta1.Coin
-	24, // 7: stratos.pot.v1.RewardByOwner.immature_total_reward:type_name -> cosmos.base.v1beta1.Coin
-	24, // 8: stratos.pot.v1.QueryTotalMinedTokenResponse.total_mined_token:type_name -> cosmos.base.v1beta1.Coin
-	24, // 9: stratos.pot.v1.QueryCirculationSupplyResponse.circulation_supply:type_name -> cosmos.base.v1beta1.Coin
-	25, // 10: stratos.pot.v1.QueryTotalRewardByEpochResponse.total_reward:type_name -> stratos.pot.v1.TotalReward
-	26, // 11: stratos.pot.v1.QueryMetricsResponse.metrics:type_name -> stratos.pot.v1.Metrics
-	0,  // 12: stratos.pot.v1.Query.VolumeReport:input_type -> stratos.pot.v1.QueryVolumeReportRequest
-	5,  // 13: stratos.pot.v1.Query.RewardsByEpoch:input_type -> stratos.pot.v1.QueryRewardsByEpochRequest
-	7,  // 14: stratos.pot.v1.Query.RewardsByOwner:input_type -> stratos.pot.v1.QueryRewardsByOwnerRequest
-	10, // 15: stratos.pot.v1.Query.SlashingByOwner:input_type -> stratos.pot.v1.QuerySlashingByOwnerRequest
-	3,  // 16: stratos.pot.v1.Query.Params:input_type -> stratos.pot.v1.QueryParamsRequest
-	12, // 17: stratos.pot.v1.Query.TotalMinedToken:input_type -> stratos.pot.v1.QueryTotalMinedTokenRequest
-	14, // 18: stratos.pot.v1.Query.CirculationSupply:input_type -> stratos.pot.v1.QueryCirculationSupplyRequest
-	16, // 19: stratos.pot.v1.Query.TotalRewardByEpoch:input_type -> stratos.pot.v1.QueryTotalRewardByEpochRequest
-	18, // 20: stratos.pot.v1.Query.Metrics:input_type -> stratos.pot.v1.QueryMetricsRequest
-	1,  // 21: stratos.pot.v1.Query.VolumeReport:output_type -> stratos.pot.v1.QueryVolumeReportResponse
-	6,  // 22: stratos.pot.v1.Query.RewardsByEpoch:output_type -> stratos.pot.v1.QueryRewardsByEpochResponse
-	8,  // 23: stratos.pot.v1.Query.RewardsByOwner:output_type -> stratos.pot.v1.QueryRewardsByOwnerResponse
-	11, // 24: stratos.pot.v1.Query.SlashingByOwner:output_type -> stratos.pot.v1.QuerySlashingByOwnerResponse
-	4,  // 25: stratos.pot.v1.Query.Params:output_type -> stratos.pot.v1.QueryParamsResponse
-	13, // 26: stratos.pot.v1.Query.TotalMinedToken:output_type -> stratos.pot.v1.QueryTotalMinedTokenResponse
-	15, // 27: stratos.pot.v1.Query.CirculationSupply:output_type -> stratos.pot.v1.QueryCirculationSupplyResponse
-	17, // 28: stratos.pot.v1.Query.TotalRewardByEpoch:output_type -> stratos.pot.v1.QueryTotalRewardByEpochResponse
-	19, // 29: stratos.pot.v1.Query.Metrics:output_type -> stratos.pot.v1.QueryMetricsResponse
-	21, // [21:30] is the sub-list for method output_type
-	12, // [12:21] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	24, // 1: stratos.pot.v1.QueryParamsResponse.params:type_name -> stratos.pot.v1.Params
+	25, // 2: stratos.pot.v1.QueryRewardsByEpochRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	26, // 3: stratos.pot.v1.QueryRewardsByEpochResponse.rewards:type_name -> stratos.pot.v1.Reward
+	27, // 4: stratos.pot.v1.QueryRewardsByEpochResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	13, // 5: stratos.pot.v1.QueryRewardsByWalletResponse.rewards:type_name -> stratos.pot.v1.RewardByWallet
+	25, // 6: stratos.pot.v1.QueryRewardsByWalletAndHeightRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	13, // 7: stratos.pot.v1.QueryRewardsByWalletAndHeightResponse.rewards:type_name -> stratos.pot.v1.RewardByWallet
+	25, // 8: stratos.pot.v1.QueryRewardsByWalletAndEpochRequest.pagination:type_name -> cosmos.base.query.v1beta1.PageRequest
+	26, // 9: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.rewards:type_name -> stratos.pot.v1.Reward
+	27, // 10: stratos.pot.v1.QueryRewardsByWalletAndEpochResponse.pagination:type_name -> cosmos.base.query.v1beta1.PageResponse
+	28, // 11: stratos.pot.v1.RewardByWallet.mature_total_reward:type_name -> cosmos.base.v1beta1.Coin
+	28, // 12: stratos.pot.v1.RewardByWallet.immature_total_reward:type_name -> cosmos.base.v1beta1.Coin
+	28, // 13: stratos.pot.v1.QueryTotalMinedTokenResponse.total_mined_token:type_name -> cosmos.base.v1beta1.Coin
+	28, // 14: stratos.pot.v1.QueryCirculationSupplyResponse.circulation_supply:type_name -> cosmos.base.v1beta1.Coin
+	29, // 15: stratos.pot.v1.QueryTotalRewardByEpochResponse.total_reward:type_name -> stratos.pot.v1.TotalReward
+	30, // 16: stratos.pot.v1.QueryMetricsResponse.metrics:type_name -> stratos.pot.v1.Metrics
+	0,  // 17: stratos.pot.v1.Query.VolumeReport:input_type -> stratos.pot.v1.QueryVolumeReportRequest
+	5,  // 18: stratos.pot.v1.Query.RewardsByEpoch:input_type -> stratos.pot.v1.QueryRewardsByEpochRequest
+	7,  // 19: stratos.pot.v1.Query.RewardsByWallet:input_type -> stratos.pot.v1.QueryRewardsByWalletRequest
+	9,  // 20: stratos.pot.v1.Query.RewardsByWalletAndHeight:input_type -> stratos.pot.v1.QueryRewardsByWalletAndHeightRequest
+	11, // 21: stratos.pot.v1.Query.RewardsByWalletAndEpoch:input_type -> stratos.pot.v1.QueryRewardsByWalletAndEpochRequest
+	14, // 22: stratos.pot.v1.Query.SlashingByOwner:input_type -> stratos.pot.v1.QuerySlashingByOwnerRequest
+	3,  // 23: stratos.pot.v1.Query.Params:input_type -> stratos.pot.v1.QueryParamsRequest
+	16, // 24: stratos.pot.v1.Query.TotalMinedToken:input_type -> stratos.pot.v1.QueryTotalMinedTokenRequest
+	18, // 25: stratos.pot.v1.Query.CirculationSupply:input_type -> stratos.pot.v1.QueryCirculationSupplyRequest
+	20, // 26: stratos.pot.v1.Query.TotalRewardByEpoch:input_type -> stratos.pot.v1.QueryTotalRewardByEpochRequest
+	22, // 27: stratos.pot.v1.Query.Metrics:input_type -> stratos.pot.v1.QueryMetricsRequest
+	1,  // 28: stratos.pot.v1.Query.VolumeReport:output_type -> stratos.pot.v1.QueryVolumeReportResponse
+	6,  // 29: stratos.pot.v1.Query.RewardsByEpoch:output_type -> stratos.pot.v1.QueryRewardsByEpochResponse
+	8,  // 30: stratos.pot.v1.Query.RewardsByWallet:output_type -> stratos.pot.v1.QueryRewardsByWalletResponse
+	10, // 31: stratos.pot.v1.Query.RewardsByWalletAndHeight:output_type -> stratos.pot.v1.QueryRewardsByWalletAndHeightResponse
+	12, // 32: stratos.pot.v1.Query.RewardsByWalletAndEpoch:output_type -> stratos.pot.v1.QueryRewardsByWalletAndEpochResponse
+	15, // 33: stratos.pot.v1.Query.SlashingByOwner:output_type -> stratos.pot.v1.QuerySlashingByOwnerResponse
+	4,  // 34: stratos.pot.v1.Query.Params:output_type -> stratos.pot.v1.QueryParamsResponse
+	17, // 35: stratos.pot.v1.Query.TotalMinedToken:output_type -> stratos.pot.v1.QueryTotalMinedTokenResponse
+	19, // 36: stratos.pot.v1.Query.CirculationSupply:output_type -> stratos.pot.v1.QueryCirculationSupplyResponse
+	21, // 37: stratos.pot.v1.Query.TotalRewardByEpoch:output_type -> stratos.pot.v1.QueryTotalRewardByEpochResponse
+	23, // 38: stratos.pot.v1.Query.Metrics:output_type -> stratos.pot.v1.QueryMetricsResponse
+	28, // [28:39] is the sub-list for method output_type
+	17, // [17:28] is the sub-list for method input_type
+	17, // [17:17] is the sub-list for extension type_name
+	17, // [17:17] is the sub-list for extension extendee
+	0,  // [0:17] is the sub-list for field type_name
 }
 
 func init() { file_stratos_pot_v1_query_proto_init() }
@@ -10482,7 +12537,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryRewardsByOwnerRequest); i {
+			switch v := v.(*QueryRewardsByWalletRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10494,7 +12549,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryRewardsByOwnerResponse); i {
+			switch v := v.(*QueryRewardsByWalletResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10506,7 +12561,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*RewardByOwner); i {
+			switch v := v.(*QueryRewardsByWalletAndHeightRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10518,7 +12573,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QuerySlashingByOwnerRequest); i {
+			switch v := v.(*QueryRewardsByWalletAndHeightResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10530,7 +12585,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QuerySlashingByOwnerResponse); i {
+			switch v := v.(*QueryRewardsByWalletAndEpochRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10542,7 +12597,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryTotalMinedTokenRequest); i {
+			switch v := v.(*QueryRewardsByWalletAndEpochResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10554,7 +12609,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryTotalMinedTokenResponse); i {
+			switch v := v.(*RewardByWallet); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10566,7 +12621,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[14].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryCirculationSupplyRequest); i {
+			switch v := v.(*QuerySlashingByOwnerRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10578,7 +12633,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[15].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryCirculationSupplyResponse); i {
+			switch v := v.(*QuerySlashingByOwnerResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10590,7 +12645,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[16].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryTotalRewardByEpochRequest); i {
+			switch v := v.(*QueryTotalMinedTokenRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10602,7 +12657,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[17].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryTotalRewardByEpochResponse); i {
+			switch v := v.(*QueryTotalMinedTokenResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10614,7 +12669,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[18].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*QueryMetricsRequest); i {
+			switch v := v.(*QueryCirculationSupplyRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -10626,6 +12681,54 @@ func file_stratos_pot_v1_query_proto_init() {
 			}
 		}
 		file_stratos_pot_v1_query_proto_msgTypes[19].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryCirculationSupplyResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_stratos_pot_v1_query_proto_msgTypes[20].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryTotalRewardByEpochRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_stratos_pot_v1_query_proto_msgTypes[21].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryTotalRewardByEpochResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_stratos_pot_v1_query_proto_msgTypes[22].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*QueryMetricsRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_stratos_pot_v1_query_proto_msgTypes[23].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*QueryMetricsResponse); i {
 			case 0:
 				return &v.state
@@ -10644,7 +12747,7 @@ func file_stratos_pot_v1_query_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_stratos_pot_v1_query_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   20,
+			NumMessages:   24,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

@@ -8,13 +8,13 @@ const (
 	QueryDefaultLimit = 100
 )
 
-// NewRewardInfo creates a new instance of PotRewardInfo
-func NewRewardInfo(
+// NewRewardByWallet creates a new instance of RewardByWallet
+func NewRewardByWallet(
 	walletAddress sdk.AccAddress,
 	matureTotal sdk.Coins,
 	immatureTotal sdk.Coins,
-) RewardByOwner {
-	return RewardByOwner{
+) *RewardByWallet {
+	return &RewardByWallet{
 		WalletAddress:       walletAddress.String(),
 		MatureTotalReward:   matureTotal,
 		ImmatureTotalReward: immatureTotal,
