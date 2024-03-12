@@ -241,6 +241,19 @@ func (k Keeper) GetKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr strat
 	return votePool, true
 }
 
+func (k Keeper) GetAllKickMetaNodeVotePool(ctx sdk.Context) (votePools []types.KickMetaNodeVotePool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KickMetaNodeVotesKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		voteInfo := types.KickMetaNodeVotePool{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &voteInfo)
+		votePools = append(votePools, voteInfo)
+	}
+	return
+}
+
 func (k Keeper) GetAllExpiredKickMetaNodeVotePool(ctx sdk.Context) (votePools []types.KickMetaNodeVotePool) {
 	store := ctx.KVStore(k.storeKey)
 	iterator := sdk.KVStorePrefixIterator(store, types.KickMetaNodeVotesKey)
