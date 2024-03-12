@@ -19,17 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_VolumeReport_FullMethodName             = "/stratos.pot.v1.Query/VolumeReport"
-	Query_RewardsByEpoch_FullMethodName           = "/stratos.pot.v1.Query/RewardsByEpoch"
-	Query_RewardsByWallet_FullMethodName          = "/stratos.pot.v1.Query/RewardsByWallet"
-	Query_RewardsByWalletAndHeight_FullMethodName = "/stratos.pot.v1.Query/RewardsByWalletAndHeight"
-	Query_RewardsByWalletAndEpoch_FullMethodName  = "/stratos.pot.v1.Query/RewardsByWalletAndEpoch"
-	Query_SlashingByOwner_FullMethodName          = "/stratos.pot.v1.Query/SlashingByOwner"
-	Query_Params_FullMethodName                   = "/stratos.pot.v1.Query/Params"
-	Query_TotalMinedToken_FullMethodName          = "/stratos.pot.v1.Query/TotalMinedToken"
-	Query_CirculationSupply_FullMethodName        = "/stratos.pot.v1.Query/CirculationSupply"
-	Query_TotalRewardByEpoch_FullMethodName       = "/stratos.pot.v1.Query/TotalRewardByEpoch"
-	Query_Metrics_FullMethodName                  = "/stratos.pot.v1.Query/Metrics"
+	Query_VolumeReport_FullMethodName            = "/stratos.pot.v1.Query/VolumeReport"
+	Query_RewardsByEpoch_FullMethodName          = "/stratos.pot.v1.Query/RewardsByEpoch"
+	Query_RewardsByWallet_FullMethodName         = "/stratos.pot.v1.Query/RewardsByWallet"
+	Query_RewardsByWalletAndEpoch_FullMethodName = "/stratos.pot.v1.Query/RewardsByWalletAndEpoch"
+	Query_SlashingByOwner_FullMethodName         = "/stratos.pot.v1.Query/SlashingByOwner"
+	Query_Params_FullMethodName                  = "/stratos.pot.v1.Query/Params"
+	Query_TotalMinedToken_FullMethodName         = "/stratos.pot.v1.Query/TotalMinedToken"
+	Query_CirculationSupply_FullMethodName       = "/stratos.pot.v1.Query/CirculationSupply"
+	Query_TotalRewardByEpoch_FullMethodName      = "/stratos.pot.v1.Query/TotalRewardByEpoch"
+	Query_Metrics_FullMethodName                 = "/stratos.pot.v1.Query/Metrics"
 )
 
 // QueryClient is the client API for Query service.
@@ -42,8 +41,6 @@ type QueryClient interface {
 	RewardsByEpoch(ctx context.Context, in *QueryRewardsByEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByEpochResponse, error)
 	// RewardsByOwner queries Pot rewards by a given beneficiary address.
 	RewardsByWallet(ctx context.Context, in *QueryRewardsByWalletRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletResponse, error)
-	// RewardsByWalletAndHeight queries Pot rewards by a given beneficiary address at the specific epoch.
-	RewardsByWalletAndHeight(ctx context.Context, in *QueryRewardsByWalletAndHeightRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletAndHeightResponse, error)
 	// RewardsByWalletAndEpoch queries Pot rewards by a given beneficiary address at the specific epoch.
 	RewardsByWalletAndEpoch(ctx context.Context, in *QueryRewardsByWalletAndEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletAndEpochResponse, error)
 	// SlashingByOwner queries Pot slashing by owner wallet address.
@@ -85,15 +82,6 @@ func (c *queryClient) RewardsByEpoch(ctx context.Context, in *QueryRewardsByEpoc
 func (c *queryClient) RewardsByWallet(ctx context.Context, in *QueryRewardsByWalletRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletResponse, error) {
 	out := new(QueryRewardsByWalletResponse)
 	err := c.cc.Invoke(ctx, Query_RewardsByWallet_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *queryClient) RewardsByWalletAndHeight(ctx context.Context, in *QueryRewardsByWalletAndHeightRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletAndHeightResponse, error) {
-	out := new(QueryRewardsByWalletAndHeightResponse)
-	err := c.cc.Invoke(ctx, Query_RewardsByWalletAndHeight_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -173,8 +161,6 @@ type QueryServer interface {
 	RewardsByEpoch(context.Context, *QueryRewardsByEpochRequest) (*QueryRewardsByEpochResponse, error)
 	// RewardsByOwner queries Pot rewards by a given beneficiary address.
 	RewardsByWallet(context.Context, *QueryRewardsByWalletRequest) (*QueryRewardsByWalletResponse, error)
-	// RewardsByWalletAndHeight queries Pot rewards by a given beneficiary address at the specific epoch.
-	RewardsByWalletAndHeight(context.Context, *QueryRewardsByWalletAndHeightRequest) (*QueryRewardsByWalletAndHeightResponse, error)
 	// RewardsByWalletAndEpoch queries Pot rewards by a given beneficiary address at the specific epoch.
 	RewardsByWalletAndEpoch(context.Context, *QueryRewardsByWalletAndEpochRequest) (*QueryRewardsByWalletAndEpochResponse, error)
 	// SlashingByOwner queries Pot slashing by owner wallet address.
@@ -200,9 +186,6 @@ func (UnimplementedQueryServer) RewardsByEpoch(context.Context, *QueryRewardsByE
 }
 func (UnimplementedQueryServer) RewardsByWallet(context.Context, *QueryRewardsByWalletRequest) (*QueryRewardsByWalletResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RewardsByWallet not implemented")
-}
-func (UnimplementedQueryServer) RewardsByWalletAndHeight(context.Context, *QueryRewardsByWalletAndHeightRequest) (*QueryRewardsByWalletAndHeightResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RewardsByWalletAndHeight not implemented")
 }
 func (UnimplementedQueryServer) RewardsByWalletAndEpoch(context.Context, *QueryRewardsByWalletAndEpochRequest) (*QueryRewardsByWalletAndEpochResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RewardsByWalletAndEpoch not implemented")
@@ -288,24 +271,6 @@ func _Query_RewardsByWallet_Handler(srv interface{}, ctx context.Context, dec fu
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(QueryServer).RewardsByWallet(ctx, req.(*QueryRewardsByWalletRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Query_RewardsByWalletAndHeight_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryRewardsByWalletAndHeightRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).RewardsByWalletAndHeight(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_RewardsByWalletAndHeight_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).RewardsByWalletAndHeight(ctx, req.(*QueryRewardsByWalletAndHeightRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -454,10 +419,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RewardsByWallet",
 			Handler:    _Query_RewardsByWallet_Handler,
-		},
-		{
-			MethodName: "RewardsByWalletAndHeight",
-			Handler:    _Query_RewardsByWalletAndHeight_Handler,
 		},
 		{
 			MethodName: "RewardsByWalletAndEpoch",

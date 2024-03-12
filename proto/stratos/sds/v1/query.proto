@@ -17,7 +17,7 @@ service Query {
   }
 
   rpc SimPrepay(QuerySimPrepayRequest) returns (QuerySimPrepayResponse){
-    option (google.api.http).get = "/stratos/sds/v1/sim_prepay";
+    option (google.api.http).get = "/stratos/sds/v1/sim_prepay/{amount}";
   }
 
   rpc NozPrice(QueryNozPriceRequest) returns (QueryNozPriceResponse) {
@@ -46,12 +46,7 @@ message QueryFileUploadResponse {
 }
 
 message QuerySimPrepayRequest {
-  repeated cosmos.base.v1beta1.Coin amount = 1 [
-    (gogoproto.jsontag) = "amount",
-    (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
+  string amount = 1;
 }
 
 message QuerySimPrepayResponse {

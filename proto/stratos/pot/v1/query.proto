@@ -26,11 +26,6 @@ service Query {
     option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}";
   }
 
-  // RewardsByWalletAndHeight queries Pot rewards by a given beneficiary address at the specific epoch.
-  rpc RewardsByWalletAndHeight(QueryRewardsByWalletAndHeightRequest) returns (QueryRewardsByWalletAndHeightResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}/height/{height}";
-  }
-
   // RewardsByWalletAndEpoch queries Pot rewards by a given beneficiary address at the specific epoch.
   rpc RewardsByWalletAndEpoch(QueryRewardsByWalletAndEpochRequest) returns (QueryRewardsByWalletAndEpochResponse) {
     option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}/epoch/{epoch}";
@@ -112,16 +107,6 @@ message QueryRewardsByWalletRequest {
 // QueryRewardsByOwnerResponse is response type for the Query/RewardsByOwner RPC method
 message QueryRewardsByWalletResponse {
   RewardByWallet     rewards = 1;
-}
-
-message QueryRewardsByWalletAndHeightRequest {
-  string                                wallet_address = 1;
-  int64                                 height = 2;
-  cosmos.base.query.v1beta1.PageRequest pagination = 3;
-}
-
-message QueryRewardsByWalletAndHeightResponse {
-  RewardByWallet    rewards = 1;
 }
 
 message QueryRewardsByWalletAndEpochRequest {

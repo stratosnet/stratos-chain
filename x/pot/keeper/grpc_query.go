@@ -243,33 +243,6 @@ func (q Querier) RewardsByWallet(c context.Context, req *types.QueryRewardsByWal
 	return &types.QueryRewardsByWalletResponse{Rewards: reward}, nil
 }
 
-func (q Querier) RewardsByWalletAndHeight(c context.Context, req *types.QueryRewardsByWalletAndHeightRequest) (*types.QueryRewardsByWalletAndHeightResponse, error) {
-	if req == nil {
-		return &types.QueryRewardsByWalletAndHeightResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
-	}
-
-	if req.GetWalletAddress() == "" {
-		return &types.QueryRewardsByWalletAndHeightResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
-	}
-
-	if req.GetHeight() <= 0 {
-		return &types.QueryRewardsByWalletAndHeightResponse{}, status.Error(codes.InvalidArgument, "height should be positive value")
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-	ctx.WithBlockHeight(req.GetHeight())
-
-	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
-	if err != nil {
-		return &types.QueryRewardsByWalletAndHeightResponse{}, err
-	}
-
-	immatureTotalReward := q.GetImmatureTotalReward(ctx, walletAddr)
-	matureTotalReward := q.GetMatureTotalReward(ctx, walletAddr)
-	reward := types.NewRewardByWallet(walletAddr, matureTotalReward, immatureTotalReward)
-	return &types.QueryRewardsByWalletAndHeightResponse{Rewards: reward}, nil
-}
-
 func (q Querier) RewardsByWalletAndEpoch(c context.Context, req *types.QueryRewardsByWalletAndEpochRequest) (*types.QueryRewardsByWalletAndEpochResponse, error) {
 	if req == nil {
 		return &types.QueryRewardsByWalletAndEpochResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
