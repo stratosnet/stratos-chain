@@ -225,7 +225,7 @@ func (k Keeper) IteratorTotalReward(ctx sdk.Context, handler func(epoch sdkmath.
 	defer iter.Close()
 	for ; iter.Valid(); iter.Next() {
 		epochBytes := iter.Key()[len(types.TotalRewardKeyPrefix):]
-		epoch, _ := sdk.NewIntFromString(string(epochBytes))
+		epoch, _ := sdkmath.NewIntFromString(string(epochBytes))
 		var totalReward types.TotalReward
 		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &totalReward)
 		if handler(epoch, totalReward) {

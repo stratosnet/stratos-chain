@@ -7219,7 +7219,7 @@ func (x *Params) GetFeeMarketParams() *FeeMarketParams {
 	return nil
 }
 
-// ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
+// ChainConfig defines the Ethereum ChainConfig parameters using *sdkmath.Int values
 // instead of *big.Int.
 type ChainConfig struct {
 	state         protoimpl.MessageState

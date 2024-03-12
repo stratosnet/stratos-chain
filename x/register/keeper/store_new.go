@@ -1,16 +1,16 @@
 package keeper
 
 import (
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 	"github.com/stratosnet/stratos-chain/core/statedb"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
-func (k *Keeper) KeeGetEffectiveTotalDeposit(kstatedb *statedb.KeestateDB) (stake sdk.Int) {
+func (k *Keeper) KeeGetEffectiveTotalDeposit(kstatedb *statedb.KeestateDB) (stake sdkmath.Int) {
 	bz := kstatedb.GetState(k.storeKey, types.EffectiveGenesisDepositTotalKey)
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intValue := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intValue)
@@ -18,10 +18,10 @@ func (k *Keeper) KeeGetEffectiveTotalDeposit(kstatedb *statedb.KeestateDB) (stak
 	return
 }
 
-func (k *Keeper) KeeGetRemainingOzoneLimit(kstatedb *statedb.KeestateDB) (value sdk.Int) {
+func (k *Keeper) KeeGetRemainingOzoneLimit(kstatedb *statedb.KeestateDB) (value sdkmath.Int) {
 	bz := kstatedb.GetState(k.storeKey, types.UpperBoundOfTotalOzoneKey)
 	if bz == nil {
-		return sdk.ZeroInt()
+		return sdkmath.ZeroInt()
 	}
 	intVal := stratos.Int{}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &intVal)
@@ -29,7 +29,7 @@ func (k *Keeper) KeeGetRemainingOzoneLimit(kstatedb *statedb.KeestateDB) (value 
 	return
 }
 
-func (k *Keeper) KeeSetRemainingOzoneLimit(kstatedb *statedb.KeestateDB, value sdk.Int) {
+func (k *Keeper) KeeSetRemainingOzoneLimit(kstatedb *statedb.KeestateDB, value sdkmath.Int) {
 	bz := k.cdc.MustMarshalLengthPrefixed(&stratos.Int{Value: &value})
 	kstatedb.SetState(k.storeKey, types.UpperBoundOfTotalOzoneKey, bz)
 }
