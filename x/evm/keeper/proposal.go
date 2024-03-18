@@ -7,6 +7,7 @@ import (
 	"math/big"
 
 	errorsmod "cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -224,7 +225,7 @@ func (pc *ProposalCounsil) Migrate1to2() error {
 			}
 		}
 
-		value := sdk.NewInt(0)
+		value := sdkmath.NewInt(0)
 		c := types.NewUpdateImplmentationProposal(
 			proxyAddr.Hex(),
 			implAddr.Hex(),

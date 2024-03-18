@@ -18,12 +18,12 @@ option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
 service Query {
   // ResourceNode queries ResourceNode info for given ResourceNode address.
   rpc ResourceNode(QueryResourceNodeRequest) returns (QueryResourceNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/resource-nodes/{network_addr}";
+    option (google.api.http).get = "/stratos/register/v1/resource_node/{network_addr}";
   }
 
   // MetaNode queries MetaNode info for given MetaNode address.
   rpc MetaNode(QueryMetaNodeRequest) returns (QueryMetaNodeResponse) {
-    option (google.api.http).get = "/stratos/register/v1/meta-nodes/{network_addr}";
+    option (google.api.http).get = "/stratos/register/v1/meta_node/{network_addr}";
   }
 
   // Params queries Register module Params info.
@@ -48,12 +48,12 @@ service Query {
 
   // BondedResourceNodeCount queries total number of ResourceNodes.
   rpc BondedResourceNodeCount(QueryBondedResourceNodeCountRequest) returns (QueryBondedResourceNodeCountResponse) {
-    option (google.api.http).get = "/stratos/register/v1/pp_number";
+    option (google.api.http).get = "/stratos/register/v1/resource_node_count";
   }
 
   // BondedMetaNodeCount queries total number of MetaNodes.
   rpc BondedMetaNodeCount(QueryBondedMetaNodeCountRequest) returns (QueryBondedMetaNodeCountResponse) {
-    option (google.api.http).get = "/stratos/register/v1/sp_number";
+    option (google.api.http).get = "/stratos/register/v1/meta_node_count";
   }
 
   // RemainingOzoneLimit returns the current remaining ozone limit.

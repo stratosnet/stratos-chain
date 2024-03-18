@@ -13,7 +13,7 @@ option go_package = "github.com/stratosnet/stratos-chain/x/pot/types";
 service Query {
   // VolumeReport queries VolumeReport info for given epoch.
   rpc VolumeReport(QueryVolumeReportRequest) returns (QueryVolumeReportResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/volume-report/{epoch}";
+    option (google.api.http).get = "/stratos/pot/v1/volume_report/{epoch}";
   }
 
   // RewardsByEpoch queries Pot rewards by a given epoch.
@@ -21,9 +21,14 @@ service Query {
     option (google.api.http).get = "/stratos/pot/v1/rewards/epoch/{epoch}";
   }
 
-  // RewardsByOwner queries Pot rewards by a given owner wallet address.
-  rpc RewardsByOwner(QueryRewardsByOwnerRequest) returns (QueryRewardsByOwnerResponse) {
+  // RewardsByOwner queries Pot rewards by a given beneficiary address.
+  rpc RewardsByWallet(QueryRewardsByWalletRequest) returns (QueryRewardsByWalletResponse) {
     option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}";
+  }
+
+  // RewardsByWalletAndEpoch queries Pot rewards by a given beneficiary address at the specific epoch.
+  rpc RewardsByWalletAndEpoch(QueryRewardsByWalletAndEpochRequest) returns (QueryRewardsByWalletAndEpochResponse) {
+    option (google.api.http).get = "/stratos/pot/v1/rewards/wallet/{wallet_address}/epoch/{epoch}";
   }
 
   // SlashingByOwner queries Pot slashing by owner wallet address.
@@ -37,15 +42,15 @@ service Query {
   }
 
   rpc TotalMinedToken(QueryTotalMinedTokenRequest) returns (QueryTotalMinedTokenResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/total-mined-token";
+    option (google.api.http).get = "/stratos/pot/v1/total_mined_token";
   }
 
   rpc CirculationSupply(QueryCirculationSupplyRequest) returns (QueryCirculationSupplyResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/circulation-supply";
+    option (google.api.http).get = "/stratos/pot/v1/circulation_supply";
   }
 
   rpc TotalRewardByEpoch(QueryTotalRewardByEpochRequest) returns (QueryTotalRewardByEpochResponse) {
-    option (google.api.http).get = "/stratos/pot/v1/total-reward/{epoch}";
+    option (google.api.http).get = "/stratos/pot/v1/total_reward/{epoch}";
   }
 
   rpc Metrics(QueryMetricsRequest) returns (QueryMetricsResponse) {
@@ -63,7 +68,6 @@ message QueryVolumeReportRequest {
 message QueryVolumeReportResponse {
   // node defines the the volumeReport info.
   ReportInfo  report_info = 1;
-  int64       height = 2;
 }
 
 message ReportInfo {
@@ -86,29 +90,37 @@ message QueryParamsResponse {
 // QueryRewardsByEpochRequest is request type for the Query/RewardsByEpoch by a given epoch RPC method
 message QueryRewardsByEpochRequest {
   int64                                 epoch = 1;
-  string                                wallet_address = 2;
-  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
 }
 
 // QueryRewardsByEpochResponse is response type for the Query/RewardsByEpoch RPC method
 message QueryRewardsByEpochResponse {
   repeated Reward                         rewards = 1;
-  int64                                   height = 2;
-  cosmos.base.query.v1beta1.PageResponse  pagination = 3;
+  cosmos.base.query.v1beta1.PageResponse  pagination = 2;
 }
 
 // QueryRewardsByOwnerRequest is request type for the Query/RewardsByOwner by a given owner RPC method
-message QueryRewardsByOwnerRequest {
+message QueryRewardsByWalletRequest {
   string wallet_address = 1;
 }
 
 // QueryRewardsByOwnerResponse is response type for the Query/RewardsByOwner RPC method
-message QueryRewardsByOwnerResponse {
-  RewardByOwner     rewards = 1;
-  int64             height = 2;
+message QueryRewardsByWalletResponse {
+  RewardByWallet     rewards = 1;
 }
 
-message RewardByOwner {
+message QueryRewardsByWalletAndEpochRequest {
+  string                                wallet_address = 1;
+  int64                                 epoch = 2;
+  cosmos.base.query.v1beta1.PageRequest pagination = 3;
+}
+
+message QueryRewardsByWalletAndEpochResponse {
+  repeated Reward                         rewards = 1;
+  cosmos.base.query.v1beta1.PageResponse  pagination = 2;
+}
+
+message RewardByWallet {
   string                              wallet_address = 1;
   repeated cosmos.base.v1beta1.Coin   mature_total_reward = 2 [
     (gogoproto.nullable) = false,
@@ -128,7 +140,6 @@ message QuerySlashingByOwnerRequest {
 // QuerySlashingByOwnerResponse is response type for the Query/Slashing RPC method
 message QuerySlashingByOwnerResponse {
   string    slashing = 1;
-  int64     height = 2;
 }
 
 message QueryTotalMinedTokenRequest{}

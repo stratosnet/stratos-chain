@@ -48,11 +48,16 @@ func (q Querier) SimPrepay(c context.Context, request *types.QuerySimPrepayReque
 	if request == nil {
 		return &types.QuerySimPrepayResponse{}, status.Error(codes.InvalidArgument, "empty request")
 	}
-	if request.GetAmount() == nil {
+	if request.GetAmount() == "" {
 		return &types.QuerySimPrepayResponse{}, status.Error(codes.InvalidArgument, "Amount cannot be empty")
 	}
+	amount, err := sdk.ParseCoinNormalized(request.GetAmount())
+	if err != nil {
+		return &types.QuerySimPrepayResponse{}, status.Error(codes.InvalidArgument, "Amount invalid")
+	}
 	ctx := sdk.UnwrapSDKContext(c)
-	noz := q.simulatePurchaseNoz(ctx, request.GetAmount())
+
+	noz := q.simulatePurchaseNoz(ctx, sdk.NewCoins(amount))
 	return &types.QuerySimPrepayResponse{Noz: noz}, nil
 }
 

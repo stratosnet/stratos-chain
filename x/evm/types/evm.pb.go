@@ -118,7 +118,7 @@ func (m *Params) GetFeeMarketParams() FeeMarketParams {
 	return FeeMarketParams{}
 }
 
-// ChainConfig defines the Ethereum ChainConfig parameters using *sdk.Int values
+// ChainConfig defines the Ethereum ChainConfig parameters using *sdkmath.Int values
 // instead of *big.Int.
 type ChainConfig struct {
 	// chainId identifies the current chain and is used for replay protection

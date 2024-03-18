@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	tmtypes "github.com/cometbft/cometbft/types"
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -143,7 +143,7 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 		accFrom := sdk.AccAddress(from.Bytes())
 		accBeneficiary := sdk.AccAddress(beneficiary.Bytes())
 
-		purchased, remaining, err := k.KeeCalculatePrepayPurchaseAmount(evm.StateDB, sdk.NewIntFromBigInt(amount))
+		purchased, remaining, err := k.KeeCalculatePrepayPurchaseAmount(evm.StateDB, sdkmath.NewIntFromBigInt(amount))
 		if err != nil {
 			evm.StateDB.RevertToKeeSnapshot(kSnapshot)
 
@@ -164,7 +164,7 @@ func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
 		tevs[0] = (proto.Message)(&sdstypes.EventPrePay{
 			Sender:       accFrom.String(),
 			Beneficiary:  accBeneficiary.String(),
-			Amount:       sdk.NewIntFromBigInt(amount).String(),
+			Amount:       sdkmath.NewIntFromBigInt(amount).String(),
 			PurchasedNoz: purchased.String(),
 		})
 		k.AddTypedEvents(tevs)

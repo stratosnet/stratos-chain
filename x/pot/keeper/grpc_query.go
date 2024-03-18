@@ -48,7 +48,6 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 		epoch = q.GetLastDistributedEpoch(ctx)
 	}
 
-	height := ctx.BlockHeight()
 	volumeReport := q.GetVolumeReport(ctx, epoch)
 
 	return &types.QueryVolumeReportResponse{
@@ -58,7 +57,6 @@ func (q Querier) VolumeReport(c context.Context, req *types.QueryVolumeReportReq
 			Reporter:  volumeReport.Reporter,
 			TxHash:    volumeReport.TxHash,
 		},
-		Height: height,
 	}, nil
 }
 
@@ -73,19 +71,13 @@ func (q Querier) RewardsByEpoch(c context.Context, req *types.QueryRewardsByEpoc
 		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be equal to or lower than 0")
 	}
 
-	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
-	if err != nil {
-		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
-	}
-
 	ctx := sdk.UnwrapSDKContext(c)
 
 	matureEpoch := queryEpoch.Add(sdkmath.NewInt(q.MatureEpoch(ctx)))
 	var res []*types.Reward
 
 	store := ctx.KVStore(q.storeKey)
-	//RewardStore := prefix.NewStore(store, types.GetIndividualRewardIteratorKey(matureEpoch))
-	RewardStore := prefix.NewStore(store, types.GetIndividualRewardKey(walletAddr, matureEpoch))
+	RewardStore := prefix.NewStore(store, types.GetIndividualRewardIteratorKey(matureEpoch))
 
 	rewardsPageRes, err := FilteredPaginate(q.cdc, RewardStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		val, err := UnmarshalIndividualReward(q.cdc, value)
@@ -102,9 +94,8 @@ func (q Querier) RewardsByEpoch(c context.Context, req *types.QueryRewardsByEpoc
 	if err != nil {
 		return &types.QueryRewardsByEpochResponse{}, status.Error(codes.Internal, err.Error())
 	}
-	height := ctx.BlockHeight()
 
-	return &types.QueryRewardsByEpochResponse{Rewards: res, Height: height, Pagination: rewardsPageRes}, nil
+	return &types.QueryRewardsByEpochResponse{Rewards: res, Pagination: rewardsPageRes}, nil
 }
 
 func UnmarshalIndividualReward(cdc codec.Codec, value []byte) (v types.Reward, err error) {
@@ -230,27 +221,72 @@ func FilteredPaginate(cdc codec.Codec,
 	return res, nil
 }
 
-func (q Querier) RewardsByOwner(c context.Context, req *types.QueryRewardsByOwnerRequest) (*types.QueryRewardsByOwnerResponse, error) {
+func (q Querier) RewardsByWallet(c context.Context, req *types.QueryRewardsByWalletRequest) (*types.QueryRewardsByWalletResponse, error) {
 	if req == nil {
-		return &types.QueryRewardsByOwnerResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+		return &types.QueryRewardsByWalletResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
 	}
 
 	if req.GetWalletAddress() == "" {
-		return &types.QueryRewardsByOwnerResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
+		return &types.QueryRewardsByWalletResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
 	}
+
 	ctx := sdk.UnwrapSDKContext(c)
-	height := ctx.BlockHeight()
 
 	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
 	if err != nil {
-		return &types.QueryRewardsByOwnerResponse{}, err
+		return &types.QueryRewardsByWalletResponse{}, err
 	}
 
 	immatureTotalReward := q.GetImmatureTotalReward(ctx, walletAddr)
 	matureTotalReward := q.GetMatureTotalReward(ctx, walletAddr)
-	reward := types.NewRewardInfo(walletAddr, matureTotalReward, immatureTotalReward)
-	return &types.QueryRewardsByOwnerResponse{Rewards: &reward, Height: height}, nil
+	reward := types.NewRewardByWallet(walletAddr, matureTotalReward, immatureTotalReward)
+	return &types.QueryRewardsByWalletResponse{Rewards: reward}, nil
+}
 
+func (q Querier) RewardsByWalletAndEpoch(c context.Context, req *types.QueryRewardsByWalletAndEpochRequest) (*types.QueryRewardsByWalletAndEpochResponse, error) {
+	if req == nil {
+		return &types.QueryRewardsByWalletAndEpochResponse{}, status.Errorf(codes.InvalidArgument, "empty request")
+	}
+
+	queryEpoch := sdkmath.NewInt(req.GetEpoch())
+	if queryEpoch.LTE(sdkmath.ZeroInt()) {
+		return &types.QueryRewardsByWalletAndEpochResponse{}, status.Error(codes.InvalidArgument, "epoch cannot be equal to or lower than 0")
+	}
+
+	if req.GetWalletAddress() == "" {
+		return &types.QueryRewardsByWalletAndEpochResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
+	}
+
+	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
+	if err != nil {
+		return &types.QueryRewardsByWalletAndEpochResponse{}, err
+	}
+
+	ctx := sdk.UnwrapSDKContext(c)
+	matureEpoch := queryEpoch.Add(sdkmath.NewInt(q.MatureEpoch(ctx)))
+
+	var res []*types.Reward
+
+	store := ctx.KVStore(q.storeKey)
+	individualRewardStore := prefix.NewStore(store, types.GetIndividualRewardKey(walletAddr, matureEpoch))
+
+	rewardsPageRes, err := FilteredPaginate(q.cdc, individualRewardStore, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+		val, err := UnmarshalIndividualReward(q.cdc, value)
+		if err != nil {
+			return false, err
+		}
+
+		if accumulate {
+			res = append(res, &val)
+		}
+
+		return true, nil
+	})
+	if err != nil {
+		return &types.QueryRewardsByWalletAndEpochResponse{}, status.Error(codes.Internal, err.Error())
+	}
+
+	return &types.QueryRewardsByWalletAndEpochResponse{Rewards: res, Pagination: rewardsPageRes}, nil
 }
 
 func (q Querier) SlashingByOwner(c context.Context, req *types.QuerySlashingByOwnerRequest) (*types.QuerySlashingByOwnerResponse, error) {
@@ -262,7 +298,6 @@ func (q Querier) SlashingByOwner(c context.Context, req *types.QuerySlashingByOw
 		return &types.QuerySlashingByOwnerResponse{}, status.Error(codes.InvalidArgument, "wallet address cannot be empty")
 	}
 	ctx := sdk.UnwrapSDKContext(c)
-	height := ctx.BlockHeight()
 
 	walletAddr, err := sdk.AccAddressFromBech32(req.GetWalletAddress())
 	if err != nil {
@@ -270,7 +305,7 @@ func (q Querier) SlashingByOwner(c context.Context, req *types.QuerySlashingByOw
 	}
 
 	slashing := q.registerKeeper.GetSlashing(ctx, walletAddr).String()
-	return &types.QuerySlashingByOwnerResponse{Slashing: slashing, Height: height}, nil
+	return &types.QuerySlashingByOwnerResponse{Slashing: slashing}, nil
 
 }
 

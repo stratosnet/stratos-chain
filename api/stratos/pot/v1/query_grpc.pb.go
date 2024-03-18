@@ -19,15 +19,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_VolumeReport_FullMethodName       = "/stratos.pot.v1.Query/VolumeReport"
-	Query_RewardsByEpoch_FullMethodName     = "/stratos.pot.v1.Query/RewardsByEpoch"
-	Query_RewardsByOwner_FullMethodName     = "/stratos.pot.v1.Query/RewardsByOwner"
-	Query_SlashingByOwner_FullMethodName    = "/stratos.pot.v1.Query/SlashingByOwner"
-	Query_Params_FullMethodName             = "/stratos.pot.v1.Query/Params"
-	Query_TotalMinedToken_FullMethodName    = "/stratos.pot.v1.Query/TotalMinedToken"
-	Query_CirculationSupply_FullMethodName  = "/stratos.pot.v1.Query/CirculationSupply"
-	Query_TotalRewardByEpoch_FullMethodName = "/stratos.pot.v1.Query/TotalRewardByEpoch"
-	Query_Metrics_FullMethodName            = "/stratos.pot.v1.Query/Metrics"
+	Query_VolumeReport_FullMethodName            = "/stratos.pot.v1.Query/VolumeReport"
+	Query_RewardsByEpoch_FullMethodName          = "/stratos.pot.v1.Query/RewardsByEpoch"
+	Query_RewardsByWallet_FullMethodName         = "/stratos.pot.v1.Query/RewardsByWallet"
+	Query_RewardsByWalletAndEpoch_FullMethodName = "/stratos.pot.v1.Query/RewardsByWalletAndEpoch"
+	Query_SlashingByOwner_FullMethodName         = "/stratos.pot.v1.Query/SlashingByOwner"
+	Query_Params_FullMethodName                  = "/stratos.pot.v1.Query/Params"
+	Query_TotalMinedToken_FullMethodName         = "/stratos.pot.v1.Query/TotalMinedToken"
+	Query_CirculationSupply_FullMethodName       = "/stratos.pot.v1.Query/CirculationSupply"
+	Query_TotalRewardByEpoch_FullMethodName      = "/stratos.pot.v1.Query/TotalRewardByEpoch"
+	Query_Metrics_FullMethodName                 = "/stratos.pot.v1.Query/Metrics"
 )
 
 // QueryClient is the client API for Query service.
@@ -38,8 +39,10 @@ type QueryClient interface {
 	VolumeReport(ctx context.Context, in *QueryVolumeReportRequest, opts ...grpc.CallOption) (*QueryVolumeReportResponse, error)
 	// RewardsByEpoch queries Pot rewards by a given epoch.
 	RewardsByEpoch(ctx context.Context, in *QueryRewardsByEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByEpochResponse, error)
-	// RewardsByOwner queries Pot rewards by a given owner wallet address.
-	RewardsByOwner(ctx context.Context, in *QueryRewardsByOwnerRequest, opts ...grpc.CallOption) (*QueryRewardsByOwnerResponse, error)
+	// RewardsByOwner queries Pot rewards by a given beneficiary address.
+	RewardsByWallet(ctx context.Context, in *QueryRewardsByWalletRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletResponse, error)
+	// RewardsByWalletAndEpoch queries Pot rewards by a given beneficiary address at the specific epoch.
+	RewardsByWalletAndEpoch(ctx context.Context, in *QueryRewardsByWalletAndEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletAndEpochResponse, error)
 	// SlashingByOwner queries Pot slashing by owner wallet address.
 	SlashingByOwner(ctx context.Context, in *QuerySlashingByOwnerRequest, opts ...grpc.CallOption) (*QuerySlashingByOwnerResponse, error)
 	// Params queries POT module Params info.
@@ -76,9 +79,18 @@ func (c *queryClient) RewardsByEpoch(ctx context.Context, in *QueryRewardsByEpoc
 	return out, nil
 }
 
-func (c *queryClient) RewardsByOwner(ctx context.Context, in *QueryRewardsByOwnerRequest, opts ...grpc.CallOption) (*QueryRewardsByOwnerResponse, error) {
-	out := new(QueryRewardsByOwnerResponse)
-	err := c.cc.Invoke(ctx, Query_RewardsByOwner_FullMethodName, in, out, opts...)
+func (c *queryClient) RewardsByWallet(ctx context.Context, in *QueryRewardsByWalletRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletResponse, error) {
+	out := new(QueryRewardsByWalletResponse)
+	err := c.cc.Invoke(ctx, Query_RewardsByWallet_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) RewardsByWalletAndEpoch(ctx context.Context, in *QueryRewardsByWalletAndEpochRequest, opts ...grpc.CallOption) (*QueryRewardsByWalletAndEpochResponse, error) {
+	out := new(QueryRewardsByWalletAndEpochResponse)
+	err := c.cc.Invoke(ctx, Query_RewardsByWalletAndEpoch_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -147,8 +159,10 @@ type QueryServer interface {
 	VolumeReport(context.Context, *QueryVolumeReportRequest) (*QueryVolumeReportResponse, error)
 	// RewardsByEpoch queries Pot rewards by a given epoch.
 	RewardsByEpoch(context.Context, *QueryRewardsByEpochRequest) (*QueryRewardsByEpochResponse, error)
-	// RewardsByOwner queries Pot rewards by a given owner wallet address.
-	RewardsByOwner(context.Context, *QueryRewardsByOwnerRequest) (*QueryRewardsByOwnerResponse, error)
+	// RewardsByOwner queries Pot rewards by a given beneficiary address.
+	RewardsByWallet(context.Context, *QueryRewardsByWalletRequest) (*QueryRewardsByWalletResponse, error)
+	// RewardsByWalletAndEpoch queries Pot rewards by a given beneficiary address at the specific epoch.
+	RewardsByWalletAndEpoch(context.Context, *QueryRewardsByWalletAndEpochRequest) (*QueryRewardsByWalletAndEpochResponse, error)
 	// SlashingByOwner queries Pot slashing by owner wallet address.
 	SlashingByOwner(context.Context, *QuerySlashingByOwnerRequest) (*QuerySlashingByOwnerResponse, error)
 	// Params queries POT module Params info.
@@ -170,8 +184,11 @@ func (UnimplementedQueryServer) VolumeReport(context.Context, *QueryVolumeReport
 func (UnimplementedQueryServer) RewardsByEpoch(context.Context, *QueryRewardsByEpochRequest) (*QueryRewardsByEpochResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RewardsByEpoch not implemented")
 }
-func (UnimplementedQueryServer) RewardsByOwner(context.Context, *QueryRewardsByOwnerRequest) (*QueryRewardsByOwnerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method RewardsByOwner not implemented")
+func (UnimplementedQueryServer) RewardsByWallet(context.Context, *QueryRewardsByWalletRequest) (*QueryRewardsByWalletResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RewardsByWallet not implemented")
+}
+func (UnimplementedQueryServer) RewardsByWalletAndEpoch(context.Context, *QueryRewardsByWalletAndEpochRequest) (*QueryRewardsByWalletAndEpochResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RewardsByWalletAndEpoch not implemented")
 }
 func (UnimplementedQueryServer) SlashingByOwner(context.Context, *QuerySlashingByOwnerRequest) (*QuerySlashingByOwnerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SlashingByOwner not implemented")
@@ -240,20 +257,38 @@ func _Query_RewardsByEpoch_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Query_RewardsByOwner_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryRewardsByOwnerRequest)
+func _Query_RewardsByWallet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRewardsByWalletRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(QueryServer).RewardsByOwner(ctx, in)
+		return srv.(QueryServer).RewardsByWallet(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Query_RewardsByOwner_FullMethodName,
+		FullMethod: Query_RewardsByWallet_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).RewardsByOwner(ctx, req.(*QueryRewardsByOwnerRequest))
+		return srv.(QueryServer).RewardsByWallet(ctx, req.(*QueryRewardsByWalletRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_RewardsByWalletAndEpoch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryRewardsByWalletAndEpochRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).RewardsByWalletAndEpoch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_RewardsByWalletAndEpoch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).RewardsByWalletAndEpoch(ctx, req.(*QueryRewardsByWalletAndEpochRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -382,8 +417,12 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Query_RewardsByEpoch_Handler,
 		},
 		{
-			MethodName: "RewardsByOwner",
-			Handler:    _Query_RewardsByOwner_Handler,
+			MethodName: "RewardsByWallet",
+			Handler:    _Query_RewardsByWallet_Handler,
+		},
+		{
+			MethodName: "RewardsByWalletAndEpoch",
+			Handler:    _Query_RewardsByWalletAndEpoch_Handler,
 		},
 		{
 			MethodName: "SlashingByOwner",

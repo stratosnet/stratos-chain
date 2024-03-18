@@ -68,6 +68,12 @@ message GenesisState {
     (gogoproto.jsontag) = "unbonding_nodes",
     (gogoproto.moretags) = "yaml:\"unbonding_nodes\""
   ];
+  repeated KickMetaNodeVotePool kick_meta_node_vote_pool = 9 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "kick_meta_node_vote_pool",
+    (gogoproto.moretags) = "yaml:\"kick_meta_node_vote_pool\""
+  ];
 }
 
 message GenesisMetaNode {

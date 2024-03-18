@@ -66,7 +66,7 @@ func (k *Keeper) CalculatePurchaseAmount(ctx sdk.Context, amount sdkmath.Int) (s
 			Add(amount)).ToLegacyDec()).
 		TruncateInt()
 	if purchase.GT(Lt) {
-		return sdk.NewInt(0), sdk.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
+		return sdkmath.NewInt(0), sdkmath.NewInt(0), fmt.Errorf("not enough remaining ozone limit to complete prepay")
 	}
 	remaining := Lt.Sub(purchase)
 
@@ -239,6 +239,19 @@ func (k Keeper) GetKickMetaNodeVotePool(ctx sdk.Context, targetNetworkAddr strat
 	}
 	k.cdc.MustUnmarshalLengthPrefixed(bz, &votePool)
 	return votePool, true
+}
+
+func (k Keeper) GetAllKickMetaNodeVotePool(ctx sdk.Context) (votePools []types.KickMetaNodeVotePool) {
+	store := ctx.KVStore(k.storeKey)
+	iterator := sdk.KVStorePrefixIterator(store, types.KickMetaNodeVotesKey)
+	defer iterator.Close()
+
+	for ; iterator.Valid(); iterator.Next() {
+		voteInfo := types.KickMetaNodeVotePool{}
+		k.cdc.MustUnmarshalLengthPrefixed(iterator.Value(), &voteInfo)
+		votePools = append(votePools, voteInfo)
+	}
+	return
 }
 
 func (k Keeper) GetAllExpiredKickMetaNodeVotePool(ctx sdk.Context) (votePools []types.KickMetaNodeVotePool) {

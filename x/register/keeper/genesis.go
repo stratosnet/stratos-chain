@@ -157,6 +157,10 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 		}
 	}
 
+	for _, kickMetaNodeVoteInfo := range data.GetKickMetaNodeVotePool() {
+		k.SetKickMetaNodeVotePool(ctx, kickMetaNodeVoteInfo)
+	}
+
 	return
 }
 
@@ -182,6 +186,8 @@ func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 		return false
 	})
 
+	kickMetaNodeVotePool := k.GetAllKickMetaNodeVotePool(ctx)
+
 	return types.NewGenesisState(params, resourceNodes, metaNodes, remainingNozLimit, slashingInfo, depositNozRate,
-		metaNodeRegVotePool, unbondingNodes)
+		metaNodeRegVotePool, unbondingNodes, kickMetaNodeVotePool)
 }

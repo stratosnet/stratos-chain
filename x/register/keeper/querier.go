@@ -56,8 +56,10 @@ func GetIterator(prefixStore storetypes.KVStore, start []byte, reverse bool) db.
 	return prefixStore.Iterator(start, nil)
 }
 
+// storeType : 0-metaNode, 1-resourceNode
 func FilteredPaginate(cdc codec.Codec,
 	prefixStore storetypes.KVStore,
+	storeType int,
 	queryOwnerAddr sdk.AccAddress,
 	pageRequest *pagiquery.PageRequest,
 	onResult func(key []byte, value []byte, accumulate bool) (bool, error),
@@ -103,7 +105,8 @@ func FilteredPaginate(cdc codec.Codec,
 				return nil, iterator.Error()
 			}
 
-			if prefixStore.Has(types.MetaNodeKey) {
+			switch storeType {
+			case 0:
 				metaNode, err := types.UnmarshalMetaNode(cdc, iterator.Value())
 				if err != nil {
 					continue
@@ -113,7 +116,7 @@ func FilteredPaginate(cdc codec.Codec,
 				if err != nil {
 					continue
 				}
-			} else {
+			case 1:
 				resourceNode, err := types.UnmarshalResourceNode(cdc, iterator.Value())
 				if err != nil {
 					continue
@@ -158,7 +161,8 @@ func FilteredPaginate(cdc codec.Codec,
 			return nil, iterator.Error()
 		}
 
-		if prefixStore.Has(types.MetaNodeKey) {
+		switch storeType {
+		case 0:
 			metaNode, err := types.UnmarshalMetaNode(cdc, iterator.Value())
 			if err != nil {
 				continue
@@ -168,7 +172,7 @@ func FilteredPaginate(cdc codec.Codec,
 			if err != nil {
 				continue
 			}
-		} else {
+		case 1:
 			resourceNode, err := types.UnmarshalResourceNode(cdc, iterator.Value())
 			if err != nil {
 				continue
@@ -211,13 +215,13 @@ func FilteredPaginate(cdc codec.Codec,
 }
 
 // GetDepositInfosByResourceNodes Iteration for querying DepositInfos of resource nodes by owner(grpc)
-func GetDepositInfosByResourceNodes(
-	ctx sdk.Context, k Keeper, resourceNodes types.ResourceNodes,
+func (k Keeper) GetDepositInfosByResourceNodes(
+	ctx sdk.Context, resourceNodes types.ResourceNodes,
 ) ([]*types.DepositInfo, error) {
 	resp := make([]*types.DepositInfo, len(resourceNodes))
 
 	for i, resourceNode := range resourceNodes {
-		depositInfo, err := GetDepositInfoByResourceNode(ctx, k, resourceNode)
+		depositInfo, err := k.GetDepositInfoByResourceNode(ctx, resourceNode)
 		if err != nil {
 			return nil, err
 		}
@@ -229,14 +233,14 @@ func GetDepositInfosByResourceNodes(
 }
 
 // GetDepositInfosByMetaNodes Iteration for querying DepositInfos of meta nodes by owner(grpc)
-func GetDepositInfosByMetaNodes(
-	ctx sdk.Context, k Keeper, metaNodes types.MetaNodes,
+func (k Keeper) GetDepositInfosByMetaNodes(
+	ctx sdk.Context, metaNodes types.MetaNodes,
 ) ([]*types.DepositInfo, error) {
 
 	resp := make([]*types.DepositInfo, len(metaNodes))
 
 	for i, metaNode := range metaNodes {
-		depositInfo, err := GetDepositInfoByMetaNode(ctx, k, metaNode)
+		depositInfo, err := k.GetDepositInfoByMetaNode(ctx, metaNode)
 		if err != nil {
 			return nil, err
 		}
@@ -248,7 +252,7 @@ func GetDepositInfosByMetaNodes(
 	return resp, nil
 }
 
-func GetDepositInfoByResourceNode(ctx sdk.Context, k Keeper, node types.ResourceNode) (types.DepositInfo, error) {
+func (k Keeper) GetDepositInfoByResourceNode(ctx sdk.Context, node types.ResourceNode) (types.DepositInfo, error) {
 	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
 	depositInfo := types.DepositInfo{}
 	unBondingDeposit, unBondedDeposit, bondedDeposit, er := k.getNodeDeposit(
@@ -273,7 +277,7 @@ func GetDepositInfoByResourceNode(ctx sdk.Context, k Keeper, node types.Resource
 	return depositInfo, nil
 }
 
-func GetDepositInfoByMetaNode(ctx sdk.Context, k Keeper, node types.MetaNode) (types.DepositInfo, error) {
+func (k Keeper) GetDepositInfoByMetaNode(ctx sdk.Context, node types.MetaNode) (types.DepositInfo, error) {
 	networkAddr, _ := stratos.SdsAddressFromBech32(node.GetNetworkAddress())
 	depositInfo := types.DepositInfo{}
 	unBondingDeposit, unBondedDeposit, bondedDeposit, er := k.getNodeDeposit(

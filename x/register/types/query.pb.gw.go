@@ -817,9 +817,9 @@ func RegisterQueryHandlerClient(ctx context.Context, mux *runtime.ServeMux, clie
 }
 
 var (
-	pattern_Query_ResourceNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "register", "v1", "resource-nodes", "network_addr"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_ResourceNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "register", "v1", "resource_node", "network_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_MetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "register", "v1", "meta-nodes", "network_addr"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_MetaNode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"stratos", "register", "v1", "meta_node", "network_addr"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_Params_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "params"}, "", runtime.AssumeColonVerbOpt(false)))
 
@@ -829,9 +829,9 @@ var (
 
 	pattern_Query_DepositTotal_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "deposit_total"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BondedResourceNodeCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "pp_number"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BondedResourceNodeCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "resource_node_count"}, "", runtime.AssumeColonVerbOpt(false)))
 
-	pattern_Query_BondedMetaNodeCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "sp_number"}, "", runtime.AssumeColonVerbOpt(false)))
+	pattern_Query_BondedMetaNodeCount_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "meta_node_count"}, "", runtime.AssumeColonVerbOpt(false)))
 
 	pattern_Query_RemainingOzoneLimit_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"stratos", "register", "v1", "remaining_ozone_limit"}, "", runtime.AssumeColonVerbOpt(false)))
 )

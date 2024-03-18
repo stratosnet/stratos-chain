@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
@@ -49,14 +50,14 @@ type PotKeeper interface {
 
 // RegisterKeeper defines functionality related for meta and resource node
 type RegisterKeeper interface {
-	KeeGetEffectiveTotalDeposit(kdb *keestatedb.KeestateDB) sdk.Int
-	KeeGetRemainingOzoneLimit(kdb *keestatedb.KeestateDB) sdk.Int
-	KeeSetRemainingOzoneLimit(kdb *keestatedb.KeestateDB, value sdk.Int)
+	KeeGetEffectiveTotalDeposit(kdb *keestatedb.KeestateDB) sdkmath.Int
+	KeeGetRemainingOzoneLimit(kdb *keestatedb.KeestateDB) sdkmath.Int
+	KeeSetRemainingOzoneLimit(kdb *keestatedb.KeestateDB, value sdkmath.Int)
 }
 
 // SdsKeper defines functionality related for ozone purchase
 type SdsKeeper interface {
-	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error)
+	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdkmath.Int, error)
 }
 
 // Event Hooks
