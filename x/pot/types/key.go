@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -13,9 +14,6 @@ const (
 
 	// RouterKey to be used for routing msgs
 	RouterKey = ModuleName
-
-	// QuerierRoute to be used for querier msgs
-	QuerierRoute = ModuleName
 )
 
 var (
@@ -26,14 +24,17 @@ var (
 	ImmatureTotalRewardKeyPrefix  = []byte{0x05} // key: prefix{address}
 	VolumeReportStoreKeyPrefix    = []byte{0x06} // VolumeReportStoreKeyPrefix prefix for volumeReport store
 	MaturedEpochKeyPrefix         = []byte{0x07}
+	TotalRewardKeyPrefix          = []byte{0x08} // key: prefix{epoch}
+
+	ParamsKey = []byte{0x20}
 )
 
-func VolumeReportStoreKey(epoch sdk.Int) []byte {
+func VolumeReportStoreKey(epoch sdkmath.Int) []byte {
 	return append(VolumeReportStoreKeyPrefix, epoch.String()...)
 }
 
 // GetIndividualRewardKey prefix{epoch}_{account}, the amount that is matured at {epoch}
-func GetIndividualRewardKey(acc sdk.AccAddress, epoch sdk.Int) []byte {
+func GetIndividualRewardKey(acc sdk.AccAddress, epoch sdkmath.Int) []byte {
 	bKeyStr := []byte("_")
 	bEpoch := []byte(epoch.String())
 
@@ -43,7 +44,7 @@ func GetIndividualRewardKey(acc sdk.AccAddress, epoch sdk.Int) []byte {
 	return key
 }
 
-func GetIndividualRewardIteratorKey(epoch sdk.Int) []byte {
+func GetIndividualRewardIteratorKey(epoch sdkmath.Int) []byte {
 	bKeyStr := []byte("_")
 	bEpoch := []byte(epoch.String())
 	key := append(IndividualRewardKeyPrefix, bEpoch...)
@@ -61,4 +62,8 @@ func GetMatureTotalRewardKey(acc sdk.AccAddress) []byte {
 func GetImmatureTotalRewardKey(acc sdk.AccAddress) []byte {
 	key := append(ImmatureTotalRewardKeyPrefix, acc.Bytes()...)
 	return key
+}
+
+func GetTotalRewardKey(epoch sdkmath.Int) []byte {
+	return append(TotalRewardKeyPrefix, epoch.String()...)
 }

@@ -20,7 +20,7 @@ import (
 	"sync"
 
 	"github.com/ethereum/go-ethereum/common"
-	evm "github.com/stratosnet/stratos-chain/x/evm"
+	"github.com/stratosnet/stratos-chain/x/evm"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 )
 

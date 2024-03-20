@@ -7,31 +7,20 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cosmos/cosmos-sdk/client"
+	mempl "github.com/cometbft/cometbft/mempool"
+
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/log"
+
+	"github.com/cosmos/cosmos-sdk/client"
+
 	"github.com/stratosnet/stratos-chain/server/config"
 	stratos "github.com/stratosnet/stratos-chain/types"
-	evm "github.com/stratosnet/stratos-chain/x/evm"
+	"github.com/stratosnet/stratos-chain/x/evm"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	mempl "github.com/tendermint/tendermint/mempool"
-)
-
-const (
-	// txSlotSize is used to calculate how many data slots a single transaction
-	// takes up based on its size. The slots are used as DoS protection, ensuring
-	// that validating a new transaction remains a constant operation (in reality
-	// O(maxslots), where max slots are 4 currently).
-	txSlotSize = 32 * 1024
-
-	// txMaxSize is the maximum size a single transaction can have. This field has
-	// non-trivial consequences: larger transactions are significantly harder and
-	// more expensive to propagate; larger transactions also take more resources
-	// to validate whether they fit into the pool or not.
-	txMaxSize = 4 * txSlotSize // 128KB
 )
 
 var (
@@ -274,7 +263,7 @@ func (pool *TxPool) validateTx(tx *types.Transaction) error {
 		return core.ErrTxTypeNotSupported
 	}
 	// Reject transactions over defined size to prevent DOS attacks
-	if uint64(tx.Size()) > txMaxSize {
+	if uint64(tx.Size()) > evmtypes.TxMaxSize {
 		return core.ErrOversizedData
 	}
 	// Transactions can't be negative. This may never happen using RLP decoded

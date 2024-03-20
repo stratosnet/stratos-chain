@@ -41,7 +41,6 @@ func GenEnableCall(r *rand.Rand) bool {
 // RandomizedGenState generates a random GenesisState for the EVM module
 func RandomizedGenState(simState *module.SimulationState) {
 	feeMarketParams := types.NewFeeMarketParams(simState.Rand.Uint32()%2 == 0, simState.Rand.Uint32(), simState.Rand.Uint32(), simState.Rand.Uint64(), simState.Rand.Int63())
-
 	// evm params
 	var extraEIPs []int64
 

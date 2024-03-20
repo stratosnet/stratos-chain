@@ -44,14 +44,12 @@ func FileUploadTxCmd() *cobra.Command {
 				return err
 			}
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildFileuploadMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildFileuploadMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 
@@ -88,14 +86,12 @@ func PrepayTxCmd() *cobra.Command {
 
 			clientCtx := cliCtx.WithFrom(args[0]).WithFromAddress(fromAddr).WithFromName(fromName)
 
-			txf := tx.NewFactoryCLI(clientCtx, cmd.Flags()).
-				WithTxConfig(clientCtx.TxConfig).WithAccountRetriever(clientCtx.AccountRetriever)
-			txf, msg, err := newBuildPrepayMsg(clientCtx, txf, cmd.Flags())
+			msg, err := newBuildPrepayMsg(clientCtx, cmd.Flags())
 			if err != nil {
 				return err
 			}
 
-			return tx.GenerateOrBroadcastTxWithFactory(clientCtx, txf, msg)
+			return tx.GenerateOrBroadcastTxCLI(clientCtx, cmd.Flags(), msg)
 		},
 	}
 	flags.AddTxFlagsToCmd(cmd)
@@ -103,28 +99,28 @@ func PrepayTxCmd() *cobra.Command {
 }
 
 // makes a new newBuildFileuploadMsg
-func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgFileUpload, error) {
+func newBuildFileuploadMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgFileUpload, error) {
 	fileHash, err := fs.GetString(FlagFileHash)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	flagReporterStr, err := fs.GetString(FlagReporter)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	_, err = stratos.SdsAddressFromBech32(flagReporterStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	flagUploaderStr, err := fs.GetString(FlagUploader)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 	_, err = sdk.AccAddressFromBech32(flagUploaderStr)
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	msg := types.NewMsgUpload(
@@ -134,23 +130,23 @@ func newBuildFileuploadMsg(clientCtx client.Context, txf tx.Factory, fs *flag.Fl
 		flagUploaderStr,
 	)
 
-	return txf, msg, nil
+	return msg, nil
 }
 
 // makes a new newBuildPrepayMsg
-func newBuildPrepayMsg(clientCtx client.Context, txf tx.Factory, fs *flag.FlagSet) (tx.Factory, *types.MsgPrepay, error) {
+func newBuildPrepayMsg(clientCtx client.Context, fs *flag.FlagSet) (*types.MsgPrepay, error) {
 	beneficiary, err := sdk.AccAddressFromBech32(fs.Arg(1))
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	amount, err := sdk.ParseCoinNormalized(fs.Arg(2))
 	if err != nil {
-		return txf, nil, err
+		return nil, err
 	}
 
 	// build and sign the transaction, then broadcast to Tendermint
 	msg := types.NewMsgPrepay(clientCtx.GetFromAddress().String(), beneficiary.String(), sdk.NewCoins(amount))
 
-	return txf, msg, nil
+	return msg, nil
 }

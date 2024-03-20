@@ -9,17 +9,15 @@ const (
 
 	// RouterKey to be used for routing msgs
 	RouterKey = ModuleName
-
-	// QuerierRoute to be used for querier msgs
-	QuerierRoute = ModuleName
 )
 
 var (
-	// FileStorage prefix for sds store
-	FileStoreKeyPrefix = []byte{0x01}
+	FileStoreKeyPrefix = []byte{0x01} // FileStorage prefix for sds store
+
+	ParamsKey = []byte{0x20}
 )
 
-// FileStoreKey turn an address to key used to get it from the account store
-func FileStoreKey(sender []byte) []byte {
+// GetFileStoreKey turn an address to key used to get it from the account store
+func GetFileStoreKey(sender []byte) []byte {
 	return append(FileStoreKeyPrefix, sender...)
 }

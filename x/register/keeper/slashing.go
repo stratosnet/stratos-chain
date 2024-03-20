@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
 
@@ -10,7 +11,7 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 	remaining = coins
 	deducted = sdk.Coins{}
 
-	if slashing.LTE(sdk.ZeroInt()) || coins.Empty() || coins.AmountOf(slashingDenom).IsZero() {
+	if slashing.LTE(sdkmath.ZeroInt()) || coins.Empty() || coins.AmountOf(slashingDenom).IsZero() {
 		return
 	}
 
@@ -18,13 +19,13 @@ func (k Keeper) DeductSlashing(ctx sdk.Context, walletAddress sdk.AccAddress, co
 	if coinAmt.GTE(slashing) {
 		deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, slashing))
 		coinAmt = coinAmt.Sub(slashing)
-		remaining = remaining.Sub(deducted)
-		slashing = sdk.ZeroInt()
+		remaining = remaining.Sub(deducted...)
+		slashing = sdkmath.ZeroInt()
 	} else {
 		deducted = sdk.NewCoins(sdk.NewCoin(slashingDenom, coinAmt))
 		slashing = slashing.Sub(coinAmt)
-		remaining = remaining.Sub(deducted)
-		coinAmt = sdk.ZeroInt()
+		remaining = remaining.Sub(deducted...)
+		coinAmt = sdkmath.ZeroInt()
 	}
 
 	k.SetSlashing(ctx, walletAddress, slashing)

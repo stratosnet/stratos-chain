@@ -3,7 +3,7 @@
 package rpc
 
 import (
-	"github.com/tendermint/tendermint/node"
+	"github.com/cometbft/cometbft/node"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"

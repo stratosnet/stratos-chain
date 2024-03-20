@@ -7,6 +7,12 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
+
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/codec"
@@ -20,24 +26,17 @@ import (
 	"github.com/cosmos/cosmos-sdk/x/auth/tx"
 	"github.com/cosmos/cosmos-sdk/x/simulation"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-
 	"github.com/stratosnet/stratos-chain/encoding"
 	"github.com/stratosnet/stratos-chain/tests"
+	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/keeper"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 const (
-	/* #nosec */
 	OpWeightMsgEthSimpleTransfer = "op_weight_msg_eth_simple_transfer"
-	/* #nosec */
 	OpWeightMsgEthCreateContract = "op_weight_msg_eth_create_contract"
-	/* #nosec */
-	OpWeightMsgEthCallContract = "op_weight_msg_eth_call_contract"
+	OpWeightMsgEthCallContract   = "op_weight_msg_eth_call_contract"
 )
 
 const (
@@ -124,7 +123,7 @@ func SimulateEthCreateContract(ak types.AccountKeeper, k *keeper.Keeper) simtype
 		from := common.BytesToAddress(simAccount.Address)
 		nonce := k.GetNonce(ctx, from)
 
-		ctorArgs, err := types.ERC20Contract.ABI.Pack("", from, sdk.NewIntWithDecimal(1000, 18).BigInt())
+		ctorArgs, err := types.ERC20Contract.ABI.Pack("", from, sdkmath.NewInt(1000).MulRaw(stratos.StosToWei).BigInt())
 		if err != nil {
 			return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEthereumTx, "can not pack owner and supply"), nil, err
 		}
@@ -186,14 +185,14 @@ func SimulateEthTx(
 		return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEthereumTx, "can not create valid eth tx"), nil, err
 	}
 
-	txConfig := encoding.MakeConfig(module.NewBasicManager()).TxConfig
+	txConfig := encoding.MakeEncodingConfig(module.NewBasicManager()).TxConfig
 	txBuilder := txConfig.NewTxBuilder()
 	signedTx, err := GetSignedTx(ctx, txBuilder, ethTx, prv)
 	if err != nil {
 		return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEthereumTx, "can not sign ethereum tx"), nil, err
 	}
 
-	_, _, err = ctx.bapp.Deliver(txConfig.TxEncoder(), signedTx)
+	_, _, err = ctx.bapp.SimDeliver(txConfig.TxEncoder(), signedTx)
 	if err != nil {
 		return simtypes.NoOpMsg(types.ModuleName, types.TypeMsgEthereumTx, "failed to deliver tx"), nil, err
 	}
@@ -259,7 +258,7 @@ func RandomTransferableAmount(ctx *simulateContext, address common.Address, esti
 		amount = new(big.Int).Set(spendable)
 		return amount, nil
 	}
-	simAmount, err := simtypes.RandPositiveInt(ctx.rand, sdk.NewIntFromBigInt(spendable))
+	simAmount, err := simtypes.RandPositiveInt(ctx.rand, sdkmath.NewIntFromBigInt(spendable))
 	if err != nil {
 		return nil, err
 	}
@@ -294,7 +293,7 @@ func GetSignedTx(ctx *simulateContext, txBuilder client.TxBuilder, msg *types.Ms
 		return nil, err
 	}
 
-	fees := sdk.NewCoins(sdk.NewCoin(params.EvmDenom, sdk.NewIntFromBigInt(txData.Fee())))
+	fees := sdk.NewCoins(sdk.NewCoin(params.EvmDenom, sdkmath.NewIntFromBigInt(txData.Fee())))
 	builder.SetFeeAmount(fees)
 	builder.SetGasLimit(msg.GetGas())
 

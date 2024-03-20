@@ -27,9 +27,11 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
-	"github.com/ethereum/go-ethereum/core/vm"
+	ethvm "github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
+
 	jsassets "github.com/stratosnet/stratos-chain/x/evm/tracers/js/internal/tracers"
 )
 
@@ -210,7 +212,7 @@ func (t *jsTracer) CaptureTxStart(gasLimit uint64) {
 	t.gasLimit = gasLimit
 }
 
-// CaptureTxStart implements the Tracer interface and is invoked at the end of
+// CaptureTxEnd implements the Tracer interface and is invoked at the end of
 // transaction processing.
 func (t *jsTracer) CaptureTxEnd(restGas uint64) {}
 
@@ -641,7 +643,7 @@ func (s *stackObj) setupObject() *goja.Object {
 }
 
 type dbObj struct {
-	db      vm.StateDB
+	db      ethvm.StateDB
 	vm      *goja.Runtime
 	toBig   toBigFn
 	toBuf   toBufFn

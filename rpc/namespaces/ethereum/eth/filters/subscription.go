@@ -3,8 +3,8 @@ package filters
 import (
 	"time"
 
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"

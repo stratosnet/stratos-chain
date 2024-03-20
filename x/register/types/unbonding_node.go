@@ -3,7 +3,7 @@ package types
 import (
 	"time"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkmath "cosmossdk.io/math"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -15,7 +15,7 @@ func (e UnbondingNodeEntry) IsMature(currentTime time.Time) bool {
 
 // NewUnbondingNode - create a new unbonding Node object
 func NewUnbondingNode(networkAddr stratos.SdsAddress, isMetaNode bool, creationHeight int64, minTime time.Time,
-	balance sdk.Int) UnbondingNode {
+	balance sdkmath.Int) UnbondingNode {
 
 	entry := NewUnbondingNodeEntry(creationHeight, minTime, balance)
 	return UnbondingNode{
@@ -26,7 +26,7 @@ func NewUnbondingNode(networkAddr stratos.SdsAddress, isMetaNode bool, creationH
 }
 
 // NewUnbondingNodeEntry - create a new unbonding Node object
-func NewUnbondingNodeEntry(creationHeight int64, completionTime time.Time, balance sdk.Int) UnbondingNodeEntry {
+func NewUnbondingNodeEntry(creationHeight int64, completionTime time.Time, balance sdkmath.Int) UnbondingNodeEntry {
 	return UnbondingNodeEntry{
 		CreationHeight: creationHeight,
 		CompletionTime: completionTime,
@@ -36,7 +36,7 @@ func NewUnbondingNodeEntry(creationHeight int64, completionTime time.Time, balan
 }
 
 // AddEntry - append entry to the unbonding Node
-func (un *UnbondingNode) AddEntry(creationHeight int64, minTime time.Time, balance sdk.Int) {
+func (un *UnbondingNode) AddEntry(creationHeight int64, minTime time.Time, balance sdkmath.Int) {
 	entry := NewUnbondingNodeEntry(creationHeight, minTime, balance)
 	un.Entries = append(un.Entries, &entry)
 }

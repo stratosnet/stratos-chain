@@ -13,6 +13,20 @@ var (
 	_ TxData = &DynamicFeeTx{}
 )
 
+const (
+	// txSlotSize is used to calculate how many data slots a single transaction
+	// takes up based on its size. The slots are used as DoS protection, ensuring
+	// that validating a new transaction remains a constant operation (in reality
+	// O(maxslots), where max slots are 4 currently).
+	TxSlotSize = 32 * 1024
+
+	// txMaxSize is the maximum size a single transaction can have. This field has
+	// non-trivial consequences: larger transactions are significantly harder and
+	// more expensive to propagate; larger transactions also take more resources
+	// to validate whether they fit into the pool or not.
+	TxMaxSize = 4 * TxSlotSize // 128KB
+)
+
 // TxData implements the Ethereum transaction tx structure. It is used
 // solely as intended in Ethereum abiding by the protocol.
 type TxData interface {
@@ -68,8 +82,9 @@ func NewTxDataFromTx(tx *ethtypes.Transaction) (TxData, error) {
 //
 // CONTRACT: v value is either:
 //
-//  - {0,1} + CHAIN_ID * 2 + 35, if EIP155 is used
-//  - {0,1} + 27, otherwise
+//   - {0,1} + CHAIN_ID * 2 + 35, if EIP155 is used
+//   - {0,1} + 27, otherwise
+//
 // Ref: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
 func DeriveChainID(v *big.Int) *big.Int {
 	if v == nil || v.Sign() < 1 {

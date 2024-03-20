@@ -139,7 +139,7 @@ func (r Reward) AddRewardFromTrafficPool(reward sdk.Coin) Reward {
 	return r
 }
 
-// String returns a human readable string representation of a Reward.
+// HrpString returns a human-readable string representation of a Reward.
 func (r Reward) HrpString() string {
 	return fmt.Sprintf(`Reward:{
 		WalletAddress:			%s

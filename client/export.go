@@ -5,15 +5,18 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
+	"github.com/ethereum/go-ethereum/common/hexutil"
+	ethcrypto "github.com/ethereum/go-ethereum/crypto"
+
+	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/client/input"
 	"github.com/cosmos/cosmos-sdk/crypto"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/ethereum/go-ethereum/common/hexutil"
-	ethcrypto "github.com/ethereum/go-ethereum/crypto"
-	"github.com/spf13/cobra"
-
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+
 	"github.com/stratosnet/stratos-chain/crypto/ethsecp256k1"
 	"github.com/stratosnet/stratos-chain/crypto/hd"
 )
@@ -30,12 +33,14 @@ func UnsafeExportEthKeyCommand() *cobra.Command {
 
 			keyringBackend, _ := cmd.Flags().GetString(flags.FlagKeyringBackend)
 			rootDir, _ := cmd.Flags().GetString(flags.FlagHome)
+			clientCtx := client.GetClientContextFromCmd(cmd)
 
 			kr, err := keyring.New(
 				sdk.KeyringServiceName(),
 				keyringBackend,
 				rootDir,
 				inBuf,
+				clientCtx.Codec,
 				hd.EthSecp256k1Option(),
 			)
 			if err != nil {

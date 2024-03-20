@@ -1,19 +1,20 @@
 package config
 
 import (
-	"errors"
 	"fmt"
 	"path"
 	"strconv"
 	"time"
 
 	"github.com/spf13/viper"
-	stratos "github.com/stratosnet/stratos-chain/types"
 
-	"github.com/tendermint/tendermint/libs/strings"
+	"github.com/cometbft/cometbft/libs/strings"
 
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/server/config"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+
+	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
 const (
@@ -42,18 +43,16 @@ const (
 	DefaultBlockRangeCap int32 = 10000
 
 	DefaultEVMTimeout = 5 * time.Second
-	// default 1.0 eth
-	DefaultTxFeeCap float64 = 1.0
+
+	DefaultTxFeeCap float64 = 1.0 // default 1.0 eth
 
 	DefaultHTTPTimeout = 30 * time.Second
 
 	DefaultHTTPIdleTimeout = 120 * time.Second
 
-	// default 1000000000wei = 1gwei
-	DefaultMinGasPrices uint64 = 1e9
+	DefaultMinGasPrices uint64 = 1e9 // default 1000000000wei = 1gwei
 
-	// 1000000wei = 0.01gwei
-	MinimalMinGasPrices uint64 = 1e7
+	MinimalMinGasPrices uint64 = 1e7 // 1000000wei = 0.01gwei
 )
 
 var evmTracers = []string{"json", "markdown", "struct", "access_list"}
@@ -209,39 +208,39 @@ func DefaultJSONRPCConfig() *JSONRPCConfig {
 // Validate returns an error if the JSON-RPC configuration fields are invalid.
 func (c JSONRPCConfig) Validate() error {
 	if c.Enable && len(c.API) == 0 {
-		return errors.New("cannot enable JSON-RPC without defining any API namespace")
+		return fmt.Errorf("cannot enable JSON-RPC without defining any API namespace")
 	}
 
 	if c.FilterCap < 0 {
-		return errors.New("JSON-RPC filter-cap cannot be negative")
+		return fmt.Errorf("JSON-RPC filter-cap cannot be negative")
 	}
 
 	if c.FeeHistoryCap <= 0 {
-		return errors.New("JSON-RPC feehistory-cap cannot be negative or 0")
+		return fmt.Errorf("JSON-RPC feehistory-cap cannot be negative or 0")
 	}
 
 	if c.TxFeeCap < 0 {
-		return errors.New("JSON-RPC tx fee cap cannot be negative")
+		return fmt.Errorf("JSON-RPC tx fee cap cannot be negative")
 	}
 
 	if c.EVMTimeout < 0 {
-		return errors.New("JSON-RPC EVM timeout duration cannot be negative")
+		return fmt.Errorf("JSON-RPC EVM timeout duration cannot be negative")
 	}
 
 	if c.LogsCap < 0 {
-		return errors.New("JSON-RPC logs cap cannot be negative")
+		return fmt.Errorf("JSON-RPC logs cap cannot be negative")
 	}
 
 	if c.BlockRangeCap < 0 {
-		return errors.New("JSON-RPC block range cap cannot be negative")
+		return fmt.Errorf("JSON-RPC block range cap cannot be negative")
 	}
 
 	if c.HTTPTimeout < 0 {
-		return errors.New("JSON-RPC HTTP timeout duration cannot be negative")
+		return fmt.Errorf("JSON-RPC HTTP timeout duration cannot be negative")
 	}
 
 	if c.HTTPIdleTimeout < 0 {
-		return errors.New("JSON-RPC HTTP idle timeout duration cannot be negative")
+		return fmt.Errorf("JSON-RPC HTTP idle timeout duration cannot be negative")
 	}
 
 	// check for duplicates
@@ -329,15 +328,15 @@ func ParseConfig(v *viper.Viper) (*Config, error) {
 // ValidateBasic returns an error any of the application configuration fields are invalid
 func (c Config) ValidateBasic() error {
 	if err := c.EVM.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid evm config value: %s", err.Error())
+		return errors.Wrapf(sdkerrors.ErrAppConfig, "invalid evm config value: %s", err.Error())
 	}
 
 	if err := c.JSONRPC.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
+		return errors.Wrapf(sdkerrors.ErrAppConfig, "invalid json-rpc config value: %s", err.Error())
 	}
 
 	if err := c.TLS.Validate(); err != nil {
-		return sdkerrors.Wrapf(sdkerrors.ErrAppConfig, "invalid tls config value: %s", err.Error())
+		return errors.Wrapf(sdkerrors.ErrAppConfig, "invalid tls config value: %s", err.Error())
 	}
 
 	return c.Config.ValidateBasic()

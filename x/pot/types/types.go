@@ -1,6 +1,7 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -8,7 +9,7 @@ import (
 // NewSingleWalletVolume creates a new Msg<Action> instance
 func NewSingleWalletVolume(
 	walletAddress sdk.AccAddress,
-	volume sdk.Int,
+	volume sdkmath.Int,
 ) SingleWalletVolume {
 	return SingleWalletVolume{
 		WalletAddress: walletAddress.String(),
@@ -17,7 +18,7 @@ func NewSingleWalletVolume(
 }
 
 func NewMiningRewardParam(totalMinedValveStart sdk.Coin, totalMinedValveEnd sdk.Coin, miningReward sdk.Coin,
-	resourceNodePercentageInBp sdk.Int, metaNodePercentageInBp sdk.Int, blockChainPercentageInBp sdk.Int) MiningRewardParam {
+	resourceNodePercentageInBp sdkmath.Int, metaNodePercentageInBp sdkmath.Int, blockChainPercentageInBp sdkmath.Int) MiningRewardParam {
 	return MiningRewardParam{
 		TotalMinedValveStart:       totalMinedValveStart,
 		TotalMinedValveEnd:         totalMinedValveEnd,

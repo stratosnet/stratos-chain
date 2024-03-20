@@ -88,6 +88,7 @@ type OneFeeHistory struct {
 	GasUsedRatio float64    // the ratio of gas used to the gas limit for each block
 }
 
+// Header
 // NOTE: Forked because tendermint block hash calculated in another way
 // default ethereum take rlp from the struct
 type Header struct {

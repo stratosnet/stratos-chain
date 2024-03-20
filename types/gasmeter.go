@@ -41,6 +41,10 @@ func (g *infiniteGasMeterWithLimit) GasConsumedToLimit() sdk.Gas {
 	return g.consumed
 }
 
+func (g *infiniteGasMeterWithLimit) GasRemaining() sdk.Gas {
+	return g.limit
+}
+
 func (g *infiniteGasMeterWithLimit) Limit() sdk.Gas {
 	return g.limit
 }

@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"cosmossdk.io/errors"
 	"github.com/ethereum/go-ethereum/common"
 )
 
 // Storage represents the account Storage map as a slice of single key value
-// State pairs. This is to prevent non determinism at genesis initialization or export.
+// State pairs. This is to prevent non-determinism at genesis initialization or export.
 type Storage []State
 
 // Validate performs a basic validation of the Storage fields.
@@ -17,7 +17,7 @@ func (s Storage) Validate() error {
 	seenStorage := make(map[string]bool)
 	for i, state := range s {
 		if seenStorage[state.Key] {
-			return sdkerrors.Wrapf(ErrInvalidState, "duplicate state key %d: %s", i, state.Key)
+			return errors.Wrapf(ErrInvalidState, "duplicate state key %d: %s", i, state.Key)
 		}
 
 		if err := state.Validate(); err != nil {
@@ -51,7 +51,7 @@ func (s Storage) Copy() Storage {
 // NOTE: state value can be empty
 func (s State) Validate() error {
 	if strings.TrimSpace(s.Key) == "" {
-		return sdkerrors.Wrap(ErrInvalidState, "state key hash cannot be blank")
+		return errors.Wrap(ErrInvalidState, "state key hash cannot be blank")
 	}
 
 	return nil

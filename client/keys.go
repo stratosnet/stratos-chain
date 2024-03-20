@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/tendermint/tendermint/libs/cli"
+	"github.com/cometbft/cometbft/libs/cli"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -51,7 +51,7 @@ The pass backend requires GnuPG: https://gnupg.org/
 	addCmd := keys.AddKeyCommand()
 
 	// update the default signing algorithm value to "eth_secp256k1"
-	algoFlag := addCmd.Flag(flags.FlagKeyAlgorithm)
+	algoFlag := addCmd.Flag(flags.FlagKeyType)
 	algoFlag.DefValue = string(stratoshd.EthSecp256k1Type)
 	err := algoFlag.Value.Set(string(stratoshd.EthSecp256k1Type))
 	if err != nil {
@@ -94,7 +94,14 @@ func runAddCmd(cmd *cobra.Command, args []string) error {
 
 	dryRun, _ := cmd.Flags().GetBool(flags.FlagDryRun)
 	if dryRun {
-		kr, err = keyring.New(sdk.KeyringServiceName(), keyring.BackendMemory, clientCtx.KeyringDir, buf, stratoshd.EthSecp256k1Option())
+		kr, err = keyring.New(
+			sdk.KeyringServiceName(),
+			keyring.BackendMemory,
+			clientCtx.KeyringDir,
+			buf,
+			clientCtx.Codec,
+			stratoshd.EthSecp256k1Option(),
+		)
 		clientCtx = clientCtx.WithKeyring(kr)
 	}
 

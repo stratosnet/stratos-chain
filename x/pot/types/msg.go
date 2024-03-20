@@ -1,7 +1,9 @@
 package types
 
 import (
+	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/cosmos/gogoproto/proto"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
@@ -10,27 +12,26 @@ import (
 var (
 	_ sdk.Msg = &MsgVolumeReport{}
 	_ sdk.Msg = &MsgWithdraw{}
-	_ sdk.Msg = &MsgLegacyWithdraw{}
 	_ sdk.Msg = &MsgFoundationDeposit{}
 	_ sdk.Msg = &MsgSlashingResourceNode{}
+	_ sdk.Msg = &MsgUpdateParams{}
 )
 
 const (
 	TypeMsgVolumeReport         = "volume_report"
 	TypeMsgWithdraw             = "withdraw"
-	TypeMsgLegacyWithdraw       = "legacy_withdraw"
 	TypeMsgFoundationDeposit    = "foundation_deposit"
 	TypeMsgSlashingResourceNode = "slashing_resource_node"
+	TypeMsgUpdateParams         = "update_params"
 )
 
 // NewMsgVolumeReport creates a new MsgVolumeReport instance
 func NewMsgVolumeReport(
 	walletVolumes []SingleWalletVolume,
 	reporter stratos.SdsAddress,
-	epoch sdk.Int,
+	epoch sdkmath.Int,
 	reportReference string,
 	reporterOwner sdk.AccAddress,
-	blsSignature BLSSignatureInfo,
 ) *MsgVolumeReport {
 	return &MsgVolumeReport{
 		WalletVolumes:   walletVolumes,
@@ -38,7 +39,6 @@ func NewMsgVolumeReport(
 		Epoch:           epoch,
 		ReportReference: reportReference,
 		ReporterOwner:   reporterOwner.String(),
-		BLSSignature:    blsSignature,
 	}
 }
 
@@ -66,9 +66,12 @@ func (msg MsgVolumeReport) GetSignBytes() []byte {
 }
 
 func (msg MsgVolumeReport) GetBLSSignBytes() []byte {
-	msg.BLSSignature = NewBLSSignatureInfo(nil, nil, nil)
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
+	msg.BLSSignature = BLSSignatureInfo{}
+	bz, err := proto.Marshal(&msg)
+	if err != nil {
+		panic(err)
+	}
+	return bz
 }
 
 // ValidateBasic validity check for the AnteHandler
@@ -120,6 +123,8 @@ func (msg MsgVolumeReport) ValidateBasic() error {
 	return nil
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewMsgWithdraw(amount sdk.Coins, walletAddress sdk.AccAddress, targetAddress sdk.AccAddress) *MsgWithdraw {
 	return &MsgWithdraw{
 		Amount:        amount,
@@ -169,54 +174,7 @@ func (msg MsgWithdraw) ValidateBasic() error {
 	return nil
 }
 
-func NewMsgLegacyWithdraw(amount sdk.Coins, from sdk.AccAddress, targetAddress sdk.AccAddress) *MsgLegacyWithdraw {
-	return &MsgLegacyWithdraw{
-		Amount:        amount,
-		From:          from.String(),
-		TargetAddress: targetAddress.String(),
-	}
-}
-
-// Route Implement
-func (msg MsgLegacyWithdraw) Route() string { return RouterKey }
-
-// GetSigners Implement
-func (msg MsgLegacyWithdraw) GetSigners() []sdk.AccAddress {
-	var addrs []sdk.AccAddress
-	from, err := sdk.AccAddressFromBech32(msg.From)
-	if err != nil {
-		panic(err)
-	}
-	addrs = append(addrs, from)
-	return addrs
-}
-
-// Type Implement
-func (msg MsgLegacyWithdraw) Type() string { return TypeMsgLegacyWithdraw }
-
-// GetSignBytes gets the bytes for the message signer to sign on
-func (msg MsgLegacyWithdraw) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(msg)
-	return sdk.MustSortJSON(bz)
-}
-
-// ValidateBasic validity check for the AnteHandler
-func (msg MsgLegacyWithdraw) ValidateBasic() error {
-	if !(msg.Amount.IsValid()) {
-		return ErrWithdrawAmountInvalid
-	}
-	if len(msg.From) == 0 {
-		return ErrEmptyFromAddr
-	}
-	if len(msg.TargetAddress) == 0 {
-		return ErrMissingTargetAddress
-	}
-	_, err := sdk.AccAddressFromBech32(msg.GetFrom())
-	if err != nil {
-		return ErrInvalidAddress
-	}
-	return nil
-}
+// --------------------------------------------------------------------------------------------------------------------
 
 func NewMsgFoundationDeposit(amount sdk.Coins, from sdk.AccAddress) *MsgFoundationDeposit {
 	return &MsgFoundationDeposit{
@@ -263,8 +221,10 @@ func (msg MsgFoundationDeposit) ValidateBasic() error {
 	return nil
 }
 
+// --------------------------------------------------------------------------------------------------------------------
+
 func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []sdk.AccAddress,
-	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdk.Int, suspend bool) *MsgSlashingResourceNode {
+	networkAddress stratos.SdsAddress, walletAddress sdk.AccAddress, slashing sdkmath.Int, suspend bool) *MsgSlashingResourceNode {
 
 	reporterStrSlice := make([]string, 0)
 	for _, reporter := range reporters {
@@ -280,53 +240,53 @@ func NewMsgSlashingResourceNode(reporters []stratos.SdsAddress, reporterOwner []
 		ReporterOwner:  reporterOwnerStrSlice,
 		NetworkAddress: networkAddress.String(),
 		WalletAddress:  walletAddress.String(),
-		Slashing:       &slashing,
+		Slashing:       slashing,
 		Suspend:        suspend,
 	}
 }
 
-func (m MsgSlashingResourceNode) Route() string {
+func (msg MsgSlashingResourceNode) Route() string {
 	return RouterKey
 }
 
-func (m MsgSlashingResourceNode) Type() string {
+func (msg MsgSlashingResourceNode) Type() string {
 	return TypeMsgSlashingResourceNode
 }
 
-func (m MsgSlashingResourceNode) ValidateBasic() error {
-	if len(m.NetworkAddress) == 0 {
+func (msg MsgSlashingResourceNode) ValidateBasic() error {
+	if len(msg.NetworkAddress) == 0 {
 		return ErrMissingTargetAddress
 	}
-	if len(m.WalletAddress) == 0 {
+	if len(msg.WalletAddress) == 0 {
 		return ErrMissingWalletAddress
 	}
-	for _, r := range m.Reporters {
+	for _, r := range msg.Reporters {
 		if len(r) == 0 {
 			return ErrReporterAddress
 		}
 	}
 
-	for _, owner := range m.ReporterOwner {
+	for _, owner := range msg.ReporterOwner {
 		_, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
 			return ErrInvalidAddress
 		}
 	}
 
-	if m.Slashing.LT(sdk.ZeroInt()) {
+	if msg.Slashing.LT(sdkmath.ZeroInt()) {
 		return ErrInvalidAmount
 	}
 	return nil
 }
 
-func (m MsgSlashingResourceNode) GetSignBytes() []byte {
-	bz := ModuleCdc.MustMarshalJSON(m)
+func (msg MsgSlashingResourceNode) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
 	return sdk.MustSortJSON(bz)
 }
 
-func (m MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
+func (msg MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
 	var addrs []sdk.AccAddress
-	for _, owner := range m.ReporterOwner {
+	for _, owner := range msg.ReporterOwner {
 		reporterOwner, err := sdk.AccAddressFromBech32(owner)
 		if err != nil {
 			panic(err)
@@ -334,4 +294,45 @@ func (m MsgSlashingResourceNode) GetSigners() []sdk.AccAddress {
 		addrs = append(addrs, reporterOwner)
 	}
 	return addrs
+}
+
+// --------------------------------------------------------------------------------------------------------------------
+
+func NewMsgUpdateParams(params Params, authority string) *MsgUpdateParams {
+	return &MsgUpdateParams{
+		Params:    params,
+		Authority: authority,
+	}
+}
+
+// Route implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) Route() string {
+	return RouterKey
+}
+
+// Type implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) Type() string {
+	return TypeMsgUpdateParams
+}
+
+// ValidateBasic implements sdk.Msg
+func (msg *MsgUpdateParams) ValidateBasic() error {
+	_, err := sdk.AccAddressFromBech32(msg.Authority)
+	if err != nil {
+		return err
+	}
+
+	return msg.Params.Validate()
+}
+
+// GetSignBytes implements sdk.Msg
+func (msg *MsgUpdateParams) GetSigners() []sdk.AccAddress {
+	authority := sdk.MustAccAddressFromBech32(msg.Authority)
+	return []sdk.AccAddress{authority}
+}
+
+// GetSigners implements legacytx.LegacyMsg
+func (msg *MsgUpdateParams) GetSignBytes() []byte {
+	bz := ModuleCdc.MustMarshalJSON(msg)
+	return sdk.MustSortJSON(bz)
 }

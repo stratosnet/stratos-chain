@@ -5,23 +5,23 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	sdkmath "cosmossdk.io/math"
+	cryptocodec "github.com/cosmos/cosmos-sdk/crypto/codec"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
 	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-	"github.com/stretchr/testify/require"
-
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
-	"github.com/stratosnet/stratos-chain/app"
-	"github.com/stratosnet/stratos-chain/crypto"
-	"github.com/stratosnet/stratos-chain/crypto/bls"
+	stratostestutil "github.com/stratosnet/stratos-chain/testutil"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/pot/types"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -29,9 +29,22 @@ import (
 )
 
 const (
-	testchainID = "testchain"
+	testchainID   = "testchain"
+	funderKeyName = "funder"
+	reNodeCount   = 1e5
+)
 
-	reNodeCount = 1e5
+var (
+	keysMap  = make(map[string]KeyInfo, 0) // map[bech32 P2PAddr]KeyInfo
+	keysList = make([]KeyInfo, 0)
+	accounts = make([]authtypes.GenesisAccount, 0)
+	balances = make([]banktypes.Balance, 0)
+
+	accInitBalance        = sdkmath.NewInt(100).MulRaw(stratos.StosToWei)
+	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Wei, sdkmath.NewInt(4e7).MulRaw(stratos.StosToWei)))
+	nodeInitDeposit       = sdkmath.NewInt(1 * stratos.StosToWei)
+	prepayAmt             = sdk.NewCoins(stratos.NewCoin(sdkmath.NewInt(20).MulRaw(stratos.StosToWei)))
+	valP2PAddrBech32      string
 )
 
 type KeyInfo struct {
@@ -69,32 +82,17 @@ func NewKeyInfo() KeyInfo {
 	}
 }
 
-var (
-	keysMap  = make(map[string]KeyInfo, 0) // map[bech32 P2PAddr]KeyInfo
-	keysList = make([]KeyInfo, 0)
-	accounts = make([]authtypes.GenesisAccount, 0)
-	balances = make([]banktypes.Balance, 0)
-
-	accInitBalance        = sdk.NewInt(100).Mul(sdk.NewInt(stratos.StosToWei))
-	initFoundationDeposit = sdk.NewCoins(sdk.NewCoin(stratos.Utros, sdk.NewInt(40000000000000000)))
-
-	nodeInitDeposit  = sdk.NewInt(1 * stratos.StosToWei)
-	prepayAmt        = sdk.NewCoins(stratos.NewCoin(sdk.NewInt(20).Mul(sdk.NewInt(stratos.StosToWei))))
-	valP2PAddrBech32 string
-)
-
 func TestVolumeReportBenchmark(t *testing.T) {
 	/********************* initialize mock app *********************/
 	setupKeysAndAccBalance(reNodeCount)
-	createValidatorMsg, metaNodes, resourceNodes := setupNodesBenchmark()
+	metaNodes, resourceNodes := setupNodesBenchmark()
 
-	validators := make([]*tmtypes.Validator, 0)
-	valSet := tmtypes.NewValidatorSet(validators)
+	// create validator set with single validator
+	consPubKey, err := cryptocodec.ToTmPubKeyInterface(keysList[0].P2PPubKey())
+	validator := tmtypes.NewValidator(consPubKey, 1)
+	valSet := tmtypes.NewValidatorSet([]*tmtypes.Validator{validator})
 
-	//fmt.Println("##### accounts: ", accounts)
-	//fmt.Println("!!!!! balances: ", balances)
-
-	stApp := app.SetupWithGenesisNodeSet(t, false, valSet, metaNodes, resourceNodes, accounts, testchainID, balances...)
+	stApp := stratostestutil.SetupWithGenesisNodeSet(t, valSet, metaNodes, resourceNodes, accounts, testchainID, false, balances...)
 	accountKeeper := stApp.GetAccountKeeper()
 
 	/********************* foundation account deposit *********************/
@@ -102,27 +100,16 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
 	ctx := stApp.BaseApp.NewContext(true, header)
 
-	foundationDepositMsg := types.NewMsgFoundationDeposit(initFoundationDeposit, keysMap["foundationDepositorKey"].OwnerAddress())
-	txGen := app.MakeTestEncodingConfig().TxConfig
+	foundationDepositMsg := types.NewMsgFoundationDeposit(initFoundationDeposit, keysMap[funderKeyName].OwnerAddress())
+	txGen := stratostestutil.MakeTestEncodingConfig().TxConfig
 
-	senderAcc := accountKeeper.GetAccount(ctx, keysMap["foundationDepositorKey"].OwnerAddress())
+	senderAcc := accountKeeper.GetAccount(ctx, keysMap[funderKeyName].OwnerAddress())
 	accNum := senderAcc.GetAccountNumber()
 	accSeq := senderAcc.GetSequence()
-	_, _, err := app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap["foundationDepositorKey"].secp256k1PrivKey)
+	_, _, err = stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{foundationDepositMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[funderKeyName].secp256k1PrivKey)
 	require.NoError(t, err)
 	foundationAccountAddr := accountKeeper.GetModuleAddress(types.FoundationAccount)
-	app.CheckBalance(t, stApp, foundationAccountAddr, initFoundationDeposit)
-
-	/********************* create validator with 50% commission *********************/
-	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: testchainID}
-	stApp.BeginBlock(abci.RequestBeginBlock{Header: header})
-	ctx = stApp.BaseApp.NewContext(false, header)
-
-	senderAcc = accountKeeper.GetAccount(ctx, keysMap[valP2PAddrBech32].OwnerAddress())
-	accNum = senderAcc.GetAccountNumber()
-	accSeq = senderAcc.GetSequence()
-	_, _, err = app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{createValidatorMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[valP2PAddrBech32].secp256k1PrivKey)
-	require.NoError(t, err)
+	stratostestutil.CheckBalance(t, stApp, foundationAccountAddr, initFoundationDeposit)
 
 	/********************* prepay *********************/
 	header = tmproto.Header{Height: stApp.LastBlockHeight() + 1, ChainID: testchainID}
@@ -133,7 +120,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 
 	accNum = senderAcc.GetAccountNumber()
 	accSeq = senderAcc.GetSequence()
-	_, _, err = app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[resourceNodes[0].NetworkAddress].secp256k1PrivKey)
+	_, _, err = stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{prepayMsg}, testchainID, []uint64{accNum}, []uint64{accSeq}, true, true, keysMap[resourceNodes[0].NetworkAddress].secp256k1PrivKey)
 	require.NoError(t, err)
 
 	/********************** commit **********************/
@@ -142,7 +129,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	ctx = stApp.BaseApp.NewContext(true, header)
 
 	/********************* prepare tx data *********************/
-	volumeReportMsg := setupMsgVolumeReportBenchmark(t, sdk.NewInt(1), metaNodes, resourceNodes)
+	volumeReportMsg := setupMsgVolumeReportBenchmark(t, sdkmath.NewInt(1), metaNodes, resourceNodes)
 
 	/********************* deliver tx *********************/
 	idxOwnerAcc1 := accountKeeper.GetAccount(ctx, keysMap[metaNodes[0].NetworkAddress].OwnerAddress())
@@ -153,7 +140,7 @@ func TestVolumeReportBenchmark(t *testing.T) {
 	require.NotNil(t, feePoolAccAddr)
 
 	t.Log("--------------------------- deliver volumeReportMsg")
-	gInfo, _, err := app.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, testchainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, keysMap[metaNodes[0].NetworkAddress].secp256k1PrivKey)
+	gInfo, _, err := stratostestutil.SignCheckDeliverWithFee(t, txGen, stApp.BaseApp, header, []sdk.Msg{volumeReportMsg}, testchainID, []uint64{ownerAccNum}, []uint64{ownerAccSeq}, true, true, keysMap[metaNodes[0].NetworkAddress].secp256k1PrivKey)
 	require.NoError(t, err)
 	fmt.Println("##### volume nodes count:", len(volumeReportMsg.WalletVolumes))
 	fmt.Println("##### gInfo:", gInfo.String())
@@ -185,41 +172,30 @@ func setupKeysAndAccBalance(resNodeCnt int) {
 
 	}
 
-	foundationDepositorKey := NewKeyInfo()
-	foundationDepositorAcc := &authtypes.BaseAccount{Address: foundationDepositorKey.OwnerAddress().String()}
-	feeAmt, _ := sdk.NewIntFromString("50000000000000000000")
-	foundationDepositorBalance := banktypes.Balance{
-		Address: foundationDepositorKey.OwnerAddress().String(),
-		Coins:   append(initFoundationDeposit, sdk.NewCoin(stratos.Wei, feeAmt)),
+	funderKey := NewKeyInfo()
+	funderAcc := &authtypes.BaseAccount{Address: funderKey.OwnerAddress().String()}
+	feeAmt := sdkmath.NewInt(50).MulRaw(stratos.StosToWei)
+	funderBalance := banktypes.Balance{
+		Address: funderKey.OwnerAddress().String(),
+		Coins:   initFoundationDeposit.Add(sdk.NewCoin(stratos.Wei, feeAmt)),
 	}
-	keysMap["foundationDepositorKey"] = foundationDepositorKey
-	accounts = append(accounts, foundationDepositorAcc)
-	balances = append(balances, foundationDepositorBalance)
+	keysMap[funderKeyName] = funderKey
+	accounts = append(accounts, funderAcc)
+	balances = append(balances, funderBalance)
 }
 
-func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) {
+func setupNodesBenchmark() (metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) {
 	time, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
 
 	for idx, keyInfo := range keysList {
 
-		if idx == 0 {
-			// first key is validator key
-			commission := stakingtypes.NewCommissionRates(sdk.NewDecWithPrec(5, 1), sdk.NewDecWithPrec(5, 1), sdk.NewDec(0))
-			description := stakingtypes.NewDescription("foo_moniker", testchainID, "", "", "")
-			createValidatorMsg, _ = stakingtypes.NewMsgCreateValidator(
-				sdk.ValAddress(keyInfo.OwnerAddress()),
-				keyInfo.P2PPubKey(),
-				stratos.NewCoin(nodeInitDeposit),
-				description,
-				commission,
-				sdk.OneInt(),
-			)
-		} else if idx < 4 {
+		if 0 < idx && idx < 4 {
 			// 1~3 keys are metaNode keys
 			metaNode, _ := registertypes.NewMetaNode(
 				keyInfo.P2PAddress(),
 				keyInfo.P2PPubKey(),
+				keyInfo.OwnerAddress(),
 				keyInfo.OwnerAddress(),
 				registertypes.NewDescription(keyInfo.P2PAddressBech32(), "", "", "", ""),
 				time,
@@ -251,8 +227,8 @@ func setupNodesBenchmark() (createValidatorMsg *stakingtypes.MsgCreateValidator,
 }
 
 // initialize data of volume report
-func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdk.Int, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) *types.MsgVolumeReport {
-	rsNodeVolume := sdk.NewInt(50000)
+func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdkmath.Int, metaNodes []registertypes.MetaNode, resourceNodes []registertypes.ResourceNode) *types.MsgVolumeReport {
+	rsNodeVolume := sdkmath.NewInt(50000)
 
 	nodesVolume := make([]types.SingleWalletVolume, 0)
 	for _, rsNode := range resourceNodes {
@@ -268,35 +244,14 @@ func setupMsgVolumeReportBenchmark(t *testing.T, epoch sdk.Int, metaNodes []regi
 	reportReference := "report for epoch " + epoch.String()
 	reporterOwner := reporterKey.OwnerAddress()
 
-	signature := types.BLSSignatureInfo{}
-	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner, signature)
-
-	signBytes := volumeReportMsg.GetBLSSignBytes()
-	signBytesHash := crypto.Keccak256(signBytes)
-
-	// set blsSignature
-	blsPrivKey1, blsPubKey1, err := bls.NewKeyPairFromBytes(keysMap[metaNodes[0].NetworkAddress].ed25519PrivKey.Bytes())
+	volumeReportMsg := types.NewMsgVolumeReport(nodesVolume, reporter, epoch, reportReference, reporterOwner)
+	volumeReportMsg, err := stratostestutil.SignVolumeReport(
+		volumeReportMsg,
+		keysMap[metaNodes[0].NetworkAddress].ed25519PrivKey.Bytes(),
+		keysMap[metaNodes[1].NetworkAddress].ed25519PrivKey.Bytes(),
+		keysMap[metaNodes[2].NetworkAddress].ed25519PrivKey.Bytes(),
+	)
 	require.NoError(t, err)
-	blsPrivKey2, blsPubKey2, err := bls.NewKeyPairFromBytes(keysMap[metaNodes[1].NetworkAddress].ed25519PrivKey.Bytes())
-	require.NoError(t, err)
-	blsPrivKey3, blsPubKey3, err := bls.NewKeyPairFromBytes(keysMap[metaNodes[2].NetworkAddress].ed25519PrivKey.Bytes())
-	require.NoError(t, err)
-
-	blsSignature1, err := bls.Sign(signBytesHash, blsPrivKey1)
-	require.NoError(t, err)
-	blsSignature2, err := bls.Sign(signBytesHash, blsPrivKey2)
-	require.NoError(t, err)
-	blsSignature3, err := bls.Sign(signBytesHash, blsPrivKey3)
-	require.NoError(t, err)
-	finalBlsSignature, err := bls.AggregateSignatures(blsSignature1, blsSignature2, blsSignature3)
-	require.NoError(t, err)
-
-	pubKeys := make([][]byte, 0)
-	pubKeys = append(pubKeys, blsPubKey1, blsPubKey2, blsPubKey3)
-
-	signature = types.NewBLSSignatureInfo(pubKeys, finalBlsSignature, signBytesHash)
-
-	volumeReportMsg.BLSSignature = signature
 
 	return volumeReportMsg
 }

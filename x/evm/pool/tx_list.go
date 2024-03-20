@@ -25,6 +25,7 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
+	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
 // nonceHeap is a heap.Interface implementation over 64bit unsigned integers for
@@ -514,5 +515,5 @@ func (t *txLookup) RemotesBelowTip(threshold *big.Int) types.Transactions {
 
 // numSlots calculates the number of slots needed for a single transaction.
 func numSlots(tx *types.Transaction) int {
-	return int((tx.Size() + txSlotSize - 1) / txSlotSize)
+	return int((tx.Size() + evmtypes.TxSlotSize - 1) / evmtypes.TxSlotSize)
 }
