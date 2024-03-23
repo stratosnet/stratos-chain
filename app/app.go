@@ -238,6 +238,8 @@ func NewStratosApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 	// baseAppOptions = append(baseAppOptions, prepareOpt)
 	app.App = appBuilder.Build(logger, db, traceStore, baseAppOptions...)
 
+	app.evmKeeper.SetMsgServiceRouter(app.App.BaseApp.MsgServiceRouter())
+
 	evmTracer := cast.ToString(appOpts.Get(srvflags.EVMTracer))
 	app.evmKeeper.SetTracer(evmTracer)
 
