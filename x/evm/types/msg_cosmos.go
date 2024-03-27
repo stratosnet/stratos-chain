@@ -22,34 +22,41 @@ var (
 	Web3CosmosAddress = common.BytesToAddress([]byte("web3cosmos"))
 )
 
-func IsCosmosHandler(to interface {
-	Bytes() []byte
-}) bool {
+func IsCosmosHandler(to *common.Address) bool {
 	if to != nil && bytes.Equal(to.Bytes(), Web3CosmosAddress.Bytes()) {
 		return true
 	}
 	return false
 }
 
-// TxDataToMsg convert evm tx data to cosmos any msg
-func TxDataToSdkMsg(cdc codectypes.AnyUnpacker, data []byte) (sdk.Msg, error) {
+// TxDataToAny convert evm tx data to any
+func TxDataToAny(data []byte) (*codectypes.Any, error) {
 	var msgAny prototypes.Any
 	if err := proto.Unmarshal(data, &msgAny); err != nil {
 		return nil, err
 	}
 
-	var pbProto prototypes.DynamicAny
+	var pb prototypes.DynamicAny
 
-	if err := prototypes.UnmarshalAny(&msgAny, &pbProto); err != nil {
+	if err := prototypes.UnmarshalAny(&msgAny, &pb); err != nil {
 		return nil, err
 	}
 
-	anyTxData, err := codectypes.NewAnyWithValue(pbProto.Message)
+	any, err := codectypes.NewAnyWithValue(pb.Message)
+	if err != nil {
+		return nil, err
+	}
+	return any, nil
+}
+
+// TxDataToMsg convert evm tx data to cosmos msg
+func TxDataToSdkMsg(cdc codectypes.AnyUnpacker, data []byte) (sdk.Msg, error) {
+	any, err := TxDataToAny(data)
 	if err != nil {
 		return nil, err
 	}
 
-	cMsg, ok := anyTxData.GetCachedValue().(sdk.Msg)
+	cMsg, ok := any.GetCachedValue().(sdk.Msg)
 	if !ok {
 		return nil, err
 	}

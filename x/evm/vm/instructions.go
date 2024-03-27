@@ -17,8 +17,11 @@
 package vm
 
 import (
+	"errors"
+	"fmt"
 	"sync/atomic"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
@@ -844,6 +847,120 @@ func opSelfdestruct(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 		interpreter.cfg.Tracer.CaptureExit([]byte{}, 0, nil)
 	}
 	return nil, errStopToken
+}
+
+// NEW: Stratos opcodes
+func opPpfd(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
+	stack := scope.Stack
+	contract := scope.Contract
+	addr := contract.caller.Address()
+	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
+	// We can use this as a temporary value
+	temp := stack.pop()
+	gas := interpreter.evm.callGasTemp
+
+	if !interpreter.evm.genesisContractVerifier.IsTrustedAddress(addr.Hex()) {
+		return nil, fmt.Errorf("caller is not verified")
+	}
+	inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop()
+
+	// we need to add 32 bytes as it contains a length.
+	data := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
+
+	ret, returnGas, err := interpreter.evm.Context.ParseProtoFromData(data[32:], gas)
+	if err != nil {
+		temp.Clear()
+	} else {
+		temp.SetOne()
+	}
+	stack.push(&temp)
+
+	if err == nil {
+		ret = common.CopyBytes(ret)
+		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
+	}
+	scope.Contract.Gas += returnGas
+
+	interpreter.returnData = ret
+	return ret, nil
+}
+
+func opRunSdkMsg(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (ret []byte, err error) {
+	stack := scope.Stack
+	contract := scope.Contract
+	addr := contract.caller.Address()
+	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
+	// We can use this as a temporary value
+	temp := stack.pop()
+	gas := interpreter.evm.callGasTemp
+
+	if !interpreter.evm.genesisContractVerifier.IsTrustedAddress(addr.Hex()) {
+		return nil, fmt.Errorf("caller is not verified")
+	}
+	value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
+	if interpreter.readOnly && !value.IsZero() {
+		return nil, ErrWriteProtection
+	}
+
+	// we need to add 32 bytes as it contains a length.
+	inData := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
+
+	addressTy, _ := abi.NewType("address", "", nil)
+	bytesTy, _ := abi.NewType("bytes", "", nil)
+
+	arguments := abi.Arguments{
+		{
+			Type: addressTy,
+		},
+		{
+			Type: bytesTy,
+		},
+	}
+	results, err := arguments.Unpack(inData)
+	if err != nil {
+		return nil, err
+	}
+
+	addr, ok := results[0].(common.Address)
+	if !ok {
+		return nil, errors.New("address not set")
+	}
+
+	data, ok := results[1].([]byte)
+	if !ok {
+		return nil, errors.New("data not set")
+	}
+
+	// should be enabled before commit
+	defer func() {
+		interpreter.evm.KillOnError()
+		if r := recover(); r != nil {
+			err = ErrExecutionReverted
+			ret = nil
+		}
+	}()
+
+	// pre-commit phase (as we should update state, otherwise double spend could be occured)
+	if err := interpreter.evm.StateDB.Commit(); err != nil {
+		return nil, ErrExecutionReverted
+	}
+
+	ret, returnGas, err := interpreter.evm.Context.RunSdkMsg(addr, data, gas)
+	if err != nil {
+		temp.Clear()
+	} else {
+		temp.SetOne()
+	}
+	stack.push(&temp)
+
+	if err == nil {
+		ret = common.CopyBytes(ret)
+		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
+	}
+	scope.Contract.Gas += returnGas
+
+	interpreter.returnData = ret
+	return ret, nil
 }
 
 // following functions are used by the instruction jump  table

@@ -14,6 +14,7 @@ import (
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -80,15 +81,17 @@ func (k *Keeper) NewEVM(
 	stateDB vm.StateDB,
 ) *vm.EVM {
 	blockCtx := vm.BlockContext{
-		CanTransfer: vm.CanTransfer,
-		Transfer:    vm.Transfer,
-		GetHash:     k.GetHashFn(ctx),
-		Coinbase:    cfg.CoinBase,
-		GasLimit:    stratos.BlockGasLimit(ctx),
-		BlockNumber: big.NewInt(ctx.BlockHeight()),
-		Time:        big.NewInt(ctx.BlockHeader().Time.Unix()),
-		Difficulty:  big.NewInt(0), // unused. Only required in PoW context
-		BaseFee:     cfg.BaseFee,
+		CanTransfer:        vm.CanTransfer,
+		Transfer:           vm.Transfer,
+		GetHash:            k.GetHashFn(ctx),
+		RunSdkMsg:          k.RunSdkMsgFn(ctx, false),
+		ParseProtoFromData: k.ParseProtoFromDataFn(ctx),
+		Coinbase:           cfg.CoinBase,
+		GasLimit:           stratos.BlockGasLimit(ctx),
+		BlockNumber:        big.NewInt(ctx.BlockHeight()),
+		Time:               big.NewInt(ctx.BlockHeader().Time.Unix()),
+		Difficulty:         big.NewInt(0), // unused. Only required in PoW context
+		BaseFee:            cfg.BaseFee,
 	}
 
 	txCtx := vm.NewEVMTxContext(msg)
@@ -186,6 +189,104 @@ func (k Keeper) GetSdkMsg(from sdk.AccAddress, data []byte) (*types.MsgCosmosDat
 		return nil, err
 	}
 	return msg, nil
+}
+
+// ParseProtoFromDataFn parse data and get proto info
+func (k *Keeper) ParseProtoFromDataFn(ctx sdk.Context) vm.ParseProtoFromDataFunc {
+	return func(data []byte, gas uint64) ([]byte, uint64, error) {
+		gasBefore := ctx.GasMeter().GasConsumed()
+		getGas := func() uint64 {
+			return gas - types.Max(gasBefore-ctx.GasMeter().GasConsumed(), 2500)
+		}
+		any, err := types.TxDataToAny(data)
+		if err != nil {
+			return []byte{}, getGas(), err
+		}
+
+		cMsg, ok := any.GetCachedValue().(sdk.Msg)
+		if !ok {
+			return []byte{}, getGas(), err
+		}
+
+		if len(cMsg.GetSigners()) == 0 {
+			return []byte{}, getGas(), errors.Wrapf(sdkerrors.ErrorInvalidSigner, "signer not found")
+		}
+
+		signer := cMsg.GetSigners()[0]
+
+		addressTy, _ := abi.NewType("address", "", nil)
+		bytesTy, _ := abi.NewType("bytes", "", nil)
+
+		arguments := abi.Arguments{
+			{
+				Type: addressTy,
+			},
+			{
+				Type: bytesTy,
+			},
+		}
+		res, err := arguments.Pack(
+			common.BytesToAddress(signer.Bytes()),
+			[]byte(any.TypeUrl),
+		)
+		if err != nil {
+			return []byte{}, getGas(), err
+		}
+
+		return res, getGas(), nil
+	}
+}
+
+// RunSdkMsg execute cosmos msg from payload (NOTE: simulate=true always in smart contracts!!!)
+func (k *Keeper) RunSdkMsgFn(ctx sdk.Context, simulate bool) vm.RunSdkMsgFunc {
+	return func(from common.Address, data []byte, gas uint64) ([]byte, uint64, error) {
+		if k.msgServiceRouter == nil {
+			return nil, 0, errors.Wrapf(sdkerrors.ErrUnknownRequest, "service router not set")
+		}
+
+		cMsg, err := k.GetSdkMsg(from.Bytes(), data)
+		if err != nil {
+			return nil, 0, errors.Wrap(err, "failed to get cosmos msg")
+		}
+
+		// NOTE: in simulation we should check this in order avoid tx sends from estimations
+		if simulate {
+			if err := cMsg.ValidateBasic(); err != nil {
+				return nil, 0, err
+			}
+		}
+
+		var ret []byte
+		gasBefore := ctx.GasMeter().GasConsumed()
+		{
+			msg := cMsg.GetMsgs()[0]
+			handler := k.msgServiceRouter.Handler(msg)
+			if handler == nil {
+				return nil, 0, errors.Wrapf(sdkerrors.ErrUnknownRequest, "can't route message %+v", msg)
+			}
+			// ADR 031 request type routing
+			msgResult, err := handler(ctx, msg)
+			// NOTE: Error should be returned because we do not know at which state error occured
+			if err != nil {
+				return nil, 0, errors.Wrapf(err, "failed to execute message")
+			}
+			// TODO: Maybe pack them also as ethereum events?
+			ctx.EventManager().EmitEvents(msgResult.GetEvents())
+
+			if len(msgResult.MsgResponses) > 0 {
+				msgResponse := msgResult.MsgResponses[0]
+				if msgResponse == nil {
+					return nil, 0, sdkerrors.ErrLogic.Wrapf("got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
+				}
+				ret = msgResponse.GetValue()
+			}
+		}
+		gasUsed := types.Max(ctx.GasMeter().GasConsumed()-gasBefore, params.TxGas)
+		if gas < gasUsed {
+			return nil, 0, errors.Wrap(types.ErrGasOverflow, "apply message")
+		}
+		return ret, gasUsed, nil
+	}
 }
 
 // ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e. Message), that will
@@ -333,52 +434,9 @@ func (k *Keeper) ApplyAutoMessageWithConfig(ctx sdk.Context, msg core.Message, t
 // only be persisted (committed) to the underlying KVStore if the transaction does not fail.
 // It will be executed only if all checks are fine. In case tx aborted, it should not been even commited because it does not use statedb
 func (k *Keeper) ApplyCosmosMessageWithConfig(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool, cfg *types.EVMConfig, txConfig statedb.TxConfig) (*types.MsgEthereumTxResponse, error) {
-	if k.msgServiceRouter == nil {
-		return nil, errors.Wrapf(sdkerrors.ErrUnknownRequest, "service router not set")
-	}
-
-	cMsg, err := k.GetSdkMsg(msg.From().Bytes(), msg.Data())
+	ret, gasUsed, err := k.RunSdkMsgFn(ctx, !commit)(msg.From(), msg.Data(), msg.Gas())
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to get cosmos msg")
-	}
-
-	// NOTE: !commit it means simulate, in simulation we should check this in order avoid tx sends from estimations
-	if !commit {
-		if err := cMsg.ValidateBasic(); err != nil {
-			return nil, err
-		}
-	}
-
-	// NOTE: Specific block to showcase the any cosmos msg operation
-	var ret []byte
-	gasBefore := ctx.GasMeter().GasConsumed()
-	{
-		msg := cMsg.GetMsgs()[0]
-		handler := k.msgServiceRouter.Handler(msg)
-		if handler == nil {
-			return nil, errors.Wrapf(sdkerrors.ErrUnknownRequest, "can't route message %+v", msg)
-		}
-		// ADR 031 request type routing
-		msgResult, err := handler(ctx, msg)
-		// NOTE: Error should be returned because we do not know at which state error occured
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to execute message")
-		}
-		// TODO: Maybe pack them also as ethereum events?
-		ctx.EventManager().EmitEvents(msgResult.GetEvents())
-
-		if len(msgResult.MsgResponses) > 0 {
-			msgResponse := msgResult.MsgResponses[0]
-			if msgResponse == nil {
-				return nil, sdkerrors.ErrLogic.Wrapf("got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
-			}
-			ret = msgResponse.GetValue()
-		}
-	}
-	// In order to make it evm compatible, we should have some minimum which is 21_000 gas
-	gasUsed := types.Max(ctx.GasMeter().GasConsumed()-gasBefore, params.TxGas)
-	if msg.Gas() < gasUsed {
-		return nil, errors.Wrap(types.ErrGasOverflow, "apply message")
+		return nil, err
 	}
 
 	response := &types.MsgEthereumTxResponse{
@@ -445,6 +503,8 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	stateDB := statedb.New(ctx, k, txConfig)
 	evm := k.NewEVM(ctx, msg, cfg, tracer, stateDB)
 
+	defer func() { evm.Restore() }()
+
 	sender := vm.AccountRef(msg.From())
 	contractCreation := msg.To() == nil
 	isLondon := cfg.ChainConfig.IsLondon(evm.Context.BlockNumber)
@@ -464,7 +524,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	// access list preparation is moved from ante handler to here, because it's needed when `ApplyMessage` is called
 	// under contexts where ante handlers are not run, for example `eth_call` and `eth_estimateGas`.
 	if rules := cfg.ChainConfig.Rules(big.NewInt(ctx.BlockHeight()), cfg.ChainConfig.MergeNetsplitBlock != nil); rules.IsBerlin {
-		stateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
+		evm.StateDB.PrepareAccessList(msg.From(), msg.To(), vm.ActivePrecompiles(rules), msg.AccessList())
 	}
 
 	// NOTE: In order to achieve this, nonce should be checked in ante handler and increased, otherwise
@@ -472,7 +532,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 	// take over the nonce management from evm:
 	// reset sender's nonce to msg.Nonce() before calling evm on msg nonce
 	// as nonce already increased in db
-	stateDB.SetNonce(sender.Address(), msg.Nonce())
+	evm.StateDB.SetNonce(sender.Address(), msg.Nonce())
 
 	if contractCreation {
 		// no need to increase nonce here as contract as during contract creation:
@@ -481,8 +541,13 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		ret, _, leftoverGas, vmErr = evm.Create(sender, msg.Data(), leftoverGas, msg.Value())
 	} else {
 		// should be increased before call on nonce from msg, so we make sure nonce remaining same as on init tx
-		stateDB.SetNonce(sender.Address(), msg.Nonce()+1)
+		evm.StateDB.SetNonce(sender.Address(), msg.Nonce()+1)
 		ret, leftoverGas, vmErr = evm.Call(sender, *msg.To(), msg.Data(), leftoverGas, msg.Value())
+	}
+
+	// NEW: Kill tx for cosmos msg to abort everything
+	if commit && (vmErr != nil || evm.Cancelled()) && evm.Killed() {
+		return nil, errors.Wrap(vmErr, "cosmos failure")
 	}
 
 	refundQuotient := params.RefundQuotient
@@ -497,7 +562,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		return nil, errors.Wrap(types.ErrGasOverflow, "apply message")
 	}
 	gasUsed := msg.Gas() - leftoverGas
-	refund := GasToRefund(stateDB.GetRefund(), gasUsed, refundQuotient)
+	refund := GasToRefund(evm.StateDB.GetRefund(), gasUsed, refundQuotient)
 	if refund > gasUsed {
 		return nil, errors.Wrap(types.ErrGasOverflow, "apply message")
 	}
@@ -511,7 +576,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 
 	// The dirty states in `StateDB` is either committed or discarded after return
 	if commit {
-		if err := stateDB.Commit(); err != nil {
+		if err := evm.StateDB.Commit(); err != nil {
 			return nil, errors.Wrap(err, "failed to commit stateDB")
 		}
 	}
@@ -522,7 +587,7 @@ func (k *Keeper) ApplyMessageWithConfig(ctx sdk.Context, msg core.Message, trace
 		GasUsed: gasUsed,
 		VmError: vmError,
 		Ret:     ret,
-		Logs:    types.NewLogsFromEth(stateDB.Logs()),
+		Logs:    types.NewLogsFromEth(evm.StateDB.Logs()),
 		Hash:    txConfig.TxHash.Hex(),
 	}, nil
 }
