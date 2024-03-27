@@ -24,8 +24,6 @@ import (
 	bankkeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
 	govtypes "github.com/cosmos/cosmos-sdk/x/gov/types"
 	stakingkeeper "github.com/cosmos/cosmos-sdk/x/staking/keeper"
-	registerkeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
-	sdskeeper "github.com/stratosnet/stratos-chain/x/sds/keeper"
 
 	govv1beta1 "github.com/cosmos/cosmos-sdk/x/gov/types/v1beta1"
 	modulev1 "github.com/stratosnet/stratos-chain/api/stratos/evm/module/v1"
@@ -227,14 +225,12 @@ func init() {
 type ModuleInputs struct {
 	depinject.In
 
-	Config         *modulev1.Module
-	Cdc            codec.Codec
-	Key            *storetypes.KVStoreKey
-	AccountKeeper  authkeeper.AccountKeeper
-	BankKeeper     bankkeeper.Keeper
-	StakingKeeper  *stakingkeeper.Keeper
-	RegisterKeeper registerkeeper.Keeper
-	SdsKeeper      sdskeeper.Keeper
+	Config        *modulev1.Module
+	Cdc           codec.Codec
+	Key           *storetypes.KVStoreKey
+	AccountKeeper authkeeper.AccountKeeper
+	BankKeeper    bankkeeper.Keeper
+	StakingKeeper *stakingkeeper.Keeper
 
 	// LegacySubspace is used solely for migration of x/params managed parameters
 	LegacySubspace types.ParamsSubspace `optional:"true"`
@@ -261,8 +257,6 @@ func ProvideModule(in ModuleInputs) ModuleOutputs {
 		&in.AccountKeeper,
 		in.BankKeeper,
 		in.StakingKeeper,
-		&in.RegisterKeeper,
-		&in.SdsKeeper,
 		authority.String(),
 	)
 

@@ -42,10 +42,6 @@ type (
 	// GetHashFunc returns the n'th block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
-
-	// custom
-	// PrepayFunc execute prepay with provided data in PREPAY OpCode
-	PrepayFunc func(evm *EVM, from, beneficiary common.Address, amount *big.Int, gas uint64) (*big.Int, uint64, error)
 )
 
 func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
@@ -74,8 +70,6 @@ type BlockContext struct {
 	Transfer TransferFunc
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc
-	// Prepay execute prepay with given context
-	Prepay PrepayFunc
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE

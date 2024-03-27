@@ -51,10 +51,6 @@ type Keeper struct {
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
-	// access for registry functionality with related keeper
-	registerKeeper types.RegisterKeeper
-	// access for sds functionality with related keeper
-	sdsKeeper types.SdsKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
@@ -77,7 +73,7 @@ func NewKeeper(
 	cdc codec.BinaryCodec,
 	storeKey storetypes.StoreKey,
 	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
-	rk types.RegisterKeeper, sdsKeeper types.SdsKeeper, authority string,
+	authority string,
 ) *Keeper {
 	// ensure evm module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
@@ -86,16 +82,14 @@ func NewKeeper(
 
 	// NOTE: we pass in the parameter space to the CommitStateDB in order to use custom denominations for the EVM operations
 	return &Keeper{
-		cdc:            cdc,
-		accountKeeper:  ak,
-		bankKeeper:     bankKeeper,
-		stakingKeeper:  sk,
-		registerKeeper: rk,
-		sdsKeeper:      sdsKeeper,
-		storeKey:       storeKey,
-		events:         make(sdk.Events, 0, 12),
-		authority:      authority,
-		verifier:       vm.NewGenesisContractVerifier(),
+		cdc:           cdc,
+		accountKeeper: ak,
+		bankKeeper:    bankKeeper,
+		stakingKeeper: sk,
+		storeKey:      storeKey,
+		events:        make(sdk.Events, 0, 12),
+		authority:     authority,
+		verifier:      vm.NewGenesisContractVerifier(),
 	}
 }
 

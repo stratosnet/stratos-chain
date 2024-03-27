@@ -1,8 +1,6 @@
 package vm
 
-var handlerNumToOpcode = map[int64]OpCode{
-	0xf1: PREPAY,
-}
+var handlerNumToOpcode = map[int64]OpCode{}
 
 func wrapWithKeeper(op OpCode, interpreter *EVMInterpreter, scope *ScopeContext) *operation {
 	// only CALL for solpatching
