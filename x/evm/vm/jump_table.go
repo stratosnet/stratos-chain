@@ -1049,14 +1049,6 @@ func newFrontierInstructionSet() JumpTable {
 // NOTE: Maybe we should make on our specific update, instead of apply on go-ethereum update
 // see a top lines with instructions sets
 func newKeeperInstructionSet(instructionSet JumpTable) JumpTable {
-	instructionSet[PREPAY] = &operation{
-		execute:     opPrepay,
-		constantGas: CallGasPrepay,
-		dynamicGas:  gasPrepay,
-		minStack:    minStack(6, 1),
-		maxStack:    maxStack(6, 1),
-		memorySize:  memoryPrepay,
-	}
-
+	// TODO
 	return validate(instructionSet)
 }

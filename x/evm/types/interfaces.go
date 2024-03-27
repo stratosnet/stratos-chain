@@ -1,14 +1,12 @@
 package types
 
 import (
-	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
 )
 
 // AccountKeeper defines the expected account keeper interface
@@ -46,18 +44,6 @@ type PotKeeper interface {
 	InitialTotalSupply(ctx sdk.Context) sdk.Coin
 	BondDenom(ctx sdk.Context) string
 	SafeMintCoins(ctx sdk.Context, moduleName string, amt sdk.Coins) error
-}
-
-// RegisterKeeper defines functionality related for meta and resource node
-type RegisterKeeper interface {
-	KeeGetEffectiveTotalDeposit(kdb *keestatedb.KeestateDB) sdkmath.Int
-	KeeGetRemainingOzoneLimit(kdb *keestatedb.KeestateDB) sdkmath.Int
-	KeeSetRemainingOzoneLimit(kdb *keestatedb.KeestateDB, value sdkmath.Int)
-}
-
-// SdsKeper defines functionality related for ozone purchase
-type SdsKeeper interface {
-	Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdkmath.Int, error)
 }
 
 // Event Hooks

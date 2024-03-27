@@ -6,8 +6,6 @@ var (
 	// Default reserved contract controll addresses
 	ConsensusAddress  = common.HexToAddress("0x1000000000000000000000000000000000000000")
 	ProxyOwnerAddress = common.HexToAddress("0x1000000000000000000000000000000000000001")
-	// Default reserved contracts
-	PrepayContractAddress = common.HexToAddress("0x1000000000000000000000000000000000010101")
 )
 
 type VerifiedContract interface {
@@ -33,7 +31,7 @@ func NewGenesisContractVerifier() *GenesisContractVerifier {
 }
 
 func (gcv *GenesisContractVerifier) initTrustedAddresses() {
-	gcv.AddTrustedAddress(PrepayContractAddress.Hex())
+	// TODO
 }
 
 func (gcv *GenesisContractVerifier) GetContracts(height uint64) []VerifiedContract {

@@ -111,18 +111,3 @@ func memoryRevert(stack *Stack) (uint64, bool) {
 func memoryLog(stack *Stack) (uint64, bool) {
 	return calcMemSize64(stack.Back(0), stack.Back(1))
 }
-
-func memoryPrepay(stack *Stack) (uint64, bool) {
-	x, overflow := calcMemSize64(stack.Back(4), stack.Back(5))
-	if overflow {
-		return 0, true
-	}
-	y, overflow := calcMemSize64(stack.Back(2), stack.Back(3))
-	if overflow {
-		return 0, true
-	}
-	if x > y {
-		return x, false
-	}
-	return y, false
-}

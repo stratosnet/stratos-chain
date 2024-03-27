@@ -17,8 +17,6 @@
 package vm
 
 import (
-	"fmt"
-	"math/big"
 	"sync/atomic"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -673,8 +671,6 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]
 	return nil, nil
 }
 
-var PrepayCode = uint256.NewInt(0xf1)
-
 func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
 	stack := scope.Stack
 	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
@@ -935,83 +931,4 @@ func makeSwap(size int64) executionFunc {
 		scope.Stack.swap(int(size))
 		return nil, nil
 	}
-}
-
-var (
-	slot1 = uint256.NewInt(0x20)
-	slot4 = new(uint256.Int).Mul(slot1, uint256.NewInt(0x04))
-)
-
-func opPrepay(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byte, error) {
-	stack := scope.Stack
-	contract := scope.Contract
-	evm := interpreter.evm
-	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
-	// We can use this as a temporary value
-	temp := stack.pop()
-	gas := interpreter.evm.callGasTemp
-	// Pop other prepay parameters.
-	value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
-	addr := contract.caller.Address()
-	ret := uint256.NewInt(0).Bytes32()
-
-	// Fail if we're trying to execute above the call depth limit
-	if evm.depth > int(params.CallCreateDepth) {
-		temp.Clear()
-		stack.push(&temp)
-		interpreter.returnData = ret[:]
-		scope.Contract.Gas += gas
-		return interpreter.returnData, ErrDepth
-	}
-
-	if !interpreter.evm.genesisContractVerifier.IsTrustedAddress(addr.Hex()) {
-		temp.Clear()
-		stack.push(&temp)
-		interpreter.returnData = ret[:]
-		scope.Contract.Gas += gas
-		return interpreter.returnData, fmt.Errorf("caller is not verified")
-	}
-
-	if !inOffset.Eq(slot4) || !inSize.Eq(slot1) || !retOffset.Eq(new(uint256.Int).Add(slot4, slot1)) || !retSize.Eq(slot1) {
-		temp.Clear()
-		stack.push(&temp)
-		interpreter.returnData = ret[:]
-		scope.Contract.Gas += gas
-		return interpreter.returnData, fmt.Errorf("wrong order")
-	}
-
-	var bigVal = big0
-	if !value.IsZero() {
-		bigVal = value.ToBig()
-	}
-
-	args := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
-
-	beneficiary := common.BytesToAddress(args)
-
-	outBig, returnGas, err := interpreter.evm.Context.Prepay(interpreter.evm, contract.caller.Address(), beneficiary, bigVal, gas)
-	if err != nil {
-		temp.Clear()
-	} else {
-		temp.SetOne()
-	}
-	stack.push(&temp)
-
-	// |-<>-| guard
-	if outBig == nil {
-		outBig = big.NewInt(0)
-	}
-
-	if err == nil {
-		outU, _ := uint256.FromBig(outBig)
-		outB := outU.Bytes32()
-		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), outB[:])
-		ret = uint256.NewInt(1).Bytes32()
-	}
-
-	interpreter.returnData = ret[:]
-
-	scope.Contract.Gas += returnGas
-
-	return interpreter.returnData, err
 }

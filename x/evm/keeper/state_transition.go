@@ -6,7 +6,6 @@ import (
 	"sync"
 
 	tmtypes "github.com/cometbft/cometbft/types"
-	"github.com/cosmos/gogoproto/proto"
 
 	"cosmossdk.io/errors"
 	sdkmath "cosmossdk.io/math"
@@ -26,8 +25,6 @@ import (
 	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 	"github.com/stratosnet/stratos-chain/x/evm/vm"
-	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
-	sdstypes "github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
 // GasToRefund calculates the amount of gas the state machine should refund to the sender. It is
@@ -86,7 +83,6 @@ func (k *Keeper) NewEVM(
 		CanTransfer: vm.CanTransfer,
 		Transfer:    vm.Transfer,
 		GetHash:     k.GetHashFn(ctx),
-		Prepay:      k.PrepayFn(ctx),
 		Coinbase:    cfg.CoinBase,
 		GasLimit:    stratos.BlockGasLimit(ctx),
 		BlockNumber: big.NewInt(ctx.BlockHeight()),
@@ -123,53 +119,6 @@ func (k Keeper) VMConfig(ctx sdk.Context, cfg *types.EVMConfig, tracer vm.EVMLog
 		Tracer:    tracer,
 		NoBaseFee: noBaseFee,
 		ExtraEips: cfg.Params.EIPs(),
-	}
-}
-
-func (k *Keeper) PrepayFn(ctx sdk.Context) vm.PrepayFunc {
-	return func(evm *vm.EVM, from, beneficiary common.Address, amount *big.Int, gas uint64) (*big.Int, uint64, error) {
-		if amount.Sign() == 0 {
-			return nil, gas, vm.ErrExecutionReverted
-		}
-		if gas < vm.ReturnGasPrepay {
-			return nil, gas, vm.ErrGasUintOverflow
-		}
-		// NOTE: Required to return correct left gas amount to solidity
-		returnGas := gas - vm.ReturnGasPrepay
-
-		kdb := evm.StateDB.GetKeestateDB()
-		kSnapshot := evm.StateDB.KeeSnapshot()
-
-		accFrom := sdk.AccAddress(from.Bytes())
-		accBeneficiary := sdk.AccAddress(beneficiary.Bytes())
-
-		purchased, remaining, err := k.KeeCalculatePrepayPurchaseAmount(evm.StateDB, sdkmath.NewIntFromBigInt(amount))
-		if err != nil {
-			evm.StateDB.RevertToKeeSnapshot(kSnapshot)
-
-			return nil, returnGas, vm.ErrExecutionReverted
-		}
-
-		to := common.BytesToAddress(authtypes.NewModuleAddress(registertypes.TotalUnissuedPrepay))
-
-		if !evm.StateDB.Exist(to) {
-			evm.StateDB.CreateAccount(to)
-		}
-
-		evm.Context.Transfer(evm.StateDB, from, to, purchased.BigInt())
-
-		k.registerKeeper.KeeSetRemainingOzoneLimit(kdb, remaining)
-
-		tevs := make([]proto.Message, 2)
-		tevs[0] = (proto.Message)(&sdstypes.EventPrePay{
-			Sender:       accFrom.String(),
-			Beneficiary:  accBeneficiary.String(),
-			Amount:       sdkmath.NewIntFromBigInt(amount).String(),
-			PurchasedNoz: purchased.String(),
-		})
-		k.AddTypedEvents(tevs)
-
-		return purchased.BigInt(), returnGas, nil
 	}
 }
 

@@ -21,10 +21,6 @@ import (
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
-
-	storetypes "github.com/cosmos/cosmos-sdk/store/types"
-
-	keestatedb "github.com/stratosnet/stratos-chain/core/statedb"
 )
 
 type KeeperDB interface {
@@ -83,13 +79,6 @@ type StateDB interface {
 	AddPreimage(common.Hash, []byte)
 
 	ForEachStorage(common.Address, func(common.Hash, common.Hash) bool) error
-
-	// kestatedb proxy
-	GetKeestateDB() *keestatedb.KeestateDB
-	GetKeeState(storeKey storetypes.StoreKey, key []byte) []byte
-	SetKeeState(storeKey storetypes.StoreKey, key, value []byte)
-	RevertToKeeSnapshot(int)
-	KeeSnapshot() int
 }
 
 // CallContext provides a basic interface for the EVM calling conventions. The EVM
