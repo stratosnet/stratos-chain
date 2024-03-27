@@ -179,6 +179,15 @@ func (k Keeper) GetHashFn(ctx sdk.Context) vm.GetHashFunc {
 	}
 }
 
+// GetSdkMsg return prepared msg from data
+func (k Keeper) GetSdkMsg(from sdk.AccAddress, data []byte) (*types.MsgCosmosData, error) {
+	msg := types.NewMsgCosmosData(k.cdc, from)
+	if err := msg.Parse(data); err != nil {
+		return nil, err
+	}
+	return msg, nil
+}
+
 // ApplyTransaction runs and attempts to perform a state transition with the given transaction (i.e. Message), that will
 // only be persisted (committed) to the underlying KVStore if the transaction does not fail.
 //
@@ -226,8 +235,7 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 		tmpCtx, commit = ctx.CacheContext()
 	}
 
-	// pass true to commit the StateDB
-	res, err := k.ApplyMessageWithConfig(tmpCtx, msg, nil, true, cfg, txConfig)
+	res, err := k.ApplyAutoMessageWithConfig(tmpCtx, msg, nil, true, cfg, txConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to apply ethereum core message")
 	}
@@ -302,6 +310,85 @@ func (k *Keeper) ApplyTransaction(ctx sdk.Context, tx *ethtypes.Transaction) (*t
 	// reset the gas meter for current cosmos transaction
 	k.ResetGasMeterAndConsumeGas(ctx, totalGasUsed)
 	return res, nil
+}
+
+// ApplyAutoMessageWithConfig automatic handle where msg should be proceed
+func (k *Keeper) ApplyAutoMessageWithConfig(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool, cfg *types.EVMConfig, txConfig statedb.TxConfig) (*types.MsgEthereumTxResponse, error) {
+	var (
+		res *types.MsgEthereumTxResponse
+		err error
+	)
+
+	if !types.IsCosmosHandler(msg.To()) {
+		// 1) EVM Executioner
+		res, err = k.ApplyMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
+	} else {
+		// 2) Cosmos msg router executioner
+		res, err = k.ApplyCosmosMessageWithConfig(ctx, msg, tracer, commit, cfg, txConfig)
+	}
+	return res, err
+}
+
+// ApplyCosmosMessageWithConfig runs and attempts to perform a state transition with the given transaction for cosmos msd (i.e. Message), that will
+// only be persisted (committed) to the underlying KVStore if the transaction does not fail.
+// It will be executed only if all checks are fine. In case tx aborted, it should not been even commited because it does not use statedb
+func (k *Keeper) ApplyCosmosMessageWithConfig(ctx sdk.Context, msg core.Message, tracer vm.EVMLogger, commit bool, cfg *types.EVMConfig, txConfig statedb.TxConfig) (*types.MsgEthereumTxResponse, error) {
+	if k.msgServiceRouter == nil {
+		return nil, errors.Wrapf(sdkerrors.ErrUnknownRequest, "service router not set")
+	}
+
+	cMsg, err := k.GetSdkMsg(msg.From().Bytes(), msg.Data())
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get cosmos msg")
+	}
+
+	// NOTE: !commit it means simulate, in simulation we should check this in order avoid tx sends from estimations
+	if !commit {
+		if err := cMsg.ValidateBasic(); err != nil {
+			return nil, err
+		}
+	}
+
+	// NOTE: Specific block to showcase the any cosmos msg operation
+	var ret []byte
+	gasBefore := ctx.GasMeter().GasConsumed()
+	{
+		msg := cMsg.GetMsgs()[0]
+		handler := k.msgServiceRouter.Handler(msg)
+		if handler == nil {
+			return nil, errors.Wrapf(sdkerrors.ErrUnknownRequest, "can't route message %+v", msg)
+		}
+		// ADR 031 request type routing
+		msgResult, err := handler(ctx, msg)
+		// NOTE: Error should be returned because we do not know at which state error occured
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to execute message")
+		}
+		// TODO: Maybe pack them also as ethereum events?
+		ctx.EventManager().EmitEvents(msgResult.GetEvents())
+
+		if len(msgResult.MsgResponses) > 0 {
+			msgResponse := msgResult.MsgResponses[0]
+			if msgResponse == nil {
+				return nil, sdkerrors.ErrLogic.Wrapf("got nil Msg response for msg %s", sdk.MsgTypeURL(msg))
+			}
+			ret = msgResponse.GetValue()
+		}
+	}
+	// In order to make it evm compatible, we should have some minimum which is 21_000 gas
+	gasUsed := types.Max(ctx.GasMeter().GasConsumed()-gasBefore, params.TxGas)
+	if msg.Gas() < gasUsed {
+		return nil, errors.Wrap(types.ErrGasOverflow, "apply message")
+	}
+
+	response := &types.MsgEthereumTxResponse{
+		Hash:    txConfig.TxHash.Hex(),
+		Logs:    types.NewLogsFromEth(nil),
+		GasUsed: gasUsed,
+		Ret:     ret,
+	}
+
+	return response, nil
 }
 
 // ApplyMessageWithConfig computes the new state by applying the given message against the existing state.

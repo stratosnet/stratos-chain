@@ -8,6 +8,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
@@ -61,6 +62,8 @@ type Keeper struct {
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
 
+	msgServiceRouter *baseapp.MsgServiceRouter
+
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
@@ -112,6 +115,10 @@ func (k *Keeper) SetParamSpace(paramSpace paramtypes.Subspace) {
 		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
 	}
 	k.paramSpace = paramSpace
+}
+
+func (k *Keeper) SetMsgServiceRouter(msgServiceRouter *baseapp.MsgServiceRouter) {
+	k.msgServiceRouter = msgServiceRouter
 }
 
 func (k *Keeper) SetTracer(tracer string) {

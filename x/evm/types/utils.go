@@ -5,6 +5,7 @@ import (
 	"math/big"
 
 	"github.com/gogo/protobuf/proto"
+	"golang.org/x/exp/constraints"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -160,4 +161,11 @@ func BlockMaxGasFromConsensusParams(blockHeight *int64) (int64, error) {
 	}
 
 	return gasLimit, nil
+}
+
+func Max[T constraints.Ordered](a, b T) T {
+	if a < b {
+		return b
+	}
+	return a
 }

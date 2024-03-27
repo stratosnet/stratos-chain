@@ -239,9 +239,10 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
-	// pass false to not commit StateDB
-	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
+	// pass false to not commit
+	res, err := k.ApplyAutoMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
 	if err != nil {
+		// TODO: Add better handling of errors from cosmos msgs (for ethers, web3)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -306,7 +307,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
 
 	// Create a helper to check if a gas allowance results in an executable transaction
-	executable := func(gas uint64) (vmerror bool, rsp *types.MsgEthereumTxResponse, err error) {
+	executable := func(gas uint64) (vmerror bool, res *types.MsgEthereumTxResponse, err error) {
 		args.Gas = (*hexutil.Uint64)(&gas)
 
 		msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)
@@ -314,15 +315,30 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 			return false, nil, err
 		}
 
-		// pass false to not commit StateDB
-		rsp, err = k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
+		// pass false to not commit
+		res, err = k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
 		if err != nil {
 			if errors.Is(err, core.ErrIntrinsicGas) {
 				return true, nil, nil // Special case, raise gas limit
 			}
 			return true, nil, err // Bail out
 		}
-		return len(rsp.VmError) > 0, rsp, nil
+		return len(res.VmError) > 0, res, nil
+	}
+
+	// If cosmos msg, we should bypass bin search as only first execution is a correct gas calculation
+	// but required more testing
+	if types.IsCosmosHandler(args.To) {
+		args.Gas = (*hexutil.Uint64)(&hi)
+		msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		rsp, err := k.ApplyCosmosMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		return &types.EstimateGasResponse{Gas: rsp.GasUsed}, nil
 	}
 
 	// Execute the binary search and hone in on an executable gas limit
@@ -391,11 +407,13 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
 		tracer := tracers.NewNoOpTracer()
-		rsp, err := k.ApplyMessageWithConfig(ctx, msg, tracer, true, cfg, txConfig)
+
+		// pass true to commit
+		res, err := k.ApplyAutoMessageWithConfig(ctx, msg, tracer, true, cfg, txConfig)
 		if err != nil {
 			continue
 		}
-		txConfig.LogIndex += uint(len(rsp.Logs))
+		txConfig.LogIndex += uint(len(res.Logs))
 	}
 
 	tx := req.Msg.AsTransaction()
@@ -550,7 +568,7 @@ func (k *Keeper) traceTx(
 		tracer = tracers.NewTracer(tracers.TracerStruct, msg, cfg.ChainConfig, ctx.BlockHeight())
 	}
 
-	res, err := k.ApplyMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
+	res, err := k.ApplyAutoMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
