@@ -1049,6 +1049,21 @@ func newFrontierInstructionSet() JumpTable {
 // NOTE: Maybe we should make on our specific update, instead of apply on go-ethereum update
 // see a top lines with instructions sets
 func newKeeperInstructionSet(instructionSet JumpTable) JumpTable {
-	// TODO
+	instructionSet[PPFD] = &operation{
+		execute:     opPpfd,
+		constantGas: GasExtStep,
+		dynamicGas:  gasStOpCode,
+		minStack:    minStack(5, 1),
+		maxStack:    maxStack(5, 1),
+		memorySize:  memoryStStaticCallOpCode,
+	}
+	instructionSet[RUNSDKMSG] = &operation{
+		execute:     opRunSdkMsg,
+		constantGas: GasExtStep,
+		dynamicGas:  gasStOpCode,
+		minStack:    minStack(6, 1),
+		maxStack:    maxStack(6, 1),
+		memorySize:  memoryStCallOpCode,
+	}
 	return validate(instructionSet)
 }
