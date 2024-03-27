@@ -42,6 +42,12 @@ type (
 	// GetHashFunc returns the n'th block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
+
+	// custom
+	// RunSdkMsgFunc execute any cosmos msg with provided data in RUNSDKMSG OpCode
+	RunSdkMsgFunc func(from common.Address, data []byte, amount *big.Int, gas uint64) ([]byte, uint64, error)
+	// CheckAllowSdkMsgFunc checking msg permission through typeUrl CASDKMSG OpCode
+	CheckAllowSdkMsgFunc func(typeUrl string, data []byte, gas uint64) (bool, uint64, error)
 )
 
 func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
@@ -70,6 +76,10 @@ type BlockContext struct {
 	Transfer TransferFunc
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc
+	// RunSdkMsg will execute msg by its handler
+	RunSdkMsg RunSdkMsgFunc
+	// CheckAllowSdkMsg checks for msg permission throught smart contract
+	CheckAllowSdkMsg CheckAllowSdkMsgFunc
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
@@ -528,40 +538,6 @@ type ChainContext interface {
 
 	// GetHeader returns the header corresponding to the hash/number argument pair.
 	GetHeader(common.Hash, uint64) *types.Header
-}
-
-// NewEVMBlockContext creates a new context for use in the EVM.
-func NewEVMBlockContext(header *types.Header, chain ChainContext, author *common.Address) BlockContext {
-	var (
-		beneficiary common.Address
-		baseFee     *big.Int
-		random      *common.Hash
-	)
-
-	// If we don't have an explicit author (i.e. not mining), extract from the header
-	if author == nil {
-		beneficiary, _ = chain.Engine().Author(header) // Ignore error, we're past header validation
-	} else {
-		beneficiary = *author
-	}
-	if header.BaseFee != nil {
-		baseFee = new(big.Int).Set(header.BaseFee)
-	}
-	if header.Difficulty.Cmp(common.Big0) == 0 {
-		random = &header.MixDigest
-	}
-	return BlockContext{
-		CanTransfer: CanTransfer,
-		Transfer:    Transfer,
-		GetHash:     GetHashFn(header, chain),
-		Coinbase:    beneficiary,
-		BlockNumber: new(big.Int).Set(header.Number),
-		Time:        new(big.Int).SetUint64(header.Time),
-		Difficulty:  new(big.Int).Set(header.Difficulty),
-		BaseFee:     baseFee,
-		GasLimit:    header.GasLimit,
-		Random:      random,
-	}
 }
 
 // NewEVMTxContext creates a new transaction context for a single transaction.

@@ -56,15 +56,17 @@ func NewProposalCounsil(k *Keeper, ctx sdk.Context) (*ProposalCounsil, error) {
 	}
 
 	blockCtx := vm.BlockContext{
-		CanTransfer: vm.CanTransfer,
-		Transfer:    vm.Transfer,
-		GetHash:     k.GetHashFn(ctx),
-		Coinbase:    cfg.CoinBase,
-		GasLimit:    stratos.BlockGasLimit(ctx),
-		BlockNumber: big.NewInt(ctx.BlockHeight()),
-		Time:        big.NewInt(ctx.BlockHeader().Time.Unix()),
-		Difficulty:  big.NewInt(0), // unused. Only required in PoW context
-		BaseFee:     cfg.BaseFee,
+		CanTransfer:      vm.CanTransfer,
+		Transfer:         vm.Transfer,
+		GetHash:          k.GetHashFn(ctx),
+		RunSdkMsg:        k.RunSdkMsgFn(ctx, true),
+		CheckAllowSdkMsg: k.CheckAllowSdkMsgFn(ctx),
+		Coinbase:         cfg.CoinBase,
+		GasLimit:         stratos.BlockGasLimit(ctx),
+		BlockNumber:      big.NewInt(ctx.BlockHeight()),
+		Time:             big.NewInt(ctx.BlockHeader().Time.Unix()),
+		Difficulty:       big.NewInt(0), // unused. Only required in PoW context
+		BaseFee:          cfg.BaseFee,
 	}
 
 	txCtx := vm.TxContext{

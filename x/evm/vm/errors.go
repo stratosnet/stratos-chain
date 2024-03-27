@@ -40,6 +40,10 @@ var (
 	// errStopToken is an internal token indicating interpreter loop termination,
 	// never returned to outside callers.
 	errStopToken = errors.New("stop token")
+
+	// errAbortTxToken is special error to kill tx so even no revert will be, just tx will be disappear
+	// NOTE: Gas potentially will not spend because of cosmos?
+	errAbortTxToken = errors.New("kill tx")
 )
 
 // ErrStackUnderflow wraps an evm error when the items on the stack less
