@@ -6,13 +6,13 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cometbft/cometbft/libs/log"
+	tmpubsub "github.com/cometbft/cometbft/libs/pubsub"
+	tmquery "github.com/cometbft/cometbft/libs/pubsub/query"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/pkg/errors"
-	"github.com/tendermint/tendermint/libs/log"
-	tmpubsub "github.com/tendermint/tendermint/libs/pubsub"
-	tmquery "github.com/tendermint/tendermint/libs/pubsub/query"
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
@@ -29,7 +29,7 @@ var (
 	// base tm tx event
 	txEvents = tmtypes.QueryForEvent(tmtypes.EventTx).String()
 	// listen only evm txs
-	evmEvents = tmquery.MustParse(fmt.Sprintf("%s='%s' AND %s.%s='%s'", tmtypes.EventTypeKey, tmtypes.EventTx, sdk.EventTypeMessage, sdk.AttributeKeyModule, evmtypes.ModuleName)).String()
+	evmEvents = tmquery.MustCompile(fmt.Sprintf("%s='%s' AND %s.%s='%s'", tmtypes.EventTypeKey, tmtypes.EventTx, sdk.EventTypeMessage, sdk.AttributeKeyModule, evmtypes.ModuleName)).String()
 	// specify to listen a blocks instead of heads as it contain more details about the block header including current block hash
 	headerEvents = tmtypes.QueryForEvent(tmtypes.EventNewBlockHeader).String()
 	// for tendermint subscribe channel capacity to make it buffered

@@ -105,7 +105,7 @@ func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeR
 	}
 	depositInfo := types.DepositInfo{}
 
-	if queryType == types.QueryType_All || queryType == types.QueryType_SP {
+	if queryType == types.QueryTypeAll || queryType == types.QueryTypeSP {
 		metaNode, found := q.GetMetaNode(ctx, networkAddr)
 		if found {
 			// Adding meta node deposit info
@@ -131,7 +131,7 @@ func (q Querier) DepositByNode(c context.Context, req *types.QueryDepositByNodeR
 		}
 	}
 
-	if queryType == types.QueryType_All || queryType == types.QueryType_PP {
+	if queryType == types.QueryTypeAll || queryType == types.QueryTypePP {
 		networkAddr, err := stratos.SdsAddressFromBech32(req.GetNetworkAddr())
 		if err != nil {
 			return &types.QueryDepositByNodeResponse{}, err
@@ -174,19 +174,24 @@ func (q Querier) DepositByOwner(c context.Context, req *types.QueryDepositByOwne
 	}
 	ctx := sdk.UnwrapSDKContext(c)
 
+	// if the PageRequest is nil, use default PageRequest
+	if req.GetPagination() == nil {
+		req.Pagination = &query.PageRequest{}
+	}
+
 	ownerAddr, er := sdk.AccAddressFromBech32(req.GetOwnerAddr())
 	if er != nil {
 		return &types.QueryDepositByOwnerResponse{}, er
 	}
 
 	store := ctx.KVStore(q.storeKey)
-	var depositInfoResponses []*types.DepositInfo
+	depositInfoResponses := make([]*types.DepositInfo, 0)
 
 	// get resource nodes
 	var resourceNodes types.ResourceNodes
 	resourceNodeStore := prefix.NewStore(store, types.ResourceNodeKey)
 
-	resourceNodesPageRes, err := FilteredPaginate(q.cdc, resourceNodeStore, ownerAddr, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
+	resourceNodesPageRes, err := FilteredPaginate(q.cdc, resourceNodeStore, 1, ownerAddr, req.Pagination, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		val, err := types.UnmarshalResourceNode(q.cdc, value)
 		if err != nil {
 			return true, err
@@ -202,7 +207,9 @@ func (q Querier) DepositByOwner(c context.Context, req *types.QueryDepositByOwne
 	if err != nil {
 		return &types.QueryDepositByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
-	depositInfoResponses, err = GetDepositInfosByResourceNodes(ctx, q.Keeper, resourceNodes)
+
+	resourceNodesDepositInfoResponses, err := q.GetDepositInfosByResourceNodes(ctx, resourceNodes)
+	depositInfoResponses = append(depositInfoResponses, resourceNodesDepositInfoResponses...)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -220,12 +227,12 @@ func (q Querier) DepositByOwner(c context.Context, req *types.QueryDepositByOwne
 	if req.Pagination.Offset > resourceNodesPageRes.Total {
 		metaNodesPageOffset = req.Pagination.Offset - resourceNodesPageRes.Total
 	}
-	metaNodesPageRequest := query.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: req.Pagination.CountTotal, Reverse: req.Pagination.CountTotal}
+	metaNodesPageRequest := &query.PageRequest{Offset: metaNodesPageOffset, Limit: metaNodesPageLimit, CountTotal: req.Pagination.CountTotal, Reverse: req.Pagination.Reverse}
 
 	var metaNodes types.MetaNodes
 	metaNodeStore := prefix.NewStore(store, types.MetaNodeKey)
 
-	_, err = FilteredPaginate(q.cdc, metaNodeStore, ownerAddr, &metaNodesPageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
+	_, err = FilteredPaginate(q.cdc, metaNodeStore, 0, ownerAddr, metaNodesPageRequest, func(key []byte, value []byte, accumulate bool) (bool, error) {
 		val, err := types.UnmarshalMetaNode(q.cdc, value)
 		if err != nil {
 			return true, err
@@ -242,7 +249,7 @@ func (q Querier) DepositByOwner(c context.Context, req *types.QueryDepositByOwne
 		return &types.QueryDepositByOwnerResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
-	metaNodesDepositInfoResponses, err := GetDepositInfosByMetaNodes(ctx, q.Keeper, metaNodes)
+	metaNodesDepositInfoResponses, err := q.GetDepositInfosByMetaNodes(ctx, metaNodes)
 	if err != nil {
 		return nil, status.Error(codes.Internal, err.Error())
 	}
@@ -277,6 +284,17 @@ func (q Querier) DepositTotal(c context.Context, _ *types.QueryDepositTotalReque
 		totalUnbondedDeposit,
 		totalUnbondingDeposit,
 	)
+
+	return res, nil
+}
+
+func (q Querier) RemainingOzoneLimit(c context.Context, _ *types.QueryRemainingOzoneLimitRequest) (*types.QueryRemainingOzoneLimitResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	remainingOzoneLimit := q.GetRemainingOzoneLimit(ctx)
+	res := &types.QueryRemainingOzoneLimitResponse{
+		OzoneLimit: remainingOzoneLimit,
+	}
 
 	return res, nil
 }

@@ -5,8 +5,8 @@ import (
 	"encoding/binary"
 	"math/big"
 
+	"github.com/cometbft/cometbft/libs/log"
 	"github.com/pkg/errors"
-	"github.com/tendermint/tendermint/libs/log"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -91,7 +91,7 @@ const (
 // Logs searches the blockchain for matching log entries, returning all from the
 // first block that contains matches, updating the start of the filter accordingly.
 func (f *Filter) Logs(_ context.Context, logLimit int, blockLimit int64) ([]*ethtypes.Log, error) {
-	logs := []*ethtypes.Log{}
+	logs := make([]*ethtypes.Log, 0)
 	var err error
 
 	// If we're doing singleton block filtering, execute and return

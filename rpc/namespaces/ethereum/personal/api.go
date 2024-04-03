@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto"
@@ -95,7 +95,7 @@ func (api *PrivateAccountAPI) ImportRawKey(privkey, password string) (common.Add
 // ListAccounts will return a list of addresses for accounts this node manages.
 func (api *PrivateAccountAPI) ListAccounts() ([]common.Address, error) {
 	api.logger.Debug("personal_listAccounts")
-	addrs := []common.Address{}
+	addrs := make([]common.Address, 0)
 
 	list, err := api.clientCtx.Keyring.List()
 	if err != nil {
@@ -103,7 +103,11 @@ func (api *PrivateAccountAPI) ListAccounts() ([]common.Address, error) {
 	}
 
 	for _, info := range list {
-		addrs = append(addrs, common.BytesToAddress(info.GetPubKey().Address()))
+		addr, err := info.GetAddress()
+		if err != nil {
+			continue
+		}
+		addrs = append(addrs, common.BytesToAddress(addr))
 	}
 
 	return addrs, nil
@@ -132,11 +136,16 @@ func (api *PrivateAccountAPI) NewAccount(password string) (common.Address, error
 		return common.Address{}, err
 	}
 
-	addr := common.BytesToAddress(info.GetPubKey().Address().Bytes())
-	api.logger.Info("Your new key was generated", "address", addr.String())
+	addr, err := info.GetAddress()
+	if err != nil {
+		return common.Address{}, err
+	}
+
+	hexAddr := common.BytesToAddress(addr.Bytes())
+	api.logger.Info("Your new key was generated", "address", hexAddr.String())
 	api.logger.Info("Please backup your key file!", "path", os.Getenv("HOME")+"/.stratos/"+name) // TODO: pass the correct binary
 	api.logger.Info("Please remember your password!")
-	return addr, nil
+	return hexAddr, nil
 }
 
 // UnlockAccount will unlock the account associated with the given address with

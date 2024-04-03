@@ -1,0 +1,20 @@
+syntax = "proto3";
+package stratos.sds.v1;
+
+option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
+
+// EventPrePay is emitted on Msg/MsgPrepay
+message EventPrePay {
+  string sender = 1;
+  string beneficiary = 2;
+  string amount = 3;
+  string purchased_noz = 4;
+}
+
+// EventFileUpload is emitted on Msg/MsgFileUpload
+message EventFileUpload {
+  string sender = 1;
+  string reporter = 2;
+  string uploader = 3;
+  string file_hash = 4;
+}

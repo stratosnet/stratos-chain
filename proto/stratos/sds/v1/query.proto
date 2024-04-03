@@ -2,6 +2,7 @@ syntax = "proto3";
 package stratos.sds.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "google/api/annotations.proto";
 import "cosmos/base/v1beta1/coin.proto";
 import "stratos/sds/v1/sds.proto";
@@ -16,7 +17,7 @@ service Query {
   }
 
   rpc SimPrepay(QuerySimPrepayRequest) returns (QuerySimPrepayResponse){
-    option (google.api.http).get = "/stratos/sds/v1/sim_prepay";
+    option (google.api.http).get = "/stratos/sds/v1/sim_prepay/{amount}";
   }
 
   rpc NozPrice(QueryNozPriceRequest) returns (QueryNozPriceResponse) {
@@ -45,12 +46,7 @@ message QueryFileUploadResponse {
 }
 
 message QuerySimPrepayRequest {
-  repeated cosmos.base.v1beta1.Coin amount = 1 [
-    (gogoproto.jsontag) = "amount",
-    (gogoproto.moretags) = "yaml:\"amount\"",
-    (gogoproto.nullable) = false,
-    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.Coins"
-  ];
+  string amount = 1;
 }
 
 message QuerySimPrepayResponse {
@@ -58,6 +54,7 @@ message QuerySimPrepayResponse {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "noz",
     (gogoproto.moretags) = "yaml:\"noz\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }
@@ -68,6 +65,7 @@ message QueryNozPriceResponse {
   string price = 1 [
     (gogoproto.jsontag) = "price",
     (gogoproto.moretags) = "yaml:\"price\"",
+    (cosmos_proto.scalar) = "cosmos.Dec",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
     (gogoproto.nullable) = false
   ];
@@ -80,12 +78,14 @@ message QueryNozSupplyResponse {
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "remaining",
     (gogoproto.moretags) = "yaml:\"remaining\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
   string total = 2 [
     (gogoproto.nullable) = false,
     (gogoproto.jsontag) = "total",
     (gogoproto.moretags) = "yaml:\"total\"",
+    (cosmos_proto.scalar) = "cosmos.Int",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
   ];
 }

@@ -5,12 +5,13 @@ import (
 	"math/big"
 	"sort"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
 	"github.com/ethereum/go-ethereum/crypto"
+
+	"cosmossdk.io/errors"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // revision is the identifier of a version of state.
@@ -228,20 +229,20 @@ func (s *StateDB) getOrNewStateObject(addr common.Address) *stateObject {
 
 // createObject creates a new state object. If there is an existing account with
 // the given address, it is overwritten and returned as the second return value.
-func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) {
+func (s *StateDB) createObject(addr common.Address) (newObj, prev *stateObject) {
 	prev = s.getStateObject(addr)
 
-	newobj = newObject(s, addr, Account{})
+	newObj = newObject(s, addr, Account{})
 	if prev == nil {
 		s.journal.append(createObjectChange{account: &addr})
 	} else {
 		s.journal.append(resetObjectChange{prev: prev})
 	}
-	s.setStateObject(newobj)
+	s.setStateObject(newObj)
 	if prev != nil {
-		return newobj, prev
+		return newObj, prev
 	}
-	return newobj, nil
+	return newObj, nil
 }
 
 // CreateAccount explicitly creates a state object. If a state object with the address
@@ -250,8 +251,8 @@ func (s *StateDB) createObject(addr common.Address) (newobj, prev *stateObject) 
 // CreateAccount is called during the EVM CREATE operation. The situation might arise that
 // a contract does the following:
 //
-//   1. sends funds to sha(account ++ (nonce + 1))
-//   2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
+//  1. sends funds to sha(account ++ (nonce + 1))
+//  2. tx_create(sha(account ++ nonce)) (note that this gets the address of 1)
 //
 // Carrying over the balance ensures that Ether doesn't disappear.
 func (s *StateDB) CreateAccount(addr common.Address) {
@@ -349,21 +350,21 @@ func (s *StateDB) Suicide(addr common.Address) bool {
 }
 
 // PrepareAccessList handles the preparatory steps for executing a state transition with
-// regards to both EIP-2929 and EIP-2930:
+// regard to both EIP-2929 and EIP-2930:
 //
 // - Add sender to access list (2929)
 // - Add destination to access list (2929)
-// - Add precompiles to access list (2929)
+// - Add preCompiles to access list (2929)
 // - Add the contents of the optional tx access list (2930)
 //
 // This method should only be called if Yolov3/Berlin/2929+2930 is applicable at the current number.
-func (s *StateDB) PrepareAccessList(sender common.Address, dst *common.Address, precompiles []common.Address, list ethtypes.AccessList) {
+func (s *StateDB) PrepareAccessList(sender common.Address, dst *common.Address, preCompiles []common.Address, list ethtypes.AccessList) {
 	s.AddAddressToAccessList(sender)
 	if dst != nil {
 		s.AddAddressToAccessList(*dst)
 		// If it's a create-tx, the destination will be added inside evm.create
 	}
-	for _, addr := range precompiles {
+	for _, addr := range preCompiles {
 		s.AddAddressToAccessList(addr)
 	}
 	for _, el := range list {
@@ -387,7 +388,7 @@ func (s *StateDB) AddSlotToAccessList(addr common.Address, slot common.Hash) {
 	if addrMod {
 		// In practice, this should not happen, since there is no way to enter the
 		// scope of 'address' without having the 'address' become already added
-		// to the access list (via call-variant, create, etc).
+		// to the access list (via call-variant, create, etc.).
 		// Better safe than sorry, though
 		s.journal.append(accessListAddAccountChange{&addr})
 	}
@@ -418,13 +419,13 @@ func (s *StateDB) Snapshot() int {
 }
 
 // RevertToSnapshot reverts all state changes made since the given revision.
-func (s *StateDB) RevertToSnapshot(revid int) {
+func (s *StateDB) RevertToSnapshot(revId int) {
 	// Find the snapshot in the stack of valid snapshots.
 	idx := sort.Search(len(s.validRevisions), func(i int) bool {
-		return s.validRevisions[i].id >= revid
+		return s.validRevisions[i].id >= revId
 	})
-	if idx == len(s.validRevisions) || s.validRevisions[idx].id != revid {
-		panic(fmt.Errorf("revision id %v cannot be reverted", revid))
+	if idx == len(s.validRevisions) || s.validRevisions[idx].id != revId {
+		panic(fmt.Errorf("revision id %v cannot be reverted", revId))
 	}
 	snapshot := s.validRevisions[idx].journalIndex
 
@@ -440,14 +441,14 @@ func (s *StateDB) Commit() error {
 		obj := s.stateObjects[addr]
 		if obj.suicided {
 			if err := s.keeper.DeleteAccount(s.ctx, obj.Address()); err != nil {
-				return sdkerrors.Wrap(err, "failed to delete account")
+				return errors.Wrap(err, "failed to delete account")
 			}
 		} else {
 			if obj.code != nil && obj.dirtyCode {
 				s.keeper.SetCode(s.ctx, obj.CodeHash(), obj.code)
 			}
 			if err := s.keeper.SetAccount(s.ctx, obj.Address(), obj.account); err != nil {
-				return sdkerrors.Wrap(err, "failed to set account")
+				return errors.Wrap(err, "failed to set account")
 			}
 			for _, key := range obj.dirtyStorage.SortedKeys() {
 				value := obj.dirtyStorage[key]

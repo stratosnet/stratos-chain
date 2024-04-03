@@ -8,12 +8,13 @@ import (
 	"math/big"
 	"sort"
 
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 
-	abci "github.com/tendermint/tendermint/abci/types"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
@@ -290,13 +291,30 @@ func (b *Backend) processBlock(
 func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 	allLogs := make([][]*ethtypes.Log, 0, 4)
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeTxLog {
-			continue
-		}
+		var logs []*ethtypes.Log
+		// <v012 support
+		if event.Type == evmtypes.EventTypeTxLog {
+			var err error
+			logs, err = ParseTxLogsFromEventV011(event)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			msg, err := sdk.ParseTypedEvent(event)
+			if err != nil {
+				// ignore in case of not typed event (in case of not migrated code)
+				continue
+			}
 
-		logs, err := ParseTxLogsFromEvent(event)
-		if err != nil {
-			return nil, err
+			evtTxLog, ok := msg.(*evmtypes.EventTxLog)
+			if !ok {
+				continue
+			}
+
+			logs, err = ParseTxLogsFromEvent(evtTxLog)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		allLogs = append(allLogs, logs)
@@ -307,7 +325,25 @@ func AllTxLogsFromEvents(events []abci.Event) ([][]*ethtypes.Log, error) {
 // TxLogsFromEvents parses ethereum logs from cosmos events for specific msg index
 func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error) {
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeTxLog {
+		// <v012 support
+		if event.Type == evmtypes.EventTypeTxLog {
+			if msgIndex > 0 {
+				// not the eth tx we want
+				msgIndex--
+				continue
+			}
+
+			return ParseTxLogsFromEventV011(event)
+		}
+
+		msg, err := sdk.ParseTypedEvent(event)
+		if err != nil {
+			// ignore in case of not typed event (in case of not migrated code)
+			continue
+		}
+
+		evtTxLog, ok := msg.(*evmtypes.EventTxLog)
+		if !ok {
 			continue
 		}
 
@@ -317,25 +353,38 @@ func TxLogsFromEvents(events []abci.Event, msgIndex int) ([]*ethtypes.Log, error
 			continue
 		}
 
-		return ParseTxLogsFromEvent(event)
+		return ParseTxLogsFromEvent(evtTxLog)
 	}
 	return nil, fmt.Errorf("eth tx logs not found for message index %d", msgIndex)
 }
 
-// ParseTxLogsFromEvent parse tx logs from one event
-func ParseTxLogsFromEvent(event abci.Event) ([]*ethtypes.Log, error) {
+// ParseTxLogsFromEventV011 parse tx logs from one event
+func ParseTxLogsFromEventV011(event abci.Event) ([]*ethtypes.Log, error) {
 	logs := make([]*evmtypes.Log, 0, len(event.Attributes))
+
 	for _, attr := range event.Attributes {
-		if !bytes.Equal(attr.Key, []byte(evmtypes.AttributeKeyTxLog)) {
-			continue
-		}
+		bAttrValue := []byte(attr.Value)
 
 		var log evmtypes.Log
-		if err := json.Unmarshal(attr.Value, &log); err != nil {
+
+		if err := json.Unmarshal(bAttrValue, &log); err != nil {
 			return nil, err
 		}
 
 		logs = append(logs, &log)
+	}
+
+	return evmtypes.LogsToEthereum(logs), nil
+}
+
+// ParseTxLogsFromEvent parse tx logs from one event
+func ParseTxLogsFromEvent(evtTxLog *evmtypes.EventTxLog) ([]*ethtypes.Log, error) {
+	logBytes := evtTxLog.GetTxLogs()
+
+	var logs []*evmtypes.Log
+
+	if err := json.Unmarshal(logBytes, &logs); err != nil {
+		return nil, err
 	}
 	return evmtypes.LogsToEthereum(logs), nil
 }
