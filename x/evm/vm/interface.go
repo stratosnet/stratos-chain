@@ -72,9 +72,11 @@ type StateDB interface {
 	// even if the feature/fork is not active yet
 	AddSlotToAccessList(addr common.Address, slot common.Hash)
 
+	Commit() error
 	RevertToSnapshot(int)
 	Snapshot() int
 
+	Logs() []*types.Log
 	AddLog(*types.Log)
 	AddPreimage(common.Hash, []byte)
 

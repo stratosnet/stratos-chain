@@ -42,6 +42,12 @@ type (
 	// GetHashFunc returns the n'th block hash in the blockchain
 	// and is used by the BLOCKHASH EVM op code.
 	GetHashFunc func(uint64) common.Hash
+
+	// custom
+	// ParseProtoFromDataFunc parsing data to get proto info PPFD OpCode
+	ParseProtoFromDataFunc func(data []byte, gas uint64) ([]byte, uint64, error)
+	// RunSdkMsgFunc execute any cosmos msg with provided data in RUNSDKMSG OpCode
+	RunSdkMsgFunc func(from common.Address, data []byte, gas uint64) ([]byte, uint64, error)
 )
 
 func (evm *EVM) precompile(addr common.Address) (PrecompiledContract, bool) {
@@ -70,6 +76,10 @@ type BlockContext struct {
 	Transfer TransferFunc
 	// GetHash returns the hash corresponding to n
 	GetHash GetHashFunc
+	// RunSdkMsg will execute msg by its handler
+	RunSdkMsg RunSdkMsgFunc
+	// ParseProtoFromData get proto info
+	ParseProtoFromData ParseProtoFromDataFunc
 
 	// Block information
 	Coinbase    common.Address // Provides information for COINBASE
@@ -126,6 +136,8 @@ type EVM struct {
 	callGasTemp uint64
 	// genesisContractVerifier verifies is contract is trusted in order to allow curtain opcodes
 	genesisContractVerifier *GenesisContractVerifier
+	// Used to kill all data and disappear tx in case of cosmos not-revertable store
+	kill int32
 }
 
 // NewEVM returns a new EVM. The returned EVM is not thread safe and should
@@ -160,6 +172,21 @@ func (evm *EVM) Cancel() {
 // Cancelled returns true if Cancel has been called
 func (evm *EVM) Cancelled() bool {
 	return atomic.LoadInt32(&evm.abort) == 1
+}
+
+// Kill a turing machine and abort everything on error
+func (evm *EVM) KillOnError() {
+	atomic.StoreInt32(&evm.kill, 1)
+}
+
+// Restore a turing machine
+func (evm *EVM) Restore() {
+	atomic.StoreInt32(&evm.kill, 0)
+}
+
+// Killed return kill status
+func (evm *EVM) Killed() bool {
+	return atomic.LoadInt32(&evm.kill) == 1
 }
 
 // Interpreter returns the current interpreter
@@ -528,40 +555,6 @@ type ChainContext interface {
 
 	// GetHeader returns the header corresponding to the hash/number argument pair.
 	GetHeader(common.Hash, uint64) *types.Header
-}
-
-// NewEVMBlockContext creates a new context for use in the EVM.
-func NewEVMBlockContext(header *types.Header, chain ChainContext, author *common.Address) BlockContext {
-	var (
-		beneficiary common.Address
-		baseFee     *big.Int
-		random      *common.Hash
-	)
-
-	// If we don't have an explicit author (i.e. not mining), extract from the header
-	if author == nil {
-		beneficiary, _ = chain.Engine().Author(header) // Ignore error, we're past header validation
-	} else {
-		beneficiary = *author
-	}
-	if header.BaseFee != nil {
-		baseFee = new(big.Int).Set(header.BaseFee)
-	}
-	if header.Difficulty.Cmp(common.Big0) == 0 {
-		random = &header.MixDigest
-	}
-	return BlockContext{
-		CanTransfer: CanTransfer,
-		Transfer:    Transfer,
-		GetHash:     GetHashFn(header, chain),
-		Coinbase:    beneficiary,
-		BlockNumber: new(big.Int).Set(header.Number),
-		Time:        new(big.Int).SetUint64(header.Time),
-		Difficulty:  new(big.Int).Set(header.Difficulty),
-		BaseFee:     baseFee,
-		GasLimit:    header.GasLimit,
-		Random:      random,
-	}
 }
 
 // NewEVMTxContext creates a new transaction context for a single transaction.
