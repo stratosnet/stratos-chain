@@ -573,7 +573,7 @@ func FindEthereumTxEvent(events []abci.Event, txHash string) (int, *evmtypes.Eve
 		return msgIndex, evtEthTx
 	}
 	// not found
-	return -1, nil
+	return -1, &evmtypes.EventEthereumTx{}
 }
 
 // FindAttribute find event attribute with specified key, if not found returns nil.

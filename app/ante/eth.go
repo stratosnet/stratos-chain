@@ -55,6 +55,56 @@ func (tpvd EthTxPayloadVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk
 	return next(ctx, tx, simulate)
 }
 
+// EthTxCosmosMsgVerifierDecorator validates base tx payload if cosmos msg occured and protect from looping
+type EthTxCosmosMsgVerifierDecorator struct {
+	evmKeeper EVMKeeper
+}
+
+func NewEthTxCosmosMsgVerifierDecorator(ek EVMKeeper) EthTxCosmosMsgVerifierDecorator {
+	return EthTxCosmosMsgVerifierDecorator{
+		evmKeeper: ek,
+	}
+}
+
+func (ecmvd EthTxCosmosMsgVerifierDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simulate bool, next sdk.AnteHandler) (newCtx sdk.Context, err error) {
+	msg := tx.GetMsgs()[0]
+	msgEthTx, ok := msg.(*evmtypes.MsgEthereumTx)
+	if !ok {
+		return ctx, errors.Wrapf(sdkerrors.ErrUnknownRequest, "invalid message type %T, expected %T", msg, (*evmtypes.MsgEthereumTx)(nil))
+	}
+
+	// NOTE: We could not trust From param from msg itself, it should be taken from data and signatures
+	params := ecmvd.evmKeeper.GetParams(ctx)
+	ethCfg := params.ChainConfig.EthereumConfig()
+	signer := ethtypes.MakeSigner(ethCfg, big.NewInt(ctx.BlockHeight()))
+
+	baseFee := ecmvd.evmKeeper.GetBaseFee(ctx, ethCfg)
+
+	coreMsg, err := msgEthTx.AsMessage(signer, baseFee)
+	if err != nil {
+		return ctx, errors.Wrapf(
+			err,
+			"failed to create an ethereum core.Message from signer %T", signer,
+		)
+	}
+
+	// skip check if not cosmos msg
+	if !evmtypes.IsCosmosHandler(coreMsg.To()) {
+		return next(ctx, tx, simulate)
+	}
+
+	cMsg, err := ecmvd.evmKeeper.GetSdkMsg(coreMsg.From().Bytes(), coreMsg.Data())
+	if err != nil {
+		return ctx, err
+	}
+
+	if err := cMsg.ValidateBasic(); err != nil {
+		return ctx, err
+	}
+
+	return next(ctx, tx, simulate)
+}
+
 // EthSigVerificationDecorator validates an ethereum signatures
 type EthSigVerificationDecorator struct {
 	evmKeeper EVMKeeper

@@ -23,9 +23,9 @@ import (
 
 var (
 	_ sdk.Msg    = &MsgEthereumTx{}
+	_ sdk.Msg    = &MsgUpdateParams{}
 	_ sdk.Tx     = &MsgEthereumTx{}
 	_ ante.GasTx = &MsgEthereumTx{}
-	_ sdk.Msg    = &MsgUpdateParams{}
 
 	_ codectypes.UnpackInterfacesMessage = MsgEthereumTx{}
 )
@@ -149,6 +149,7 @@ func (msg *MsgEthereumTx) FromEthereumTx(tx *ethtypes.Transaction) error {
 	msg.Data = anyTxData
 	msg.Size_ = float64(tx.Size())
 	msg.Hash = tx.Hash().Hex()
+
 	return nil
 }
 
@@ -338,7 +339,9 @@ func (msg *MsgEthereumTx) BuildTx(b client.TxBuilder, evmDenom string) (signing.
 	}
 
 	builder.SetExtensionOptions(option)
-	err = builder.SetMsgs(msg)
+
+	msgs := msg.GetMsgs()
+	err = builder.SetMsgs(msgs...)
 	if err != nil {
 		return nil, err
 	}
