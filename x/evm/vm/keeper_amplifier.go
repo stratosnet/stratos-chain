@@ -23,6 +23,12 @@ func wrapWithKeeper(op OpCode, interpreter *EVMInterpreter, scope *ScopeContext)
 
 	stack := scope.Stack
 	addr := stack.Back(1)
+
+	// could be overflow, ex: (0x1100000000000000000000000000000000000001, 0x10000000000000000000000000000000000000dc)
+	if !addr.ToBig().IsUint64() {
+		return interpreter.getOperation(op)
+	}
+
 	opKey := addr.ToBig().Uint64()
 
 	// skip if it is not an available opcode
