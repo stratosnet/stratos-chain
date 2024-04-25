@@ -7,6 +7,8 @@ interface ISystemContract {
         string memory typeUrl
     ) external view returns (bool);
 
+    function allowedExecutors(address guy) external view returns (bool);
+
     struct ProtoMessage {
         address signer;
         string typeUrl;
@@ -18,13 +20,25 @@ interface ISystemContract {
         bytes data
     );
 
-    error ApproveActionTypeUrl(string typeUrl);
+    enum Action {
+        ADD_EXECUTOR,
+        REMOVE_EXECUTOR,
+        APPROVE_PROTO,
+        DISAPPROVE_PROTO
+    }
+
+    error ActionFailed(Action name, bytes data);
     error NotAllowedTypeUrl(string typeUrl);
     error NotAllowedSigner(address shguy, address pbguy);
+    error NotAllowedExecutor(address guy);
 
     function pause() external;
 
     function unpause() external;
+
+    function addExecutor(address guy) external;
+
+    function removeExecutor(address guy) external;
 
     function approveProto(string memory typeUrl) external;
 
