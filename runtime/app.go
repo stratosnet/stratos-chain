@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	sdkmath "cosmossdk.io/math"
 	"golang.org/x/exp/slices"
 
 	abci "github.com/cometbft/cometbft/abci/types"
@@ -144,6 +145,11 @@ func (a *App) BeginBlocker(ctx sdk.Context, req abci.RequestBeginBlock) abci.Res
 
 // EndBlocker application updates every end block
 func (a *App) EndBlocker(ctx sdk.Context, req abci.RequestEndBlock) abci.ResponseEndBlock {
+	//todo: this is hotfix for voting power overflow of tendermint.
+	if ctx.BlockHeight() > 4122844 {
+		sdk.DefaultPowerReduction = sdkmath.NewInt(1e12)
+	}
+
 	return a.ModuleManager.EndBlock(ctx, req)
 }
 

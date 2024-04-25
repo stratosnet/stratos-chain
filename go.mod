@@ -237,7 +237,7 @@ replace (
 	// use stratos fork of cometbft
 	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.4-fix-search
 	// use stratos fork of cosmos-sdk
-	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.10-stratos.0.20240319155952-eac7b2de0240
+	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.10-stratos.0.20240425175714-79a3f7f2af3e
 	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.
 	// TODO Remove it: https://github.com/cosmos/cosmos-sdk/issues/10409
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1
