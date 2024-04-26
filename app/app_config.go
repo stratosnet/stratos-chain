@@ -3,6 +3,8 @@ package app
 import (
 	"os"
 
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	ica "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts"
 	icatypes "github.com/cosmos/ibc-go/v7/modules/apps/27-interchain-accounts/types"
 	ibcfee "github.com/cosmos/ibc-go/v7/modules/apps/29-fee"
@@ -74,6 +76,7 @@ const (
 var (
 	// DefaultNodeHome sets the folder where the application data and configuration will be stored
 	DefaultNodeHome = os.ExpandEnv("$HOME/.stchaind")
+	powerReduction  = sdkmath.NewInt(1e18)
 
 	// ModuleBasics is in charge of setting up basic module elements
 	ModuleBasics = module.NewBasicManager(
@@ -292,6 +295,9 @@ var (
 
 func init() {
 	version.AppName = appName + "d"
+
+	//reset DefaultPowerReduction to prevent voting power overflow.
+	sdk.DefaultPowerReduction = powerReduction
 }
 
 // GetMaccPerms returns a copy of the module account permissions
