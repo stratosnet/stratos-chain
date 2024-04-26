@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/spf13/cast"
 
 	dbm "github.com/cometbft/cometbft-db"
@@ -179,6 +180,9 @@ func NewStratosApp(logger log.Logger, db dbm.DB, traceStore io.Writer, loadLates
 			),
 		)
 	)
+
+	//reset DefaultPowerReduction to prevent voting power overflow.
+	sdk.DefaultPowerReduction = sdkmath.NewInt(1e12)
 
 	if err := depinject.Inject(appConfig,
 		&appBuilder,
