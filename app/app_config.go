@@ -76,7 +76,7 @@ const (
 var (
 	// DefaultNodeHome sets the folder where the application data and configuration will be stored
 	DefaultNodeHome = os.ExpandEnv("$HOME/.stchaind")
-	powerReduction  = sdkmath.NewInt(1e13)
+	powerReduction  = sdkmath.NewInt(1e15)
 
 	// ModuleBasics is in charge of setting up basic module elements
 	ModuleBasics = module.NewBasicManager(
