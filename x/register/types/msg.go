@@ -331,12 +331,11 @@ func (msg MsgRemoveMetaNode) ValidateBasic() error {
 
 // --------------------------------------------------------------------------------------------------------------------
 
-func NewMsgUpdateResourceNode(description Description, nodeType uint32,
-	networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress, beneficiaryAddr sdk.AccAddress) *MsgUpdateResourceNode {
+func NewMsgUpdateResourceNode(description Description, networkAddress stratos.SdsAddress, ownerAddress sdk.AccAddress,
+	beneficiaryAddr sdk.AccAddress) *MsgUpdateResourceNode {
 
 	return &MsgUpdateResourceNode{
 		Description:        description,
-		NodeType:           nodeType,
 		NetworkAddress:     networkAddress.String(),
 		OwnerAddress:       ownerAddress.String(),
 		BeneficiaryAddress: beneficiaryAddr.String(),
@@ -382,10 +381,6 @@ func (msg MsgUpdateResourceNode) ValidateBasic() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	nodeType := NodeType(msg.NodeType)
-	if nodeType.Type() == "UNKNOWN" {
-		return ErrInvalidNodeType
-	}
 	return nil
 }
 

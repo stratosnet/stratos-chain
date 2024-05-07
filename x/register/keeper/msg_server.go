@@ -315,7 +315,7 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 		}
 	}
 
-	err = k.UpdateResourceNode(ctx, msg.Description, types.NodeType(msg.NodeType), networkAddr, ownerAddress, beneficiaryAddress)
+	err = k.UpdateResourceNode(ctx, msg.Description, networkAddr, ownerAddress, beneficiaryAddress)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrUpdateResourceNode, err.Error())
 	}

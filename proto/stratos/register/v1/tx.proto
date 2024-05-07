@@ -191,10 +191,6 @@ message MsgUpdateResourceNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  uint32      node_type = 5 [
-    (gogoproto.jsontag) = "node_type",
-    (gogoproto.moretags) = "yaml:\"node_type\""
-  ];
 }
 
 // MsgUpdateResourceNodeResponse defines the Msg/UpdateResourceNode response type.

@@ -269,8 +269,8 @@ func (k Keeper) RegisterResourceNode(ctx sdk.Context, networkAddr stratos.SdsAdd
 	return ozoneLimitChange, err
 }
 
-func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Description, nodeType types.NodeType,
-	networkAddr stratos.SdsAddress, ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress) error {
+func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Description, networkAddr stratos.SdsAddress,
+	ownerAddr sdk.AccAddress, beneficiaryAddr sdk.AccAddress) error {
 
 	node, found := k.GetResourceNode(ctx, networkAddr)
 	if !found {
@@ -287,9 +287,6 @@ func (k Keeper) UpdateResourceNode(ctx sdk.Context, description types.Descriptio
 	}
 
 	node.Description = description
-	if nodeType != 0 {
-		node.NodeType = uint32(nodeType)
-	}
 
 	k.SetResourceNode(ctx, node)
 

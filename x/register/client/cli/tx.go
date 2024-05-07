@@ -189,7 +189,6 @@ func UpdateResourceNodeCmd() *cobra.Command {
 		},
 	}
 
-	cmd.Flags().AddFlagSet(flagSetNodeType())
 	cmd.Flags().AddFlagSet(flagSetNetworkAddress())
 	cmd.Flags().AddFlagSet(flagSetDescriptionCreate())
 	cmd.Flags().AddFlagSet(flagSetBeneficiaryAddress())
@@ -521,17 +520,7 @@ func newBuildUpdateResourceNodeMsg(clientCtx client.Context, fs *flag.FlagSet) (
 		details,
 	)
 
-	nodeTypeVal, err := fs.GetUint32(FlagNodeType)
-	if err != nil {
-		return nil, types.ErrInvalidNodeType
-	}
-
-	// validate nodeTypeVal
-	nodeType := types.NodeType(nodeTypeVal)
-	if t := nodeType.Type(); t == "UNKNOWN" {
-		return nil, types.ErrNodeType
-	}
-	msg := types.NewMsgUpdateResourceNode(description, nodeTypeVal, networkAddr, ownerAddr, beneficiaryAddress)
+	msg := types.NewMsgUpdateResourceNode(description, networkAddr, ownerAddr, beneficiaryAddress)
 	return msg, nil
 }
 

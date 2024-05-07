@@ -4034,7 +4034,6 @@ var (
 	fd_MsgUpdateResourceNode_beneficiary_address protoreflect.FieldDescriptor
 	fd_MsgUpdateResourceNode_network_address     protoreflect.FieldDescriptor
 	fd_MsgUpdateResourceNode_owner_address       protoreflect.FieldDescriptor
-	fd_MsgUpdateResourceNode_node_type           protoreflect.FieldDescriptor
 )
 
 func init() {
@@ -4044,7 +4043,6 @@ func init() {
 	fd_MsgUpdateResourceNode_beneficiary_address = md_MsgUpdateResourceNode.Fields().ByName("beneficiary_address")
 	fd_MsgUpdateResourceNode_network_address = md_MsgUpdateResourceNode.Fields().ByName("network_address")
 	fd_MsgUpdateResourceNode_owner_address = md_MsgUpdateResourceNode.Fields().ByName("owner_address")
-	fd_MsgUpdateResourceNode_node_type = md_MsgUpdateResourceNode.Fields().ByName("node_type")
 }
 
 var _ protoreflect.Message = (*fastReflection_MsgUpdateResourceNode)(nil)
@@ -4136,12 +4134,6 @@ func (x *fastReflection_MsgUpdateResourceNode) Range(f func(protoreflect.FieldDe
 			return
 		}
 	}
-	if x.NodeType != uint32(0) {
-		value := protoreflect.ValueOfUint32(x.NodeType)
-		if !f(fd_MsgUpdateResourceNode_node_type, value) {
-			return
-		}
-	}
 }
 
 // Has reports whether a field is populated.
@@ -4165,8 +4157,6 @@ func (x *fastReflection_MsgUpdateResourceNode) Has(fd protoreflect.FieldDescript
 		return x.NetworkAddress != ""
 	case "stratos.register.v1.MsgUpdateResourceNode.owner_address":
 		return x.OwnerAddress != ""
-	case "stratos.register.v1.MsgUpdateResourceNode.node_type":
-		return x.NodeType != uint32(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MsgUpdateResourceNode"))
@@ -4191,8 +4181,6 @@ func (x *fastReflection_MsgUpdateResourceNode) Clear(fd protoreflect.FieldDescri
 		x.NetworkAddress = ""
 	case "stratos.register.v1.MsgUpdateResourceNode.owner_address":
 		x.OwnerAddress = ""
-	case "stratos.register.v1.MsgUpdateResourceNode.node_type":
-		x.NodeType = uint32(0)
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MsgUpdateResourceNode"))
@@ -4221,9 +4209,6 @@ func (x *fastReflection_MsgUpdateResourceNode) Get(descriptor protoreflect.Field
 	case "stratos.register.v1.MsgUpdateResourceNode.owner_address":
 		value := x.OwnerAddress
 		return protoreflect.ValueOfString(value)
-	case "stratos.register.v1.MsgUpdateResourceNode.node_type":
-		value := x.NodeType
-		return protoreflect.ValueOfUint32(value)
 	default:
 		if descriptor.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MsgUpdateResourceNode"))
@@ -4252,8 +4237,6 @@ func (x *fastReflection_MsgUpdateResourceNode) Set(fd protoreflect.FieldDescript
 		x.NetworkAddress = value.Interface().(string)
 	case "stratos.register.v1.MsgUpdateResourceNode.owner_address":
 		x.OwnerAddress = value.Interface().(string)
-	case "stratos.register.v1.MsgUpdateResourceNode.node_type":
-		x.NodeType = uint32(value.Uint())
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MsgUpdateResourceNode"))
@@ -4285,8 +4268,6 @@ func (x *fastReflection_MsgUpdateResourceNode) Mutable(fd protoreflect.FieldDesc
 		panic(fmt.Errorf("field network_address of message stratos.register.v1.MsgUpdateResourceNode is not mutable"))
 	case "stratos.register.v1.MsgUpdateResourceNode.owner_address":
 		panic(fmt.Errorf("field owner_address of message stratos.register.v1.MsgUpdateResourceNode is not mutable"))
-	case "stratos.register.v1.MsgUpdateResourceNode.node_type":
-		panic(fmt.Errorf("field node_type of message stratos.register.v1.MsgUpdateResourceNode is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MsgUpdateResourceNode"))
@@ -4309,8 +4290,6 @@ func (x *fastReflection_MsgUpdateResourceNode) NewField(fd protoreflect.FieldDes
 		return protoreflect.ValueOfString("")
 	case "stratos.register.v1.MsgUpdateResourceNode.owner_address":
 		return protoreflect.ValueOfString("")
-	case "stratos.register.v1.MsgUpdateResourceNode.node_type":
-		return protoreflect.ValueOfUint32(uint32(0))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.register.v1.MsgUpdateResourceNode"))
@@ -4396,9 +4375,6 @@ func (x *fastReflection_MsgUpdateResourceNode) ProtoMethods() *protoiface.Method
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if x.NodeType != 0 {
-			n += 1 + runtime.Sov(uint64(x.NodeType))
-		}
 		if x.unknownFields != nil {
 			n += len(x.unknownFields)
 		}
@@ -4427,11 +4403,6 @@ func (x *fastReflection_MsgUpdateResourceNode) ProtoMethods() *protoiface.Method
 		if x.unknownFields != nil {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
-		}
-		if x.NodeType != 0 {
-			i = runtime.EncodeVarint(dAtA, i, uint64(x.NodeType))
-			i--
-			dAtA[i] = 0x28
 		}
 		if len(x.OwnerAddress) > 0 {
 			i -= len(x.OwnerAddress)
@@ -4649,25 +4620,6 @@ func (x *fastReflection_MsgUpdateResourceNode) ProtoMethods() *protoiface.Method
 				}
 				x.OwnerAddress = string(dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
-			case 5:
-				if wireType != 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
-				}
-				x.NodeType = 0
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					x.NodeType |= uint32(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
 			default:
 				iNdEx = preIndex
 				skippy, err := runtime.Skip(dAtA[iNdEx:])
@@ -12182,7 +12134,6 @@ type MsgUpdateResourceNode struct {
 	BeneficiaryAddress string       `protobuf:"bytes,2,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address,omitempty"`
 	NetworkAddress     string       `protobuf:"bytes,3,opt,name=network_address,json=networkAddress,proto3" json:"network_address,omitempty"`
 	OwnerAddress       string       `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address,omitempty"`
-	NodeType           uint32       `protobuf:"varint,5,opt,name=node_type,json=nodeType,proto3" json:"node_type,omitempty"`
 }
 
 func (x *MsgUpdateResourceNode) Reset() {
@@ -12231,13 +12182,6 @@ func (x *MsgUpdateResourceNode) GetOwnerAddress() string {
 		return x.OwnerAddress
 	}
 	return ""
-}
-
-func (x *MsgUpdateResourceNode) GetNodeType() uint32 {
-	if x != nil {
-		return x.NodeType
-	}
-	return 0
 }
 
 // MsgUpdateResourceNodeResponse defines the Msg/UpdateResourceNode response type.
@@ -13012,7 +12956,7 @@ var file_stratos_register_v1_tx_proto_rawDesc = []byte{
 	0x74, 0x6f, 0x73, 0x2f, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x6d, 0x6f, 0x76, 0x65, 0x4d, 0x65, 0x74,
 	0x61, 0x4e, 0x6f, 0x64, 0x65, 0x22, 0x1b, 0x0a, 0x19, 0x4d, 0x73, 0x67, 0x52, 0x65, 0x6d, 0x6f,
 	0x76, 0x65, 0x4d, 0x65, 0x74, 0x61, 0x4e, 0x6f, 0x64, 0x65, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e,
-	0x73, 0x65, 0x22, 0xd9, 0x04, 0x0a, 0x15, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
+	0x73, 0x65, 0x22, 0x99, 0x04, 0x0a, 0x15, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65,
 	0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x12, 0x72, 0x0a, 0x0b,
 	0x64, 0x65, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x01, 0x20, 0x01, 0x28,
 	0x0b, 0x32, 0x20, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x72, 0x65, 0x67, 0x69,
@@ -13042,11 +12986,7 @@ var file_stratos_register_v1_tx_proto_rawDesc = []byte{
 	0x6d, 0x6c, 0x3a, 0x22, 0x6f, 0x77, 0x6e, 0x65, 0x72, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73,
 	0x73, 0x22, 0xd2, 0xb4, 0x2d, 0x14, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x41, 0x64, 0x64,
 	0x72, 0x65, 0x73, 0x73, 0x53, 0x74, 0x72, 0x69, 0x6e, 0x67, 0x52, 0x0c, 0x6f, 0x77, 0x6e, 0x65,
-	0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x12, 0x3e, 0x0a, 0x09, 0x6e, 0x6f, 0x64, 0x65,
-	0x5f, 0x74, 0x79, 0x70, 0x65, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0d, 0x42, 0x21, 0xea, 0xde, 0x1f,
-	0x09, 0x6e, 0x6f, 0x64, 0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0xf2, 0xde, 0x1f, 0x10, 0x79, 0x61,
-	0x6d, 0x6c, 0x3a, 0x22, 0x6e, 0x6f, 0x64, 0x65, 0x5f, 0x74, 0x79, 0x70, 0x65, 0x22, 0x52, 0x08,
-	0x6e, 0x6f, 0x64, 0x65, 0x54, 0x79, 0x70, 0x65, 0x3a, 0x34, 0x82, 0xe7, 0xb0, 0x2a, 0x0d, 0x6f,
+	0x72, 0x41, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x3a, 0x34, 0x82, 0xe7, 0xb0, 0x2a, 0x0d, 0x6f,
 	0x77, 0x6e, 0x65, 0x72, 0x5f, 0x61, 0x64, 0x64, 0x72, 0x65, 0x73, 0x73, 0x8a, 0xe7, 0xb0, 0x2a,
 	0x1d, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x4d, 0x73, 0x67, 0x55, 0x70, 0x64, 0x61,
 	0x74, 0x65, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x4e, 0x6f, 0x64, 0x65, 0x22, 0x1f,
