@@ -56,11 +56,6 @@ message EventUpdateResourceNode {
   string sender = 1;
   string network_address = 2;
   string beneficiary_address = 3;
-  string moniker = 4;
-  string identity = 5;
-  string website = 6;
-  string security_contact = 7;
-  string details = 8;
 }
 
 // EventUpdateResourceNodeDeposit is emitted on Msg/MsgUpdateResourceNodeDeposit
