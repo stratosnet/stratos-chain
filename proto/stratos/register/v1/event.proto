@@ -55,6 +55,7 @@ message EventKickMetaNodeVote {
 message EventUpdateResourceNode {
   string sender = 1;
   string network_address = 2;
+  string beneficiary_address = 3;
 }
 
 // EventUpdateResourceNodeDeposit is emitted on Msg/MsgUpdateResourceNodeDeposit

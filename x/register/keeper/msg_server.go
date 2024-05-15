@@ -322,8 +322,9 @@ func (k msgServer) HandleMsgUpdateResourceNode(goCtx context.Context, msg *types
 
 	err = ctx.EventManager().EmitTypedEvents(
 		&types.EventUpdateResourceNode{
-			Sender:         msg.GetOwnerAddress(),
-			NetworkAddress: msg.GetNetworkAddress(),
+			Sender:             msg.GetOwnerAddress(),
+			NetworkAddress:     msg.GetNetworkAddress(),
+			BeneficiaryAddress: msg.GetBeneficiaryAddress(),
 		},
 	)
 	if err != nil {
