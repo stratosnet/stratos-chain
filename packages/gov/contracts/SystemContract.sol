@@ -20,10 +20,20 @@ contract SystemContract is
 {
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
     mapping(string => bool) public override registeredTypeUrls;
+    mapping(address => bool) public override allowedExecutors;
 
     // ===== fallbacks =====
 
     receive() external payable {}
+
+    modifier isAllowedExecutor() {
+        bool isAllowed = allowedExecutors[msg.sender] ||
+            tx.origin == msg.sender;
+        if (!isAllowed) {
+            revert NotAllowedExecutor(msg.sender);
+        }
+        _;
+    }
 
     // Initialize function for proxy constructor. Must be used atomically
     function initialize() public initializer {
@@ -50,6 +60,24 @@ contract SystemContract is
         ] = true;
     }
 
+    function addExecutor(
+        address guy
+    ) external override onlyRole(MAINTAINER_ROLE) {
+        if (allowedExecutors[guy]) {
+            revert ActionFailed(Action.ADD_EXECUTOR, abi.encodePacked(guy));
+        }
+        allowedExecutors[guy] = true;
+    }
+
+    function removeExecutor(
+        address guy
+    ) external override onlyRole(MAINTAINER_ROLE) {
+        if (!allowedExecutors[guy]) {
+            revert ActionFailed(Action.REMOVE_EXECUTOR, abi.encodePacked(guy));
+        }
+        delete allowedExecutors[guy];
+    }
+
     function pause() external override onlyRole(MAINTAINER_ROLE) {
         _pause();
     }
@@ -62,7 +90,10 @@ contract SystemContract is
         string memory typeUrl
     ) external override onlyRole(MAINTAINER_ROLE) {
         if (registeredTypeUrls[typeUrl]) {
-            revert ApproveActionTypeUrl(typeUrl);
+            revert ActionFailed(
+                Action.APPROVE_PROTO,
+                abi.encodePacked(typeUrl)
+            );
         }
         registeredTypeUrls[typeUrl] = true;
     }
@@ -71,14 +102,24 @@ contract SystemContract is
         string memory typeUrl
     ) external override onlyRole(MAINTAINER_ROLE) {
         if (!registeredTypeUrls[typeUrl]) {
-            revert ApproveActionTypeUrl(typeUrl);
+            revert ActionFailed(
+                Action.DISAPPROVE_PROTO,
+                abi.encodePacked(typeUrl)
+            );
         }
         delete registeredTypeUrls[typeUrl];
     }
 
     function runMsg(
         bytes memory data
-    ) public override whenNotPaused nonReentrant returns (bytes memory) {
+    )
+        public
+        override
+        whenNotPaused
+        nonReentrant
+        isAllowedExecutor
+        returns (bytes memory)
+    {
         ProtoMessage memory pb = getProtoMessageFromData(data);
         if (!registeredTypeUrls[pb.typeUrl]) {
             revert NotAllowedTypeUrl(pb.typeUrl);

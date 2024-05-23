@@ -625,6 +625,10 @@ func opCreate(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]b
 	scope.Stack.push(&stackvalue)
 	scope.Contract.Gas += returnGas
 
+	if suberr != nil && interpreter.evm.Killed() {
+		return nil, ErrExecutionReverted
+	}
+
 	if suberr == ErrExecutionReverted {
 		interpreter.returnData = res // set REVERT data to return data buffer
 		return res, nil
@@ -665,6 +669,10 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]
 	}
 	scope.Stack.push(&stackvalue)
 	scope.Contract.Gas += returnGas
+
+	if suberr != nil && interpreter.evm.Killed() {
+		return nil, ErrExecutionReverted
+	}
 
 	if suberr == ErrExecutionReverted {
 		interpreter.returnData = res // set REVERT data to return data buffer
@@ -707,6 +715,11 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 		temp.SetOne()
 	}
 	stack.push(&temp)
+
+	if err != nil && interpreter.evm.Killed() {
+		return nil, ErrExecutionReverted
+	}
+
 	if err == nil || err == ErrExecutionReverted {
 		ret = common.CopyBytes(ret)
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
@@ -743,6 +756,11 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([
 		temp.SetOne()
 	}
 	stack.push(&temp)
+
+	if err != nil && interpreter.evm.Killed() {
+		return nil, ErrExecutionReverted
+	}
+
 	if err == nil || err == ErrExecutionReverted {
 		ret = common.CopyBytes(ret)
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
@@ -772,6 +790,11 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext
 		temp.SetOne()
 	}
 	stack.push(&temp)
+
+	if err != nil && interpreter.evm.Killed() {
+		return nil, ErrExecutionReverted
+	}
+
 	if err == nil || err == ErrExecutionReverted {
 		ret = common.CopyBytes(ret)
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
@@ -801,6 +824,11 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) 
 		temp.SetOne()
 	}
 	stack.push(&temp)
+
+	if err != nil && interpreter.evm.Killed() {
+		return nil, ErrExecutionReverted
+	}
+
 	if err == nil || err == ErrExecutionReverted {
 		ret = common.CopyBytes(ret)
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)

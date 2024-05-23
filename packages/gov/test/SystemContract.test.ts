@@ -20,6 +20,24 @@ import { getEVMSdkMsgTestCases } from "./helpers/data";
 import { ContractTransactionResponse } from "ethers";
 
 
+const addExecutorIfNotAdded = async (contract: SystemContract, addr: string): Promise<void> => {
+  const isAllowed = await contract.allowedExecutors.staticCall(addr);
+  if (!isAllowed) {
+    console.log(`Adding executor "${addr}" as allowed...`)
+    await contract.addExecutor(addr);
+    console.log(`Approved executor "${addr}".`)
+  }
+}
+
+const removeExecutorIfAdded = async (contract: SystemContract, addr: string): Promise<void> => {
+  const isAllowed = await contract.allowedExecutors.staticCall(addr);
+  if (isAllowed) {
+    console.log(`Removing executor "${addr}" as allowed...`)
+    await contract.removeExecutor(addr);
+    console.log(`Removed executor "${addr}".`)
+  }
+}
+
 const allowProtoIfNotEnabled = async (contract: SystemContract, typeUrl: string): Promise<void> => {
   const protoAllowed = await contract.registeredTypeUrls.staticCall(typeUrl);
   if (!protoAllowed) {
@@ -70,6 +88,8 @@ const setupTest = deployments.createFixture(
     const scAsExecutorContract = await ethers.getContractAt("SmartContractAsExecutor", executorAddress, signer);
 
     await allowProtoIfNotEnabled(contract, MsgSend.typeUrl);
+
+    await addExecutorIfNotAdded(contract, executorAddress);
 
     return {
       systemContractAddress,
@@ -224,6 +244,45 @@ describe("SystemContract local test", () => {
     expect(nonceAfter).to.be.eq(nonceBefore + 1);
     expect(balanceFromAfter).to.be.eq(balanceFromBefore - amount - txFee);
     expect(balanceToAfter).to.be.eq(balanceToBefore + amount);
+  })
+
+  it("should not execute proto with not allowed executor and fail", async () => {
+    const { signer, contract, scAsExecutorContract } = await setupTest();
+    const testAddr = '0x000000000000000000000000000000000000dEaD';
+    const scAsExecutorContractAddress = await scAsExecutorContract.getAddress();
+    const systemContractAddress = await contract.getAddress();
+    const amount = ethers.parseEther('0.001');
+    
+    const payload: MsgSend = {
+      fromAddress: ethToBech32Address(scAsExecutorContractAddress),
+      toAddress: ethToBech32Address(testAddr),
+      amount: coins(amount.toString(), 'wei'),
+    };
+    const anyMsg: Any = {
+      typeUrl: MsgSend.typeUrl,
+      value: MsgSend.encode(payload).finish(),
+    };
+    
+    const data = ethers.getBytes(Any.encode(anyMsg).finish());
+    
+    const [block, eth_maxPriorityFeePerGas] = await Promise.all([
+      await ethers.provider.getBlock("latest"),
+      await ethers.provider.send("eth_maxPriorityFeePerGas", []),
+    ])
+    if (!block || !eth_maxPriorityFeePerGas) {
+      console.log('Block or prior fee not found, skipping...')
+      return;
+    }
+    await removeExecutorIfAdded(contract, await scAsExecutorContract.getAddress());
+
+    expect(
+      await scAsExecutorContract.runMsg(systemContractAddress, data, {
+        gasLimit: 150_000,
+        maxPriorityFeePerGas: BigInt(eth_maxPriorityFeePerGas),
+        maxFeePerGas: block.baseFeePerGas,
+        value: amount,
+      })
+    ).to.be.revertedWithCustomError(contract, 'NotAllowedExecutor');
   })
 
   it("should not execute proto with not registered type and fail", async () => {

@@ -84,7 +84,7 @@ func (k *Keeper) NewEVM(
 		CanTransfer:        vm.CanTransfer,
 		Transfer:           vm.Transfer,
 		GetHash:            k.GetHashFn(ctx),
-		RunSdkMsg:          k.RunSdkMsgFn(ctx, false),
+		RunSdkMsg:          k.RunSdkMsgFn(ctx, true),
 		ParseProtoFromData: k.ParseProtoFromDataFn(ctx),
 		Coinbase:           cfg.CoinBase,
 		GasLimit:           stratos.BlockGasLimit(ctx),
