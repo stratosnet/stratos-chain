@@ -3,7 +3,8 @@ package types
 import (
 	"math/big"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/ethereum/go-ethereum/common"
@@ -98,7 +99,7 @@ func (tx *DynamicFeeTx) GetAccessList() ethtypes.AccessList {
 	return *tx.Accesses.ToEthAccessList()
 }
 
-// GetData returns the a copy of the input data bytes.
+// GetData returns the copy of the input data bytes.
 func (tx *DynamicFeeTx) GetData() []byte {
 	return common.CopyBytes(tx.Data)
 }
@@ -188,7 +189,7 @@ func (tx *DynamicFeeTx) SetSignatureValues(chainID, v, r, s *big.Int) {
 		tx.S = s.Bytes()
 	}
 	if chainID != nil {
-		chainIDInt := sdk.NewIntFromBigInt(chainID)
+		chainIDInt := sdkmath.NewIntFromBigInt(chainID)
 		tx.ChainID = &chainIDInt
 	}
 }
@@ -196,57 +197,57 @@ func (tx *DynamicFeeTx) SetSignatureValues(chainID, v, r, s *big.Int) {
 // Validate performs a stateless validation of the tx fields.
 func (tx DynamicFeeTx) Validate() error {
 	if tx.GasTipCap == nil {
-		return sdkerrors.Wrap(ErrInvalidGasCap, "gas tip cap cannot nil")
+		return errors.Wrap(ErrInvalidGasCap, "gas tip cap cannot nil")
 	}
 
 	if tx.GasFeeCap == nil {
-		return sdkerrors.Wrap(ErrInvalidGasCap, "gas fee cap cannot nil")
+		return errors.Wrap(ErrInvalidGasCap, "gas fee cap cannot nil")
 	}
 
 	if tx.GasTipCap.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidGasCap, "gas tip cap cannot be negative %s", tx.GasTipCap)
+		return errors.Wrapf(ErrInvalidGasCap, "gas tip cap cannot be negative %s", tx.GasTipCap)
 	}
 
 	if tx.GasFeeCap.IsNegative() {
-		return sdkerrors.Wrapf(ErrInvalidGasCap, "gas fee cap cannot be negative %s", tx.GasFeeCap)
+		return errors.Wrapf(ErrInvalidGasCap, "gas fee cap cannot be negative %s", tx.GasFeeCap)
 	}
 
 	if !IsValidInt256(tx.GetGasTipCap()) {
-		return sdkerrors.Wrap(ErrInvalidGasCap, "out of bound")
+		return errors.Wrap(ErrInvalidGasCap, "out of bound")
 	}
 
 	if !IsValidInt256(tx.GetGasFeeCap()) {
-		return sdkerrors.Wrap(ErrInvalidGasCap, "out of bound")
+		return errors.Wrap(ErrInvalidGasCap, "out of bound")
 	}
 
 	if tx.GasFeeCap.LT(*tx.GasTipCap) {
-		return sdkerrors.Wrapf(
+		return errors.Wrapf(
 			ErrInvalidGasCap, "max priority fee per gas higher than max fee per gas (%s > %s)",
 			tx.GasTipCap, tx.GasFeeCap,
 		)
 	}
 
 	if !IsValidInt256(tx.Fee()) {
-		return sdkerrors.Wrap(ErrInvalidGasFee, "out of bound")
+		return errors.Wrap(ErrInvalidGasFee, "out of bound")
 	}
 
 	amount := tx.GetValue()
 	// Amount can be 0
 	if amount != nil && amount.Sign() == -1 {
-		return sdkerrors.Wrapf(ErrInvalidAmount, "amount cannot be negative %s", amount)
+		return errors.Wrapf(ErrInvalidAmount, "amount cannot be negative %s", amount)
 	}
 	if !IsValidInt256(amount) {
-		return sdkerrors.Wrap(ErrInvalidAmount, "out of bound")
+		return errors.Wrap(ErrInvalidAmount, "out of bound")
 	}
 
 	if tx.To != "" {
 		if err := types.ValidateHexAddress(tx.To); err != nil {
-			return sdkerrors.Wrap(err, "invalid to address")
+			return errors.Wrap(err, "invalid to address")
 		}
 	}
 
 	if tx.GetChainID() == nil {
-		return sdkerrors.Wrap(
+		return errors.Wrap(
 			sdkerrors.ErrInvalidChainID,
 			"chain ID must be present on AccessList txs",
 		)
@@ -255,12 +256,12 @@ func (tx DynamicFeeTx) Validate() error {
 	return nil
 }
 
-// Fee returns gasprice * gaslimit.
+// Fee returns gasPrice * gasLimit.
 func (tx DynamicFeeTx) Fee() *big.Int {
 	return fee(tx.GetGasFeeCap(), tx.GasLimit)
 }
 
-// Cost returns amount + gasprice * gaslimit.
+// Cost returns amount + gasPrice * gasLimit.
 func (tx DynamicFeeTx) Cost() *big.Int {
 	return cost(tx.Fee(), tx.GetValue())
 }
@@ -270,12 +271,12 @@ func (tx *DynamicFeeTx) GetEffectiveGasPrice(baseFee *big.Int) *big.Int {
 	return math.BigMin(new(big.Int).Add(tx.GasTipCap.BigInt(), baseFee), tx.GasFeeCap.BigInt())
 }
 
-// EffectiveFee returns effective_gasprice * gaslimit.
+// EffectiveFee returns effective_gasPrice * gasLimit.
 func (tx DynamicFeeTx) EffectiveFee(baseFee *big.Int) *big.Int {
 	return fee(tx.GetEffectiveGasPrice(baseFee), tx.GasLimit)
 }
 
-// EffectiveCost returns amount + effective_gasprice * gaslimit.
+// EffectiveCost returns amount + effective_gasPrice * gasLimit.
 func (tx DynamicFeeTx) EffectiveCost(baseFee *big.Int) *big.Int {
 	return cost(tx.EffectiveFee(baseFee), tx.GetValue())
 }

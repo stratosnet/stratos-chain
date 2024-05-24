@@ -1,0 +1,108 @@
+syntax = "proto3";
+package stratos.register.v1;
+
+option go_package = "github.com/stratosnet/stratos-chain/x/register/types";
+
+// EventCreateResourceNode is emitted on Msg/MsgCreateResourceNode
+message EventCreateResourceNode {
+  string sender = 1;
+  string network_address = 2;
+  string pubkey = 3;
+  string ozone_limit_changes = 4;
+  string initial_deposit = 5;
+}
+
+// EventCreateMetaNode is emitted on Msg/MsgCreateMetaNode
+message EventCreateMetaNode {
+  string sender = 1;
+  string network_address = 2;
+}
+
+// EventUnBondingResourceNode is emitted on Msg/MsgRemoveResourceNode
+message EventUnBondingResourceNode {
+  string sender = 1;
+  string resource_node = 2;
+  string deposit_to_remove = 3;
+  string unbonding_mature_time = 4;
+}
+
+// EventUnBondingResourceNode is emitted on Msg/MsgRemoveMetaNode
+message EventUnBondingMetaNode {
+  string sender = 1;
+  string meta_node = 2;
+  string ozone_limit_changes = 3;
+  string deposit_to_remove = 4;
+  string unbonding_mature_time = 5;
+}
+
+// EventMetaNodeRegistrationVote is emitted on Msg/MsgMetaNodeRegistrationVote
+message EventMetaNodeRegistrationVote {
+  string sender = 1;
+  string voter_network_address = 2;
+  string candidate_network_address = 3;
+  string candidate_status = 4;
+  string ozone_limit_changes = 5;
+}
+
+message EventKickMetaNodeVote {
+  string sender = 1;
+  string voter_network_address = 2;
+  string target_network_address = 3;
+  string target_status = 4;
+}
+
+// EventUpdateResourceNode is emitted on Msg/MsgUpdateResourceNode
+message EventUpdateResourceNode {
+  string sender = 1;
+  string network_address = 2;
+  string beneficiary_address = 3;
+}
+
+// EventUpdateResourceNodeDeposit is emitted on Msg/MsgUpdateResourceNodeDeposit
+message EventUpdateResourceNodeDeposit {
+  string sender = 1;
+  string network_address = 2;
+  string deposit_delta = 3;
+  string current_deposit = 4;
+  string available_token_before = 5;
+  string available_token_after = 6;
+  string ozone_limit_changes = 7;
+  string unbonding_mature_time = 8;
+}
+
+// EventUpdateEffectiveDeposit is emitted on Msg/MsgUpdateEffectiveDeposit
+message EventUpdateEffectiveDeposit {
+  string network_address = 1;
+  string effective_deposit_after = 2;
+  string is_unsuspended = 3;
+}
+
+// EventUpdateMetaNode is emitted on Msg/MsgUpdateMetaNode
+message EventUpdateMetaNode {
+  string sender = 1;
+  string network_address = 2;
+}
+
+// EventUpdateMetaNodeDeposit is emitted on Msg/MsgUpdateMetaNodeDeposit
+message EventUpdateMetaNodeDeposit {
+  string sender = 1;
+  string network_address = 2;
+  string deposit_delta = 3;
+  string current_deposit = 4;
+  string available_token_before = 5;
+  string available_token_after = 6;
+  string ozone_limit_changes = 7;
+  string unbonding_mature_time = 8;
+}
+
+// EventCompleteUnBondingResourceNode is emitted on EndBlocker
+message EventCompleteUnBondingResourceNode{
+  string amount = 1;
+  string network_address = 2;
+}
+
+// EventCompleteUnBondingMetaNode is emitted on EndBlocker
+message EventCompleteUnBondingMetaNode{
+  string amount = 1;
+  string network_address = 2;
+}

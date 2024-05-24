@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -74,22 +75,23 @@ func (v ResourceNodes) Validate() error {
 
 // NewResourceNode - initialize a new resource node
 func NewResourceNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
-	description Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
+	beneficiaryAddress sdk.AccAddress, description Description, nodeType NodeType, creationTime time.Time) (ResourceNode, error) {
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return ResourceNode{}, err
 	}
 	return ResourceNode{
-		NetworkAddress:  networkAddr.String(),
-		Pubkey:          pkAny,
-		Suspend:         true,
-		Status:          stakingtypes.Unbonded,
-		Tokens:          sdk.ZeroInt(),
-		OwnerAddress:    ownerAddr.String(),
-		Description:     description,
-		NodeType:        uint32(nodeType),
-		CreationTime:    creationTime,
-		EffectiveTokens: sdk.ZeroInt(),
+		NetworkAddress:     networkAddr.String(),
+		Pubkey:             pkAny,
+		Suspend:            true,
+		Status:             stakingtypes.Unbonded,
+		Tokens:             sdkmath.ZeroInt(),
+		OwnerAddress:       ownerAddr.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
+		Description:        description,
+		NodeType:           uint32(nodeType),
+		CreationTime:       creationTime,
+		EffectiveTokens:    sdkmath.ZeroInt(),
 	}, nil
 }
 
@@ -113,21 +115,22 @@ func (v ResourceNode) ConvertToString() string {
 		Status:				%s
 		Tokens:				%s
 		Owner Address: 		%s
+        Beneficiary Address %s
 		NodeType:           %v
 		Description:		%s
 		CreationTime:		%s
 	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(), v.Tokens,
-		v.GetOwnerAddress(), v.NodeType, v.GetDescription(), v.GetCreationTime())
+		v.GetOwnerAddress(), v.GetBeneficiaryAddress(), v.NodeType, v.GetDescription(), v.GetCreationTime())
 }
 
 // AddToken adds tokens to a resource node
-func (v ResourceNode) AddToken(amount sdk.Int) ResourceNode {
+func (v ResourceNode) AddToken(amount sdkmath.Int) ResourceNode {
 	v.Tokens = v.Tokens.Add(amount)
 	return v
 }
 
 // SubToken removes tokens from a resource node
-func (v ResourceNode) SubToken(amount sdk.Int) ResourceNode {
+func (v ResourceNode) SubToken(amount sdkmath.Int) ResourceNode {
 	if amount.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", amount))
 	}
@@ -171,7 +174,12 @@ func (v ResourceNode) Validate() error {
 		return ErrEmptyOwnerAddr
 	}
 
-	if v.Tokens.LT(sdk.ZeroInt()) {
+	_, err = sdk.AccAddressFromBech32(v.GetBeneficiaryAddress())
+	if err != nil {
+		return err
+	}
+
+	if v.Tokens.LT(sdkmath.ZeroInt()) {
 		return ErrValueNegative
 	}
 	if v.GetDescription().Moniker == "" {
@@ -202,7 +210,7 @@ func (v ResourceNode) IsUnBonding() bool {
 
 // MustMarshalResourceNode returns the resourceNode bytes. Panics if fails
 func MustMarshalResourceNode(cdc codec.Codec, resourceNode ResourceNode) []byte {
-	return cdc.MustMarshal(&resourceNode)
+	return cdc.MustMarshalLengthPrefixed(&resourceNode)
 }
 
 // MustUnmarshalResourceNode unmarshal a resourceNode from a store value. Panics if fails
@@ -216,7 +224,7 @@ func MustUnmarshalResourceNode(cdc codec.Codec, value []byte) ResourceNode {
 
 // UnmarshalResourceNode unmarshal a resourceNode from a store value
 func UnmarshalResourceNode(cdc codec.Codec, value []byte) (v ResourceNode, err error) {
-	err = cdc.Unmarshal(value, &v)
+	err = cdc.UnmarshalLengthPrefixed(value, &v)
 	return v, err
 }
 

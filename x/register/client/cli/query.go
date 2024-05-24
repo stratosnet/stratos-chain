@@ -4,12 +4,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/cosmos/cosmos-sdk/client"
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/version"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+
+	"cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	"github.com/cosmos/cosmos-sdk/version"
+
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
 
@@ -160,7 +162,7 @@ $ %s query register get-resource-node --network-address=stsds1np4d8re98lpgrcdqca
 			// query resource node by network address
 			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
 			if len(queryFlagNetworkAddr) == 0 {
-				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
+				return errors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
 
 			result, err := queryClient.ResourceNode(cmd.Context(), &types.QueryResourceNodeRequest{
@@ -205,18 +207,17 @@ $ %s query register get-meta-node --network-address=stsds1faej5w4q6hgnt0ft598dlm
 			// query resource node by network address
 			queryFlagNetworkAddr := viper.GetString(FlagNetworkAddress)
 			if len(queryFlagNetworkAddr) == 0 {
-				return sdkerrors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
+				return errors.Wrap(types.ErrInvalidNetworkAddr, "Missing network address")
 			}
 
 			result, err := queryClient.MetaNode(cmd.Context(), &types.QueryMetaNodeRequest{
-				// Leaving status empty on purpose to query all validators.
 				NetworkAddr: queryFlagNetworkAddr,
 			})
 			if err != nil {
 				return err
 			}
 
-			return clientCtx.PrintProto(result)
+			return clientCtx.PrintProto(result.GetNode())
 		},
 	}
 

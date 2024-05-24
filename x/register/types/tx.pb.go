@@ -6,14 +6,15 @@ package types
 import (
 	context "context"
 	fmt "fmt"
+	_ "github.com/cosmos/cosmos-proto"
 	types "github.com/cosmos/cosmos-sdk/codec/types"
 	github_com_cosmos_cosmos_sdk_types "github.com/cosmos/cosmos-sdk/types"
 	types1 "github.com/cosmos/cosmos-sdk/types"
-	_ "github.com/gogo/protobuf/gogoproto"
-	grpc1 "github.com/gogo/protobuf/grpc"
-	proto "github.com/gogo/protobuf/proto"
-	_ "github.com/regen-network/cosmos-proto"
-	_ "google.golang.org/genproto/googleapis/api/annotations"
+	_ "github.com/cosmos/cosmos-sdk/types/msgservice"
+	_ "github.com/cosmos/cosmos-sdk/types/tx/amino"
+	_ "github.com/cosmos/gogoproto/gogoproto"
+	grpc1 "github.com/cosmos/gogoproto/grpc"
+	proto "github.com/cosmos/gogoproto/proto"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
 	status "google.golang.org/grpc/status"
@@ -35,12 +36,13 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 
 // MsgCreateResourceNode encapsulates an MsgCreateResourceNodeTx transaction as an SDK message.
 type MsgCreateResourceNode struct {
-	NetworkAddress string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	Pubkey         *types.Any  `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
-	Value          types1.Coin `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
-	OwnerAddress   string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	Description    Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
-	NodeType       uint32      `protobuf:"varint,6,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
+	NetworkAddress     string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	Pubkey             *types.Any  `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
+	Value              types1.Coin `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
+	OwnerAddress       string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	BeneficiaryAddress string      `protobuf:"bytes,5,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address" yaml:"beneficiary_address"`
+	Description        Description `protobuf:"bytes,6,opt,name=description,proto3" json:"description" yaml:"description"`
+	NodeType           uint32      `protobuf:"varint,7,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
 }
 
 func (m *MsgCreateResourceNode) Reset()         { *m = MsgCreateResourceNode{} }
@@ -104,6 +106,13 @@ func (m *MsgCreateResourceNode) GetOwnerAddress() string {
 	return ""
 }
 
+func (m *MsgCreateResourceNode) GetBeneficiaryAddress() string {
+	if m != nil {
+		return m.BeneficiaryAddress
+	}
+	return ""
+}
+
 func (m *MsgCreateResourceNode) GetDescription() Description {
 	if m != nil {
 		return m.Description
@@ -157,11 +166,12 @@ var xxx_messageInfo_MsgCreateResourceNodeResponse proto.InternalMessageInfo
 
 // MsgCreateMetaNode encapsulates an MsgCreateMetaNodeTx transaction as an SDK message.
 type MsgCreateMetaNode struct {
-	NetworkAddress string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	Pubkey         *types.Any  `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
-	Value          types1.Coin `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
-	OwnerAddress   string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	Description    Description `protobuf:"bytes,5,opt,name=description,proto3" json:"description" yaml:"description"`
+	NetworkAddress     string      `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	Pubkey             *types.Any  `protobuf:"bytes,2,opt,name=pubkey,proto3" json:"pubkey" yaml:"pubkey"`
+	Value              types1.Coin `protobuf:"bytes,3,opt,name=value,proto3" json:"value" yaml:"value"`
+	OwnerAddress       string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	BeneficiaryAddress string      `protobuf:"bytes,5,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address" yaml:"beneficiary_address"`
+	Description        Description `protobuf:"bytes,6,opt,name=description,proto3" json:"description" yaml:"description"`
 }
 
 func (m *MsgCreateMetaNode) Reset()         { *m = MsgCreateMetaNode{} }
@@ -221,6 +231,13 @@ func (m *MsgCreateMetaNode) GetValue() types1.Coin {
 func (m *MsgCreateMetaNode) GetOwnerAddress() string {
 	if m != nil {
 		return m.OwnerAddress
+	}
+	return ""
+}
+
+func (m *MsgCreateMetaNode) GetBeneficiaryAddress() string {
+	if m != nil {
+		return m.BeneficiaryAddress
 	}
 	return ""
 }
@@ -451,10 +468,11 @@ var xxx_messageInfo_MsgRemoveMetaNodeResponse proto.InternalMessageInfo
 
 // MsgUpdateResourceNode defines a SDK message for updating an existing resource node.
 type MsgUpdateResourceNode struct {
-	Description    Description `protobuf:"bytes,1,opt,name=description,proto3" json:"description" yaml:"description"`
-	NetworkAddress string      `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	OwnerAddress   string      `protobuf:"bytes,3,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
-	NodeType       uint32      `protobuf:"varint,4,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
+	Description        Description `protobuf:"bytes,1,opt,name=description,proto3" json:"description" yaml:"description"`
+	BeneficiaryAddress string      `protobuf:"bytes,2,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address" yaml:"beneficiary_address"`
+	NetworkAddress     string      `protobuf:"bytes,3,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	OwnerAddress       string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	NodeType           uint32      `protobuf:"varint,5,opt,name=node_type,json=nodeType,proto3" json:"node_type" yaml:"node_type"`
 }
 
 func (m *MsgUpdateResourceNode) Reset()         { *m = MsgUpdateResourceNode{} }
@@ -495,6 +513,13 @@ func (m *MsgUpdateResourceNode) GetDescription() Description {
 		return m.Description
 	}
 	return Description{}
+}
+
+func (m *MsgUpdateResourceNode) GetBeneficiaryAddress() string {
+	if m != nil {
+		return m.BeneficiaryAddress
+	}
+	return ""
 }
 
 func (m *MsgUpdateResourceNode) GetNetworkAddress() string {
@@ -557,9 +582,10 @@ var xxx_messageInfo_MsgUpdateResourceNodeResponse proto.InternalMessageInfo
 
 // MsgUpdateMetaNode defines a SDK message for updating an existing meta node.
 type MsgUpdateMetaNode struct {
-	Description    Description `protobuf:"bytes,1,opt,name=description,proto3" json:"description" yaml:"description"`
-	NetworkAddress string      `protobuf:"bytes,2,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	OwnerAddress   string      `protobuf:"bytes,3,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+	Description        Description `protobuf:"bytes,1,opt,name=description,proto3" json:"description" yaml:"description"`
+	BeneficiaryAddress string      `protobuf:"bytes,2,opt,name=beneficiary_address,json=beneficiaryAddress,proto3" json:"beneficiary_address" yaml:"beneficiary_address"`
+	NetworkAddress     string      `protobuf:"bytes,3,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
+	OwnerAddress       string      `protobuf:"bytes,4,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
 }
 
 func (m *MsgUpdateMetaNode) Reset()         { *m = MsgUpdateMetaNode{} }
@@ -600,6 +626,13 @@ func (m *MsgUpdateMetaNode) GetDescription() Description {
 		return m.Description
 	}
 	return Description{}
+}
+
+func (m *MsgUpdateMetaNode) GetBeneficiaryAddress() string {
+	if m != nil {
+		return m.BeneficiaryAddress
+	}
+	return ""
 }
 
 func (m *MsgUpdateMetaNode) GetNetworkAddress() string {
@@ -791,6 +824,27 @@ func (m *MsgUpdateEffectiveDeposit) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_MsgUpdateEffectiveDeposit proto.InternalMessageInfo
+
+func (m *MsgUpdateEffectiveDeposit) GetReporters() []string {
+	if m != nil {
+		return m.Reporters
+	}
+	return nil
+}
+
+func (m *MsgUpdateEffectiveDeposit) GetReporterOwner() []string {
+	if m != nil {
+		return m.ReporterOwner
+	}
+	return nil
+}
+
+func (m *MsgUpdateEffectiveDeposit) GetNetworkAddress() string {
+	if m != nil {
+		return m.NetworkAddress
+	}
+	return ""
+}
 
 // MsgUpdateEffectiveDepositResponse defines the Msg/UpdateEffectiveDeposit response type.
 type MsgUpdateEffectiveDepositResponse struct {
@@ -1041,26 +1095,25 @@ func (m *MsgMetaNodeRegistrationVoteResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_MsgMetaNodeRegistrationVoteResponse proto.InternalMessageInfo
 
-// MsgWithdrawMetaNodeRegistrationDeposit defines a SDK message for withdrawing registration deposit of meta node.
-type MsgWithdrawMetaNodeRegistrationDeposit struct {
-	NetworkAddress string `protobuf:"bytes,1,opt,name=network_address,json=networkAddress,proto3" json:"network_address" yaml:"network_address"`
-	OwnerAddress   string `protobuf:"bytes,2,opt,name=owner_address,json=ownerAddress,proto3" json:"owner_address" yaml:"owner_address"`
+type MsgKickMetaNodeVote struct {
+	TargetNetworkAddress string `protobuf:"bytes,1,opt,name=target_network_address,json=targetNetworkAddress,proto3" json:"target_network_address" yaml:"target_network_address"`
+	Opinion              bool   `protobuf:"varint,2,opt,name=opinion,proto3" json:"opinion" yaml:"opinion"`
+	VoterNetworkAddress  string `protobuf:"bytes,3,opt,name=voter_network_address,json=voterNetworkAddress,proto3" json:"voter_network_address" yaml:"voter_network_address"`
+	VoterOwnerAddress    string `protobuf:"bytes,4,opt,name=voter_owner_address,json=voterOwnerAddress,proto3" json:"voter_owner_address" yaml:"voter_owner_address"`
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) Reset() {
-	*m = MsgWithdrawMetaNodeRegistrationDeposit{}
-}
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) String() string { return proto.CompactTextString(m) }
-func (*MsgWithdrawMetaNodeRegistrationDeposit) ProtoMessage()    {}
-func (*MsgWithdrawMetaNodeRegistrationDeposit) Descriptor() ([]byte, []int) {
+func (m *MsgKickMetaNodeVote) Reset()         { *m = MsgKickMetaNodeVote{} }
+func (m *MsgKickMetaNodeVote) String() string { return proto.CompactTextString(m) }
+func (*MsgKickMetaNodeVote) ProtoMessage()    {}
+func (*MsgKickMetaNodeVote) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{20}
 }
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Unmarshal(b []byte) error {
+func (m *MsgKickMetaNodeVote) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgKickMetaNodeVote) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgKickMetaNodeVote.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1070,52 +1123,61 @@ func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Marshal(b []byte, determini
 		return b[:n], nil
 	}
 }
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit.Merge(m, src)
+func (m *MsgKickMetaNodeVote) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgKickMetaNodeVote.Merge(m, src)
 }
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_Size() int {
+func (m *MsgKickMetaNodeVote) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit.DiscardUnknown(m)
+func (m *MsgKickMetaNodeVote) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgKickMetaNodeVote.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDeposit proto.InternalMessageInfo
+var xxx_messageInfo_MsgKickMetaNodeVote proto.InternalMessageInfo
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) GetNetworkAddress() string {
+func (m *MsgKickMetaNodeVote) GetTargetNetworkAddress() string {
 	if m != nil {
-		return m.NetworkAddress
+		return m.TargetNetworkAddress
 	}
 	return ""
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) GetOwnerAddress() string {
+func (m *MsgKickMetaNodeVote) GetOpinion() bool {
 	if m != nil {
-		return m.OwnerAddress
+		return m.Opinion
+	}
+	return false
+}
+
+func (m *MsgKickMetaNodeVote) GetVoterNetworkAddress() string {
+	if m != nil {
+		return m.VoterNetworkAddress
 	}
 	return ""
 }
 
-// MsgWithdrawMetaNodeRegistrationDepositResponse defines the Msg/WithdrawMetaNodeRegistrationDeposit response type.
-type MsgWithdrawMetaNodeRegistrationDepositResponse struct {
+func (m *MsgKickMetaNodeVote) GetVoterOwnerAddress() string {
+	if m != nil {
+		return m.VoterOwnerAddress
+	}
+	return ""
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Reset() {
-	*m = MsgWithdrawMetaNodeRegistrationDepositResponse{}
+type MsgKickMetaNodeVoteResponse struct {
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) String() string {
-	return proto.CompactTextString(m)
-}
-func (*MsgWithdrawMetaNodeRegistrationDepositResponse) ProtoMessage() {}
-func (*MsgWithdrawMetaNodeRegistrationDepositResponse) Descriptor() ([]byte, []int) {
+
+func (m *MsgKickMetaNodeVoteResponse) Reset()         { *m = MsgKickMetaNodeVoteResponse{} }
+func (m *MsgKickMetaNodeVoteResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgKickMetaNodeVoteResponse) ProtoMessage()    {}
+func (*MsgKickMetaNodeVoteResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_75d4b90d7a185a31, []int{21}
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Unmarshal(b []byte) error {
+func (m *MsgKickMetaNodeVoteResponse) XXX_Unmarshal(b []byte) error {
 	return m.Unmarshal(b)
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+func (m *MsgKickMetaNodeVoteResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
 	if deterministic {
-		return xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse.Marshal(b, m, deterministic)
+		return xxx_messageInfo_MsgKickMetaNodeVoteResponse.Marshal(b, m, deterministic)
 	} else {
 		b = b[:cap(b)]
 		n, err := m.MarshalToSizedBuffer(b)
@@ -1125,17 +1187,111 @@ func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Marshal(b []byte, d
 		return b[:n], nil
 	}
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse.Merge(m, src)
+func (m *MsgKickMetaNodeVoteResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgKickMetaNodeVoteResponse.Merge(m, src)
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_Size() int {
+func (m *MsgKickMetaNodeVoteResponse) XXX_Size() int {
 	return m.Size()
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse.DiscardUnknown(m)
+func (m *MsgKickMetaNodeVoteResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgKickMetaNodeVoteResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_MsgWithdrawMetaNodeRegistrationDepositResponse proto.InternalMessageInfo
+var xxx_messageInfo_MsgKickMetaNodeVoteResponse proto.InternalMessageInfo
+
+// MsgUpdateParams defines a Msg for updating the x/register module parameters.
+type MsgUpdateParams struct {
+	// authority is the address of the governance account.
+	Authority string `protobuf:"bytes,1,opt,name=authority,proto3" json:"authority,omitempty"`
+	// params defines the x/register parameters to update.
+	// NOTE: All parameters must be supplied.
+	Params Params `protobuf:"bytes,2,opt,name=params,proto3" json:"params"`
+}
+
+func (m *MsgUpdateParams) Reset()         { *m = MsgUpdateParams{} }
+func (m *MsgUpdateParams) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateParams) ProtoMessage()    {}
+func (*MsgUpdateParams) Descriptor() ([]byte, []int) {
+	return fileDescriptor_75d4b90d7a185a31, []int{22}
+}
+func (m *MsgUpdateParams) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateParams) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateParams.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateParams) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateParams.Merge(m, src)
+}
+func (m *MsgUpdateParams) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateParams) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateParams.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateParams proto.InternalMessageInfo
+
+func (m *MsgUpdateParams) GetAuthority() string {
+	if m != nil {
+		return m.Authority
+	}
+	return ""
+}
+
+func (m *MsgUpdateParams) GetParams() Params {
+	if m != nil {
+		return m.Params
+	}
+	return Params{}
+}
+
+// MsgUpdateParamsResponse defines the response structure for executing a
+// MsgUpdateParams message.
+type MsgUpdateParamsResponse struct {
+}
+
+func (m *MsgUpdateParamsResponse) Reset()         { *m = MsgUpdateParamsResponse{} }
+func (m *MsgUpdateParamsResponse) String() string { return proto.CompactTextString(m) }
+func (*MsgUpdateParamsResponse) ProtoMessage()    {}
+func (*MsgUpdateParamsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_75d4b90d7a185a31, []int{23}
+}
+func (m *MsgUpdateParamsResponse) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *MsgUpdateParamsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_MsgUpdateParamsResponse.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *MsgUpdateParamsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_MsgUpdateParamsResponse.Merge(m, src)
+}
+func (m *MsgUpdateParamsResponse) XXX_Size() int {
+	return m.Size()
+}
+func (m *MsgUpdateParamsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_MsgUpdateParamsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_MsgUpdateParamsResponse proto.InternalMessageInfo
 
 func init() {
 	proto.RegisterType((*MsgCreateResourceNode)(nil), "stratos.register.v1.MsgCreateResourceNode")
@@ -1158,107 +1314,778 @@ func init() {
 	proto.RegisterType((*MsgUpdateMetaNodeDepositResponse)(nil), "stratos.register.v1.MsgUpdateMetaNodeDepositResponse")
 	proto.RegisterType((*MsgMetaNodeRegistrationVote)(nil), "stratos.register.v1.MsgMetaNodeRegistrationVote")
 	proto.RegisterType((*MsgMetaNodeRegistrationVoteResponse)(nil), "stratos.register.v1.MsgMetaNodeRegistrationVoteResponse")
-	proto.RegisterType((*MsgWithdrawMetaNodeRegistrationDeposit)(nil), "stratos.register.v1.MsgWithdrawMetaNodeRegistrationDeposit")
-	proto.RegisterType((*MsgWithdrawMetaNodeRegistrationDepositResponse)(nil), "stratos.register.v1.MsgWithdrawMetaNodeRegistrationDepositResponse")
+	proto.RegisterType((*MsgKickMetaNodeVote)(nil), "stratos.register.v1.MsgKickMetaNodeVote")
+	proto.RegisterType((*MsgKickMetaNodeVoteResponse)(nil), "stratos.register.v1.MsgKickMetaNodeVoteResponse")
+	proto.RegisterType((*MsgUpdateParams)(nil), "stratos.register.v1.MsgUpdateParams")
+	proto.RegisterType((*MsgUpdateParamsResponse)(nil), "stratos.register.v1.MsgUpdateParamsResponse")
 }
 
 func init() { proto.RegisterFile("stratos/register/v1/tx.proto", fileDescriptor_75d4b90d7a185a31) }
 
 var fileDescriptor_75d4b90d7a185a31 = []byte{
-	// 1477 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x58, 0x4f, 0x8c, 0xdb, 0xc4,
-	0x1a, 0x5f, 0x27, 0xdb, 0xbe, 0xee, 0xb4, 0xdb, 0x3f, 0xe9, 0xee, 0x6b, 0x36, 0xdd, 0x66, 0xb6,
-	0xd3, 0xd7, 0x7d, 0xdb, 0xd7, 0x17, 0xbb, 0xd9, 0x52, 0x68, 0x0b, 0x14, 0x35, 0x5d, 0x24, 0x10,
-	0xda, 0x2d, 0xb2, 0x4a, 0x91, 0x90, 0xaa, 0xc8, 0x49, 0xa6, 0x69, 0xb4, 0x1b, 0x4f, 0x64, 0x3b,
-	0xd9, 0xe6, 0xc0, 0x85, 0x53, 0x8f, 0x48, 0x9c, 0x38, 0x51, 0x38, 0x72, 0x02, 0x09, 0x8e, 0x48,
-	0x88, 0x53, 0x41, 0x42, 0xaa, 0x84, 0x84, 0x10, 0x12, 0x23, 0xd4, 0x72, 0xf2, 0x81, 0x83, 0x0f,
-	0x9c, 0x91, 0x67, 0xc6, 0xe3, 0xd8, 0xb1, 0xdd, 0x2c, 0x6d, 0x0f, 0xa0, 0x9e, 0x92, 0xf9, 0xfe,
-	0xcc, 0xfc, 0xbe, 0xdf, 0xf7, 0x7d, 0xf3, 0xc7, 0x60, 0xd1, 0x76, 0x2c, 0xc3, 0x21, 0xb6, 0x66,
-	0xe1, 0x76, 0xc7, 0x76, 0xb0, 0xa5, 0x0d, 0xaa, 0x9a, 0x73, 0x5b, 0xed, 0x59, 0xc4, 0x21, 0x85,
-	0xc3, 0x42, 0xab, 0x06, 0x5a, 0x75, 0x50, 0x2d, 0xcd, 0xb5, 0x49, 0x9b, 0x30, 0xbd, 0xe6, 0xff,
-	0xe3, 0xa6, 0xa5, 0x85, 0x36, 0x21, 0xed, 0x2d, 0xac, 0xb1, 0x51, 0xa3, 0x7f, 0x53, 0x33, 0xcc,
-	0xa1, 0x50, 0x2d, 0x0a, 0x95, 0xd1, 0xeb, 0x68, 0x86, 0x69, 0x12, 0xc7, 0x70, 0x3a, 0xc4, 0xb4,
-	0x03, 0xc7, 0x26, 0xb1, 0xbb, 0xc4, 0xae, 0xf3, 0x19, 0xf9, 0x40, 0xa8, 0x50, 0x12, 0x38, 0x09,
-	0x85, 0xdb, 0x94, 0xb9, 0x87, 0xd6, 0x30, 0x6c, 0xac, 0x0d, 0xaa, 0x0d, 0xec, 0x18, 0x55, 0xad,
-	0x49, 0x3a, 0x26, 0xd7, 0xa3, 0x8f, 0xa7, 0xc1, 0xfc, 0xba, 0xdd, 0xbe, 0x62, 0x61, 0xc3, 0xc1,
-	0x3a, 0xb6, 0x49, 0xdf, 0x6a, 0xe2, 0x0d, 0xd2, 0xc2, 0x85, 0xeb, 0xe0, 0x80, 0x89, 0x9d, 0x6d,
-	0x62, 0x6d, 0xd6, 0x8d, 0x56, 0xcb, 0xc2, 0xb6, 0x5d, 0x54, 0x96, 0x94, 0x95, 0x99, 0x5a, 0xc5,
-	0xa5, 0x30, 0xae, 0xf2, 0x28, 0xfc, 0xf7, 0xd0, 0xe8, 0x6e, 0x5d, 0x44, 0x31, 0x05, 0xd2, 0xf7,
-	0x0b, 0xc9, 0x65, 0x2e, 0x28, 0x18, 0x60, 0x77, 0xaf, 0xdf, 0xd8, 0xc4, 0xc3, 0x62, 0x6e, 0x49,
-	0x59, 0xd9, 0xbb, 0x3a, 0xa7, 0xf2, 0xf8, 0xd5, 0x80, 0x1a, 0xf5, 0xb2, 0x39, 0xac, 0x9d, 0x75,
-	0x29, 0x14, 0x76, 0x1e, 0x85, 0xb3, 0x7c, 0x6e, 0x3e, 0x46, 0xdf, 0x7d, 0x51, 0x99, 0x13, 0x44,
-	0x34, 0xad, 0x61, 0xcf, 0x21, 0xea, 0x9b, 0xfd, 0xc6, 0x1b, 0x78, 0xa8, 0x0b, 0x87, 0xc2, 0x06,
-	0xd8, 0x35, 0x30, 0xb6, 0xfa, 0xb8, 0x98, 0x67, 0x2b, 0x2c, 0xa8, 0xc2, 0xda, 0x27, 0x41, 0x15,
-	0x24, 0xa8, 0x57, 0x48, 0xc7, 0xac, 0x1d, 0xbb, 0x47, 0xe1, 0x94, 0x4b, 0x21, 0xb7, 0xf7, 0x28,
-	0xdc, 0xc7, 0x57, 0x62, 0x43, 0xa4, 0x73, 0x71, 0x61, 0x03, 0xcc, 0x92, 0x6d, 0x13, 0x5b, 0x92,
-	0x88, 0x69, 0x46, 0xc4, 0x29, 0x97, 0xc2, 0xa8, 0xc2, 0xa3, 0x70, 0x8e, 0x4f, 0x10, 0x11, 0x23,
-	0x7d, 0x1f, 0x1b, 0x07, 0x14, 0x74, 0xc1, 0xde, 0x16, 0xb6, 0x9b, 0x56, 0xa7, 0xe7, 0x67, 0xba,
-	0xb8, 0x8b, 0xa1, 0x5c, 0x52, 0x13, 0xaa, 0x49, 0x5d, 0x0b, 0xed, 0x6a, 0xa7, 0x04, 0xd8, 0x51,
-	0x67, 0x8f, 0xc2, 0x02, 0x5f, 0x71, 0x44, 0x88, 0xf4, 0x51, 0x93, 0xc2, 0x25, 0x30, 0x63, 0x92,
-	0x16, 0xae, 0x3b, 0xc3, 0x1e, 0x2e, 0xee, 0x5e, 0x52, 0x56, 0x66, 0x6b, 0xc7, 0x5d, 0x0a, 0x43,
-	0xa1, 0x47, 0xe1, 0x41, 0x91, 0xbd, 0x40, 0x84, 0xf4, 0x3d, 0xfe, 0xff, 0x6b, 0xfe, 0x5f, 0x08,
-	0x8e, 0x25, 0x96, 0x88, 0x8e, 0xed, 0x1e, 0x31, 0x6d, 0x8c, 0x7e, 0xc9, 0x83, 0x43, 0xd2, 0x62,
-	0x1d, 0x3b, 0xc6, 0xb3, 0x02, 0xfa, 0x27, 0x15, 0x10, 0x3a, 0x0a, 0x16, 0xc6, 0xd2, 0x2b, 0x93,
-	0xff, 0xa3, 0xc2, 0x76, 0x10, 0x1d, 0x77, 0xc9, 0x20, 0xba, 0x83, 0x74, 0xc1, 0xbc, 0x25, 0xc6,
-	0x75, 0x56, 0x58, 0xd1, 0x32, 0xb8, 0xe0, 0x52, 0x98, 0x6c, 0xe0, 0x51, 0xb8, 0xc8, 0x31, 0x25,
-	0xaa, 0x91, 0x7e, 0xd8, 0x1a, 0x59, 0x27, 0x20, 0x65, 0x8c, 0xe4, 0xdc, 0x63, 0x91, 0x2c, 0xca,
-	0x7e, 0x3c, 0x2e, 0x19, 0xf9, 0x37, 0x0a, 0x2b, 0x7b, 0x6e, 0x21, 0xcb, 0xfe, 0x06, 0x38, 0xd4,
-	0xc5, 0x8e, 0x91, 0x14, 0x71, 0xd5, 0xa5, 0x70, 0x5c, 0xe9, 0x51, 0x58, 0xe4, 0x70, 0xc6, 0x54,
-	0x48, 0x3f, 0xd0, 0x15, 0xf3, 0x3e, 0xad, 0x28, 0x79, 0x6e, 0xa3, 0x31, 0xc8, 0x08, 0x7f, 0xcf,
-	0xb1, 0xdc, 0xbe, 0xd5, 0x6b, 0xc5, 0x4f, 0x87, 0x58, 0x05, 0x2a, 0x4f, 0x79, 0x0b, 0x4b, 0xd8,
-	0x4b, 0x72, 0x4f, 0x62, 0x2f, 0x19, 0x63, 0x33, 0xff, 0x78, 0x8d, 0x19, 0xd9, 0x6a, 0xa7, 0xff,
-	0xea, 0x56, 0x3b, 0xce, 0xb7, 0xcc, 0xc8, 0xa7, 0x39, 0x56, 0x73, 0xdc, 0x42, 0xd6, 0xdc, 0xb3,
-	0x6c, 0x64, 0xd4, 0x76, 0x94, 0x2b, 0xc9, 0xe4, 0x97, 0x39, 0xb0, 0x98, 0xc8, 0xf5, 0x1a, 0xee,
-	0x11, 0xbb, 0xe3, 0x3c, 0xb5, 0xf3, 0xeb, 0x09, 0x77, 0x70, 0xa1, 0x0b, 0x66, 0x5b, 0x1c, 0x72,
-	0xbd, 0x85, 0xb7, 0x1c, 0xe3, 0xd1, 0x87, 0x56, 0x45, 0xe4, 0x3d, 0xea, 0x17, 0x2e, 0x17, 0x11,
-	0x23, 0x7d, 0x9f, 0x18, 0xaf, 0xb1, 0xe1, 0x32, 0xf8, 0x4f, 0x16, 0x6d, 0x92, 0xdf, 0x0f, 0xf3,
-	0x23, 0xec, 0xbf, 0x7a, 0xf3, 0x26, 0x6e, 0x3a, 0x9d, 0x81, 0x24, 0xf7, 0x15, 0x30, 0x63, 0xe1,
-	0x1e, 0xb1, 0x1c, 0x6c, 0xf9, 0xb4, 0xe6, 0x57, 0x66, 0x78, 0xa3, 0x48, 0x61, 0xd8, 0x28, 0x52,
-	0x84, 0xf4, 0x50, 0x5d, 0xd0, 0xc1, 0xfe, 0x60, 0x50, 0x67, 0x74, 0x14, 0x73, 0x6c, 0x96, 0xd3,
-	0x2e, 0x85, 0x31, 0x8d, 0x47, 0xe1, 0x7c, 0x74, 0x2a, 0x2e, 0x47, 0xfa, 0x6c, 0x20, 0xb8, 0xea,
-	0x8f, 0x93, 0x32, 0x9e, 0x7f, 0x12, 0x19, 0xbf, 0xa3, 0x80, 0x83, 0x38, 0x60, 0xa0, 0xee, 0x90,
-	0x4d, 0x6c, 0x06, 0x57, 0x80, 0x1b, 0x7e, 0x2a, 0x7e, 0xa6, 0x70, 0xb9, 0xdd, 0x71, 0x6e, 0xf5,
-	0x1b, 0x6a, 0x93, 0x74, 0xc5, 0x25, 0x5f, 0xfc, 0x54, 0xec, 0xd6, 0xa6, 0xe6, 0x6f, 0x13, 0xb6,
-	0xfa, 0xba, 0xe9, 0xb8, 0x14, 0x8e, 0xcd, 0xe4, 0x51, 0x78, 0x84, 0x03, 0x89, 0x6b, 0x90, 0x7e,
-	0x40, 0x8a, 0xae, 0x31, 0xc9, 0xc5, 0xe9, 0x3b, 0x77, 0xe1, 0x14, 0x3a, 0x01, 0x8e, 0xa7, 0xa6,
-	0x46, 0x26, 0xf0, 0xf3, 0x1c, 0x28, 0x8e, 0xb5, 0xcf, 0xb3, 0xe6, 0xc8, 0x6c, 0x0e, 0x04, 0x96,
-	0xd2, 0x28, 0x93, 0xbc, 0x7e, 0x32, 0x0d, 0x8e, 0xae, 0xdb, 0xed, 0x70, 0x43, 0xf2, 0x37, 0x67,
-	0x8b, 0x3d, 0xfa, 0xae, 0x13, 0x07, 0x17, 0xde, 0x05, 0x0b, 0x4d, 0xc3, 0x6c, 0x75, 0xfc, 0x39,
-	0xea, 0xc9, 0x24, 0x5f, 0x76, 0x29, 0x4c, 0x37, 0xf2, 0x28, 0x5c, 0xe2, 0x58, 0x53, 0x4d, 0x90,
-	0x7e, 0x44, 0xea, 0x36, 0xa2, 0x19, 0xe8, 0x83, 0x50, 0x55, 0x4f, 0xca, 0xc5, 0xcb, 0x2e, 0x85,
-	0x69, 0x26, 0x1e, 0x85, 0xe5, 0xf8, 0xd2, 0xb1, 0xfc, 0xcc, 0x4b, 0xcd, 0xd5, 0xd1, 0x44, 0xbd,
-	0x00, 0xfe, 0x45, 0x7a, 0x1d, 0xd3, 0x3f, 0xbe, 0xfc, 0x14, 0xed, 0xa9, 0x1d, 0x73, 0x29, 0x0c,
-	0x44, 0x1e, 0x85, 0xfb, 0x45, 0xb2, 0xb9, 0x00, 0xe9, 0x81, 0xca, 0xbf, 0x65, 0x0e, 0x88, 0xdf,
-	0xd3, 0x71, 0xaa, 0xa6, 0xc3, 0x5b, 0x66, 0xa2, 0x41, 0x78, 0xcb, 0x4c, 0x54, 0x23, 0xfd, 0x30,
-	0x93, 0xc7, 0xe8, 0xc1, 0x80, 0x8b, 0x63, 0xd4, 0xec, 0x62, 0x8b, 0x9d, 0x73, 0x29, 0x4c, 0x52,
-	0x7b, 0x14, 0x96, 0x46, 0x97, 0x8a, 0x51, 0x72, 0x88, 0x49, 0x47, 0xe9, 0x40, 0x27, 0xc1, 0x89,
-	0x8c, 0x1a, 0x91, 0xb5, 0x74, 0x5f, 0x01, 0xcb, 0xeb, 0x76, 0xfb, 0xed, 0x8e, 0x73, 0xab, 0x65,
-	0x19, 0xdb, 0x49, 0xf6, 0x7f, 0xb3, 0x8e, 0x45, 0x67, 0x80, 0x3a, 0x59, 0x44, 0x01, 0x09, 0xab,
-	0x1f, 0x1d, 0x04, 0xf9, 0x75, 0xbb, 0x5d, 0xf8, 0x4c, 0x01, 0x47, 0x5f, 0x33, 0xcc, 0xd6, 0x16,
-	0x4e, 0xfe, 0xa2, 0xf1, 0xbf, 0xc4, 0x0b, 0x51, 0xa2, 0x6d, 0x69, 0x75, 0x72, 0x5b, 0x99, 0x8c,
-	0xea, 0x7b, 0x3f, 0xfc, 0xf6, 0x41, 0xee, 0x34, 0x3a, 0xa5, 0x25, 0x7d, 0x98, 0x69, 0x32, 0xc7,
-	0x7a, 0xe4, 0x45, 0x13, 0x85, 0x9c, 0xf0, 0x84, 0x4a, 0x85, 0x3c, 0x6e, 0x9b, 0x0e, 0x39, 0xe3,
-	0x09, 0x93, 0x0d, 0xd9, 0x62, 0x8e, 0x59, 0x90, 0x13, 0x5e, 0x06, 0xa9, 0x90, 0xc7, 0x6d, 0xd3,
-	0x21, 0x67, 0xdc, 0x80, 0xb3, 0x21, 0xf7, 0x99, 0x63, 0x0c, 0xf2, 0xf7, 0x0a, 0x40, 0x19, 0x90,
-	0x83, 0x0e, 0xa9, 0x4e, 0x8e, 0x46, 0xb8, 0x94, 0x2e, 0xec, 0xd8, 0x45, 0xc6, 0x71, 0x81, 0xc5,
-	0x71, 0x16, 0x55, 0x27, 0x8e, 0xa3, 0x2e, 0x8e, 0x9a, 0xc2, 0xd7, 0x0a, 0x80, 0xb1, 0x78, 0xc6,
-	0x2e, 0x58, 0x6a, 0x36, 0xb2, 0xb8, 0x7d, 0xe9, 0xf9, 0x9d, 0xd9, 0xcb, 0x30, 0xce, 0xb1, 0x30,
-	0x34, 0x54, 0xc9, 0x0a, 0x23, 0xbc, 0x98, 0x04, 0x21, 0xdc, 0x55, 0xc0, 0x91, 0x58, 0xaf, 0xca,
-	0xd7, 0xcc, 0x72, 0x76, 0xef, 0x05, 0x76, 0x25, 0x75, 0x32, 0x3b, 0x09, 0xb5, 0xc2, 0xa0, 0xfe,
-	0x17, 0x9d, 0xcc, 0xea, 0x4f, 0xf9, 0x06, 0x8f, 0x42, 0x8c, 0x3d, 0xf2, 0x97, 0xb3, 0x7b, 0xed,
-	0xd1, 0x10, 0x53, 0x1e, 0xdc, 0xd9, 0x10, 0x45, 0x3f, 0xa6, 0x40, 0x8c, 0xbd, 0x09, 0x97, 0xb3,
-	0x13, 0xfa, 0x68, 0x88, 0x29, 0xef, 0xa6, 0x6c, 0x88, 0x22, 0xe1, 0x21, 0xc4, 0xaf, 0x14, 0x50,
-	0x4e, 0x81, 0x18, 0x94, 0x6a, 0x65, 0x32, 0x04, 0x41, 0xa5, 0x9e, 0xdb, 0x91, 0xf9, 0xce, 0x0a,
-	0x35, 0xfc, 0x02, 0x13, 0x14, 0xea, 0xb7, 0x0a, 0x38, 0x2e, 0xf1, 0xa7, 0xde, 0xd9, 0xce, 0xa4,
-	0x61, 0x4a, 0xf3, 0x28, 0x9d, 0xdf, 0xa9, 0x87, 0x0c, 0xe4, 0x3c, 0x0b, 0x64, 0x15, 0x9d, 0x49,
-	0x0c, 0x24, 0x8c, 0xc0, 0x1a, 0x99, 0xa0, 0xee, 0xdf, 0x30, 0x0a, 0x7f, 0x28, 0xe0, 0xff, 0x32,
-	0x96, 0x49, 0xee, 0x0c, 0x2f, 0xa6, 0x81, 0x9c, 0xc0, 0xb9, 0x74, 0xe5, 0x31, 0x9c, 0x65, 0xb0,
-	0x6b, 0x2c, 0xd8, 0x4b, 0xe8, 0xa5, 0xc4, 0x60, 0xb7, 0xc5, 0x4c, 0xf5, 0x94, 0xa8, 0x45, 0x12,
-	0x6b, 0x1b, 0xf7, 0x1e, 0x94, 0x95, 0xfb, 0x0f, 0xca, 0xca, 0xaf, 0x0f, 0xca, 0xca, 0xfb, 0x0f,
-	0xcb, 0x53, 0xf7, 0x1f, 0x96, 0xa7, 0x7e, 0x7a, 0x58, 0x9e, 0x7a, 0xe7, 0xb9, 0x91, 0x77, 0x97,
-	0x58, 0xc1, 0xc4, 0x4e, 0xf0, 0xb7, 0xd2, 0xbc, 0x65, 0x74, 0x4c, 0xed, 0x76, 0xb8, 0x28, 0x7b,
-	0x89, 0x35, 0x76, 0xb3, 0x4f, 0xcd, 0x67, 0xff, 0x0c, 0x00, 0x00, 0xff, 0xff, 0x0d, 0x60, 0xb6,
-	0x1c, 0x1f, 0x1a, 0x00, 0x00,
+	// 1681 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xec, 0x59, 0x4f, 0x6c, 0x13, 0xc7,
+	0x1a, 0xcf, 0xe6, 0x1f, 0x64, 0x48, 0x08, 0xd9, 0x24, 0xc4, 0x71, 0x88, 0x27, 0x59, 0x78, 0x51,
+	0x14, 0xbd, 0xac, 0x49, 0xf8, 0x9f, 0x27, 0xa1, 0x87, 0x01, 0xe9, 0x21, 0x14, 0xe0, 0x19, 0x68,
+	0xd5, 0x5e, 0xac, 0xb5, 0x3d, 0x31, 0xdb, 0xc4, 0x3b, 0xee, 0xee, 0x3a, 0xe0, 0x03, 0x55, 0x55,
+	0xa9, 0x95, 0xa8, 0x54, 0xb5, 0x54, 0xea, 0x89, 0x43, 0x2f, 0x95, 0x4a, 0x6f, 0x1c, 0x7a, 0xad,
+	0xd4, 0x5b, 0x69, 0x4f, 0xa8, 0xa7, 0xb6, 0x87, 0x51, 0x15, 0x0e, 0x48, 0x3e, 0xfa, 0xda, 0x4b,
+	0xb5, 0x3b, 0xb3, 0x63, 0xef, 0xee, 0x8c, 0x71, 0x24, 0xb0, 0x50, 0x95, 0x0b, 0x64, 0xbf, 0xdf,
+	0x6f, 0xe6, 0xfb, 0xe6, 0x9b, 0xdf, 0x7c, 0xf3, 0xc7, 0xe0, 0x88, 0xe3, 0xda, 0x86, 0x8b, 0x9d,
+	0xb4, 0x8d, 0x4a, 0xa6, 0xe3, 0x22, 0x3b, 0xbd, 0xbd, 0x92, 0x76, 0xef, 0xe9, 0x15, 0x1b, 0xbb,
+	0x58, 0x1d, 0x67, 0xa8, 0x1e, 0xa0, 0xfa, 0xf6, 0x4a, 0x72, 0xa2, 0x84, 0x4b, 0xd8, 0xc7, 0xd3,
+	0xde, 0x5f, 0x94, 0x9a, 0x9c, 0x2e, 0x60, 0xa7, 0x8c, 0x9d, 0x1c, 0x05, 0xe8, 0x07, 0x83, 0xc6,
+	0x8c, 0xb2, 0x69, 0xe1, 0xb4, 0xff, 0x2f, 0x33, 0x4d, 0x51, 0x42, 0xba, 0xec, 0x94, 0x3c, 0x87,
+	0x65, 0xa7, 0xc4, 0x80, 0x14, 0x03, 0xf2, 0x86, 0x83, 0xd2, 0xdb, 0x2b, 0x79, 0xe4, 0x1a, 0x2b,
+	0xe9, 0x02, 0x36, 0xad, 0xc0, 0x4d, 0x09, 0xe3, 0xd2, 0x16, 0x4a, 0xfb, 0x5f, 0xf9, 0xea, 0x46,
+	0xda, 0xb0, 0x6a, 0x0c, 0xd2, 0x44, 0x43, 0xe1, 0x81, 0xfb, 0x1c, 0xed, 0xe1, 0x20, 0x98, 0x5c,
+	0x77, 0x4a, 0x17, 0x6d, 0x64, 0xb8, 0x28, 0x8b, 0x1c, 0x5c, 0xb5, 0x0b, 0xe8, 0x1a, 0x2e, 0x22,
+	0xd5, 0x02, 0xa3, 0x16, 0x72, 0xef, 0x62, 0x7b, 0x33, 0x67, 0x14, 0x8b, 0x36, 0x72, 0x9c, 0x84,
+	0x32, 0xa7, 0x2c, 0x0e, 0x65, 0x2e, 0xd7, 0x09, 0x8c, 0x42, 0x0d, 0x02, 0x0f, 0xd7, 0x8c, 0xf2,
+	0xd6, 0x9a, 0x16, 0x01, 0xb4, 0x5f, 0xbf, 0x5f, 0x9e, 0x60, 0x83, 0xbf, 0x40, 0x4d, 0x37, 0x5d,
+	0xdb, 0xb4, 0x4a, 0xd9, 0x83, 0x8c, 0xc9, 0xac, 0xaa, 0x01, 0x06, 0x2b, 0xd5, 0xfc, 0x26, 0xaa,
+	0x25, 0x7a, 0xe7, 0x94, 0xc5, 0x03, 0xab, 0x13, 0x3a, 0x1d, 0x99, 0x1e, 0x8c, 0x4c, 0xbf, 0x60,
+	0xd5, 0x32, 0x27, 0xea, 0x04, 0x32, 0x5e, 0x83, 0xc0, 0x11, 0xea, 0x93, 0x7e, 0x6b, 0xbf, 0x34,
+	0x5d, 0x15, 0xec, 0x5a, 0xc5, 0xc5, 0xfa, 0x8d, 0x6a, 0xfe, 0x2a, 0xaa, 0x65, 0x59, 0x03, 0xf5,
+	0x26, 0x18, 0xd8, 0x36, 0xb6, 0xaa, 0x28, 0xd1, 0xe7, 0x7b, 0x98, 0xd6, 0x19, 0xdb, 0xcb, 0xad,
+	0xce, 0x72, 0xab, 0x5f, 0xc4, 0xa6, 0x95, 0xd1, 0x9e, 0x12, 0xd8, 0x53, 0x27, 0x90, 0xf2, 0x1b,
+	0x04, 0x0e, 0x53, 0x4f, 0xfe, 0xa7, 0xf6, 0xf8, 0xc5, 0x93, 0x25, 0x25, 0x4b, 0x31, 0x75, 0x03,
+	0x8c, 0xe0, 0xbb, 0x16, 0xb2, 0x79, 0x96, 0xfa, 0xfd, 0x2c, 0x5d, 0xa8, 0x13, 0x18, 0x06, 0x1a,
+	0x04, 0x4e, 0xd0, 0x5e, 0x42, 0x66, 0x79, 0x86, 0x86, 0x7d, 0x5e, 0x90, 0x9f, 0x0f, 0xc0, 0x78,
+	0x1e, 0x59, 0x68, 0xc3, 0x2c, 0x98, 0x86, 0x5d, 0xe3, 0xde, 0x06, 0x7c, 0x6f, 0xeb, 0x75, 0x02,
+	0x45, 0x70, 0x83, 0xc0, 0x24, 0xf5, 0x29, 0x00, 0xe5, 0x9e, 0xd5, 0x16, 0x76, 0xe0, 0xdf, 0x06,
+	0x07, 0x8a, 0xc8, 0x29, 0xd8, 0x66, 0xc5, 0x35, 0xb1, 0x95, 0x18, 0xf4, 0x53, 0x38, 0xa7, 0x0b,
+	0x16, 0x84, 0x7e, 0xa9, 0xc9, 0xcb, 0xe8, 0x2c, 0x93, 0xad, 0x8d, 0x1b, 0x04, 0xaa, 0x34, 0xaa,
+	0x16, 0x23, 0xcb, 0x6a, 0x2b, 0x4f, 0x3d, 0x0f, 0x86, 0x2c, 0x5c, 0x44, 0x39, 0xb7, 0x56, 0x41,
+	0x89, 0x7d, 0x73, 0xca, 0xe2, 0x48, 0x66, 0xbe, 0x4e, 0x60, 0xd3, 0xd8, 0x20, 0xf0, 0x10, 0xd3,
+	0x5d, 0x60, 0xd2, 0xb2, 0xfb, 0xbd, 0xbf, 0x6f, 0xd5, 0x2a, 0x68, 0xed, 0xe4, 0x47, 0x2f, 0x9e,
+	0x2c, 0x85, 0x67, 0xe1, 0xd3, 0x17, 0x4f, 0x96, 0x66, 0x83, 0x85, 0x21, 0x54, 0xbe, 0x06, 0xc1,
+	0xac, 0x10, 0xc8, 0x22, 0xa7, 0x82, 0x2d, 0x07, 0x69, 0x3f, 0x0f, 0x80, 0x31, 0xce, 0x58, 0x47,
+	0xae, 0xb1, 0xb7, 0x60, 0xf6, 0x16, 0xcc, 0x9b, 0xb0, 0x60, 0xd6, 0x8e, 0x8b, 0x05, 0x3f, 0x1d,
+	0x13, 0x7c, 0xa0, 0x5a, 0x6d, 0x06, 0x4c, 0xc7, 0x8c, 0x5c, 0xe8, 0x3f, 0xf4, 0xfa, 0xbb, 0x43,
+	0x16, 0x95, 0xf1, 0x76, 0x78, 0x77, 0xf8, 0x58, 0x01, 0x93, 0x36, 0x33, 0xe4, 0xfc, 0xb5, 0x17,
+	0xd6, 0xfc, 0xff, 0xeb, 0x04, 0x8a, 0x09, 0x0d, 0x02, 0x8f, 0xd0, 0xb1, 0x08, 0x61, 0x79, 0x8e,
+	0xc7, 0xed, 0x96, 0x00, 0x82, 0x24, 0xc7, 0xc4, 0xd4, 0xfb, 0x5a, 0xc4, 0xd4, 0x49, 0x25, 0x89,
+	0x67, 0x89, 0x55, 0x92, 0x38, 0xc0, 0x13, 0xfc, 0x4d, 0xaf, 0x5f, 0x49, 0x28, 0x83, 0x57, 0x92,
+	0x2a, 0x18, 0x2b, 0x23, 0xd7, 0x10, 0xe5, 0xf5, 0x4a, 0x9d, 0xc0, 0x38, 0xd8, 0x20, 0x30, 0x41,
+	0x07, 0x17, 0x83, 0xe4, 0x03, 0x1c, 0x2d, 0x33, 0x7f, 0xdd, 0xce, 0x65, 0x07, 0x22, 0x0d, 0x27,
+	0x84, 0x89, 0x34, 0x6c, 0xe4, 0x39, 0xfc, 0xbd, 0xdf, 0x17, 0xe9, 0xed, 0x4a, 0x31, 0x7a, 0x84,
+	0x89, 0xac, 0x40, 0xa5, 0x1b, 0x5b, 0x96, 0xa4, 0xea, 0xf4, 0x76, 0xab, 0xea, 0x08, 0x76, 0xa1,
+	0xbe, 0xd7, 0xb9, 0x0b, 0x75, 0xab, 0x9a, 0x87, 0x8e, 0x02, 0x03, 0xaf, 0xe5, 0x28, 0x10, 0x57,
+	0x10, 0x5b, 0xc0, 0x71, 0x80, 0x8b, 0xef, 0x61, 0xbf, 0xbf, 0x80, 0x29, 0x83, 0x2f, 0xe0, 0x3d,
+	0xe1, 0xfd, 0x63, 0x84, 0xd7, 0x49, 0xb5, 0x0a, 0xcf, 0x3e, 0xab, 0x56, 0x61, 0x23, 0x17, 0xcc,
+	0xb7, 0x7d, 0xe0, 0x88, 0x50, 0x52, 0x97, 0x50, 0x05, 0x3b, 0xa6, 0xdb, 0xf5, 0x63, 0x64, 0x97,
+	0xaa, 0xbe, 0x6a, 0x83, 0x91, 0x22, 0x1d, 0x62, 0xae, 0x88, 0xb6, 0x5c, 0xe3, 0xe5, 0x67, 0xca,
+	0x55, 0xb6, 0x1c, 0xc2, 0xed, 0x9a, 0x61, 0x84, 0xcc, 0x6c, 0x49, 0x0c, 0x33, 0xe3, 0x25, 0xcf,
+	0xb6, 0xf6, 0x1f, 0xf1, 0xdc, 0x1d, 0x6b, 0xbb, 0xe8, 0xd9, 0x44, 0x68, 0x0b, 0xe0, 0x58, 0x3b,
+	0x9c, 0xcf, 0xe8, 0x77, 0xfd, 0x2d, 0xf3, 0x7d, 0x79, 0x63, 0x03, 0x15, 0x5c, 0x73, 0x9b, 0x4f,
+	0xe7, 0xdb, 0x60, 0xc8, 0x46, 0x15, 0x6c, 0xbb, 0xc8, 0xf6, 0x26, 0xb2, 0x6f, 0x71, 0x28, 0x73,
+	0xce, 0xab, 0x5b, 0xdc, 0xd8, 0xac, 0x5b, 0xdc, 0x24, 0x4f, 0x69, 0xb3, 0x99, 0xfa, 0x1e, 0x38,
+	0x18, 0x7c, 0xe4, 0xfc, 0x11, 0x26, 0x7a, 0xfd, 0xde, 0x2f, 0xd6, 0x09, 0x8c, 0x20, 0x0d, 0x02,
+	0x27, 0xc3, 0x2e, 0xa8, 0x5d, 0xee, 0x67, 0x24, 0x20, 0x5e, 0xf7, 0x78, 0x5d, 0x5f, 0xdb, 0x8f,
+	0x14, 0x70, 0x08, 0x05, 0x99, 0xcc, 0xb9, 0x78, 0x13, 0x59, 0xc1, 0xfa, 0xae, 0x78, 0xa2, 0xf8,
+	0x83, 0xc0, 0x85, 0x92, 0xe9, 0xde, 0xa9, 0xe6, 0xf5, 0x02, 0x2e, 0xb3, 0xc7, 0x15, 0xf6, 0xdf,
+	0xb2, 0x53, 0xdc, 0x4c, 0x7b, 0xd5, 0xdf, 0xd1, 0xaf, 0x58, 0x6e, 0x9d, 0xc0, 0x58, 0x4f, 0x0d,
+	0x02, 0xa7, 0x68, 0x80, 0x51, 0xc4, 0x8b, 0x10, 0xb0, 0x08, 0xaf, 0x58, 0x2e, 0x95, 0xd4, 0x28,
+	0x67, 0xdd, 0xf2, 0x49, 0x6b, 0xe7, 0x3c, 0x55, 0x45, 0x52, 0xec, 0xc9, 0x6a, 0x3e, 0x26, 0xab,
+	0xa8, 0x1a, 0xb4, 0xa3, 0x60, 0x5e, 0x0a, 0x72, 0x41, 0x7d, 0xdd, 0x07, 0x12, 0xb1, 0x02, 0xb2,
+	0x57, 0x1e, 0x5e, 0x7d, 0x79, 0x38, 0x23, 0x2e, 0x0f, 0x73, 0xd2, 0xd2, 0x1e, 0x4c, 0xa3, 0x06,
+	0xe6, 0x64, 0x18, 0x9f, 0xc5, 0x9f, 0x06, 0xc0, 0xcc, 0xba, 0x53, 0x6a, 0x6e, 0x00, 0xde, 0x9e,
+	0x6f, 0x1b, 0xde, 0x5e, 0xfd, 0x16, 0x76, 0x91, 0xfa, 0x95, 0x02, 0xa6, 0x0b, 0x86, 0x55, 0x34,
+	0xbd, 0x4e, 0x72, 0xe2, 0x39, 0x7d, 0xa7, 0x4e, 0xa0, 0x9c, 0xd4, 0x20, 0x70, 0x8e, 0x0e, 0x55,
+	0x4a, 0x91, 0x67, 0x7f, 0x8a, 0xb7, 0xb9, 0x16, 0x9e, 0xf0, 0xcf, 0x14, 0xd0, 0xc4, 0x72, 0xa2,
+	0xb9, 0xbf, 0x5d, 0x27, 0x50, 0x46, 0x69, 0x10, 0x98, 0x8a, 0xc6, 0xd4, 0xa1, 0x1e, 0x26, 0x79,
+	0x8b, 0xeb, 0xad, 0xc2, 0x38, 0x03, 0xf6, 0xe1, 0x8a, 0x69, 0x79, 0xe7, 0x28, 0x4f, 0x12, 0xfb,
+	0x33, 0xb3, 0x75, 0x02, 0x03, 0x53, 0x83, 0xc0, 0x83, 0x4c, 0x74, 0xd4, 0xa0, 0x65, 0x03, 0xc8,
+	0xbf, 0xa2, 0x6e, 0x63, 0x6f, 0x85, 0x46, 0x93, 0xdb, 0xdf, 0xbc, 0xa2, 0x0a, 0x09, 0xcd, 0x2b,
+	0xaa, 0x10, 0x6e, 0x73, 0x45, 0xf5, 0xf9, 0x91, 0x84, 0xde, 0x07, 0xd4, 0x1c, 0xc9, 0x65, 0xcb,
+	0x3b, 0x84, 0x00, 0x6e, 0x1e, 0xcc, 0x04, 0xa0, 0x3c, 0x80, 0x31, 0x9f, 0xdd, 0x9a, 0xbf, 0xb5,
+	0xff, 0x7a, 0x22, 0x17, 0xb9, 0xf0, 0xa4, 0x7e, 0xb4, 0x45, 0xea, 0x32, 0xa5, 0x6a, 0xff, 0x02,
+	0x47, 0xdb, 0xc0, 0x5c, 0xf0, 0x8f, 0xfa, 0xc1, 0xf8, 0xba, 0x53, 0xba, 0x6a, 0x16, 0x36, 0x03,
+	0xae, 0x2f, 0xf4, 0x07, 0x0a, 0x38, 0xec, 0x1a, 0x76, 0x09, 0xb9, 0x12, 0x95, 0xdf, 0xac, 0x13,
+	0x28, 0x61, 0x34, 0x08, 0x9c, 0xa5, 0x69, 0x10, 0xe3, 0xf2, 0x4c, 0x4c, 0xd0, 0x06, 0x91, 0xb9,
+	0x68, 0x11, 0x53, 0xef, 0x2b, 0x12, 0x53, 0xdf, 0x9b, 0x20, 0xa6, 0xfe, 0x2e, 0x89, 0xe9, 0x6c,
+	0x3b, 0x31, 0xcd, 0xb4, 0x88, 0x29, 0xaa, 0x02, 0x6d, 0xd6, 0xaf, 0x86, 0x51, 0x33, 0x17, 0xcf,
+	0x8f, 0x0a, 0x18, 0xe5, 0x25, 0xf5, 0x86, 0x61, 0x1b, 0x65, 0x47, 0x3d, 0x0d, 0x86, 0x8c, 0xaa,
+	0x7b, 0x07, 0xdb, 0xa6, 0x5b, 0x63, 0x52, 0x49, 0xc8, 0x4f, 0x46, 0x9c, 0xaa, 0x9e, 0x07, 0x83,
+	0x15, 0xbf, 0x07, 0xf6, 0x30, 0x3a, 0x23, 0xbc, 0x78, 0x51, 0x27, 0x99, 0x21, 0x6f, 0x17, 0xa1,
+	0x9b, 0x03, 0x6b, 0xb5, 0x76, 0xca, 0x1b, 0x64, 0xb3, 0x3f, 0x6f, 0x68, 0xfc, 0xa7, 0x94, 0x7b,
+	0xcd, 0x1f, 0x53, 0x22, 0xe1, 0x6a, 0xd3, 0x60, 0x2a, 0x62, 0x0a, 0x46, 0xb7, 0xfa, 0xd7, 0x01,
+	0xd0, 0xb7, 0xee, 0x94, 0xd4, 0xfb, 0x60, 0xe6, 0x7f, 0x86, 0x55, 0xdc, 0x42, 0xe2, 0x9f, 0x5c,
+	0x96, 0x84, 0x81, 0x0a, 0xb9, 0xc9, 0xd5, 0xce, 0xb9, 0x41, 0x18, 0x21, 0xf7, 0x82, 0x37, 0x3d,
+	0xa9, 0xfb, 0x38, 0x57, 0xee, 0x5e, 0xfe, 0xd8, 0x15, 0x72, 0x2f, 0x78, 0xad, 0x91, 0xba, 0x8f,
+	0x73, 0xe5, 0xee, 0xe5, 0x57, 0x75, 0xf5, 0x4b, 0x05, 0x68, 0x6d, 0xfc, 0x07, 0x07, 0xac, 0x95,
+	0xce, 0xbb, 0x66, 0x4d, 0x92, 0xe7, 0x76, 0xdd, 0x84, 0x07, 0xf5, 0x40, 0x01, 0x30, 0x12, 0x54,
+	0xec, 0x0a, 0xa1, 0xb7, 0xef, 0x3e, 0xca, 0x4f, 0x9e, 0xde, 0x1d, 0x9f, 0xc7, 0xf2, 0x3e, 0x98,
+	0x8a, 0xa8, 0x93, 0x3f, 0x68, 0x2c, 0xb4, 0x57, 0x5b, 0xc0, 0x4b, 0xea, 0x9d, 0xf1, 0x84, 0x2e,
+	0x23, 0x8f, 0xa0, 0x0b, 0xed, 0x15, 0xf6, 0x72, 0x97, 0xe2, 0xe7, 0xc2, 0x90, 0xcb, 0xc8, 0xb3,
+	0xcd, 0x42, 0xfb, 0xc4, 0xbd, 0xdc, 0xa5, 0xf8, 0xce, 0xaf, 0x7e, 0xa2, 0x80, 0x94, 0xc4, 0x67,
+	0x30, 0xc7, 0xcb, 0x9d, 0x75, 0x19, 0x4c, 0xf1, 0xa9, 0x5d, 0xd1, 0x79, 0x20, 0x9f, 0x2b, 0x60,
+	0x9e, 0x07, 0x22, 0x3d, 0x99, 0x1e, 0x97, 0x75, 0x2e, 0x6b, 0x91, 0x3c, 0xbb, 0xdb, 0x16, 0x3c,
+	0xa2, 0xbb, 0x60, 0x9a, 0x07, 0x14, 0x3b, 0x39, 0x2c, 0xca, 0xba, 0x8d, 0x32, 0x93, 0xc7, 0x3b,
+	0x65, 0x72, 0xc7, 0x79, 0x30, 0x1c, 0xda, 0x6c, 0x8e, 0xb5, 0xcf, 0x28, 0x65, 0x25, 0xff, 0xdd,
+	0x09, 0x2b, 0xf0, 0x91, 0x1c, 0xf8, 0xd0, 0xdb, 0x57, 0x32, 0xd9, 0xc7, 0x3b, 0x29, 0xe5, 0xe9,
+	0x4e, 0x4a, 0x79, 0xb6, 0x93, 0x52, 0xfe, 0xdc, 0x49, 0x29, 0x5f, 0x3c, 0x4f, 0xf5, 0x3c, 0x7b,
+	0x9e, 0xea, 0xf9, 0xed, 0x79, 0xaa, 0xe7, 0xdd, 0x93, 0x2d, 0x17, 0x59, 0xd6, 0xb9, 0x85, 0xdc,
+	0xe0, 0xcf, 0xe5, 0xc2, 0x1d, 0xc3, 0xb4, 0x5a, 0xb7, 0x1d, 0xff, 0x6a, 0x9b, 0x1f, 0xf4, 0x7f,
+	0xe4, 0x3b, 0xf1, 0x77, 0x00, 0x00, 0x00, 0xff, 0xff, 0x9a, 0x7a, 0xc2, 0xf7, 0xaf, 0x20, 0x00,
+	0x00,
+}
+
+func (this *MsgCreateResourceNode) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgCreateResourceNode)
+	if !ok {
+		that2, ok := that.(MsgCreateResourceNode)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if !this.Pubkey.Equal(that1.Pubkey) {
+		return false
+	}
+	if !this.Value.Equal(&that1.Value) {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	if this.BeneficiaryAddress != that1.BeneficiaryAddress {
+		return false
+	}
+	if !this.Description.Equal(&that1.Description) {
+		return false
+	}
+	if this.NodeType != that1.NodeType {
+		return false
+	}
+	return true
+}
+func (this *MsgCreateResourceNodeResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgCreateResourceNodeResponse)
+	if !ok {
+		that2, ok := that.(MsgCreateResourceNodeResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgCreateMetaNode) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgCreateMetaNode)
+	if !ok {
+		that2, ok := that.(MsgCreateMetaNode)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if !this.Pubkey.Equal(that1.Pubkey) {
+		return false
+	}
+	if !this.Value.Equal(&that1.Value) {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	if this.BeneficiaryAddress != that1.BeneficiaryAddress {
+		return false
+	}
+	if !this.Description.Equal(&that1.Description) {
+		return false
+	}
+	return true
+}
+func (this *MsgCreateMetaNodeResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgCreateMetaNodeResponse)
+	if !ok {
+		that2, ok := that.(MsgCreateMetaNodeResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgRemoveResourceNode) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgRemoveResourceNode)
+	if !ok {
+		that2, ok := that.(MsgRemoveResourceNode)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.ResourceNodeAddress != that1.ResourceNodeAddress {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	return true
+}
+func (this *MsgRemoveResourceNodeResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgRemoveResourceNodeResponse)
+	if !ok {
+		that2, ok := that.(MsgRemoveResourceNodeResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgRemoveMetaNode) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgRemoveMetaNode)
+	if !ok {
+		that2, ok := that.(MsgRemoveMetaNode)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.MetaNodeAddress != that1.MetaNodeAddress {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	return true
+}
+func (this *MsgRemoveMetaNodeResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgRemoveMetaNodeResponse)
+	if !ok {
+		that2, ok := that.(MsgRemoveMetaNodeResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateResourceNode) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateResourceNode)
+	if !ok {
+		that2, ok := that.(MsgUpdateResourceNode)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Description.Equal(&that1.Description) {
+		return false
+	}
+	if this.BeneficiaryAddress != that1.BeneficiaryAddress {
+		return false
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	if this.NodeType != that1.NodeType {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateResourceNodeResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateResourceNodeResponse)
+	if !ok {
+		that2, ok := that.(MsgUpdateResourceNodeResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateMetaNode) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateMetaNode)
+	if !ok {
+		that2, ok := that.(MsgUpdateMetaNode)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if !this.Description.Equal(&that1.Description) {
+		return false
+	}
+	if this.BeneficiaryAddress != that1.BeneficiaryAddress {
+		return false
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateMetaNodeResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateMetaNodeResponse)
+	if !ok {
+		that2, ok := that.(MsgUpdateMetaNodeResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateResourceNodeDeposit) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateResourceNodeDeposit)
+	if !ok {
+		that2, ok := that.(MsgUpdateResourceNodeDeposit)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	if !this.DepositDelta.Equal(&that1.DepositDelta) {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateResourceNodeDepositResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateResourceNodeDepositResponse)
+	if !ok {
+		that2, ok := that.(MsgUpdateResourceNodeDepositResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateEffectiveDeposit) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateEffectiveDeposit)
+	if !ok {
+		that2, ok := that.(MsgUpdateEffectiveDeposit)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if len(this.Reporters) != len(that1.Reporters) {
+		return false
+	}
+	for i := range this.Reporters {
+		if this.Reporters[i] != that1.Reporters[i] {
+			return false
+		}
+	}
+	if len(this.ReporterOwner) != len(that1.ReporterOwner) {
+		return false
+	}
+	for i := range this.ReporterOwner {
+		if this.ReporterOwner[i] != that1.ReporterOwner[i] {
+			return false
+		}
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if !this.EffectiveTokens.Equal(that1.EffectiveTokens) {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateEffectiveDepositResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateEffectiveDepositResponse)
+	if !ok {
+		that2, ok := that.(MsgUpdateEffectiveDepositResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateMetaNodeDeposit) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateMetaNodeDeposit)
+	if !ok {
+		that2, ok := that.(MsgUpdateMetaNodeDeposit)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.NetworkAddress != that1.NetworkAddress {
+		return false
+	}
+	if this.OwnerAddress != that1.OwnerAddress {
+		return false
+	}
+	if !this.DepositDelta.Equal(&that1.DepositDelta) {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateMetaNodeDepositResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateMetaNodeDepositResponse)
+	if !ok {
+		that2, ok := that.(MsgUpdateMetaNodeDepositResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgMetaNodeRegistrationVote) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgMetaNodeRegistrationVote)
+	if !ok {
+		that2, ok := that.(MsgMetaNodeRegistrationVote)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.CandidateNetworkAddress != that1.CandidateNetworkAddress {
+		return false
+	}
+	if this.CandidateOwnerAddress != that1.CandidateOwnerAddress {
+		return false
+	}
+	if this.Opinion != that1.Opinion {
+		return false
+	}
+	if this.VoterNetworkAddress != that1.VoterNetworkAddress {
+		return false
+	}
+	if this.VoterOwnerAddress != that1.VoterOwnerAddress {
+		return false
+	}
+	return true
+}
+func (this *MsgMetaNodeRegistrationVoteResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgMetaNodeRegistrationVoteResponse)
+	if !ok {
+		that2, ok := that.(MsgMetaNodeRegistrationVoteResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgKickMetaNodeVote) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgKickMetaNodeVote)
+	if !ok {
+		that2, ok := that.(MsgKickMetaNodeVote)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.TargetNetworkAddress != that1.TargetNetworkAddress {
+		return false
+	}
+	if this.Opinion != that1.Opinion {
+		return false
+	}
+	if this.VoterNetworkAddress != that1.VoterNetworkAddress {
+		return false
+	}
+	if this.VoterOwnerAddress != that1.VoterOwnerAddress {
+		return false
+	}
+	return true
+}
+func (this *MsgKickMetaNodeVoteResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgKickMetaNodeVoteResponse)
+	if !ok {
+		that2, ok := that.(MsgKickMetaNodeVoteResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateParams) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateParams)
+	if !ok {
+		that2, ok := that.(MsgUpdateParams)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	if this.Authority != that1.Authority {
+		return false
+	}
+	if !this.Params.Equal(&that1.Params) {
+		return false
+	}
+	return true
+}
+func (this *MsgUpdateParamsResponse) Equal(that interface{}) bool {
+	if that == nil {
+		return this == nil
+	}
+
+	that1, ok := that.(*MsgUpdateParamsResponse)
+	if !ok {
+		that2, ok := that.(MsgUpdateParamsResponse)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		return this == nil
+	} else if this == nil {
+		return false
+	}
+	return true
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -1284,7 +2111,10 @@ type MsgClient interface {
 	HandleMsgUpdateMetaNode(ctx context.Context, in *MsgUpdateMetaNode, opts ...grpc.CallOption) (*MsgUpdateMetaNodeResponse, error)
 	HandleMsgUpdateMetaNodeDeposit(ctx context.Context, in *MsgUpdateMetaNodeDeposit, opts ...grpc.CallOption) (*MsgUpdateMetaNodeDepositResponse, error)
 	HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *MsgMetaNodeRegistrationVote, opts ...grpc.CallOption) (*MsgMetaNodeRegistrationVoteResponse, error)
-	HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, in *MsgWithdrawMetaNodeRegistrationDeposit, opts ...grpc.CallOption) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error)
+	HandleMsgKickMetaNodeVote(ctx context.Context, in *MsgKickMetaNodeVote, opts ...grpc.CallOption) (*MsgKickMetaNodeVoteResponse, error)
+	// UpdateParams defined a governance operation for updating the x/register module parameters.
+	// The authority is hard-coded to the Cosmos SDK x/gov module account
+	UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error)
 }
 
 type msgClient struct {
@@ -1385,9 +2215,18 @@ func (c *msgClient) HandleMsgMetaNodeRegistrationVote(ctx context.Context, in *M
 	return out, nil
 }
 
-func (c *msgClient) HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, in *MsgWithdrawMetaNodeRegistrationDeposit, opts ...grpc.CallOption) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error) {
-	out := new(MsgWithdrawMetaNodeRegistrationDepositResponse)
-	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgWithdrawMetaNodeRegistrationDeposit", in, out, opts...)
+func (c *msgClient) HandleMsgKickMetaNodeVote(ctx context.Context, in *MsgKickMetaNodeVote, opts ...grpc.CallOption) (*MsgKickMetaNodeVoteResponse, error) {
+	out := new(MsgKickMetaNodeVoteResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/HandleMsgKickMetaNodeVote", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *msgClient) UpdateParams(ctx context.Context, in *MsgUpdateParams, opts ...grpc.CallOption) (*MsgUpdateParamsResponse, error) {
+	out := new(MsgUpdateParamsResponse)
+	err := c.cc.Invoke(ctx, "/stratos.register.v1.Msg/UpdateParams", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1407,7 +2246,10 @@ type MsgServer interface {
 	HandleMsgUpdateMetaNode(context.Context, *MsgUpdateMetaNode) (*MsgUpdateMetaNodeResponse, error)
 	HandleMsgUpdateMetaNodeDeposit(context.Context, *MsgUpdateMetaNodeDeposit) (*MsgUpdateMetaNodeDepositResponse, error)
 	HandleMsgMetaNodeRegistrationVote(context.Context, *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error)
-	HandleMsgWithdrawMetaNodeRegistrationDeposit(context.Context, *MsgWithdrawMetaNodeRegistrationDeposit) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error)
+	HandleMsgKickMetaNodeVote(context.Context, *MsgKickMetaNodeVote) (*MsgKickMetaNodeVoteResponse, error)
+	// UpdateParams defined a governance operation for updating the x/register module parameters.
+	// The authority is hard-coded to the Cosmos SDK x/gov module account
+	UpdateParams(context.Context, *MsgUpdateParams) (*MsgUpdateParamsResponse, error)
 }
 
 // UnimplementedMsgServer can be embedded to have forward compatible implementations.
@@ -1444,8 +2286,11 @@ func (*UnimplementedMsgServer) HandleMsgUpdateMetaNodeDeposit(ctx context.Contex
 func (*UnimplementedMsgServer) HandleMsgMetaNodeRegistrationVote(ctx context.Context, req *MsgMetaNodeRegistrationVote) (*MsgMetaNodeRegistrationVoteResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgMetaNodeRegistrationVote not implemented")
 }
-func (*UnimplementedMsgServer) HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx context.Context, req *MsgWithdrawMetaNodeRegistrationDeposit) (*MsgWithdrawMetaNodeRegistrationDepositResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgWithdrawMetaNodeRegistrationDeposit not implemented")
+func (*UnimplementedMsgServer) HandleMsgKickMetaNodeVote(ctx context.Context, req *MsgKickMetaNodeVote) (*MsgKickMetaNodeVoteResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleMsgKickMetaNodeVote not implemented")
+}
+func (*UnimplementedMsgServer) UpdateParams(ctx context.Context, req *MsgUpdateParams) (*MsgUpdateParamsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateParams not implemented")
 }
 
 func RegisterMsgServer(s grpc1.Server, srv MsgServer) {
@@ -1632,20 +2477,38 @@ func _Msg_HandleMsgMetaNodeRegistrationVote_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(MsgWithdrawMetaNodeRegistrationDeposit)
+func _Msg_HandleMsgKickMetaNodeVote_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgKickMetaNodeVote)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(MsgServer).HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, in)
+		return srv.(MsgServer).HandleMsgKickMetaNodeVote(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/stratos.register.v1.Msg/HandleMsgWithdrawMetaNodeRegistrationDeposit",
+		FullMethod: "/stratos.register.v1.Msg/HandleMsgKickMetaNodeVote",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(MsgServer).HandleMsgWithdrawMetaNodeRegistrationDeposit(ctx, req.(*MsgWithdrawMetaNodeRegistrationDeposit))
+		return srv.(MsgServer).HandleMsgKickMetaNodeVote(ctx, req.(*MsgKickMetaNodeVote))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Msg_UpdateParams_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(MsgUpdateParams)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MsgServer).UpdateParams(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/stratos.register.v1.Msg/UpdateParams",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MsgServer).UpdateParams(ctx, req.(*MsgUpdateParams))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1695,8 +2558,12 @@ var _Msg_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Msg_HandleMsgMetaNodeRegistrationVote_Handler,
 		},
 		{
-			MethodName: "HandleMsgWithdrawMetaNodeRegistrationDeposit",
-			Handler:    _Msg_HandleMsgWithdrawMetaNodeRegistrationDeposit_Handler,
+			MethodName: "HandleMsgKickMetaNodeVote",
+			Handler:    _Msg_HandleMsgKickMetaNodeVote_Handler,
+		},
+		{
+			MethodName: "UpdateParams",
+			Handler:    _Msg_UpdateParams_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
@@ -1726,7 +2593,7 @@ func (m *MsgCreateResourceNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.NodeType != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.NodeType))
 		i--
-		dAtA[i] = 0x30
+		dAtA[i] = 0x38
 	}
 	{
 		size, err := m.Description.MarshalToSizedBuffer(dAtA[:i])
@@ -1737,7 +2604,14 @@ func (m *MsgCreateResourceNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x2a
+	dAtA[i] = 0x32
+	if len(m.BeneficiaryAddress) > 0 {
+		i -= len(m.BeneficiaryAddress)
+		copy(dAtA[i:], m.BeneficiaryAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BeneficiaryAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
@@ -1829,7 +2703,14 @@ func (m *MsgCreateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		i = encodeVarintTx(dAtA, i, uint64(size))
 	}
 	i--
-	dAtA[i] = 0x2a
+	dAtA[i] = 0x32
+	if len(m.BeneficiaryAddress) > 0 {
+		i -= len(m.BeneficiaryAddress)
+		copy(dAtA[i:], m.BeneficiaryAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BeneficiaryAddress)))
+		i--
+		dAtA[i] = 0x2a
+	}
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
@@ -2035,19 +2916,26 @@ func (m *MsgUpdateResourceNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	if m.NodeType != 0 {
 		i = encodeVarintTx(dAtA, i, uint64(m.NodeType))
 		i--
-		dAtA[i] = 0x20
+		dAtA[i] = 0x28
 	}
 	if len(m.OwnerAddress) > 0 {
 		i -= len(m.OwnerAddress)
 		copy(dAtA[i:], m.OwnerAddress)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.OwnerAddress)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.NetworkAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BeneficiaryAddress) > 0 {
+		i -= len(m.BeneficiaryAddress)
+		copy(dAtA[i:], m.BeneficiaryAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BeneficiaryAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2112,12 +3000,19 @@ func (m *MsgUpdateMetaNode) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 		copy(dAtA[i:], m.OwnerAddress)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.OwnerAddress)))
 		i--
-		dAtA[i] = 0x1a
+		dAtA[i] = 0x22
 	}
 	if len(m.NetworkAddress) > 0 {
 		i -= len(m.NetworkAddress)
 		copy(dAtA[i:], m.NetworkAddress)
 		i = encodeVarintTx(dAtA, i, uint64(len(m.NetworkAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if len(m.BeneficiaryAddress) > 0 {
+		i -= len(m.BeneficiaryAddress)
+		copy(dAtA[i:], m.BeneficiaryAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.BeneficiaryAddress)))
 		i--
 		dAtA[i] = 0x12
 	}
@@ -2462,7 +3357,7 @@ func (m *MsgMetaNodeRegistrationVoteResponse) MarshalToSizedBuffer(dAtA []byte) 
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) Marshal() (dAtA []byte, err error) {
+func (m *MsgKickMetaNodeVote) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2472,34 +3367,51 @@ func (m *MsgWithdrawMetaNodeRegistrationDeposit) Marshal() (dAtA []byte, err err
 	return dAtA[:n], nil
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgKickMetaNodeVote) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgKickMetaNodeVote) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
 	_ = l
-	if len(m.OwnerAddress) > 0 {
-		i -= len(m.OwnerAddress)
-		copy(dAtA[i:], m.OwnerAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.OwnerAddress)))
+	if len(m.VoterOwnerAddress) > 0 {
+		i -= len(m.VoterOwnerAddress)
+		copy(dAtA[i:], m.VoterOwnerAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.VoterOwnerAddress)))
 		i--
-		dAtA[i] = 0x12
+		dAtA[i] = 0x22
 	}
-	if len(m.NetworkAddress) > 0 {
-		i -= len(m.NetworkAddress)
-		copy(dAtA[i:], m.NetworkAddress)
-		i = encodeVarintTx(dAtA, i, uint64(len(m.NetworkAddress)))
+	if len(m.VoterNetworkAddress) > 0 {
+		i -= len(m.VoterNetworkAddress)
+		copy(dAtA[i:], m.VoterNetworkAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.VoterNetworkAddress)))
+		i--
+		dAtA[i] = 0x1a
+	}
+	if m.Opinion {
+		i--
+		if m.Opinion {
+			dAtA[i] = 1
+		} else {
+			dAtA[i] = 0
+		}
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.TargetNetworkAddress) > 0 {
+		i -= len(m.TargetNetworkAddress)
+		copy(dAtA[i:], m.TargetNetworkAddress)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.TargetNetworkAddress)))
 		i--
 		dAtA[i] = 0xa
 	}
 	return len(dAtA) - i, nil
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Marshal() (dAtA []byte, err error) {
+func (m *MsgKickMetaNodeVoteResponse) Marshal() (dAtA []byte, err error) {
 	size := m.Size()
 	dAtA = make([]byte, size)
 	n, err := m.MarshalToSizedBuffer(dAtA[:size])
@@ -2509,12 +3421,75 @@ func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Marshal() (dAtA []byte,
 	return dAtA[:n], nil
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) MarshalTo(dAtA []byte) (int, error) {
+func (m *MsgKickMetaNodeVoteResponse) MarshalTo(dAtA []byte) (int, error) {
 	size := m.Size()
 	return m.MarshalToSizedBuffer(dAtA[:size])
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+func (m *MsgKickMetaNodeVoteResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateParams) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateParams) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateParams) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	{
+		size, err := m.Params.MarshalToSizedBuffer(dAtA[:i])
+		if err != nil {
+			return 0, err
+		}
+		i -= size
+		i = encodeVarintTx(dAtA, i, uint64(size))
+	}
+	i--
+	dAtA[i] = 0x12
+	if len(m.Authority) > 0 {
+		i -= len(m.Authority)
+		copy(dAtA[i:], m.Authority)
+		i = encodeVarintTx(dAtA, i, uint64(len(m.Authority)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *MsgUpdateParamsResponse) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *MsgUpdateParamsResponse) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *MsgUpdateParamsResponse) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	i := len(dAtA)
 	_ = i
 	var l int
@@ -2553,6 +3528,10 @@ func (m *MsgCreateResourceNode) Size() (n int) {
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
+	l = len(m.BeneficiaryAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = m.Description.Size()
 	n += 1 + l + sovTx(uint64(l))
 	if m.NodeType != 0 {
@@ -2587,6 +3566,10 @@ func (m *MsgCreateMetaNode) Size() (n int) {
 	l = m.Value.Size()
 	n += 1 + l + sovTx(uint64(l))
 	l = len(m.OwnerAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.BeneficiaryAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
@@ -2664,6 +3647,10 @@ func (m *MsgUpdateResourceNode) Size() (n int) {
 	_ = l
 	l = m.Description.Size()
 	n += 1 + l + sovTx(uint64(l))
+	l = len(m.BeneficiaryAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.NetworkAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -2695,6 +3682,10 @@ func (m *MsgUpdateMetaNode) Size() (n int) {
 	_ = l
 	l = m.Description.Size()
 	n += 1 + l + sovTx(uint64(l))
+	l = len(m.BeneficiaryAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
 	l = len(m.NetworkAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
@@ -2844,24 +3835,55 @@ func (m *MsgMetaNodeRegistrationVoteResponse) Size() (n int) {
 	return n
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) Size() (n int) {
+func (m *MsgKickMetaNodeVote) Size() (n int) {
 	if m == nil {
 		return 0
 	}
 	var l int
 	_ = l
-	l = len(m.NetworkAddress)
+	l = len(m.TargetNetworkAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
-	l = len(m.OwnerAddress)
+	if m.Opinion {
+		n += 2
+	}
+	l = len(m.VoterNetworkAddress)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = len(m.VoterOwnerAddress)
 	if l > 0 {
 		n += 1 + l + sovTx(uint64(l))
 	}
 	return n
 }
 
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Size() (n int) {
+func (m *MsgKickMetaNodeVoteResponse) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	return n
+}
+
+func (m *MsgUpdateParams) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.Authority)
+	if l > 0 {
+		n += 1 + l + sovTx(uint64(l))
+	}
+	l = m.Params.Size()
+	n += 1 + l + sovTx(uint64(l))
+	return n
+}
+
+func (m *MsgUpdateParamsResponse) Size() (n int) {
 	if m == nil {
 		return 0
 	}
@@ -3040,6 +4062,38 @@ func (m *MsgCreateResourceNode) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 5:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
 			var msglen int
@@ -3071,7 +4125,7 @@ func (m *MsgCreateResourceNode) Unmarshal(dAtA []byte) error {
 				return err
 			}
 			iNdEx = postIndex
-		case 6:
+		case 7:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
 			}
@@ -3324,6 +4378,38 @@ func (m *MsgCreateMetaNode) Unmarshal(dAtA []byte) error {
 			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 6:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field Description", wireType)
 			}
@@ -3819,6 +4905,38 @@ func (m *MsgUpdateResourceNode) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
 			}
 			var stringLen uint64
@@ -3849,7 +4967,7 @@ func (m *MsgUpdateResourceNode) Unmarshal(dAtA []byte) error {
 			}
 			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
 			}
@@ -3881,7 +4999,7 @@ func (m *MsgUpdateResourceNode) Unmarshal(dAtA []byte) error {
 			}
 			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 4:
+		case 5:
 			if wireType != 0 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NodeType", wireType)
 			}
@@ -4035,6 +5153,38 @@ func (m *MsgUpdateMetaNode) Unmarshal(dAtA []byte) error {
 			iNdEx = postIndex
 		case 2:
 			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field BeneficiaryAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.BeneficiaryAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
 			}
 			var stringLen uint64
@@ -4065,7 +5215,7 @@ func (m *MsgUpdateMetaNode) Unmarshal(dAtA []byte) error {
 			}
 			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
-		case 3:
+		case 4:
 			if wireType != 2 {
 				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
 			}
@@ -5040,7 +6190,7 @@ func (m *MsgMetaNodeRegistrationVoteResponse) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
+func (m *MsgKickMetaNodeVote) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5063,15 +6213,15 @@ func (m *MsgWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDeposit: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgKickMetaNodeVote: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDeposit: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgKickMetaNodeVote: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field NetworkAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field TargetNetworkAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5099,11 +6249,31 @@ func (m *MsgWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.NetworkAddress = string(dAtA[iNdEx:postIndex])
+			m.TargetNetworkAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Opinion", wireType)
+			}
+			var v int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				v |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			m.Opinion = bool(v != 0)
+		case 3:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field OwnerAddress", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field VoterNetworkAddress", wireType)
 			}
 			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
@@ -5131,7 +6301,39 @@ func (m *MsgWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.OwnerAddress = string(dAtA[iNdEx:postIndex])
+			m.VoterNetworkAddress = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field VoterOwnerAddress", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.VoterOwnerAddress = string(dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
@@ -5154,7 +6356,7 @@ func (m *MsgWithdrawMetaNodeRegistrationDeposit) Unmarshal(dAtA []byte) error {
 	}
 	return nil
 }
-func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Unmarshal(dAtA []byte) error {
+func (m *MsgKickMetaNodeVoteResponse) Unmarshal(dAtA []byte) error {
 	l := len(dAtA)
 	iNdEx := 0
 	for iNdEx < l {
@@ -5177,10 +6379,175 @@ func (m *MsgWithdrawMetaNodeRegistrationDepositResponse) Unmarshal(dAtA []byte) 
 		fieldNum := int32(wire >> 3)
 		wireType := int(wire & 0x7)
 		if wireType == 4 {
-			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDepositResponse: wiretype end group for non-group")
+			return fmt.Errorf("proto: MsgKickMetaNodeVoteResponse: wiretype end group for non-group")
 		}
 		if fieldNum <= 0 {
-			return fmt.Errorf("proto: MsgWithdrawMetaNodeRegistrationDepositResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+			return fmt.Errorf("proto: MsgKickMetaNodeVoteResponse: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateParams) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateParams: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateParams: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Authority", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Authority = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Params", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowTx
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthTx
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthTx
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if err := m.Params.Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipTx(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthTx
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *MsgUpdateParamsResponse) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowTx
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: MsgUpdateParamsResponse: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: MsgUpdateParamsResponse: illegal tag %d (wire type %d)", fieldNum, wire)
 		}
 		switch fieldNum {
 		default:

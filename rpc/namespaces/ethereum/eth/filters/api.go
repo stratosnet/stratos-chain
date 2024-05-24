@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/tendermint/tendermint/libs/log"
-	coretypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmtypes "github.com/tendermint/tendermint/types"
+	"github.com/cometbft/cometbft/libs/log"
+	coretypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 
@@ -350,7 +350,11 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 			case ev := <-logsCh:
 				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
 				if !isMsgEthereumTx {
-					continue
+					// >v011
+					_, isMsgEthereumTx = ev.Events[fmt.Sprintf("%s.%s", "stratos.evm.v1.EventEthereumTx", "eth_hash")]
+					if !isMsgEthereumTx {
+						continue
+					}
 				}
 
 				// get transaction result data
@@ -368,8 +372,8 @@ func (api *PublicFilterAPI) Logs(ctx context.Context, crit filters.FilterCriteri
 				}
 
 				matchedLogs := FilterLogs(evmtypes.LogsToEthereum(txResponse.Logs), crit.FromBlock, crit.ToBlock, crit.Addresses, crit.Topics)
-				for _, log := range matchedLogs {
-					err = notifier.Notify(rpcSub.ID, log)
+				for _, logInfo := range matchedLogs {
+					err = notifier.Notify(rpcSub.ID, logInfo)
 					if err != nil {
 						logsSub.err <- err
 						return
@@ -430,7 +434,11 @@ func (api *PublicFilterAPI) NewFilter(criteria filters.FilterCriteria) (rpc.ID, 
 			case ev := <-eventCh:
 				_, isMsgEthereumTx := ev.Events[fmt.Sprintf("%s.%s", evmtypes.EventTypeEthereumTx, evmtypes.AttributeKeyEthereumTxHash)]
 				if !isMsgEthereumTx {
-					continue
+					// >v011
+					_, isMsgEthereumTx = ev.Events[fmt.Sprintf("%s.%s", "stratos.evm.v1.EventEthereumTx", "eth_hash")]
+					if !isMsgEthereumTx {
+						continue
+					}
 				}
 
 				dataTx, ok := ev.Data.(tmtypes.EventDataTx)

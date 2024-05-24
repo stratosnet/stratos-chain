@@ -1,13 +1,13 @@
 package backend
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
 	"time"
 
-	"github.com/pkg/errors"
-
+	abci "github.com/cometbft/cometbft/abci/types"
 	"github.com/ethereum/go-ethereum/accounts/keystore"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -15,17 +15,17 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
-	tmjsonrpctypes "github.com/tendermint/tendermint/rpc/jsonrpc/types"
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmjsonrpctypes "github.com/cometbft/cometbft/rpc/jsonrpc/types"
 
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
 
 // BlockNumber returns the current block number in abci app state.
@@ -38,10 +38,45 @@ func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
 	}
 
 	if res.Block == nil {
-		return hexutil.Uint64(0), errors.Errorf("block store not loaded")
+		return hexutil.Uint64(0), fmt.Errorf("block store not loaded")
 	}
 
 	return hexutil.Uint64(res.Block.Height), nil
+}
+
+func (b *Backend) getBlockFromResultBlock(resBlock *tmrpctypes.ResultBlock, fullTx bool) (*types.Block, error) {
+	// return if requested block height is greater than the current one
+	if resBlock == nil || resBlock.Block == nil {
+		return nil, nil
+	}
+
+	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
+	if err != nil {
+		b.logger.Debug("EthBlockFromTendermint failed", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
+		return nil, nil
+	}
+
+	// override dynamicly miner address
+	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	if err != nil {
+		b.logger.Debug("GetSdkContextWithHeader context", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
+		return nil, err
+	}
+
+	validator, err := b.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
+	if err != nil {
+		b.logger.Debug("GetCoinbaseAddress no validator", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
+		return nil, err
+	}
+	res.Miner = validator
+
+	baseFee, err := b.baseFee(sdk.WrapSDKContext(sdkCtx))
+	if err != nil {
+		return nil, err
+	}
+	res.BaseFee = (*hexutil.Big)(baseFee)
+
+	return res, nil
 }
 
 // GetBlockByNumber returns the block identified by number.
@@ -50,39 +85,7 @@ func (b *Backend) GetBlockByNumber(blockNum types.BlockNumber, fullTx bool) (*ty
 	if err != nil {
 		return nil, err
 	}
-
-	// return if requested block height is greater than the current one
-	if resBlock == nil || resBlock.Block == nil {
-		return nil, nil
-	}
-
-	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
-	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint failed", "height", blockNum, "error", err.Error())
-		return nil, nil
-	}
-
-	// override dynamicly miner address
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
-	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "height", blockNum, "error", err.Error())
-		return nil, err
-	}
-
-	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
-	if err != nil {
-		b.logger.Debug("GetCoinbaseAddress no validator", "height", blockNum, "error", err.Error())
-		return nil, err
-	}
-	res.Miner = validator
-
-	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
-	if err != nil {
-		return nil, err
-	}
-	res.BaseFee = (*hexutil.Big)(feeResp.BaseFee.BigInt())
-
-	return res, nil
+	return b.getBlockFromResultBlock(resBlock, fullTx)
 }
 
 // GetBlockByHash returns the block identified by hash.
@@ -92,39 +95,7 @@ func (b *Backend) GetBlockByHash(hash common.Hash, fullTx bool) (*types.Block, e
 		b.logger.Debug("BlockByHash block not found", "hash", hash.Hex(), "error", err.Error())
 		return nil, err
 	}
-
-	if resBlock == nil || resBlock.Block == nil {
-		b.logger.Debug("BlockByHash block not found", "hash", hash.Hex())
-		return nil, nil
-	}
-
-	res, err := types.EthBlockFromTendermint(b.clientCtx.TxConfig.TxDecoder(), resBlock.Block, fullTx)
-	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint failed", "hash", hash.Hex(), "error", err.Error())
-		return nil, nil
-	}
-
-	// override dynamicly miner address
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
-	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "hash", hash.Hex(), "error", err.Error())
-		return nil, err
-	}
-
-	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
-	if err != nil {
-		b.logger.Debug("GetCoinbaseAddress no validator", "hash", hash.Hex(), "error", err.Error())
-		return nil, err
-	}
-	res.Miner = validator
-
-	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
-	if err != nil {
-		return nil, err
-	}
-	res.BaseFee = (*hexutil.Big)(feeResp.BaseFee.BigInt())
-
-	return res, nil
+	return b.getBlockFromResultBlock(resBlock, fullTx)
 }
 
 // GetTendermintBlockByNumber returns a Tendermint format block by block number
@@ -145,7 +116,7 @@ func (b *Backend) GetTendermintBlockByNumber(blockNum types.BlockNumber) (*tmrpc
 		height = 1
 	default:
 		if blockNum < 0 {
-			return nil, errors.Errorf("cannot fetch a negative block height: %d", height)
+			return nil, fmt.Errorf("cannot fetch a negative block height: %d", height)
 		}
 		if height > int64(currentBlockNumber) {
 			return nil, nil
@@ -217,7 +188,7 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, err
 		height = 1
 	default:
 		if blockNum < 0 {
-			return nil, errors.Errorf("incorrect block height: %d", height)
+			return nil, fmt.Errorf("incorrect block height: %d", height)
 		}
 	}
 
@@ -247,11 +218,11 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, err
 	}
 	ethHeader.Coinbase = validator
 
-	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	baseFee, err := b.baseFee(sdk.WrapSDKContext(sdkCtx))
 	if err != nil {
 		return nil, err
 	}
-	ethHeader.BaseFee = feeResp.BaseFee.BigInt()
+	ethHeader.BaseFee = baseFee
 	return ethHeader, nil
 }
 
@@ -264,7 +235,7 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 	}
 
 	if resBlock == nil || resBlock.Block == nil {
-		return nil, errors.Errorf("block not found for hash %s", blockHash.Hex())
+		return nil, fmt.Errorf("block not found for hash %s", blockHash.Hex())
 	}
 
 	ethHeader, err := types.EthHeaderFromTendermint(resBlock.Block.Header)
@@ -287,11 +258,11 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 	}
 	ethHeader.Coinbase = validator
 
-	feeResp, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
+	baseFee, err := b.baseFee(sdk.WrapSDKContext(sdkCtx))
 	if err != nil {
 		return nil, err
 	}
-	ethHeader.BaseFee = feeResp.BaseFee.BigInt()
+	ethHeader.BaseFee = baseFee
 	return ethHeader, nil
 }
 
@@ -320,7 +291,7 @@ func (b *Backend) GetLogsByHeight(height *int64) ([][]*ethtypes.Log, error) {
 		return nil, err
 	}
 
-	blockLogs := [][]*ethtypes.Log{}
+	blockLogs := make([][]*ethtypes.Log, 0)
 	for _, txResult := range blockRes.TxsResults {
 		logs, err := AllTxLogsFromEvents(txResult.Events)
 		if err != nil {
@@ -360,7 +331,7 @@ func (b *Backend) GetLogsByNumber(blockNum types.BlockNumber) ([][]*ethtypes.Log
 		height = 1
 	default:
 		if blockNum < 0 {
-			return nil, errors.Errorf("incorrect block height: %d", height)
+			return nil, fmt.Errorf("incorrect block height: %d", height)
 		}
 	}
 
@@ -437,7 +408,7 @@ func (b *Backend) GetTxByTxIndex(height int64, index uint) (*tmrpctypes.ResultTx
 		return nil, err
 	}
 	if len(resTxs.Txs) == 0 {
-		return nil, errors.Errorf("ethereum tx not found for block %d index %d", height, index)
+		return nil, fmt.Errorf("ethereum tx not found for block %d index %d", height, index)
 	}
 	return resTxs.Txs[0], nil
 }
@@ -501,7 +472,7 @@ func (b *Backend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash, e
 	ethTx := msg.AsTransaction()
 	if !ethTx.Protected() {
 		// Ensure only eip155 signed transactions are submitted.
-		return common.Hash{}, errors.New("legacy pre-eip-155 transactions not supported")
+		return common.Hash{}, fmt.Errorf("legacy pre-eip-155 transactions not supported")
 	}
 
 	txHash := ethTx.Hash()
@@ -510,8 +481,8 @@ func (b *Backend) SendTransaction(args evmtypes.TransactionArgs) (common.Hash, e
 	// NOTE: If error is encountered on the node, the broadcast will not return an error
 	syncCtx := b.clientCtx.WithBroadcastMode(flags.BroadcastSync)
 	rsp, err := syncCtx.BroadcastTx(txBytes)
-	if rsp != nil && rsp.Code != 0 {
-		err = sdkerrors.ABCIError(rsp.Codespace, rsp.Code, rsp.RawLog)
+	if rsp != nil && rsp.Code != abci.CodeTypeOK {
+		err = errors.ABCIError(rsp.Codespace, rsp.Code, rsp.RawLog)
 	}
 	if err != nil {
 		b.logger.Error("failed to broadcast tx", "error", err.Error())
@@ -590,7 +561,7 @@ func (b *Backend) RPCEVMTimeout() time.Duration {
 	return b.cfg.JSONRPC.EVMTimeout
 }
 
-// RPCGasCap is the global gas cap for eth-call variants.
+// RPCTxFeeCap is the global gas cap for eth-call variants.
 func (b *Backend) RPCTxFeeCap() float64 {
 	return b.cfg.JSONRPC.TxFeeCap
 }
@@ -637,12 +608,12 @@ func (b *Backend) RPCMinGasPrice() int64 {
 // ChainConfig returns the latest ethereum chain configuration
 func (b *Backend) ChainConfig() *params.ChainConfig {
 	sdkCtx := b.GetEVMContext().GetSdkContext()
-	params, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
+	evmParams, err := b.GetEVMKeeper().Params(sdk.WrapSDKContext(sdkCtx), &evmtypes.QueryParamsRequest{})
 	if err != nil {
 		return nil
 	}
 
-	return params.Params.ChainConfig.EthereumConfig()
+	return evmParams.Params.ChainConfig.EthereumConfig()
 }
 
 // SuggestGasTipCap returns the suggested tip cap
@@ -682,6 +653,27 @@ func (b *Backend) SuggestGasTipCap() (*big.Int, error) {
 	return big.NewInt(0), nil
 }
 
+func (b *Backend) baseFee(ctx context.Context) (*big.Int, error) {
+	// return BaseFee if London hard fork is activated and feemarket is enabled
+	res, err := b.GetEVMKeeper().BaseFee(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	// try v011
+	if res.BaseFee == nil {
+		res, err = b.GetEVMKeeper().BaseFeeV011(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if res.BaseFee == nil {
+		return nil, nil
+	}
+
+	return res.BaseFee.BigInt(), nil
+}
+
 // BaseFee returns the base fee tracked by the Fee Market module.
 // If the base fee is not enabled globally, the query returns nil.
 // If the London hard fork is not activated at the current height, the query will
@@ -701,17 +693,7 @@ func (b *Backend) BaseFee() (*big.Int, error) {
 	if err != nil {
 		return nil, err
 	}
-	// return BaseFee if London hard fork is activated and feemarket is enabled
-	res, err := b.GetEVMKeeper().BaseFee(sdk.WrapSDKContext(sdkCtx), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if res.BaseFee == nil {
-		return nil, nil
-	}
-
-	return res.BaseFee.BigInt(), nil
+	return b.baseFee(sdk.WrapSDKContext(sdkCtx))
 }
 
 // FeeHistory returns data relevant for fee estimation based on the specified range of blocks.
