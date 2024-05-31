@@ -148,7 +148,7 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 	transactions := make([]interface{}, 0, len(block.Txs))
 	for i, tmTx := range block.Txs {
 		if !fullTx {
-			transactions = append(transactions, common.Bytes2Hex(tmTx.Hash()))
+			transactions = append(transactions, fmt.Sprintf("0x%s", common.Bytes2Hex(tmTx.Hash())))
 			continue
 		}
 		blockHash := common.BytesToHash(block.Hash())
@@ -427,14 +427,17 @@ func TmTxToEthTx(
 			if err != nil {
 				return nil, err
 			}
-			if web3Msg.From != nil {
-				from = *web3Msg.From
-			}
-			if web3Msg.To != nil {
-				to = web3Msg.To
-			}
-			if web3Msg.Value != nil {
-				value = web3Msg.Value
+			// Just in case not implemented
+			if web3Msg != nil {
+				if web3Msg.From != nil {
+					from = *web3Msg.From
+				}
+				if web3Msg.To != nil {
+					to = web3Msg.To
+				}
+				if web3Msg.Value != nil {
+					value = web3Msg.Value
+				}
 			}
 
 			// NOTE: As we could not add GetWeb3Msg method, it will be handled directly here
