@@ -5,19 +5,33 @@ import (
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
-// GetParams returns the total set of sds parameters.
-func (k Keeper) GetParams(ctx sdk.Context) (params types.Params) {
-	k.paramSpace.GetParamSet(ctx, &params)
-	return params
+// SetParams sets the params on the store
+func (k Keeper) SetParams(ctx sdk.Context, params types.Params) error {
+	if err := params.Validate(); err != nil {
+		return err
+	}
+
+	store := ctx.KVStore(k.storeKey)
+	bz := k.cdc.MustMarshal(&params)
+	store.Set(types.ParamsKey, bz)
+
+	return nil
 }
 
-// SetParams sets the sds parameters to the param space.
-func (k Keeper) SetParams(ctx sdk.Context, params types.Params) {
-	k.paramSpace.SetParamSet(ctx, &params)
+// GetParams returns the params from the store
+func (k Keeper) GetParams(ctx sdk.Context) (p types.Params) {
+	store := ctx.KVStore(k.storeKey)
+	bz := store.Get(types.ParamsKey)
+	if bz == nil {
+		return p
+	}
+	k.cdc.MustUnmarshal(bz, &p)
+	return p
 }
 
 // BondDenom - Bondable coin denomination
 func (k Keeper) BondDenom(ctx sdk.Context) (res string) {
-	k.paramSpace.Get(ctx, types.KeyBondDenom, &res)
+	params := k.GetParams(ctx)
+	res = params.GetBondDenom()
 	return
 }

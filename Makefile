@@ -3,7 +3,7 @@
 BUILDDIR ?= $(CURDIR)/build
 LEDGER_ENABLED ?= false
 
-APP_VER := v0.11.2
+APP_VER := v0.12.0
 COMMIT := $(GIT_COMMIT_HASH)
 TEST_DOCKER_REPO=stratos-chain-e2e
 
@@ -40,7 +40,7 @@ build: BUILD_ARGS=-o $(BUILDDIR)/
 
 $(BUILD_TARGETS): go.sum $(BUILDDIR)/
 # 	go $@ -mod=readonly $(BUILD_ARGS) $(VERSION) ./cmd/...
-	go $@ $(BUILD_ARGS) $(BUILD_FLAGS) ./cmd/...
+	go$(GO_VERSION) $@ $(BUILD_ARGS) $(BUILD_FLAGS) ./cmd/...
 #	CGO_ENABLED=1 CGO_LDFLAGS="-lsnappy" go $@ -mod=readonly $(BUILD_ARGS) $(BUILD_FLAGS) ./cmd/...
 
 $(BUILDDIR)/:
@@ -62,9 +62,9 @@ clean:
 	rm -rf $(BUILDDIR)/
 
 coverage:
-	go test ./... -coverprofile cover.out -coverpkg=./...
-	go tool cover -html cover.out -o cover.html
-	go tool cover -func cover.out | grep total:
+	go$(GO_VERSION) test ./... -coverprofile cover.out -coverpkg=./...
+	go$(GO_VERSION) tool cover -html cover.out -o cover.html
+	go$(GO_VERSION) tool cover -func cover.out | grep total:
 	rm cover.out
 
 ###############################################################################

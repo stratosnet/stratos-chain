@@ -16,13 +16,10 @@ import (
 	"time"
 
 	"github.com/davecgh/go-spew/spew"
-	"github.com/ethereum/go-ethereum/eth/tracers"
 	stderrors "github.com/pkg/errors"
 
-	"github.com/ethereum/go-ethereum/eth/tracers/logger"
-
-	"github.com/tendermint/tendermint/libs/log"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -34,12 +31,14 @@ import (
 	"github.com/ethereum/go-ethereum/consensus/ethash"
 	"github.com/ethereum/go-ethereum/rlp"
 
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	jstracers "github.com/stratosnet/stratos-chain/x/evm/tracers/js"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
 	nativetracers "github.com/stratosnet/stratos-chain/x/evm/tracers/native"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
 
 const (
@@ -197,7 +196,7 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 
 // TraceBlockByNumber returns the structured logs created during the execution of
 // EVM and returns them as a JSON object.
-func (a *API) TraceBlockByNumber(height rpctypes.BlockNumber, config *evmtypes.TraceConfig) ([]*evmtypes.TxTraceResult, error) {
+func (a *API) TraceBlockByNumber(height rpctypes.BlockNumber, config *evmtypes.TraceConfig) ([]*tracers.TxTraceResult, error) {
 	a.logger.Debug("debug_traceBlockByNumber", "height", height)
 	if height == 0 {
 		return nil, errors.New("genesis is not traceable")
@@ -214,7 +213,7 @@ func (a *API) TraceBlockByNumber(height rpctypes.BlockNumber, config *evmtypes.T
 
 // TraceBlockByHash returns the structured logs created during the execution of
 // EVM and returns them as a JSON object.
-func (a *API) TraceBlockByHash(hash common.Hash, config *evmtypes.TraceConfig) ([]*evmtypes.TxTraceResult, error) {
+func (a *API) TraceBlockByHash(hash common.Hash, config *evmtypes.TraceConfig) ([]*tracers.TxTraceResult, error) {
 	a.logger.Debug("debug_traceBlockByHash", "hash", hash)
 	// Get Tendermint Block
 	resBlock, err := a.backend.GetTendermintBlockByHash(hash)
@@ -234,13 +233,13 @@ func (a *API) TraceBlockByHash(hash common.Hash, config *evmtypes.TraceConfig) (
 // traceBlock configures a new tracer according to the provided configuration, and
 // executes all the transactions contained within. The return value will be one item
 // per transaction, dependent on the requested tracer.
-func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConfig, block *tmrpctypes.ResultBlock) ([]*evmtypes.TxTraceResult, error) {
+func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConfig, block *tmrpctypes.ResultBlock) ([]*tracers.TxTraceResult, error) {
 	txs := block.Block.Txs
 	txsLength := len(txs)
 
 	if txsLength == 0 {
 		// If there are no transactions return empty array
-		return []*evmtypes.TxTraceResult{}, nil
+		return []*tracers.TxTraceResult{}, nil
 	}
 
 	txDecoder := a.clientCtx.TxConfig.TxDecoder()
@@ -288,7 +287,7 @@ func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConf
 		return nil, err
 	}
 
-	decodedResults := make([]*evmtypes.TxTraceResult, txsLength)
+	decodedResults := make([]*tracers.TxTraceResult, txsLength)
 	if err := json.Unmarshal(res.Data, &decodedResults); err != nil {
 		return nil, err
 	}

@@ -4,35 +4,34 @@ import (
 	"bytes"
 	"crypto/sha1"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"math/big"
 	"sort"
-	"strconv"
-
-	"github.com/cosmos/cosmos-sdk/client"
-	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	abci "github.com/tendermint/tendermint/abci/types"
-	"github.com/tendermint/tendermint/mempool"
-	tmproto "github.com/tendermint/tendermint/proto/tendermint/types"
-	tmtypes "github.com/tendermint/tendermint/types"
-
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
+
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/mempool"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	tmproto "github.com/cometbft/cometbft/proto/tendermint/types"
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
+	tmrpccoretypes "github.com/cometbft/cometbft/rpc/core/types"
+	tmtypes "github.com/cometbft/cometbft/types"
+
+	"cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/client"
+	sdk "github.com/cosmos/cosmos-sdk/types"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/cosmos/cosmos-sdk/types/tx/signing"
+	authsigning "github.com/cosmos/cosmos-sdk/x/auth/signing"
+	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	"github.com/tendermint/tendermint/proto/tendermint/crypto"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
-	tmrpccoretypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
-var bAttributeKeyEthereumBloom = []byte(evmtypes.AttributeKeyEthereumBloom)
 var MempoolCapacity = 100
 
 // HashToUint64 used to convert string or hash string to uint64
@@ -50,11 +49,11 @@ func HashToUint64(s string) uint64 {
 	return result
 }
 
-// RawTxToEthTx returns a evm MsgEthereum transaction from raw tx bytes.
+// RawTxToEthTx returns an evm MsgEthereum transaction from raw tx bytes.
 func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEthereumTx, error) {
 	tx, err := clientCtx.TxConfig.TxDecoder()(txBz)
 	if err != nil {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
+		return nil, errors.Wrap(sdkerrors.ErrJSONUnmarshal, err.Error())
 	}
 
 	ethTxs := make([]*evmtypes.MsgEthereumTx, len(tx.GetMsgs()))
@@ -70,20 +69,31 @@ func RawTxToEthTx(clientCtx client.Context, txBz tmtypes.Tx) ([]*evmtypes.MsgEth
 
 func GetBlockBloom(blockResults *tmrpccoretypes.ResultBlockResults) (ethtypes.Bloom, error) {
 	for _, event := range blockResults.EndBlockEvents {
-		if event.Type != evmtypes.EventTypeBlockBloom {
-			continue
-		}
-
-		for _, attr := range event.Attributes {
-			if bytes.Equal(attr.Key, bAttributeKeyEthereumBloom) {
-				return ethtypes.BytesToBloom(attr.Value), nil
+		// <v012 support
+		if event.GetType() == evmtypes.EventTypeBlockBloom {
+			for _, attr := range event.Attributes {
+				if attr.Key == evmtypes.AttributeKeyEthereumBloom {
+					return ethtypes.BytesToBloom([]byte(attr.Value)), nil
+				}
 			}
+		} else {
+			msg, err := sdk.ParseTypedEvent(event)
+			if err != nil {
+				// ignore in case of not typed event (in case of not migrated code)
+				continue
+			}
+
+			bloomEvt, ok := msg.(*evmtypes.EventBlockBloom)
+			if !ok {
+				continue
+			}
+			return ethtypes.BytesToBloom([]byte(bloomEvt.Bloom)), nil
 		}
 	}
-	return ethtypes.Bloom{}, errors.New("block bloom event is not found")
+	return ethtypes.Bloom{}, fmt.Errorf("block bloom event is not found")
 }
 
-// EthHeaderFromTendermint is an util function that returns an Ethereum Header
+// EthHeaderFromTendermint is a util function that returns an Ethereum Header
 // from a tendermint Header.
 func EthHeaderFromTendermint(header tmtypes.Header) (*Header, error) {
 	results, err := tmrpccore.BlockResults(nil, &header.Height)
@@ -138,7 +148,7 @@ func EthBlockFromTendermint(txDecoder sdk.TxDecoder, block *tmtypes.Block, fullT
 	transactions := make([]interface{}, 0, len(block.Txs))
 	for i, tmTx := range block.Txs {
 		if !fullTx {
-			transactions = append(transactions, common.Bytes2Hex(tmTx.Hash()))
+			transactions = append(transactions, fmt.Sprintf("0x%s", common.Bytes2Hex(tmTx.Hash())))
 			continue
 		}
 		blockHash := common.BytesToHash(block.Hash())
@@ -335,7 +345,7 @@ func GetNonEVMSignatures(sig []byte) (v, r, s *big.Int) {
 	return
 }
 
-// GetTxHash get hash depends on what type, unfortunatelly system support two tx hash algo
+// GetTxHash get hash depends on what type, unfortunately system support two tx hash algo
 // in order to have opportunity for off chain tx hash computation
 func GetTxHash(txDecoder sdk.TxDecoder, tmTx tmtypes.Tx) (common.Hash, error) {
 	tx, err := txDecoder(tmTx)
@@ -343,7 +353,7 @@ func GetTxHash(txDecoder sdk.TxDecoder, tmTx tmtypes.Tx) (common.Hash, error) {
 		return common.Hash{}, err
 	}
 	if len(tx.GetMsgs()) == 0 {
-		return common.Hash{}, errors.New("tx contain empty msgs")
+		return common.Hash{}, fmt.Errorf("tx contain empty msgs")
 	}
 	msg := tx.GetMsgs()[0]
 	if ethMsg, ok := msg.(*evmtypes.MsgEthereumTx); ok {
@@ -411,20 +421,39 @@ func TmTxToEthTx(
 		to := new(common.Address)
 		value := new(big.Int).SetInt64(0)
 
-		// cosmos.bank.v1beta1.MsgSend
-		sendTx, ok := msg.(*banktypes.MsgSend)
-		if ok {
-			bFrom, err := sdk.AccAddressFromBech32(sendTx.FromAddress)
+		switch sdkTx := msg.(type) {
+		case stratos.Web3MsgType:
+			web3Msg, err := sdkTx.GetWeb3Msg()
 			if err != nil {
 				return nil, err
 			}
-			bTo, err := sdk.AccAddressFromBech32(sendTx.ToAddress)
+			// Just in case not implemented
+			if web3Msg != nil {
+				if web3Msg.From != nil {
+					from = *web3Msg.From
+				}
+				if web3Msg.To != nil {
+					to = web3Msg.To
+				}
+				if web3Msg.Value != nil {
+					value = web3Msg.Value
+				}
+			}
+
+			// NOTE: As we could not add GetWeb3Msg method, it will be handled directly here
+			// cosmos.bank.v1beta1.MsgSend
+		case *banktypes.MsgSend:
+			bFrom, err := sdk.AccAddressFromBech32(sdkTx.FromAddress)
+			if err != nil {
+				return nil, err
+			}
+			bTo, err := sdk.AccAddressFromBech32(sdkTx.ToAddress)
 			if err != nil {
 				return nil, err
 			}
 			from = common.BytesToAddress(bFrom.Bytes())
 			*to = common.BytesToAddress(bTo.Bytes())
-			value = sendTx.Amount.AmountOf(stratos.Wei).BigInt()
+			value = sdkTx.Amount.AmountOf(stratos.Wei).BigInt()
 		}
 
 		return &Transaction{
@@ -447,14 +476,14 @@ func TmTxToEthTx(
 	}
 }
 
-// NewTransactionFromData returns a transaction that will serialize to the RPC
+// NewRPCTransaction returns a transaction that will serialize to the RPC
 // representation, with the given location metadata set (if available).
 func NewRPCTransaction(
 	tx *ethtypes.Transaction, blockHash *common.Hash, blockNumber, index *uint64,
 ) (*Transaction, error) {
 	// Determine the signer. For replay-protected transactions, use the most permissive
 	// signer, because we assume that signers are backwards-compatible with old
-	// transactions. For non-protected transactions, the homestead signer signer is used
+	// transactions. For non-protected transactions, the homestead signer is used
 	// because the return value of ChainId is zero for those transactions.
 	var signer ethtypes.Signer
 	if tx.Protected() {
@@ -499,126 +528,64 @@ func NewRPCTransaction(
 	return result, nil
 }
 
-// BaseFeeFromEvents parses the feemarket basefee from cosmos events
-func BaseFeeFromEvents(events []abci.Event) *big.Int {
+// FindEthereumTxEvent returns the msg index of the eth tx in cosmos tx, and the tx evt,
+// returns -1 and nil if not found.
+func FindEthereumTxEvent(events []abci.Event, txHash string) (int, *evmtypes.EventEthereumTx) {
+	msgIndex := -1
 	for _, event := range events {
-		if event.Type != evmtypes.EventTypeFeeMarket {
-			continue
-		}
+		var evtEthTx *evmtypes.EventEthereumTx
+		// <v012 support
+		if event.GetType() == evmtypes.EventTypeEthereumTx {
+			msgIndex++
 
-		for _, attr := range event.Attributes {
-			if bytes.Equal(attr.Key, []byte(evmtypes.AttributeKeyBaseFee)) {
-				result, success := new(big.Int).SetString(string(attr.Value), 10)
-				if success {
-					return result
-				}
+			value := FindAttribute(event.Attributes, evmtypes.AttributeKeyEthereumTxHash)
+			if value != txHash {
+				continue
+			}
 
-				return nil
+			// found, convert attributes to map for later lookup
+			attrs := make(map[string]string, len(event.Attributes))
+			for _, attr := range event.Attributes {
+				attrs[attr.Key] = attr.Value
+			}
+
+			evtEthTx = &evmtypes.EventEthereumTx{
+				EthHash:     value,
+				EthTxFailed: attrs[evmtypes.AttributeKeyEthereumTxFailed],
+			}
+		} else {
+			msg, err := sdk.ParseTypedEvent(event)
+			if err != nil {
+				// ignore in case of not typed event (in case of not migrated code)
+				continue
+			}
+
+			var ok bool
+			evtEthTx, ok = msg.(*evmtypes.EventEthereumTx)
+			if !ok {
+				continue
+			}
+
+			msgIndex++
+
+			if evtEthTx.EthHash != txHash {
+				continue
 			}
 		}
-	}
-	return nil
-}
 
-// FindTxAttributes returns the msg index of the eth tx in cosmos tx, and the attributes,
-// returns -1 and nil if not found.
-func FindTxAttributes(events []abci.Event, txHash string) (int, map[string]string) {
-	msgIndex := -1
-	for _, event := range events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
-			continue
-		}
-
-		msgIndex++
-
-		value := FindAttribute(event.Attributes, []byte(evmtypes.AttributeKeyEthereumTxHash))
-		if !bytes.Equal(value, []byte(txHash)) {
-			continue
-		}
-
-		// found, convert attributes to map for later lookup
-		attrs := make(map[string]string, len(event.Attributes))
-		for _, attr := range event.Attributes {
-			attrs[string(attr.Key)] = string(attr.Value)
-		}
-		return msgIndex, attrs
+		return msgIndex, evtEthTx
 	}
 	// not found
-	return -1, nil
-}
-
-// FindTxAttributesByIndex search the msg in tx events by txIndex
-// returns the msgIndex, returns -1 if not found.
-func FindTxAttributesByIndex(events []abci.Event, txIndex uint64) int {
-	strIndex := []byte(strconv.FormatUint(txIndex, 10))
-	txIndexKey := []byte(evmtypes.AttributeKeyTxIndex)
-	msgIndex := -1
-	for _, event := range events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
-			continue
-		}
-
-		msgIndex++
-
-		value := FindAttribute(event.Attributes, txIndexKey)
-		if !bytes.Equal(value, strIndex) {
-			continue
-		}
-
-		// found, convert attributes to map for later lookup
-		return msgIndex
-	}
-	// not found
-	return -1
+	return -1, &evmtypes.EventEthereumTx{}
 }
 
 // FindAttribute find event attribute with specified key, if not found returns nil.
-func FindAttribute(attrs []abci.EventAttribute, key []byte) []byte {
+func FindAttribute(attrs []abci.EventAttribute, key string) string {
 	for _, attr := range attrs {
-		if !bytes.Equal(attr.Key, key) {
+		if attr.GetKey() != key {
 			continue
 		}
 		return attr.Value
 	}
-	return nil
-}
-
-// GetUint64Attribute parses the uint64 value from event attributes
-func GetUint64Attribute(attrs map[string]string, key string) (uint64, error) {
-	value, found := attrs[key]
-	if !found {
-		return 0, fmt.Errorf("tx index attribute not found: %s", key)
-	}
-	var result int64
-	result, err := strconv.ParseInt(value, 10, 64)
-	if err != nil {
-		return 0, err
-	}
-	if result < 0 {
-		return 0, fmt.Errorf("negative tx index: %d", result)
-	}
-	return uint64(result), nil
-}
-
-// AccumulativeGasUsedOfMsg accumulate the gas used by msgs before `msgIndex`.
-func AccumulativeGasUsedOfMsg(events []abci.Event, msgIndex int) (gasUsed uint64) {
-	for _, event := range events {
-		if event.Type != evmtypes.EventTypeEthereumTx {
-			continue
-		}
-
-		if msgIndex < 0 {
-			break
-		}
-		msgIndex--
-
-		value := FindAttribute(event.Attributes, []byte(evmtypes.AttributeKeyTxGasUsed))
-		var result int64
-		result, err := strconv.ParseInt(string(value), 10, 64)
-		if err != nil {
-			continue
-		}
-		gasUsed += uint64(result)
-	}
-	return
+	return ""
 }

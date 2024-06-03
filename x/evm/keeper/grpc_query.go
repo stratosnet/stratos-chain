@@ -12,20 +12,22 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	sdk "github.com/cosmos/cosmos-sdk/types"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/eth/tracers"
-	"github.com/ethereum/go-ethereum/eth/tracers/logger"
+
 	ethparams "github.com/ethereum/go-ethereum/params"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers/logger"
+
+	sdkmath "cosmossdk.io/math"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 var _ types.QueryServer = Keeper{}
@@ -237,9 +239,10 @@ func (k Keeper) EthCall(c context.Context, req *types.EthCallRequest) (*types.Ms
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash()))
 
-	// pass false to not commit StateDB
-	res, err := k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
+	// pass false to not commit
+	res, err := k.ApplyAutoMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
 	if err != nil {
+		// TODO: Add better handling of errors from cosmos msgs (for ethers, web3)
 		return nil, status.Error(codes.Internal, err.Error())
 	}
 
@@ -304,7 +307,7 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
 
 	// Create a helper to check if a gas allowance results in an executable transaction
-	executable := func(gas uint64) (vmerror bool, rsp *types.MsgEthereumTxResponse, err error) {
+	executable := func(gas uint64) (vmerror bool, res *types.MsgEthereumTxResponse, err error) {
 		args.Gas = (*hexutil.Uint64)(&gas)
 
 		msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)
@@ -312,15 +315,30 @@ func (k Keeper) EstimateGas(c context.Context, req *types.EthCallRequest) (*type
 			return false, nil, err
 		}
 
-		// pass false to not commit StateDB
-		rsp, err = k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
+		// pass false to not commit
+		res, err = k.ApplyMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
 		if err != nil {
 			if errors.Is(err, core.ErrIntrinsicGas) {
 				return true, nil, nil // Special case, raise gas limit
 			}
 			return true, nil, err // Bail out
 		}
-		return len(rsp.VmError) > 0, rsp, nil
+		return len(res.VmError) > 0, res, nil
+	}
+
+	// If cosmos msg, we should bypass bin search as only first execution is a correct gas calculation
+	// but required more testing
+	if types.IsCosmosHandler(args.To) {
+		args.Gas = (*hexutil.Uint64)(&hi)
+		msg, err := args.ToMessage(req.GasCap, cfg.BaseFee)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		rsp, err := k.ApplyCosmosMessageWithConfig(ctx, msg, nil, false, cfg, txConfig)
+		if err != nil {
+			return nil, status.Error(codes.Internal, err.Error())
+		}
+		return &types.EstimateGasResponse{Gas: rsp.GasUsed}, nil
 	}
 
 	// Execute the binary search and hone in on an executable gas limit
@@ -388,11 +406,14 @@ func (k Keeper) TraceTx(c context.Context, req *types.QueryTraceTxRequest) (*typ
 		}
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
-		rsp, err := k.ApplyMessageWithConfig(ctx, msg, types.NewNoOpTracer(), true, cfg, txConfig)
+		tracer := tracers.NewNoOpTracer()
+
+		// pass true to commit
+		res, err := k.ApplyAutoMessageWithConfig(ctx, msg, tracer, true, cfg, txConfig)
 		if err != nil {
 			continue
 		}
-		txConfig.LogIndex += uint(len(rsp.Logs))
+		txConfig.LogIndex += uint(len(res.Logs))
 	}
 
 	tx := req.Msg.AsTransaction()
@@ -444,11 +465,11 @@ func (k Keeper) TraceBlock(c context.Context, req *types.QueryTraceBlockRequest)
 	}
 	signer := ethtypes.MakeSigner(cfg.ChainConfig, big.NewInt(ctx.BlockHeight()))
 	txsLength := len(req.Txs)
-	results := make([]*types.TxTraceResult, 0, txsLength)
+	results := make([]*tracers.TxTraceResult, 0, txsLength)
 
 	txConfig := statedb.NewEmptyTxConfig(common.BytesToHash(ctx.HeaderHash().Bytes()))
 	for i, tx := range req.Txs {
-		result := types.TxTraceResult{}
+		result := tracers.TxTraceResult{}
 		ethTx := tx.AsTransaction()
 		txConfig.TxHash = ethTx.Hash()
 		txConfig.TxIndex = uint(i)
@@ -544,10 +565,10 @@ func (k *Keeper) traceTx(
 		}
 		tracer = logger.NewStructLogger(&logConfig)
 	default:
-		tracer = types.NewTracer(types.TracerStruct, msg, cfg.ChainConfig, ctx.BlockHeight())
+		tracer = tracers.NewTracer(tracers.TracerStruct, msg, cfg.ChainConfig, ctx.BlockHeight())
 	}
 
-	res, err := k.ApplyMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
+	res, err := k.ApplyAutoMessageWithConfig(ctx, msg, tracer, commitMessage, cfg, txConfig)
 	if err != nil {
 		return nil, 0, status.Error(codes.Internal, err.Error())
 	}
@@ -564,11 +585,11 @@ func (k *Keeper) traceTx(
 		} else {
 			returnVal = fmt.Sprintf("%x", res.Return())
 		}
-		result = types.ExecutionResult{
+		result = tracers.ExecutionResult{
 			Gas:         res.GasUsed,
 			Failed:      res.Failed(),
 			ReturnValue: returnVal,
-			StructLogs:  types.FormatLogs(tracer.StructLogs()),
+			StructLogs:  tracers.FormatLogs(tracer.StructLogs()),
 		}
 	case tracers.Tracer:
 		result, err = tracer.GetResult()
@@ -593,7 +614,24 @@ func (k Keeper) BaseFee(c context.Context, _ *types.QueryBaseFeeRequest) (*types
 
 	res := &types.QueryBaseFeeResponse{}
 	if baseFee != nil {
-		aux := sdk.NewIntFromBigInt(baseFee)
+		aux := sdkmath.NewIntFromBigInt(baseFee)
+		res.BaseFee = &aux
+	}
+
+	return res, nil
+}
+
+// BaseFeeV011 implements the Query/BaseFee gRPC method for old blocks
+func (k Keeper) BaseFeeV011(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	params := k.GetParamsV011(ctx)
+	ethCfg := params.ChainConfig.EthereumConfig()
+	baseFee := k.GetBaseFeeV011(ctx, ethCfg)
+
+	res := &types.QueryBaseFeeResponse{}
+	if baseFee != nil {
+		aux := sdkmath.NewIntFromBigInt(baseFee)
 		res.BaseFee = &aux
 	}
 
@@ -608,7 +646,22 @@ func (k Keeper) BaseFeeParam(c context.Context, _ *types.QueryBaseFeeRequest) (*
 	baseFee := k.GetBaseFeeParam(ctx)
 
 	if baseFee != nil {
-		aux := sdk.NewIntFromBigInt(baseFee)
+		aux := sdkmath.NewIntFromBigInt(baseFee)
+		res.BaseFee = &aux
+	}
+
+	return res, nil
+}
+
+// BaseFeeParamV011 implements the Query/BaseFeeParam gRPC method for old blocks
+func (k Keeper) BaseFeeParamV011(c context.Context, _ *types.QueryBaseFeeRequest) (*types.QueryBaseFeeResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	res := &types.QueryBaseFeeResponse{}
+	baseFee := k.GetBaseFeeParamV011(ctx)
+
+	if baseFee != nil {
+		aux := sdkmath.NewIntFromBigInt(baseFee)
 		res.BaseFee = &aux
 	}
 

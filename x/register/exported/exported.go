@@ -1,9 +1,11 @@
 package exported
 
 import (
+	sdkmath "cosmossdk.io/math"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
+
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -14,7 +16,7 @@ type ResourceNodeI interface {
 	GetStatus() stakingtypes.BondStatus // status of the node
 	GetPubKey() cryptotypes.PubKey      // pubkey of the node
 	GetNetworkAddr() stratos.SdsAddress // network address of the node
-	GetTokens() sdk.Int                 // deposit tokens of the node
+	GetTokens() sdkmath.Int             // deposit tokens of the node
 	GetOwnerAddr() sdk.AccAddress       // owner address of the node
 	GetNodeType() string                // node type
 }
@@ -26,6 +28,6 @@ type MetaNodeI interface {
 	GetStatus() stakingtypes.BondStatus // status of the node
 	GetPubKey() cryptotypes.PubKey      // pubkey of the node
 	GetNetworkAddr() stratos.SdsAddress // network address of the node
-	GetTokens() sdk.Int                 // deposit tokens of the node
+	GetTokens() sdkmath.Int             // deposit tokens of the node
 	GetOwnerAddr() sdk.AccAddress       // owner address of the node
 }

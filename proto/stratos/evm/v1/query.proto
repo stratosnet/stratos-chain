@@ -2,6 +2,7 @@ syntax = "proto3";
 package stratos.evm.v1;
 
 import "gogoproto/gogo.proto";
+import "cosmos_proto/cosmos.proto";
 import "cosmos/base/query/v1beta1/pagination.proto";
 import "google/api/annotations.proto";
 import "stratos/evm/v1/evm.proto";
@@ -295,8 +296,10 @@ message QueryBaseFeeRequest {}
 
 // BaseFeeResponse returns the EIP1559 base fee.
 message QueryBaseFeeResponse {
-  string base_fee = 1
-  [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"];
+  string base_fee = 1 [
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
 }
 
 // QueryBlockGasRequest defines the request type for querying the EIP1559 base

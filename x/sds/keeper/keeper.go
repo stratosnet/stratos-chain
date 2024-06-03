@@ -1,22 +1,17 @@
 package keeper
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/kelindar/bitmap"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"github.com/cometbft/cometbft/libs/log"
 
+	"cosmossdk.io/errors"
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	bankKeeper "github.com/cosmos/cosmos-sdk/x/bank/keeper"
-	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
 	stratos "github.com/stratosnet/stratos-chain/types"
-	potKeeper "github.com/stratosnet/stratos-chain/x/pot/keeper"
-	registerKeeper "github.com/stratosnet/stratos-chain/x/register/keeper"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
@@ -24,12 +19,15 @@ import (
 // Keeper encodes/decodes files using the go-amino (binary)
 // encoding/decoding library.
 type Keeper struct {
-	key            sdk.StoreKey
+	storeKey       storetypes.StoreKey
 	cdc            codec.Codec
-	paramSpace     paramtypes.Subspace
-	bankKeeper     bankKeeper.Keeper
-	registerKeeper registerKeeper.Keeper
-	potKeeper      potKeeper.Keeper
+	bankKeeper     types.BankKeeper
+	registerKeeper types.RegisterKeeper
+	potKeeper      types.PotKeeper
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
 }
 
 // NewKeeper returns a new sdk.NewKeeper that uses go-amino to
@@ -37,25 +35,25 @@ type Keeper struct {
 // nolint
 func NewKeeper(
 	cdc codec.Codec,
-	key sdk.StoreKey,
-	paramSpace paramtypes.Subspace,
-	bankKeeper bankKeeper.Keeper,
-	registerKeeper registerKeeper.Keeper,
-	potKeeper potKeeper.Keeper,
+	storeKey storetypes.StoreKey,
+	bankKeeper types.BankKeeper,
+	registerKeeper types.RegisterKeeper,
+	potKeeper types.PotKeeper,
+	authority string,
 ) Keeper {
 	return Keeper{
-		key:            key,
+		storeKey:       storeKey,
 		cdc:            cdc,
-		paramSpace:     paramSpace.WithKeyTable(types.ParamKeyTable()),
 		bankKeeper:     bankKeeper,
 		registerKeeper: registerKeeper,
 		potKeeper:      potKeeper,
+		authority:      authority,
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", fmt.Sprintf("x/%s", types.ModuleName))
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
 func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.SdsAddress, reporterOwner, uploader sdk.AccAddress) (err error) {
@@ -73,7 +71,7 @@ func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.Sd
 	}
 	reporterIndex, err := k.registerKeeper.GetMetaNodeBitMapIndex(ctx, reporter)
 	fileUploadReporters.Set(uint32(reporterIndex))
-	height := sdk.NewInt(ctx.BlockHeight())
+	height := sdkmath.NewInt(ctx.BlockHeight())
 
 	newFileInfo := types.NewFileInfo(height, fileUploadReporters.ToBytes(), uploader.String())
 
@@ -87,56 +85,45 @@ func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.Sd
 // The remaining total Ozone limit [Lt] is the upper bound of the total Ozone that users can purchase from the Stratos blockchain.
 // [X] is the total amount of STOS token prepaid by user at time t
 // the total amount of Ozone the user gets = Lt * X / (S + Pt + X)
-func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdk.Int) (sdk.Int, error) {
-	St := k.registerKeeper.GetEffectiveTotalDeposit(ctx)
-	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
-	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)
-
-	purchased := Lt.ToDec().
-		Mul(amount.ToDec()).
-		Quo((St.
-			Add(Pt).
-			Add(amount)).ToDec()).
-		TruncateInt()
-
-	if purchased.GT(Lt) {
-		return sdk.ZeroInt(), errors.New("not enough remaining ozone limit to complete prepay")
+func (k Keeper) purchaseNozAndSubCoins(ctx sdk.Context, from sdk.AccAddress, amount sdkmath.Int) (sdkmath.Int, error) {
+	purchased, newRemainingOzoneLimit, err := k.registerKeeper.CalculatePurchaseAmount(ctx, amount)
+	if err != nil {
+		return sdkmath.ZeroInt(), err
 	}
 	// send coins to total unissued prepay pool
 	prepayAmt := sdk.NewCoin(k.BondDenom(ctx), amount)
-	err := k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))
+	err = k.bankKeeper.SendCoinsFromAccountToModule(ctx, from, registertypes.TotalUnissuedPrepay, sdk.NewCoins(prepayAmt))
 	if err != nil {
-		return sdk.ZeroInt(), err
+		return sdkmath.ZeroInt(), err
 	}
 
 	// update remaining noz limit
-	newRemainingOzoneLimit := Lt.Sub(purchased)
 	k.registerKeeper.SetRemainingOzoneLimit(ctx, newRemainingOzoneLimit)
 
 	return purchased, nil
 }
 
-func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, coins sdk.Coins) sdk.Int {
+func (k Keeper) simulatePurchaseNoz(ctx sdk.Context, coins sdk.Coins) sdkmath.Int {
 	amount := coins.AmountOf(k.BondDenom(ctx))
 
 	St := k.registerKeeper.GetEffectiveTotalDeposit(ctx)
 	Pt := k.registerKeeper.GetTotalUnissuedPrepay(ctx).Amount
 	Lt := k.registerKeeper.GetRemainingOzoneLimit(ctx)
-	purchased := Lt.ToDec().
-		Mul(amount.ToDec()).
+	purchased := Lt.ToLegacyDec().
+		Mul(amount.ToLegacyDec()).
 		Quo((St.
 			Add(Pt).
-			Add(amount)).ToDec()).
+			Add(amount)).ToLegacyDec()).
 		TruncateInt()
 	return purchased
 }
 
-// Prepay transfers coins from bank to sds (volumn) pool
-func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdk.Int, error) {
+// Prepay transfers coins from bank to sds (volume) pool
+func (k Keeper) Prepay(ctx sdk.Context, sender sdk.AccAddress, coins sdk.Coins) (sdkmath.Int, error) {
 	validPrepayAmt := coins.AmountOf(k.BondDenom(ctx))
 	hasCoin := k.bankKeeper.HasBalance(ctx, sender, sdk.NewCoin(k.BondDenom(ctx), validPrepayAmt))
 	if !hasCoin {
-		return sdk.ZeroInt(), sdkerrors.Wrapf(sdkerrors.ErrInsufficientFunds, "Insufficient balance in the acc %s", sender.String())
+		return sdkmath.ZeroInt(), errors.Wrapf(sdkerrors.ErrInsufficientFunds, "Insufficient balance in the acc %s", sender.String())
 	}
 
 	return k.purchaseNozAndSubCoins(ctx, sender, validPrepayAmt)

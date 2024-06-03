@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/spf13/cobra"
+
+	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/version"
-	"github.com/spf13/cobra"
+
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -92,7 +94,7 @@ $ %s query sds upload c03661732294feb49caf6dc16c7cbb2534986d73
 
 			queryFileHash := strings.TrimSpace(args[0][:])
 			if len(queryFileHash) == 0 {
-				return sdkerrors.Wrap(types.ErrEmptyFileHash, "Missing file hash")
+				return errors.Wrap(types.ErrEmptyFileHash, "Missing file hash")
 			}
 
 			result, err := queryClient.Fileupload(cmd.Context(), &types.QueryFileUploadRequest{

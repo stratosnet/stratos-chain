@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
@@ -24,20 +25,23 @@ type CacheStatus struct {
 }
 
 // NewMetaNode - initialize a new meta node
-func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
+func NewMetaNode(networkAddr stratos.SdsAddress, pubKey cryptotypes.PubKey, ownerAddr sdk.AccAddress,
+	beneficiaryAddress sdk.AccAddress, description Description, creationTime time.Time) (MetaNode, error) {
+
 	pkAny, err := codectypes.NewAnyWithValue(pubKey)
 	if err != nil {
 		return MetaNode{}, err
 	}
 	return MetaNode{
-		NetworkAddress: networkAddr.String(),
-		Pubkey:         pkAny,
-		Suspend:        true,
-		Status:         stakingtypes.Unbonded,
-		Tokens:         sdk.ZeroInt(),
-		OwnerAddress:   ownerAddr.String(),
-		Description:    description,
-		CreationTime:   creationTime,
+		NetworkAddress:     networkAddr.String(),
+		Pubkey:             pkAny,
+		Suspend:            true,
+		Status:             stakingtypes.Unbonded,
+		Tokens:             sdkmath.ZeroInt(),
+		OwnerAddress:       ownerAddr.String(),
+		BeneficiaryAddress: beneficiaryAddress.String(),
+		Description:        description,
+		CreationTime:       creationTime,
 	}, nil
 }
 
@@ -61,20 +65,21 @@ func (v MetaNode) ConvertToString() string {
  		Status:				%s
  		Tokens:				%s
 		Owner Address: 		%s
+        Beneficiary Address %s
  		Description:		%s
 		CreationTime:		%s
 	}`, v.GetNetworkAddress(), pubKey, v.GetSuspend(), v.GetStatus(),
-		v.Tokens, v.GetOwnerAddress(), v.GetDescription(), v.GetCreationTime())
+		v.Tokens, v.GetOwnerAddress(), v.GetBeneficiaryAddress(), v.GetDescription(), v.GetCreationTime())
 }
 
 // AddToken adds tokens to a meta node
-func (v MetaNode) AddToken(amount sdk.Int) MetaNode {
+func (v MetaNode) AddToken(amount sdkmath.Int) MetaNode {
 	v.Tokens = v.Tokens.Add(amount)
 	return v
 }
 
 // SubToken removes tokens from a meta node
-func (v MetaNode) SubToken(amount sdk.Int) MetaNode {
+func (v MetaNode) SubToken(amount sdkmath.Int) MetaNode {
 	if amount.IsNegative() {
 		panic(fmt.Sprintf("should not happen: trying to remove negative tokens %v", amount))
 	}
@@ -118,7 +123,13 @@ func (v MetaNode) Validate() error {
 	if ownerAddr.Empty() {
 		return ErrEmptyOwnerAddr
 	}
-	if v.Tokens.LT(sdk.ZeroInt()) {
+
+	_, err = sdk.AccAddressFromBech32(v.GetBeneficiaryAddress())
+	if err != nil {
+		return err
+	}
+
+	if v.Tokens.LT(sdkmath.ZeroInt()) {
 		return ErrValueNegative
 	}
 	if v.GetDescription().Moniker == "" {
@@ -142,9 +153,14 @@ func (v MetaNode) IsUnBonding() bool {
 	return v.GetStatus() == stakingtypes.Unbonding
 }
 
+// IsActivate get active state defined in MetaNode
+func (v MetaNode) IsActivate() bool {
+	return v.GetStatus() == stakingtypes.Bonded && !v.GetSuspend()
+}
+
 // MustMarshalMetaNode returns the metaNode bytes. Panics if fails
 func MustMarshalMetaNode(cdc codec.Codec, metaNode MetaNode) []byte {
-	return cdc.MustMarshal(&metaNode)
+	return cdc.MustMarshalLengthPrefixed(&metaNode)
 }
 
 // MustUnmarshalMetaNode unmarshal an meta node from a store value. Panics if fails
@@ -158,7 +174,7 @@ func MustUnmarshalMetaNode(cdc codec.Codec, value []byte) MetaNode {
 
 // UnmarshalMetaNode unmarshal an meta node from a store value
 func UnmarshalMetaNode(cdc codec.Codec, value []byte) (metaNode MetaNode, err error) {
-	err = cdc.Unmarshal(value, &metaNode)
+	err = cdc.UnmarshalLengthPrefixed(value, &metaNode)
 	return metaNode, err
 }
 
@@ -219,21 +235,27 @@ func (v VoteOpinion) String() string {
 	}
 }
 
-func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, approveList []stratos.SdsAddress, rejectList []stratos.SdsAddress, expireTime time.Time) MetaNodeRegistrationVotePool {
-	approveSlice := make([]string, len(approveList))
-	rejectSlice := make([]string, len(rejectList))
-	for _, approval := range approveList {
-		approveSlice = append(approveSlice, approval.String())
-	}
-	for _, reject := range rejectList {
-		rejectSlice = append(rejectSlice, reject.String())
-	}
+func NewRegistrationVotePool(nodeAddress stratos.SdsAddress, expireTime time.Time) MetaNodeRegistrationVotePool {
+	var approveList = make([]string, 0)
+	var rejectList = make([]string, 0)
 	return MetaNodeRegistrationVotePool{
 		NetworkAddress: nodeAddress.String(),
-		ApproveList:    approveSlice,
-		RejectList:     rejectSlice,
+		ApproveList:    approveList,
+		RejectList:     rejectList,
 		ExpireTime:     expireTime,
 		IsVotePassed:   false,
+	}
+}
+
+func NewKickMetaNodeVotePool(targetNetworkAddress stratos.SdsAddress, expireTime time.Time) KickMetaNodeVotePool {
+	var approveList = make([]string, 0)
+	var rejectList = make([]string, 0)
+	return KickMetaNodeVotePool{
+		TargetNetworkAddress: targetNetworkAddress.String(),
+		ApproveList:          approveList,
+		RejectList:           rejectList,
+		ExpireTime:           expireTime,
+		IsVotePassed:         false,
 	}
 }
 

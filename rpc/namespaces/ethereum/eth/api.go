@@ -12,8 +12,9 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/tendermint/tendermint/libs/log"
-	tmrpctypes "github.com/tendermint/tendermint/rpc/core/types"
+	abci "github.com/cometbft/cometbft/abci/types"
+	"github.com/cometbft/cometbft/libs/log"
+	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
@@ -30,6 +31,7 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
 
+	tmrpccore "github.com/cometbft/cometbft/rpc/core"
 	"github.com/stratosnet/stratos-chain/crypto/hd"
 	"github.com/stratosnet/stratos-chain/ethereum/eip712"
 	"github.com/stratosnet/stratos-chain/rpc/backend"
@@ -37,7 +39,6 @@ import (
 	rpctypes "github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
-	tmrpccore "github.com/tendermint/tendermint/rpc/core"
 )
 
 // PublicAPI is the eth_ prefixed set of APIs in the Web3 JSON-RPC spec.
@@ -66,6 +67,7 @@ func NewPublicAPI(
 			viper.GetString(flags.FlagKeyringBackend),
 			clientCtx.KeyringDir,
 			clientCtx.Input,
+			clientCtx.Codec,
 			hd.EthSecp256k1Option(),
 		)
 		if err != nil {
@@ -134,18 +136,18 @@ func (e *PublicAPI) Syncing() (interface{}, error) {
 		return false, nil
 	}
 
-	status, err := tmrpccore.Status(nil)
+	tmStatus, err := tmrpccore.Status(nil)
 	if err != nil {
 		return false, err
 	}
 
-	if !status.SyncInfo.CatchingUp {
+	if !tmStatus.SyncInfo.CatchingUp {
 		return false, nil
 	}
 
 	return map[string]interface{}{
-		"startingBlock": hexutil.Uint64(status.SyncInfo.EarliestBlockHeight),
-		"currentBlock":  hexutil.Uint64(status.SyncInfo.LatestBlockHeight),
+		"startingBlock": hexutil.Uint64(tmStatus.SyncInfo.EarliestBlockHeight),
+		"currentBlock":  hexutil.Uint64(tmStatus.SyncInfo.LatestBlockHeight),
 		"highestBlock":  nil, // NA
 		"pulledStates":  nil, // NA
 		"knownStates":   nil, // NA
@@ -227,8 +229,11 @@ func (e *PublicAPI) Accounts() ([]common.Address, error) {
 	}
 
 	for _, info := range infos {
-		addressBytes := info.GetPubKey().Address().Bytes()
-		addresses = append(addresses, common.BytesToAddress(addressBytes))
+		addr, err := info.GetAddress()
+		if err != nil {
+			continue
+		}
+		addresses = append(addresses, common.BytesToAddress(addr.Bytes()))
 	}
 
 	return addresses, nil
@@ -398,7 +403,7 @@ func (e *PublicAPI) GetTransactionLogs(txHash common.Hash) ([]*ethtypes.Log, err
 		return nil, nil
 	}
 
-	msgIndex, _ := rpctypes.FindTxAttributes(res.TxResult.Events, hexTx)
+	msgIndex, _ := rpctypes.FindEthereumTxEvent(res.TxResult.Events, hexTx)
 	if msgIndex < 0 {
 		return nil, fmt.Errorf("ethereum tx not found in msgs: %s", hexTx)
 	}
@@ -628,7 +633,7 @@ func (e *PublicAPI) doCall(
 
 	// return if requested block height is greater than the current one or chain not synced
 	if resBlock == nil || resBlock.Block == nil {
-		return nil, nil
+		return nil, fmt.Errorf("block not found '%d'", blockNr.Int64())
 	}
 
 	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
@@ -792,7 +797,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 		cumulativeGasUsed += rpctypes.GetBlockCumulativeGas(blockResults, int(*rpcTx.TransactionIndex))
 	}
 
-	_, attrs := rpctypes.FindTxAttributes(res.TxResult.Events, hash.Hex())
+	_, evtEthTx := rpctypes.FindEthereumTxEvent(res.TxResult.Events, hash.Hex())
 
 	var (
 		contractAddress *common.Address
@@ -800,17 +805,16 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 		logs            = make([]*ethtypes.Log, 0)
 	)
 	// Set status codes based on tx result
-	status := ethtypes.ReceiptStatusSuccessful
-	if res.TxResult.GetCode() == 1 {
-		status = ethtypes.ReceiptStatusFailed
+	receiptStatus := ethtypes.ReceiptStatusSuccessful
+	if res.TxResult.GetCode() != abci.CodeTypeOK {
+		receiptStatus = ethtypes.ReceiptStatusFailed
 	} else {
 		// Get the transaction result from the log
-		_, found := attrs[evmtypes.AttributeKeyEthereumTxFailed]
-		if found {
-			status = ethtypes.ReceiptStatusFailed
+		if evtEthTx.EthTxFailed != "" {
+			receiptStatus = ethtypes.ReceiptStatusFailed
 		}
 
-		if status == ethtypes.ReceiptStatusSuccessful {
+		if receiptStatus == ethtypes.ReceiptStatusSuccessful {
 			// parse tx logs from events
 			logs, err = backend.TxLogsFromEvents(res.TxResult.Events, 0)
 			if err != nil {
@@ -848,7 +852,7 @@ func (e *PublicAPI) GetTransactionReceipt(hash common.Hash) (*rpctypes.Transacti
 	}
 
 	receipt := &rpctypes.TransactionReceipt{
-		Status:            hexutil.Uint64(status),
+		Status:            hexutil.Uint64(receiptStatus),
 		CumulativeGasUsed: hexutil.Uint64(cumulativeGasUsed),
 		LogsBloom:         bloom,
 		Logs:              logs,

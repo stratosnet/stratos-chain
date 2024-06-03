@@ -3,23 +3,29 @@ package keeper
 import (
 	"math/big"
 
-	"github.com/tendermint/tendermint/libs/log"
+	"reflect"
 
+	"github.com/cometbft/cometbft/libs/log"
+
+	"cosmossdk.io/errors"
+	"github.com/cosmos/cosmos-sdk/baseapp"
 	"github.com/cosmos/cosmos-sdk/codec"
 	"github.com/cosmos/cosmos-sdk/store/prefix"
+	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	paramtypes "github.com/cosmos/cosmos-sdk/x/params/types"
-
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
+
 	"github.com/ethereum/go-ethereum/params"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/evm/statedb"
+	"github.com/stratosnet/stratos-chain/x/evm/tracers"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
+	"github.com/stratosnet/stratos-chain/x/evm/vm"
 )
 
 // Keeper grants access to the EVM module state and implements the go-ethereum StateDB interface.
@@ -31,66 +37,118 @@ type Keeper struct {
 	// - storing account's Code
 	// - storing transaction Logs
 	// - storing Bloom filters by block height. Needed for the Web3 API.
-	storeKey sdk.StoreKey
+	storeKey storetypes.StoreKey
 
-	// key to access the transient store, which is reset on every block during Commit
-	transientKey sdk.StoreKey
-
+	// LEGACY: Required for <v012 data read
 	// module specific parameter space that can be configured through governance
 	paramSpace paramtypes.Subspace
+
+	// key to access the transient store, which is reset on every block during Commit
+	transientKey storetypes.StoreKey
+
 	// access to account state
 	accountKeeper types.AccountKeeper
 	// update balance and accounting operations with coins
 	bankKeeper types.BankKeeper
 	// access historical headers for EVM state transition execution
 	stakingKeeper types.StakingKeeper
-	// access for pot functionality with related keeper
-	potKeeper types.PotKeeper
 
 	// Tracer used to collect execution traces from the EVM transaction execution
 	tracer string
 
+	// genesisContractVerifier verifies is contract is trusted in order to allow curtain opcodes
+	verifier *vm.GenesisContractVerifier
+
 	// EVM Hooks for tx post-processing
 	hooks types.EvmHooks
+
+	msgServiceRouter *baseapp.MsgServiceRouter
+
+	// the address capable of executing a MsgUpdateParams message. Typically, this
+	// should be the x/gov module account.
+	authority string
+	// cosmos events to execute when all execution passed
+	events sdk.Events
 }
 
 // NewKeeper generates new evm module keeper
 func NewKeeper(
 	cdc codec.BinaryCodec,
-	storeKey, transientKey sdk.StoreKey, paramSpace paramtypes.Subspace,
+	storeKey storetypes.StoreKey,
 	ak types.AccountKeeper, bankKeeper types.BankKeeper, sk types.StakingKeeper,
-	tracer string,
+	authority string,
 ) *Keeper {
 	// ensure evm module account is set
 	if addr := ak.GetModuleAddress(types.ModuleName); addr == nil {
 		panic("the EVM module account has not been set")
 	}
 
-	// set KeyTable if it has not already been set
-	if !paramSpace.HasKeyTable() {
-		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
-	}
-
 	// NOTE: we pass in the parameter space to the CommitStateDB in order to use custom denominations for the EVM operations
 	return &Keeper{
 		cdc:           cdc,
-		paramSpace:    paramSpace,
 		accountKeeper: ak,
 		bankKeeper:    bankKeeper,
 		stakingKeeper: sk,
 		storeKey:      storeKey,
-		transientKey:  transientKey,
-		tracer:        tracer,
+		events:        make(sdk.Events, 0, 12),
+		authority:     authority,
+		verifier:      vm.NewGenesisContractVerifier(),
 	}
 }
 
 // Logger returns a module-specific logger.
 func (k Keeper) Logger(ctx sdk.Context) log.Logger {
-	return ctx.Logger().With("module", types.ModuleName)
+	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-func (k *Keeper) SetPotKeeper(potk types.PotKeeper) {
-	k.potKeeper = potk
+func (k *Keeper) SetTransientKey(transientKey storetypes.StoreKey) {
+	k.transientKey = transientKey
+}
+
+// LEGACY BUT REQUIRED
+func (k *Keeper) SetParamSpace(paramSpace paramtypes.Subspace) {
+	if !reflect.DeepEqual(k.paramSpace, paramtypes.Subspace{}) {
+		return
+	}
+	// set KeyTable if it has not already been set
+	if !paramSpace.HasKeyTable() {
+		paramSpace = paramSpace.WithKeyTable(types.ParamKeyTable())
+	}
+	k.paramSpace = paramSpace
+}
+
+func (k *Keeper) SetMsgServiceRouter(msgServiceRouter *baseapp.MsgServiceRouter) {
+	k.msgServiceRouter = msgServiceRouter
+}
+
+func (k *Keeper) SetTracer(tracer string) {
+	k.tracer = tracer
+}
+
+// cosmos events
+func (k *Keeper) AddEvents(events sdk.Events) {
+	k.events = append(k.events, events...)
+}
+
+func (k *Keeper) AddTypedEvents(tevs []proto.Message) error {
+	tmpEvts := make(sdk.Events, len(tevs))
+	for i, tev := range tevs {
+		res, err := sdk.TypedEventToEvent(tev)
+		if err != nil {
+			return err
+		}
+		tmpEvts[i] = res
+	}
+
+	k.events = append(k.events, tmpEvts...)
+	return nil
+}
+
+func (k *Keeper) ApplyEvents(ctx sdk.Context, isVmError bool) {
+	if len(k.events) > 0 && !isVmError {
+		ctx.EventManager().EmitEvents(k.events)
+	}
+	k.events = k.events[:0] // clear prvious events to avoid conflicts
 }
 
 // ----------------------------------------------------------------------------
@@ -99,13 +157,10 @@ func (k *Keeper) SetPotKeeper(potk types.PotKeeper) {
 // ----------------------------------------------------------------------------
 
 // EmitBlockBloomEvent emit block bloom events
-func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) {
-	ctx.EventManager().EmitEvent(
-		sdk.NewEvent(
-			types.EventTypeBlockBloom,
-			sdk.NewAttribute(types.AttributeKeyEthereumBloom, string(bloom.Bytes())),
-		),
-	)
+func (k Keeper) EmitBlockBloomEvent(ctx sdk.Context, bloom ethtypes.Bloom) error {
+	return ctx.EventManager().EmitTypedEvent(&types.EventBlockBloom{
+		Bloom: bloom.Bytes(),
+	})
 }
 
 // GetBlockBloomTransient returns bloom bytes for the current block height
@@ -192,7 +247,7 @@ func (k Keeper) GetAccountStorage(ctx sdk.Context, address common.Address) types
 // ----------------------------------------------------------------------------
 
 // SetHooks sets the hooks for the EVM module
-// It should be called only once during initialization, it panic if called more than once.
+// It should be called only once during initialization, it panics if called more than once.
 func (k *Keeper) SetHooks(eh types.EvmHooks) *Keeper {
 	if k.hooks != nil {
 		panic("cannot set evm hooks twice")
@@ -212,10 +267,10 @@ func (k *Keeper) PostTxProcessing(ctx sdk.Context, msg core.Message, receipt *et
 
 // Tracer return a default vm.Tracer based on current keeper state
 func (k Keeper) Tracer(ctx sdk.Context, msg core.Message, ethCfg *params.ChainConfig) vm.EVMLogger {
-	return types.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
+	return tracers.NewTracer(k.tracer, msg, ethCfg, ctx.BlockHeight())
 }
 
-// GetAccountWithoutBalance load nonce and codehash without balance,
+// GetAccountWithoutBalance load nonce and  codehash without balance,
 // more efficient in cases where balance is not needed.
 func (k *Keeper) GetAccountWithoutBalance(ctx sdk.Context, addr common.Address) *statedb.Account {
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
@@ -264,12 +319,12 @@ func (k *Keeper) GetNonce(ctx sdk.Context, addr common.Address) uint64 {
 // GetBalance load account's balance of gas token
 func (k *Keeper) GetBalance(ctx sdk.Context, addr common.Address) *big.Int {
 	cosmosAddr := sdk.AccAddress(addr.Bytes())
-	params := k.GetParams(ctx)
-	coin := k.bankKeeper.GetBalance(ctx, cosmosAddr, params.EvmDenom)
+	evmParams := k.GetParams(ctx)
+	coin := k.bankKeeper.GetBalance(ctx, cosmosAddr, evmParams.EvmDenom)
 	return coin.Amount.BigInt()
 }
 
-// BaseFee returns current base fee, return values:
+// GetBaseFee returns current base fee, return values:
 // - `nil`: london hardfork not enabled.
 // - `0`: london hardfork enabled but feemarket is not enabled.
 // - `n`: both london hardfork and feemarket are enabled.
@@ -312,7 +367,7 @@ func (k Keeper) SetTransientGasUsed(ctx sdk.Context, gasUsed uint64) {
 func (k Keeper) AddTransientGasUsed(ctx sdk.Context, gasUsed uint64) (uint64, error) {
 	result := k.GetTransientGasUsed(ctx) + gasUsed
 	if result < gasUsed {
-		return 0, sdkerrors.Wrap(types.ErrGasOverflow, "transient gas used")
+		return 0, errors.Wrap(types.ErrGasOverflow, "transient gas used")
 	}
 	k.SetTransientGasUsed(ctx, result)
 	return result, nil
