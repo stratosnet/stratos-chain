@@ -895,7 +895,7 @@ func opPpfd(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 	// we need to add 32 bytes as it contains a length.
 	data := scope.Memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
-	ret, returnGas, err := interpreter.evm.Context.ParseProtoFromData(data[32:], gas)
+	ret, gasUsed, err := interpreter.evm.Context.ParseProtoFromData(data[32:], gas)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -907,7 +907,7 @@ func opPpfd(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) ([]byt
 		ret = common.CopyBytes(ret)
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	scope.Contract.Gas += returnGas
+	scope.Contract.Gas += gas - gasUsed
 
 	interpreter.returnData = ret
 	return ret, nil
@@ -973,7 +973,7 @@ func opRunSdkMsg(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (
 		return nil, ErrExecutionReverted
 	}
 
-	ret, returnGas, err := interpreter.evm.Context.RunSdkMsg(addr, data, gas)
+	ret, gasUsed, err := interpreter.evm.Context.RunSdkMsg(addr, data, gas)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -985,7 +985,7 @@ func opRunSdkMsg(pc *uint64, interpreter *EVMInterpreter, scope *ScopeContext) (
 		ret = common.CopyBytes(ret)
 		scope.Memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	scope.Contract.Gas += returnGas
+	scope.Contract.Gas += gas - gasUsed
 
 	interpreter.returnData = ret
 	return ret, nil
