@@ -1036,8 +1036,8 @@ github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An
 github.com/spf13/viper v1.3.2/go.mod h1:ZiWeW+zYFKm7srdB9IoDzzZXaJaI5eL9QjNiN/DMA2s=
 github.com/spf13/viper v1.18.2 h1:LUXCnvUvSM6FXAsj6nnfc8Q2tp1dIgUfY9Kc8GsSOiQ=
 github.com/spf13/viper v1.18.2/go.mod h1:EKmWIqdnk5lOcmR72yw6hS+8OPYcwD0jteitLMVB+yk=
-github.com/stratosnet/cometbft v0.37.6-0.20240521175719-59bc70e0cc73 h1:D0wJLqeVdj6/KgtIUOknaEEYo+6Zz956I+iSq+qTsrs=
-github.com/stratosnet/cometbft v0.37.6-0.20240521175719-59bc70e0cc73/go.mod h1:QC+mU0lBhKn8r9qvmnq53Dmf3DWBt4VtkcKw2C81wxY=
+github.com/stratosnet/cometbft v0.37.6-0.20240620154138-dc955d478115 h1:Mc90IpZrL2Wd6zLMhK342kRysRbb0vMMKnO5ptDc5Yw=
+github.com/stratosnet/cometbft v0.37.6-0.20240620154138-dc955d478115/go.mod h1:QC+mU0lBhKn8r9qvmnq53Dmf3DWBt4VtkcKw2C81wxY=
 github.com/stratosnet/cosmos-sdk v0.47.12-0.20240521173001-c32cdc9a1e54 h1:8uIe3hXJaPg/cgd6FqHSdiy8ntQQtzuA2C+3aFZTtkI=
 github.com/stratosnet/cosmos-sdk v0.47.12-0.20240521173001-c32cdc9a1e54/go.mod h1:c7xno1ENztUrUOqZ70W5gi0pTh3pT/3C6O0y1WzHSwU=
 github.com/stratosnet/ledger-stratos-go v0.0.0-20230728214905-432bf09f4b6c h1:EuJdqCo1DYeKjkXaIYNnU7WIFmu+FzJwJtzYhY3sQpQ=
