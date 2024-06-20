@@ -241,7 +241,7 @@ replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// use stratos fork of cometbft: fork/v0.37.5
-	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.6-0.20240521175719-59bc70e0cc73
+	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.6-0.20240620154138-dc955d478115
 	// use stratos fork of cosmos-sdk: v0.47.x-stratos
 	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.12-0.20240521173001-c32cdc9a1e54
 	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.
