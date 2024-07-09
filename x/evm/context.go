@@ -11,6 +11,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	pruningtypes "github.com/cosmos/cosmos-sdk/store/pruning/types"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 )
 
@@ -48,23 +49,39 @@ func (c *Context) GetSdkContext() sdk.Context {
 	return c.copySdkContext(c.ms.CacheMultiStore(), nil)
 }
 
-func (c *Context) GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, error) {
+func (c *Context) getPruningStrategy() pruningtypes.PruningStrategy {
+	cms, ok := c.ms.(storetypes.CommitMultiStore)
+	if !ok {
+		return pruningtypes.PruningDefault
+	} else {
+		return cms.GetPruning().Strategy
+	}
+}
+
+func (c *Context) GetSdkContextWithHeader(header *tmtypes.Header) (sdk.Context, bool, error) {
 	if header == nil {
-		return c.GetSdkContext(), nil
+		return c.GetSdkContext(), false, nil
 	}
 	if c.blockStore != nil {
 		latestHeight := c.blockStore.Height()
 		if latestHeight == 0 {
-			return sdk.Context{}, fmt.Errorf("block store not loaded")
+			return sdk.Context{}, false, fmt.Errorf("block store not loaded")
 		}
 		if latestHeight == header.Height {
-			return c.copySdkContext(c.ms.CacheMultiStore(), header), nil
+			return c.copySdkContext(c.ms.CacheMultiStore(), header), false, nil
 		}
 	}
 
-	cms, err := c.ms.CacheMultiStoreWithVersion(header.Height)
+	ccms, err := c.ms.CacheMultiStoreWithVersion(header.Height)
 	if err != nil {
-		return sdk.Context{}, err
+		var (
+			pruned bool
+		)
+		if types.IsPruneError(err) && c.getPruningStrategy() != pruningtypes.PruningNothing {
+			pruned = true
+			err = types.ErrNotArchiveNode
+		}
+		return sdk.Context{}, pruned, err
 	}
-	return c.copySdkContext(cms, header), nil
+	return c.copySdkContext(ccms, header), false, nil
 }
