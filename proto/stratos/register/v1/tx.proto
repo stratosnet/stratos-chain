@@ -61,20 +61,20 @@ message MsgCreateResourceNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  string                        beneficiary_address = 5 [
-    (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "beneficiary_address",
-    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
-  ];
-  Description                   description = 6 [
+  Description                   description = 5 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  uint32                        node_type = 7 [
+  uint32                        node_type = 6 [
     (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
+  string                        beneficiary_address = 7 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
   ];
 }
 
@@ -107,16 +107,16 @@ message MsgCreateMetaNode {
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  string                        beneficiary_address = 5 [
-    (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "beneficiary_address",
-    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
-  ];
-  Description                   description = 6 [
+  Description                   description = 5 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
+  ];
+  string                        beneficiary_address = 6 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
   ];
 }
 
@@ -176,24 +176,24 @@ message MsgUpdateResourceNode {
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  string      beneficiary_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "beneficiary_address",
-    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
-  ];
-  string      network_address = 3 [
+  string      network_address = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  string      owner_address = 4 [
+  string      owner_address = 3 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
   ];
-  uint32      node_type = 5 [
+  uint32      node_type = 4 [
     (gogoproto.jsontag) = "node_type",
     (gogoproto.moretags) = "yaml:\"node_type\""
+  ];
+  string      beneficiary_address = 5 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
   ];
 }
 
@@ -212,20 +212,20 @@ message MsgUpdateMetaNode {
     (gogoproto.jsontag) = "description",
     (gogoproto.moretags) = "yaml:\"description\""
   ];
-  string      beneficiary_address = 2 [
-    (cosmos_proto.scalar) = "cosmos.AddressString",
-    (gogoproto.jsontag) = "beneficiary_address",
-    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
-  ];
-  string      network_address   = 3 [
+  string      network_address = 2 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "network_address",
     (gogoproto.moretags) = "yaml:\"network_address\""
   ];
-  string      owner_address = 4 [
+  string      owner_address = 3 [
     (cosmos_proto.scalar) = "cosmos.AddressString",
     (gogoproto.jsontag) = "owner_address",
     (gogoproto.moretags) = "yaml:\"owner_address\""
+  ];
+  string      beneficiary_address = 4 [
+    (cosmos_proto.scalar) = "cosmos.AddressString",
+    (gogoproto.jsontag) = "beneficiary_address",
+    (gogoproto.moretags) = "yaml:\"beneficiary_address\""
   ];
 }
 
