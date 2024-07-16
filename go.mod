@@ -35,7 +35,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
-	github.com/stratosnet/stratos-chain/api v0.0.0-20240711220534-c9cbef9fd8e4
+	github.com/stratosnet/stratos-chain/api v0.0.0-20240716160341-ec9024ef5de0
 	github.com/stretchr/testify v1.9.0
 	github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/crypto v0.21.0
