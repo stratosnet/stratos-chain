@@ -10,6 +10,13 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 )
 
+var (
+	// MinimumBaseFee is a bare minimum for calculation even if block capacity showing less
+	// to prevent spam. Later could be removed after CalculateBaseFee rework on block end
+	// and getting a real gas for the period
+	MinimumBaseFee = new(big.Int).SetUint64(1_000_000_000) // 1gWei
+)
+
 // EthereumConfig returns an Ethereum ChainConfig for EVM state transitions.
 // All the negative or nil values are converted to nil
 func (cc ChainConfig) EthereumConfig() *params.ChainConfig {

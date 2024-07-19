@@ -25,6 +25,7 @@ import (
 
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	stratos "github.com/stratosnet/stratos-chain/types"
+
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -44,6 +45,47 @@ func (b *Backend) BlockNumber() (hexutil.Uint64, error) {
 	return hexutil.Uint64(res.Block.Height), nil
 }
 
+type appBlockInfo struct {
+	miner   common.Address
+	baseFee *big.Int
+}
+
+func (b *Backend) getAppStoreBlockDetails(resBlock *tmrpctypes.ResultBlock) (*appBlockInfo, error) {
+	// override dynamicly miner address
+	sdkCtx, pruned, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	if !pruned && err != nil {
+		b.logger.Debug("GetSdkContextWithHeader context", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
+		return nil, err
+	}
+
+	var (
+		validator common.Address
+		baseFee   *big.Int
+	)
+
+	if pruned {
+		validator = common.BytesToAddress(resBlock.Block.ProposerAddress)
+		baseFee = evmtypes.MinimumBaseFee
+		// NOTE: Maybe leave it just empty? Will put this just in case
+		// validator = common.Address{}
+		// baseFee = big.NewInt(0)
+	} else {
+		validator, err = b.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
+		if err != nil {
+			b.logger.Debug("GetCoinbaseAddress no validator", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
+			return nil, err
+		}
+		baseFee, err = b.baseFee(sdk.WrapSDKContext(sdkCtx))
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &appBlockInfo{
+		miner:   validator,
+		baseFee: baseFee,
+	}, nil
+}
+
 func (b *Backend) getBlockFromResultBlock(resBlock *tmrpctypes.ResultBlock, fullTx bool) (*types.Block, error) {
 	// return if requested block height is greater than the current one
 	if resBlock == nil || resBlock.Block == nil {
@@ -56,25 +98,13 @@ func (b *Backend) getBlockFromResultBlock(resBlock *tmrpctypes.ResultBlock, full
 		return nil, nil
 	}
 
-	// override dynamicly miner address
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	aBlock, err := b.getAppStoreBlockDetails(resBlock)
 	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
 		return nil, err
 	}
 
-	validator, err := b.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
-	if err != nil {
-		b.logger.Debug("GetCoinbaseAddress no validator", "height", resBlock.Block.Height, "hash", resBlock.Block.Hash(), "error", err.Error())
-		return nil, err
-	}
-	res.Miner = validator
-
-	baseFee, err := b.baseFee(sdk.WrapSDKContext(sdkCtx))
-	if err != nil {
-		return nil, err
-	}
-	res.BaseFee = (*hexutil.Big)(baseFee)
+	res.Miner = aBlock.miner
+	res.BaseFee = (*hexutil.Big)(aBlock.baseFee)
 
 	return res, nil
 }
@@ -204,25 +234,14 @@ func (b *Backend) HeaderByNumber(blockNum types.BlockNumber) (*types.Header, err
 		return nil, err
 	}
 
-	// override dynamicly miner address
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	aBlock, err := b.getAppStoreBlockDetails(resBlock)
 	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "height", blockNum, "error", err.Error())
 		return nil, err
 	}
 
-	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
-	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint no validator", "height", blockNum, "error", err.Error())
-		return nil, err
-	}
-	ethHeader.Coinbase = validator
+	ethHeader.Coinbase = aBlock.miner
+	ethHeader.BaseFee = aBlock.baseFee
 
-	baseFee, err := b.baseFee(sdk.WrapSDKContext(sdkCtx))
-	if err != nil {
-		return nil, err
-	}
-	ethHeader.BaseFee = baseFee
 	return ethHeader, nil
 }
 
@@ -244,25 +263,14 @@ func (b *Backend) HeaderByHash(blockHash common.Hash) (*types.Header, error) {
 		return nil, err
 	}
 
-	// override dynamicly miner address
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	aBlock, err := b.getAppStoreBlockDetails(resBlock)
 	if err != nil {
-		b.logger.Debug("GetSdkContextWithHeader context", "hash", blockHash.Hex(), "error", err.Error())
 		return nil, err
 	}
 
-	validator, err := b.evmkeeper.GetCoinbaseAddress(sdkCtx)
-	if err != nil {
-		b.logger.Debug("EthBlockFromTendermint no validator", "hash", blockHash.Hex(), "error", err.Error())
-		return nil, err
-	}
-	ethHeader.Coinbase = validator
+	ethHeader.Coinbase = aBlock.miner
+	ethHeader.BaseFee = aBlock.baseFee
 
-	baseFee, err := b.baseFee(sdk.WrapSDKContext(sdkCtx))
-	if err != nil {
-		return nil, err
-	}
-	ethHeader.BaseFee = baseFee
 	return ethHeader, nil
 }
 
@@ -522,7 +530,7 @@ func (b *Backend) EstimateGas(args evmtypes.TransactionArgs, blockNrOptional *ty
 
 	// it will return an empty context and the sdk.Context will use
 	// the latest block height for querying.
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return 0, err
 	}
@@ -689,7 +697,7 @@ func (b *Backend) BaseFee() (*big.Int, error) {
 		return nil, nil
 	}
 
-	sdkCtx, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := b.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}

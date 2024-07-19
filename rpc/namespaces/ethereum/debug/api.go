@@ -171,9 +171,9 @@ func (a *API) TraceTransaction(ctx context.Context, hash common.Hash, config *tr
 	}()
 	defer cancel()
 
-	sdkCtx, err := a.backend.GetEVMContext().GetSdkContextWithHeader(&parentBlock.Block.Header)
+	sdkCtx, _, err := a.backend.GetEVMContext().GetSdkContextWithHeader(&parentBlock.Block.Header)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to load state at height: %d\n", parentHeight)
+		return nil, err
 	}
 
 	keeper := a.backend.GetEVMKeeper()
@@ -277,7 +277,7 @@ func (a *API) traceBlock(height rpctypes.BlockNumber, config *evmtypes.TraceConf
 		BlockHash:   common.Bytes2Hex(block.BlockID.Hash),
 	}
 
-	sdkCtx, err := a.backend.GetEVMContext().GetSdkContextWithHeader(&block.Block.Header)
+	sdkCtx, _, err := a.backend.GetEVMContext().GetSdkContextWithHeader(&block.Block.Header)
 	if err != nil {
 		return nil, err
 	}

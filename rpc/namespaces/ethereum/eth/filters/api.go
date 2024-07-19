@@ -232,18 +232,22 @@ func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
 					return
 				}
 				// override dynamicly miner address
-				sdkCtx, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
-				if err != nil {
+				sdkCtx, pruned, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
+				if !pruned && err != nil {
 					headersSub.err <- err
 					return
 				}
 
-				validator, err := api.backend.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
-				if err != nil {
-					headersSub.err <- err
-					return
+				if pruned {
+					header.Coinbase = common.Address(data.Header.ProposerAddress)
+				} else {
+					validator, err := api.backend.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
+					if err != nil {
+						headersSub.err <- err
+						return
+					}
+					header.Coinbase = validator
 				}
-				header.Coinbase = validator
 
 				api.filtersMu.Lock()
 				if f, found := api.filters[headersSub.ID()]; found {
@@ -296,18 +300,22 @@ func (api *PublicFilterAPI) NewHeads(ctx context.Context) (*rpc.Subscription, er
 					return
 				}
 				// override dynamicly miner address
-				sdkCtx, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
-				if err != nil {
+				sdkCtx, pruned, err := api.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
+				if !pruned && err != nil {
 					headersSub.err <- err
 					return
 				}
 
-				validator, err := api.backend.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
-				if err != nil {
-					headersSub.err <- err
-					return
+				if pruned {
+					header.Coinbase = common.Address(data.Header.ProposerAddress)
+				} else {
+					validator, err := api.backend.GetEVMKeeper().GetCoinbaseAddress(sdkCtx)
+					if err != nil {
+						headersSub.err <- err
+						return
+					}
+					header.Coinbase = validator
 				}
-				header.Coinbase = validator
 
 				err = notifier.Notify(rpcSub.ID, header)
 				if err != nil {
