@@ -10,6 +10,7 @@ import (
 	authzcodec "github.com/cosmos/cosmos-sdk/x/authz/codec"
 	govcodec "github.com/cosmos/cosmos-sdk/x/gov/codec"
 	groupcodec "github.com/cosmos/cosmos-sdk/x/group/codec"
+	"github.com/stratosnet/stratos-chain/x/register/types/v1_1"
 )
 
 // RegisterLegacyAminoCodec registers concrete types on codec
@@ -41,6 +42,10 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&MsgUpdateMetaNodeDeposit{},
 		&MsgMetaNodeRegistrationVote{},
 		&MsgUpdateParams{},
+		&v1_1.MsgCreateResourceNode{},
+		&v1_1.MsgUpdateResourceNode{},
+		&v1_1.MsgCreateMetaNode{},
+		&v1_1.MsgUpdateMetaNode{},
 	)
 	registry.RegisterImplementations(
 		(*authz.Authorization)(nil),

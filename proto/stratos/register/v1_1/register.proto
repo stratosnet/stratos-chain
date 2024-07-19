@@ -1,0 +1,34 @@
+syntax = "proto3";
+package stratos.register.v1_1;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "cosmos_proto/cosmos.proto";
+import "amino/amino.proto";
+
+option (gogoproto.equal_all) = true;
+option go_package = "github.com/stratosnet/stratos-chain/x/register/types/v1_1";
+
+
+message Description {
+  option (gogoproto.goproto_stringer) = true;
+
+  string  moniker = 1 [
+    (gogoproto.jsontag) = "moniker",
+    (gogoproto.moretags) = "yaml:\"moniker\""
+  ];
+  string  identity = 2 [
+    (gogoproto.jsontag) = "identity",
+    (gogoproto.moretags) = "yaml:\"identity\",omitempty"
+  ];
+  string  website = 3 [
+    (gogoproto.jsontag) = "website",
+    (gogoproto.moretags) = "yaml:\"website\",omitempty"
+  ];
+  string  security_contact = 4 [
+    (gogoproto.jsontag) = "security_contact",
+    (gogoproto.moretags) = "yaml:\"security_contact\",omitempty"];
+  string  details = 5 [
+    (gogoproto.jsontag) = "details",
+    (gogoproto.moretags) = "yaml:\"details\",omitempty"];
+}
