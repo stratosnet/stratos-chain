@@ -5,7 +5,7 @@ import (
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/stratosnet/stratos-chain/x/evm/types"
 )
 
@@ -36,14 +36,14 @@ func (k Keeper) GetBaseFeeParamV011(ctx sdk.Context) *big.Int {
 	return params.FeeMarketParams.BaseFee.BigInt()
 }
 
-func (k Keeper) GetBaseFeeV011(ctx sdk.Context, ethCfg *params.ChainConfig) *big.Int {
-	if !types.IsLondon(ethCfg, ctx.BlockHeight()) {
+// GetBalanceV011 load account's balance of gas token for th old blocks before migrations
+func (k *Keeper) GetBalanceV011(ctx sdk.Context, addr common.Address) *big.Int {
+	cosmosAddr := sdk.AccAddress(addr.Bytes())
+	params := k.GetParamsV011(ctx)
+	// fast check if block already not in v011
+	if params.EvmDenom == "" {
 		return nil
 	}
-	baseFee := k.GetBaseFeeParamV011(ctx)
-	if baseFee == nil {
-		// return 0 if feemarket not enabled.
-		baseFee = big.NewInt(0)
-	}
-	return baseFee
+	coin := k.bankKeeper.GetBalance(ctx, cosmosAddr, params.EvmDenom)
+	return coin.Amount.BigInt()
 }

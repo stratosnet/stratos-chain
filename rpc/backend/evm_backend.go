@@ -659,16 +659,9 @@ func (b *Backend) baseFee(ctx context.Context) (*big.Int, error) {
 	if err != nil {
 		return nil, err
 	}
-	// try v011
-	if res.BaseFee == nil {
-		res, err = b.GetEVMKeeper().BaseFeeV011(ctx, nil)
-		if err != nil {
-			return nil, err
-		}
-	}
 
 	if res.BaseFee == nil {
-		return nil, nil
+		return nil, fmt.Errorf("base fee not set")
 	}
 
 	return res.BaseFee.BigInt(), nil
