@@ -268,7 +268,17 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 	if err != nil {
 		return nil, err
 	}
-	balance := e.backend.GetEVMKeeper().GetBalance(sdkCtx, address)
+
+	req := &evmtypes.QueryBalanceRequest{
+		Address: address.Hex(),
+	}
+
+	bRes, err := e.backend.GetEVMKeeper().Balance(sdkCtx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	balance, _ := new(big.Int).SetString(bRes.Balance, 10)
 
 	return (*hexutil.Big)(balance), nil
 }
