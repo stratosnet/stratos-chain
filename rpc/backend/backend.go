@@ -25,6 +25,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
+	tmconfig "github.com/cometbft/cometbft/config"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
 	"github.com/stratosnet/stratos-chain/x/evm"
@@ -100,6 +101,7 @@ type EVMBackend interface {
 type TMBackend interface {
 	// tendermint helpers
 	GetNode() *node.Node
+	GetTendermintConfig() *tmconfig.Config
 	GetBlockStore() *store.BlockStore
 	GetMempool() mempool.Mempool
 	GetConsensusReactor() *cs.Reactor
@@ -119,6 +121,7 @@ type Backend struct {
 	ms         storetypes.MultiStore
 	logger     log.Logger
 	cfg        config.Config
+	tmCfg      *tmconfig.Config
 	txPool     *pool.TxPool
 }
 
@@ -144,6 +147,7 @@ func NewBackend(ctx *server.Context, tmNode *node.Node, evmkeeper *evmkeeper.Kee
 		ms:         ms,
 		logger:     logger.With("module", "backend"),
 		cfg:        appConf,
+		tmCfg:      ctx.Config,
 		txPool:     txPool,
 	}, nil
 }
@@ -162,6 +166,10 @@ func (b *Backend) GetEVMContext() *evm.Context {
 
 func (b *Backend) GetNode() *node.Node {
 	return b.tmNode
+}
+
+func (b *Backend) GetTendermintConfig() *tmconfig.Config {
+	return b.tmCfg
 }
 
 func (b *Backend) GetBlockStore() *store.BlockStore {
