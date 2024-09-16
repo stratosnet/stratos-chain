@@ -55,7 +55,7 @@ func NewPublicAPI(logger log.Logger, clientCtx client.Context, eventBus *tmtypes
 		clientCtx: clientCtx,
 		backend:   b,
 		filters:   make(map[rpc.ID]*filter),
-		events:    NewEventSystem(clientCtx, logger, eventBus),
+		events:    NewEventSystem(clientCtx, logger, eventBus, b),
 	}
 
 	go api.timeoutLoop()
@@ -204,6 +204,10 @@ func (api *PublicFilterAPI) NewPendingTransactions(ctx context.Context) (*rpc.Su
 //
 // https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_newblockfilter
 func (api *PublicFilterAPI) NewBlockFilter() rpc.ID {
+	if len(api.filters) >= int(api.backend.RPCFilterCap()) {
+		return rpc.ID("error creating pending tx filter: max limit reached")
+	}
+
 	headersSub, cancelSubs, err := api.events.SubscribeNewHeads()
 	if err != nil {
 		// wrap error on the ID
