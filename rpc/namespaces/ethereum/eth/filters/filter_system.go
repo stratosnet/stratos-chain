@@ -21,6 +21,7 @@ import (
 	"github.com/ethereum/go-ethereum/eth/filters"
 	"github.com/ethereum/go-ethereum/rpc"
 
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	evmtypes "github.com/stratosnet/stratos-chain/x/evm/types"
 )
@@ -42,6 +43,7 @@ type EventSystem struct {
 	logger    log.Logger
 	ctx       context.Context
 	clientCtx client.Context
+	backend   backend.BackendI
 
 	index      filterIndex
 	topicChans map[string]chan<- coretypes.ResultEvent
@@ -71,7 +73,7 @@ type EventSystem struct {
 //
 // The returned manager has a loop that needs to be stopped with the Stop function
 // or by stopping the given mux.
-func NewEventSystem(clientCtx client.Context, logger log.Logger, eventBus *tmtypes.EventBus) *EventSystem {
+func NewEventSystem(clientCtx client.Context, logger log.Logger, eventBus *tmtypes.EventBus, b backend.BackendI) *EventSystem {
 	index := make(filterIndex)
 	for i := filters.UnknownSubscription; i < filters.LastIndexSubscription; i++ {
 		index[i] = make(map[rpc.ID]*Subscription)
@@ -81,6 +83,7 @@ func NewEventSystem(clientCtx client.Context, logger log.Logger, eventBus *tmtyp
 		logger:        logger,
 		ctx:           context.Background(),
 		clientCtx:     clientCtx,
+		backend:       b,
 		index:         index,
 		topicChans:    make(map[string]chan<- coretypes.ResultEvent, len(index)),
 		indexMux:      new(sync.RWMutex),
@@ -116,6 +119,16 @@ func (es *EventSystem) subscribe(sub *Subscription) (*Subscription, context.Canc
 	)
 
 	es.ctx, cancelFn = context.WithTimeout(context.Background(), deadline)
+
+	tmCfg := es.backend.GetTendermintConfig()
+
+	if es.eventBus.NumClients() >= tmCfg.RPC.MaxSubscriptionClients {
+		return nil, cancelFn, fmt.Errorf("max clients reached")
+	}
+
+	if es.eventBus.NumClientSubscriptions(string(sub.id)) >= tmCfg.RPC.MaxSubscriptionsPerClient {
+		return nil, cancelFn, fmt.Errorf("max subscriptions per client reached")
+	}
 
 	switch sub.typ {
 	case
