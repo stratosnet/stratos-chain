@@ -122,11 +122,11 @@ func (es *EventSystem) subscribe(sub *Subscription) (*Subscription, context.Canc
 
 	tmCfg := es.backend.GetTendermintConfig()
 
-	if es.eventBus.NumClients() > tmCfg.RPC.MaxSubscriptionClients {
+	if es.eventBus.NumClients() >= tmCfg.RPC.MaxSubscriptionClients {
 		return nil, cancelFn, fmt.Errorf("max clients reached")
 	}
 
-	if es.eventBus.NumClientSubscriptions(string(sub.id)) > tmCfg.RPC.MaxSubscriptionsPerClient {
+	if es.eventBus.NumClientSubscriptions(string(sub.id)) >= tmCfg.RPC.MaxSubscriptionsPerClient {
 		return nil, cancelFn, fmt.Errorf("max subscriptions per client reached")
 	}
 
