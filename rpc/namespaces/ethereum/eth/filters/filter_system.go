@@ -386,7 +386,7 @@ func (es *EventSystem) handleChainEvent(fls filterIndex, ev coretypes.ResultEven
 			continue
 		}
 		// override dynamicly miner address
-		sdkCtx, err := es.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
+		sdkCtx, _, err := es.backend.GetEVMContext().GetSdkContextWithHeader(&data.Header)
 		if err != nil {
 			continue
 		}

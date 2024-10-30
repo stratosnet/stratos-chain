@@ -264,7 +264,7 @@ func (e *PublicAPI) GetBalance(address common.Address, blockNrOrHash rpctypes.Bl
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -302,7 +302,7 @@ func (e *PublicAPI) GetStorageAt(address common.Address, key string, blockNrOrHa
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -390,7 +390,7 @@ func (e *PublicAPI) GetCode(address common.Address, blockNrOrHash rpctypes.Block
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -646,7 +646,7 @@ func (e *PublicAPI) doCall(
 		return nil, fmt.Errorf("block not found '%d'", blockNr.Int64())
 	}
 
-	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}
@@ -947,7 +947,7 @@ func (e *PublicAPI) GetProof(address common.Address, storageKeys []string, block
 		return nil, nil
 	}
 
-	sdkCtx, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
+	sdkCtx, _, err := e.backend.GetEVMContext().GetSdkContextWithHeader(&resBlock.Block.Header)
 	if err != nil {
 		return nil, err
 	}

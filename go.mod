@@ -35,7 +35,7 @@ require (
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.18.2
-	github.com/stratosnet/stratos-chain/api v0.0.0-20240318144156-bf3328f863f6
+	github.com/stratosnet/stratos-chain/api v0.0.0-20240716160341-ec9024ef5de0
 	github.com/stretchr/testify v1.9.0
 	github.com/tyler-smith/go-bip39 v1.1.0
 	golang.org/x/crypto v0.21.0
@@ -241,9 +241,9 @@ replace (
 	// use cosmos fork of keyring
 	github.com/99designs/keyring => github.com/cosmos/keyring v1.2.0
 	// use stratos fork of cometbft: fork/v0.37.5
-	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.6-0.20240521175719-59bc70e0cc73
+	github.com/cometbft/cometbft => github.com/stratosnet/cometbft v0.37.6-0.20240620154138-dc955d478115
 	// use stratos fork of cosmos-sdk: v0.47.x-stratos
-	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.12-0.20240521173001-c32cdc9a1e54
+	github.com/cosmos/cosmos-sdk => github.com/stratosnet/cosmos-sdk v0.47.12-0.20240711204239-ae99645b490a
 	// Fix upstream GHSA-h395-qcrw-5vmq and GHSA-3vp4-m3rf-835h vulnerabilities.
 	// TODO Remove it: https://github.com/cosmos/cosmos-sdk/issues/10409
 	github.com/gin-gonic/gin => github.com/gin-gonic/gin v1.9.1

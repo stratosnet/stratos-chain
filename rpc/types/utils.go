@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"math/big"
 	"sort"
+	"strings"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
@@ -589,3 +590,11 @@ func FindAttribute(attrs []abci.EventAttribute, key string) string {
 	}
 	return ""
 }
+
+var errPrune = fmt.Errorf("version mismatch on immutable IAVL tree; version does not exist. Version has either been pruned, or is for a future block height")
+
+func IsPruneError(err error) bool {
+	return strings.Contains(err.Error(), errPrune.Error())
+}
+
+var ErrNotArchiveNode = fmt.Errorf("the data is available only in the archive node")

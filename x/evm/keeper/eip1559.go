@@ -4,16 +4,10 @@ import (
 	"math/big"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/x/evm/types"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/math"
-)
-
-var (
-	// MinimumBaseFee is a bare minimum for calculation even if block capacity showing less
-	// to prevent spam. Later could be removed after CalculateBaseFee rework on block end
-	// and getting a real gas for the period
-	MinimumBaseFee = new(big.Int).SetUint64(1_000_000_000) // 1gWei
 )
 
 // CalculateBaseFee calculates the base fee for the current block. This is only calculated once per
@@ -91,6 +85,6 @@ func (k Keeper) CalculateBaseFee(ctx sdk.Context) *big.Int {
 
 	return math.BigMax(
 		x.Sub(parentBaseFee, baseFeeDelta),
-		MinimumBaseFee,
+		types.MinimumBaseFee,
 	)
 }

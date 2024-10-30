@@ -139,7 +139,7 @@ func (msg MsgPrepay) ValidateBasic() error {
 		return ErrInvalidBeneficiaryAddr
 	}
 
-	if msg.Amount.Empty() {
+	if msg.Amount.IsZero() {
 		return errors.Wrap(sdkerrors.ErrInvalidCoins, "missing amount to send")
 	}
 
