@@ -270,4 +270,28 @@ message Metrics {
     (gogoproto.jsontag) = "meta_mining_reward",
     (gogoproto.moretags) = "yaml:\"meta_mining_reward\""
   ];
+  string resource_node_deposit = 13 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.jsontag) = "resource_node_deposit",
+    (gogoproto.moretags) = "yaml:\"resource_node_deposit\""
+  ];
+  string meta_node_deposit = 14 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.jsontag) = "meta_node_deposit",
+    (gogoproto.moretags) = "yaml:\"meta_node_deposit\""
+  ];
+  string unissued_prepay = 15 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (cosmos_proto.scalar) = "cosmos.Int",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.jsontag) = "unissued_prepay",
+    (gogoproto.moretags) = "yaml:\"unissued_prepay\""
+  ];
 }

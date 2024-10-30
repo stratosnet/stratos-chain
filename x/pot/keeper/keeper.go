@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"math"
+	"time"
 
 	"github.com/cometbft/cometbft/libs/log"
 
@@ -36,6 +37,8 @@ type Keeper struct {
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
 	authority string
+	// cache store
+	cache *keeperMCache
 }
 
 // NewKeeper creates a pot keeper
@@ -58,6 +61,7 @@ func NewKeeper(
 		registerKeeper: registerKeeper,
 		stakingKeeper:  stakingKeeper,
 		authority:      authority,
+		cache:          NewKeeperMCache(5 * time.Minute),
 	}
 	return keeper
 }
@@ -163,12 +167,39 @@ func (k Keeper) GetSupply(ctx sdk.Context) (totalSupply sdk.Coin) {
 	return k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
 }
 
+func (k Keeper) getTotalUnbounding(ctx sdk.Context) sdk.Coin {
+	denom := k.BondDenom(ctx)
+	unbondingDelegation := sdk.NewCoin(denom, sdkmath.ZeroInt())
+
+	// NOTE: Comment in case of performance issue
+	k.stakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
+		for _, entry := range ubd.Entries {
+			unbondingDelegation = unbondingDelegation.Add(sdk.NewCoin(denom, entry.Balance))
+		}
+		return false
+	})
+
+	return unbondingDelegation
+}
+
+// GetCirculationSupply returns circulation supply by the formula below
+//
+// total supply - validator (bounded) deposit - unbounding deposit - resource node deposit -
+// - mining pool - prepay - (total mining supply - total mined tokens)
+// NOTE: Unbounded deposit is in circulation supply
 func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coins) {
-	// total supply  - validator deposit - resource node deposit -  mining pool - prepay
+	res, f := k.cache.Get("GetCirculationSupply")
+	if f {
+		return res.(sdk.Coins)
+	}
+	defer func() { k.cache.Set("GetCirculationSupply", circulationSupply) }()
+
 	totalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
 
 	validatorBondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.BondedPoolName)
 	validatorStaking := k.bankKeeper.GetBalance(ctx, validatorBondedPoolAcc, k.BondDenom(ctx))
+
+	unbondingDelegation := k.getTotalUnbounding(ctx)
 
 	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.ResourceNodeBondedPool)
 	resourceNodeDeposit := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
@@ -184,6 +215,7 @@ func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coi
 
 	circulationSupplyStos := totalSupply.
 		Sub(validatorStaking).
+		Sub(unbondingDelegation).
 		Sub(resourceNodeDeposit).
 		Sub(metaNodeDeposit).
 		Sub(totalMining.Sub(totalMinedTokens)).
@@ -252,7 +284,14 @@ func (k Keeper) GetLegacyTotalReward(ctx sdk.Context, epoch sdkmath.Int) (totalR
 	return
 }
 
-func (k Keeper) GetMetrics(ctx sdk.Context) types.Metrics {
+// GetMetrics returns total info regarding token's balances on rewards, nodes etc.
+func (k Keeper) GetMetrics(ctx sdk.Context) (m types.Metrics) {
+	res, f := k.cache.Get("GetMetrics")
+	if f {
+		return res.(types.Metrics)
+	}
+	defer func() { k.cache.Set("GetMetrics", m) }()
+
 	totalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
 	totalMining := k.GetTotalMining(ctx)
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
@@ -269,16 +308,7 @@ func (k Keeper) GetMetrics(ctx sdk.Context) types.Metrics {
 	validatorUnbondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.NotBondedPoolName)
 	unbondedDelegation := k.bankKeeper.GetBalance(ctx, validatorUnbondedPoolAcc, denom)
 
-	unbondingDelegation := sdk.NewCoin(denom, sdkmath.ZeroInt())
-	// NOTE: Uncomment to get all unboundings, not tested on performance
-	// k.stakingKeeper.IterateUnbondingDelegations(ctx, func(_ int64, ubd stakingtypes.UnbondingDelegation) (stop bool) {
-	// 	for _, entry := range ubd.Entries {
-	// 		unbondingDelegation = unbondingDelegation.Add(entry.Balance)
-	// 	}
-	// 	return false
-	// })
-
-	circulationSupply := k.GetCirculationSupply(ctx)
+	unbondingDelegation := k.getTotalUnbounding(ctx)
 
 	totalMiningReward := sdkmath.ZeroInt()
 	chainMiningReward := sdkmath.ZeroInt()
@@ -291,7 +321,18 @@ func (k Keeper) GetMetrics(ctx sdk.Context) types.Metrics {
 		metaMiningReward = totalMiningReward.Mul(miningParam.MetaNodePercentageInBp).Quo(sdkmath.NewInt(10000))
 	}
 
-	return types.Metrics{
+	circulationSupply := k.GetCirculationSupply(ctx)
+
+	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.ResourceNodeBondedPool)
+	resourceNodeDeposit := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
+
+	metaNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.MetaNodeNotBondedPool)
+	metaNodeDeposit := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
+
+	unissuedPrepayAcc := k.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
+	unissuedPrepay := k.bankKeeper.GetBalance(ctx, unissuedPrepayAcc, k.BondDenom(ctx))
+
+	m = types.Metrics{
 		TotalSupply:               totalSupply.Amount,
 		TotalMiningSupply:         totalMining.Amount,
 		TotalMinedTokens:          totalMinedTokens.Amount,
@@ -304,5 +345,10 @@ func (k Keeper) GetMetrics(ctx sdk.Context) types.Metrics {
 		ChainMiningReward:         chainMiningReward,
 		ResourceMiningReward:      resourceMiningReward,
 		MetaMiningReward:          metaMiningReward,
+		ResourceNodeDeposit:       resourceNodeDeposit.Amount,
+		MetaNodeDeposit:           metaNodeDeposit.Amount,
+		UnissuedPrepay:            unissuedPrepay.Amount,
 	}
+
+	return
 }
