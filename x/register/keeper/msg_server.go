@@ -222,6 +222,9 @@ func (k msgServer) HandleMsgKickMetaNodeVote(goCtx context.Context, msg *types.M
 
 	nodeStatus, ozoneLimitChange, depositToRemove, unbondingMatureTime, err := k.HandleVoteForKickMetaNode(
 		ctx, targetNetworkAddress, types.VoteOpinion(msg.Opinion), voterNetworkAddress, voterOwnerAddress)
+	if err != nil {
+		return &types.MsgKickMetaNodeVoteResponse{}, err
+	}
 
 	events := make([]proto.Message, 0)
 	events = append(events,
