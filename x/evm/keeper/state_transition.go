@@ -195,45 +195,55 @@ func (k Keeper) GetSdkMsg(from sdk.AccAddress, data []byte) (*types.MsgCosmosDat
 func (k *Keeper) ParseProtoFromDataFn(ctx sdk.Context) vm.ParseProtoFromDataFunc {
 	return func(data []byte, gas uint64) ([]byte, uint64, error) {
 		gasBefore := ctx.GasMeter().GasConsumed()
-		getGas := func() uint64 {
-			return gas - types.Max(gasBefore-ctx.GasMeter().GasConsumed(), 2500)
-		}
-		any, err := types.TxDataToAny(data)
-		if err != nil {
-			return []byte{}, getGas(), err
+		getGasUsed := func() uint64 {
+			return types.Max(gasBefore-ctx.GasMeter().GasConsumed(), 2500)
 		}
 
-		cMsg, ok := any.GetCachedValue().(sdk.Msg)
-		if !ok {
-			return []byte{}, getGas(), err
+		execute := func() ([]byte, error) {
+			any, err := types.TxDataToAny(data)
+			if err != nil {
+				return []byte{}, err
+			}
+
+			cMsg, ok := any.GetCachedValue().(sdk.Msg)
+			if !ok {
+				return []byte{}, err
+			}
+
+			if len(cMsg.GetSigners()) == 0 {
+				return []byte{}, errors.Wrapf(sdkerrors.ErrorInvalidSigner, "signer not found")
+			}
+
+			signer := cMsg.GetSigners()[0]
+
+			addressTy, _ := abi.NewType("address", "", nil)
+			bytesTy, _ := abi.NewType("bytes", "", nil)
+
+			arguments := abi.Arguments{
+				{
+					Type: addressTy,
+				},
+				{
+					Type: bytesTy,
+				},
+			}
+			res, err := arguments.Pack(
+				common.BytesToAddress(signer.Bytes()),
+				[]byte(any.TypeUrl),
+			)
+			if err != nil {
+				return []byte{}, err
+			}
+
+			return res, nil
 		}
 
-		if len(cMsg.GetSigners()) == 0 {
-			return []byte{}, getGas(), errors.Wrapf(sdkerrors.ErrorInvalidSigner, "signer not found")
+		res, err := execute()
+		gasUsed := getGasUsed()
+		if gas < gasUsed {
+			return []byte{}, 0, errors.Wrap(types.ErrGasOverflow, "gas overflow")
 		}
-
-		signer := cMsg.GetSigners()[0]
-
-		addressTy, _ := abi.NewType("address", "", nil)
-		bytesTy, _ := abi.NewType("bytes", "", nil)
-
-		arguments := abi.Arguments{
-			{
-				Type: addressTy,
-			},
-			{
-				Type: bytesTy,
-			},
-		}
-		res, err := arguments.Pack(
-			common.BytesToAddress(signer.Bytes()),
-			[]byte(any.TypeUrl),
-		)
-		if err != nil {
-			return []byte{}, getGas(), err
-		}
-
-		return res, getGas(), nil
+		return res, gasUsed, err
 	}
 }
 
@@ -283,7 +293,7 @@ func (k *Keeper) RunSdkMsgFn(ctx sdk.Context, simulate bool) vm.RunSdkMsgFunc {
 		}
 		gasUsed := types.Max(ctx.GasMeter().GasConsumed()-gasBefore, params.TxGas)
 		if gas < gasUsed {
-			return nil, 0, errors.Wrap(types.ErrGasOverflow, "apply message")
+			return nil, 0, errors.Wrap(types.ErrGasOverflow, "gas overflow")
 		}
 		return ret, gasUsed, nil
 	}
