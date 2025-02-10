@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -23,6 +26,8 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	distrKeeper   types.DistrKeeper
 	hooks         types.RegisterHooks
+
+	proover merkle.MerkleProver
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -44,7 +49,11 @@ func NewKeeper(
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 		distrKeeper:   distrKeeper,
-		authority:     authority,
+
+		// NOTE: Could be made confgurable
+		proover: merkle.NewRelayerMerkleProver(),
+
+		authority: authority,
 	}
 }
 
@@ -261,4 +270,75 @@ func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) 
 	Pt = k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt = k.GetRemainingOzoneLimit(ctx)
 	return
+}
+
+func (k Keeper) ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofData) error {
+	isValid, err := k.proover.VerifyProofs(mdata.GetRoot(), mdata.GetProofs(), mdata.GetLeaves())
+	if err != nil {
+		return err
+	}
+
+	if !isValid {
+		return fmt.Errorf("proofs not valid")
+	}
+
+	k.SetMerkleRoot(ctx, mdata.GetRoot())
+
+	if err := k.AckMerkleLeaves(ctx, mdata.GetLeaves()); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) GenerateMerkleProofs(ctx sdk.Context, signer sdk.AccAddress, data []byte) error {
+	acc := k.accountKeeper.GetAccount(ctx, signer)
+	commitment := merkle.CreateSdkCommitment(signer, acc.GetSequence(), data)
+
+	root := k.proover.GetRoot(k.GetMerkleRoot(ctx), [][]byte{commitment})
+	k.SetMerkleRoot(ctx, root)
+
+	err := ctx.EventManager().EmitTypedEvents(
+		&types.EventMerkleDataUpdated{
+			Root:       root,
+			Commitment: commitment,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) AckMerkleLeaves(ctx sdk.Context, leaves [][]byte) error {
+	var tevs []proto.Message
+
+	if len(leaves)%2 != 0 {
+		return fmt.Errorf("leaves should be always even")
+	}
+
+	for i := 0; i < len(leaves); i += 2 {
+		root := leaves[i]
+		commitment := leaves[i+1]
+		// ignore nullifiers
+		if bytes.Equal(commitment, merkle.NullCommitment[:]) {
+			continue
+		}
+		err := k.AckMerkleCommit(ctx, commitment)
+		if err != nil {
+			return err
+		}
+		tevs = append(tevs, &types.EventCommitmentAcknowledged{
+			Root:       root,
+			Commitment: commitment,
+		})
+	}
+
+	err := ctx.EventManager().EmitTypedEvents(tevs...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

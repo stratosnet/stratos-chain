@@ -15,3 +15,4 @@ playground.go
 /proto/google/
 /proto/tendermint/
 node_modules/
+.vscode/

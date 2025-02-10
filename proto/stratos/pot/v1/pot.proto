@@ -295,3 +295,19 @@ message Metrics {
     (gogoproto.moretags) = "yaml:\"unissued_prepay\""
   ];
 }
+
+// MerkleProofData is data with required info to proof leaves on specific root
+message MerkleProofData {
+  bytes root = 1 [
+    (gogoproto.jsontag) = "root",
+    (gogoproto.moretags) = "yaml:\"root\""
+  ];
+  repeated bytes proofs = 2 [
+    (gogoproto.jsontag) = "proofs",
+    (gogoproto.moretags) = "yaml:\"proofs\""
+  ];
+  repeated bytes leaves = 3 [
+    (gogoproto.jsontag) = "leaves",
+    (gogoproto.moretags) = "yaml:\"leaves\""
+  ];
+}

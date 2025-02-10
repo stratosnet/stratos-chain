@@ -81,13 +81,25 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		return nil, errors.Wrap(types.ErrPrepayFailure, err.Error())
 	}
 
+	tev := &types.EventPrePay{
+		Sender:       msg.GetSender(),
+		Beneficiary:  msg.GetBeneficiary(),
+		Amount:       msg.GetAmount().String(),
+		PurchasedNoz: purchased.String(),
+	}
+
+	tevData, err := tev.Marshal()
+	if err != nil {
+		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
+	}
+
+	err = k.registerKeeper.GenerateMerkleProofs(ctx, sdk.AccAddress(msg.GetSender()), tevData)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrPrepayFailure, err.Error())
+	}
+
 	err = ctx.EventManager().EmitTypedEvents(
-		&types.EventPrePay{
-			Sender:       msg.GetSender(),
-			Beneficiary:  msg.GetBeneficiary(),
-			Amount:       msg.GetAmount().String(),
-			PurchasedNoz: purchased.String(),
-		},
+		tev,
 	)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())

@@ -90,6 +90,12 @@ func (k msgServer) HandleMsgVolumeReport(goCtx context.Context, msg *types.MsgVo
 		return nil, errors.Wrap(types.ErrVolumeReport, err.Error())
 	}
 
+	mp := msg.GetMerkleProofData()
+	err = k.registerKeeper.ProcessMerkleProofs(ctx, &mp)
+	if err != nil {
+		return nil, errors.Wrap(types.ErrVolumeReport, err.Error())
+	}
+
 	err = ctx.EventManager().EmitTypedEvents(
 		&types.EventVolumeReport{
 			ReportReference: msg.GetReportReference(),

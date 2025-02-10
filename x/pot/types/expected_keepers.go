@@ -7,6 +7,7 @@ import (
 	distrtypes "github.com/cosmos/cosmos-sdk/x/distribution/types"
 	stakingtypes "github.com/cosmos/cosmos-sdk/x/staking/types"
 
+	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 )
@@ -57,6 +58,8 @@ type RegisterKeeper interface {
 	GetUnbondingNodeBalance(ctx sdk.Context, networkAddr stratos.SdsAddress) sdkmath.Int
 
 	OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) (found bool)
+
+	ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofData) error
 }
 
 type StakingKeeper interface {

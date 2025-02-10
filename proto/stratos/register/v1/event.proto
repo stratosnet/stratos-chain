@@ -106,3 +106,14 @@ message EventCompleteUnBondingMetaNode{
   string amount = 1;
   string network_address = 2;
 }
+
+message EventMerkleDataUpdated {
+  bytes root = 1;
+  bytes commitment = 2;
+  repeated bytes proofs = 3;
+}
+
+message EventCommitmentAcknowledged {
+  bytes root = 1;
+  bytes commitment = 2;
+}

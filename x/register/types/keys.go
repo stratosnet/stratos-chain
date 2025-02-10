@@ -43,6 +43,9 @@ var (
 	KickMetaNodeVotesKey            = []byte{0x13} // prefix for the key to the vote for kicking meta node
 
 	ParamsKey = []byte{0x20}
+
+	MerkleRootKeyPrefix       = []byte{0x30} // MerkleRootKey prefix for merkle store
+	MerkleCommitmentKeyPrefix = []byte{0x31} // MerkleCommitmentKey prefix for merkle store commitments
 )
 
 // GetResourceNodeKey gets the key for the resourceNode with address
@@ -80,5 +83,10 @@ func GetUBDTimeKey(timestamp time.Time) []byte {
 
 func GetSlashingKey(walletAddress sdk.AccAddress) []byte {
 	key := append(SlashingPrefix, walletAddress...)
+	return key
+}
+
+func GetMerkleCommitmentKey(commitment []byte) []byte {
+	key := append(MerkleCommitmentKeyPrefix, commitment...)
 	return key
 }
