@@ -50,6 +50,13 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			oldImmatureTotal := k.GetImmatureTotalReward(ctx, walletAddress)
 			immatureToMature := individualReward.RewardFromMiningPool.Add(individualReward.RewardFromTrafficPool...)
 
+			// hot fix for mesos incorrect data
+			if oldImmatureTotal.IsAllLT(immatureToMature) {
+				maturedIndividualKeys = append(maturedIndividualKeys, types.GetIndividualRewardKey(walletAddress, processingEpoch))
+				isBreak = false
+				return false
+			}
+
 			// Deduct slashing amount from upcoming mature reward, don't need to deduct slashing from immatureTotal & individual
 			remaining, deducted := k.registerKeeper.DeductSlashing(ctx, walletAddress, immatureToMature, k.RewardDenom(ctx))
 			totalSlashed = totalSlashed.Add(deducted...)
