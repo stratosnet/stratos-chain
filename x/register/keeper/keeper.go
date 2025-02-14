@@ -43,22 +43,28 @@ func NewKeeper(
 	distrKeeper types.DistrKeeper,
 	authority string,
 ) Keeper {
-	return Keeper{
+	k := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		accountKeeper: accountKeeper,
 		bankKeeper:    bankKeeper,
 		distrKeeper:   distrKeeper,
-
-		// NOTE: Could be made confgurable
-		proover: merkle.NewRelayerMerkleProver(),
-
-		authority: authority,
+		authority:     authority,
 	}
+	k.SetProover(nil)
+	return k
 }
 
 func (k Keeper) GetBankKeeper() types.BankKeeper {
 	return k.bankKeeper
+}
+
+func (k *Keeper) SetProover(proover merkle.MerkleProver) {
+	if proover == nil {
+		k.proover = merkle.NewRelayerMerkleProver()
+		return
+	}
+	k.proover = proover
 }
 
 // Logger returns a module-specific logger.

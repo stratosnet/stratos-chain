@@ -32,6 +32,10 @@ func (ms RelayerMerkleProver) CreateProofs(roots [][]byte, commitments [][]byte)
 	if len(roots) != len(commitments) {
 		return nil, fmt.Errorf("roots do not have not enough commitments for pairing")
 	}
+	if len(roots) == 0 {
+		return nil, fmt.Errorf("roots/commitments could not be empty")
+	}
+
 	var data [][]byte
 
 	for i, c := range commitments {
