@@ -1,6 +1,6 @@
 # Stratos chain gov contracts
 
-This contracts relatd to gov mechanics via proxy calls like:
+This contracts related to gov mechanics via proxy calls like:
  - Prepay
 
 Try running some of the following tasks:
