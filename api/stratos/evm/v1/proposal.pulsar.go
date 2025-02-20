@@ -640,7 +640,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// UpdateImplmentationProposal used to update implemntation for genesis proxies
+// UpdateImplmentationProposal used to update implementation for genesis proxies
 type UpdateImplmentationProposal struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -648,7 +648,7 @@ type UpdateImplmentationProposal struct {
 
 	// proxy address where data will be executed
 	ProxyAddress string `protobuf:"bytes,1,opt,name=proxy_address,json=proxyAddress,proto3" json:"proxy_address,omitempty"`
-	// implmentation address as API for a storage
+	// implementation address as API for a storage
 	ImplementationAddress string `protobuf:"bytes,2,opt,name=implementation_address,json=implementationAddress,proto3" json:"implementation_address,omitempty"`
 	// data for execution
 	Data []byte `protobuf:"bytes,3,opt,name=data,proto3" json:"data,omitempty"`
