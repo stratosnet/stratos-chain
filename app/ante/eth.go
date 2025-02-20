@@ -55,7 +55,7 @@ func (tpvd EthTxPayloadVerificationDecorator) AnteHandle(ctx sdk.Context, tx sdk
 	return next(ctx, tx, simulate)
 }
 
-// EthTxCosmosMsgVerifierDecorator validates base tx payload if cosmos msg occured and protect from looping
+// EthTxCosmosMsgVerifierDecorator validates base tx payload if cosmos msg occurred and protect from looping
 type EthTxCosmosMsgVerifierDecorator struct {
 	evmKeeper EVMKeeper
 }
@@ -167,7 +167,7 @@ func NewEthAccountVerificationDecorator(ak evmtypes.AccountKeeper, ek EVMKeeper)
 }
 
 // AnteHandle validates checks that the sender balance is greater than the total transaction cost.
-// The account will be set to store if it doesn't exis, i.e cannot be found on store.
+// The account will be set to store if it doesn't exist, exists, exit, exits, axis, lexis, exes, i.e cannot be found on store.
 // This AnteHandler decorator will fail if:
 // - any of the msgs is not a MsgEthereumTx
 // - from address is empty
@@ -308,7 +308,7 @@ func (egcd EthGasConsumeDecorator) AnteHandle(ctx sdk.Context, tx sdk.Tx, simula
 	// NOTE: safety check
 	if blockGasLimit > 0 {
 		// generate a copy of the gas pool (i.e block gas meter) to see if we've run out of gas for this block
-		// if current gas consumed is greater than the limit, this funcion panics and the error is recovered on the Baseapp
+		// if current gas consumed is greater than the limit, this function panics and the error is recovered on the Baseapp
 		gasPool := sdk.NewGasMeter(blockGasLimit)
 		gasPool.ConsumeGas(ctx.GasMeter().GasConsumedToLimit(), "gas pool check")
 	}
