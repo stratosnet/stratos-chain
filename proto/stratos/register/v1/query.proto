@@ -60,6 +60,11 @@ service Query {
   rpc RemainingOzoneLimit(QueryRemainingOzoneLimitRequest) returns (QueryRemainingOzoneLimitResponse) {
     option (google.api.http).get = "/stratos/register/v1/remaining_ozone_limit";
   }
+
+  // MerkleRoot returns the merkle root of given commitment.
+  rpc MerkleRoot(QueryMerkleRootRequest) returns (QueryMerkleRootResponse) {
+    option (google.api.http).get = "/stratos/register/v1/merkle_root/{commitment}";
+  }
 }
 
 // QueryResourceNodeRequest is request type for the Query/ResourceNode RPC method
@@ -164,6 +169,23 @@ message QueryRemainingOzoneLimitResponse {
     (gogoproto.jsontag) = "ozone_limit",
     (gogoproto.moretags) = "yaml:\"ozone_limit\"",
     (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int"
+  ];
+}
+
+// QueryMerkleRootRequest is request type for the Query/MerkleRoot RPC method.
+message QueryMerkleRootRequest {
+  string commitment = 1;
+}
+
+// QueryMerkleRootResponse is response type for the Query/MerkleRoot RPC method.
+message QueryMerkleRootResponse {
+  string root = 1 [
+    (gogoproto.jsontag) = "root",
+    (gogoproto.moretags) = "yaml:\"root\""
+  ];
+  string commitment = 2 [
+    (gogoproto.jsontag) = "commitment",
+    (gogoproto.moretags) = "yaml:\"commitment\""
   ];
 }
 

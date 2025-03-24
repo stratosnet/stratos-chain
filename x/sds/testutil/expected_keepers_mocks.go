@@ -103,20 +103,6 @@ func (mr *MockRegisterKeeperMockRecorder) CalculatePurchaseAmount(ctx, amount in
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CalculatePurchaseAmount", reflect.TypeOf((*MockRegisterKeeper)(nil).CalculatePurchaseAmount), ctx, amount)
 }
 
-// GenerateMerkleProofs mocks base method.
-func (m *MockRegisterKeeper) GenerateMerkleProofs(ctx types.Context, signer types.AccAddress, data []byte) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GenerateMerkleProofs", ctx, signer, data)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// GenerateMerkleProofs indicates an expected call of GenerateMerkleProofs.
-func (mr *MockRegisterKeeperMockRecorder) GenerateMerkleProofs(ctx, signer, data interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GenerateMerkleProofs", reflect.TypeOf((*MockRegisterKeeper)(nil).GenerateMerkleProofs), ctx, signer, data)
-}
-
 // GetCurrNozPriceParams mocks base method.
 func (m *MockRegisterKeeper) GetCurrNozPriceParams(ctx types.Context) (math.Int, math.Int, math.Int) {
 	m.ctrl.T.Helper()
@@ -202,6 +188,20 @@ func (m *MockRegisterKeeper) OwnMetaNode(ctx types.Context, ownerAddr types.AccA
 func (mr *MockRegisterKeeperMockRecorder) OwnMetaNode(ctx, ownerAddr, p2pAddr interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "OwnMetaNode", reflect.TypeOf((*MockRegisterKeeper)(nil).OwnMetaNode), ctx, ownerAddr, p2pAddr)
+}
+
+// RecordMerkleCommitment mocks base method.
+func (m *MockRegisterKeeper) RecordMerkleCommitment(ctx types.Context, signer types.AccAddress, data []byte) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecordMerkleCommitment", ctx, signer, data)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RecordMerkleCommitment indicates an expected call of RecordMerkleCommitment.
+func (mr *MockRegisterKeeperMockRecorder) RecordMerkleCommitment(ctx, signer, data interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecordMerkleCommitment", reflect.TypeOf((*MockRegisterKeeper)(nil).RecordMerkleCommitment), ctx, signer, data)
 }
 
 // SetRemainingOzoneLimit mocks base method.

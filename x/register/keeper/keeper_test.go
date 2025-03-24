@@ -101,6 +101,80 @@ func (s *KeeperTestSuite) mockAccGetAccount(acc sdk.AccAddress) *gomock.Call {
 	return s.accountKeeper.EXPECT().GetAccount(s.ctx, acc)
 }
 
+func (s *KeeperTestSuite) TestQuerierMerkleRoot() {
+	require := s.Require()
+
+	// explicitly set so in case of changes, this will work
+	proover := merkle.NewRelayerMerkleProver()
+	s.registerKeeper.SetProover(proover)
+
+	s.T().Run("test querier merkle root call", func(t *testing.T) {
+		s.Reset(t)
+
+		ctx, keeper, queryClient := s.ctx, s.registerKeeper, s.queryClient
+		signer := sdk.AccAddress([]byte("signer1_______________"))
+		data := []byte("test")
+
+		acc := authtypes.NewBaseAccount(signer, nil, 1, 1)
+		s.mockAccGetAccount(signer).Return(acc).AnyTimes()
+
+		commitment1 := merkle.CreateSdkCommitment(signer, acc.GetSequence(), data)
+
+		// empty
+		req := &regtypes.QueryMerkleRootRequest{}
+
+		resp, err := queryClient.MerkleRoot(ctx, req)
+		require.NoError(err)
+
+		require.Equal(merkle.NullCommitment[:], common.Hex2Bytes(resp.Root))
+		require.Equal("", resp.Commitment)
+
+		// with some not existing commitment
+		req = &regtypes.QueryMerkleRootRequest{
+			Commitment: common.Bytes2Hex(commitment1),
+		}
+
+		resp, err = queryClient.MerkleRoot(ctx, req)
+		require.NoError(err)
+
+		require.Equal(merkle.NullCommitment[:], common.Hex2Bytes(resp.Root))
+		require.Equal(commitment1, common.Hex2Bytes(resp.Commitment))
+
+		// after record
+		err = keeper.RecordMerkleCommitment(ctx, signer, data)
+		require.NoError(err)
+		root1 := keeper.GetMerkleRootForCommitment(ctx, commitment1)
+		require.Equal(root1, keeper.GetMerkleRoot(ctx))
+
+		req = &regtypes.QueryMerkleRootRequest{
+			Commitment: common.Bytes2Hex(commitment1),
+		}
+
+		resp, err = queryClient.MerkleRoot(ctx, req)
+		require.NoError(err)
+
+		require.Equal(keeper.GetMerkleRoot(ctx), common.Hex2Bytes(resp.Root))
+		require.Equal(commitment1, common.Hex2Bytes(resp.Commitment))
+
+		// after nullify
+		newRoot := proover.GetRoot(keeper.GetMerkleRoot(ctx), [][]byte{commitment1})
+		mdata := merkle.NewMerkleProofBundle(newRoot, [][]byte{commitment1})
+
+		err = keeper.ProcessMerkleProofs(ctx, mdata)
+		require.NoError(err)
+
+		req = &regtypes.QueryMerkleRootRequest{
+			Commitment: common.Bytes2Hex(commitment1),
+		}
+
+		resp, err = queryClient.MerkleRoot(ctx, req)
+		require.NoError(err)
+
+		require.Equal(merkle.NullCommitment[:], common.Hex2Bytes(resp.Root))
+		require.Equal(commitment1, common.Hex2Bytes(resp.Commitment))
+	})
+}
+
 func (s *KeeperTestSuite) TestGenerateMerkleProofs() {
 	require := s.Require()
 
@@ -118,21 +192,19 @@ func (s *KeeperTestSuite) TestGenerateMerkleProofs() {
 
 		acc := authtypes.NewBaseAccount(signer, nil, 1, 1)
 
-		s.mockAccGetAccount(signer).Return(acc)
+		s.mockAccGetAccount(signer).Return(acc).AnyTimes()
 
 		// explicitly set so in case of changes, this will work
 		s.registerKeeper.SetProover(merkle.NewRelayerMerkleProver())
 
-		expRoot := common.Hex2Bytes("f74e8557b482dc4d487178364a6c9bb05a21f41410f6d880c9136a1045b0a93d")
-		expCommitment := common.Hex2Bytes("20b0225e68a64f45ace8916cde4d7410ad50b7e2ac53c2c42c46c6afffc6425c")
+		expCommitment := merkle.CreateSdkCommitment(signer, acc.GetSequence(), data)
 
-		err := keeper.GenerateMerkleProofs(ctx, signer, data)
+		err := keeper.RecordMerkleCommitment(ctx, signer, data)
 		require.NoError(err)
 
-		newRoot := keeper.GetMerkleRoot(ctx)
+		expRoot := keeper.GetMerkleRoot(ctx)
 
-		require.NotEqual(oldRoot, newRoot)
-		require.Equal(expRoot, newRoot)
+		require.Equal(oldRoot, expRoot)
 
 		require.Equal(1, len(ctx.EventManager().ABCIEvents()))
 
@@ -154,7 +226,7 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 	proover := merkle.NewRelayerMerkleProver()
 	s.registerKeeper.SetProover(proover)
 
-	s.T().Run("ack one leaf", func(t *testing.T) {
+	s.T().Run("nullify one leaf", func(t *testing.T) {
 		s.Reset(t)
 
 		ctx, keeper := s.ctx, s.registerKeeper
@@ -171,46 +243,28 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 				commitment1,
 			})
 
-		err := keeper.AckMerkleLeaves(ctx, rlProof.GetLeaves())
-
+		err := keeper.CreateMerkleCommitment(ctx, commitment1, root)
 		require.NoError(err)
 
-		res := ctx.KVStore(s.key).Get(regtypes.GetMerkleCommitmentKey(commitment1))
-
-		require.Equal(1, int(res[0]))
-
+		_, err = keeper.NullifyMerkleCommitments(ctx, rlProof.GetCommitments())
+		require.NoError(err)
 		require.Equal(1, len(ctx.EventManager().ABCIEvents()))
+
+		res := keeper.GetMerkleRootForCommitment(ctx, commitment1)
+		require.Equal(merkle.NullCommitment[:], res)
 
 		for _, evt := range ctx.EventManager().ABCIEvents() {
 			msg, _ := sdk.ParseTypedEvent(evt)
 			switch revt := msg.(type) {
-			case *regtypes.EventCommitmentAcknowledged:
+			case *regtypes.EventMerkleDataUpdated:
 				require.Equal(root, revt.Root)
 				require.Equal(commitment1, revt.Commitment)
+				require.Equal(regtypes.EventMerkleDataUpdated_NULLIFY, revt.ActionType)
 			}
 		}
 	})
 
-	s.T().Run("odd leaves", func(t *testing.T) {
-		s.Reset(t)
-
-		ctx, keeper := s.ctx, s.registerKeeper
-
-		commitment1 := []byte("c1")
-		commitment2 := []byte("c2")
-
-		root := keeper.GetMerkleRoot(ctx)
-
-		err := keeper.AckMerkleLeaves(ctx, [][]byte{
-			root, commitment1, commitment2,
-		})
-
-		require.Error(err)
-		require.ErrorContains(err, "even")
-		require.Equal(0, len(ctx.EventManager().ABCIEvents()))
-	})
-
-	s.T().Run("null commitment skip", func(t *testing.T) {
+	s.T().Run("nullify same commitment and fail", func(t *testing.T) {
 		s.Reset(t)
 
 		ctx, keeper := s.ctx, s.registerKeeper
@@ -227,16 +281,15 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 				commitment1,
 			})
 
-		err := keeper.AckMerkleLeaves(ctx, rlProof.GetLeaves())
-
-		require.NoError(err)
+		_, err := keeper.NullifyMerkleCommitments(ctx, rlProof.GetCommitments())
+		require.Error(err)
 
 		res := ctx.KVStore(s.key).Get(regtypes.GetMerkleCommitmentKey(commitment1))
 		require.Equal(0, len(res))
 		require.Equal(0, len(ctx.EventManager().ABCIEvents()))
 	})
 
-	s.T().Run("ack multiple leaves", func(t *testing.T) {
+	s.T().Run("nullify multiple leaves", func(t *testing.T) {
 		s.Reset(t)
 
 		ctx, keeper := s.ctx, s.registerKeeper
@@ -259,29 +312,34 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 				commitment3,
 			})
 
-		err := keeper.AckMerkleLeaves(ctx, rlProof.GetLeaves())
+		keeper.CreateMerkleCommitment(ctx, commitment1, root)
+		keeper.CreateMerkleCommitment(ctx, commitment3, root)
+
+		_, err := keeper.NullifyMerkleCommitments(ctx, rlProof.GetCommitments())
 
 		require.NoError(err)
 
-		res1 := ctx.KVStore(s.key).Get(regtypes.GetMerkleCommitmentKey(commitment1))
-		require.Equal(1, int(res1[0]))
-		res2 := ctx.KVStore(s.key).Get(regtypes.GetMerkleCommitmentKey(commitment2))
-		require.Equal(0, len(res2))
-		res3 := ctx.KVStore(s.key).Get(regtypes.GetMerkleCommitmentKey(commitment3))
-		require.Equal(1, int(res3[0]))
+		res1 := keeper.GetMerkleRootForCommitment(ctx, commitment1)
+		require.Equal(merkle.NullCommitment[:], res1)
+		res2 := keeper.GetMerkleRootForCommitment(ctx, commitment2)
+		require.Equal(merkle.NullCommitment[:], res2)
+		res3 := keeper.GetMerkleRootForCommitment(ctx, commitment3)
+		require.Equal(merkle.NullCommitment[:], res3)
 
 		require.Equal(2, len(ctx.EventManager().ABCIEvents()))
 
 		evt1 := ctx.EventManager().ABCIEvents()[0]
 		msg1, _ := sdk.ParseTypedEvent(evt1)
-		revt1 := msg1.(*regtypes.EventCommitmentAcknowledged)
+		revt1 := msg1.(*regtypes.EventMerkleDataUpdated)
 		require.Equal(root, revt1.Root)
 		require.Equal(commitment1, revt1.Commitment)
+		require.Equal(regtypes.EventMerkleDataUpdated_NULLIFY, revt1.ActionType)
 
 		evt3 := ctx.EventManager().ABCIEvents()[1]
 		msg3, _ := sdk.ParseTypedEvent(evt3)
-		revt3 := msg3.(*regtypes.EventCommitmentAcknowledged)
+		revt3 := msg3.(*regtypes.EventMerkleDataUpdated)
 		require.Equal(root, revt3.Root)
 		require.Equal(commitment3, revt3.Commitment)
+		require.Equal(regtypes.EventMerkleDataUpdated_NULLIFY, revt3.ActionType)
 	})
 }

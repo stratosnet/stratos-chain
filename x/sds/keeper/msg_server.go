@@ -93,7 +93,7 @@ func (k msgServer) HandleMsgPrepay(c context.Context, msg *types.MsgPrepay) (*ty
 		return nil, errors.Wrap(types.ErrEmitEvent, err.Error())
 	}
 
-	err = k.registerKeeper.GenerateMerkleProofs(ctx, sender, tevData)
+	err = k.registerKeeper.RecordMerkleCommitment(ctx, sender, tevData)
 	if err != nil {
 		return nil, errors.Wrap(types.ErrPrepayFailure, err.Error())
 	}

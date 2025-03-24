@@ -358,11 +358,37 @@ func (k Keeper) SetMerkleRoot(ctx sdk.Context, root []byte) {
 	ctx.KVStore(k.storeKey).Set(types.MerkleRootKeyPrefix, root)
 }
 
-func (k Keeper) AckMerkleCommit(ctx sdk.Context, commitment []byte) error {
-	bz := ctx.KVStore(k.storeKey).Get(types.GetMerkleCommitmentKey(commitment))
+func (k Keeper) GetMerkleRootForCommitment(ctx sdk.Context, commitment []byte) []byte {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetMerkleCommitmentKey(commitment)
+
+	bz := store.Get(key)
+	if bz == nil {
+		return merkle.NullCommitment[:]
+	}
+	return bz
+}
+
+func (k Keeper) CreateMerkleCommitment(ctx sdk.Context, commitment, root []byte) error {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetMerkleCommitmentKey(commitment)
+
+	bz := store.Get(key)
 	if bz != nil {
 		return fmt.Errorf("commitment '%s' acknowledged", commitment)
 	}
-	ctx.KVStore(k.storeKey).Set(types.GetMerkleCommitmentKey(commitment), []byte{1})
+	store.Set(key, root)
 	return nil
+}
+
+func (k Keeper) NullifyMerkleCommitment(ctx sdk.Context, commitment []byte) ([]byte, error) {
+	store := ctx.KVStore(k.storeKey)
+	key := types.GetMerkleCommitmentKey(commitment)
+
+	bz := store.Get(key)
+	if bz == nil {
+		return nil, fmt.Errorf("commitment '%s' does not exist", commitment)
+	}
+	store.Delete(key)
+	return bz, nil
 }

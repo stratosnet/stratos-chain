@@ -135,8 +135,8 @@ func (s *KeeperTestSuite) mockRegSetRemainingOzoneLimit(amount sdkmath.Int) *gom
 	return s.registerKeeper.EXPECT().SetRemainingOzoneLimit(s.ctx, amount)
 }
 
-func (s *KeeperTestSuite) mockRegGenerateMerkleProofs(signer sdk.AccAddress, data []byte) *gomock.Call {
-	return s.registerKeeper.EXPECT().GenerateMerkleProofs(s.ctx, signer, data)
+func (s *KeeperTestSuite) mockRegRecordMerkleCommitment(signer sdk.AccAddress, data []byte) *gomock.Call {
+	return s.registerKeeper.EXPECT().RecordMerkleCommitment(s.ctx, signer, data)
 }
 
 func (s *KeeperTestSuite) mockAccGetAccount(acc sdk.AccAddress) *gomock.Call {

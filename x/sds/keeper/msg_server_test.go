@@ -1,6 +1,7 @@
 package keeper_test
 
 import (
+	"fmt"
 	"testing"
 
 	sdkmath "cosmossdk.io/math"
@@ -58,14 +59,12 @@ func (s *KeeperTestSuite) TestMsgPrepay() {
 		regKeeper.SetProover(proover)
 
 		msg, data := s.fakeAndMockMsgPrepayForMerkleTest(sender)
-		s.mockRegGenerateMerkleProofs(sender, data).DoAndReturn(regKeeper.GenerateMerkleProofs).AnyTimes()
+		s.mockRegRecordMerkleCommitment(sender, data).DoAndReturn(regKeeper.RecordMerkleCommitment).AnyTimes()
 
 		root := regKeeper.GetMerkleRoot(ctx)
 		require.Equal(merkle.NullCommitment[:], root)
 
 		commitment1 := merkle.CreateSdkCommitment(sender, 1, data)
-
-		newRoot := proover.GetRoot(root, [][]byte{commitment1})
 
 		_, err := msgServer.HandleMsgPrepay(ctx, msg)
 		require.NoError(err)
@@ -74,7 +73,32 @@ func (s *KeeperTestSuite) TestMsgPrepay() {
 		evt1 := ctx.EventManager().ABCIEvents()[0]
 		msg1, _ := sdk.ParseTypedEvent(evt1)
 		revt1 := msg1.(*regtypes.EventMerkleDataUpdated)
-		require.Equal(newRoot, revt1.Root)
+		require.Equal(root, revt1.Root)
 		require.Equal(commitment1, revt1.Commitment)
+		require.Equal(regtypes.EventMerkleDataUpdated_CREATE, revt1.ActionType)
+	})
+
+	s.T().Run("create merkle proof with same data and fail", func(t *testing.T) {
+		s.Reset(t)
+
+		ctx, msgServer := s.ctx, s.msgServer
+
+		regKeeper := s.GetNoMockRegKeeper()
+		proover := merkle.NewRelayerMerkleProver()
+		regKeeper.SetProover(proover)
+
+		msg, data := s.fakeAndMockMsgPrepayForMerkleTest(sender)
+		s.mockRegRecordMerkleCommitment(sender, data).DoAndReturn(regKeeper.RecordMerkleCommitment).AnyTimes()
+
+		root := regKeeper.GetMerkleRoot(ctx)
+		require.Equal(merkle.NullCommitment[:], root)
+
+		commitment1 := merkle.CreateSdkCommitment(sender, 1, data)
+
+		_, err := msgServer.HandleMsgPrepay(ctx, msg)
+
+		require.Error(err)
+		require.Contains(err.Error(), fmt.Sprintf("commitment '%s' acknowledged", commitment1))
+		require.Equal(0, len(ctx.EventManager().ABCIEvents()))
 	})
 }

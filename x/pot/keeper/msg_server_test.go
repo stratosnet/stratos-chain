@@ -47,9 +47,8 @@ func (s *KeeperTestSuite) fakeAndMockMsgVolumeReportForMerkleTest(epochN int64, 
 	mockMetaNodeIterator := stratostestutil.NewMockIterator(metaNodeData)
 
 	msg.MerkleProofData = pottypes.MerkleProofData{
-		Root:   mpd.GetRoot(),
-		Proofs: mpd.GetProofs(),
-		Leaves: mpd.GetLeaves(),
+		Root:        mpd.GetRoot(),
+		Commitments: mpd.GetCommitments(),
 	}
 
 	msg, _ = stratostestutil.SignVolumeReport(
@@ -124,24 +123,29 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 				commitment1,
 			})
 
+		// create commitment to process
+		err := regKeeper.CreateMerkleCommitment(ctx, commitment1, root)
+		require.NoError(err)
+
 		msg := s.fakeAndMockMsgVolumeReportForMerkleTest(epochCounter, mpd)
 
 		mp := msg.GetMerkleProofData()
 		// real execute
 		s.mockRegProcessMerkleProofs(&mp).DoAndReturn(regKeeper.ProcessMerkleProofs).AnyTimes()
 
-		_, err := msgServer.HandleMsgVolumeReport(ctx, msg)
+		_, err = msgServer.HandleMsgVolumeReport(ctx, msg)
 		require.NoError(err)
 		require.Equal(2, len(ctx.EventManager().ABCIEvents()))
 
 		evt1 := ctx.EventManager().ABCIEvents()[0]
 		msg1, _ := sdk.ParseTypedEvent(evt1)
-		revt1 := msg1.(*regtypes.EventCommitmentAcknowledged)
+		revt1 := msg1.(*regtypes.EventMerkleDataUpdated)
 		require.Equal(root, revt1.Root)
 		require.Equal(commitment1, revt1.Commitment)
+		require.Equal(regtypes.EventMerkleDataUpdated_NULLIFY, revt1.ActionType)
 	})
 
-	s.T().Run("same proceed commitment and fail", func(t *testing.T) {
+	s.T().Run("same/not exist proceed commitment and fail", func(t *testing.T) {
 		s.Reset(t)
 		epochCounter++
 
@@ -171,7 +175,7 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 
 		_, err := msgServer.HandleMsgVolumeReport(ctx, msg)
 		require.Error(err)
-		require.Contains(err.Error(), fmt.Sprintf("commitment '%s' acknowledged", commitment1))
+		require.Contains(err.Error(), fmt.Sprintf("commitment '%s' does not exist", commitment1))
 		require.Equal(0, len(ctx.EventManager().ABCIEvents()))
 	})
 }

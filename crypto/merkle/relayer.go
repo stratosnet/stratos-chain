@@ -43,41 +43,17 @@ func (ms RelayerMerkleProver) CreateProofs(roots [][]byte, commitments [][]byte)
 		data = append(data, c)
 	}
 
-	root, proofs := merkle.ProofsFromByteSlices(data)
+	root, _ := merkle.ProofsFromByteSlices(data)
 
-	var mProofs [][]byte
-
-	for _, proof := range proofs {
-		proofData, err := proof.ToProto().Marshal()
-		if err != nil {
-			return nil, err
-		}
-		mProofs = append(mProofs, proofData)
-	}
-
-	rlProof := NewMerkleProofBundle(root, data, mProofs)
+	rlProof := NewMerkleProofBundle(root, commitments)
 
 	return rlProof, nil
 }
 
-func (ms RelayerMerkleProver) VerifyProofs(rootHash []byte, proofs [][]byte, data [][]byte) (bool, error) {
-	newRootHash, newProofs := merkle.ProofsFromByteSlices(data)
+func (ms RelayerMerkleProver) VerifyProofs(rootHash []byte, data [][]byte) (bool, error) {
+	newRootHash, _ := merkle.ProofsFromByteSlices(data)
 	if !bytes.Equal(rootHash, newRootHash) {
 		return false, fmt.Errorf("roots not equal: %s != %s", common.Bytes2Hex(rootHash), common.Bytes2Hex(newRootHash))
-	}
-
-	if len(newProofs) != len(proofs) {
-		return false, fmt.Errorf("proofs length not match")
-	}
-
-	for i, np := range newProofs {
-		npData, err := np.ToProto().Marshal()
-		if err != nil {
-			return false, err
-		}
-		if !bytes.Equal(npData, proofs[i]) {
-			return false, fmt.Errorf("proof aunt not match")
-		}
 	}
 
 	return true, nil

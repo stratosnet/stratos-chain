@@ -10,16 +10,14 @@ var _ MerkleProofData = &MerkleProofBundle{}
 
 // MerkleProofBundle is base for proof data response. It could be changed for upcomming calls by other protobuf
 type MerkleProofBundle struct {
-	root   []byte
-	data   [][]byte
-	proofs [][]byte
+	root        []byte
+	commitments [][]byte
 }
 
-func NewMerkleProofBundle(root []byte, data [][]byte, proofs [][]byte) MerkleProofData {
+func NewMerkleProofBundle(root []byte, commitments [][]byte) MerkleProofData {
 	return &MerkleProofBundle{
-		root:   root,
-		data:   data,
-		proofs: proofs,
+		root:        root,
+		commitments: commitments,
 	}
 }
 
@@ -27,22 +25,17 @@ func (d *MerkleProofBundle) GetRoot() []byte {
 	return d.root
 }
 
-func (d *MerkleProofBundle) GetLeaves() [][]byte {
-	return d.data
-}
-
-func (d *MerkleProofBundle) GetProofs() [][]byte {
-	return d.proofs
+func (d *MerkleProofBundle) GetCommitments() [][]byte {
+	return d.commitments
 }
 
 type MerkleProofData interface {
 	GetRoot() []byte
-	GetLeaves() [][]byte
-	GetProofs() [][]byte
+	GetCommitments() [][]byte
 }
 
 type MerkleProver interface {
 	GetRoot(root []byte, commitments [][]byte) []byte
 	CreateProofs(roots [][]byte, commitments [][]byte) (MerkleProofData, error)
-	VerifyProofs(rootHash []byte, proofs [][]byte, data [][]byte) (bool, error)
+	VerifyProofs(rootHash []byte, data [][]byte) (bool, error)
 }

@@ -279,7 +279,12 @@ func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) 
 }
 
 func (k Keeper) ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofData) error {
-	isValid, err := k.proover.VerifyProofs(mdata.GetRoot(), mdata.GetProofs(), mdata.GetLeaves())
+	leaves, err := k.NullifyMerkleCommitments(ctx, mdata.GetCommitments())
+	if err != nil {
+		return err
+	}
+
+	isValid, err := k.proover.VerifyProofs(mdata.GetRoot(), leaves)
 	if err != nil {
 		return err
 	}
@@ -290,24 +295,23 @@ func (k Keeper) ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofDat
 
 	k.SetMerkleRoot(ctx, mdata.GetRoot())
 
-	if err := k.AckMerkleLeaves(ctx, mdata.GetLeaves()); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func (k Keeper) GenerateMerkleProofs(ctx sdk.Context, signer sdk.AccAddress, data []byte) error {
+func (k Keeper) RecordMerkleCommitment(ctx sdk.Context, signer sdk.AccAddress, data []byte) error {
 	acc := k.accountKeeper.GetAccount(ctx, signer)
 	commitment := merkle.CreateSdkCommitment(signer, acc.GetSequence(), data)
 
-	root := k.proover.GetRoot(k.GetMerkleRoot(ctx), [][]byte{commitment})
-	k.SetMerkleRoot(ctx, root)
+	root := k.GetMerkleRoot(ctx)
+	if err := k.CreateMerkleCommitment(ctx, commitment, root); err != nil {
+		return err
+	}
 
 	err := ctx.EventManager().EmitTypedEvents(
 		&types.EventMerkleDataUpdated{
 			Root:       root,
 			Commitment: commitment,
+			ActionType: types.EventMerkleDataUpdated_CREATE,
 		},
 	)
 	if err != nil {
@@ -317,34 +321,38 @@ func (k Keeper) GenerateMerkleProofs(ctx sdk.Context, signer sdk.AccAddress, dat
 	return nil
 }
 
-func (k Keeper) AckMerkleLeaves(ctx sdk.Context, leaves [][]byte) error {
-	var tevs []proto.Message
+func (k Keeper) NullifyMerkleCommitments(ctx sdk.Context, commitments [][]byte) ([][]byte, error) {
+	var (
+		tevs   []proto.Message
+		leaves = make([][]byte, 0, len(commitments)*2)
+	)
 
-	if len(leaves)%2 != 0 {
-		return fmt.Errorf("leaves should be always even")
-	}
-
-	for i := 0; i < len(leaves); i += 2 {
-		root := leaves[i]
-		commitment := leaves[i+1]
-		// ignore nullifiers
+	for _, commitment := range commitments {
+		// ignoring null commitments
 		if bytes.Equal(commitment, merkle.NullCommitment[:]) {
 			continue
 		}
-		err := k.AckMerkleCommit(ctx, commitment)
+
+		root, err := k.NullifyMerkleCommitment(ctx, commitment)
 		if err != nil {
-			return err
+			return nil, err
 		}
-		tevs = append(tevs, &types.EventCommitmentAcknowledged{
+		leaves = append(leaves, root, commitment)
+		tevs = append(tevs, &types.EventMerkleDataUpdated{
 			Root:       root,
 			Commitment: commitment,
+			ActionType: types.EventMerkleDataUpdated_NULLIFY,
 		})
+	}
+
+	if len(tevs) == 0 {
+		return nil, fmt.Errorf("no commitments to nullify")
 	}
 
 	err := ctx.EventManager().EmitTypedEvents(tevs...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return leaves, nil
 }

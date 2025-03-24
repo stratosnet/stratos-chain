@@ -5814,7 +5814,7 @@ func (x *_MerkleProofData_2_list) Append(value protoreflect.Value) {
 }
 
 func (x *_MerkleProofData_2_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message MerkleProofData at list field Proofs as it is not of Message kind"))
+	panic(fmt.Errorf("AppendMutable can not be called on message MerkleProofData at list field Commitments as it is not of Message kind"))
 }
 
 func (x *_MerkleProofData_2_list) Truncate(n int) {
@@ -5830,65 +5830,17 @@ func (x *_MerkleProofData_2_list) IsValid() bool {
 	return x.list != nil
 }
 
-var _ protoreflect.List = (*_MerkleProofData_3_list)(nil)
-
-type _MerkleProofData_3_list struct {
-	list *[][]byte
-}
-
-func (x *_MerkleProofData_3_list) Len() int {
-	if x.list == nil {
-		return 0
-	}
-	return len(*x.list)
-}
-
-func (x *_MerkleProofData_3_list) Get(i int) protoreflect.Value {
-	return protoreflect.ValueOfBytes((*x.list)[i])
-}
-
-func (x *_MerkleProofData_3_list) Set(i int, value protoreflect.Value) {
-	valueUnwrapped := value.Bytes()
-	concreteValue := valueUnwrapped
-	(*x.list)[i] = concreteValue
-}
-
-func (x *_MerkleProofData_3_list) Append(value protoreflect.Value) {
-	valueUnwrapped := value.Bytes()
-	concreteValue := valueUnwrapped
-	*x.list = append(*x.list, concreteValue)
-}
-
-func (x *_MerkleProofData_3_list) AppendMutable() protoreflect.Value {
-	panic(fmt.Errorf("AppendMutable can not be called on message MerkleProofData at list field Leaves as it is not of Message kind"))
-}
-
-func (x *_MerkleProofData_3_list) Truncate(n int) {
-	*x.list = (*x.list)[:n]
-}
-
-func (x *_MerkleProofData_3_list) NewElement() protoreflect.Value {
-	var v []byte
-	return protoreflect.ValueOfBytes(v)
-}
-
-func (x *_MerkleProofData_3_list) IsValid() bool {
-	return x.list != nil
-}
-
 var (
-	md_MerkleProofData        protoreflect.MessageDescriptor
-	fd_MerkleProofData_root   protoreflect.FieldDescriptor
-	fd_MerkleProofData_proofs protoreflect.FieldDescriptor
-	fd_MerkleProofData_leaves protoreflect.FieldDescriptor
+	md_MerkleProofData             protoreflect.MessageDescriptor
+	fd_MerkleProofData_root        protoreflect.FieldDescriptor
+	fd_MerkleProofData_commitments protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_pot_v1_pot_proto_init()
 	md_MerkleProofData = File_stratos_pot_v1_pot_proto.Messages().ByName("MerkleProofData")
 	fd_MerkleProofData_root = md_MerkleProofData.Fields().ByName("root")
-	fd_MerkleProofData_proofs = md_MerkleProofData.Fields().ByName("proofs")
-	fd_MerkleProofData_leaves = md_MerkleProofData.Fields().ByName("leaves")
+	fd_MerkleProofData_commitments = md_MerkleProofData.Fields().ByName("commitments")
 }
 
 var _ protoreflect.Message = (*fastReflection_MerkleProofData)(nil)
@@ -5962,15 +5914,9 @@ func (x *fastReflection_MerkleProofData) Range(f func(protoreflect.FieldDescript
 			return
 		}
 	}
-	if len(x.Proofs) != 0 {
-		value := protoreflect.ValueOfList(&_MerkleProofData_2_list{list: &x.Proofs})
-		if !f(fd_MerkleProofData_proofs, value) {
-			return
-		}
-	}
-	if len(x.Leaves) != 0 {
-		value := protoreflect.ValueOfList(&_MerkleProofData_3_list{list: &x.Leaves})
-		if !f(fd_MerkleProofData_leaves, value) {
+	if len(x.Commitments) != 0 {
+		value := protoreflect.ValueOfList(&_MerkleProofData_2_list{list: &x.Commitments})
+		if !f(fd_MerkleProofData_commitments, value) {
 			return
 		}
 	}
@@ -5991,10 +5937,8 @@ func (x *fastReflection_MerkleProofData) Has(fd protoreflect.FieldDescriptor) bo
 	switch fd.FullName() {
 	case "stratos.pot.v1.MerkleProofData.root":
 		return len(x.Root) != 0
-	case "stratos.pot.v1.MerkleProofData.proofs":
-		return len(x.Proofs) != 0
-	case "stratos.pot.v1.MerkleProofData.leaves":
-		return len(x.Leaves) != 0
+	case "stratos.pot.v1.MerkleProofData.commitments":
+		return len(x.Commitments) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.MerkleProofData"))
@@ -6013,10 +5957,8 @@ func (x *fastReflection_MerkleProofData) Clear(fd protoreflect.FieldDescriptor) 
 	switch fd.FullName() {
 	case "stratos.pot.v1.MerkleProofData.root":
 		x.Root = nil
-	case "stratos.pot.v1.MerkleProofData.proofs":
-		x.Proofs = nil
-	case "stratos.pot.v1.MerkleProofData.leaves":
-		x.Leaves = nil
+	case "stratos.pot.v1.MerkleProofData.commitments":
+		x.Commitments = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.MerkleProofData"))
@@ -6036,17 +5978,11 @@ func (x *fastReflection_MerkleProofData) Get(descriptor protoreflect.FieldDescri
 	case "stratos.pot.v1.MerkleProofData.root":
 		value := x.Root
 		return protoreflect.ValueOfBytes(value)
-	case "stratos.pot.v1.MerkleProofData.proofs":
-		if len(x.Proofs) == 0 {
+	case "stratos.pot.v1.MerkleProofData.commitments":
+		if len(x.Commitments) == 0 {
 			return protoreflect.ValueOfList(&_MerkleProofData_2_list{})
 		}
-		listValue := &_MerkleProofData_2_list{list: &x.Proofs}
-		return protoreflect.ValueOfList(listValue)
-	case "stratos.pot.v1.MerkleProofData.leaves":
-		if len(x.Leaves) == 0 {
-			return protoreflect.ValueOfList(&_MerkleProofData_3_list{})
-		}
-		listValue := &_MerkleProofData_3_list{list: &x.Leaves}
+		listValue := &_MerkleProofData_2_list{list: &x.Commitments}
 		return protoreflect.ValueOfList(listValue)
 	default:
 		if descriptor.IsExtension() {
@@ -6070,14 +6006,10 @@ func (x *fastReflection_MerkleProofData) Set(fd protoreflect.FieldDescriptor, va
 	switch fd.FullName() {
 	case "stratos.pot.v1.MerkleProofData.root":
 		x.Root = value.Bytes()
-	case "stratos.pot.v1.MerkleProofData.proofs":
+	case "stratos.pot.v1.MerkleProofData.commitments":
 		lv := value.List()
 		clv := lv.(*_MerkleProofData_2_list)
-		x.Proofs = *clv.list
-	case "stratos.pot.v1.MerkleProofData.leaves":
-		lv := value.List()
-		clv := lv.(*_MerkleProofData_3_list)
-		x.Leaves = *clv.list
+		x.Commitments = *clv.list
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.MerkleProofData"))
@@ -6098,17 +6030,11 @@ func (x *fastReflection_MerkleProofData) Set(fd protoreflect.FieldDescriptor, va
 // Mutable is a mutating operation and unsafe for concurrent use.
 func (x *fastReflection_MerkleProofData) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.pot.v1.MerkleProofData.proofs":
-		if x.Proofs == nil {
-			x.Proofs = [][]byte{}
+	case "stratos.pot.v1.MerkleProofData.commitments":
+		if x.Commitments == nil {
+			x.Commitments = [][]byte{}
 		}
-		value := &_MerkleProofData_2_list{list: &x.Proofs}
-		return protoreflect.ValueOfList(value)
-	case "stratos.pot.v1.MerkleProofData.leaves":
-		if x.Leaves == nil {
-			x.Leaves = [][]byte{}
-		}
-		value := &_MerkleProofData_3_list{list: &x.Leaves}
+		value := &_MerkleProofData_2_list{list: &x.Commitments}
 		return protoreflect.ValueOfList(value)
 	case "stratos.pot.v1.MerkleProofData.root":
 		panic(fmt.Errorf("field root of message stratos.pot.v1.MerkleProofData is not mutable"))
@@ -6127,12 +6053,9 @@ func (x *fastReflection_MerkleProofData) NewField(fd protoreflect.FieldDescripto
 	switch fd.FullName() {
 	case "stratos.pot.v1.MerkleProofData.root":
 		return protoreflect.ValueOfBytes(nil)
-	case "stratos.pot.v1.MerkleProofData.proofs":
+	case "stratos.pot.v1.MerkleProofData.commitments":
 		list := [][]byte{}
 		return protoreflect.ValueOfList(&_MerkleProofData_2_list{list: &list})
-	case "stratos.pot.v1.MerkleProofData.leaves":
-		list := [][]byte{}
-		return protoreflect.ValueOfList(&_MerkleProofData_3_list{list: &list})
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.pot.v1.MerkleProofData"))
@@ -6206,14 +6129,8 @@ func (x *fastReflection_MerkleProofData) ProtoMethods() *protoiface.Methods {
 		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if len(x.Proofs) > 0 {
-			for _, b := range x.Proofs {
-				l = len(b)
-				n += 1 + l + runtime.Sov(uint64(l))
-			}
-		}
-		if len(x.Leaves) > 0 {
-			for _, b := range x.Leaves {
+		if len(x.Commitments) > 0 {
+			for _, b := range x.Commitments {
 				l = len(b)
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
@@ -6247,20 +6164,11 @@ func (x *fastReflection_MerkleProofData) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Leaves) > 0 {
-			for iNdEx := len(x.Leaves) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.Leaves[iNdEx])
-				copy(dAtA[i:], x.Leaves[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Leaves[iNdEx])))
-				i--
-				dAtA[i] = 0x1a
-			}
-		}
-		if len(x.Proofs) > 0 {
-			for iNdEx := len(x.Proofs) - 1; iNdEx >= 0; iNdEx-- {
-				i -= len(x.Proofs[iNdEx])
-				copy(dAtA[i:], x.Proofs[iNdEx])
-				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Proofs[iNdEx])))
+		if len(x.Commitments) > 0 {
+			for iNdEx := len(x.Commitments) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.Commitments[iNdEx])
+				copy(dAtA[i:], x.Commitments[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Commitments[iNdEx])))
 				i--
 				dAtA[i] = 0x12
 			}
@@ -6357,7 +6265,7 @@ func (x *fastReflection_MerkleProofData) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 2:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Proofs", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Commitments", wireType)
 				}
 				var byteLen int
 				for shift := uint(0); ; shift += 7 {
@@ -6384,40 +6292,8 @@ func (x *fastReflection_MerkleProofData) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Proofs = append(x.Proofs, make([]byte, postIndex-iNdEx))
-				copy(x.Proofs[len(x.Proofs)-1], dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
-			case 3:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Leaves", wireType)
-				}
-				var byteLen int
-				for shift := uint(0); ; shift += 7 {
-					if shift >= 64 {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
-					}
-					if iNdEx >= l {
-						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-					}
-					b := dAtA[iNdEx]
-					iNdEx++
-					byteLen |= int(b&0x7F) << shift
-					if b < 0x80 {
-						break
-					}
-				}
-				if byteLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + byteLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.Leaves = append(x.Leaves, make([]byte, postIndex-iNdEx))
-				copy(x.Leaves[len(x.Leaves)-1], dAtA[iNdEx:postIndex])
+				x.Commitments = append(x.Commitments, make([]byte, postIndex-iNdEx))
+				copy(x.Commitments[len(x.Commitments)-1], dAtA[iNdEx:postIndex])
 				iNdEx = postIndex
 			default:
 				iNdEx = preIndex
@@ -6988,15 +6864,14 @@ func (x *Metrics) GetUnissuedPrepay() string {
 	return ""
 }
 
-// MerkleProofData is data with required info to proof leaves on specific root
+// MerkleProofData is data with required info to proof commitments for specific root
 type MerkleProofData struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Root   []byte   `protobuf:"bytes,1,opt,name=root,proto3" json:"root,omitempty"`
-	Proofs [][]byte `protobuf:"bytes,2,rep,name=proofs,proto3" json:"proofs,omitempty"`
-	Leaves [][]byte `protobuf:"bytes,3,rep,name=leaves,proto3" json:"leaves,omitempty"`
+	Root        []byte   `protobuf:"bytes,1,opt,name=root,proto3" json:"root,omitempty"`
+	Commitments [][]byte `protobuf:"bytes,2,rep,name=commitments,proto3" json:"commitments,omitempty"`
 }
 
 func (x *MerkleProofData) Reset() {
@@ -7026,16 +6901,9 @@ func (x *MerkleProofData) GetRoot() []byte {
 	return nil
 }
 
-func (x *MerkleProofData) GetProofs() [][]byte {
+func (x *MerkleProofData) GetCommitments() [][]byte {
 	if x != nil {
-		return x.Proofs
-	}
-	return nil
-}
-
-func (x *MerkleProofData) GetLeaves() [][]byte {
-	if x != nil {
-		return x.Leaves
+		return x.Commitments
 	}
 	return nil
 }
@@ -7417,29 +7285,27 @@ var file_stratos_pot_v1_pot_proto_rawDesc = []byte{
 	0xf2, 0xde, 0x1f, 0x16, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x75, 0x6e, 0x69, 0x73, 0x73, 0x75,
 	0x65, 0x64, 0x5f, 0x70, 0x72, 0x65, 0x70, 0x61, 0x79, 0x22, 0xd2, 0xb4, 0x2d, 0x0a, 0x63, 0x6f,
 	0x73, 0x6d, 0x6f, 0x73, 0x2e, 0x49, 0x6e, 0x74, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0e, 0x75,
-	0x6e, 0x69, 0x73, 0x73, 0x75, 0x65, 0x64, 0x50, 0x72, 0x65, 0x70, 0x61, 0x79, 0x22, 0xa8, 0x01,
+	0x6e, 0x69, 0x73, 0x73, 0x75, 0x65, 0x64, 0x50, 0x72, 0x65, 0x70, 0x61, 0x79, 0x22, 0x87, 0x01,
 	0x0a, 0x0f, 0x4d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x44, 0x61, 0x74,
 	0x61, 0x12, 0x2b, 0x0a, 0x04, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0c, 0x42,
 	0x17, 0xea, 0xde, 0x1f, 0x04, 0x72, 0x6f, 0x6f, 0x74, 0xf2, 0xde, 0x1f, 0x0b, 0x79, 0x61, 0x6d,
-	0x6c, 0x3a, 0x22, 0x72, 0x6f, 0x6f, 0x74, 0x22, 0x52, 0x04, 0x72, 0x6f, 0x6f, 0x74, 0x12, 0x33,
-	0x0a, 0x06, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0c, 0x42, 0x1b,
-	0xea, 0xde, 0x1f, 0x06, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x73, 0xf2, 0xde, 0x1f, 0x0d, 0x79, 0x61,
-	0x6d, 0x6c, 0x3a, 0x22, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x73, 0x22, 0x52, 0x06, 0x70, 0x72, 0x6f,
-	0x6f, 0x66, 0x73, 0x12, 0x33, 0x0a, 0x06, 0x6c, 0x65, 0x61, 0x76, 0x65, 0x73, 0x18, 0x03, 0x20,
-	0x03, 0x28, 0x0c, 0x42, 0x1b, 0xea, 0xde, 0x1f, 0x06, 0x6c, 0x65, 0x61, 0x76, 0x65, 0x73, 0xf2,
-	0xde, 0x1f, 0x0d, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x6c, 0x65, 0x61, 0x76, 0x65, 0x73, 0x22,
-	0x52, 0x06, 0x6c, 0x65, 0x61, 0x76, 0x65, 0x73, 0x42, 0xa3, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d,
-	0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x42,
-	0x08, 0x50, 0x6f, 0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73,
-	0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74,
-	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x70, 0x6f, 0x74,
-	0x76, 0x31, 0xa2, 0x02, 0x03, 0x53, 0x50, 0x58, 0xaa, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74,
-	0x6f, 0x73, 0x2e, 0x50, 0x6f, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61,
-	0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1a, 0x53, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d,
-	0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f,
-	0x73, 0x3a, 0x3a, 0x50, 0x6f, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0xa8, 0xe2, 0x1e, 0x01, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6c, 0x3a, 0x22, 0x72, 0x6f, 0x6f, 0x74, 0x22, 0x52, 0x04, 0x72, 0x6f, 0x6f, 0x74, 0x12, 0x47,
+	0x0a, 0x0b, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x18, 0x02, 0x20,
+	0x03, 0x28, 0x0c, 0x42, 0x25, 0xea, 0xde, 0x1f, 0x0b, 0x63, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x6d,
+	0x65, 0x6e, 0x74, 0x73, 0xf2, 0xde, 0x1f, 0x12, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x63, 0x6f,
+	0x6d, 0x6d, 0x69, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x22, 0x52, 0x0b, 0x63, 0x6f, 0x6d, 0x6d,
+	0x69, 0x74, 0x6d, 0x65, 0x6e, 0x74, 0x73, 0x42, 0xa3, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e,
+	0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x70, 0x6f, 0x74, 0x2e, 0x76, 0x31, 0x42, 0x08,
+	0x50, 0x6f, 0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d,
+	0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74, 0x72,
+	0x61, 0x74, 0x6f, 0x73, 0x2f, 0x70, 0x6f, 0x74, 0x2f, 0x76, 0x31, 0x3b, 0x70, 0x6f, 0x74, 0x76,
+	0x31, 0xa2, 0x02, 0x03, 0x53, 0x50, 0x58, 0xaa, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f,
+	0x73, 0x2e, 0x50, 0x6f, 0x74, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74,
+	0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1a, 0x53, 0x74, 0x72, 0x61,
+	0x74, 0x6f, 0x73, 0x5c, 0x50, 0x6f, 0x74, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65,
+	0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
+	0x3a, 0x3a, 0x50, 0x6f, 0x74, 0x3a, 0x3a, 0x56, 0x31, 0xa8, 0xe2, 0x1e, 0x01, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (

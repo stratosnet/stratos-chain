@@ -20,13 +20,12 @@ func TestRelayerMerkle_CreateRelayAndAccept(t *testing.T) {
 		commitment1 := []byte("c1")
 		commitment2 := []byte("c2")
 
-		newRootHash := rlMerkle.GetRoot(currentRootHash, [][]byte{
-			commitment1,
-			commitment2,
-		})
+		newRootHash := currentRootHash[:]
 
-		// adding new root to the store
+		// throw to tm events
 		fmt.Println("newRootHash", common.Bytes2Hex(newRootHash))
+		fmt.Println("commitment1", common.Bytes2Hex(commitment1))
+		fmt.Println("commitment2", common.Bytes2Hex(commitment2))
 	}
 
 	{
@@ -45,12 +44,17 @@ func TestRelayerMerkle_CreateRelayAndAccept(t *testing.T) {
 
 		// broadcast to st volume report
 		fmt.Println("newRootHash", common.Bytes2Hex(rlProof.GetRoot()))
-		fmt.Println("leafData", rlProof.GetLeaves())
+		fmt.Println("commitments", rlProof.GetCommitments())
 	}
 
 	{
 		// 3. Accept volume report for commitment 1
-		isValid, err := rlMerkle.VerifyProofs(rlProof.GetRoot(), rlProof.GetProofs(), rlProof.GetLeaves())
+		leaves, err := GetLeaves(rlProof, [][]byte{
+			currentRootHash,
+		})
+		assert.ErrorIs(t, err, nil)
+
+		isValid, err := rlMerkle.VerifyProofs(rlProof.GetRoot(), leaves)
 		assert.ErrorIs(t, err, nil)
 		assert.Equal(t, isValid, true)
 		fmt.Println("root hash update", rlProof.GetRoot())
@@ -61,6 +65,7 @@ func TestRelayerMerkle_CreateRelayAndAccept(t *testing.T) {
 		// 4. Relayer prepays proofs for volume report for commitment 2
 		prevRootHash := NullCommitment[:]
 		commitment2 := []byte("c2")
+		commitment3 := []byte("c3")
 
 		rlProof, err = rlMerkle.CreateProofs(
 			[][]byte{
@@ -68,7 +73,7 @@ func TestRelayerMerkle_CreateRelayAndAccept(t *testing.T) {
 				prevRootHash,
 			},
 			[][]byte{
-				NullCommitment[:],
+				commitment3,
 				commitment2,
 			})
 
@@ -76,12 +81,18 @@ func TestRelayerMerkle_CreateRelayAndAccept(t *testing.T) {
 
 		// broadcast to st volume report
 		fmt.Println("newRootHash", common.Bytes2Hex(rlProof.GetRoot()))
-		fmt.Println("leafData", rlProof.GetLeaves())
+		fmt.Println("commitments", rlProof.GetCommitments())
 	}
 
 	{
 		// 5. Accept volume report for commitment 2
-		isValid, err := rlMerkle.VerifyProofs(rlProof.GetRoot(), rlProof.GetProofs(), rlProof.GetLeaves())
+		leaves, err := GetLeaves(rlProof, [][]byte{
+			currentRootHash,
+			NullCommitment[:],
+		})
+		assert.ErrorIs(t, err, nil)
+
+		isValid, err := rlMerkle.VerifyProofs(rlProof.GetRoot(), leaves)
 		assert.ErrorIs(t, err, nil)
 		assert.Equal(t, isValid, true)
 		fmt.Println("root hash update", rlProof.GetRoot())

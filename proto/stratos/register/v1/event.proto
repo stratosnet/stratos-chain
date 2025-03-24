@@ -107,13 +107,15 @@ message EventCompleteUnBondingMetaNode{
   string network_address = 2;
 }
 
+// EventMerkleDataUpdated is emitted on merkle proceed functions
 message EventMerkleDataUpdated {
   bytes root = 1;
   bytes commitment = 2;
-  repeated bytes proofs = 3;
-}
 
-message EventCommitmentAcknowledged {
-  bytes root = 1;
-  bytes commitment = 2;
+  enum ActionType {
+    ACTION_TYPE_UNSPECIFIED = 0;
+    CREATE = 1;
+    NULLIFY = 2;
+  }
+  ActionType action_type = 3;
 }
