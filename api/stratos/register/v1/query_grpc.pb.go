@@ -28,6 +28,7 @@ const (
 	Query_BondedResourceNodeCount_FullMethodName = "/stratos.register.v1.Query/BondedResourceNodeCount"
 	Query_BondedMetaNodeCount_FullMethodName     = "/stratos.register.v1.Query/BondedMetaNodeCount"
 	Query_RemainingOzoneLimit_FullMethodName     = "/stratos.register.v1.Query/RemainingOzoneLimit"
+	Query_MerkleRoot_FullMethodName              = "/stratos.register.v1.Query/MerkleRoot"
 )
 
 // QueryClient is the client API for Query service.
@@ -52,6 +53,8 @@ type QueryClient interface {
 	BondedMetaNodeCount(ctx context.Context, in *QueryBondedMetaNodeCountRequest, opts ...grpc.CallOption) (*QueryBondedMetaNodeCountResponse, error)
 	// RemainingOzoneLimit returns the current remaining ozone limit.
 	RemainingOzoneLimit(ctx context.Context, in *QueryRemainingOzoneLimitRequest, opts ...grpc.CallOption) (*QueryRemainingOzoneLimitResponse, error)
+	// MerkleRoot returns the merkle root of given commitment.
+	MerkleRoot(ctx context.Context, in *QueryMerkleRootRequest, opts ...grpc.CallOption) (*QueryMerkleRootResponse, error)
 }
 
 type queryClient struct {
@@ -143,6 +146,15 @@ func (c *queryClient) RemainingOzoneLimit(ctx context.Context, in *QueryRemainin
 	return out, nil
 }
 
+func (c *queryClient) MerkleRoot(ctx context.Context, in *QueryMerkleRootRequest, opts ...grpc.CallOption) (*QueryMerkleRootResponse, error) {
+	out := new(QueryMerkleRootResponse)
+	err := c.cc.Invoke(ctx, Query_MerkleRoot_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -165,6 +177,8 @@ type QueryServer interface {
 	BondedMetaNodeCount(context.Context, *QueryBondedMetaNodeCountRequest) (*QueryBondedMetaNodeCountResponse, error)
 	// RemainingOzoneLimit returns the current remaining ozone limit.
 	RemainingOzoneLimit(context.Context, *QueryRemainingOzoneLimitRequest) (*QueryRemainingOzoneLimitResponse, error)
+	// MerkleRoot returns the merkle root of given commitment.
+	MerkleRoot(context.Context, *QueryMerkleRootRequest) (*QueryMerkleRootResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -198,6 +212,9 @@ func (UnimplementedQueryServer) BondedMetaNodeCount(context.Context, *QueryBonde
 }
 func (UnimplementedQueryServer) RemainingOzoneLimit(context.Context, *QueryRemainingOzoneLimitRequest) (*QueryRemainingOzoneLimitResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RemainingOzoneLimit not implemented")
+}
+func (UnimplementedQueryServer) MerkleRoot(context.Context, *QueryMerkleRootRequest) (*QueryMerkleRootResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MerkleRoot not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -374,6 +391,24 @@ func _Query_RemainingOzoneLimit_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_MerkleRoot_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryMerkleRootRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).MerkleRoot(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_MerkleRoot_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).MerkleRoot(ctx, req.(*QueryMerkleRootRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -416,6 +451,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemainingOzoneLimit",
 			Handler:    _Query_RemainingOzoneLimit_Handler,
+		},
+		{
+			MethodName: "MerkleRoot",
+			Handler:    _Query_MerkleRoot_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
