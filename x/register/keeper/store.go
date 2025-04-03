@@ -362,11 +362,7 @@ func (k Keeper) GetMerkleRootForCommitment(ctx sdk.Context, commitment []byte) [
 	store := ctx.KVStore(k.storeKey)
 	key := types.GetMerkleCommitmentKey(commitment)
 
-	bz := store.Get(key)
-	if bz == nil {
-		return merkle.NullCommitment[:]
-	}
-	return bz
+	return store.Get(key)
 }
 
 func (k Keeper) CreateMerkleCommitment(ctx sdk.Context, commitment, root []byte) error {

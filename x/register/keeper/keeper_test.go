@@ -126,7 +126,7 @@ func (s *KeeperTestSuite) TestQuerierMerkleRoot() {
 		resp, err := queryClient.MerkleRoot(ctx, req)
 		require.NoError(err)
 
-		require.Equal(merkle.NullCommitment[:], common.Hex2Bytes(resp.Root))
+		require.True(resp.Root == "")
 		require.Equal("", resp.Commitment)
 
 		// with some not existing commitment
@@ -137,7 +137,7 @@ func (s *KeeperTestSuite) TestQuerierMerkleRoot() {
 		resp, err = queryClient.MerkleRoot(ctx, req)
 		require.NoError(err)
 
-		require.Equal(merkle.NullCommitment[:], common.Hex2Bytes(resp.Root))
+		require.True(resp.Root == "")
 		require.Equal(commitment1, common.Hex2Bytes(resp.Commitment))
 
 		// after record
@@ -153,6 +153,7 @@ func (s *KeeperTestSuite) TestQuerierMerkleRoot() {
 		resp, err = queryClient.MerkleRoot(ctx, req)
 		require.NoError(err)
 
+		require.True(resp.Root != "")
 		require.Equal(keeper.GetMerkleRoot(ctx), common.Hex2Bytes(resp.Root))
 		require.Equal(commitment1, common.Hex2Bytes(resp.Commitment))
 
@@ -170,7 +171,7 @@ func (s *KeeperTestSuite) TestQuerierMerkleRoot() {
 		resp, err = queryClient.MerkleRoot(ctx, req)
 		require.NoError(err)
 
-		require.Equal(merkle.NullCommitment[:], common.Hex2Bytes(resp.Root))
+		require.True(resp.Root == "")
 		require.Equal(commitment1, common.Hex2Bytes(resp.Commitment))
 	})
 }
@@ -251,7 +252,7 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 		require.Equal(1, len(ctx.EventManager().ABCIEvents()))
 
 		res := keeper.GetMerkleRootForCommitment(ctx, commitment1)
-		require.Equal(merkle.NullCommitment[:], res)
+		require.True(res == nil)
 
 		for _, evt := range ctx.EventManager().ABCIEvents() {
 			msg, _ := sdk.ParseTypedEvent(evt)
@@ -320,11 +321,11 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 		require.NoError(err)
 
 		res1 := keeper.GetMerkleRootForCommitment(ctx, commitment1)
-		require.Equal(merkle.NullCommitment[:], res1)
+		require.True(res1 == nil)
 		res2 := keeper.GetMerkleRootForCommitment(ctx, commitment2)
-		require.Equal(merkle.NullCommitment[:], res2)
+		require.True(res2 == nil)
 		res3 := keeper.GetMerkleRootForCommitment(ctx, commitment3)
-		require.Equal(merkle.NullCommitment[:], res3)
+		require.True(res3 == nil)
 
 		require.Equal(2, len(ctx.EventManager().ABCIEvents()))
 
