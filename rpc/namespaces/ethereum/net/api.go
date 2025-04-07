@@ -3,6 +3,8 @@ package net
 import (
 	"math/big"
 
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/stratosnet/stratos-chain/rpc/backend"
 )
@@ -13,7 +15,7 @@ type PublicAPI struct {
 }
 
 // NewPublicAPI creates an instance of the public Net Web3 API.
-func NewPublicAPI(backend backend.BackendI) *PublicAPI {
+func NewPublicAPI(ctx *server.Context, clientCtx client.Context, backend backend.BackendI) *PublicAPI {
 	return &PublicAPI{
 		backend: backend,
 	}

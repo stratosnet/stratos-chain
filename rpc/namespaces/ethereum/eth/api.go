@@ -19,6 +19,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 
@@ -43,21 +44,16 @@ import (
 
 // PublicAPI is the eth_ prefixed set of APIs in the Web3 JSON-RPC spec.
 type PublicAPI struct {
-	ctx          context.Context
-	clientCtx    client.Context
-	chainIDEpoch *big.Int
-	logger       log.Logger
-	backend      backend.BackendI
-	nonceLock    *rpctypes.AddrLocker
-	signer       ethtypes.Signer
+	clientCtx client.Context
+	logger    log.Logger
+	backend   backend.BackendI
 }
 
 // NewPublicAPI creates an instance of the public ETH Web3 API.
 func NewPublicAPI(
-	logger log.Logger,
+	ctx *server.Context,
 	clientCtx client.Context,
 	backend backend.BackendI,
-	nonceLock *rpctypes.AddrLocker,
 ) *PublicAPI {
 	algos, _ := clientCtx.Keyring.SupportedAlgorithms()
 
@@ -77,35 +73,13 @@ func NewPublicAPI(
 		clientCtx = clientCtx.WithKeyring(kr)
 	}
 
-	// The signer used by the API should always be the 'latest' known one because we expect
-	// signers to be backwards-compatible with old transactions.
-	cfg := backend.ChainConfig()
-	if cfg == nil {
-		cfg = evmtypes.DefaultChainConfig().EthereumConfig()
-	}
-
-	signer := ethtypes.LatestSigner(cfg)
-
 	api := &PublicAPI{
-		ctx:          context.Background(),
-		clientCtx:    clientCtx,
-		chainIDEpoch: cfg.ChainID,
-		logger:       logger.With("client", "json-rpc"),
-		backend:      backend,
-		nonceLock:    nonceLock,
-		signer:       signer,
+		clientCtx: clientCtx,
+		logger:    ctx.Logger.With("client", "json-rpc"),
+		backend:   backend,
 	}
 
 	return api
-}
-
-// ClientCtx returns client context
-func (e *PublicAPI) ClientCtx() client.Context {
-	return e.clientCtx
-}
-
-func (e *PublicAPI) Ctx() context.Context {
-	return e.ctx
 }
 
 // ProtocolVersion returns the supported Ethereum protocol version.
@@ -122,36 +96,11 @@ func (e *PublicAPI) ChainId() (*hexutil.Big, error) { // nolint
 	return (*hexutil.Big)(params.ChainConfig.ChainID.BigInt()), nil
 }
 
-// Syncing returns false in case the node is currently not syncing with the network. It can be up to date or has not
-// yet received the latest block headers from its pears. In case it is synchronizing:
-// - startingBlock: block number this node started to synchronize from
-// - currentBlock:  block number this node is currently importing
-// - highestBlock:  block number of the highest block header this node has received from peers
-// - pulledStates:  number of state entries processed until now
-// - knownStates:   number of known state entries that still need to be pulled
+// Syncing returns false in all cases as node should be synced before it could perform any action
 func (e *PublicAPI) Syncing() (interface{}, error) {
 	e.logger.Debug("eth_syncing")
 
-	if !e.backend.GetConsensusReactor().WaitSync() {
-		return false, nil
-	}
-
-	tmStatus, err := tmrpccore.Status(nil)
-	if err != nil {
-		return false, err
-	}
-
-	if !tmStatus.SyncInfo.CatchingUp {
-		return false, nil
-	}
-
-	return map[string]interface{}{
-		"startingBlock": hexutil.Uint64(tmStatus.SyncInfo.EarliestBlockHeight),
-		"currentBlock":  hexutil.Uint64(tmStatus.SyncInfo.LatestBlockHeight),
-		"highestBlock":  nil, // NA
-		"pulledStates":  nil, // NA
-		"knownStates":   nil, // NA
-	}, nil
+	return false, nil
 }
 
 // Coinbase is the address that staking rewards will be send to (alias for Etherbase).
@@ -539,70 +488,6 @@ func checkTxFee(gasPrice *big.Int, gas uint64, cap float64) error {
 		return fmt.Errorf("tx fee (%.2f ether) exceeds the configured cap (%.2f ether)", feeFloat, cap)
 	}
 	return nil
-}
-
-// Resend accepts an existing transaction and a new gas price and limit. It will remove
-// the given transaction from the pool and reinsert it with the new gas price and limit.
-func (e *PublicAPI) Resend(ctx context.Context, args evmtypes.TransactionArgs, gasPrice *hexutil.Big, gasLimit *hexutil.Uint64) (common.Hash, error) {
-	e.logger.Debug("eth_resend", "args", args.String())
-	if args.Nonce == nil {
-		return common.Hash{}, fmt.Errorf("missing transaction nonce in transaction spec")
-	}
-
-	args, err := e.backend.SetTxDefaults(args)
-	if err != nil {
-		return common.Hash{}, err
-	}
-
-	matchTx := args.ToTransaction().AsTransaction()
-
-	// Before replacing the old transaction, ensure the _new_ transaction fee is reasonable.
-	price := matchTx.GasPrice()
-	if gasPrice != nil {
-		price = gasPrice.ToInt()
-	}
-	gas := matchTx.Gas()
-	if gasLimit != nil {
-		gas = uint64(*gasLimit)
-	}
-	if err := checkTxFee(price, gas, e.backend.RPCTxFeeCap()); err != nil {
-		return common.Hash{}, err
-	}
-
-	pending, err := e.backend.PendingTransactions()
-	if err != nil {
-		return common.Hash{}, err
-	}
-
-	for _, tx := range pending {
-		p, err := evmtypes.UnwrapEthereumMsg(tx, common.Hash{})
-		if err != nil {
-			// not valid ethereum tx
-			continue
-		}
-
-		pTx := p.AsTransaction()
-
-		wantSigHash := e.signer.Hash(matchTx)
-		pFrom, err := ethtypes.Sender(e.signer, pTx)
-		if err != nil {
-			continue
-		}
-
-		if pFrom == *args.From && e.signer.Hash(pTx) == wantSigHash {
-			// Match. Re-sign and send the transaction.
-			if gasPrice != nil && (*big.Int)(gasPrice).Sign() != 0 {
-				args.GasPrice = gasPrice
-			}
-			if gasLimit != nil && *gasLimit != 0 {
-				args.Gas = gasLimit
-			}
-
-			return e.backend.SendTransaction(args) // TODO: this calls SetTxDefaults again, refactor to avoid calling it twice
-		}
-	}
-
-	return common.Hash{}, fmt.Errorf("transaction %#x not found", matchTx.Hash())
 }
 
 // Call performs a raw contract call.

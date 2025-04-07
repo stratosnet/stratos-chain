@@ -64,7 +64,7 @@ type EventSystem struct {
 //
 // The returned manager has a loop that needs to be stopped with the Stop function
 // or by stopping the given mux.
-func NewEventSystem(clientCtx client.Context, logger log.Logger, eventBus *tmtypes.EventBus, b backend.BackendI) *EventSystem {
+func NewEventSystem(clientCtx client.Context, logger log.Logger, b backend.BackendI) *EventSystem {
 	es := &EventSystem{
 		logger:    logger,
 		ctx:       context.Background(),
@@ -72,7 +72,7 @@ func NewEventSystem(clientCtx client.Context, logger log.Logger, eventBus *tmtyp
 		backend:   b,
 		install:   make(chan *subscription),
 		uninstall: make(chan *subscription),
-		eventBus:  eventBus,
+		eventBus:  b.GetEventBus(),
 	}
 
 	var (

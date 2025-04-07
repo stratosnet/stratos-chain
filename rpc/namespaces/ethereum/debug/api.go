@@ -83,8 +83,8 @@ type API struct {
 // NewAPI creates a new API definition for the tracing methods of the Ethereum service.
 func NewAPI(
 	ctx *server.Context,
-	backend backend.BackendI,
 	clientCtx client.Context,
+	backend backend.BackendI,
 ) *API {
 	return &API{
 		ctx:       ctx,

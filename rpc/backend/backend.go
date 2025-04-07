@@ -12,13 +12,16 @@ import (
 	"github.com/ethereum/go-ethereum/params"
 	"github.com/ethereum/go-ethereum/rpc"
 
+	"github.com/cometbft/cometbft/blocksync"
 	cs "github.com/cometbft/cometbft/consensus"
 	"github.com/cometbft/cometbft/libs/log"
 	"github.com/cometbft/cometbft/mempool"
 	"github.com/cometbft/cometbft/node"
 	"github.com/cometbft/cometbft/p2p"
 	tmrpctypes "github.com/cometbft/cometbft/rpc/core/types"
+	"github.com/cometbft/cometbft/statesync"
 	"github.com/cometbft/cometbft/store"
+	cbfttypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
@@ -26,6 +29,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	tmconfig "github.com/cometbft/cometbft/config"
+	"github.com/stratosnet/stratos-chain/misc"
 	"github.com/stratosnet/stratos-chain/rpc/types"
 	"github.com/stratosnet/stratos-chain/server/config"
 	"github.com/stratosnet/stratos-chain/x/evm"
@@ -105,8 +109,11 @@ type TMBackend interface {
 	GetBlockStore() *store.BlockStore
 	GetMempool() mempool.Mempool
 	GetConsensusReactor() *cs.Reactor
+	GetBlockSyncReactor() *blocksync.Reactor
+	GetStateSyncReactor() *statesync.Reactor
 	GetSwitch() *p2p.Switch
 	GetTxPool() *pool.TxPool
+	GetEventBus() *cbfttypes.EventBus
 }
 
 var _ BackendI = (*Backend)(nil)
@@ -184,6 +191,18 @@ func (b *Backend) GetConsensusReactor() *cs.Reactor {
 	return b.tmNode.ConsensusReactor()
 }
 
+func (b *Backend) GetBlockSyncReactor() *blocksync.Reactor {
+	return misc.GetMutableField(b.tmNode, "bcReactor").(*blocksync.Reactor)
+}
+
+func (b *Backend) GetStateSyncReactor() *statesync.Reactor {
+	return misc.GetMutableField(b.tmNode, "stateSyncReactor").(*statesync.Reactor)
+}
+
 func (b *Backend) GetSwitch() *p2p.Switch {
 	return b.tmNode.Switch()
+}
+
+func (b *Backend) GetEventBus() *cbfttypes.EventBus {
+	return b.tmNode.EventBus()
 }

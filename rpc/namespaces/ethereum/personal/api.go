@@ -11,6 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdkcrypto "github.com/cosmos/cosmos-sdk/crypto"
 	"github.com/cosmos/cosmos-sdk/crypto/keyring"
+	"github.com/cosmos/cosmos-sdk/server"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/ethereum/go-ethereum/accounts"
@@ -35,7 +36,7 @@ type PrivateAccountAPI struct {
 
 // NewAPI creates an instance of the public Personal Eth API.
 func NewAPI(
-	logger log.Logger,
+	ctx *server.Context,
 	clientCtx client.Context,
 	backend backend.EVMBackend,
 ) *PrivateAccountAPI {
@@ -49,7 +50,7 @@ func NewAPI(
 
 	return &PrivateAccountAPI{
 		clientCtx:  clientCtx,
-		logger:     logger.With("api", "personal"),
+		logger:     ctx.Logger.With("api", "personal"),
 		hdPathIter: iterator,
 		backend:    backend,
 	}

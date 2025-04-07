@@ -3,8 +3,6 @@
 package rpc
 
 import (
-	"github.com/cometbft/cometbft/node"
-
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/server"
 
@@ -20,9 +18,6 @@ import (
 	"github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/personal"
 	"github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/txpool"
 	"github.com/stratosnet/stratos-chain/rpc/namespaces/ethereum/web3"
-	"github.com/stratosnet/stratos-chain/rpc/types"
-
-	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 )
 
 // RPC namespaces and API version
@@ -45,55 +40,48 @@ const (
 )
 
 // GetRPCAPIs returns the list of all APIs
-func GetRPCAPIs(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Keeper, ms storetypes.MultiStore, clientCtx client.Context, selectedAPIs []string) ([]rpc.API, error) {
-	nonceLock := new(types.AddrLocker)
-	evmBackend, err := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
-
-	if err != nil {
-		return []rpc.API{}, err
-	}
-
+func GetRPCAPIs(ctx *server.Context, evmBackend *backend.Backend, ms storetypes.MultiStore, clientCtx client.Context, selectedAPIs []string) []rpc.API {
 	return []rpc.API{
 		{
 			Namespace: EthNamespace,
 			Version:   apiVersion,
-			Service:   eth.NewPublicAPI(ctx.Logger, clientCtx, evmBackend, nonceLock),
+			Service:   eth.NewPublicAPI(ctx, clientCtx, evmBackend),
 			Public:    true,
 		},
 		{
 			Namespace: EthNamespace,
 			Version:   apiVersion,
-			Service:   filters.NewPublicAPI(ctx.Logger, clientCtx, tmNode.EventBus(), evmBackend),
+			Service:   filters.NewPublicAPI(ctx, clientCtx, evmBackend),
 			Public:    true,
 		},
 		{
 			Namespace: Web3Namespace,
 			Version:   apiVersion,
-			Service:   web3.NewPublicAPI(),
+			Service:   web3.NewPublicAPI(ctx, clientCtx, evmBackend),
 			Public:    true,
 		},
 		{
 			Namespace: NetNamespace,
 			Version:   apiVersion,
-			Service:   net.NewPublicAPI(evmBackend),
+			Service:   net.NewPublicAPI(ctx, clientCtx, evmBackend),
 			Public:    true,
 		},
 		{
 			Namespace: PersonalNamespace,
 			Version:   apiVersion,
-			Service:   personal.NewAPI(ctx.Logger, clientCtx, evmBackend),
+			Service:   personal.NewAPI(ctx, clientCtx, evmBackend),
 			Public:    false,
 		},
 		{
 			Namespace: TxPoolNamespace,
 			Version:   apiVersion,
-			Service:   txpool.NewPublicAPI(ctx.Logger, clientCtx, evmBackend),
+			Service:   txpool.NewPublicAPI(ctx, clientCtx, evmBackend),
 			Public:    true,
 		},
 		{
 			Namespace: DebugNamespace,
 			Version:   apiVersion,
-			Service:   debug.NewAPI(ctx, evmBackend, clientCtx),
+			Service:   debug.NewAPI(ctx, clientCtx, evmBackend),
 			Public:    true,
 		},
 		{
@@ -102,5 +90,5 @@ func GetRPCAPIs(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.Kee
 			Service:   miner.NewPrivateAPI(ctx, clientCtx, evmBackend),
 			Public:    false,
 		},
-	}, nil
+	}
 }

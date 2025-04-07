@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/cometbft/cometbft/libs/log"
-	tmtypes "github.com/cometbft/cometbft/types"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 
 	"github.com/ethereum/go-ethereum/common"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
@@ -45,14 +45,14 @@ type PublicFilterAPI struct {
 }
 
 // NewPublicAPI returns a new PublicFilterAPI instance.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, eventBus *tmtypes.EventBus, b backend.BackendI) *PublicFilterAPI {
-	logger = logger.With("api", "filter")
+func NewPublicAPI(ctx *server.Context, clientCtx client.Context, b backend.BackendI) *PublicFilterAPI {
+	logger := ctx.Logger.With("api", "filter")
 	api := &PublicFilterAPI{
 		logger:    logger,
 		clientCtx: clientCtx,
 		backend:   b,
 		filters:   make(map[rpc.ID]*filter),
-		events:    NewEventSystem(clientCtx, logger, eventBus, b),
+		events:    NewEventSystem(clientCtx, logger, b),
 	}
 
 	go api.timeoutLoop()
