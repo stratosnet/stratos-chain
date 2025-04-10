@@ -24,6 +24,7 @@ require (
 	github.com/dop251/goja v0.0.0-20220405120441-9037c2b61cbf
 	github.com/ethereum/go-ethereum v1.10.26
 	github.com/gogo/protobuf v1.3.2
+	github.com/golang/mock v1.6.0
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/holiman/uint256 v1.2.0
@@ -112,7 +113,6 @@ require (
 	github.com/golang-jwt/jwt/v4 v4.3.0 // indirect
 	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
-	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/btree v1.1.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect

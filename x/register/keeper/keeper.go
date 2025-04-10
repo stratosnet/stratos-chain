@@ -1,6 +1,7 @@
 package keeper
 
 import (
+	"bytes"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
 	regtypes "github.com/stratosnet/stratos-chain/x/register/types"
@@ -23,6 +26,8 @@ type Keeper struct {
 	bankKeeper    types.BankKeeper
 	distrKeeper   types.DistrKeeper
 	hooks         types.RegisterHooks
+
+	proover merkle.MerkleProver
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -38,7 +43,7 @@ func NewKeeper(
 	distrKeeper types.DistrKeeper,
 	authority string,
 ) Keeper {
-	return Keeper{
+	k := Keeper{
 		storeKey:      key,
 		cdc:           cdc,
 		accountKeeper: accountKeeper,
@@ -46,10 +51,20 @@ func NewKeeper(
 		distrKeeper:   distrKeeper,
 		authority:     authority,
 	}
+	k.SetProover(nil)
+	return k
 }
 
 func (k Keeper) GetBankKeeper() types.BankKeeper {
 	return k.bankKeeper
+}
+
+func (k *Keeper) SetProover(proover merkle.MerkleProver) {
+	if proover == nil {
+		k.proover = merkle.NewRelayerMerkleProver()
+		return
+	}
+	k.proover = proover
 }
 
 // Logger returns a module-specific logger.
@@ -261,4 +276,83 @@ func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) 
 	Pt = k.GetTotalUnissuedPrepay(ctx).Amount
 	Lt = k.GetRemainingOzoneLimit(ctx)
 	return
+}
+
+func (k Keeper) ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofData) error {
+	leaves, err := k.NullifyMerkleCommitments(ctx, mdata.GetCommitments())
+	if err != nil {
+		return err
+	}
+
+	isValid, err := k.proover.VerifyProofs(mdata.GetRoot(), leaves)
+	if err != nil {
+		return err
+	}
+
+	if !isValid {
+		return fmt.Errorf("proofs not valid")
+	}
+
+	k.SetMerkleRoot(ctx, mdata.GetRoot())
+
+	return nil
+}
+
+func (k Keeper) RecordMerkleCommitment(ctx sdk.Context, signer sdk.AccAddress, data []byte) error {
+	acc := k.accountKeeper.GetAccount(ctx, signer)
+	commitment := merkle.CreateSdkCommitment(signer, acc.GetSequence(), data)
+
+	root := k.GetMerkleRoot(ctx)
+	if err := k.CreateMerkleCommitment(ctx, commitment, root); err != nil {
+		return err
+	}
+
+	err := ctx.EventManager().EmitTypedEvents(
+		&types.EventMerkleDataUpdated{
+			Root:       root,
+			Commitment: commitment,
+			ActionType: types.EventMerkleDataUpdated_CREATE,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (k Keeper) NullifyMerkleCommitments(ctx sdk.Context, commitments [][]byte) ([][]byte, error) {
+	var (
+		tevs   []proto.Message
+		leaves = make([][]byte, 0, len(commitments)*2)
+	)
+
+	for _, commitment := range commitments {
+		// ignoring null commitments
+		if bytes.Equal(commitment, merkle.NullCommitment[:]) {
+			continue
+		}
+
+		root, err := k.NullifyMerkleCommitment(ctx, commitment)
+		if err != nil {
+			return nil, err
+		}
+		leaves = append(leaves, root, commitment)
+		tevs = append(tevs, &types.EventMerkleDataUpdated{
+			Root:       root,
+			Commitment: commitment,
+			ActionType: types.EventMerkleDataUpdated_NULLIFY,
+		})
+	}
+
+	if len(tevs) == 0 {
+		return nil, fmt.Errorf("no commitments to nullify")
+	}
+
+	err := ctx.EventManager().EmitTypedEvents(tevs...)
+	if err != nil {
+		return nil, err
+	}
+
+	return leaves, nil
 }
