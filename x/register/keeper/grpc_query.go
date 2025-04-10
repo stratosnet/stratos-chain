@@ -9,6 +9,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/store/prefix"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/query"
+	"github.com/ethereum/go-ethereum/common"
 
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -297,4 +298,15 @@ func (q Querier) RemainingOzoneLimit(c context.Context, _ *types.QueryRemainingO
 	}
 
 	return res, nil
+}
+
+func (q Querier) MerkleRoot(c context.Context, req *types.QueryMerkleRootRequest) (*types.QueryMerkleRootResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	root := q.GetMerkleRootForCommitment(ctx, common.Hex2Bytes(req.Commitment))
+
+	return &types.QueryMerkleRootResponse{
+		Root:       common.Bytes2Hex(root),
+		Commitment: req.Commitment,
+	}, nil
 }

@@ -61,6 +61,10 @@ build-cleveldb: go.sum
 clean:
 	rm -rf $(BUILDDIR)/
 
+test:
+	go$(GO_VERSION) clean -testcache
+	go$(GO_VERSION) test -timeout 30s github.com/stratosnet/stratos-chain/x/.../keeper
+
 coverage:
 	go$(GO_VERSION) test ./... -coverprofile cover.out -coverpkg=./...
 	go$(GO_VERSION) tool cover -html cover.out -o cover.html

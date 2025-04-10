@@ -64,6 +64,12 @@ message MsgVolumeReport {
     (gogoproto.jsontag) = "bls_signature",
     (gogoproto.moretags) = "yaml:\"bls_signature\""
   ];
+  MerkleProofData merkle_proof_data = 7 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "merkle_proof_data",
+    (gogoproto.moretags) = "yaml:\"merkle_proof_data\""
+  ];
 }
 // MsgVolumeReportResponse defines the MsgVolumeReport response type
 message MsgVolumeReportResponse {}

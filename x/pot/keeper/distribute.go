@@ -231,11 +231,11 @@ func (k Keeper) CalcRewardForMetaNode(ctx sdk.Context, distributeGoalBalance typ
 
 	metaNodeCnt := k.registerKeeper.GetBondedMetaNodeCnt(ctx)
 
-	mataNodeIterator := k.registerKeeper.GetMetaNodeIterator(ctx)
-	defer mataNodeIterator.Close()
+	metaNodeIterator := k.registerKeeper.GetMetaNodeIterator(ctx)
+	defer metaNodeIterator.Close()
 
-	for ; mataNodeIterator.Valid(); mataNodeIterator.Next() {
-		node := regtypes.MustUnmarshalMetaNode(k.cdc, mataNodeIterator.Value())
+	for ; metaNodeIterator.Valid(); metaNodeIterator.Next() {
+		node := regtypes.MustUnmarshalMetaNode(k.cdc, metaNodeIterator.Value())
 		if node.Status != stakingtypes.Bonded {
 			continue
 		}
