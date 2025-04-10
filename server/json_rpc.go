@@ -9,6 +9,7 @@ import (
 
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	"github.com/stratosnet/stratos-chain/rpc"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 	"github.com/stratosnet/stratos-chain/server/config"
 	evmkeeper "github.com/stratosnet/stratos-chain/x/evm/keeper"
 )
@@ -28,12 +29,14 @@ func StartJSONRPC(ctx *server.Context, tmNode *node.Node, evmKeeper *evmkeeper.K
 		return nil
 	}))
 
-	apis, err := rpc.GetRPCAPIs(ctx, tmNode, evmKeeper, ms, clientCtx, config.JSONRPC.API)
+	evmBackend, err := backend.NewBackend(ctx, tmNode, evmKeeper, ms, ctx.Logger, clientCtx)
 	if err != nil {
 		return err
 	}
 
-	web3Srv := rpc.NewWeb3Server(config, logger)
+	apis := rpc.GetRPCAPIs(ctx, evmBackend, ms, clientCtx, config.JSONRPC.API)
+
+	web3Srv := rpc.NewWeb3Server(config, evmBackend, logger)
 
 	err = web3Srv.StartHTTP(apis)
 	if err != nil {

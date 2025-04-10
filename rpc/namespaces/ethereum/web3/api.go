@@ -1,7 +1,10 @@
 package web3
 
 import (
+	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/cosmos/cosmos-sdk/version"
+	"github.com/stratosnet/stratos-chain/rpc/backend"
 
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -11,7 +14,7 @@ import (
 type PublicAPI struct{}
 
 // NewPublicAPI creates an instance of the Web3 API.
-func NewPublicAPI() *PublicAPI {
+func NewPublicAPI(ctx *server.Context, clientCtx client.Context, backend backend.BackendI) *PublicAPI {
 	return &PublicAPI{}
 }
 

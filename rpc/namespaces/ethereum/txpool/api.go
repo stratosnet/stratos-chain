@@ -6,6 +6,7 @@ import (
 	"github.com/cometbft/cometbft/libs/log"
 
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/server"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 
@@ -21,9 +22,9 @@ type PublicAPI struct {
 }
 
 // NewPublicAPI creates a new tx pool service that gives information about the transaction pool.
-func NewPublicAPI(logger log.Logger, clientCtx client.Context, backend backend.BackendI) *PublicAPI {
+func NewPublicAPI(ctx *server.Context, clientCtx client.Context, backend backend.BackendI) *PublicAPI {
 	return &PublicAPI{
-		logger:    logger.With("module", "txpool"),
+		logger:    ctx.Logger.With("module", "txpool"),
 		clientCtx: clientCtx,
 		backend:   backend,
 	}
