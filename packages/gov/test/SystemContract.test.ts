@@ -237,6 +237,7 @@ describe("SystemContract local test", () => {
     const balanceFromAfter = await ethers.provider.getBalance(signer.address);
     const balanceToAfter = await ethers.provider.getBalance(testAddr);
     const tx = await ethers.provider.getTransactionReceipt(resp.hash);
+    expect(tx?.gasUsed).to.be.lte(100_000)
     console.log('tx', tx)
     console.log('logs', tx?.logs)
 
