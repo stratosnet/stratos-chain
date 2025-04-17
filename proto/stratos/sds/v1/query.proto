@@ -33,6 +33,13 @@ service Query {
     option (google.api.http).get = "/stratos/sds/v1/params";
   }
 
+  rpc MerkleRoot(QueryMerkleRootRequest) returns (QueryMerkleRootResponse) {
+    option (google.api.http).get = "/stratos/sds/v1/merkle_root/{height}";
+  }
+
+  rpc VerifyUpload(QueryVerifyUploadRequest) returns (QueryVerifyUploadResponse) {
+    option (google.api.http).get = "/stratos/sds/v1/verify_upload";
+  }
 }
 // QueryFileuploadRequest is request type for the Query/Fileupload RPC method
 message QueryFileUploadRequest {
@@ -99,6 +106,42 @@ message QueryParamsResponse {
   Params params = 1;
 }
 
+message QueryMerkleRootRequest {
+  int64 height = 1 [
+    (gogoproto.jsontag) = "height",
+    (gogoproto.moretags) = "yaml:\"height\""
+  ];
+}
 
+message QueryMerkleRootResponse {
+  string root = 1 [
+    (gogoproto.jsontag) = "root",
+    (gogoproto.moretags) = "yaml:\"root\""
+  ];
+}
 
+message QueryVerifyUploadRequest {
+  int64 height = 1 [
+    (gogoproto.jsontag) = "height",
+    (gogoproto.moretags) = "yaml:\"height\""
+  ];
+  string file_hash = 2 [
+    (gogoproto.jsontag) = "file_hash",
+    (gogoproto.moretags) = "yaml:\"file_hash\""
+  ];
+  string proof = 3 [
+    (gogoproto.jsontag) = "proof",
+    (gogoproto.moretags) = "yaml:\"proof\""
+  ];
+}
 
+message QueryVerifyUploadResponse {
+  bool verified = 1 [
+    (gogoproto.jsontag) = "verified",
+    (gogoproto.moretags) = "yaml:\"verified\""
+  ];
+  string error = 2 [
+    (gogoproto.jsontag) = "error",
+    (gogoproto.moretags) = "yaml:\"error\""
+  ];
+}

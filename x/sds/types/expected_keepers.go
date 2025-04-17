@@ -3,6 +3,7 @@ package types
 import (
 	sdkmath "cosmossdk.io/math"
 	sdk "github.com/cosmos/cosmos-sdk/types"
+	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	stratos "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -22,6 +23,7 @@ type RegisterKeeper interface {
 	OwnMetaNode(ctx sdk.Context, ownerAddr sdk.AccAddress, p2pAddr stratos.SdsAddress) bool
 	CalculatePurchaseAmount(ctx sdk.Context, amount sdkmath.Int) (sdkmath.Int, sdkmath.Int, error)
 	RecordMerkleCommitment(ctx sdk.Context, signer sdk.AccAddress, data []byte) error
+	GetProver() merkle.MerkleProver
 }
 
 type PotKeeper interface {

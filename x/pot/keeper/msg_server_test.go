@@ -108,7 +108,7 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 		ctx, msgServer := s.ctx, s.msgServer
 		regKeeper := s.GetNoMockRegKeeper()
 		proover := merkle.NewRelayerMerkleProver()
-		regKeeper.SetProover(proover)
+		regKeeper.SetProver(proover)
 
 		// proof creation
 		commitment1 := []byte("c1")
@@ -152,7 +152,7 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 		ctx, msgServer := s.ctx, s.msgServer
 		regKeeper := s.GetNoMockRegKeeper()
 		proover := merkle.NewRelayerMerkleProver()
-		regKeeper.SetProover(proover)
+		regKeeper.SetProver(proover)
 
 		// proof creation
 		commitment1 := []byte("c1")

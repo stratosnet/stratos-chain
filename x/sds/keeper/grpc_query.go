@@ -2,8 +2,12 @@ package keeper
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 
+	"github.com/cometbft/cometbft/crypto/merkle"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/ipfs/go-cid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -78,4 +82,49 @@ func (q Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.
 	ctx := sdk.UnwrapSDKContext(c)
 	params := q.GetParams(ctx)
 	return &types.QueryParamsResponse{Params: &params}, nil
+}
+
+func (q Querier) MerkleRoot(c context.Context, request *types.QueryMerkleRootRequest) (*types.QueryMerkleRootResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if request.Height < 1 {
+		return &types.QueryMerkleRootResponse{
+			Root: base64.StdEncoding.EncodeToString(q.GetMerkleRoot(ctx)),
+		}, nil
+	}
+	return &types.QueryMerkleRootResponse{
+		Root: base64.StdEncoding.EncodeToString(q.GetMerkleRootByHeight(ctx, request.Height)),
+	}, nil
+}
+
+func (q Querier) VerifyUpload(c context.Context, request *types.QueryVerifyUploadRequest) (*types.QueryVerifyUploadResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	if len(request.Proof) == 0 {
+		_, found := q.GetFileInfoByFileHash(ctx, []byte(request.FileHash))
+		return &types.QueryVerifyUploadResponse{Verified: found}, nil
+	}
+
+	proofBytes, err := base64.StdEncoding.DecodeString(request.Proof)
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "proof is not base64 encoded")
+	}
+	protoProof := &crypto.Proof{}
+	err = proto.Unmarshal(proofBytes, protoProof)
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "proof is not a valid crypto proof protobuf object")
+	}
+	merkleProof, err := merkle.ProofFromProto(protoProof)
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "proof is not a valid merkle proof protobuf object")
+	}
+
+	merkleRoot := q.GetMerkleRootByHeight(ctx, request.Height)
+	err = merkleProof.Verify(merkleRoot, []byte(request.FileHash))
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{
+			Verified: false,
+			Error:    err.Error(),
+		}, nil
+	}
+	return &types.QueryVerifyUploadResponse{Verified: true}, nil
 }

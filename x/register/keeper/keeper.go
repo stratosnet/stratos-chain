@@ -11,7 +11,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/codec"
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	proto "github.com/cosmos/gogoproto/proto"
+	"github.com/cosmos/gogoproto/proto"
 	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	"github.com/stratosnet/stratos-chain/x/register/types"
@@ -27,7 +27,7 @@ type Keeper struct {
 	distrKeeper   types.DistrKeeper
 	hooks         types.RegisterHooks
 
-	proover merkle.MerkleProver
+	prover merkle.MerkleProver
 
 	// the address capable of executing a MsgUpdateParams message. Typically, this
 	// should be the x/gov module account.
@@ -51,7 +51,7 @@ func NewKeeper(
 		distrKeeper:   distrKeeper,
 		authority:     authority,
 	}
-	k.SetProover(nil)
+	k.SetProver(nil)
 	return k
 }
 
@@ -59,12 +59,16 @@ func (k Keeper) GetBankKeeper() types.BankKeeper {
 	return k.bankKeeper
 }
 
-func (k *Keeper) SetProover(proover merkle.MerkleProver) {
-	if proover == nil {
-		k.proover = merkle.NewRelayerMerkleProver()
+func (k *Keeper) SetProver(prover merkle.MerkleProver) {
+	if prover == nil {
+		k.prover = merkle.NewRelayerMerkleProver()
 		return
 	}
-	k.proover = proover
+	k.prover = prover
+}
+
+func (k *Keeper) GetProver() merkle.MerkleProver {
+	return k.prover
 }
 
 // Logger returns a module-specific logger.
@@ -284,7 +288,7 @@ func (k Keeper) ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofDat
 		return err
 	}
 
-	isValid, err := k.proover.VerifyProofs(mdata.GetRoot(), leaves)
+	isValid, err := k.prover.VerifyProofs(mdata.GetRoot(), leaves)
 	if err != nil {
 		return err
 	}

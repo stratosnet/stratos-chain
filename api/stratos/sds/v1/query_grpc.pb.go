@@ -19,11 +19,13 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Fileupload_FullMethodName = "/stratos.sds.v1.Query/Fileupload"
-	Query_SimPrepay_FullMethodName  = "/stratos.sds.v1.Query/SimPrepay"
-	Query_NozPrice_FullMethodName   = "/stratos.sds.v1.Query/NozPrice"
-	Query_NozSupply_FullMethodName  = "/stratos.sds.v1.Query/NozSupply"
-	Query_Params_FullMethodName     = "/stratos.sds.v1.Query/Params"
+	Query_Fileupload_FullMethodName   = "/stratos.sds.v1.Query/Fileupload"
+	Query_SimPrepay_FullMethodName    = "/stratos.sds.v1.Query/SimPrepay"
+	Query_NozPrice_FullMethodName     = "/stratos.sds.v1.Query/NozPrice"
+	Query_NozSupply_FullMethodName    = "/stratos.sds.v1.Query/NozSupply"
+	Query_Params_FullMethodName       = "/stratos.sds.v1.Query/Params"
+	Query_MerkleRoot_FullMethodName   = "/stratos.sds.v1.Query/MerkleRoot"
+	Query_VerifyUpload_FullMethodName = "/stratos.sds.v1.Query/VerifyUpload"
 )
 
 // QueryClient is the client API for Query service.
@@ -37,6 +39,8 @@ type QueryClient interface {
 	NozSupply(ctx context.Context, in *QueryNozSupplyRequest, opts ...grpc.CallOption) (*QueryNozSupplyResponse, error)
 	// Params queries SDS module Params info.
 	Params(ctx context.Context, in *QueryParamsRequest, opts ...grpc.CallOption) (*QueryParamsResponse, error)
+	MerkleRoot(ctx context.Context, in *QueryMerkleRootRequest, opts ...grpc.CallOption) (*QueryMerkleRootResponse, error)
+	VerifyUpload(ctx context.Context, in *QueryVerifyUploadRequest, opts ...grpc.CallOption) (*QueryVerifyUploadResponse, error)
 }
 
 type queryClient struct {
@@ -92,6 +96,24 @@ func (c *queryClient) Params(ctx context.Context, in *QueryParamsRequest, opts .
 	return out, nil
 }
 
+func (c *queryClient) MerkleRoot(ctx context.Context, in *QueryMerkleRootRequest, opts ...grpc.CallOption) (*QueryMerkleRootResponse, error) {
+	out := new(QueryMerkleRootResponse)
+	err := c.cc.Invoke(ctx, Query_MerkleRoot_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) VerifyUpload(ctx context.Context, in *QueryVerifyUploadRequest, opts ...grpc.CallOption) (*QueryVerifyUploadResponse, error) {
+	out := new(QueryVerifyUploadResponse)
+	err := c.cc.Invoke(ctx, Query_VerifyUpload_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -103,6 +125,8 @@ type QueryServer interface {
 	NozSupply(context.Context, *QueryNozSupplyRequest) (*QueryNozSupplyResponse, error)
 	// Params queries SDS module Params info.
 	Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error)
+	MerkleRoot(context.Context, *QueryMerkleRootRequest) (*QueryMerkleRootResponse, error)
+	VerifyUpload(context.Context, *QueryVerifyUploadRequest) (*QueryVerifyUploadResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -124,6 +148,12 @@ func (UnimplementedQueryServer) NozSupply(context.Context, *QueryNozSupplyReques
 }
 func (UnimplementedQueryServer) Params(context.Context, *QueryParamsRequest) (*QueryParamsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Params not implemented")
+}
+func (UnimplementedQueryServer) MerkleRoot(context.Context, *QueryMerkleRootRequest) (*QueryMerkleRootResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MerkleRoot not implemented")
+}
+func (UnimplementedQueryServer) VerifyUpload(context.Context, *QueryVerifyUploadRequest) (*QueryVerifyUploadResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method VerifyUpload not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -228,6 +258,42 @@ func _Query_Params_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_MerkleRoot_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryMerkleRootRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).MerkleRoot(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_MerkleRoot_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).MerkleRoot(ctx, req.(*QueryMerkleRootRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_VerifyUpload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(QueryVerifyUploadRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).VerifyUpload(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_VerifyUpload_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).VerifyUpload(ctx, req.(*QueryVerifyUploadRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -254,6 +320,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Params",
 			Handler:    _Query_Params_Handler,
+		},
+		{
+			MethodName: "MerkleRoot",
+			Handler:    _Query_MerkleRoot_Handler,
+		},
+		{
+			MethodName: "VerifyUpload",
+			Handler:    _Query_VerifyUpload_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

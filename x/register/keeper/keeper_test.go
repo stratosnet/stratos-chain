@@ -106,7 +106,7 @@ func (s *KeeperTestSuite) TestQuerierMerkleRoot() {
 
 	// explicitly set so in case of changes, this will work
 	proover := merkle.NewRelayerMerkleProver()
-	s.registerKeeper.SetProover(proover)
+	s.registerKeeper.SetProver(proover)
 
 	s.T().Run("test querier merkle root call", func(t *testing.T) {
 		s.Reset(t)
@@ -196,7 +196,7 @@ func (s *KeeperTestSuite) TestGenerateMerkleProofs() {
 		s.mockAccGetAccount(signer).Return(acc).AnyTimes()
 
 		// explicitly set so in case of changes, this will work
-		s.registerKeeper.SetProover(merkle.NewRelayerMerkleProver())
+		s.registerKeeper.SetProver(merkle.NewRelayerMerkleProver())
 
 		expCommitment := merkle.CreateSdkCommitment(signer, acc.GetSequence(), data)
 
@@ -225,7 +225,7 @@ func (s *KeeperTestSuite) TestAckMerkleLeaves() {
 
 	// explicitly set so in case of changes, this will work
 	proover := merkle.NewRelayerMerkleProver()
-	s.registerKeeper.SetProover(proover)
+	s.registerKeeper.SetProver(proover)
 
 	s.T().Run("nullify one leaf", func(t *testing.T) {
 		s.Reset(t)

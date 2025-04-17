@@ -1236,6 +1236,1254 @@ func (x *fastReflection_EventFileUpload) ProtoMethods() *protoiface.Methods {
 	}
 }
 
+var _ protoreflect.List = (*_EventNewFilesUploaded_2_list)(nil)
+
+type _EventNewFilesUploaded_2_list struct {
+	list *[]*NewFileMerkleProof
+}
+
+func (x *_EventNewFilesUploaded_2_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_EventNewFilesUploaded_2_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
+}
+
+func (x *_EventNewFilesUploaded_2_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*NewFileMerkleProof)
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_EventNewFilesUploaded_2_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Message()
+	concreteValue := valueUnwrapped.Interface().(*NewFileMerkleProof)
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_EventNewFilesUploaded_2_list) AppendMutable() protoreflect.Value {
+	v := new(NewFileMerkleProof)
+	*x.list = append(*x.list, v)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_EventNewFilesUploaded_2_list) Truncate(n int) {
+	for i := n; i < len(*x.list); i++ {
+		(*x.list)[i] = nil
+	}
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_EventNewFilesUploaded_2_list) NewElement() protoreflect.Value {
+	v := new(NewFileMerkleProof)
+	return protoreflect.ValueOfMessage(v.ProtoReflect())
+}
+
+func (x *_EventNewFilesUploaded_2_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_EventNewFilesUploaded        protoreflect.MessageDescriptor
+	fd_EventNewFilesUploaded_height protoreflect.FieldDescriptor
+	fd_EventNewFilesUploaded_proofs protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_stratos_sds_v1_event_proto_init()
+	md_EventNewFilesUploaded = File_stratos_sds_v1_event_proto.Messages().ByName("EventNewFilesUploaded")
+	fd_EventNewFilesUploaded_height = md_EventNewFilesUploaded.Fields().ByName("height")
+	fd_EventNewFilesUploaded_proofs = md_EventNewFilesUploaded.Fields().ByName("proofs")
+}
+
+var _ protoreflect.Message = (*fastReflection_EventNewFilesUploaded)(nil)
+
+type fastReflection_EventNewFilesUploaded EventNewFilesUploaded
+
+func (x *EventNewFilesUploaded) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_EventNewFilesUploaded)(x)
+}
+
+func (x *EventNewFilesUploaded) slowProtoReflect() protoreflect.Message {
+	mi := &file_stratos_sds_v1_event_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_EventNewFilesUploaded_messageType fastReflection_EventNewFilesUploaded_messageType
+var _ protoreflect.MessageType = fastReflection_EventNewFilesUploaded_messageType{}
+
+type fastReflection_EventNewFilesUploaded_messageType struct{}
+
+func (x fastReflection_EventNewFilesUploaded_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_EventNewFilesUploaded)(nil)
+}
+func (x fastReflection_EventNewFilesUploaded_messageType) New() protoreflect.Message {
+	return new(fastReflection_EventNewFilesUploaded)
+}
+func (x fastReflection_EventNewFilesUploaded_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_EventNewFilesUploaded
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_EventNewFilesUploaded) Descriptor() protoreflect.MessageDescriptor {
+	return md_EventNewFilesUploaded
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_EventNewFilesUploaded) Type() protoreflect.MessageType {
+	return _fastReflection_EventNewFilesUploaded_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_EventNewFilesUploaded) New() protoreflect.Message {
+	return new(fastReflection_EventNewFilesUploaded)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_EventNewFilesUploaded) Interface() protoreflect.ProtoMessage {
+	return (*EventNewFilesUploaded)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_EventNewFilesUploaded) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Height != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Height)
+		if !f(fd_EventNewFilesUploaded_height, value) {
+			return
+		}
+	}
+	if len(x.Proofs) != 0 {
+		value := protoreflect.ValueOfList(&_EventNewFilesUploaded_2_list{list: &x.Proofs})
+		if !f(fd_EventNewFilesUploaded_proofs, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_EventNewFilesUploaded) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "stratos.sds.v1.EventNewFilesUploaded.height":
+		return x.Height != int64(0)
+	case "stratos.sds.v1.EventNewFilesUploaded.proofs":
+		return len(x.Proofs) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.EventNewFilesUploaded"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.EventNewFilesUploaded does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_EventNewFilesUploaded) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "stratos.sds.v1.EventNewFilesUploaded.height":
+		x.Height = int64(0)
+	case "stratos.sds.v1.EventNewFilesUploaded.proofs":
+		x.Proofs = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.EventNewFilesUploaded"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.EventNewFilesUploaded does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_EventNewFilesUploaded) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "stratos.sds.v1.EventNewFilesUploaded.height":
+		value := x.Height
+		return protoreflect.ValueOfInt64(value)
+	case "stratos.sds.v1.EventNewFilesUploaded.proofs":
+		if len(x.Proofs) == 0 {
+			return protoreflect.ValueOfList(&_EventNewFilesUploaded_2_list{})
+		}
+		listValue := &_EventNewFilesUploaded_2_list{list: &x.Proofs}
+		return protoreflect.ValueOfList(listValue)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.EventNewFilesUploaded"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.EventNewFilesUploaded does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_EventNewFilesUploaded) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "stratos.sds.v1.EventNewFilesUploaded.height":
+		x.Height = value.Int()
+	case "stratos.sds.v1.EventNewFilesUploaded.proofs":
+		lv := value.List()
+		clv := lv.(*_EventNewFilesUploaded_2_list)
+		x.Proofs = *clv.list
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.EventNewFilesUploaded"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.EventNewFilesUploaded does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_EventNewFilesUploaded) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.sds.v1.EventNewFilesUploaded.proofs":
+		if x.Proofs == nil {
+			x.Proofs = []*NewFileMerkleProof{}
+		}
+		value := &_EventNewFilesUploaded_2_list{list: &x.Proofs}
+		return protoreflect.ValueOfList(value)
+	case "stratos.sds.v1.EventNewFilesUploaded.height":
+		panic(fmt.Errorf("field height of message stratos.sds.v1.EventNewFilesUploaded is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.EventNewFilesUploaded"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.EventNewFilesUploaded does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_EventNewFilesUploaded) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.sds.v1.EventNewFilesUploaded.height":
+		return protoreflect.ValueOfInt64(int64(0))
+	case "stratos.sds.v1.EventNewFilesUploaded.proofs":
+		list := []*NewFileMerkleProof{}
+		return protoreflect.ValueOfList(&_EventNewFilesUploaded_2_list{list: &list})
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.EventNewFilesUploaded"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.EventNewFilesUploaded does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_EventNewFilesUploaded) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in stratos.sds.v1.EventNewFilesUploaded", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_EventNewFilesUploaded) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_EventNewFilesUploaded) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_EventNewFilesUploaded) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_EventNewFilesUploaded) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*EventNewFilesUploaded)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		if x.Height != 0 {
+			n += 1 + runtime.Sov(uint64(x.Height))
+		}
+		if len(x.Proofs) > 0 {
+			for _, e := range x.Proofs {
+				l = options.Size(e)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*EventNewFilesUploaded)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Proofs) > 0 {
+			for iNdEx := len(x.Proofs) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.Proofs[iNdEx])
+				if err != nil {
+					return protoiface.MarshalOutput{
+						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+						Buf:               input.Buf,
+					}, err
+				}
+				i -= len(encoded)
+				copy(dAtA[i:], encoded)
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+				i--
+				dAtA[i] = 0x12
+			}
+		}
+		if x.Height != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
+			i--
+			dAtA[i] = 0x8
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*EventNewFilesUploaded)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventNewFilesUploaded: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: EventNewFilesUploaded: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+				}
+				x.Height = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Height |= int64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 2:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Proofs", wireType)
+				}
+				var msglen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					msglen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if msglen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + msglen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Proofs = append(x.Proofs, &NewFileMerkleProof{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Proofs[len(x.Proofs)-1]); err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
+var _ protoreflect.List = (*_NewFileMerkleProof_5_list)(nil)
+
+type _NewFileMerkleProof_5_list struct {
+	list *[][]byte
+}
+
+func (x *_NewFileMerkleProof_5_list) Len() int {
+	if x.list == nil {
+		return 0
+	}
+	return len(*x.list)
+}
+
+func (x *_NewFileMerkleProof_5_list) Get(i int) protoreflect.Value {
+	return protoreflect.ValueOfBytes((*x.list)[i])
+}
+
+func (x *_NewFileMerkleProof_5_list) Set(i int, value protoreflect.Value) {
+	valueUnwrapped := value.Bytes()
+	concreteValue := valueUnwrapped
+	(*x.list)[i] = concreteValue
+}
+
+func (x *_NewFileMerkleProof_5_list) Append(value protoreflect.Value) {
+	valueUnwrapped := value.Bytes()
+	concreteValue := valueUnwrapped
+	*x.list = append(*x.list, concreteValue)
+}
+
+func (x *_NewFileMerkleProof_5_list) AppendMutable() protoreflect.Value {
+	panic(fmt.Errorf("AppendMutable can not be called on message NewFileMerkleProof at list field Aunts as it is not of Message kind"))
+}
+
+func (x *_NewFileMerkleProof_5_list) Truncate(n int) {
+	*x.list = (*x.list)[:n]
+}
+
+func (x *_NewFileMerkleProof_5_list) NewElement() protoreflect.Value {
+	var v []byte
+	return protoreflect.ValueOfBytes(v)
+}
+
+func (x *_NewFileMerkleProof_5_list) IsValid() bool {
+	return x.list != nil
+}
+
+var (
+	md_NewFileMerkleProof           protoreflect.MessageDescriptor
+	fd_NewFileMerkleProof_file_hash protoreflect.FieldDescriptor
+	fd_NewFileMerkleProof_total     protoreflect.FieldDescriptor
+	fd_NewFileMerkleProof_index     protoreflect.FieldDescriptor
+	fd_NewFileMerkleProof_leaf_hash protoreflect.FieldDescriptor
+	fd_NewFileMerkleProof_aunts     protoreflect.FieldDescriptor
+)
+
+func init() {
+	file_stratos_sds_v1_event_proto_init()
+	md_NewFileMerkleProof = File_stratos_sds_v1_event_proto.Messages().ByName("NewFileMerkleProof")
+	fd_NewFileMerkleProof_file_hash = md_NewFileMerkleProof.Fields().ByName("file_hash")
+	fd_NewFileMerkleProof_total = md_NewFileMerkleProof.Fields().ByName("total")
+	fd_NewFileMerkleProof_index = md_NewFileMerkleProof.Fields().ByName("index")
+	fd_NewFileMerkleProof_leaf_hash = md_NewFileMerkleProof.Fields().ByName("leaf_hash")
+	fd_NewFileMerkleProof_aunts = md_NewFileMerkleProof.Fields().ByName("aunts")
+}
+
+var _ protoreflect.Message = (*fastReflection_NewFileMerkleProof)(nil)
+
+type fastReflection_NewFileMerkleProof NewFileMerkleProof
+
+func (x *NewFileMerkleProof) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_NewFileMerkleProof)(x)
+}
+
+func (x *NewFileMerkleProof) slowProtoReflect() protoreflect.Message {
+	mi := &file_stratos_sds_v1_event_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+var _fastReflection_NewFileMerkleProof_messageType fastReflection_NewFileMerkleProof_messageType
+var _ protoreflect.MessageType = fastReflection_NewFileMerkleProof_messageType{}
+
+type fastReflection_NewFileMerkleProof_messageType struct{}
+
+func (x fastReflection_NewFileMerkleProof_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_NewFileMerkleProof)(nil)
+}
+func (x fastReflection_NewFileMerkleProof_messageType) New() protoreflect.Message {
+	return new(fastReflection_NewFileMerkleProof)
+}
+func (x fastReflection_NewFileMerkleProof_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_NewFileMerkleProof
+}
+
+// Descriptor returns message descriptor, which contains only the protobuf
+// type information for the message.
+func (x *fastReflection_NewFileMerkleProof) Descriptor() protoreflect.MessageDescriptor {
+	return md_NewFileMerkleProof
+}
+
+// Type returns the message type, which encapsulates both Go and protobuf
+// type information. If the Go type information is not needed,
+// it is recommended that the message descriptor be used instead.
+func (x *fastReflection_NewFileMerkleProof) Type() protoreflect.MessageType {
+	return _fastReflection_NewFileMerkleProof_messageType
+}
+
+// New returns a newly allocated and mutable empty message.
+func (x *fastReflection_NewFileMerkleProof) New() protoreflect.Message {
+	return new(fastReflection_NewFileMerkleProof)
+}
+
+// Interface unwraps the message reflection interface and
+// returns the underlying ProtoMessage interface.
+func (x *fastReflection_NewFileMerkleProof) Interface() protoreflect.ProtoMessage {
+	return (*NewFileMerkleProof)(x)
+}
+
+// Range iterates over every populated field in an undefined order,
+// calling f for each field descriptor and value encountered.
+// Range returns immediately if f returns false.
+// While iterating, mutating operations may only be performed
+// on the current field descriptor.
+func (x *fastReflection_NewFileMerkleProof) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.FileHash != "" {
+		value := protoreflect.ValueOfString(x.FileHash)
+		if !f(fd_NewFileMerkleProof_file_hash, value) {
+			return
+		}
+	}
+	if x.Total != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Total)
+		if !f(fd_NewFileMerkleProof_total, value) {
+			return
+		}
+	}
+	if x.Index != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Index)
+		if !f(fd_NewFileMerkleProof_index, value) {
+			return
+		}
+	}
+	if len(x.LeafHash) != 0 {
+		value := protoreflect.ValueOfBytes(x.LeafHash)
+		if !f(fd_NewFileMerkleProof_leaf_hash, value) {
+			return
+		}
+	}
+	if len(x.Aunts) != 0 {
+		value := protoreflect.ValueOfList(&_NewFileMerkleProof_5_list{list: &x.Aunts})
+		if !f(fd_NewFileMerkleProof_aunts, value) {
+			return
+		}
+	}
+}
+
+// Has reports whether a field is populated.
+//
+// Some fields have the property of nullability where it is possible to
+// distinguish between the default value of a field and whether the field
+// was explicitly populated with the default value. Singular message fields,
+// member fields of a oneof, and proto2 scalar fields are nullable. Such
+// fields are populated only if explicitly set.
+//
+// In other cases (aside from the nullable cases above),
+// a proto3 scalar field is populated if it contains a non-zero value, and
+// a repeated field is populated if it is non-empty.
+func (x *fastReflection_NewFileMerkleProof) Has(fd protoreflect.FieldDescriptor) bool {
+	switch fd.FullName() {
+	case "stratos.sds.v1.NewFileMerkleProof.file_hash":
+		return x.FileHash != ""
+	case "stratos.sds.v1.NewFileMerkleProof.total":
+		return x.Total != int64(0)
+	case "stratos.sds.v1.NewFileMerkleProof.index":
+		return x.Index != int64(0)
+	case "stratos.sds.v1.NewFileMerkleProof.leaf_hash":
+		return len(x.LeafHash) != 0
+	case "stratos.sds.v1.NewFileMerkleProof.aunts":
+		return len(x.Aunts) != 0
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.NewFileMerkleProof"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.NewFileMerkleProof does not contain field %s", fd.FullName()))
+	}
+}
+
+// Clear clears the field such that a subsequent Has call reports false.
+//
+// Clearing an extension field clears both the extension type and value
+// associated with the given field number.
+//
+// Clear is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_NewFileMerkleProof) Clear(fd protoreflect.FieldDescriptor) {
+	switch fd.FullName() {
+	case "stratos.sds.v1.NewFileMerkleProof.file_hash":
+		x.FileHash = ""
+	case "stratos.sds.v1.NewFileMerkleProof.total":
+		x.Total = int64(0)
+	case "stratos.sds.v1.NewFileMerkleProof.index":
+		x.Index = int64(0)
+	case "stratos.sds.v1.NewFileMerkleProof.leaf_hash":
+		x.LeafHash = nil
+	case "stratos.sds.v1.NewFileMerkleProof.aunts":
+		x.Aunts = nil
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.NewFileMerkleProof"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.NewFileMerkleProof does not contain field %s", fd.FullName()))
+	}
+}
+
+// Get retrieves the value for a field.
+//
+// For unpopulated scalars, it returns the default value, where
+// the default value of a bytes scalar is guaranteed to be a copy.
+// For unpopulated composite types, it returns an empty, read-only view
+// of the value; to obtain a mutable reference, use Mutable.
+func (x *fastReflection_NewFileMerkleProof) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+	switch descriptor.FullName() {
+	case "stratos.sds.v1.NewFileMerkleProof.file_hash":
+		value := x.FileHash
+		return protoreflect.ValueOfString(value)
+	case "stratos.sds.v1.NewFileMerkleProof.total":
+		value := x.Total
+		return protoreflect.ValueOfInt64(value)
+	case "stratos.sds.v1.NewFileMerkleProof.index":
+		value := x.Index
+		return protoreflect.ValueOfInt64(value)
+	case "stratos.sds.v1.NewFileMerkleProof.leaf_hash":
+		value := x.LeafHash
+		return protoreflect.ValueOfBytes(value)
+	case "stratos.sds.v1.NewFileMerkleProof.aunts":
+		if len(x.Aunts) == 0 {
+			return protoreflect.ValueOfList(&_NewFileMerkleProof_5_list{})
+		}
+		listValue := &_NewFileMerkleProof_5_list{list: &x.Aunts}
+		return protoreflect.ValueOfList(listValue)
+	default:
+		if descriptor.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.NewFileMerkleProof"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.NewFileMerkleProof does not contain field %s", descriptor.FullName()))
+	}
+}
+
+// Set stores the value for a field.
+//
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType.
+// When setting a composite type, it is unspecified whether the stored value
+// aliases the source's memory in any way. If the composite value is an
+// empty, read-only value, then it panics.
+//
+// Set is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_NewFileMerkleProof) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+	switch fd.FullName() {
+	case "stratos.sds.v1.NewFileMerkleProof.file_hash":
+		x.FileHash = value.Interface().(string)
+	case "stratos.sds.v1.NewFileMerkleProof.total":
+		x.Total = value.Int()
+	case "stratos.sds.v1.NewFileMerkleProof.index":
+		x.Index = value.Int()
+	case "stratos.sds.v1.NewFileMerkleProof.leaf_hash":
+		x.LeafHash = value.Bytes()
+	case "stratos.sds.v1.NewFileMerkleProof.aunts":
+		lv := value.List()
+		clv := lv.(*_NewFileMerkleProof_5_list)
+		x.Aunts = *clv.list
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.NewFileMerkleProof"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.NewFileMerkleProof does not contain field %s", fd.FullName()))
+	}
+}
+
+// Mutable returns a mutable reference to a composite type.
+//
+// If the field is unpopulated, it may allocate a composite value.
+// For a field belonging to a oneof, it implicitly clears any other field
+// that may be currently set within the same oneof.
+// For extension fields, it implicitly stores the provided ExtensionType
+// if not already stored.
+// It panics if the field does not contain a composite type.
+//
+// Mutable is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_NewFileMerkleProof) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.sds.v1.NewFileMerkleProof.aunts":
+		if x.Aunts == nil {
+			x.Aunts = [][]byte{}
+		}
+		value := &_NewFileMerkleProof_5_list{list: &x.Aunts}
+		return protoreflect.ValueOfList(value)
+	case "stratos.sds.v1.NewFileMerkleProof.file_hash":
+		panic(fmt.Errorf("field file_hash of message stratos.sds.v1.NewFileMerkleProof is not mutable"))
+	case "stratos.sds.v1.NewFileMerkleProof.total":
+		panic(fmt.Errorf("field total of message stratos.sds.v1.NewFileMerkleProof is not mutable"))
+	case "stratos.sds.v1.NewFileMerkleProof.index":
+		panic(fmt.Errorf("field index of message stratos.sds.v1.NewFileMerkleProof is not mutable"))
+	case "stratos.sds.v1.NewFileMerkleProof.leaf_hash":
+		panic(fmt.Errorf("field leaf_hash of message stratos.sds.v1.NewFileMerkleProof is not mutable"))
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.NewFileMerkleProof"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.NewFileMerkleProof does not contain field %s", fd.FullName()))
+	}
+}
+
+// NewField returns a new value that is assignable to the field
+// for the given descriptor. For scalars, this returns the default value.
+// For lists, maps, and messages, this returns a new, empty, mutable value.
+func (x *fastReflection_NewFileMerkleProof) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+	switch fd.FullName() {
+	case "stratos.sds.v1.NewFileMerkleProof.file_hash":
+		return protoreflect.ValueOfString("")
+	case "stratos.sds.v1.NewFileMerkleProof.total":
+		return protoreflect.ValueOfInt64(int64(0))
+	case "stratos.sds.v1.NewFileMerkleProof.index":
+		return protoreflect.ValueOfInt64(int64(0))
+	case "stratos.sds.v1.NewFileMerkleProof.leaf_hash":
+		return protoreflect.ValueOfBytes(nil)
+	case "stratos.sds.v1.NewFileMerkleProof.aunts":
+		list := [][]byte{}
+		return protoreflect.ValueOfList(&_NewFileMerkleProof_5_list{list: &list})
+	default:
+		if fd.IsExtension() {
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.NewFileMerkleProof"))
+		}
+		panic(fmt.Errorf("message stratos.sds.v1.NewFileMerkleProof does not contain field %s", fd.FullName()))
+	}
+}
+
+// WhichOneof reports which field within the oneof is populated,
+// returning nil if none are populated.
+// It panics if the oneof descriptor does not belong to this message.
+func (x *fastReflection_NewFileMerkleProof) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+	switch d.FullName() {
+	default:
+		panic(fmt.Errorf("%s is not a oneof field in stratos.sds.v1.NewFileMerkleProof", d.FullName()))
+	}
+	panic("unreachable")
+}
+
+// GetUnknown retrieves the entire list of unknown fields.
+// The caller may only mutate the contents of the RawFields
+// if the mutated bytes are stored back into the message with SetUnknown.
+func (x *fastReflection_NewFileMerkleProof) GetUnknown() protoreflect.RawFields {
+	return x.unknownFields
+}
+
+// SetUnknown stores an entire list of unknown fields.
+// The raw fields must be syntactically valid according to the wire format.
+// An implementation may panic if this is not the case.
+// Once stored, the caller must not mutate the content of the RawFields.
+// An empty RawFields may be passed to clear the fields.
+//
+// SetUnknown is a mutating operation and unsafe for concurrent use.
+func (x *fastReflection_NewFileMerkleProof) SetUnknown(fields protoreflect.RawFields) {
+	x.unknownFields = fields
+}
+
+// IsValid reports whether the message is valid.
+//
+// An invalid message is an empty, read-only value.
+//
+// An invalid message often corresponds to a nil pointer of the concrete
+// message type, but the details are implementation dependent.
+// Validity is not part of the protobuf data model, and may not
+// be preserved in marshaling or other operations.
+func (x *fastReflection_NewFileMerkleProof) IsValid() bool {
+	return x != nil
+}
+
+// ProtoMethods returns optional fastReflectionFeature-path implementations of various operations.
+// This method may return nil.
+//
+// The returned methods type is identical to
+// "google.golang.org/protobuf/runtime/protoiface".Methods.
+// Consult the protoiface package documentation for details.
+func (x *fastReflection_NewFileMerkleProof) ProtoMethods() *protoiface.Methods {
+	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
+		x := input.Message.Interface().(*NewFileMerkleProof)
+		if x == nil {
+			return protoiface.SizeOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Size:              0,
+			}
+		}
+		options := runtime.SizeInputToOptions(input)
+		_ = options
+		var n int
+		var l int
+		_ = l
+		l = len(x.FileHash)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if x.Total != 0 {
+			n += 1 + runtime.Sov(uint64(x.Total))
+		}
+		if x.Index != 0 {
+			n += 1 + runtime.Sov(uint64(x.Index))
+		}
+		l = len(x.LeafHash)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if len(x.Aunts) > 0 {
+			for _, b := range x.Aunts {
+				l = len(b)
+				n += 1 + l + runtime.Sov(uint64(l))
+			}
+		}
+		if x.unknownFields != nil {
+			n += len(x.unknownFields)
+		}
+		return protoiface.SizeOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Size:              n,
+		}
+	}
+
+	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
+		x := input.Message.Interface().(*NewFileMerkleProof)
+		if x == nil {
+			return protoiface.MarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Buf:               input.Buf,
+			}, nil
+		}
+		options := runtime.MarshalInputToOptions(input)
+		_ = options
+		size := options.Size(x)
+		dAtA := make([]byte, size)
+		i := len(dAtA)
+		_ = i
+		var l int
+		_ = l
+		if x.unknownFields != nil {
+			i -= len(x.unknownFields)
+			copy(dAtA[i:], x.unknownFields)
+		}
+		if len(x.Aunts) > 0 {
+			for iNdEx := len(x.Aunts) - 1; iNdEx >= 0; iNdEx-- {
+				i -= len(x.Aunts[iNdEx])
+				copy(dAtA[i:], x.Aunts[iNdEx])
+				i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Aunts[iNdEx])))
+				i--
+				dAtA[i] = 0x2a
+			}
+		}
+		if len(x.LeafHash) > 0 {
+			i -= len(x.LeafHash)
+			copy(dAtA[i:], x.LeafHash)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.LeafHash)))
+			i--
+			dAtA[i] = 0x22
+		}
+		if x.Index != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Index))
+			i--
+			dAtA[i] = 0x18
+		}
+		if x.Total != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Total))
+			i--
+			dAtA[i] = 0x10
+		}
+		if len(x.FileHash) > 0 {
+			i -= len(x.FileHash)
+			copy(dAtA[i:], x.FileHash)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.FileHash)))
+			i--
+			dAtA[i] = 0xa
+		}
+		if input.Buf != nil {
+			input.Buf = append(input.Buf, dAtA...)
+		} else {
+			input.Buf = dAtA
+		}
+		return protoiface.MarshalOutput{
+			NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+			Buf:               input.Buf,
+		}, nil
+	}
+	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
+		x := input.Message.Interface().(*NewFileMerkleProof)
+		if x == nil {
+			return protoiface.UnmarshalOutput{
+				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
+				Flags:             input.Flags,
+			}, nil
+		}
+		options := runtime.UnmarshalInputToOptions(input)
+		_ = options
+		dAtA := input.Buf
+		l := len(dAtA)
+		iNdEx := 0
+		for iNdEx < l {
+			preIndex := iNdEx
+			var wire uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+				}
+				if iNdEx >= l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				wire |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			fieldNum := int32(wire >> 3)
+			wireType := int(wire & 0x7)
+			if wireType == 4 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: NewFileMerkleProof: wiretype end group for non-group")
+			}
+			if fieldNum <= 0 {
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: NewFileMerkleProof: illegal tag %d (wire type %d)", fieldNum, wire)
+			}
+			switch fieldNum {
+			case 1:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FileHash", wireType)
+				}
+				var stringLen uint64
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					stringLen |= uint64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				intStringLen := int(stringLen)
+				if intStringLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + intStringLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.FileHash = string(dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			case 2:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+				}
+				x.Total = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Total |= int64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 3:
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
+				}
+				x.Index = 0
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					x.Index |= int64(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+			case 4:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field LeafHash", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.LeafHash = append(x.LeafHash[:0], dAtA[iNdEx:postIndex]...)
+				if x.LeafHash == nil {
+					x.LeafHash = []byte{}
+				}
+				iNdEx = postIndex
+			case 5:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Aunts", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.Aunts = append(x.Aunts, make([]byte, postIndex-iNdEx))
+				copy(x.Aunts[len(x.Aunts)-1], dAtA[iNdEx:postIndex])
+				iNdEx = postIndex
+			default:
+				iNdEx = preIndex
+				skippy, err := runtime.Skip(dAtA[iNdEx:])
+				if err != nil {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				}
+				if (skippy < 0) || (iNdEx+skippy) < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if (iNdEx + skippy) > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				if !options.DiscardUnknown {
+					x.unknownFields = append(x.unknownFields, dAtA[iNdEx:iNdEx+skippy]...)
+				}
+				iNdEx += skippy
+			}
+		}
+
+		if iNdEx > l {
+			return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+		}
+		return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, nil
+	}
+	return &protoiface.Methods{
+		NoUnkeyedLiterals: struct{}{},
+		Flags:             protoiface.SupportMarshalDeterministic | protoiface.SupportUnmarshalDiscardUnknown,
+		Size:              size,
+		Marshal:           marshal,
+		Unmarshal:         unmarshal,
+		Merge:             nil,
+		CheckInitialized:  nil,
+	}
+}
+
 // Code generated by protoc-gen-go. DO NOT EDIT.
 // versions:
 // 	protoc-gen-go v1.27.0
@@ -1369,6 +2617,117 @@ func (x *EventFileUpload) GetFileHash() string {
 	return ""
 }
 
+// EventNewFilesUploaded is emitted in EndBlocker on Msg/MsgFileUpload
+type EventNewFilesUploaded struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Height int64                 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	Proofs []*NewFileMerkleProof `protobuf:"bytes,2,rep,name=proofs,proto3" json:"proofs,omitempty"`
+}
+
+func (x *EventNewFilesUploaded) Reset() {
+	*x = EventNewFilesUploaded{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_stratos_sds_v1_event_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *EventNewFilesUploaded) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*EventNewFilesUploaded) ProtoMessage() {}
+
+// Deprecated: Use EventNewFilesUploaded.ProtoReflect.Descriptor instead.
+func (*EventNewFilesUploaded) Descriptor() ([]byte, []int) {
+	return file_stratos_sds_v1_event_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *EventNewFilesUploaded) GetHeight() int64 {
+	if x != nil {
+		return x.Height
+	}
+	return 0
+}
+
+func (x *EventNewFilesUploaded) GetProofs() []*NewFileMerkleProof {
+	if x != nil {
+		return x.Proofs
+	}
+	return nil
+}
+
+type NewFileMerkleProof struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	FileHash string   `protobuf:"bytes,1,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
+	Total    int64    `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Index    int64    `protobuf:"varint,3,opt,name=index,proto3" json:"index,omitempty"`
+	LeafHash []byte   `protobuf:"bytes,4,opt,name=leaf_hash,json=leafHash,proto3" json:"leaf_hash,omitempty"`
+	Aunts    [][]byte `protobuf:"bytes,5,rep,name=aunts,proto3" json:"aunts,omitempty"`
+}
+
+func (x *NewFileMerkleProof) Reset() {
+	*x = NewFileMerkleProof{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_stratos_sds_v1_event_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *NewFileMerkleProof) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NewFileMerkleProof) ProtoMessage() {}
+
+// Deprecated: Use NewFileMerkleProof.ProtoReflect.Descriptor instead.
+func (*NewFileMerkleProof) Descriptor() ([]byte, []int) {
+	return file_stratos_sds_v1_event_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *NewFileMerkleProof) GetFileHash() string {
+	if x != nil {
+		return x.FileHash
+	}
+	return ""
+}
+
+func (x *NewFileMerkleProof) GetTotal() int64 {
+	if x != nil {
+		return x.Total
+	}
+	return 0
+}
+
+func (x *NewFileMerkleProof) GetIndex() int64 {
+	if x != nil {
+		return x.Index
+	}
+	return 0
+}
+
+func (x *NewFileMerkleProof) GetLeafHash() []byte {
+	if x != nil {
+		return x.LeafHash
+	}
+	return nil
+}
+
+func (x *NewFileMerkleProof) GetAunts() [][]byte {
+	if x != nil {
+		return x.Aunts
+	}
+	return nil
+}
+
 var File_stratos_sds_v1_event_proto protoreflect.FileDescriptor
 
 var file_stratos_sds_v1_event_proto_rawDesc = []byte{
@@ -1391,7 +2750,23 @@ var file_stratos_sds_v1_event_proto_rawDesc = []byte{
 	0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x75, 0x70,
 	0x6c, 0x6f, 0x61, 0x64, 0x65, 0x72, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x68,
 	0x61, 0x73, 0x68, 0x18, 0x04, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65, 0x48,
-	0x61, 0x73, 0x68, 0x42, 0xa1, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x73, 0x74, 0x72, 0x61,
+	0x61, 0x73, 0x68, 0x22, 0x6b, 0x0a, 0x15, 0x45, 0x76, 0x65, 0x6e, 0x74, 0x4e, 0x65, 0x77, 0x46,
+	0x69, 0x6c, 0x65, 0x73, 0x55, 0x70, 0x6c, 0x6f, 0x61, 0x64, 0x65, 0x64, 0x12, 0x16, 0x0a, 0x06,
+	0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x06, 0x68, 0x65,
+	0x69, 0x67, 0x68, 0x74, 0x12, 0x3a, 0x0a, 0x06, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x73, 0x18, 0x02,
+	0x20, 0x03, 0x28, 0x0b, 0x32, 0x22, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x73,
+	0x64, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x4e, 0x65, 0x77, 0x46, 0x69, 0x6c, 0x65, 0x4d, 0x65, 0x72,
+	0x6b, 0x6c, 0x65, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x52, 0x06, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x73,
+	0x22, 0x90, 0x01, 0x0a, 0x12, 0x4e, 0x65, 0x77, 0x46, 0x69, 0x6c, 0x65, 0x4d, 0x65, 0x72, 0x6b,
+	0x6c, 0x65, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x12, 0x1b, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f,
+	0x68, 0x61, 0x73, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x66, 0x69, 0x6c, 0x65,
+	0x48, 0x61, 0x73, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x03, 0x52, 0x05, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x6e,
+	0x64, 0x65, 0x78, 0x18, 0x03, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x69, 0x6e, 0x64, 0x65, 0x78,
+	0x12, 0x1b, 0x0a, 0x09, 0x6c, 0x65, 0x61, 0x66, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x18, 0x04, 0x20,
+	0x01, 0x28, 0x0c, 0x52, 0x08, 0x6c, 0x65, 0x61, 0x66, 0x48, 0x61, 0x73, 0x68, 0x12, 0x14, 0x0a,
+	0x05, 0x61, 0x75, 0x6e, 0x74, 0x73, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x05, 0x61, 0x75,
+	0x6e, 0x74, 0x73, 0x42, 0xa1, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x73, 0x74, 0x72, 0x61,
 	0x74, 0x6f, 0x73, 0x2e, 0x73, 0x64, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0a, 0x45, 0x76, 0x65, 0x6e,
 	0x74, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73,
 	0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74,
@@ -1416,17 +2791,20 @@ func file_stratos_sds_v1_event_proto_rawDescGZIP() []byte {
 	return file_stratos_sds_v1_event_proto_rawDescData
 }
 
-var file_stratos_sds_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_stratos_sds_v1_event_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_stratos_sds_v1_event_proto_goTypes = []interface{}{
-	(*EventPrePay)(nil),     // 0: stratos.sds.v1.EventPrePay
-	(*EventFileUpload)(nil), // 1: stratos.sds.v1.EventFileUpload
+	(*EventPrePay)(nil),           // 0: stratos.sds.v1.EventPrePay
+	(*EventFileUpload)(nil),       // 1: stratos.sds.v1.EventFileUpload
+	(*EventNewFilesUploaded)(nil), // 2: stratos.sds.v1.EventNewFilesUploaded
+	(*NewFileMerkleProof)(nil),    // 3: stratos.sds.v1.NewFileMerkleProof
 }
 var file_stratos_sds_v1_event_proto_depIdxs = []int32{
-	0, // [0:0] is the sub-list for method output_type
-	0, // [0:0] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	3, // 0: stratos.sds.v1.EventNewFilesUploaded.proofs:type_name -> stratos.sds.v1.NewFileMerkleProof
+	1, // [1:1] is the sub-list for method output_type
+	1, // [1:1] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_stratos_sds_v1_event_proto_init() }
@@ -1459,6 +2837,30 @@ func file_stratos_sds_v1_event_proto_init() {
 				return nil
 			}
 		}
+		file_stratos_sds_v1_event_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*EventNewFilesUploaded); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_stratos_sds_v1_event_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*NewFileMerkleProof); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1466,7 +2868,7 @@ func file_stratos_sds_v1_event_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_stratos_sds_v1_event_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

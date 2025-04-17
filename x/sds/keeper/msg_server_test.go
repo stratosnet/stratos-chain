@@ -56,7 +56,7 @@ func (s *KeeperTestSuite) TestMsgPrepay() {
 
 		regKeeper := s.GetNoMockRegKeeper()
 		proover := merkle.NewRelayerMerkleProver()
-		regKeeper.SetProover(proover)
+		regKeeper.SetProver(proover)
 
 		msg, data := s.fakeAndMockMsgPrepayForMerkleTest(sender)
 		s.mockRegRecordMerkleCommitment(sender, data).DoAndReturn(regKeeper.RecordMerkleCommitment).AnyTimes()
@@ -85,7 +85,7 @@ func (s *KeeperTestSuite) TestMsgPrepay() {
 
 		regKeeper := s.GetNoMockRegKeeper()
 		proover := merkle.NewRelayerMerkleProver()
-		regKeeper.SetProover(proover)
+		regKeeper.SetProver(proover)
 
 		msg, data := s.fakeAndMockMsgPrepayForMerkleTest(sender)
 		s.mockRegRecordMerkleCommitment(sender, data).DoAndReturn(regKeeper.RecordMerkleCommitment).AnyTimes()
