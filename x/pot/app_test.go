@@ -587,11 +587,11 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 
 	createTime, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
-	resourceNode1, _ := registertypes.NewResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, resOwner1, registertypes.NewDescription("resourceNode1", "", "", "", ""), nodeType, createTime)
-	resourceNode2, _ := registertypes.NewResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, resOwner2, registertypes.NewDescription("resourceNode2", "", "", "", ""), nodeType, createTime)
-	resourceNode3, _ := registertypes.NewResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, resOwner3, registertypes.NewDescription("resourceNode3", "", "", "", ""), nodeType, createTime)
-	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, registertypes.NewDescription("resourceNode4", "", "", "", ""), nodeType, createTime)
-	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, registertypes.NewDescription("resourceNode5", "", "", "", ""), nodeType, createTime)
+	resourceNode1, _ := registertypes.NewResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, resOwner1, resOwner1, registertypes.NewDescription("resourceNode1", "", "", "", ""), nodeType, createTime)
+	resourceNode2, _ := registertypes.NewResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, resOwner2, resOwner2, registertypes.NewDescription("resourceNode2", "", "", "", ""), nodeType, createTime)
+	resourceNode3, _ := registertypes.NewResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, resOwner3, resOwner3, registertypes.NewDescription("resourceNode3", "", "", "", ""), nodeType, createTime)
+	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, resOwner4, registertypes.NewDescription("resourceNode4", "", "", "", ""), nodeType, createTime)
+	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, resOwner5, registertypes.NewDescription("resourceNode5", "", "", "", ""), nodeType, createTime)
 
 	resourceNode1 = resourceNode1.AddToken(nodeInitialDeposit)
 	resourceNode2 = resourceNode2.AddToken(nodeInitialDeposit)

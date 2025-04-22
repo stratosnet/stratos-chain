@@ -38,7 +38,10 @@ service Query {
   }
 
   rpc VerifyUpload(QueryVerifyUploadRequest) returns (QueryVerifyUploadResponse) {
-    option (google.api.http).get = "/stratos/sds/v1/verify_upload";
+    option (google.api.http) = {
+      post: "/stratos/sds/v1/verify_upload"
+      body: "*"
+    };
   }
 }
 // QueryFileuploadRequest is request type for the Query/Fileupload RPC method

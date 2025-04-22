@@ -283,7 +283,11 @@ func (k Keeper) GetCurrNozPriceParams(ctx sdk.Context) (St, Pt, Lt sdkmath.Int) 
 }
 
 func (k Keeper) ProcessMerkleProofs(ctx sdk.Context, mdata merkle.MerkleProofData) error {
-	leaves, err := k.NullifyMerkleCommitments(ctx, mdata.GetCommitments())
+	commitments := mdata.GetCommitments()
+	if len(commitments) == 0 {
+		return nil
+	}
+	leaves, err := k.NullifyMerkleCommitments(ctx, commitments)
 	if err != nil {
 		return err
 	}

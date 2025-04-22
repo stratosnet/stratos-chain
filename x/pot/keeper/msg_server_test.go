@@ -107,15 +107,15 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 
 		ctx, msgServer := s.ctx, s.msgServer
 		regKeeper := s.GetNoMockRegKeeper()
-		proover := merkle.NewRelayerMerkleProver()
-		regKeeper.SetProver(proover)
+		prover := merkle.NewRelayerMerkleProver()
+		regKeeper.SetProver(prover)
 
 		// proof creation
 		commitment1 := []byte("c1")
 
 		root := regKeeper.GetMerkleRoot(ctx)
 
-		mpd, _ := proover.CreateProofs(
+		mpd, _ := prover.CreateProofs(
 			[][]byte{
 				root,
 			},
@@ -151,15 +151,15 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 
 		ctx, msgServer := s.ctx, s.msgServer
 		regKeeper := s.GetNoMockRegKeeper()
-		proover := merkle.NewRelayerMerkleProver()
-		regKeeper.SetProver(proover)
+		prover := merkle.NewRelayerMerkleProver()
+		regKeeper.SetProver(prover)
 
 		// proof creation
 		commitment1 := []byte("c1")
 
 		root := regKeeper.GetMerkleRoot(ctx)
 
-		mpd, _ := proover.CreateProofs(
+		mpd, _ := prover.CreateProofs(
 			[][]byte{
 				root,
 			},
@@ -177,5 +177,25 @@ func (s *KeeperTestSuite) TestMsgVolumeReport() {
 		require.Error(err)
 		require.Contains(err.Error(), fmt.Sprintf("commitment '%s' does not exist", commitment1))
 		require.Equal(0, len(ctx.EventManager().ABCIEvents()))
+	})
+
+	s.T().Run("no commitments in volume report", func(t *testing.T) {
+		s.Reset(t)
+		epochCounter++
+
+		ctx, msgServer := s.ctx, s.msgServer
+		regKeeper := s.GetNoMockRegKeeper()
+		prover := merkle.NewRelayerMerkleProver()
+		regKeeper.SetProver(prover)
+
+		msg := s.fakeAndMockMsgVolumeReportForMerkleTest(epochCounter, merkle.NewMerkleProofBundle(nil, nil))
+
+		mp := msg.GetMerkleProofData()
+		// real execute
+		s.mockRegProcessMerkleProofs(&mp).DoAndReturn(regKeeper.ProcessMerkleProofs).AnyTimes()
+
+		_, err := msgServer.HandleMsgVolumeReport(ctx, msg)
+		require.NoError(err)
+		require.Equal(1, len(ctx.EventManager().ABCIEvents()))
 	})
 }

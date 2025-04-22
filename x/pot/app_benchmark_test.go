@@ -210,6 +210,7 @@ func setupNodesBenchmark() (metaNodes []registertypes.MetaNode, resourceNodes []
 				keyInfo.P2PAddress(),
 				keyInfo.P2PPubKey(),
 				keyInfo.OwnerAddress(),
+				keyInfo.OwnerAddress(),
 				registertypes.NewDescription(keyInfo.P2PAddressBech32(), "", "", "", ""),
 				nodeType,
 				time,
