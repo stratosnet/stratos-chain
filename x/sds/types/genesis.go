@@ -3,15 +3,15 @@ package types
 import (
 	"encoding/json"
 
-	sdkmath "cosmossdk.io/math"
 	"github.com/cosmos/cosmos-sdk/codec"
 )
 
 // NewGenesisState creates a new GenesisState object
-func NewGenesisState(params Params, files []GenesisFileInfo) *GenesisState {
+func NewGenesisState(params Params, root []byte, previousRoots []MerkleRoot) *GenesisState {
 	return &GenesisState{
-		Params: params,
-		Files:  files,
+		Params:              params,
+		MerkleRoot:          root,
+		PreviousMerkleRoots: previousRoots,
 	}
 }
 
@@ -39,20 +39,12 @@ func ValidateGenesis(data GenesisState) error {
 		return err
 	}
 
-	if len(data.GetFiles()) > 0 {
-		for _, file := range data.GetFiles() {
-			if len(file.FileHash) == 0 {
-				return ErrEmptyFileHash
-			}
-			if file.FileInfo.Height.LT(sdkmath.ZeroInt()) {
-				return ErrInvalidHeight
-			}
-			if len(file.FileInfo.Reporters) == 0 {
-				return ErrEmptyReporters
-			}
-			if len(file.FileInfo.Uploader) == 0 {
-				return ErrEmptyUploaderAddr
-			}
+	for _, root := range data.PreviousMerkleRoots {
+		if len(root.Root) == 0 {
+			return ErrEmptyMerkleRoot
+		}
+		if root.Height < 0 {
+			return ErrInvalidHeight
 		}
 	}
 	return nil

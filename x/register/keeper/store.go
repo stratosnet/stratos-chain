@@ -388,3 +388,17 @@ func (k Keeper) NullifyMerkleCommitment(ctx sdk.Context, commitment []byte) ([]b
 	store.Delete(key)
 	return bz, nil
 }
+
+// IterateMerkleCommitments Iterates over the Merkle commitments
+func (k Keeper) IterateMerkleCommitments(ctx sdk.Context, handler func([]byte, []byte) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.MerkleCommitmentKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		commitment := iter.Key()[len(types.MerkleCommitmentKeyPrefix):]
+		root := iter.Value()
+		if handler(commitment, root) {
+			break
+		}
+	}
+}

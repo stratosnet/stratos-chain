@@ -166,6 +166,8 @@ func SetupWithGenesisNodeSet(t *testing.T,
 		make([]registertypes.MetaNodeRegistrationVotePool, 0),
 		make([]registertypes.UnbondingNode, 0),
 		make([]registertypes.KickMetaNodeVotePool, 0),
+		nil,
+		make([]registertypes.Commitment, 0),
 	)
 	genesisState[registertypes.ModuleName] = app.AppCodec().MustMarshalJSON(registerGenesis)
 

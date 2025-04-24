@@ -14,68 +14,70 @@ import (
 	sync "sync"
 )
 
-var _ protoreflect.List = (*_GenesisState_2_list)(nil)
+var _ protoreflect.List = (*_GenesisState_3_list)(nil)
 
-type _GenesisState_2_list struct {
-	list *[]*GenesisFileInfo
+type _GenesisState_3_list struct {
+	list *[]*MerkleRoot
 }
 
-func (x *_GenesisState_2_list) Len() int {
+func (x *_GenesisState_3_list) Len() int {
 	if x.list == nil {
 		return 0
 	}
 	return len(*x.list)
 }
 
-func (x *_GenesisState_2_list) Get(i int) protoreflect.Value {
+func (x *_GenesisState_3_list) Get(i int) protoreflect.Value {
 	return protoreflect.ValueOfMessage((*x.list)[i].ProtoReflect())
 }
 
-func (x *_GenesisState_2_list) Set(i int, value protoreflect.Value) {
+func (x *_GenesisState_3_list) Set(i int, value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*GenesisFileInfo)
+	concreteValue := valueUnwrapped.Interface().(*MerkleRoot)
 	(*x.list)[i] = concreteValue
 }
 
-func (x *_GenesisState_2_list) Append(value protoreflect.Value) {
+func (x *_GenesisState_3_list) Append(value protoreflect.Value) {
 	valueUnwrapped := value.Message()
-	concreteValue := valueUnwrapped.Interface().(*GenesisFileInfo)
+	concreteValue := valueUnwrapped.Interface().(*MerkleRoot)
 	*x.list = append(*x.list, concreteValue)
 }
 
-func (x *_GenesisState_2_list) AppendMutable() protoreflect.Value {
-	v := new(GenesisFileInfo)
+func (x *_GenesisState_3_list) AppendMutable() protoreflect.Value {
+	v := new(MerkleRoot)
 	*x.list = append(*x.list, v)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
-func (x *_GenesisState_2_list) Truncate(n int) {
+func (x *_GenesisState_3_list) Truncate(n int) {
 	for i := n; i < len(*x.list); i++ {
 		(*x.list)[i] = nil
 	}
 	*x.list = (*x.list)[:n]
 }
 
-func (x *_GenesisState_2_list) NewElement() protoreflect.Value {
-	v := new(GenesisFileInfo)
+func (x *_GenesisState_3_list) NewElement() protoreflect.Value {
+	v := new(MerkleRoot)
 	return protoreflect.ValueOfMessage(v.ProtoReflect())
 }
 
-func (x *_GenesisState_2_list) IsValid() bool {
+func (x *_GenesisState_3_list) IsValid() bool {
 	return x.list != nil
 }
 
 var (
-	md_GenesisState        protoreflect.MessageDescriptor
-	fd_GenesisState_params protoreflect.FieldDescriptor
-	fd_GenesisState_files  protoreflect.FieldDescriptor
+	md_GenesisState                       protoreflect.MessageDescriptor
+	fd_GenesisState_params                protoreflect.FieldDescriptor
+	fd_GenesisState_merkle_root           protoreflect.FieldDescriptor
+	fd_GenesisState_previous_merkle_roots protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_sds_v1_genesis_proto_init()
 	md_GenesisState = File_stratos_sds_v1_genesis_proto.Messages().ByName("GenesisState")
 	fd_GenesisState_params = md_GenesisState.Fields().ByName("params")
-	fd_GenesisState_files = md_GenesisState.Fields().ByName("files")
+	fd_GenesisState_merkle_root = md_GenesisState.Fields().ByName("merkle_root")
+	fd_GenesisState_previous_merkle_roots = md_GenesisState.Fields().ByName("previous_merkle_roots")
 }
 
 var _ protoreflect.Message = (*fastReflection_GenesisState)(nil)
@@ -149,9 +151,15 @@ func (x *fastReflection_GenesisState) Range(f func(protoreflect.FieldDescriptor,
 			return
 		}
 	}
-	if len(x.Files) != 0 {
-		value := protoreflect.ValueOfList(&_GenesisState_2_list{list: &x.Files})
-		if !f(fd_GenesisState_files, value) {
+	if len(x.MerkleRoot) != 0 {
+		value := protoreflect.ValueOfBytes(x.MerkleRoot)
+		if !f(fd_GenesisState_merkle_root, value) {
+			return
+		}
+	}
+	if len(x.PreviousMerkleRoots) != 0 {
+		value := protoreflect.ValueOfList(&_GenesisState_3_list{list: &x.PreviousMerkleRoots})
+		if !f(fd_GenesisState_previous_merkle_roots, value) {
 			return
 		}
 	}
@@ -172,8 +180,10 @@ func (x *fastReflection_GenesisState) Has(fd protoreflect.FieldDescriptor) bool 
 	switch fd.FullName() {
 	case "stratos.sds.v1.GenesisState.params":
 		return x.Params != nil
-	case "stratos.sds.v1.GenesisState.files":
-		return len(x.Files) != 0
+	case "stratos.sds.v1.GenesisState.merkle_root":
+		return len(x.MerkleRoot) != 0
+	case "stratos.sds.v1.GenesisState.previous_merkle_roots":
+		return len(x.PreviousMerkleRoots) != 0
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisState"))
@@ -192,8 +202,10 @@ func (x *fastReflection_GenesisState) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
 	case "stratos.sds.v1.GenesisState.params":
 		x.Params = nil
-	case "stratos.sds.v1.GenesisState.files":
-		x.Files = nil
+	case "stratos.sds.v1.GenesisState.merkle_root":
+		x.MerkleRoot = nil
+	case "stratos.sds.v1.GenesisState.previous_merkle_roots":
+		x.PreviousMerkleRoots = nil
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisState"))
@@ -213,11 +225,14 @@ func (x *fastReflection_GenesisState) Get(descriptor protoreflect.FieldDescripto
 	case "stratos.sds.v1.GenesisState.params":
 		value := x.Params
 		return protoreflect.ValueOfMessage(value.ProtoReflect())
-	case "stratos.sds.v1.GenesisState.files":
-		if len(x.Files) == 0 {
-			return protoreflect.ValueOfList(&_GenesisState_2_list{})
+	case "stratos.sds.v1.GenesisState.merkle_root":
+		value := x.MerkleRoot
+		return protoreflect.ValueOfBytes(value)
+	case "stratos.sds.v1.GenesisState.previous_merkle_roots":
+		if len(x.PreviousMerkleRoots) == 0 {
+			return protoreflect.ValueOfList(&_GenesisState_3_list{})
 		}
-		listValue := &_GenesisState_2_list{list: &x.Files}
+		listValue := &_GenesisState_3_list{list: &x.PreviousMerkleRoots}
 		return protoreflect.ValueOfList(listValue)
 	default:
 		if descriptor.IsExtension() {
@@ -241,10 +256,12 @@ func (x *fastReflection_GenesisState) Set(fd protoreflect.FieldDescriptor, value
 	switch fd.FullName() {
 	case "stratos.sds.v1.GenesisState.params":
 		x.Params = value.Message().Interface().(*Params)
-	case "stratos.sds.v1.GenesisState.files":
+	case "stratos.sds.v1.GenesisState.merkle_root":
+		x.MerkleRoot = value.Bytes()
+	case "stratos.sds.v1.GenesisState.previous_merkle_roots":
 		lv := value.List()
-		clv := lv.(*_GenesisState_2_list)
-		x.Files = *clv.list
+		clv := lv.(*_GenesisState_3_list)
+		x.PreviousMerkleRoots = *clv.list
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisState"))
@@ -270,12 +287,14 @@ func (x *fastReflection_GenesisState) Mutable(fd protoreflect.FieldDescriptor) p
 			x.Params = new(Params)
 		}
 		return protoreflect.ValueOfMessage(x.Params.ProtoReflect())
-	case "stratos.sds.v1.GenesisState.files":
-		if x.Files == nil {
-			x.Files = []*GenesisFileInfo{}
+	case "stratos.sds.v1.GenesisState.previous_merkle_roots":
+		if x.PreviousMerkleRoots == nil {
+			x.PreviousMerkleRoots = []*MerkleRoot{}
 		}
-		value := &_GenesisState_2_list{list: &x.Files}
+		value := &_GenesisState_3_list{list: &x.PreviousMerkleRoots}
 		return protoreflect.ValueOfList(value)
+	case "stratos.sds.v1.GenesisState.merkle_root":
+		panic(fmt.Errorf("field merkle_root of message stratos.sds.v1.GenesisState is not mutable"))
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisState"))
@@ -292,9 +311,11 @@ func (x *fastReflection_GenesisState) NewField(fd protoreflect.FieldDescriptor) 
 	case "stratos.sds.v1.GenesisState.params":
 		m := new(Params)
 		return protoreflect.ValueOfMessage(m.ProtoReflect())
-	case "stratos.sds.v1.GenesisState.files":
-		list := []*GenesisFileInfo{}
-		return protoreflect.ValueOfList(&_GenesisState_2_list{list: &list})
+	case "stratos.sds.v1.GenesisState.merkle_root":
+		return protoreflect.ValueOfBytes(nil)
+	case "stratos.sds.v1.GenesisState.previous_merkle_roots":
+		list := []*MerkleRoot{}
+		return protoreflect.ValueOfList(&_GenesisState_3_list{list: &list})
 	default:
 		if fd.IsExtension() {
 			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisState"))
@@ -368,8 +389,12 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			l = options.Size(x.Params)
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
-		if len(x.Files) > 0 {
-			for _, e := range x.Files {
+		l = len(x.MerkleRoot)
+		if l > 0 {
+			n += 1 + l + runtime.Sov(uint64(l))
+		}
+		if len(x.PreviousMerkleRoots) > 0 {
+			for _, e := range x.PreviousMerkleRoots {
 				l = options.Size(e)
 				n += 1 + l + runtime.Sov(uint64(l))
 			}
@@ -403,9 +428,9 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if len(x.Files) > 0 {
-			for iNdEx := len(x.Files) - 1; iNdEx >= 0; iNdEx-- {
-				encoded, err := options.Marshal(x.Files[iNdEx])
+		if len(x.PreviousMerkleRoots) > 0 {
+			for iNdEx := len(x.PreviousMerkleRoots) - 1; iNdEx >= 0; iNdEx-- {
+				encoded, err := options.Marshal(x.PreviousMerkleRoots[iNdEx])
 				if err != nil {
 					return protoiface.MarshalOutput{
 						NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -416,8 +441,15 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				copy(dAtA[i:], encoded)
 				i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
 				i--
-				dAtA[i] = 0x12
+				dAtA[i] = 0x1a
 			}
+		}
+		if len(x.MerkleRoot) > 0 {
+			i -= len(x.MerkleRoot)
+			copy(dAtA[i:], x.MerkleRoot)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.MerkleRoot)))
+			i--
+			dAtA[i] = 0x12
 		}
 		if x.Params != nil {
 			encoded, err := options.Marshal(x.Params)
@@ -520,7 +552,41 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				iNdEx = postIndex
 			case 2:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Files", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field MerkleRoot", wireType)
+				}
+				var byteLen int
+				for shift := uint(0); ; shift += 7 {
+					if shift >= 64 {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
+					}
+					if iNdEx >= l {
+						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+					}
+					b := dAtA[iNdEx]
+					iNdEx++
+					byteLen |= int(b&0x7F) << shift
+					if b < 0x80 {
+						break
+					}
+				}
+				if byteLen < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				postIndex := iNdEx + byteLen
+				if postIndex < 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
+				}
+				if postIndex > l {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
+				}
+				x.MerkleRoot = append(x.MerkleRoot[:0], dAtA[iNdEx:postIndex]...)
+				if x.MerkleRoot == nil {
+					x.MerkleRoot = []byte{}
+				}
+				iNdEx = postIndex
+			case 3:
+				if wireType != 2 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field PreviousMerkleRoots", wireType)
 				}
 				var msglen int
 				for shift := uint(0); ; shift += 7 {
@@ -547,8 +613,8 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				x.Files = append(x.Files, &GenesisFileInfo{})
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.Files[len(x.Files)-1]); err != nil {
+				x.PreviousMerkleRoots = append(x.PreviousMerkleRoots, &MerkleRoot{})
+				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.PreviousMerkleRoots[len(x.PreviousMerkleRoots)-1]); err != nil {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
 				}
 				iNdEx = postIndex
@@ -588,27 +654,27 @@ func (x *fastReflection_GenesisState) ProtoMethods() *protoiface.Methods {
 }
 
 var (
-	md_GenesisFileInfo           protoreflect.MessageDescriptor
-	fd_GenesisFileInfo_file_hash protoreflect.FieldDescriptor
-	fd_GenesisFileInfo_file_info protoreflect.FieldDescriptor
+	md_MerkleRoot        protoreflect.MessageDescriptor
+	fd_MerkleRoot_height protoreflect.FieldDescriptor
+	fd_MerkleRoot_root   protoreflect.FieldDescriptor
 )
 
 func init() {
 	file_stratos_sds_v1_genesis_proto_init()
-	md_GenesisFileInfo = File_stratos_sds_v1_genesis_proto.Messages().ByName("GenesisFileInfo")
-	fd_GenesisFileInfo_file_hash = md_GenesisFileInfo.Fields().ByName("file_hash")
-	fd_GenesisFileInfo_file_info = md_GenesisFileInfo.Fields().ByName("file_info")
+	md_MerkleRoot = File_stratos_sds_v1_genesis_proto.Messages().ByName("MerkleRoot")
+	fd_MerkleRoot_height = md_MerkleRoot.Fields().ByName("height")
+	fd_MerkleRoot_root = md_MerkleRoot.Fields().ByName("root")
 }
 
-var _ protoreflect.Message = (*fastReflection_GenesisFileInfo)(nil)
+var _ protoreflect.Message = (*fastReflection_MerkleRoot)(nil)
 
-type fastReflection_GenesisFileInfo GenesisFileInfo
+type fastReflection_MerkleRoot MerkleRoot
 
-func (x *GenesisFileInfo) ProtoReflect() protoreflect.Message {
-	return (*fastReflection_GenesisFileInfo)(x)
+func (x *MerkleRoot) ProtoReflect() protoreflect.Message {
+	return (*fastReflection_MerkleRoot)(x)
 }
 
-func (x *GenesisFileInfo) slowProtoReflect() protoreflect.Message {
+func (x *MerkleRoot) slowProtoReflect() protoreflect.Message {
 	mi := &file_stratos_sds_v1_genesis_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -620,43 +686,43 @@ func (x *GenesisFileInfo) slowProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-var _fastReflection_GenesisFileInfo_messageType fastReflection_GenesisFileInfo_messageType
-var _ protoreflect.MessageType = fastReflection_GenesisFileInfo_messageType{}
+var _fastReflection_MerkleRoot_messageType fastReflection_MerkleRoot_messageType
+var _ protoreflect.MessageType = fastReflection_MerkleRoot_messageType{}
 
-type fastReflection_GenesisFileInfo_messageType struct{}
+type fastReflection_MerkleRoot_messageType struct{}
 
-func (x fastReflection_GenesisFileInfo_messageType) Zero() protoreflect.Message {
-	return (*fastReflection_GenesisFileInfo)(nil)
+func (x fastReflection_MerkleRoot_messageType) Zero() protoreflect.Message {
+	return (*fastReflection_MerkleRoot)(nil)
 }
-func (x fastReflection_GenesisFileInfo_messageType) New() protoreflect.Message {
-	return new(fastReflection_GenesisFileInfo)
+func (x fastReflection_MerkleRoot_messageType) New() protoreflect.Message {
+	return new(fastReflection_MerkleRoot)
 }
-func (x fastReflection_GenesisFileInfo_messageType) Descriptor() protoreflect.MessageDescriptor {
-	return md_GenesisFileInfo
+func (x fastReflection_MerkleRoot_messageType) Descriptor() protoreflect.MessageDescriptor {
+	return md_MerkleRoot
 }
 
 // Descriptor returns message descriptor, which contains only the protobuf
 // type information for the message.
-func (x *fastReflection_GenesisFileInfo) Descriptor() protoreflect.MessageDescriptor {
-	return md_GenesisFileInfo
+func (x *fastReflection_MerkleRoot) Descriptor() protoreflect.MessageDescriptor {
+	return md_MerkleRoot
 }
 
 // Type returns the message type, which encapsulates both Go and protobuf
 // type information. If the Go type information is not needed,
 // it is recommended that the message descriptor be used instead.
-func (x *fastReflection_GenesisFileInfo) Type() protoreflect.MessageType {
-	return _fastReflection_GenesisFileInfo_messageType
+func (x *fastReflection_MerkleRoot) Type() protoreflect.MessageType {
+	return _fastReflection_MerkleRoot_messageType
 }
 
 // New returns a newly allocated and mutable empty message.
-func (x *fastReflection_GenesisFileInfo) New() protoreflect.Message {
-	return new(fastReflection_GenesisFileInfo)
+func (x *fastReflection_MerkleRoot) New() protoreflect.Message {
+	return new(fastReflection_MerkleRoot)
 }
 
 // Interface unwraps the message reflection interface and
 // returns the underlying ProtoMessage interface.
-func (x *fastReflection_GenesisFileInfo) Interface() protoreflect.ProtoMessage {
-	return (*GenesisFileInfo)(x)
+func (x *fastReflection_MerkleRoot) Interface() protoreflect.ProtoMessage {
+	return (*MerkleRoot)(x)
 }
 
 // Range iterates over every populated field in an undefined order,
@@ -664,16 +730,16 @@ func (x *fastReflection_GenesisFileInfo) Interface() protoreflect.ProtoMessage {
 // Range returns immediately if f returns false.
 // While iterating, mutating operations may only be performed
 // on the current field descriptor.
-func (x *fastReflection_GenesisFileInfo) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
-	if x.FileHash != "" {
-		value := protoreflect.ValueOfString(x.FileHash)
-		if !f(fd_GenesisFileInfo_file_hash, value) {
+func (x *fastReflection_MerkleRoot) Range(f func(protoreflect.FieldDescriptor, protoreflect.Value) bool) {
+	if x.Height != int64(0) {
+		value := protoreflect.ValueOfInt64(x.Height)
+		if !f(fd_MerkleRoot_height, value) {
 			return
 		}
 	}
-	if x.FileInfo != nil {
-		value := protoreflect.ValueOfMessage(x.FileInfo.ProtoReflect())
-		if !f(fd_GenesisFileInfo_file_info, value) {
+	if len(x.Root) != 0 {
+		value := protoreflect.ValueOfBytes(x.Root)
+		if !f(fd_MerkleRoot_root, value) {
 			return
 		}
 	}
@@ -690,17 +756,17 @@ func (x *fastReflection_GenesisFileInfo) Range(f func(protoreflect.FieldDescript
 // In other cases (aside from the nullable cases above),
 // a proto3 scalar field is populated if it contains a non-zero value, and
 // a repeated field is populated if it is non-empty.
-func (x *fastReflection_GenesisFileInfo) Has(fd protoreflect.FieldDescriptor) bool {
+func (x *fastReflection_MerkleRoot) Has(fd protoreflect.FieldDescriptor) bool {
 	switch fd.FullName() {
-	case "stratos.sds.v1.GenesisFileInfo.file_hash":
-		return x.FileHash != ""
-	case "stratos.sds.v1.GenesisFileInfo.file_info":
-		return x.FileInfo != nil
+	case "stratos.sds.v1.MerkleRoot.height":
+		return x.Height != int64(0)
+	case "stratos.sds.v1.MerkleRoot.root":
+		return len(x.Root) != 0
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisFileInfo"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.MerkleRoot"))
 		}
-		panic(fmt.Errorf("message stratos.sds.v1.GenesisFileInfo does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.sds.v1.MerkleRoot does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -710,17 +776,17 @@ func (x *fastReflection_GenesisFileInfo) Has(fd protoreflect.FieldDescriptor) bo
 // associated with the given field number.
 //
 // Clear is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_GenesisFileInfo) Clear(fd protoreflect.FieldDescriptor) {
+func (x *fastReflection_MerkleRoot) Clear(fd protoreflect.FieldDescriptor) {
 	switch fd.FullName() {
-	case "stratos.sds.v1.GenesisFileInfo.file_hash":
-		x.FileHash = ""
-	case "stratos.sds.v1.GenesisFileInfo.file_info":
-		x.FileInfo = nil
+	case "stratos.sds.v1.MerkleRoot.height":
+		x.Height = int64(0)
+	case "stratos.sds.v1.MerkleRoot.root":
+		x.Root = nil
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisFileInfo"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.MerkleRoot"))
 		}
-		panic(fmt.Errorf("message stratos.sds.v1.GenesisFileInfo does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.sds.v1.MerkleRoot does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -730,19 +796,19 @@ func (x *fastReflection_GenesisFileInfo) Clear(fd protoreflect.FieldDescriptor) 
 // the default value of a bytes scalar is guaranteed to be a copy.
 // For unpopulated composite types, it returns an empty, read-only view
 // of the value; to obtain a mutable reference, use Mutable.
-func (x *fastReflection_GenesisFileInfo) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MerkleRoot) Get(descriptor protoreflect.FieldDescriptor) protoreflect.Value {
 	switch descriptor.FullName() {
-	case "stratos.sds.v1.GenesisFileInfo.file_hash":
-		value := x.FileHash
-		return protoreflect.ValueOfString(value)
-	case "stratos.sds.v1.GenesisFileInfo.file_info":
-		value := x.FileInfo
-		return protoreflect.ValueOfMessage(value.ProtoReflect())
+	case "stratos.sds.v1.MerkleRoot.height":
+		value := x.Height
+		return protoreflect.ValueOfInt64(value)
+	case "stratos.sds.v1.MerkleRoot.root":
+		value := x.Root
+		return protoreflect.ValueOfBytes(value)
 	default:
 		if descriptor.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisFileInfo"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.MerkleRoot"))
 		}
-		panic(fmt.Errorf("message stratos.sds.v1.GenesisFileInfo does not contain field %s", descriptor.FullName()))
+		panic(fmt.Errorf("message stratos.sds.v1.MerkleRoot does not contain field %s", descriptor.FullName()))
 	}
 }
 
@@ -756,17 +822,17 @@ func (x *fastReflection_GenesisFileInfo) Get(descriptor protoreflect.FieldDescri
 // empty, read-only value, then it panics.
 //
 // Set is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_GenesisFileInfo) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
+func (x *fastReflection_MerkleRoot) Set(fd protoreflect.FieldDescriptor, value protoreflect.Value) {
 	switch fd.FullName() {
-	case "stratos.sds.v1.GenesisFileInfo.file_hash":
-		x.FileHash = value.Interface().(string)
-	case "stratos.sds.v1.GenesisFileInfo.file_info":
-		x.FileInfo = value.Message().Interface().(*FileInfo)
+	case "stratos.sds.v1.MerkleRoot.height":
+		x.Height = value.Int()
+	case "stratos.sds.v1.MerkleRoot.root":
+		x.Root = value.Bytes()
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisFileInfo"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.MerkleRoot"))
 		}
-		panic(fmt.Errorf("message stratos.sds.v1.GenesisFileInfo does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.sds.v1.MerkleRoot does not contain field %s", fd.FullName()))
 	}
 }
 
@@ -780,48 +846,44 @@ func (x *fastReflection_GenesisFileInfo) Set(fd protoreflect.FieldDescriptor, va
 // It panics if the field does not contain a composite type.
 //
 // Mutable is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_GenesisFileInfo) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MerkleRoot) Mutable(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.sds.v1.GenesisFileInfo.file_info":
-		if x.FileInfo == nil {
-			x.FileInfo = new(FileInfo)
-		}
-		return protoreflect.ValueOfMessage(x.FileInfo.ProtoReflect())
-	case "stratos.sds.v1.GenesisFileInfo.file_hash":
-		panic(fmt.Errorf("field file_hash of message stratos.sds.v1.GenesisFileInfo is not mutable"))
+	case "stratos.sds.v1.MerkleRoot.height":
+		panic(fmt.Errorf("field height of message stratos.sds.v1.MerkleRoot is not mutable"))
+	case "stratos.sds.v1.MerkleRoot.root":
+		panic(fmt.Errorf("field root of message stratos.sds.v1.MerkleRoot is not mutable"))
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisFileInfo"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.MerkleRoot"))
 		}
-		panic(fmt.Errorf("message stratos.sds.v1.GenesisFileInfo does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.sds.v1.MerkleRoot does not contain field %s", fd.FullName()))
 	}
 }
 
 // NewField returns a new value that is assignable to the field
 // for the given descriptor. For scalars, this returns the default value.
 // For lists, maps, and messages, this returns a new, empty, mutable value.
-func (x *fastReflection_GenesisFileInfo) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
+func (x *fastReflection_MerkleRoot) NewField(fd protoreflect.FieldDescriptor) protoreflect.Value {
 	switch fd.FullName() {
-	case "stratos.sds.v1.GenesisFileInfo.file_hash":
-		return protoreflect.ValueOfString("")
-	case "stratos.sds.v1.GenesisFileInfo.file_info":
-		m := new(FileInfo)
-		return protoreflect.ValueOfMessage(m.ProtoReflect())
+	case "stratos.sds.v1.MerkleRoot.height":
+		return protoreflect.ValueOfInt64(int64(0))
+	case "stratos.sds.v1.MerkleRoot.root":
+		return protoreflect.ValueOfBytes(nil)
 	default:
 		if fd.IsExtension() {
-			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.GenesisFileInfo"))
+			panic(fmt.Errorf("proto3 declared messages do not support extensions: stratos.sds.v1.MerkleRoot"))
 		}
-		panic(fmt.Errorf("message stratos.sds.v1.GenesisFileInfo does not contain field %s", fd.FullName()))
+		panic(fmt.Errorf("message stratos.sds.v1.MerkleRoot does not contain field %s", fd.FullName()))
 	}
 }
 
 // WhichOneof reports which field within the oneof is populated,
 // returning nil if none are populated.
 // It panics if the oneof descriptor does not belong to this message.
-func (x *fastReflection_GenesisFileInfo) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
+func (x *fastReflection_MerkleRoot) WhichOneof(d protoreflect.OneofDescriptor) protoreflect.FieldDescriptor {
 	switch d.FullName() {
 	default:
-		panic(fmt.Errorf("%s is not a oneof field in stratos.sds.v1.GenesisFileInfo", d.FullName()))
+		panic(fmt.Errorf("%s is not a oneof field in stratos.sds.v1.MerkleRoot", d.FullName()))
 	}
 	panic("unreachable")
 }
@@ -829,7 +891,7 @@ func (x *fastReflection_GenesisFileInfo) WhichOneof(d protoreflect.OneofDescript
 // GetUnknown retrieves the entire list of unknown fields.
 // The caller may only mutate the contents of the RawFields
 // if the mutated bytes are stored back into the message with SetUnknown.
-func (x *fastReflection_GenesisFileInfo) GetUnknown() protoreflect.RawFields {
+func (x *fastReflection_MerkleRoot) GetUnknown() protoreflect.RawFields {
 	return x.unknownFields
 }
 
@@ -840,7 +902,7 @@ func (x *fastReflection_GenesisFileInfo) GetUnknown() protoreflect.RawFields {
 // An empty RawFields may be passed to clear the fields.
 //
 // SetUnknown is a mutating operation and unsafe for concurrent use.
-func (x *fastReflection_GenesisFileInfo) SetUnknown(fields protoreflect.RawFields) {
+func (x *fastReflection_MerkleRoot) SetUnknown(fields protoreflect.RawFields) {
 	x.unknownFields = fields
 }
 
@@ -852,7 +914,7 @@ func (x *fastReflection_GenesisFileInfo) SetUnknown(fields protoreflect.RawField
 // message type, but the details are implementation dependent.
 // Validity is not part of the protobuf data model, and may not
 // be preserved in marshaling or other operations.
-func (x *fastReflection_GenesisFileInfo) IsValid() bool {
+func (x *fastReflection_MerkleRoot) IsValid() bool {
 	return x != nil
 }
 
@@ -862,9 +924,9 @@ func (x *fastReflection_GenesisFileInfo) IsValid() bool {
 // The returned methods type is identical to
 // "google.golang.org/protobuf/runtime/protoiface".Methods.
 // Consult the protoiface package documentation for details.
-func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
+func (x *fastReflection_MerkleRoot) ProtoMethods() *protoiface.Methods {
 	size := func(input protoiface.SizeInput) protoiface.SizeOutput {
-		x := input.Message.Interface().(*GenesisFileInfo)
+		x := input.Message.Interface().(*MerkleRoot)
 		if x == nil {
 			return protoiface.SizeOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -876,12 +938,11 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 		var n int
 		var l int
 		_ = l
-		l = len(x.FileHash)
-		if l > 0 {
-			n += 1 + l + runtime.Sov(uint64(l))
+		if x.Height != 0 {
+			n += 1 + runtime.Sov(uint64(x.Height))
 		}
-		if x.FileInfo != nil {
-			l = options.Size(x.FileInfo)
+		l = len(x.Root)
+		if l > 0 {
 			n += 1 + l + runtime.Sov(uint64(l))
 		}
 		if x.unknownFields != nil {
@@ -894,7 +955,7 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 	}
 
 	marshal := func(input protoiface.MarshalInput) (protoiface.MarshalOutput, error) {
-		x := input.Message.Interface().(*GenesisFileInfo)
+		x := input.Message.Interface().(*MerkleRoot)
 		if x == nil {
 			return protoiface.MarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -913,26 +974,17 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 			i -= len(x.unknownFields)
 			copy(dAtA[i:], x.unknownFields)
 		}
-		if x.FileInfo != nil {
-			encoded, err := options.Marshal(x.FileInfo)
-			if err != nil {
-				return protoiface.MarshalOutput{
-					NoUnkeyedLiterals: input.NoUnkeyedLiterals,
-					Buf:               input.Buf,
-				}, err
-			}
-			i -= len(encoded)
-			copy(dAtA[i:], encoded)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(encoded)))
+		if len(x.Root) > 0 {
+			i -= len(x.Root)
+			copy(dAtA[i:], x.Root)
+			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.Root)))
 			i--
 			dAtA[i] = 0x12
 		}
-		if len(x.FileHash) > 0 {
-			i -= len(x.FileHash)
-			copy(dAtA[i:], x.FileHash)
-			i = runtime.EncodeVarint(dAtA, i, uint64(len(x.FileHash)))
+		if x.Height != 0 {
+			i = runtime.EncodeVarint(dAtA, i, uint64(x.Height))
 			i--
-			dAtA[i] = 0xa
+			dAtA[i] = 0x8
 		}
 		if input.Buf != nil {
 			input.Buf = append(input.Buf, dAtA...)
@@ -945,7 +997,7 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 		}, nil
 	}
 	unmarshal := func(input protoiface.UnmarshalInput) (protoiface.UnmarshalOutput, error) {
-		x := input.Message.Interface().(*GenesisFileInfo)
+		x := input.Message.Interface().(*MerkleRoot)
 		if x == nil {
 			return protoiface.UnmarshalOutput{
 				NoUnkeyedLiterals: input.NoUnkeyedLiterals,
@@ -977,17 +1029,17 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 			fieldNum := int32(wire >> 3)
 			wireType := int(wire & 0x7)
 			if wireType == 4 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: GenesisFileInfo: wiretype end group for non-group")
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MerkleRoot: wiretype end group for non-group")
 			}
 			if fieldNum <= 0 {
-				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: GenesisFileInfo: illegal tag %d (wire type %d)", fieldNum, wire)
+				return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: MerkleRoot: illegal tag %d (wire type %d)", fieldNum, wire)
 			}
 			switch fieldNum {
 			case 1:
-				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FileHash", wireType)
+				if wireType != 0 {
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
 				}
-				var stringLen uint64
+				x.Height = 0
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -997,29 +1049,16 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					stringLen |= uint64(b&0x7F) << shift
+					x.Height |= int64(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				intStringLen := int(stringLen)
-				if intStringLen < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				postIndex := iNdEx + intStringLen
-				if postIndex < 0 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
-				}
-				if postIndex > l {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
-				}
-				x.FileHash = string(dAtA[iNdEx:postIndex])
-				iNdEx = postIndex
 			case 2:
 				if wireType != 2 {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field FileInfo", wireType)
+					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, fmt.Errorf("proto: wrong wireType = %d for field Root", wireType)
 				}
-				var msglen int
+				var byteLen int
 				for shift := uint(0); ; shift += 7 {
 					if shift >= 64 {
 						return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrIntOverflow
@@ -1029,26 +1068,24 @@ func (x *fastReflection_GenesisFileInfo) ProtoMethods() *protoiface.Methods {
 					}
 					b := dAtA[iNdEx]
 					iNdEx++
-					msglen |= int(b&0x7F) << shift
+					byteLen |= int(b&0x7F) << shift
 					if b < 0x80 {
 						break
 					}
 				}
-				if msglen < 0 {
+				if byteLen < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
-				postIndex := iNdEx + msglen
+				postIndex := iNdEx + byteLen
 				if postIndex < 0 {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, runtime.ErrInvalidLength
 				}
 				if postIndex > l {
 					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, io.ErrUnexpectedEOF
 				}
-				if x.FileInfo == nil {
-					x.FileInfo = &FileInfo{}
-				}
-				if err := options.Unmarshal(dAtA[iNdEx:postIndex], x.FileInfo); err != nil {
-					return protoiface.UnmarshalOutput{NoUnkeyedLiterals: input.NoUnkeyedLiterals, Flags: input.Flags}, err
+				x.Root = append(x.Root[:0], dAtA[iNdEx:postIndex]...)
+				if x.Root == nil {
+					x.Root = []byte{}
 				}
 				iNdEx = postIndex
 			default:
@@ -1105,8 +1142,9 @@ type GenesisState struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Params *Params            `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
-	Files  []*GenesisFileInfo `protobuf:"bytes,2,rep,name=files,proto3" json:"files,omitempty"`
+	Params              *Params       `protobuf:"bytes,1,opt,name=params,proto3" json:"params,omitempty"`
+	MerkleRoot          []byte        `protobuf:"bytes,2,opt,name=merkle_root,json=merkleRoot,proto3" json:"merkle_root,omitempty"`
+	PreviousMerkleRoots []*MerkleRoot `protobuf:"bytes,3,rep,name=previous_merkle_roots,json=previousMerkleRoots,proto3" json:"previous_merkle_roots,omitempty"`
 }
 
 func (x *GenesisState) Reset() {
@@ -1136,24 +1174,31 @@ func (x *GenesisState) GetParams() *Params {
 	return nil
 }
 
-func (x *GenesisState) GetFiles() []*GenesisFileInfo {
+func (x *GenesisState) GetMerkleRoot() []byte {
 	if x != nil {
-		return x.Files
+		return x.MerkleRoot
 	}
 	return nil
 }
 
-type GenesisFileInfo struct {
+func (x *GenesisState) GetPreviousMerkleRoots() []*MerkleRoot {
+	if x != nil {
+		return x.PreviousMerkleRoots
+	}
+	return nil
+}
+
+type MerkleRoot struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	FileHash string    `protobuf:"bytes,1,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
-	FileInfo *FileInfo `protobuf:"bytes,2,opt,name=file_info,json=fileInfo,proto3" json:"file_info,omitempty"`
+	Height int64  `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	Root   []byte `protobuf:"bytes,2,opt,name=root,proto3" json:"root,omitempty"`
 }
 
-func (x *GenesisFileInfo) Reset() {
-	*x = GenesisFileInfo{}
+func (x *MerkleRoot) Reset() {
+	*x = MerkleRoot{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_stratos_sds_v1_genesis_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -1161,27 +1206,27 @@ func (x *GenesisFileInfo) Reset() {
 	}
 }
 
-func (x *GenesisFileInfo) String() string {
+func (x *MerkleRoot) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GenesisFileInfo) ProtoMessage() {}
+func (*MerkleRoot) ProtoMessage() {}
 
-// Deprecated: Use GenesisFileInfo.ProtoReflect.Descriptor instead.
-func (*GenesisFileInfo) Descriptor() ([]byte, []int) {
+// Deprecated: Use MerkleRoot.ProtoReflect.Descriptor instead.
+func (*MerkleRoot) Descriptor() ([]byte, []int) {
 	return file_stratos_sds_v1_genesis_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GenesisFileInfo) GetFileHash() string {
+func (x *MerkleRoot) GetHeight() int64 {
 	if x != nil {
-		return x.FileHash
+		return x.Height
 	}
-	return ""
+	return 0
 }
 
-func (x *GenesisFileInfo) GetFileInfo() *FileInfo {
+func (x *MerkleRoot) GetRoot() []byte {
 	if x != nil {
-		return x.FileInfo
+		return x.Root
 	}
 	return nil
 }
@@ -1196,41 +1241,45 @@ var file_stratos_sds_v1_genesis_proto_rawDesc = []byte{
 	0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x11, 0x61, 0x6d, 0x69, 0x6e, 0x6f, 0x2f, 0x61, 0x6d, 0x69, 0x6e,
 	0x6f, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x1a, 0x18, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73,
 	0x2f, 0x73, 0x64, 0x73, 0x2f, 0x76, 0x31, 0x2f, 0x73, 0x64, 0x73, 0x2e, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x22, 0xbf, 0x01, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74, 0x61,
+	0x6f, 0x22, 0xc6, 0x02, 0x0a, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x53, 0x74, 0x61,
 	0x74, 0x65, 0x12, 0x54, 0x0a, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x18, 0x01, 0x20, 0x01,
 	0x28, 0x0b, 0x32, 0x16, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x73, 0x64, 0x73,
 	0x2e, 0x76, 0x31, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x42, 0x24, 0xc8, 0xde, 0x1f, 0x00,
 	0xea, 0xde, 0x1f, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0xf2, 0xde, 0x1f, 0x0d, 0x79, 0x61,
 	0x6d, 0x6c, 0x3a, 0x22, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x22, 0xa8, 0xe7, 0xb0, 0x2a, 0x01,
-	0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x59, 0x0a, 0x05, 0x66, 0x69, 0x6c, 0x65,
-	0x73, 0x18, 0x02, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f,
-	0x73, 0x2e, 0x73, 0x64, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73,
-	0x46, 0x69, 0x6c, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x42, 0x22, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde,
-	0x1f, 0x05, 0x66, 0x69, 0x6c, 0x65, 0x73, 0xf2, 0xde, 0x1f, 0x0c, 0x79, 0x61, 0x6d, 0x6c, 0x3a,
-	0x22, 0x66, 0x69, 0x6c, 0x65, 0x73, 0x22, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x05, 0x66, 0x69,
-	0x6c, 0x65, 0x73, 0x22, 0xaf, 0x01, 0x0a, 0x0f, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x46,
-	0x69, 0x6c, 0x65, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x3e, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f,
-	0x68, 0x61, 0x73, 0x68, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x42, 0x21, 0xea, 0xde, 0x1f, 0x09,
-	0x66, 0x69, 0x6c, 0x65, 0x5f, 0x68, 0x61, 0x73, 0x68, 0xf2, 0xde, 0x1f, 0x10, 0x79, 0x61, 0x6d,
-	0x6c, 0x3a, 0x22, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x68, 0x61, 0x73, 0x68, 0x22, 0x52, 0x08, 0x66,
-	0x69, 0x6c, 0x65, 0x48, 0x61, 0x73, 0x68, 0x12, 0x5c, 0x0a, 0x09, 0x66, 0x69, 0x6c, 0x65, 0x5f,
-	0x69, 0x6e, 0x66, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x73, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x2e, 0x73, 0x64, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x46, 0x69, 0x6c, 0x65,
-	0x49, 0x6e, 0x66, 0x6f, 0x42, 0x25, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x09, 0x66, 0x69,
-	0x6c, 0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0xf2, 0xde, 0x1f, 0x10, 0x79, 0x61, 0x6d, 0x6c, 0x3a,
-	0x22, 0x66, 0x69, 0x6c, 0x65, 0x5f, 0x69, 0x6e, 0x66, 0x6f, 0x22, 0x52, 0x08, 0x66, 0x69, 0x6c,
-	0x65, 0x49, 0x6e, 0x66, 0x6f, 0x42, 0xa7, 0x01, 0x0a, 0x12, 0x63, 0x6f, 0x6d, 0x2e, 0x73, 0x74,
-	0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x73, 0x64, 0x73, 0x2e, 0x76, 0x31, 0x42, 0x0c, 0x47, 0x65,
-	0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50, 0x01, 0x5a, 0x25, 0x63, 0x6f,
-	0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f, 0x61, 0x70, 0x69, 0x2f, 0x73,
-	0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x73, 0x64, 0x73, 0x2f, 0x76, 0x31, 0x3b, 0x73, 0x64,
-	0x73, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x53, 0x53, 0x58, 0xaa, 0x02, 0x0e, 0x53, 0x74, 0x72, 0x61,
-	0x74, 0x6f, 0x73, 0x2e, 0x53, 0x64, 0x73, 0x2e, 0x56, 0x31, 0xca, 0x02, 0x0e, 0x53, 0x74, 0x72,
-	0x61, 0x74, 0x6f, 0x73, 0x5c, 0x53, 0x64, 0x73, 0x5c, 0x56, 0x31, 0xe2, 0x02, 0x1a, 0x53, 0x74,
-	0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x53, 0x64, 0x73, 0x5c, 0x56, 0x31, 0x5c, 0x47, 0x50, 0x42,
-	0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10, 0x53, 0x74, 0x72, 0x61, 0x74,
-	0x6f, 0x73, 0x3a, 0x3a, 0x53, 0x64, 0x73, 0x3a, 0x3a, 0x56, 0x31, 0xa8, 0xe2, 0x1e, 0x01, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x06, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x73, 0x12, 0x4b, 0x0a, 0x0b, 0x6d, 0x65, 0x72, 0x6b,
+	0x6c, 0x65, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x2a, 0xea,
+	0xde, 0x1f, 0x0b, 0x6d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0xf2, 0xde,
+	0x1f, 0x12, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x6d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x5f, 0x72,
+	0x6f, 0x6f, 0x74, 0x22, 0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x0a, 0x6d, 0x65, 0x72, 0x6b, 0x6c,
+	0x65, 0x52, 0x6f, 0x6f, 0x74, 0x12, 0x92, 0x01, 0x0a, 0x15, 0x70, 0x72, 0x65, 0x76, 0x69, 0x6f,
+	0x75, 0x73, 0x5f, 0x6d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x73, 0x18,
+	0x03, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1a, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e,
+	0x73, 0x64, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x4d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x52, 0x6f, 0x6f,
+	0x74, 0x42, 0x42, 0xc8, 0xde, 0x1f, 0x00, 0xea, 0xde, 0x1f, 0x15, 0x70, 0x72, 0x65, 0x76, 0x69,
+	0x6f, 0x75, 0x73, 0x5f, 0x6d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x73,
+	0xf2, 0xde, 0x1f, 0x1c, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x70, 0x72, 0x65, 0x76, 0x69, 0x6f,
+	0x75, 0x73, 0x5f, 0x6d, 0x65, 0x72, 0x6b, 0x6c, 0x65, 0x5f, 0x72, 0x6f, 0x6f, 0x74, 0x73, 0x22,
+	0xa8, 0xe7, 0xb0, 0x2a, 0x01, 0x52, 0x13, 0x70, 0x72, 0x65, 0x76, 0x69, 0x6f, 0x75, 0x73, 0x4d,
+	0x65, 0x72, 0x6b, 0x6c, 0x65, 0x52, 0x6f, 0x6f, 0x74, 0x73, 0x22, 0x6e, 0x0a, 0x0a, 0x4d, 0x65,
+	0x72, 0x6b, 0x6c, 0x65, 0x52, 0x6f, 0x6f, 0x74, 0x12, 0x33, 0x0a, 0x06, 0x68, 0x65, 0x69, 0x67,
+	0x68, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x42, 0x1b, 0xea, 0xde, 0x1f, 0x06, 0x68, 0x65,
+	0x69, 0x67, 0x68, 0x74, 0xf2, 0xde, 0x1f, 0x0d, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x68, 0x65,
+	0x69, 0x67, 0x68, 0x74, 0x22, 0x52, 0x06, 0x68, 0x65, 0x69, 0x67, 0x68, 0x74, 0x12, 0x2b, 0x0a,
+	0x04, 0x72, 0x6f, 0x6f, 0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c, 0x42, 0x17, 0xea, 0xde, 0x1f,
+	0x04, 0x72, 0x6f, 0x6f, 0x74, 0xf2, 0xde, 0x1f, 0x0b, 0x79, 0x61, 0x6d, 0x6c, 0x3a, 0x22, 0x72,
+	0x6f, 0x6f, 0x74, 0x22, 0x52, 0x04, 0x72, 0x6f, 0x6f, 0x74, 0x42, 0xa7, 0x01, 0x0a, 0x12, 0x63,
+	0x6f, 0x6d, 0x2e, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x73, 0x64, 0x73, 0x2e, 0x76,
+	0x31, 0x42, 0x0c, 0x47, 0x65, 0x6e, 0x65, 0x73, 0x69, 0x73, 0x50, 0x72, 0x6f, 0x74, 0x6f, 0x50,
+	0x01, 0x5a, 0x25, 0x63, 0x6f, 0x73, 0x6d, 0x6f, 0x73, 0x73, 0x64, 0x6b, 0x2e, 0x69, 0x6f, 0x2f,
+	0x61, 0x70, 0x69, 0x2f, 0x73, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2f, 0x73, 0x64, 0x73, 0x2f,
+	0x76, 0x31, 0x3b, 0x73, 0x64, 0x73, 0x76, 0x31, 0xa2, 0x02, 0x03, 0x53, 0x53, 0x58, 0xaa, 0x02,
+	0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x2e, 0x53, 0x64, 0x73, 0x2e, 0x56, 0x31, 0xca,
+	0x02, 0x0e, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x53, 0x64, 0x73, 0x5c, 0x56, 0x31,
+	0xe2, 0x02, 0x1a, 0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x5c, 0x53, 0x64, 0x73, 0x5c, 0x56,
+	0x31, 0x5c, 0x47, 0x50, 0x42, 0x4d, 0x65, 0x74, 0x61, 0x64, 0x61, 0x74, 0x61, 0xea, 0x02, 0x10,
+	0x53, 0x74, 0x72, 0x61, 0x74, 0x6f, 0x73, 0x3a, 0x3a, 0x53, 0x64, 0x73, 0x3a, 0x3a, 0x56, 0x31,
+	0xa8, 0xe2, 0x1e, 0x01, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -1247,20 +1296,18 @@ func file_stratos_sds_v1_genesis_proto_rawDescGZIP() []byte {
 
 var file_stratos_sds_v1_genesis_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_stratos_sds_v1_genesis_proto_goTypes = []interface{}{
-	(*GenesisState)(nil),    // 0: stratos.sds.v1.GenesisState
-	(*GenesisFileInfo)(nil), // 1: stratos.sds.v1.GenesisFileInfo
-	(*Params)(nil),          // 2: stratos.sds.v1.Params
-	(*FileInfo)(nil),        // 3: stratos.sds.v1.FileInfo
+	(*GenesisState)(nil), // 0: stratos.sds.v1.GenesisState
+	(*MerkleRoot)(nil),   // 1: stratos.sds.v1.MerkleRoot
+	(*Params)(nil),       // 2: stratos.sds.v1.Params
 }
 var file_stratos_sds_v1_genesis_proto_depIdxs = []int32{
 	2, // 0: stratos.sds.v1.GenesisState.params:type_name -> stratos.sds.v1.Params
-	1, // 1: stratos.sds.v1.GenesisState.files:type_name -> stratos.sds.v1.GenesisFileInfo
-	3, // 2: stratos.sds.v1.GenesisFileInfo.file_info:type_name -> stratos.sds.v1.FileInfo
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	1, // 1: stratos.sds.v1.GenesisState.previous_merkle_roots:type_name -> stratos.sds.v1.MerkleRoot
+	2, // [2:2] is the sub-list for method output_type
+	2, // [2:2] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_stratos_sds_v1_genesis_proto_init() }
@@ -1283,7 +1330,7 @@ func file_stratos_sds_v1_genesis_proto_init() {
 			}
 		}
 		file_stratos_sds_v1_genesis_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*GenesisFileInfo); i {
+			switch v := v.(*MerkleRoot); i {
 			case 0:
 				return &v.state
 			case 1:

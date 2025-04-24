@@ -11,8 +11,11 @@ import (
 func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 	k.SetParams(ctx, data.Params)
 
-	for _, file := range data.GetFiles() {
-		k.SetFileInfo(ctx, []byte(file.FileHash), file.GetFileInfo())
+	if len(data.MerkleRoot) > 0 {
+		k.SetMerkleRoot(ctx, data.MerkleRoot)
+	}
+	for _, root := range data.PreviousMerkleRoots {
+		k.SetMerkleRootByHeight(ctx, root.Height, root.Root)
 	}
 	return
 }
@@ -23,11 +26,14 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 func (k Keeper) ExportGenesis(ctx sdk.Context) (data *types.GenesisState) {
 	params := k.GetParams(ctx)
 
-	var files []types.GenesisFileInfo
-	k.IterateFileInfo(ctx, func(fileHash string, fileInfo types.FileInfo) (stop bool) {
-		files = append(files, types.GenesisFileInfo{FileHash: fileHash, FileInfo: fileInfo})
+	var roots []types.MerkleRoot
+	k.IterateMerkleRoots(ctx, func(height int64, root []byte) (stop bool) {
+		roots = append(roots, types.MerkleRoot{
+			Height: height,
+			Root:   root,
+		})
 		return false
 	})
 
-	return types.NewGenesisState(params, files)
+	return types.NewGenesisState(params, k.GetMerkleRoot(ctx), roots)
 }

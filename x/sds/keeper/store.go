@@ -7,41 +7,6 @@ import (
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
-// GetFileInfoByFileHash Returns the fileInfo
-func (k Keeper) GetFileInfoByFileHash(ctx sdk.Context, fileHash []byte) (fileInfo types.FileInfo, found bool) {
-	store := ctx.KVStore(k.storeKey)
-	bz := store.Get(types.GetFileStoreKey(fileHash))
-	if bz == nil {
-		return fileInfo, false
-	}
-	k.cdc.MustUnmarshalLengthPrefixed(bz, &fileInfo)
-	return fileInfo, true
-}
-
-// Deprecated: not used for new files anymore
-func (k Keeper) SetFileInfo(ctx sdk.Context, fileHash []byte, fileInfo types.FileInfo) {
-	store := ctx.KVStore(k.storeKey)
-	storeKey := types.GetFileStoreKey(fileHash)
-	bz := k.cdc.MustMarshalLengthPrefixed(&fileInfo)
-	store.Set(storeKey, bz)
-}
-
-// IterateFileInfo Iterate over all uploaded files.
-// Iteration for all uploaded files
-func (k Keeper) IterateFileInfo(ctx sdk.Context, handler func(string, types.FileInfo) (stop bool)) {
-	store := ctx.KVStore(k.storeKey)
-	iter := sdk.KVStorePrefixIterator(store, types.FileStoreKeyPrefix)
-	defer iter.Close()
-	for ; iter.Valid(); iter.Next() {
-		fileHash := string(iter.Key()[len(types.FileStoreKeyPrefix):])
-		var fileInfo types.FileInfo
-		k.cdc.MustUnmarshalLengthPrefixed(iter.Value(), &fileInfo)
-		if handler(fileHash, fileInfo) {
-			break
-		}
-	}
-}
-
 func (k Keeper) AddNewFile(ctx sdk.Context, fileHash []byte) {
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetNewFileKey(fileHash)
@@ -94,4 +59,18 @@ func (k Keeper) SetMerkleRootByHeight(ctx sdk.Context, height int64, root []byte
 	store := ctx.KVStore(k.storeKey)
 	storeKey := types.GetPreviousMerkleRootKey(height)
 	store.Set(storeKey, root)
+}
+
+// IterateMerkleRoots Iterate over the merkle roots of previous heights.
+func (k Keeper) IterateMerkleRoots(ctx sdk.Context, handler func(int64, []byte) (stop bool)) {
+	store := ctx.KVStore(k.storeKey)
+	iter := sdk.KVStorePrefixIterator(store, types.PreviousMerkleRootKeyPrefix)
+	defer iter.Close()
+	for ; iter.Valid(); iter.Next() {
+		height := int64(sdk.BigEndianToUint64(iter.Key()[len(types.PreviousMerkleRootKeyPrefix):]))
+		root := iter.Value()
+		if handler(height, root) {
+			break
+		}
+	}
 }

@@ -16,22 +16,26 @@ message GenesisState {
     (gogoproto.jsontag) = "params",
     (gogoproto.moretags) = "yaml:\"params\""
   ];
-  repeated GenesisFileInfo  files = 2 [
+  bytes merkle_root = 2 [
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "merkle_root",
+    (gogoproto.moretags) = "yaml:\"merkle_root\""
+  ];
+  repeated MerkleRoot previous_merkle_roots = 3 [
     (gogoproto.nullable) = false,
     (amino.dont_omitempty) = true,
-    (gogoproto.jsontag) = "files",
-    (gogoproto.moretags) = "yaml:\"files\""
+    (gogoproto.jsontag) = "previous_merkle_roots",
+    (gogoproto.moretags) = "yaml:\"previous_merkle_roots\""
   ];
 }
 
-message GenesisFileInfo {
-  string           file_hash = 1 [
-    (gogoproto.jsontag) = "file_hash",
-    (gogoproto.moretags) = "yaml:\"file_hash\""
+message MerkleRoot {
+  int64 height = 1 [
+    (gogoproto.jsontag) = "height",
+    (gogoproto.moretags) = "yaml:\"height\""
   ];
-  FileInfo         file_info = 2 [
-    (gogoproto.nullable) = false,
-    (gogoproto.jsontag) = "file_info",
-    (gogoproto.moretags) = "yaml:\"file_info\""
+  bytes root = 2 [
+    (gogoproto.jsontag) = "root",
+    (gogoproto.moretags) = "yaml:\"root\""
   ];
 }
