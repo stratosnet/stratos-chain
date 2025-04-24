@@ -3,12 +3,10 @@ package keeper
 import (
 	"context"
 	"encoding/base64"
-	"fmt"
 
 	"github.com/cometbft/cometbft/crypto/merkle"
 	"github.com/cometbft/cometbft/proto/tendermint/crypto"
 	"github.com/cosmos/gogoproto/proto"
-	"github.com/ipfs/go-cid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -22,30 +20,6 @@ var _ types.QueryServer = Querier{}
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
 type Querier struct {
 	Keeper
-}
-
-func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest) (*types.QueryFileUploadResponse, error) {
-	if req == nil {
-		return &types.QueryFileUploadResponse{}, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if req.GetFileHash() == "" {
-		return &types.QueryFileUploadResponse{}, status.Error(codes.InvalidArgument, " Network address cannot be empty")
-	}
-
-	_, err := cid.Decode(req.GetFileHash())
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, fmt.Errorf("invalid file hash %w", err)
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-
-	fileInfo, found := q.GetFileInfoByFileHash(ctx, []byte(req.GetFileHash()))
-	if !found {
-		return &types.QueryFileUploadResponse{}, types.ErrNoFileFound
-	}
-
-	return &types.QueryFileUploadResponse{FileInfo: &fileInfo}, nil
 }
 
 func (q Querier) SimPrepay(c context.Context, request *types.QuerySimPrepayRequest) (*types.QuerySimPrepayResponse, error) {
@@ -100,8 +74,10 @@ func (q Querier) VerifyUpload(c context.Context, request *types.QueryVerifyUploa
 	ctx := sdk.UnwrapSDKContext(c)
 
 	if len(request.Proof) == 0 {
-		_, found := q.GetFileInfoByFileHash(ctx, []byte(request.FileHash))
-		return &types.QueryVerifyUploadResponse{Verified: found}, nil
+		return &types.QueryVerifyUploadResponse{Verified: false, Error: "proof is missing (files before v13 have no proof)"}, nil
+	}
+	if len(request.FileHash) == 0 {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "filehash is missing")
 	}
 
 	proofBytes, err := base64.StdEncoding.DecodeString(request.Proof)

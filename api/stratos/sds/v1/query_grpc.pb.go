@@ -19,7 +19,6 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_Fileupload_FullMethodName   = "/stratos.sds.v1.Query/Fileupload"
 	Query_SimPrepay_FullMethodName    = "/stratos.sds.v1.Query/SimPrepay"
 	Query_NozPrice_FullMethodName     = "/stratos.sds.v1.Query/NozPrice"
 	Query_NozSupply_FullMethodName    = "/stratos.sds.v1.Query/NozSupply"
@@ -32,8 +31,6 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QueryClient interface {
-	// Query uploaded file info by hash
-	Fileupload(ctx context.Context, in *QueryFileUploadRequest, opts ...grpc.CallOption) (*QueryFileUploadResponse, error)
 	SimPrepay(ctx context.Context, in *QuerySimPrepayRequest, opts ...grpc.CallOption) (*QuerySimPrepayResponse, error)
 	NozPrice(ctx context.Context, in *QueryNozPriceRequest, opts ...grpc.CallOption) (*QueryNozPriceResponse, error)
 	NozSupply(ctx context.Context, in *QueryNozSupplyRequest, opts ...grpc.CallOption) (*QueryNozSupplyResponse, error)
@@ -49,15 +46,6 @@ type queryClient struct {
 
 func NewQueryClient(cc grpc.ClientConnInterface) QueryClient {
 	return &queryClient{cc}
-}
-
-func (c *queryClient) Fileupload(ctx context.Context, in *QueryFileUploadRequest, opts ...grpc.CallOption) (*QueryFileUploadResponse, error) {
-	out := new(QueryFileUploadResponse)
-	err := c.cc.Invoke(ctx, Query_Fileupload_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
 }
 
 func (c *queryClient) SimPrepay(ctx context.Context, in *QuerySimPrepayRequest, opts ...grpc.CallOption) (*QuerySimPrepayResponse, error) {
@@ -118,8 +106,6 @@ func (c *queryClient) VerifyUpload(ctx context.Context, in *QueryVerifyUploadReq
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
 type QueryServer interface {
-	// Query uploaded file info by hash
-	Fileupload(context.Context, *QueryFileUploadRequest) (*QueryFileUploadResponse, error)
 	SimPrepay(context.Context, *QuerySimPrepayRequest) (*QuerySimPrepayResponse, error)
 	NozPrice(context.Context, *QueryNozPriceRequest) (*QueryNozPriceResponse, error)
 	NozSupply(context.Context, *QueryNozSupplyRequest) (*QueryNozSupplyResponse, error)
@@ -134,9 +120,6 @@ type QueryServer interface {
 type UnimplementedQueryServer struct {
 }
 
-func (UnimplementedQueryServer) Fileupload(context.Context, *QueryFileUploadRequest) (*QueryFileUploadResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method Fileupload not implemented")
-}
 func (UnimplementedQueryServer) SimPrepay(context.Context, *QuerySimPrepayRequest) (*QuerySimPrepayResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SimPrepay not implemented")
 }
@@ -166,24 +149,6 @@ type UnsafeQueryServer interface {
 
 func RegisterQueryServer(s grpc.ServiceRegistrar, srv QueryServer) {
 	s.RegisterService(&Query_ServiceDesc, srv)
-}
-
-func _Query_Fileupload_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(QueryFileUploadRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(QueryServer).Fileupload(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Query_Fileupload_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(QueryServer).Fileupload(ctx, req.(*QueryFileUploadRequest))
-	}
-	return interceptor(ctx, in, info, handler)
 }
 
 func _Query_SimPrepay_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -301,10 +266,6 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "stratos.sds.v1.Query",
 	HandlerType: (*QueryServer)(nil),
 	Methods: []grpc.MethodDesc{
-		{
-			MethodName: "Fileupload",
-			Handler:    _Query_Fileupload_Handler,
-		},
 		{
 			MethodName: "SimPrepay",
 			Handler:    _Query_SimPrepay_Handler,
