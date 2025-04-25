@@ -161,7 +161,9 @@ func (k Keeper) InitGenesis(ctx sdk.Context, data *types.GenesisState) {
 		k.SetKickMetaNodeVotePool(ctx, kickMetaNodeVoteInfo)
 	}
 
-	k.SetMerkleRoot(ctx, data.MerkleRoot)
+	if len(data.MerkleRoot) > 0 {
+		k.SetMerkleRoot(ctx, data.MerkleRoot)
+	}
 	for _, commitment := range data.Commitments {
 		if err := k.CreateMerkleCommitment(ctx, commitment.Commitment, commitment.Root); err != nil {
 			panic(err)
