@@ -37,12 +37,12 @@ func (k msgServer) HandleMsgFileUpload(c context.Context, msg *types.MsgFileUplo
 		return &types.MsgFileUploadResponse{}, errors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	uploader, err := sdk.AccAddressFromBech32(msg.Uploader)
+	_, err = sdk.AccAddressFromBech32(msg.Uploader)
 	if err != nil {
 		return &types.MsgFileUploadResponse{}, errors.Wrap(sdkerrors.ErrInvalidAddress, err.Error())
 	}
 
-	err = k.FileUpload(ctx, msg.GetFileHash(), reporter, reporterOwner, uploader)
+	err = k.FileUpload(ctx, msg.GetFileHash(), reporter, reporterOwner)
 	if err != nil {
 		return &types.MsgFileUploadResponse{}, err
 	}

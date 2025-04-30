@@ -58,3 +58,14 @@ func (ms RelayerMerkleProver) VerifyProofs(rootHash []byte, data [][]byte) (bool
 
 	return true, nil
 }
+
+func (ms RelayerMerkleProver) CreateFileUploadProofs(rootHash []byte, fileHashes []string) ([]byte, []*merkle.Proof) {
+	var data [][]byte
+
+	for _, file := range fileHashes {
+		data = append(data, rootHash)
+		data = append(data, []byte(file))
+	}
+	root, proofs := merkle.ProofsFromByteSlices(data)
+	return root, proofs
+}

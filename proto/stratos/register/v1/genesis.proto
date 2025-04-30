@@ -74,6 +74,17 @@ message GenesisState {
     (gogoproto.jsontag) = "kick_meta_node_vote_pool",
     (gogoproto.moretags) = "yaml:\"kick_meta_node_vote_pool\""
   ];
+  bytes merkle_root = 10 [
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "merkle_root",
+    (gogoproto.moretags) = "yaml:\"merkle_root\""
+  ];
+  repeated Commitment commitments = 11 [
+    (gogoproto.nullable) = false,
+    (amino.dont_omitempty) = true,
+    (gogoproto.jsontag) = "commitments",
+    (gogoproto.moretags) = "yaml:\"commitments\""
+  ];
 }
 
 message GenesisMetaNode {
@@ -127,5 +138,16 @@ message Slashing {
   int64   value = 2 [
     (gogoproto.jsontag) = "value",
     (gogoproto.moretags) = "yaml:\"value\""
+  ];
+}
+
+message Commitment {
+  bytes commitment = 1 [
+    (gogoproto.jsontag) = "commitment",
+    (gogoproto.moretags) = "yaml:\"commitment\""
+  ];
+  bytes root = 2 [
+    (gogoproto.jsontag) = "root",
+    (gogoproto.moretags) = "yaml:\"root\""
   ];
 }

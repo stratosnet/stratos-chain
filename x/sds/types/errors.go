@@ -19,6 +19,7 @@ const (
 	codeErrInvalidBeneficiaryAddr
 	codeErrOzoneLimitNotEnough
 	codeErrEmitEvent
+	codeErrEmptyMerkleRoot
 )
 
 var (
@@ -36,4 +37,5 @@ var (
 	ErrInvalidBeneficiaryAddr = errors.Register(ModuleName, codeErrInvalidBeneficiaryAddr, "invalid beneficiary address")
 	ErrOzoneLimitNotEnough    = errors.Register(ModuleName, codeErrOzoneLimitNotEnough, "not enough remaining ozone limit to complete prepay")
 	ErrEmitEvent              = errors.Register(ModuleName, codeErrEmitEvent, "failed to emit event")
+	ErrEmptyMerkleRoot        = errors.Register(ModuleName, codeErrEmptyMerkleRoot, "missing merkle root")
 )

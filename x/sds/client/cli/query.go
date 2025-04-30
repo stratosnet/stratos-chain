@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"cosmossdk.io/errors"
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/flags"
 	"github.com/cosmos/cosmos-sdk/version"
@@ -26,7 +25,6 @@ func GetQueryCmd() *cobra.Command {
 	}
 
 	sdsQueryCmd.AddCommand(
-		GetCmdQueryUploadedFile(),
 		GetCmdQueryParams(),
 	)
 
@@ -66,49 +64,5 @@ $ %s query sds params
 
 	flags.AddQueryFlagsToCmd(cmd)
 
-	return cmd
-}
-
-// GetCmdQueryUploadedFile implements the query uploaded file command.
-func GetCmdQueryUploadedFile() *cobra.Command {
-	cmd := &cobra.Command{
-		//return &cobra.Command{
-		Use:   "upload [file_hash]",
-		Args:  cobra.ExactArgs(1),
-		Short: "Query uploaded file info by hash",
-		Long: strings.TrimSpace(
-			fmt.Sprintf(`Query uploaded file info by hash.
-
-Example:
-$ %s query sds upload c03661732294feb49caf6dc16c7cbb2534986d73
-`,
-				version.AppName,
-			),
-		),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			clientCtx, err := client.GetClientQueryContext(cmd)
-			if err != nil {
-				return err
-			}
-			queryClient := types.NewQueryClient(clientCtx)
-
-			queryFileHash := strings.TrimSpace(args[0][:])
-			if len(queryFileHash) == 0 {
-				return errors.Wrap(types.ErrEmptyFileHash, "Missing file hash")
-			}
-
-			result, err := queryClient.Fileupload(cmd.Context(), &types.QueryFileUploadRequest{
-				FileHash: queryFileHash,
-			})
-			if err != nil {
-				return err
-			}
-
-			return clientCtx.PrintProto(result)
-		},
-	}
-
-	flags.AddQueryFlagsToCmd(cmd)
-	flags.AddPaginationFlagsToCmd(cmd, "upload")
 	return cmd
 }

@@ -10,6 +10,7 @@ import (
 	math "cosmossdk.io/math"
 	types "github.com/cosmos/cosmos-sdk/types"
 	gomock "github.com/golang/mock/gomock"
+	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	types0 "github.com/stratosnet/stratos-chain/types"
 )
 
@@ -214,6 +215,20 @@ func (m *MockRegisterKeeper) SetRemainingOzoneLimit(ctx types.Context, value mat
 func (mr *MockRegisterKeeperMockRecorder) SetRemainingOzoneLimit(ctx, value interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetRemainingOzoneLimit", reflect.TypeOf((*MockRegisterKeeper)(nil).SetRemainingOzoneLimit), ctx, value)
+}
+
+// GetProver mocks base method.
+func (m *MockRegisterKeeper) GetProver() merkle.MerkleProver {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProver")
+	ret0, _ := ret[0].(merkle.MerkleProver)
+	return ret0
+}
+
+// GetProver indicates an expected call of GetProver.
+func (mr *MockRegisterKeeperMockRecorder) GetProver() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProver", reflect.TypeOf((*MockRegisterKeeper)(nil).GetProver))
 }
 
 // MockPotKeeper is a mock of PotKeeper interface.

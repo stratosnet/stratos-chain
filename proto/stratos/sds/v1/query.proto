@@ -11,11 +11,6 @@ option go_package = "github.com/stratosnet/stratos-chain/x/sds/types";
 
 // Query defines the gRPC querier service.
 service Query {
-  // Query uploaded file info by hash
-  rpc Fileupload(QueryFileUploadRequest) returns (QueryFileUploadResponse) {
-    option (google.api.http).get = "/stratos/sds/v1/file_upload/{file_hash}";
-  }
-
   rpc SimPrepay(QuerySimPrepayRequest) returns (QuerySimPrepayResponse){
     option (google.api.http).get = "/stratos/sds/v1/sim_prepay/{amount}";
   }
@@ -33,16 +28,16 @@ service Query {
     option (google.api.http).get = "/stratos/sds/v1/params";
   }
 
-}
-// QueryFileuploadRequest is request type for the Query/Fileupload RPC method
-message QueryFileUploadRequest {
-  // network_addr defines the node network address to query for.
-  string file_hash = 1;
-}
+  rpc MerkleRoot(QueryMerkleRootRequest) returns (QueryMerkleRootResponse) {
+    option (google.api.http).get = "/stratos/sds/v1/merkle_root/{height}";
+  }
 
-// QueryFileuploadResponse is response type for the Query/Fileupload RPC method
-message QueryFileUploadResponse {
-  FileInfo file_info = 1;
+  rpc VerifyUpload(QueryVerifyUploadRequest) returns (QueryVerifyUploadResponse) {
+    option (google.api.http) = {
+      post: "/stratos/sds/v1/verify_upload"
+      body: "*"
+    };
+  }
 }
 
 message QuerySimPrepayRequest {
@@ -99,6 +94,42 @@ message QueryParamsResponse {
   Params params = 1;
 }
 
+message QueryMerkleRootRequest {
+  int64 height = 1 [
+    (gogoproto.jsontag) = "height",
+    (gogoproto.moretags) = "yaml:\"height\""
+  ];
+}
 
+message QueryMerkleRootResponse {
+  string root = 1 [
+    (gogoproto.jsontag) = "root",
+    (gogoproto.moretags) = "yaml:\"root\""
+  ];
+}
 
+message QueryVerifyUploadRequest {
+  int64 height = 1 [
+    (gogoproto.jsontag) = "height",
+    (gogoproto.moretags) = "yaml:\"height\""
+  ];
+  string file_hash = 2 [
+    (gogoproto.jsontag) = "file_hash",
+    (gogoproto.moretags) = "yaml:\"file_hash\""
+  ];
+  string proof = 3 [
+    (gogoproto.jsontag) = "proof",
+    (gogoproto.moretags) = "yaml:\"proof\""
+  ];
+}
 
+message QueryVerifyUploadResponse {
+  bool verified = 1 [
+    (gogoproto.jsontag) = "verified",
+    (gogoproto.moretags) = "yaml:\"verified\""
+  ];
+  string error = 2 [
+    (gogoproto.jsontag) = "error",
+    (gogoproto.moretags) = "yaml:\"error\""
+  ];
+}

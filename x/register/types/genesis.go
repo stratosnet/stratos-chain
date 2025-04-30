@@ -22,6 +22,8 @@ func NewGenesisState(params Params,
 	metaNodeRegVotePool []MetaNodeRegistrationVotePool,
 	unbondingNodes []UnbondingNode,
 	kickMetaNodeVotePool []KickMetaNodeVotePool,
+	merkleRoot []byte,
+	commitments []Commitment,
 ) *GenesisState {
 	return &GenesisState{
 		Params:               params,
@@ -33,6 +35,8 @@ func NewGenesisState(params Params,
 		MetaNodeRegVotePool:  metaNodeRegVotePool,
 		UnbondingNodes:       unbondingNodes,
 		KickMetaNodeVotePool: kickMetaNodeVotePool,
+		MerkleRoot:           merkleRoot,
+		Commitments:          commitments,
 	}
 }
 
@@ -48,6 +52,8 @@ func DefaultGenesisState() *GenesisState {
 		MetaNodeRegVotePool:  make([]MetaNodeRegistrationVotePool, 0),
 		UnbondingNodes:       make([]UnbondingNode, 0),
 		KickMetaNodeVotePool: make([]KickMetaNodeVotePool, 0),
+		MerkleRoot:           nil,
+		Commitments:          make([]Commitment, 0),
 	}
 }
 

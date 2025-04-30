@@ -2,9 +2,11 @@ package keeper
 
 import (
 	"context"
-	"fmt"
+	"encoding/base64"
 
-	"github.com/ipfs/go-cid"
+	"github.com/cometbft/cometbft/crypto/merkle"
+	"github.com/cometbft/cometbft/proto/tendermint/crypto"
+	"github.com/cosmos/gogoproto/proto"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -18,30 +20,6 @@ var _ types.QueryServer = Querier{}
 // Querier is used as Keeper will have duplicate methods if used directly, and gRPC names take precedence over keeper
 type Querier struct {
 	Keeper
-}
-
-func (q Querier) Fileupload(c context.Context, req *types.QueryFileUploadRequest) (*types.QueryFileUploadResponse, error) {
-	if req == nil {
-		return &types.QueryFileUploadResponse{}, status.Error(codes.InvalidArgument, "empty request")
-	}
-
-	if req.GetFileHash() == "" {
-		return &types.QueryFileUploadResponse{}, status.Error(codes.InvalidArgument, " Network address cannot be empty")
-	}
-
-	_, err := cid.Decode(req.GetFileHash())
-	if err != nil {
-		return &types.QueryFileUploadResponse{}, fmt.Errorf("invalid file hash %w", err)
-	}
-
-	ctx := sdk.UnwrapSDKContext(c)
-
-	fileInfo, found := q.GetFileInfoByFileHash(ctx, []byte(req.GetFileHash()))
-	if !found {
-		return &types.QueryFileUploadResponse{}, types.ErrNoFileFound
-	}
-
-	return &types.QueryFileUploadResponse{FileInfo: &fileInfo}, nil
 }
 
 func (q Querier) SimPrepay(c context.Context, request *types.QuerySimPrepayRequest) (*types.QuerySimPrepayResponse, error) {
@@ -78,4 +56,51 @@ func (q Querier) Params(c context.Context, _ *types.QueryParamsRequest) (*types.
 	ctx := sdk.UnwrapSDKContext(c)
 	params := q.GetParams(ctx)
 	return &types.QueryParamsResponse{Params: &params}, nil
+}
+
+func (q Querier) MerkleRoot(c context.Context, request *types.QueryMerkleRootRequest) (*types.QueryMerkleRootResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+	if request.Height < 1 {
+		return &types.QueryMerkleRootResponse{
+			Root: base64.StdEncoding.EncodeToString(q.GetMerkleRoot(ctx)),
+		}, nil
+	}
+	return &types.QueryMerkleRootResponse{
+		Root: base64.StdEncoding.EncodeToString(q.GetMerkleRootByHeight(ctx, request.Height)),
+	}, nil
+}
+
+func (q Querier) VerifyUpload(c context.Context, request *types.QueryVerifyUploadRequest) (*types.QueryVerifyUploadResponse, error) {
+	ctx := sdk.UnwrapSDKContext(c)
+
+	if len(request.Proof) == 0 {
+		return &types.QueryVerifyUploadResponse{Verified: false, Error: "proof is missing (files before v13 have no proof)"}, nil
+	}
+	if len(request.FileHash) == 0 {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "filehash is missing")
+	}
+
+	proofBytes, err := base64.StdEncoding.DecodeString(request.Proof)
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "proof is not base64 encoded")
+	}
+	protoProof := &crypto.Proof{}
+	err = proto.Unmarshal(proofBytes, protoProof)
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "proof is not a valid crypto proof protobuf object")
+	}
+	merkleProof, err := merkle.ProofFromProto(protoProof)
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{}, status.Error(codes.InvalidArgument, "proof is not a valid merkle proof protobuf object")
+	}
+
+	merkleRoot := q.GetMerkleRootByHeight(ctx, request.Height)
+	err = merkleProof.Verify(merkleRoot, []byte(request.FileHash))
+	if err != nil {
+		return &types.QueryVerifyUploadResponse{
+			Verified: false,
+			Error:    err.Error(),
+		}, nil
+	}
+	return &types.QueryVerifyUploadResponse{Verified: true}, nil
 }

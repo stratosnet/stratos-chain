@@ -1,6 +1,9 @@
 package merkle
 
-import "github.com/ethereum/go-ethereum/common"
+import (
+	"github.com/cometbft/cometbft/crypto/merkle"
+	"github.com/ethereum/go-ethereum/common"
+)
 
 // NullCommitment used to generate empty commitment for new root link as hash(newRoot, sha256([]byte{})).
 // Basically it is sha256([]byte{})
@@ -38,4 +41,5 @@ type MerkleProver interface {
 	GetRoot(root []byte, commitments [][]byte) []byte
 	CreateProofs(roots [][]byte, commitments [][]byte) (MerkleProofData, error)
 	VerifyProofs(rootHash []byte, data [][]byte) (bool, error)
+	CreateFileUploadProofs(rootHash []byte, fileHashes []string) ([]byte, []*merkle.Proof)
 }

@@ -6,14 +6,12 @@ import (
 
 	"github.com/cosmos/cosmos-sdk/codec"
 	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
-
-	"github.com/stratosnet/stratos-chain/app"
-
+	moduletestutil "github.com/cosmos/cosmos-sdk/types/module/testutil"
 	"github.com/stretchr/testify/require"
 )
 
 func initCodec() codec.Codec {
-	encodingConfig := app.MakeTestEncodingConfig()
+	encodingConfig := moduletestutil.MakeTestEncodingConfig()
 	cdc := encodingConfig.Codec
 	return cdc
 }
@@ -64,8 +62,8 @@ func TestSdsPubKeyFromBech32(t *testing.T) {
 			"2OAeLO0+KrBkSxuFKU1ofJqGb4RtA8GpD8XCZlMYw2A=", false},
 	}
 
-	cfg := GetConfig()
-	cfg.Seal()
+	//cfg := GetConfig()
+	//cfg.Seal()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			pubKey, err := SdsPubKeyFromBech32(tt.bech32PubKey)

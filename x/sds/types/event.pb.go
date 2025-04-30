@@ -160,33 +160,172 @@ func (m *EventFileUpload) GetFileHash() string {
 	return ""
 }
 
+// EventNewFilesUploaded is emitted in EndBlocker on Msg/MsgFileUpload
+type EventNewFilesUploaded struct {
+	Height int64                 `protobuf:"varint,1,opt,name=height,proto3" json:"height,omitempty"`
+	Proofs []*NewFileMerkleProof `protobuf:"bytes,2,rep,name=proofs,proto3" json:"proofs,omitempty"`
+}
+
+func (m *EventNewFilesUploaded) Reset()         { *m = EventNewFilesUploaded{} }
+func (m *EventNewFilesUploaded) String() string { return proto.CompactTextString(m) }
+func (*EventNewFilesUploaded) ProtoMessage()    {}
+func (*EventNewFilesUploaded) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2681e45d6d6589b1, []int{2}
+}
+func (m *EventNewFilesUploaded) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *EventNewFilesUploaded) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_EventNewFilesUploaded.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *EventNewFilesUploaded) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_EventNewFilesUploaded.Merge(m, src)
+}
+func (m *EventNewFilesUploaded) XXX_Size() int {
+	return m.Size()
+}
+func (m *EventNewFilesUploaded) XXX_DiscardUnknown() {
+	xxx_messageInfo_EventNewFilesUploaded.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_EventNewFilesUploaded proto.InternalMessageInfo
+
+func (m *EventNewFilesUploaded) GetHeight() int64 {
+	if m != nil {
+		return m.Height
+	}
+	return 0
+}
+
+func (m *EventNewFilesUploaded) GetProofs() []*NewFileMerkleProof {
+	if m != nil {
+		return m.Proofs
+	}
+	return nil
+}
+
+type NewFileMerkleProof struct {
+	FileHash string   `protobuf:"bytes,1,opt,name=file_hash,json=fileHash,proto3" json:"file_hash,omitempty"`
+	Total    int64    `protobuf:"varint,2,opt,name=total,proto3" json:"total,omitempty"`
+	Index    int64    `protobuf:"varint,3,opt,name=index,proto3" json:"index,omitempty"`
+	LeafHash []byte   `protobuf:"bytes,4,opt,name=leaf_hash,json=leafHash,proto3" json:"leaf_hash,omitempty"`
+	Aunts    [][]byte `protobuf:"bytes,5,rep,name=aunts,proto3" json:"aunts,omitempty"`
+}
+
+func (m *NewFileMerkleProof) Reset()         { *m = NewFileMerkleProof{} }
+func (m *NewFileMerkleProof) String() string { return proto.CompactTextString(m) }
+func (*NewFileMerkleProof) ProtoMessage()    {}
+func (*NewFileMerkleProof) Descriptor() ([]byte, []int) {
+	return fileDescriptor_2681e45d6d6589b1, []int{3}
+}
+func (m *NewFileMerkleProof) XXX_Unmarshal(b []byte) error {
+	return m.Unmarshal(b)
+}
+func (m *NewFileMerkleProof) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	if deterministic {
+		return xxx_messageInfo_NewFileMerkleProof.Marshal(b, m, deterministic)
+	} else {
+		b = b[:cap(b)]
+		n, err := m.MarshalToSizedBuffer(b)
+		if err != nil {
+			return nil, err
+		}
+		return b[:n], nil
+	}
+}
+func (m *NewFileMerkleProof) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_NewFileMerkleProof.Merge(m, src)
+}
+func (m *NewFileMerkleProof) XXX_Size() int {
+	return m.Size()
+}
+func (m *NewFileMerkleProof) XXX_DiscardUnknown() {
+	xxx_messageInfo_NewFileMerkleProof.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_NewFileMerkleProof proto.InternalMessageInfo
+
+func (m *NewFileMerkleProof) GetFileHash() string {
+	if m != nil {
+		return m.FileHash
+	}
+	return ""
+}
+
+func (m *NewFileMerkleProof) GetTotal() int64 {
+	if m != nil {
+		return m.Total
+	}
+	return 0
+}
+
+func (m *NewFileMerkleProof) GetIndex() int64 {
+	if m != nil {
+		return m.Index
+	}
+	return 0
+}
+
+func (m *NewFileMerkleProof) GetLeafHash() []byte {
+	if m != nil {
+		return m.LeafHash
+	}
+	return nil
+}
+
+func (m *NewFileMerkleProof) GetAunts() [][]byte {
+	if m != nil {
+		return m.Aunts
+	}
+	return nil
+}
+
 func init() {
 	proto.RegisterType((*EventPrePay)(nil), "stratos.sds.v1.EventPrePay")
 	proto.RegisterType((*EventFileUpload)(nil), "stratos.sds.v1.EventFileUpload")
+	proto.RegisterType((*EventNewFilesUploaded)(nil), "stratos.sds.v1.EventNewFilesUploaded")
+	proto.RegisterType((*NewFileMerkleProof)(nil), "stratos.sds.v1.NewFileMerkleProof")
 }
 
 func init() { proto.RegisterFile("stratos/sds/v1/event.proto", fileDescriptor_2681e45d6d6589b1) }
 
 var fileDescriptor_2681e45d6d6589b1 = []byte{
-	// 287 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x90, 0x4f, 0x4b, 0xc3, 0x30,
-	0x18, 0xc6, 0x1b, 0x95, 0xb1, 0x65, 0xfe, 0x81, 0x1e, 0xa4, 0x4c, 0x08, 0x63, 0x5e, 0xbc, 0xd8,
-	0x30, 0xfc, 0x06, 0x82, 0xa2, 0x17, 0x19, 0x82, 0x17, 0x2f, 0x23, 0x6d, 0xdf, 0x99, 0x40, 0x97,
-	0x94, 0x24, 0x2d, 0x76, 0x07, 0x4f, 0x7e, 0x00, 0x3f, 0x96, 0xc7, 0x1d, 0x3d, 0x4a, 0xfb, 0x45,
-	0xa4, 0x59, 0x2c, 0x5e, 0xbc, 0xbd, 0xcf, 0xfb, 0xe3, 0x81, 0x1f, 0x0f, 0x9e, 0x18, 0xab, 0x99,
-	0x55, 0x86, 0x9a, 0xcc, 0xd0, 0x6a, 0x4e, 0xa1, 0x02, 0x69, 0xe3, 0x42, 0x2b, 0xab, 0xc2, 0x63,
-	0xcf, 0x62, 0x93, 0x99, 0xb8, 0x9a, 0xcf, 0xde, 0x11, 0x1e, 0xdf, 0x74, 0x7c, 0xa1, 0x61, 0xc1,
-	0xea, 0xf0, 0x14, 0x0f, 0x0c, 0xc8, 0x0c, 0x74, 0x84, 0xa6, 0xe8, 0x62, 0xf4, 0xe8, 0x53, 0x38,
-	0xc5, 0xe3, 0x04, 0x24, 0xac, 0x44, 0x2a, 0x98, 0xae, 0xa3, 0x3d, 0x07, 0xff, 0xbe, 0xba, 0x26,
-	0x5b, 0xab, 0x52, 0xda, 0x68, 0x7f, 0xd7, 0xdc, 0xa5, 0xf0, 0x1c, 0x1f, 0x15, 0xa5, 0x4e, 0x39,
-	0x33, 0x90, 0x2d, 0xa5, 0xda, 0x44, 0x07, 0x0e, 0x1f, 0xf6, 0xcf, 0x07, 0xb5, 0x99, 0xbd, 0xe1,
-	0x13, 0x67, 0x71, 0x2b, 0x72, 0x78, 0x2a, 0x72, 0xc5, 0xb2, 0x7f, 0x4d, 0x26, 0x78, 0xa8, 0xa1,
-	0x50, 0xda, 0x82, 0xf6, 0x1a, 0x7d, 0xee, 0x58, 0xe9, 0xda, 0xa0, 0xbd, 0x45, 0x9f, 0xc3, 0x33,
-	0x3c, 0x5a, 0x89, 0x1c, 0x96, 0x9c, 0x19, 0xee, 0x1d, 0x86, 0xdd, 0xe3, 0x8e, 0x19, 0x7e, 0x7d,
-	0xff, 0xd9, 0x10, 0xb4, 0x6d, 0x08, 0xfa, 0x6e, 0x08, 0xfa, 0x68, 0x49, 0xb0, 0x6d, 0x49, 0xf0,
-	0xd5, 0x92, 0xe0, 0x99, 0xbe, 0x08, 0xcb, 0xcb, 0x24, 0x4e, 0xd5, 0x9a, 0xfa, 0xed, 0x24, 0xd8,
-	0xdf, 0xf3, 0x32, 0xe5, 0x4c, 0x48, 0xfa, 0xea, 0xa6, 0xb6, 0x75, 0x01, 0x26, 0x19, 0xb8, 0xa1,
-	0xaf, 0x7e, 0x02, 0x00, 0x00, 0xff, 0xff, 0xd9, 0xe7, 0x17, 0x76, 0x86, 0x01, 0x00, 0x00,
+	// 403 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x74, 0x92, 0x31, 0xaf, 0xd3, 0x30,
+	0x14, 0x85, 0xeb, 0x17, 0x5e, 0xd5, 0xe7, 0x16, 0x90, 0x2c, 0x40, 0xd1, 0x43, 0x8a, 0xa2, 0xb0,
+	0x74, 0x21, 0xd1, 0x83, 0x8d, 0x11, 0x09, 0x04, 0x03, 0x4f, 0x55, 0x24, 0x16, 0x96, 0xca, 0x4d,
+	0x6e, 0x6a, 0xab, 0xa9, 0x1d, 0xd9, 0x4e, 0x69, 0x3b, 0x30, 0xf1, 0x03, 0xfa, 0xb3, 0x18, 0x3b,
+	0x32, 0xa2, 0xf6, 0x8f, 0x20, 0x3b, 0x6e, 0xa1, 0x42, 0x6c, 0x39, 0xe7, 0xe4, 0xde, 0x7c, 0x27,
+	0xba, 0xf8, 0x56, 0x1b, 0x45, 0x8d, 0xd4, 0x99, 0x2e, 0x75, 0xb6, 0xba, 0xcb, 0x60, 0x05, 0xc2,
+	0xa4, 0x8d, 0x92, 0x46, 0x92, 0x47, 0x3e, 0x4b, 0x75, 0xa9, 0xd3, 0xd5, 0x5d, 0xf2, 0x1d, 0xe1,
+	0xe1, 0x3b, 0x9b, 0x4f, 0x14, 0x4c, 0xe8, 0x86, 0x3c, 0xc3, 0x7d, 0x0d, 0xa2, 0x04, 0x15, 0xa2,
+	0x18, 0x8d, 0x6f, 0x72, 0xaf, 0x48, 0x8c, 0x87, 0x33, 0x10, 0x50, 0xf1, 0x82, 0x53, 0xb5, 0x09,
+	0xaf, 0x5c, 0xf8, 0xb7, 0x65, 0x27, 0xe9, 0x52, 0xb6, 0xc2, 0x84, 0x41, 0x37, 0xd9, 0x29, 0xf2,
+	0x02, 0x3f, 0x6c, 0x5a, 0x55, 0x30, 0xaa, 0xa1, 0x9c, 0x0a, 0xb9, 0x0d, 0x1f, 0xb8, 0x78, 0x74,
+	0x36, 0xef, 0xe5, 0x36, 0xf9, 0x86, 0x1f, 0x3b, 0x8a, 0xf7, 0xbc, 0x86, 0xcf, 0x4d, 0x2d, 0x69,
+	0xf9, 0x5f, 0x92, 0x5b, 0x3c, 0x50, 0xd0, 0x48, 0x65, 0x40, 0x79, 0x8c, 0xb3, 0xb6, 0x59, 0xeb,
+	0xa6, 0x41, 0x79, 0x8a, 0xb3, 0x26, 0xcf, 0xf1, 0x4d, 0xc5, 0x6b, 0x98, 0x32, 0xaa, 0x99, 0x67,
+	0x18, 0x58, 0xe3, 0x03, 0xd5, 0x2c, 0x59, 0xe0, 0xa7, 0xee, 0xfb, 0xf7, 0xf0, 0xd5, 0x22, 0xe8,
+	0x8e, 0x01, 0x1c, 0x05, 0x03, 0x3e, 0x67, 0xc6, 0x51, 0x04, 0xb9, 0x57, 0xe4, 0x0d, 0xee, 0x37,
+	0x4a, 0xca, 0x4a, 0x87, 0x57, 0x71, 0x30, 0x1e, 0xbe, 0x4a, 0xd2, 0xcb, 0x1f, 0x9b, 0xfa, 0x4d,
+	0x9f, 0x40, 0x2d, 0x6a, 0x98, 0xd8, 0x57, 0x73, 0x3f, 0x91, 0xec, 0x10, 0x26, 0xff, 0xc6, 0x97,
+	0x80, 0xe8, 0x12, 0x90, 0x3c, 0xc1, 0xd7, 0x46, 0x1a, 0x5a, 0xbb, 0xca, 0x41, 0xde, 0x09, 0xeb,
+	0x72, 0x51, 0xc2, 0xda, 0x95, 0x0d, 0xf2, 0x4e, 0xd8, 0x45, 0x35, 0xd0, 0xea, 0x4f, 0xd3, 0x51,
+	0x3e, 0xb0, 0xc6, 0x69, 0x11, 0x6d, 0x85, 0xd1, 0xe1, 0x75, 0x1c, 0x8c, 0x47, 0x79, 0x27, 0xde,
+	0x7e, 0xfc, 0x71, 0x88, 0xd0, 0xfe, 0x10, 0xa1, 0x5f, 0x87, 0x08, 0xed, 0x8e, 0x51, 0x6f, 0x7f,
+	0x8c, 0x7a, 0x3f, 0x8f, 0x51, 0xef, 0x4b, 0x36, 0xe7, 0x86, 0xb5, 0xb3, 0xb4, 0x90, 0xcb, 0xcc,
+	0x57, 0x14, 0x60, 0x4e, 0x8f, 0x2f, 0x0b, 0x46, 0xb9, 0xc8, 0xd6, 0xee, 0xd4, 0xcc, 0xa6, 0x01,
+	0x3d, 0xeb, 0xbb, 0x43, 0x7b, 0xfd, 0x3b, 0x00, 0x00, 0xff, 0xff, 0xd6, 0xd8, 0x90, 0x0a, 0x86,
+	0x02, 0x00, 0x00,
 }
 
 func (m *EventPrePay) Marshal() (dAtA []byte, err error) {
@@ -291,6 +430,104 @@ func (m *EventFileUpload) MarshalToSizedBuffer(dAtA []byte) (int, error) {
 	return len(dAtA) - i, nil
 }
 
+func (m *EventNewFilesUploaded) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *EventNewFilesUploaded) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *EventNewFilesUploaded) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Proofs) > 0 {
+		for iNdEx := len(m.Proofs) - 1; iNdEx >= 0; iNdEx-- {
+			{
+				size, err := m.Proofs[iNdEx].MarshalToSizedBuffer(dAtA[:i])
+				if err != nil {
+					return 0, err
+				}
+				i -= size
+				i = encodeVarintEvent(dAtA, i, uint64(size))
+			}
+			i--
+			dAtA[i] = 0x12
+		}
+	}
+	if m.Height != 0 {
+		i = encodeVarintEvent(dAtA, i, uint64(m.Height))
+		i--
+		dAtA[i] = 0x8
+	}
+	return len(dAtA) - i, nil
+}
+
+func (m *NewFileMerkleProof) Marshal() (dAtA []byte, err error) {
+	size := m.Size()
+	dAtA = make([]byte, size)
+	n, err := m.MarshalToSizedBuffer(dAtA[:size])
+	if err != nil {
+		return nil, err
+	}
+	return dAtA[:n], nil
+}
+
+func (m *NewFileMerkleProof) MarshalTo(dAtA []byte) (int, error) {
+	size := m.Size()
+	return m.MarshalToSizedBuffer(dAtA[:size])
+}
+
+func (m *NewFileMerkleProof) MarshalToSizedBuffer(dAtA []byte) (int, error) {
+	i := len(dAtA)
+	_ = i
+	var l int
+	_ = l
+	if len(m.Aunts) > 0 {
+		for iNdEx := len(m.Aunts) - 1; iNdEx >= 0; iNdEx-- {
+			i -= len(m.Aunts[iNdEx])
+			copy(dAtA[i:], m.Aunts[iNdEx])
+			i = encodeVarintEvent(dAtA, i, uint64(len(m.Aunts[iNdEx])))
+			i--
+			dAtA[i] = 0x2a
+		}
+	}
+	if len(m.LeafHash) > 0 {
+		i -= len(m.LeafHash)
+		copy(dAtA[i:], m.LeafHash)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.LeafHash)))
+		i--
+		dAtA[i] = 0x22
+	}
+	if m.Index != 0 {
+		i = encodeVarintEvent(dAtA, i, uint64(m.Index))
+		i--
+		dAtA[i] = 0x18
+	}
+	if m.Total != 0 {
+		i = encodeVarintEvent(dAtA, i, uint64(m.Total))
+		i--
+		dAtA[i] = 0x10
+	}
+	if len(m.FileHash) > 0 {
+		i -= len(m.FileHash)
+		copy(dAtA[i:], m.FileHash)
+		i = encodeVarintEvent(dAtA, i, uint64(len(m.FileHash)))
+		i--
+		dAtA[i] = 0xa
+	}
+	return len(dAtA) - i, nil
+}
+
 func encodeVarintEvent(dAtA []byte, offset int, v uint64) int {
 	offset -= sovEvent(v)
 	base := offset
@@ -348,6 +585,53 @@ func (m *EventFileUpload) Size() (n int) {
 	l = len(m.FileHash)
 	if l > 0 {
 		n += 1 + l + sovEvent(uint64(l))
+	}
+	return n
+}
+
+func (m *EventNewFilesUploaded) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	if m.Height != 0 {
+		n += 1 + sovEvent(uint64(m.Height))
+	}
+	if len(m.Proofs) > 0 {
+		for _, e := range m.Proofs {
+			l = e.Size()
+			n += 1 + l + sovEvent(uint64(l))
+		}
+	}
+	return n
+}
+
+func (m *NewFileMerkleProof) Size() (n int) {
+	if m == nil {
+		return 0
+	}
+	var l int
+	_ = l
+	l = len(m.FileHash)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	if m.Total != 0 {
+		n += 1 + sovEvent(uint64(m.Total))
+	}
+	if m.Index != 0 {
+		n += 1 + sovEvent(uint64(m.Index))
+	}
+	l = len(m.LeafHash)
+	if l > 0 {
+		n += 1 + l + sovEvent(uint64(l))
+	}
+	if len(m.Aunts) > 0 {
+		for _, b := range m.Aunts {
+			l = len(b)
+			n += 1 + l + sovEvent(uint64(l))
+		}
 	}
 	return n
 }
@@ -692,6 +976,295 @@ func (m *EventFileUpload) Unmarshal(dAtA []byte) error {
 				return io.ErrUnexpectedEOF
 			}
 			m.FileHash = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *EventNewFilesUploaded) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: EventNewFilesUploaded: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: EventNewFilesUploaded: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Height", wireType)
+			}
+			m.Height = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Height |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Proofs", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				msglen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + msglen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Proofs = append(m.Proofs, &NewFileMerkleProof{})
+			if err := m.Proofs[len(m.Proofs)-1].Unmarshal(dAtA[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipEvent(dAtA[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if (skippy < 0) || (iNdEx+skippy) < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
+}
+func (m *NewFileMerkleProof) Unmarshal(dAtA []byte) error {
+	l := len(dAtA)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowEvent
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := dAtA[iNdEx]
+			iNdEx++
+			wire |= uint64(b&0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: NewFileMerkleProof: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: NewFileMerkleProof: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field FileHash", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				stringLen |= uint64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.FileHash = string(dAtA[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Total", wireType)
+			}
+			m.Total = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Total |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 3:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Index", wireType)
+			}
+			m.Index = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				m.Index |= int64(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 4:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field LeafHash", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.LeafHash = append(m.LeafHash[:0], dAtA[iNdEx:postIndex]...)
+			if m.LeafHash == nil {
+				m.LeafHash = []byte{}
+			}
+			iNdEx = postIndex
+		case 5:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Aunts", wireType)
+			}
+			var byteLen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowEvent
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := dAtA[iNdEx]
+				iNdEx++
+				byteLen |= int(b&0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if byteLen < 0 {
+				return ErrInvalidLengthEvent
+			}
+			postIndex := iNdEx + byteLen
+			if postIndex < 0 {
+				return ErrInvalidLengthEvent
+			}
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Aunts = append(m.Aunts, make([]byte, postIndex-iNdEx))
+			copy(m.Aunts[len(m.Aunts)-1], dAtA[iNdEx:postIndex])
 			iNdEx = postIndex
 		default:
 			iNdEx = preIndex

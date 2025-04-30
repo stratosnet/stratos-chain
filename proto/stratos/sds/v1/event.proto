@@ -18,3 +18,17 @@ message EventFileUpload {
   string uploader = 3;
   string file_hash = 4;
 }
+
+// EventNewFilesUploaded is emitted in EndBlocker on Msg/MsgFileUpload
+message EventNewFilesUploaded {
+  int64 height = 1;
+  repeated NewFileMerkleProof proofs = 2;
+}
+
+message NewFileMerkleProof {
+  string file_hash = 1;
+  int64 total = 2;
+  int64 index = 3;
+  bytes leaf_hash = 4;
+  repeated bytes aunts = 5;
+}

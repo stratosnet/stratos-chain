@@ -1,8 +1,6 @@
 package keeper
 
 import (
-	"github.com/kelindar/bitmap"
-
 	"github.com/cometbft/cometbft/libs/log"
 
 	"cosmossdk.io/errors"
@@ -11,6 +9,7 @@ import (
 	storetypes "github.com/cosmos/cosmos-sdk/store/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
+	"github.com/stratosnet/stratos-chain/crypto/merkle"
 	stratos "github.com/stratosnet/stratos-chain/types"
 	registertypes "github.com/stratosnet/stratos-chain/x/register/types"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
@@ -56,28 +55,18 @@ func (k Keeper) Logger(ctx sdk.Context) log.Logger {
 	return ctx.Logger().With("module", "x/"+types.ModuleName)
 }
 
-func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.SdsAddress, reporterOwner, uploader sdk.AccAddress) (err error) {
+func (k Keeper) FileUpload(ctx sdk.Context, fileHash string, reporter stratos.SdsAddress, reporterOwner sdk.AccAddress) (err error) {
 	if !(k.registerKeeper.OwnMetaNode(ctx, reporterOwner, reporter)) {
 		return types.ErrReporterAddressOrOwner
 	}
 
-	var fileUploadReporters bitmap.Bitmap
-	// query exist fileInfo which sent by other meta node
-	fileInfo, found := k.GetFileInfoByFileHash(ctx, []byte(fileHash))
-	if !found {
-		fileUploadReporters = bitmap.Bitmap{}
-	} else {
-		fileUploadReporters = bitmap.FromBytes(fileInfo.GetReporters())
-	}
-	reporterIndex, err := k.registerKeeper.GetMetaNodeBitMapIndex(ctx, reporter)
-	fileUploadReporters.Set(uint32(reporterIndex))
-	height := sdkmath.NewInt(ctx.BlockHeight())
-
-	newFileInfo := types.NewFileInfo(height, fileUploadReporters.ToBytes(), uploader.String())
-
-	k.SetFileInfo(ctx, []byte(fileHash), newFileInfo)
+	k.AddNewFile(ctx, []byte(fileHash))
 
 	return nil
+}
+
+func (k Keeper) GetMerkleProver() merkle.MerkleProver {
+	return k.registerKeeper.GetProver()
 }
 
 // [S] is the initial genesis deposit by all Resource Nodes and Meta Nodes at t=0

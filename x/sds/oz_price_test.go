@@ -626,7 +626,7 @@ func setupMsgRemoveResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resO
 }
 func setupMsgCreateResourceNode(i int, resNodeNetworkId stratos.SdsAddress, resNodePubKey cryptotypes.PubKey, resOwner sdk.AccAddress) *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeNetworkId, resNodePubKey, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner, resOwner, registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
@@ -641,29 +641,29 @@ func setupUnsuspendMsgByIndex(i int, resNodeNetworkId stratos.SdsAddress, resOwn
 
 func setupMsgCreateResourceNode1() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 func setupMsgCreateResourceNode2() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 func setupMsgCreateResourceNode3() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
 func setupMsgCreateResourceNode4() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
 func setupMsgCreateResourceNode5() *registertypes.MsgCreateResourceNode {
 	nodeType := uint32(registertypes.STORAGE)
-	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
+	createResourceNodeMsg, _ := registertypes.NewMsgCreateResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, sdk.NewCoin(stratos.Wei, resNodeInitialDeposit), resOwner5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType)
 	return createResourceNodeMsg
 }
 
@@ -962,11 +962,11 @@ func setupAllResourceNodes() []registertypes.ResourceNode {
 
 	createTime, _ := time.Parse(time.RubyDate, "Fri Sep 24 10:37:13 -0400 2021")
 	nodeType := registertypes.STORAGE
-	resourceNode1, _ := registertypes.NewResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType, createTime)
-	resourceNode2, _ := registertypes.NewResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType, createTime)
-	resourceNode3, _ := registertypes.NewResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType, createTime)
-	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, createTime)
-	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, createTime)
+	resourceNode1, _ := registertypes.NewResourceNode(resNodeP2PAddr1, resNodeP2PPubKey1, resOwner1, resOwner1, registertypes.NewDescription("sds://resourceNode1", "", "", "", ""), nodeType, createTime)
+	resourceNode2, _ := registertypes.NewResourceNode(resNodeP2PAddr2, resNodeP2PPubKey2, resOwner2, resOwner2, registertypes.NewDescription("sds://resourceNode2", "", "", "", ""), nodeType, createTime)
+	resourceNode3, _ := registertypes.NewResourceNode(resNodeP2PAddr3, resNodeP2PPubKey3, resOwner3, resOwner3, registertypes.NewDescription("sds://resourceNode3", "", "", "", ""), nodeType, createTime)
+	resourceNode4, _ := registertypes.NewResourceNode(resNodeP2PAddr4, resNodeP2PPubKey4, resOwner4, resOwner4, registertypes.NewDescription("sds://resourceNode4", "", "", "", ""), nodeType, createTime)
+	resourceNode5, _ := registertypes.NewResourceNode(resNodeP2PAddr5, resNodeP2PPubKey5, resOwner5, resOwner5, registertypes.NewDescription("sds://resourceNode5", "", "", "", ""), nodeType, createTime)
 
 	resourceNode1 = resourceNode1.AddToken(resNodeInitialDeposit)
 	resourceNode2 = resourceNode2.AddToken(resNodeInitialDeposit)
@@ -1014,7 +1014,7 @@ func setupMultipleResourceNodes(resNodeP2PAddresses []stratos.SdsAddress, resNod
 	nodeType := registertypes.STORAGE
 
 	for i, _ := range resNodeP2PPubKeys {
-		resourceNodeTmp, _ := registertypes.NewResourceNode(resNodeP2PAddresses[i], resNodeP2PPubKeys[i], resOwners[i], registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType, createTime)
+		resourceNodeTmp, _ := registertypes.NewResourceNode(resNodeP2PAddresses[i], resNodeP2PPubKeys[i], resOwners[i], resOwners[i], registertypes.NewDescription("sds://resourceNode"+strconv.Itoa(i+1), "", "", "", ""), nodeType, createTime)
 		resourceNodeTmp = resourceNodeTmp.AddToken(resNodeInitialDeposit)
 		resourceNodeTmp.Status = stakingtypes.Bonded
 		resourceNodeTmp.EffectiveTokens = resNodeInitialDeposit

@@ -3,6 +3,7 @@ package keeper
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	v011 "github.com/stratosnet/stratos-chain/x/sds/legacy/v011"
+	v012 "github.com/stratosnet/stratos-chain/x/sds/legacy/v012"
 	"github.com/stratosnet/stratos-chain/x/sds/types"
 )
 
@@ -20,4 +21,9 @@ func NewMigrator(keeper Keeper, legacySubspace types.ParamsSubspace) Migrator {
 // Migrate1to2 migrates from version 1 to 2.
 func (m Migrator) Migrate1to2(ctx sdk.Context) error {
 	return v011.MigrateStore(ctx, m.keeper.storeKey, m.legacySubspace, m.keeper.cdc)
+}
+
+// Migrate2to3 migrates from version 2 to 3.
+func (m Migrator) Migrate2to3(ctx sdk.Context) error {
+	return v012.MigrateStore(ctx, m.keeper.storeKey)
 }
