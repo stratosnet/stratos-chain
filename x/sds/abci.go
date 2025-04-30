@@ -18,7 +18,6 @@ func BeginBlocker(_ sdk.Context, _ abci.RequestBeginBlock, _ keeper.Keeper) {
 // EndBlocker called every block, process inflation, update validator set.
 func EndBlocker(ctx sdk.Context, _ abci.RequestEndBlock, keeper keeper.Keeper) []abci.ValidatorUpdate {
 	previousRoot := keeper.GetMerkleRoot(ctx)
-	keeper.SetMerkleRootByHeight(ctx, ctx.BlockHeight(), previousRoot)
 
 	newFiles := keeper.ClearNewFiles(ctx)
 	if len(newFiles) == 0 {
