@@ -55,6 +55,8 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			totalSlashed = totalSlashed.Add(deducted...)
 
 			matureTotal := oldMatureTotal.Add(remaining...)
+			k.Logger(ctx).Info("before sub:", "individual", individualReward, "address", walletAddress, "processing epoch", processingEpoch)
+			k.Logger(ctx).Info("before sub: ", "immature total", oldImmatureTotal, "immature to mature", immatureToMature, "mature total", oldMatureTotal)
 			immatureTotal := oldImmatureTotal.Sub(immatureToMature...)
 
 			processCount++
