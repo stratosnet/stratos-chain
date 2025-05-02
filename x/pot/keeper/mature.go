@@ -57,7 +57,10 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			matureTotal := oldMatureTotal.Add(remaining...)
 			k.Logger(ctx).Info("before sub:", "individual", individualReward, "address", walletAddress, "processing epoch", processingEpoch)
 			k.Logger(ctx).Info("before sub: ", "immature total", oldImmatureTotal, "immature to mature", immatureToMature, "mature total", oldMatureTotal)
-			immatureTotal := oldImmatureTotal.Sub(immatureToMature...)
+			immatureTotal := oldImmatureTotal
+			if oldImmatureTotal.IsAllGTE(immatureToMature) {
+				immatureTotal = oldImmatureTotal.Sub(immatureToMature...)
+			}
 
 			processCount++
 
@@ -84,7 +87,7 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 	for _, key := range maturedIndividualKeys {
 		k.RemoveIndividualReward(ctx, key)
 	}
-
+	panic("pause the network")
 	return nil
 }
 
