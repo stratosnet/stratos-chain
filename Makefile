@@ -3,7 +3,7 @@
 BUILDDIR ?= $(CURDIR)/build
 LEDGER_ENABLED ?= false
 
-APP_VER := v0.12.2
+APP_VER := v0.12.3
 COMMIT := $(GIT_COMMIT_HASH)
 TEST_DOCKER_REPO=stratos-chain-e2e
 
