@@ -6,7 +6,7 @@ then
   echo "[entrypoint] Init stratos node..."
   su -s /bin/sh - $RUN_AS_USER -c "stchaind init stratos-node"
 
-  if [ "$CHAIN_ID" == "DEFAULT" ]
+  if [ "$CHAIN_ID" = "DEFAULT" ]
   then
     genesis_file_URL=https://raw.githubusercontent.com/stratosnet/stratos-chain-testnet/main/genesis.json
     config_file_URL=https://raw.githubusercontent.com/stratosnet/stratos-chain-testnet/main/config.toml

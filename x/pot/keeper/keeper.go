@@ -196,30 +196,31 @@ func (k Keeper) GetCirculationSupply(ctx sdk.Context) (circulationSupply sdk.Coi
 
 	totalSupply := k.bankKeeper.GetSupply(ctx, k.BondDenom(ctx))
 
-	validatorBondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.BondedPoolName)
-	validatorStaking := k.bankKeeper.GetBalance(ctx, validatorBondedPoolAcc, k.BondDenom(ctx))
+	// validatorBondedPoolAcc := k.accountKeeper.GetModuleAddress(stakingtypes.BondedPoolName)
+	// validatorStaking := k.bankKeeper.GetBalance(ctx, validatorBondedPoolAcc, k.BondDenom(ctx))
 
-	unbondingDelegation := k.getTotalUnbounding(ctx)
+	// unbondingDelegation := k.getTotalUnbounding(ctx)
 
-	resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.ResourceNodeBondedPool)
-	resourceNodeDeposit := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
+	// resourceNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.ResourceNodeBondedPool)
+	// resourceNodeDeposit := k.bankKeeper.GetBalance(ctx, resourceNodeBondedPoolAcc, k.BondDenom(ctx))
 
-	metaNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.MetaNodeNotBondedPool)
-	metaNodeDeposit := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
+	// metaNodeBondedPoolAcc := k.accountKeeper.GetModuleAddress(registertypes.MetaNodeNotBondedPool)
+	// metaNodeDeposit := k.bankKeeper.GetBalance(ctx, metaNodeBondedPoolAcc, k.BondDenom(ctx))
 
 	totalMining := k.GetTotalMining(ctx)
 	totalMinedTokens := k.GetTotalMinedTokens(ctx)
 
-	unissuedPrepayAcc := k.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
-	unissuedPrepay := k.bankKeeper.GetBalance(ctx, unissuedPrepayAcc, k.BondDenom(ctx))
+	// unissuedPrepayAcc := k.accountKeeper.GetModuleAddress(registertypes.TotalUnissuedPrepay)
+	// unissuedPrepay := k.bankKeeper.GetBalance(ctx, unissuedPrepayAcc, k.BondDenom(ctx))
 
+	// NOTE: Commented for now (no reason)
 	circulationSupplyStos := totalSupply.
-		Sub(validatorStaking).
-		Sub(unbondingDelegation).
-		Sub(resourceNodeDeposit).
-		Sub(metaNodeDeposit).
-		Sub(totalMining.Sub(totalMinedTokens)).
-		Sub(unissuedPrepay)
+		// Sub(validatorStaking).
+		// Sub(unbondingDelegation).
+		// Sub(resourceNodeDeposit).
+		// Sub(metaNodeDeposit).
+		Sub(totalMining.Sub(totalMinedTokens))
+		// Sub(unissuedPrepay)
 
 	circulationSupply = sdk.NewCoins(circulationSupplyStos)
 
