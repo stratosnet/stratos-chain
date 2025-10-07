@@ -55,6 +55,9 @@ func (k Keeper) RewardMatureAndSubSlashing(ctx sdk.Context) error {
 			totalSlashed = totalSlashed.Add(deducted...)
 
 			matureTotal := oldMatureTotal.Add(remaining...)
+			if immatureToMature.IsAnyGT(oldImmatureTotal) {
+				immatureToMature = oldImmatureTotal
+			}
 			immatureTotal := oldImmatureTotal.Sub(immatureToMature...)
 
 			processCount++
